@@ -28,20 +28,35 @@ func testLoadMarketsBody(ch chan any, exchange ccxt.ICoreExchange, skippedProper
 	Assert((symbolsLength == marketKeysLength), "number of .symbols is not equal to the number of .markets")
 	var marketValues []any = ObjectValues(markets)
 	for i := 0; i < len(marketValues); i++ {
-		TestMarket(exchange, skippedProperties, method, GetValue(marketValues, i))
+		TestMarket(exchange, skippedProperties, method, func() any {
+			if i >= 0 && i < len(marketValues) {
+				return DerefScalar(marketValues[i])
+			}
+			return nil
+		}())
 	}
 	// market-type coverage (inlined: a nested helper breaks Java emit into a missing TestLoadedMarketTypes class)
 	var marketTypes []any = []any{"spot", "swap", "future", "option", "index"}
 	var collectedTypes []any = []any{}
 	var allMarkets []any = ObjectValues(exchange.GetMarkets())
 	for i := 0; i < len(allMarkets); i++ {
-		var market any = GetValue(allMarkets, i)
+		var market any = func() any {
+			if i >= 0 && i < len(allMarkets) {
+				return DerefScalar(allMarkets[i])
+			}
+			return nil
+		}()
 		if !EvalTruthy(exchange.InArray(GetValue(market, "type"), collectedTypes)) {
 			collectedTypes = append(collectedTypes, GetValue(market, "type"))
 		}
 	}
 	for i := 0; i < len(marketTypes); i++ {
-		var mType any = GetValue(marketTypes, i)
+		var mType any = func() any {
+			if i >= 0 && i < len(marketTypes) {
+				return DerefScalar(marketTypes[i])
+			}
+			return nil
+		}()
 		if !IsEqual(GetValue(exchange.GetHas(), mType), nil) && !IsEqual(GetValue(exchange.GetHas(), mType), false) {
 			var skipMarketTypes bool = (InOp(skippedProperties, "optionsNotLoadedByDefault")) && (mType == "option")
 			Assert(EvalTruthy(exchange.InArray(mType, collectedTypes)) || skipMarketTypes, Add(Add(Add(Add("exchange.has[", mType), "] is true, but no markets of type "), mType), " were found in exchange.markets"))

@@ -868,7 +868,12 @@ func (this *Kalshi) ParseMarket(raw any) any {
 	var outcomes []any = []any{}
 	var resolvedOutcome any = nil
 	for oi := 0; oi < len(outcomeLabels); oi++ {
-		var label any = ccxt.GetValue(outcomeLabels, oi)
+		var label any = func() any {
+			if oi >= 0 && oi < len(outcomeLabels) {
+				return ccxt.DerefScalar(outcomeLabels[oi])
+			}
+			return nil
+		}()
 		var outcomeHandle any = this.SlugToOutcomeSymbol(eventTicker, subtitleOrTicker, label)
 		var winnerRaw any = nil
 		var settleFractionRaw any = nil
@@ -889,8 +894,18 @@ func (this *Kalshi) ParseMarket(raw any) any {
 		var winner any = winnerRaw
 		var settleFraction any = settleFractionRaw
 		outcomes = append(outcomes, map[string]any{
-			"id":             ccxt.GetValue(outcomeIds, oi),
-			"outcomeId":      ccxt.GetValue(outcomeIds, oi),
+			"id": func() any {
+				if oi >= 0 && oi < len(outcomeIds) {
+					return ccxt.DerefScalar(outcomeIds[oi])
+				}
+				return nil
+			}(),
+			"outcomeId": func() any {
+				if oi >= 0 && oi < len(outcomeIds) {
+					return ccxt.DerefScalar(outcomeIds[oi])
+				}
+				return nil
+			}(),
 			"outcome":        outcomeHandle,
 			"market":         marketSymbol,
 			"label":          label,
@@ -1364,7 +1379,12 @@ func (this *Kalshi) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var outcomesByTicker map[string]any = map[string]any{}
 	var tickers []any = []any{}
 	for i := 0; i < len(targets); i++ {
-		var outcomeObj any = this.Outcome(ccxt.GetValue(targets, i))
+		var outcomeObj any = this.Outcome(func() any {
+			if i >= 0 && i < len(targets) {
+				return ccxt.DerefScalar(targets[i])
+			}
+			return nil
+		}())
 		var ticker *string = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "ticker")
 		if ticker == nil {
 			continue
@@ -1993,7 +2013,12 @@ func (this *Kalshi) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var result []any = []any{}
 	for i := 0; i < len(trades); i++ {
-		var trade any = ccxt.GetValue(trades, i)
+		var trade any = func() any {
+			if i >= 0 && i < len(trades) {
+				return ccxt.DerefScalar(trades[i])
+			}
+			return nil
+		}()
 		if (ccxt.IsEqual(wantedOutcome, nil)) || (ccxt.IsEqual(this.SafeString(trade, "outcome"), wantedOutcome)) {
 			result = append(result, trade)
 		}
@@ -2277,7 +2302,12 @@ func (this *Kalshi) fetchSettlementsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var result []any = []any{}
 	for i := 0; i < len(parsed); i++ {
-		var settlement any = ccxt.GetValue(parsed, i)
+		var settlement any = func() any {
+			if i >= 0 && i < len(parsed) {
+				return ccxt.DerefScalar(parsed[i])
+			}
+			return nil
+		}()
 		if (ccxt.IsEqual(wantedOutcome, nil)) || (ccxt.IsEqual(this.SafeString(settlement, "outcome"), wantedOutcome)) {
 			result = append(result, settlement)
 		}
@@ -3226,7 +3256,12 @@ func (this *Kalshi) fetchEventsByQueryBody(ch chan any, queries any, limit any, 
 				}()
 				// try block:
 
-				fullEvent := (<-this.FetchRawEventByTickerAsync(ccxt.GetValue(eventTickers, ei), rest))
+				fullEvent := (<-this.FetchRawEventByTickerAsync(func() any {
+					if ei >= 0 && ei < len(eventTickers) {
+						return ccxt.DerefScalar(eventTickers[ei])
+					}
+					return nil
+				}(), rest))
 				ccxt.PanicOnError(fullEvent)
 				rawEvents = append(rawEvents, fullEvent)
 				return nil
@@ -3347,7 +3382,12 @@ func (this *Kalshi) resolveEventSeriesTickersBody(ch chan any, optionalArgs ...a
 	var ordered []any = []any{}
 	var collectedLength int = len(collected)
 	for ci := 0; ci < collectedLength; ci++ {
-		var st any = ccxt.GetValue(collected, ci)
+		var st any = func() any {
+			if ci >= 0 && ci < len(collected) {
+				return ccxt.DerefScalar(collected[ci])
+			}
+			return nil
+		}()
 		var already *string = this.SafeString(seen, st)
 		if (!ccxt.IsEqual(st, nil)) && (st != "") && (already == nil) {
 			ccxt.AddElementToObject(seen, st, st)

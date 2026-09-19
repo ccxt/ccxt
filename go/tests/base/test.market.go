@@ -130,7 +130,12 @@ func TestMarket(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 	// check if 'type' is consistent
 	var checkedTypes []any = []any{"spot", "swap", "future", "option"}
 	for i := 0; i < len(checkedTypes); i++ {
-		var typeVar any = GetValue(checkedTypes, i)
+		var typeVar any = func() any {
+			if i >= 0 && i < len(checkedTypes) {
+				return DerefScalar(checkedTypes[i])
+			}
+			return nil
+		}()
 		if IsEqual(GetValue(market, typeVar), true) {
 			Assert((typeVar == GetValue(market, "type")), Add(Add(Add(Add(Add("market.type (", GetValue(market, "type")), ") not equal to \""), typeVar), "\""), logText))
 		}
@@ -139,7 +144,12 @@ func TestMarket(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 	if (swap == true) || (future == true) {
 		var checkedSubTypes []any = []any{"linear", "inverse"}
 		for i := 0; i < len(checkedSubTypes); i++ {
-			var subType any = GetValue(checkedSubTypes, i)
+			var subType any = func() any {
+				if i >= 0 && i < len(checkedSubTypes) {
+					return DerefScalar(checkedSubTypes[i])
+				}
+				return nil
+			}()
 			if IsEqual(GetValue(market, subType), true) {
 				Assert(IsEqual(subType, GetValue(market, "subType")), Add(Add(Add(Add(Add("market.subType (", GetValue(market, "subType")), ") not equal to \""), subType), "\""), logText))
 			}

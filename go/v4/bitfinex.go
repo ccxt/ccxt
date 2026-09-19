@@ -907,7 +907,12 @@ func (this *Bitfinex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var markets []any = this.ArrayConcat(spotMarketsInfo, futuresMarketsInfo)
 	var result []any = []any{}
 	for i := 0; i < len(markets); i++ {
-		var pairObj any = GetValue(markets, i)
+		var pairObj any = func() any {
+			if i >= 0 && i < len(markets) {
+				return DerefScalar(markets[i])
+			}
+			return nil
+		}()
 		var id *string = this.SafeStringUpper(pairObj, 0)
 		var market any = this.SafeValue(pairObj, 1, map[string]any{})
 		var spot bool = true
@@ -1179,7 +1184,12 @@ func (this *Bitfinex) ParseCurrenciesCustom(ids any, indexed any, indexedNetwork
 	var result map[string]any = map[string]any{}
 	var arr []any = this.ToArray(allowedIds)
 	for i := 0; i < len(arr); i++ {
-		var parsed any = this.ParseCurrencyCustom(GetValue(arr, i), indexed, indexedNetworks)
+		var parsed any = this.ParseCurrencyCustom(func() any {
+			if i >= 0 && i < len(arr) {
+				return DerefScalar(arr[i])
+			}
+			return nil
+		}(), indexed, indexedNetworks)
 		var code any = GetValue(parsed, "code")
 		AddElementToObject(result, code, parsed)
 	}
@@ -1306,7 +1316,12 @@ func (this *Bitfinex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		"info": response,
 	}
 	for i := 0; i < len(balances); i++ {
-		var balance any = GetValue(balances, i)
+		var balance any = func() any {
+			if i >= 0 && i < len(balances) {
+				return DerefScalar(balances[i])
+			}
+			return nil
+		}()
 		var account any = this.Account()
 		var interest *string = this.SafeString(balance, 3)
 		if interest == nil || *interest != "0" {
@@ -1556,7 +1571,12 @@ func (this *Bitfinex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	}()
 	var orders []any = this.ToArray(orderbook)
 	for i := 0; i < len(orders); i++ {
-		var order any = GetValue(orders, i)
+		var order any = func() any {
+			if i >= 0 && i < len(orders) {
+				return DerefScalar(orders[i])
+			}
+			return nil
+		}()
 		var price *float64 = this.SafeNumber(order, priceIndex)
 		var signedAmount *string = this.SafeString(order, 2)
 		var amount *string = Precise.StringAbs(signedAmount)
@@ -1991,7 +2011,12 @@ func (this *Bitfinex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	var tradesList []any = []any{}
 	for i := 0; i < len(trades); i++ {
 		tradesList = append(tradesList, map[string]any{
-			"result": GetValue(trades, i),
+			"result": func() any {
+				if i >= 0 && i < len(trades) {
+					return DerefScalar(trades[i])
+				}
+				return nil
+			}(),
 		}) // convert to array of dicts to match parseOrder signature
 	}
 
@@ -3064,7 +3089,12 @@ func (this *Bitfinex) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...
 	var tradesList []any = []any{}
 	for i := 0; i < len(rawTrades); i++ {
 		tradesList = append(tradesList, map[string]any{
-			"result": GetValue(rawTrades, i),
+			"result": func() any {
+				if i >= 0 && i < len(rawTrades) {
+					return DerefScalar(rawTrades[i])
+				}
+				return nil
+			}(),
 		}) // convert to array of dicts to match parseOrder signature
 	}
 
@@ -3811,7 +3841,12 @@ func (this *Bitfinex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var positionsList []any = []any{}
 	for i := 0; i < len(rawPositions); i++ {
 		positionsList = append(positionsList, map[string]any{
-			"result": GetValue(rawPositions, i),
+			"result": func() any {
+				if i >= 0 && i < len(rawPositions) {
+					return DerefScalar(rawPositions[i])
+				}
+				return nil
+			}(),
 		})
 	}
 
@@ -4346,7 +4381,12 @@ func (this *Bitfinex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	var rawRatesData []any = this.ToArray(response)
 	var rates []any = []any{}
 	for i := 0; i < len(rawRatesData); i++ {
-		var fr any = GetValue(rawRatesData, i)
+		var fr any = func() any {
+			if i >= 0 && i < len(rawRatesData) {
+				return DerefScalar(rawRatesData[i])
+			}
+			return nil
+		}()
 		var rate any = this.ParseFundingRateHistory(fr, market)
 		rates = append(rates, rate)
 	}

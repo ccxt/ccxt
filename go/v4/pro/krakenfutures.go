@@ -185,7 +185,12 @@ func (this *Krakenfutures) subscribePublicBody(ch chan any, name any, symbols an
 	}
 	var length int = ccxt.GetArrayLength(symbols)
 	if length == 1 {
-		var market map[string]any = ccxt.MapTyped(this.Market(ccxt.GetValue(marketIds, 0)))
+		var market map[string]any = ccxt.MapTyped(this.Market(func() any {
+			if 0 >= 0 && 0 < len(marketIds) {
+				return ccxt.DerefScalar(marketIds[0])
+			}
+			return nil
+		}()))
 		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), market["symbol"])
 	}
 	subscribe["product_ids"] = marketIds

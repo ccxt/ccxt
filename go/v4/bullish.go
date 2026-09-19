@@ -1886,7 +1886,12 @@ func (this *Bullish) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 	var rates []any = []any{}
 	var result []any = this.ToArray(response)
 	for i := 0; i < len(result); i++ {
-		var entry any = GetValue(result, i)
+		var entry any = func() any {
+			if i >= 0 && i < len(result) {
+				return DerefScalar(result[i])
+			}
+			return nil
+		}()
 		var datetime *string = this.SafeString(entry, "updatedAtDatetime")
 		rates = append(rates, map[string]any{
 			"info":        entry,
@@ -2958,7 +2963,12 @@ func (this *Bullish) loadAccountBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(response)
 		var accounts []any = this.ToArray(response)
 		for i := 0; i < len(accounts); i++ {
-			var account any = GetValue(accounts, i)
+			var account any = func() any {
+				if i >= 0 && i < len(accounts) {
+					return DerefScalar(accounts[i])
+				}
+				return nil
+			}()
 			var name *string = this.SafeString(account, "tradingAccountName")
 			if name != nil && *name == "Primary Account" {
 				tradingAccountId = DerefScalar(this.SafeString(account, "tradingAccountId"))

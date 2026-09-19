@@ -88,7 +88,12 @@ func testWatchBidsAsksHelperBody(ch chan any, exchange ccxt.ICoreExchange, skipp
 			}
 			AssertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol)
 			for i := 0; i < len(values); i++ {
-				var ticker any = GetValue(values, i)
+				var ticker any = func() any {
+					if i >= 0 && i < len(values) {
+						return DerefScalar(values[i])
+					}
+					return nil
+				}()
 				TestTicker(exchange, skippedProperties, method, ticker, checkedSymbol)
 			}
 			if IsGreaterThan((now - startTime), maxIdleTime) {

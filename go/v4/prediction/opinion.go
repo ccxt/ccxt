@@ -343,8 +343,18 @@ func (this *Opinion) ParseOpinionMarket(raw any, optionalArgs ...any) any {
 	var outcomes []any = []any{}
 	var resolvedOutcome any = nil
 	for i := 0; i < len(outcomeLabels); i++ {
-		var label any = ccxt.GetValue(outcomeLabels, i)
-		var tokenId any = ccxt.GetValue(outcomeTokenIds, i)
+		var label any = func() any {
+			if i >= 0 && i < len(outcomeLabels) {
+				return ccxt.DerefScalar(outcomeLabels[i])
+			}
+			return nil
+		}()
+		var tokenId any = func() any {
+			if i >= 0 && i < len(outcomeTokenIds) {
+				return ccxt.DerefScalar(outcomeTokenIds[i])
+			}
+			return nil
+		}()
 		var outcomeHandle any = this.SlugToOutcomeSymbol(effectiveEventSlug, slug, label)
 		var winner any = nil
 		var settleFraction any = nil
@@ -545,7 +555,12 @@ func (this *Opinion) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 		this.Markets = this.CreateSafeDictionary()
 	}
 	for i := 0; i < rawEventsLength; i++ {
-		var event any = this.ParseEvent(ccxt.GetValue(rawEvents, i))
+		var event any = this.ParseEvent(func() any {
+			if i >= 0 && i < len(rawEvents) {
+				return ccxt.DerefScalar(rawEvents[i])
+			}
+			return nil
+		}())
 		parsedEvents = append(parsedEvents, event)
 		// register the parsed markets so populateOutcomes can index their outcomes
 		var eventMarkets []any = ccxt.SafeListTyped(event, "markets")

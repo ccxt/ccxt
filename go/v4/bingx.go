@@ -7193,7 +7193,12 @@ func (this *Bingx) ParseParams(params any) any {
 	var rawKeys []string = ObjectKeys(params)
 	var keys []any = this.Sort(rawKeys)
 	for i := 0; i < len(keys); i++ {
-		var key any = GetValue(keys, i)
+		var key any = func() any {
+			if i >= 0 && i < len(keys) {
+				return DerefScalar(keys[i])
+			}
+			return nil
+		}()
 		var value any = GetValue(params, key)
 		if IsArray(value) {
 			var arrStr any = "["
@@ -7885,7 +7890,12 @@ func (this *Bingx) CustomEncode(params any) any {
 	var adjustedValue any = nil
 	var result any = nil
 	for i := 0; i < len(keys); i++ {
-		var key any = GetValue(keys, i)
+		var key any = func() any {
+			if i >= 0 && i < len(keys) {
+				return DerefScalar(keys[i])
+			}
+			return nil
+		}()
 		var value any = GetValue(params, key)
 		if IsArray(value) {
 			var arrStr any = nil

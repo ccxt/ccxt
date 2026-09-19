@@ -3692,7 +3692,12 @@ func (this *Bybit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	if symbols != nil {
 		parsedSymbols = []any{}
 		var marketTypeInfo []any = this.HandleMarketTypeAndParams("fetchTickers", nil, params)
-		var defaultType any = GetValue(marketTypeInfo, 0) // don't omit here
+		var defaultType any = func() any {
+			if 0 >= 0 && 0 < len(marketTypeInfo) {
+				return DerefScalar(marketTypeInfo[0])
+			}
+			return nil
+		}() // don't omit here
 		// we can't use marketSymbols here due to the conflicting ids between markets
 		var currentType any = nil
 		for i := 0; i < GetArrayLength(symbols); i++ {

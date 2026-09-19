@@ -1049,7 +1049,12 @@ func (this *Bitstamp) HandleUnsubscriptionStatus(client any, message any) {
 func (this *Bitstamp) PruneCachedBySymbols(newCache any, cache any, symbols any) any {
 	var entries []any = this.ToArray(cache)
 	for i := 0; i < len(entries); i++ {
-		var entry any = ccxt.GetValue(entries, i)
+		var entry any = func() any {
+			if i >= 0 && i < len(entries) {
+				return ccxt.DerefScalar(entries[i])
+			}
+			return nil
+		}()
 		var entrySymbol *string = this.SafeString(entry, "symbol")
 		if !this.InArray(entrySymbol, symbols) {
 			newCache.(ccxt.Appender).Append(entry)

@@ -775,8 +775,18 @@ func (this *Bydfi) GetClosestLimit(limit any) any {
 		if IsEqual(limit, nil) {
 			panic(ArgumentsRequired(this.Id + " getClosestLimit() requires a limit argument"))
 		}
-		if IsLessThanOrEqual(limit, GetValue(limits, i)) {
-			result = GetValue(limits, i)
+		if IsLessThanOrEqual(limit, func() any {
+			if i >= 0 && i < len(limits) {
+				return DerefScalar(limits[i])
+			}
+			return nil
+		}()) {
+			result = func() any {
+				if i >= 0 && i < len(limits) {
+					return DerefScalar(limits[i])
+				}
+				return nil
+			}()
 			break
 		}
 	}

@@ -311,7 +311,12 @@ func (this *PredictionExchange) FilterEventsByTags(events any, optionalArgs ...a
 			if !IsEqual(tagLabel, nil) {
 				var tagKey any = this.NormalizeTagKey(tagLabel)
 				for wi := 0; wi < len(wanted); wi++ {
-					if GetIndexOf(tagKey, GetValue(wanted, wi)) >= 0 {
+					if GetIndexOf(tagKey, func() any {
+						if wi >= 0 && wi < len(wanted) {
+							return DerefScalar(wanted[wi])
+						}
+						return nil
+					}()) >= 0 {
 						matched = true
 						break
 					}
@@ -648,7 +653,12 @@ func (this *PredictionExchange) SetMarkets(markets any, optionalArgs ...any) any
 	var marketsList []any = this.ToArray(markets)
 	var aliased []any = []any{}
 	for i := 0; i < len(marketsList); i++ {
-		var row any = GetValue(marketsList, i)
+		var row any = func() any {
+			if i >= 0 && i < len(marketsList) {
+				return DerefScalar(marketsList[i])
+			}
+			return nil
+		}()
 		var copy map[string]any = this.Extend(map[string]any{}, row)
 		copy["symbol"] = this.SafeString2(row, "market", "symbol")
 		aliased = append(aliased, copy)
@@ -796,8 +806,18 @@ func (this *PredictionExchange) loadOutcomesBody(ch chan any, optionalArgs ...an
 			PanicOnError(retRes71716)
 			var stillMissing []any = []any{}
 			for i := 0; i < missingLength; i++ {
-				if !EvalTruthy(this.HasOutcome(GetValue(missing, i))) {
-					stillMissing = append(stillMissing, GetValue(missing, i))
+				if !EvalTruthy(this.HasOutcome(func() any {
+					if i >= 0 && i < len(missing) {
+						return DerefScalar(missing[i])
+					}
+					return nil
+				}())) {
+					stillMissing = append(stillMissing, func() any {
+						if i >= 0 && i < len(missing) {
+							return DerefScalar(missing[i])
+						}
+						return nil
+					}())
 				}
 			}
 			missing = stillMissing
@@ -2091,7 +2111,12 @@ func (this *PredictionExchange) ParsePredictionTrades(trades any, optionalArgs .
 	var rows []any = this.ToArray(trades)
 	var results []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		var parsed any = this.DerivedExchange.(IPredictionDispatch).ParsePredictionTrade(GetValue(rows, i), outcomeObj)
+		var parsed any = this.DerivedExchange.(IPredictionDispatch).ParsePredictionTrade(func() any {
+			if i >= 0 && i < len(rows) {
+				return DerefScalar(rows[i])
+			}
+			return nil
+		}(), outcomeObj)
 		var trade map[string]any = this.Extend(parsed, params)
 		results = append(results, trade)
 	}
@@ -2125,7 +2150,12 @@ func (this *PredictionExchange) ParsePredictionOrders(orders any, optionalArgs .
 	var rows []any = this.ToArray(orders)
 	var results []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		var parsed any = this.DerivedExchange.(IPredictionDispatch).ParsePredictionOrder(GetValue(rows, i), outcomeObj)
+		var parsed any = this.DerivedExchange.(IPredictionDispatch).ParsePredictionOrder(func() any {
+			if i >= 0 && i < len(rows) {
+				return DerefScalar(rows[i])
+			}
+			return nil
+		}(), outcomeObj)
 		var order map[string]any = this.Extend(parsed, params)
 		results = append(results, order)
 	}
@@ -2153,7 +2183,12 @@ func (this *PredictionExchange) ParsePredictionPositions(positions any, optional
 	var rows []any = this.ToArray(positions)
 	var results []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		var parsed any = this.DerivedExchange.(IPredictionDispatch).ParsePredictionPosition(GetValue(rows, i))
+		var parsed any = this.DerivedExchange.(IPredictionDispatch).ParsePredictionPosition(func() any {
+			if i >= 0 && i < len(rows) {
+				return DerefScalar(rows[i])
+			}
+			return nil
+		}())
 		var position map[string]any = this.Extend(parsed, params)
 		results = append(results, position)
 	}

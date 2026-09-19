@@ -1495,7 +1495,12 @@ func (this *Phemex) CustomParseOrderBook(orderbook any, symbol any, optionalArgs
 	}
 	var sides []any = []any{bidsKey, asksKey}
 	for i := 0; i < len(sides); i++ {
-		var side any = GetValue(sides, i)
+		var side any = func() any {
+			if i >= 0 && i < len(sides) {
+				return DerefScalar(sides[i])
+			}
+			return nil
+		}()
 		var orders []any = []any{}
 		var bidasks any = this.SafeValue(orderbook, side)
 		for k := 0; k < GetArrayLength(bidasks); k++ {

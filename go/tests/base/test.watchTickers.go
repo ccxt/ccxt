@@ -90,7 +90,12 @@ func testWatchTickersHelperBody(ch chan any, exchange ccxt.ICoreExchange, skippe
 			}
 			AssertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol)
 			for i := 0; i < len(values); i++ {
-				var ticker any = GetValue(values, i)
+				var ticker any = func() any {
+					if i >= 0 && i < len(values) {
+						return DerefScalar(values[i])
+					}
+					return nil
+				}()
 
 				{
 					func() (ret_ any) {

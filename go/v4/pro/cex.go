@@ -1349,7 +1349,12 @@ func (this *Cex) HandleInitOHLCV(client any, message map[string]any) {
 	stored := ccxt.NewArrayCacheByTimestamp(limit)
 	var sorted []any = this.SortBy(data, 0)
 	for i := 0; i < len(sorted); i++ {
-		stored.Append(this.ParseOHLCV(ccxt.GetValue(sorted, i), market))
+		stored.Append(this.ParseOHLCV(func() any {
+			if i >= 0 && i < len(sorted) {
+				return ccxt.DerefScalar(sorted[i])
+			}
+			return nil
+		}(), market))
 	}
 	if !(ccxt.InOp(this.Ohlcvs, symbol)) {
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, map[string]any{})

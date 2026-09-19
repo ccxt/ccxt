@@ -4135,7 +4135,12 @@ func (this *Binance) keepAliveListenKeyBody(ch chan any, optionalArgs ...any) an
 		})
 	}
 	for i := 0; i < len(clients); i++ {
-		var client any = ccxt.GetValue(clients, i)
+		var client any = func() any {
+			if i >= 0 && i < len(clients) {
+				return ccxt.DerefScalar(clients[i])
+			}
+			return nil
+		}()
 		var clientSubscriptions map[string]any = ccxt.SafeMapTyped(client, "subscriptions")
 		var subscriptionKeys []string = ccxt.ObjectKeys(clientSubscriptions)
 		for j := 0; j < len(subscriptionKeys); j++ {

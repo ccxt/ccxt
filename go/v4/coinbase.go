@@ -2104,7 +2104,12 @@ func (this *Coinbase) fetchMarketsV3Body(ch chan any, optionalArgs ...any) any {
 	}
 	var newMarkets []any = []any{}
 	for i := 0; i < len(result); i++ {
-		var market any = GetValue(result, i)
+		var market any = func() any {
+			if i >= 0 && i < len(result) {
+				return DerefScalar(result[i])
+			}
+			return nil
+		}()
 		var info map[string]any = SafeMapTyped(market, "info")
 		var realMarketIds []any = SafeListTyped(info, "alias_to")
 		var length int = len(realMarketIds)
@@ -2556,7 +2561,12 @@ func (this *Coinbase) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any 
 	var networks map[string]any = map[string]any{}
 	var networksById map[string]any = map[string]any{}
 	for i := 0; i < len(currencies); i++ {
-		var currency any = GetValue(currencies, i)
+		var currency any = func() any {
+			if i >= 0 && i < len(currencies) {
+				return DerefScalar(currencies[i])
+			}
+			return nil
+		}()
 		var assetId *string = this.SafeString(currency, "asset_id")
 		var id *string = this.SafeString2(currency, "id", "code")
 		var code *string = this.SafeCurrencyCode(id)

@@ -1316,7 +1316,12 @@ func (this *Deribit) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 	for i := 0; i < len(instrumentsResponses); i++ {
-		var instrumentsResult []any = SafeListTyped(GetValue(instrumentsResponses, i), "result")
+		var instrumentsResult []any = SafeListTyped(func() any {
+			if i >= 0 && i < len(instrumentsResponses) {
+				return DerefScalar(instrumentsResponses[i])
+			}
+			return nil
+		}(), "result")
 		for k := 0; k < len(instrumentsResult); k++ {
 			var market any = func() any {
 				if k >= 0 && k < len(instrumentsResult) {

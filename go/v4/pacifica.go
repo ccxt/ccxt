@@ -3326,7 +3326,12 @@ func (this *Pacifica) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 	var lastIdx int = len(sorted)
 	var lastInfo any = map[string]any{}
 	if lastIdx > 0 {
-		lastInfo = GetValue(sorted, 0)
+		lastInfo = func() any {
+			if 0 >= 0 && 0 < len(sorted) {
+				return DerefScalar(sorted[0])
+			}
+			return nil
+		}()
 	}
 
 	ch <- this.ParseOrder(lastInfo, market)
@@ -4722,7 +4727,12 @@ func (this *Pacifica) SortJsonKeys(value any) any {
 		var keys []string = ObjectKeys(value)
 		var sortedKeys []any = this.Sort(keys)
 		for i := 0; i < len(sortedKeys); i++ {
-			var key any = GetValue(sortedKeys, i)
+			var key any = func() any {
+				if i >= 0 && i < len(sortedKeys) {
+					return DerefScalar(sortedKeys[i])
+				}
+				return nil
+			}()
 			AddElementToObject(result, key, this.SortJsonKeys(GetValue(value, key)))
 		}
 		return result

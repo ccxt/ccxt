@@ -721,7 +721,12 @@ func (this *Polymarket) fetchRawEventsBySearchBody(ch chan any, queries any, opt
 		var restPromises []any = []any{}
 		for pi := 0; pi < len(remainingPages); pi++ {
 			var pageRequest map[string]any = map[string]any{
-				"page": ccxt.GetValue(remainingPages, pi),
+				"page": func() any {
+					if pi >= 0 && pi < len(remainingPages) {
+						return ccxt.DerefScalar(remainingPages[pi])
+					}
+					return nil
+				}(),
 			}
 			pageRequest = this.Extend(this.Extend(pageRequest, baseRequest), rest)
 			restPromises = append(restPromises, this.GammaPublicGetPublicSearch(pageRequest))
@@ -740,7 +745,12 @@ func (this *Polymarket) fetchRawEventsBySearchBody(ch chan any, queries any, opt
 			}
 		}
 		for ei := 0; ei < len(allEvents); ei++ {
-			var rawEvent any = ccxt.GetValue(allEvents, ei)
+			var rawEvent any = func() any {
+				if ei >= 0 && ei < len(allEvents) {
+					return ccxt.DerefScalar(allEvents[ei])
+				}
+				return nil
+			}()
 			var eventId *string = this.SafeString(rawEvent, "id")
 			if ((eventId != nil) && (eventId == nil || *eventId != "")) && !(func() bool {
 				if eventId == nil {
@@ -910,7 +920,12 @@ func (this *Polymarket) fetchRawEventsListBody(ch chan any, optionalArgs ...any)
 		var restPromises []any = []any{}
 		for oi := 0; oi < len(offsets); oi++ {
 			var pageRequest map[string]any = map[string]any{
-				"offset": ccxt.GetValue(offsets, oi),
+				"offset": func() any {
+					if oi >= 0 && oi < len(offsets) {
+						return ccxt.DerefScalar(offsets[oi])
+					}
+					return nil
+				}(),
 			}
 			pageRequest = this.Extend(pageRequest, baseRequest)
 			restPromises = append(restPromises, this.GammaPublicGetEvents(pageRequest))
@@ -1484,7 +1499,12 @@ func (this *Polymarket) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var outcomesByTokenId map[string]any = map[string]any{}
 	var tokenIds []any = []any{}
 	for i := 0; i < len(targets); i++ {
-		var outcomeObj any = this.Outcome(ccxt.GetValue(targets, i))
+		var outcomeObj any = this.Outcome(func() any {
+			if i >= 0 && i < len(targets) {
+				return ccxt.DerefScalar(targets[i])
+			}
+			return nil
+		}())
 		var tokenId *string = this.SafeString(outcomeObj, "outcomeId")
 		if (tokenId != nil) && !(func() bool {
 			if tokenId == nil {
@@ -2846,8 +2866,18 @@ func (this *Polymarket) createOrdersBody(ch chan any, orders any, optionalArgs .
 	if ccxt.IsArray(response) {
 		for i := 0; i < ccxt.GetArrayLength(response); i++ {
 			// request echo first so the response's real orderID/status win on overlap
-			var enriched map[string]any = this.Extend(ccxt.GetValue(requests, i), ccxt.GetValue(response, i))
-			var parsedItem any = this.ParsePredictionOrder(enriched, ccxt.GetValue(outcomes, i))
+			var enriched map[string]any = this.Extend(func() any {
+				if i >= 0 && i < len(requests) {
+					return ccxt.DerefScalar(requests[i])
+				}
+				return nil
+			}(), ccxt.GetValue(response, i))
+			var parsedItem any = this.ParsePredictionOrder(enriched, func() any {
+				if i >= 0 && i < len(outcomes) {
+					return ccxt.DerefScalar(outcomes[i])
+				}
+				return nil
+			}())
 			ccxt.AddElementToObject(parsedItem, "info", ccxt.GetValue(response, i)) // keep info the raw exchange response
 			result = append(result, parsedItem)
 		}

@@ -1459,7 +1459,12 @@ func (this *Bitmex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	}
 	var orders []any = this.ToArray(response)
 	for i := 0; i < len(orders); i++ {
-		var order any = GetValue(orders, i)
+		var order any = func() any {
+			if i >= 0 && i < len(orders) {
+				return DerefScalar(orders[i])
+			}
+			return nil
+		}()
 		var side string = func() string {
 			if IsEqual(GetValue(order, "side"), "Sell") {
 				return "asks"
@@ -2208,7 +2213,12 @@ func (this *Bitmex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var result map[string]any = map[string]any{}
 	var rawTickers []any = this.ToArray(response)
 	for i := 0; i < len(rawTickers); i++ {
-		var ticker any = this.ParseTicker(GetValue(rawTickers, i))
+		var ticker any = this.ParseTicker(func() any {
+			if i >= 0 && i < len(rawTickers) {
+				return DerefScalar(rawTickers[i])
+			}
+			return nil
+		}())
 		var symbol *string = this.SafeString(ticker, "symbol")
 		if symbol != nil {
 			AddElementToObject(result, symbol, ticker)
@@ -3643,7 +3653,12 @@ func (this *Bitmex) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any 
 	var filteredResponse []any = []any{}
 	var rawItems []any = this.ToArray(response)
 	for i := 0; i < len(rawItems); i++ {
-		var item any = GetValue(rawItems, i)
+		var item any = func() any {
+			if i >= 0 && i < len(rawItems) {
+				return DerefScalar(rawItems[i])
+			}
+			return nil
+		}()
 		var marketId *string = this.SafeString(item, "symbol")
 		var market map[string]any = MapTyped(this.SafeMarket(marketId))
 		var swap *bool = this.SafeBool(market, "swap", false)

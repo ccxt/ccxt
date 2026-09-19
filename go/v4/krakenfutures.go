@@ -4118,7 +4118,12 @@ func (this *Krakenfutures) ParseMarketLeverageTiers(info any, optionalArgs ...an
 		var minNotional *float64 = this.SafeNumber2(tier, "numNonContractUnits", "contracts")
 		if i != 0 {
 			var tiersLength int = len(tiers)
-			var previousTier any = GetValue(tiers, tiersLength-1)
+			var previousTier any = func() any {
+				if tiersLength-1 >= 0 && tiersLength-1 < len(tiers) {
+					return DerefScalar(tiers[tiersLength-1])
+				}
+				return nil
+			}()
 			AddElementToObject(previousTier, "maxNotional", minNotional)
 		}
 		tiers = append(tiers, map[string]any{

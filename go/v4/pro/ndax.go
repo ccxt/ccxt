@@ -364,26 +364,81 @@ func (this *Ndax) HandleOHLCV(client any, message map[string]any) {
 			var parsed []any = []any{this.ParseToInt(ccxt.Multiply((ccxt.Divide(timestamp, duration)), duration)), this.SafeFloat(ohlcv, 3), this.SafeFloat(ohlcv, 1), this.SafeFloat(ohlcv, 2), this.SafeFloat(ohlcv, 4), this.SafeFloat(ohlcv, 5)}
 			var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, []any{})
 			var length int = ccxt.GetArrayLength(stored)
-			if (length > 0) && (ccxt.IsEqual(ccxt.GetValue(parsed, 0), ccxt.GetValue(ccxt.GetValue(stored, length-1), 0))) {
+			if (length > 0) && (ccxt.IsEqual(func() any {
+				if 0 >= 0 && 0 < len(parsed) {
+					return ccxt.DerefScalar(parsed[0])
+				}
+				return nil
+			}(), ccxt.GetValue(ccxt.GetValue(stored, length-1), 0))) {
 				var previous any = ccxt.GetValue(stored, length-1)
-				var high any = ccxt.GetValue(parsed, 1)
-				if ccxt.IsEqual(ccxt.GetValue(parsed, 1), nil) {
+				var high any = func() any {
+					if 1 >= 0 && 1 < len(parsed) {
+						return ccxt.DerefScalar(parsed[1])
+					}
+					return nil
+				}()
+				if ccxt.IsEqual(func() any {
+					if 1 >= 0 && 1 < len(parsed) {
+						return ccxt.DerefScalar(parsed[1])
+					}
+					return nil
+				}(), nil) {
 					high = ccxt.GetValue(previous, 1)
 				} else if !ccxt.IsEqual(ccxt.GetValue(previous, 1), nil) {
-					high = ccxt.MathMax(ccxt.GetValue(parsed, 1), ccxt.GetValue(previous, 1))
+					high = ccxt.MathMax(func() any {
+						if 1 >= 0 && 1 < len(parsed) {
+							return ccxt.DerefScalar(parsed[1])
+						}
+						return nil
+					}(), ccxt.GetValue(previous, 1))
 				}
-				var low any = ccxt.GetValue(parsed, 2)
-				if ccxt.IsEqual(ccxt.GetValue(parsed, 2), nil) {
+				var low any = func() any {
+					if 2 >= 0 && 2 < len(parsed) {
+						return ccxt.DerefScalar(parsed[2])
+					}
+					return nil
+				}()
+				if ccxt.IsEqual(func() any {
+					if 2 >= 0 && 2 < len(parsed) {
+						return ccxt.DerefScalar(parsed[2])
+					}
+					return nil
+				}(), nil) {
 					low = ccxt.GetValue(previous, 2)
 				} else if !ccxt.IsEqual(ccxt.GetValue(previous, 2), nil) {
-					low = ccxt.MathMin(ccxt.GetValue(parsed, 2), ccxt.GetValue(previous, 2))
+					low = ccxt.MathMin(func() any {
+						if 2 >= 0 && 2 < len(parsed) {
+							return ccxt.DerefScalar(parsed[2])
+						}
+						return nil
+					}(), ccxt.GetValue(previous, 2))
 				}
-				ccxt.AddElementToObject(stored, length - 1, []any{ccxt.GetValue(parsed, 0), ccxt.GetValue(previous, 1), high, low, ccxt.GetValue(parsed, 4), this.Sum(ccxt.GetValue(parsed, 5), ccxt.GetValue(previous, 5))})
+				ccxt.AddElementToObject(stored, length - 1, []any{func() any {
+					if 0 >= 0 && 0 < len(parsed) {
+						return ccxt.DerefScalar(parsed[0])
+					}
+					return nil
+				}(), ccxt.GetValue(previous, 1), high, low, func() any {
+					if 4 >= 0 && 4 < len(parsed) {
+						return ccxt.DerefScalar(parsed[4])
+					}
+					return nil
+				}(), this.Sum(func() any {
+					if 5 >= 0 && 5 < len(parsed) {
+						return ccxt.DerefScalar(parsed[5])
+					}
+					return nil
+				}(), ccxt.GetValue(previous, 5))})
 				if (marketId != nil) && (!ccxt.IsEqual(timeframe, nil)) {
 					ccxt.AddElementToObject(ccxt.GetValue(updates, marketId), timeframe, true)
 				}
 			} else {
-				if (length > 0) && (this.ParseToInt(ccxt.GetValue(parsed, 0)) < this.ParseToInt(ccxt.GetValue(ccxt.GetValue(stored, length-1), 0))) {
+				if (length > 0) && (this.ParseToInt(func() any {
+					if 0 >= 0 && 0 < len(parsed) {
+						return ccxt.DerefScalar(parsed[0])
+					}
+					return nil
+				}()) < this.ParseToInt(ccxt.GetValue(ccxt.GetValue(stored, length-1), 0))) {
 					continue
 				} else {
 					ccxt.AppendToArray(&stored, parsed)

@@ -398,7 +398,12 @@ func (this *testMainClass) GetSkips(exchange ccxt.ICoreExchange, methodName any)
 	// check the exact method (i.e. `fetchTrades`) and language-specific (i.e. `fetchTrades.php`)
 	var methodNames []any = []any{methodName, Add(Add(methodName, "."), this.Ext)}
 	for i := 0; i < len(methodNames); i++ {
-		var mName any = GetValue(methodNames, i)
+		var mName any = func() any {
+			if i >= 0 && i < len(methodNames) {
+				return DerefScalar(methodNames[i])
+			}
+			return nil
+		}()
 		if InOp(this.SkippedMethods, mName) {
 			// if whole method is skipped, by assigning a string to it, i.e. "fetchOrders":"blabla"
 			if IsString(GetValue(this.SkippedMethods, mName)) {
@@ -809,7 +814,12 @@ func (this *testMainClass) GetValidSymbol(exchange ccxt.ICoreExchange, optionalA
 	// if symbols wasn't found from above hardcoded list, then try to locate any symbol which has our target hardcoded 'base' code
 	if IsEqual(symbol, nil) {
 		for i := 0; i < len(codes); i++ {
-			var currentCode any = GetValue(codes, i)
+			var currentCode any = func() any {
+				if i >= 0 && i < len(codes) {
+					return DerefScalar(codes[i])
+				}
+				return nil
+			}()
 			var marketsArrayForCurrentCode []any = exchange.FilterBy(currentTypeMarkets, "base", currentCode)
 			var indexedMkts map[string]any = exchange.IndexBy(marketsArrayForCurrentCode, "symbol")
 			var symbolsArrayForCurrentCode []string = ObjectKeys(indexedMkts)
@@ -825,7 +835,12 @@ func (this *testMainClass) GetValidSymbol(exchange ccxt.ICoreExchange, optionalA
 		var activeMarkets []any = exchange.FilterBy(currentTypeMarkets, "active", true)
 		var activeSymbols []any = []any{}
 		for i := 0; i < len(activeMarkets); i++ {
-			activeSymbols = append(activeSymbols, GetValue(GetValue(activeMarkets, i), "symbol"))
+			activeSymbols = append(activeSymbols, GetValue(func() any {
+				if i >= 0 && i < len(activeMarkets) {
+					return DerefScalar(activeMarkets[i])
+				}
+				return nil
+			}(), "symbol"))
 		}
 		symbol = this.GetTestSymbol(exchange, spot, activeSymbols)
 	}
@@ -833,7 +848,12 @@ func (this *testMainClass) GetValidSymbol(exchange ccxt.ICoreExchange, optionalA
 		var values []any = ObjectValues(currentTypeMarkets)
 		var valuesLength int = len(values)
 		if valuesLength > 0 {
-			var first any = GetValue(values, 0)
+			var first any = func() any {
+				if 0 >= 0 && 0 < len(values) {
+					return DerefScalar(values[0])
+				}
+				return nil
+			}()
 			if !IsEqual(first, nil) {
 				symbol = GetValue(first, "symbol")
 			}
@@ -969,9 +989,19 @@ func (this *testMainClass) getMostActiveSymbolsBody(ch chan any, exchange ccxt.I
 		ch <- defaultSymbols
 		return nil
 	}
-	var result []any = []any{exchange.SafeString(GetValue(ranked, 0), "symbol")}
+	var result []any = []any{exchange.SafeString(func() any {
+		if 0 >= 0 && 0 < len(ranked) {
+			return DerefScalar(ranked[0])
+		}
+		return nil
+	}(), "symbol")}
 	if rankedLength > 1 {
-		result = append(result, exchange.SafeString(GetValue(ranked, 1), "symbol"))
+		result = append(result, exchange.SafeString(func() any {
+			if 1 >= 0 && 1 < len(ranked) {
+				return DerefScalar(ranked[1])
+			}
+			return nil
+		}(), "symbol"))
 	}
 
 	ch <- result
@@ -1265,7 +1295,12 @@ func (this *testMainClass) runPredictionTestsBody(ch chan any, exchange ccxt.ICo
 				}
 				var scopesToTestLength int = len(scopesToTest)
 				for sj := 0; sj < scopesToTestLength; sj++ {
-					var scope any = GetValue(scopesToTest, sj)
+					var scope any = func() any {
+						if sj >= 0 && sj < len(scopesToTest) {
+							return DerefScalar(scopesToTest[sj])
+						}
+						return nil
+					}()
 					// fetchEvents scoped by a single parameter must return a non-empty, valid list
 
 					scopedEvents := (<-CallExchangeMethodDynamically(exchange, "fetchEvents", []any{scope}))

@@ -1001,7 +1001,12 @@ func (this *Whitebit) ParseCurrency(rawCurrency any) any {
 	var withdrawLimits map[string]any = SafeMapTyped(networkLimits, "withdraw")
 	var allNetworks []any = this.ArrayConcat(depositsNetworks, withdrawsNetworks)
 	for j := 0; j < len(allNetworks); j++ {
-		var networkId any = GetValue(allNetworks, j)
+		var networkId any = func() any {
+			if j >= 0 && j < len(allNetworks) {
+				return DerefScalar(allNetworks[j])
+			}
+			return nil
+		}()
 		var networkCode any = this.NetworkIdToCode(networkId, code)
 		var networkDepositLimits map[string]any = SafeMapTyped(depositLimits, networkId)
 		var networkWithdrawLimits map[string]any = SafeMapTyped(withdrawLimits, networkId)
@@ -1932,7 +1937,12 @@ func (this *Whitebit) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 				// Search for order in active orders response (array format)
 				var orders []any = this.ToArray(response)
 				for i := 0; i < len(orders); i++ {
-					var order any = GetValue(orders, i)
+					var order any = func() any {
+						if i >= 0 && i < len(orders) {
+							return DerefScalar(orders[i])
+						}
+						return nil
+					}()
 					var orderId *string = this.SafeString(order, "orderId")
 					if IsEqual(orderId, id) {
 						var marketId *string = this.SafeString(order, "market")

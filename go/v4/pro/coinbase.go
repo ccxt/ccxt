@@ -1122,7 +1122,12 @@ func (this *Coinbase) HandleOrder(client any, message map[string]any) {
 		}
 	}
 	for i := 0; i < len(marketIds); i++ {
-		var marketId any = ccxt.GetValue(marketIds, i)
+		var marketId any = func() any {
+			if i >= 0 && i < len(marketIds) {
+				return ccxt.DerefScalar(marketIds[i])
+			}
+			return nil
+		}()
 		var symbol *string = this.SafeSymbol(marketId)
 		var messageHash any = "user::" + *symbol
 		client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)

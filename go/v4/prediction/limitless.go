@@ -1463,7 +1463,12 @@ func (this *Limitless) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var promises []any = []any{}
 	for i := 0; i < len(slugs); i++ {
-		var slug any = ccxt.GetValue(slugs, i)
+		var slug any = func() any {
+			if i >= 0 && i < len(slugs) {
+				return ccxt.DerefScalar(slugs[i])
+			}
+			return nil
+		}()
 		promises = append(promises, this.LimitlessPublicGetMarketsAddressOrSlug(this.Extend(map[string]any{
 			"addressOrSlug": slug,
 		}, params)))
@@ -1475,7 +1480,12 @@ func (this *Limitless) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	responses := (<-ccxt.PromiseAll(promises))
 	ccxt.PanicOnError(responses)
 	for i := 0; i < len(slugs); i++ {
-		var slug any = ccxt.GetValue(slugs, i)
+		var slug any = func() any {
+			if i >= 0 && i < len(slugs) {
+				return ccxt.DerefScalar(slugs[i])
+			}
+			return nil
+		}()
 		var detailIndex any = ccxt.Multiply(i, 2)
 		var detail any = ccxt.GetValue(responses, detailIndex)
 		var book any = ccxt.GetValue(responses, this.Sum(detailIndex, 1))
@@ -1831,7 +1841,12 @@ func (this *Limitless) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ...
 	var candles map[string]any = map[string]any{}
 	var bucketOrder []any = []any{}
 	for i := 0; i < len(sorted); i++ {
-		var point any = ccxt.GetValue(sorted, i)
+		var point any = func() any {
+			if i >= 0 && i < len(sorted) {
+				return ccxt.DerefScalar(sorted[i])
+			}
+			return nil
+		}()
 		var pTs *int64 = this.SafeInteger(point, "timestamp")
 		var pPrice *float64 = this.SafeNumber(point, "price")
 		if pTs == nil {
@@ -1870,7 +1885,12 @@ func (this *Limitless) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ...
 	}
 	var result []any = []any{}
 	for i := 0; i < len(bucketOrder); i++ {
-		result = append(result, ccxt.GetValue(candles, ccxt.GetValue(bucketOrder, i)))
+		result = append(result, ccxt.GetValue(candles, func() any {
+			if i >= 0 && i < len(bucketOrder) {
+				return ccxt.DerefScalar(bucketOrder[i])
+			}
+			return nil
+		}()))
 	}
 
 	ch <- this.FilterBySinceLimit(result, since, limit, 0)
@@ -2881,7 +2901,12 @@ func (this *Limitless) SignEvmTransaction(tx any, privateKey any) any {
 	var yParity *int64 = this.SafeInteger(signature, "v")
 	var signedFields []any = []any{}
 	for i := 0; i < len(fields); i++ {
-		signedFields = append(signedFields, ccxt.GetValue(fields, i))
+		signedFields = append(signedFields, func() any {
+			if i >= 0 && i < len(fields) {
+				return ccxt.DerefScalar(fields[i])
+			}
+			return nil
+		}())
 	}
 	signedFields = append(signedFields, this.RlpEncodeBytes(this.IntToRlpHex(yParity)))
 	signedFields = append(signedFields, this.RlpEncodeBytes(rHex))
@@ -3957,7 +3982,12 @@ func (this *Limitless) fetchRawMarketsByTagsBody(ch chan any, tags any, optional
 			if name == nil {
 				panic(ccxt.ExchangeError(this.Id + " fetchRawMarketsByTags() missing name"))
 			}
-			if ccxt.GetIndexOf(name, ccxt.GetValue(wanted, wi)) >= 0 {
+			if ccxt.GetIndexOf(name, func() any {
+				if wi >= 0 && wi < len(wanted) {
+					return ccxt.DerefScalar(wanted[wi])
+				}
+				return nil
+			}()) >= 0 {
 				matched = true
 				break
 			}
@@ -3974,7 +4004,12 @@ func (this *Limitless) fetchRawMarketsByTagsBody(ch chan any, tags any, optional
 	var allRaw []any = []any{}
 	for ci := 0; ci < categoryIdsLength; ci++ {
 
-		categoryMarkets := (<-this.FetchRawActiveMarketsAsync(params, ccxt.GetValue(categoryIds, ci)))
+		categoryMarkets := (<-this.FetchRawActiveMarketsAsync(params, func() any {
+			if ci >= 0 && ci < len(categoryIds) {
+				return ccxt.DerefScalar(categoryIds[ci])
+			}
+			return nil
+		}()))
 		ccxt.PanicOnError(categoryMarkets)
 		var categoryMarketsLength int = ccxt.GetArrayLength(categoryMarkets)
 		for mi := 0; mi < categoryMarketsLength; mi++ {

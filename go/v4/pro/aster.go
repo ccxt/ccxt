@@ -2201,7 +2201,12 @@ func (this *Aster) HandlePositions(client any, message map[string]any) {
 	var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), messageHash)
 	if !this.IsEmpty(messageHashes) {
 		for i := 0; i < len(newPositions); i++ {
-			var position any = ccxt.GetValue(newPositions, i)
+			var position any = func() any {
+				if i >= 0 && i < len(newPositions) {
+					return ccxt.DerefScalar(newPositions[i])
+				}
+				return nil
+			}()
 			var symbol any = ccxt.GetValue(position, "symbol")
 			var symbolMessageHash any = ccxt.Add(messageHash+"::", symbol)
 			client.(ccxt.ClientInterface).Resolve(position, symbolMessageHash)

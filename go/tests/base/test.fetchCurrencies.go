@@ -37,7 +37,12 @@ func testFetchCurrenciesBody(ch chan any, exchange ccxt.ICoreExchange, skippedPr
 		var skipMajorCurrencyCheck bool = (InOp(skippedProperties, "activeMajorCurrencies"))
 		// loop
 		for i := 0; i < currenciesLength; i++ {
-			var currency any = GetValue(values, i)
+			var currency any = func() any {
+				if i >= 0 && i < len(values) {
+					return DerefScalar(values[i])
+				}
+				return nil
+			}()
 			TestCurrency(exchange, skippedProperties, method, currency)
 			// detailed check for deposit/withdraw
 			var active any = ccxt.DerefScalar(exchange.SafeBool(currency, "active"))

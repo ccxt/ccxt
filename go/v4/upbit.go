@@ -912,7 +912,12 @@ func (this *Upbit) fetchOrderBooksBody(ch chan any, optionalArgs ...any) any {
 	var result map[string]any = map[string]any{}
 	var orderbooks []any = this.ToArray(response)
 	for i := 0; i < len(orderbooks); i++ {
-		var orderbook any = GetValue(orderbooks, i)
+		var orderbook any = func() any {
+			if i >= 0 && i < len(orderbooks) {
+				return DerefScalar(orderbooks[i])
+			}
+			return nil
+		}()
 		var marketId *string = this.SafeString(orderbook, "market")
 		var symbol *string = this.SafeSymbol(marketId, nil, "-")
 		var timestamp *int64 = this.SafeInteger(orderbook, "timestamp")
@@ -1068,7 +1073,12 @@ func (this *Upbit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 			if !IsEqual(quoteCurrencies, "") {
 				quoteCurrencies = Add(quoteCurrencies, ",")
 			}
-			quoteCurrencies = Add(quoteCurrencies, GetValue(sortedQuoteIds, i))
+			quoteCurrencies = Add(quoteCurrencies, func() any {
+				if i >= 0 && i < len(sortedQuoteIds) {
+					return DerefScalar(sortedQuoteIds[i])
+				}
+				return nil
+			}())
 		}
 		var request map[string]any = map[string]any{
 			"quote_currencies": quoteCurrencies,

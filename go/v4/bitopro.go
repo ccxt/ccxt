@@ -1129,15 +1129,35 @@ func (this *Bitopro) InsertMissingCandles(candles any, distance any, since any, 
 			var copy []any = this.ArrayConcat([]any{}, copyFrom)
 			AddElementToObject(copy, 0, timestamp)
 			// set open, high, low to close
-			AddElementToObject(copy, 1, GetValue(copy, 4))
-			AddElementToObject(copy, 2, GetValue(copy, 4))
-			AddElementToObject(copy, 3, GetValue(copy, 4))
+			AddElementToObject(copy, 1, func() any {
+				if 4 >= 0 && 4 < len(copy) {
+					return DerefScalar(copy[4])
+				}
+				return nil
+			}())
+			AddElementToObject(copy, 2, func() any {
+				if 4 >= 0 && 4 < len(copy) {
+					return DerefScalar(copy[4])
+				}
+				return nil
+			}())
+			AddElementToObject(copy, 3, func() any {
+				if 4 >= 0 && 4 < len(copy) {
+					return DerefScalar(copy[4])
+				}
+				return nil
+			}())
 			AddElementToObject(copy, 5, this.ParseNumber("0"))
 			result = append(result, copy)
 		}
 		timestamp = this.Sum(timestamp, Multiply(distance, 1000))
 		resultLength = len(result)
-		copyFrom = GetValue(result, resultLength-1)
+		copyFrom = func() any {
+			if resultLength-1 >= 0 && resultLength-1 < len(result) {
+				return DerefScalar(result[resultLength-1])
+			}
+			return nil
+		}()
 	}
 	return result
 }

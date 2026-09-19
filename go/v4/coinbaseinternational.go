@@ -1132,13 +1132,28 @@ func (this *Coinbaseinternational) createDepositAddressBody(ch chan any, code an
 func (this *Coinbaseinternational) FindDefaultNetwork(networks any) any {
 	var networksArray []any = this.ToArray(networks)
 	for i := 0; i < len(networksArray); i++ {
-		var info any = GetValue(GetValue(networksArray, i), "info")
+		var info any = GetValue(func() any {
+			if i >= 0 && i < len(networksArray) {
+				return DerefScalar(networksArray[i])
+			}
+			return nil
+		}(), "info")
 		var is_default *bool = this.SafeBool(info, "is_default", false)
 		if is_default != nil && *is_default == true {
-			return GetValue(networksArray, i)
+			return func() any {
+				if i >= 0 && i < len(networksArray) {
+					return DerefScalar(networksArray[i])
+				}
+				return nil
+			}()
 		}
 	}
-	return GetValue(networksArray, 0)
+	return func() any {
+		if 0 >= 0 && 0 < len(networksArray) {
+			return DerefScalar(networksArray[0])
+		}
+		return nil
+	}()
 }
 func (this *Coinbaseinternational) LoadCurrencyNetworksAsync(code any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)

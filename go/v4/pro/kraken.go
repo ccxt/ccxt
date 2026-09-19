@@ -1244,7 +1244,12 @@ func (this *Kraken) HandleOrderBook(client any, message map[string]any) {
 		orderbook = ccxt.GetValue(this.Orderbooks, symbol)
 		var keys []any = []any{"asks", "bids"}
 		for i := 0; i < len(keys); i++ {
-			var key any = ccxt.GetValue(keys, i)
+			var key any = func() any {
+				if i >= 0 && i < len(keys) {
+					return ccxt.DerefScalar(keys[i])
+				}
+				return nil
+			}()
 			var bookside any = ccxt.GetValue(orderbook, key)
 			var deltas any = this.SafeList(first, key, []any{})
 			var deltasLength int = ccxt.GetArrayLength(deltas)

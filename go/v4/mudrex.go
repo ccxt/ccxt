@@ -664,7 +664,12 @@ func (this *Mudrex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var result []any = []any{}
 	for i := 0; i < len(aggregated); i++ {
-		result = append(result, this.ParseMarket(GetValue(aggregated, i)))
+		result = append(result, this.ParseMarket(func() any {
+			if i >= 0 && i < len(aggregated) {
+				return DerefScalar(aggregated[i])
+			}
+			return nil
+		}()))
 	}
 
 	ch <- result
@@ -1316,7 +1321,12 @@ func (this *Mudrex) fetchOrdersByStateBody(ch chan any, state any, optionalArgs 
 	}
 	var orders []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		orders = append(orders, this.ParseOrder(GetValue(rows, i), market))
+		orders = append(orders, this.ParseOrder(func() any {
+			if i >= 0 && i < len(rows) {
+				return DerefScalar(rows[i])
+			}
+			return nil
+		}(), market))
 	}
 
 	ch <- this.FilterBySymbolSinceLimit(orders, symbol, since, limit)
@@ -1465,7 +1475,12 @@ func (this *Mudrex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var rows []any = this.ToArray(data)
 	var outPos []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		var p any = GetValue(rows, i)
+		var p any = func() any {
+			if i >= 0 && i < len(rows) {
+				return DerefScalar(rows[i])
+			}
+			return nil
+		}()
 		var symRaw *string = this.SafeString(p, "symbol")
 		var m any = this.SafeMarket(symRaw)
 		var pos any = this.ParsePosition(p, m)
@@ -1852,7 +1867,12 @@ func (this *Mudrex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var transactions []any = []any{}
 	var transactionKeys []any = []any{}
 	for i := 0; i < len(allRows); i++ {
-		var entry any = GetValue(allRows, i)
+		var entry any = func() any {
+			if i >= 0 && i < len(allRows) {
+				return DerefScalar(allRows[i])
+			}
+			return nil
+		}()
 		var feeType *string = this.SafeString(entry, "fee_type")
 		var pairKey any = Add(Add(Add(Add(this.SafeString(entry, "symbol", ""), ":"), this.SafeString(entry, "created_at", "")), ":"), this.SafeString(entry, "transaction_amount", ""))
 		if feeType != nil && *feeType == "TRANSACTION" {
@@ -1867,17 +1887,42 @@ func (this *Mudrex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	for i := 0; i < len(transactions); i++ {
 		var rebate any = nil
 		for j := 0; j < len(rebateKeys); j++ {
-			if IsEqual(GetValue(rebateKeys, j), GetValue(transactionKeys, i)) {
-				rebate = GetValue(rebateAmounts, j)
+			if IsEqual(func() any {
+				if j >= 0 && j < len(rebateKeys) {
+					return DerefScalar(rebateKeys[j])
+				}
+				return nil
+			}(), func() any {
+				if i >= 0 && i < len(transactionKeys) {
+					return DerefScalar(transactionKeys[i])
+				}
+				return nil
+			}()) {
+				rebate = func() any {
+					if j >= 0 && j < len(rebateAmounts) {
+						return DerefScalar(rebateAmounts[j])
+					}
+					return nil
+				}()
 				// blank the consumed key so the next equal fill matches the next rebate, never the same one twice
 				AddElementToObject(rebateKeys, j, nil)
 				break
 			}
 		}
 		if rebate == nil {
-			rows = append(rows, GetValue(transactions, i))
+			rows = append(rows, func() any {
+				if i >= 0 && i < len(transactions) {
+					return DerefScalar(transactions[i])
+				}
+				return nil
+			}())
 		} else {
-			rows = append(rows, this.Extend(GetValue(transactions, i), map[string]any{
+			rows = append(rows, this.Extend(func() any {
+				if i >= 0 && i < len(transactions) {
+					return DerefScalar(transactions[i])
+				}
+				return nil
+			}(), map[string]any{
 				"rebate_amount": rebate,
 			}))
 		}
