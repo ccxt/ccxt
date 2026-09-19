@@ -4411,8 +4411,8 @@ func (this *Bitget) ParseCurrency(rawCurrency any) any {
 			panic(ArgumentsRequired(this.Id + " requires a network argument"))
 		}
 		network = ToUpper(network)
-		var withdrawable bool = (IsEqual(this.SafeString(chain, "withdrawable"), "true"))
-		var rechargeable bool = (IsEqual(this.SafeString(chain, "rechargeable"), "true"))
+		var withdrawable bool = (this.SafeString(chain, "withdrawable") != nil && *this.SafeString(chain, "withdrawable") == "true")
+		var rechargeable bool = (this.SafeString(chain, "rechargeable") != nil && *this.SafeString(chain, "rechargeable") == "true")
 		withdraw = func() any {
 			if withdraw == nil {
 				return withdrawable
@@ -6148,7 +6148,7 @@ func (this *Bitget) ParseTrade(trade any, optionalArgs ...any) any {
 		}
 		var feeCostString *string = this.SafeString2(feeStructure, "totalFee", "fee")
 		var deduction bool = func() bool {
-			if IsEqual(this.SafeString(feeStructure, "deduction"), "yes") {
+			if this.SafeString(feeStructure, "deduction") != nil && *this.SafeString(feeStructure, "deduction") == "yes" {
 				return true
 			}
 			return false
@@ -12521,7 +12521,7 @@ func (this *Bitget) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...a
 func (this *Bitget) ParseLeverage(leverage any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var isCrossMarginMode bool = IsEqual(this.SafeString(leverage, "marginMode"), "crossed")
+	var isCrossMarginMode bool = (this.SafeString(leverage, "marginMode") != nil && *this.SafeString(leverage, "marginMode") == "crossed")
 	var longLevKey string = func() string {
 		if isCrossMarginMode {
 			return "crossedMarginLeverage"

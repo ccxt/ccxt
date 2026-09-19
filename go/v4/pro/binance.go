@@ -6158,7 +6158,7 @@ func (this *Binance) HandleOptionsOrderUpdate(client any, message any) {
 		this.HandleOrder(client, normalizedOrder)
 		for j := 0; j < ccxt.GetArrayLength(fills); j++ {
 			var fill any = ccxt.GetValue(fills, j)
-			var isMaker bool = (ccxt.IsEqual(this.SafeString(fill, "m"), "MAKER"))
+			var isMaker bool = (this.SafeString(fill, "m") != nil && *this.SafeString(fill, "m") == "MAKER")
 			// normalize fill fields to the flat format parseWsTrade/handleMyTrade expect
 			var normalizedTrade map[string]any = map[string]any{
 				"x": "TRADE",
