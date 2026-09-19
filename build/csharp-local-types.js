@@ -7736,6 +7736,11 @@ function csharpParameterDecision (csharp, parameter, expected) {
     if (ownerFile.includes ('/pro/') && /^handle[A-Z]/.test (name)) {
         return undefined;
     }
+    // the generated test harness (ts/src/test, ts/src/pro/test) is its own compile unit with
+    // object-typed fixtures: only generated exchange classes are this family's surface
+    if (ownerFile.includes ('/test/')) {
+        return undefined;
+    }
     const target = csharpParameterPrintedType (parameter, mapped);
     if (target === undefined) {
         return undefined;
