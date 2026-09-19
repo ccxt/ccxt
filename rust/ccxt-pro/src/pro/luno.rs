@@ -315,6 +315,8 @@ impl LunoCore {
 }
 
     pub fn handle_trades(&mut self, mut client: Value, mut message: Value, mut subscription: Value) {
+        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
+        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
         //     {
         //         "sequence": "110980825",
@@ -330,7 +332,7 @@ impl LunoCore {
         //         "timestamp": 1660598775360
         //     }
         //
-        let mut rawTrades: Value = self.safe_list_k(message, "trade_updates", &[Value::from(vec![])]);
+        let mut rawTrades: Value = (match __pro_message.get("trade_updates").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
         let mut length: f64 = ((rawTrades.len() as i64) as f64);
         if (length == 0.0) {
             return;
@@ -437,6 +439,8 @@ impl LunoCore {
 }
 
     pub fn handle_order_book(&mut self, mut client: Value, mut message: Value, mut subscription: Value) {
+        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
+        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
         //     {
         //         "sequence": "24352",
@@ -478,18 +482,18 @@ impl LunoCore {
     m
 })]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
         }
-        let mut asks: Value = self.safe_value_k(message.clone(), "asks", &[]);
+        let mut asks: Value = (match __pro_message.get("asks").cloned() { Some(Value::Str(__s)) if __s.is_empty() => Value::Null, Some(__v) => __v, None => Value::Null });
         if (asks != Value::Null) {
             let mut snapshot: Value = self.custom_parse_order_book(message.clone(), symbol.clone(), &[timestamp.clone(), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("volume".into()), Value::Str("id".into())]);
             { let __be_tmp = self.indexed_order_book(&[snapshot]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
         }  else {
             let mut ob: Value = get_value(&self.orderbooks, &symbol);
-            self.handle_delta(ob.clone(), message.clone());
+            self.handle_delta(ob.clone(), message);
             add_element_to_object(&mut ob, &Value::Str("timestamp".into()), timestamp.clone());
             add_element_to_object(&mut ob, &Value::Str("datetime".into()), self.iso8601(timestamp));
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
-        let mut nonce: Value = self.safe_integer_k(message, "sequence", &[]);
+        let mut nonce: Value = (match __pro_message.get("sequence").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
         add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), nonce);
         client.resolve(&[orderbook, messageHash]);
 }

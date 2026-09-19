@@ -703,6 +703,8 @@ impl CoinbaseCore {
 }
 
     pub fn handle_tickers(&mut self, mut client: Value, mut message: Value) {
+        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
+        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
         //    {
         //        "channel": "ticker",
@@ -792,8 +794,8 @@ impl CoinbaseCore {
         //    }
         //
         //
-        let mut channel: Value = self.safe_string_k(message.clone(), "channel", &[]);
-        let mut events: Value = self.safe_list_k(message.clone(), "events", &[Value::from(vec![])]);
+        let mut channel: Value = (match __pro_message.get("channel").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
+        let mut events: Value = (match __pro_message.get("events").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
         let mut datetime: Value = self.safe_string_k(message, "timestamp", &[]);
         let mut timestamp: Value = self.parse8601(datetime.clone());
         let mut newTickers: Value = Value::from(vec![]);
@@ -1423,6 +1425,8 @@ impl CoinbaseCore {
 }
 
     pub fn handle_subscription_status(&mut self, mut client: Value, mut message: Value) -> Value {
+        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
+        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
         //     {
         //         "type": "subscriptions",
@@ -1443,7 +1447,7 @@ impl CoinbaseCore {
         //        events: [ { subscriptions: {} } ]
         //      }
         //
-        let mut events: Value = self.safe_list_k(message.clone(), "events", &[Value::from(vec![])]);
+        let mut events: Value = (match __pro_message.get("events").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
         let mut firstEvent: Value = self.safe_dict(events, Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
