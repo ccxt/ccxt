@@ -291,7 +291,7 @@ export default class bit2c extends Exchange {
         });
     }
 
-    override parseBalance (response: any): Balances {
+    override parseBalance (response: Dict): Balances {
         const result: Dict = {
             'info': response,
             'timestamp': undefined,
@@ -555,7 +555,7 @@ export default class bit2c extends Exchange {
         for (let i = 0; i < keys.length; i++) {
             const marketId = keys[i];
             const symbol = this.safeSymbol (marketId);
-            const fee = this.safeValue (fees, marketId);
+            const fee = this.safeDict (fees, marketId);
             const makerString = this.safeString (fee, 'FeeMaker');
             const takerString = this.safeString (fee, 'FeeTaker');
             const maker = this.parseNumber (Precise.stringDiv (makerString, '100'));
@@ -653,8 +653,8 @@ export default class bit2c extends Exchange {
             'pair': market['id'],
         };
         const response = await this.privateGetOrderMyOrders (this.extend (request, params));
-        const orders = this.safeValue (response, market['id'], {});
-        const asks = this.safeValue (orders, 'ask', []);
+        const orders = this.safeDict (response, market['id'], {});
+        const asks = this.safeList (orders, 'ask', []);
         const bids = this.safeList (orders, 'bid', []);
         return this.parseOrders (this.arrayConcat (asks, bids), market, since, limit);
     }
@@ -945,7 +945,7 @@ export default class bit2c extends Exchange {
             const marketId = this.safeString (trade, 'pair');
             market = this.safeMarket (marketId, market);
             market = this.safeMarket (reference_parts[0], market);
-            const isMaker = this.safeValue (trade, 'isMaker');
+            const isMaker = this.safeBool (trade, 'isMaker');
             makerOrTaker = (isMaker === true) ? 'maker' : 'taker';
             orderId = (isMaker === true) ? reference_parts[2] : reference_parts[1];
             const action = this.safeInteger (trade, 'action');
@@ -1027,7 +1027,7 @@ export default class bit2c extends Exchange {
         return this.parseDepositAddress (response, currency);
     }
 
-    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "address": "0xf14b94518d74aff2b1a6d3429471bcfcd3881d42",
