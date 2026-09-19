@@ -903,7 +903,7 @@ func (this *Poloniex) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
 	_ = market
 	return []any{this.SafeInteger(ohlcv, "startTime"), this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, "quantity")}
 }
-func (this *Poloniex) HandleOHLCV(client any, message any) any {
+func (this *Poloniex) HandleOHLCV(client any, message map[string]any) any {
 	//
 	//    {
 	//        "channel": "candles_minute_1",
@@ -954,7 +954,7 @@ func (this *Poloniex) HandleOHLCV(client any, message any) any {
 	}
 	return message
 }
-func (this *Poloniex) HandleTrade(client any, message any) any {
+func (this *Poloniex) HandleTrade(client any, message map[string]any) any {
 	//
 	//    {
 	//        "channel": "trades",
@@ -1138,7 +1138,7 @@ func (this *Poloniex) ParseWsOrderTrade(trade any, optionalArgs ...any) any {
 		},
 	}, market)
 }
-func (this *Poloniex) HandleOrder(client any, message any) any {
+func (this *Poloniex) HandleOrder(client any, message map[string]any) any {
 	//
 	// ccxt.Order is created
 	//
@@ -1338,7 +1338,7 @@ func (this *Poloniex) ParseWsOrder(order any, optionalArgs ...any) any {
 		"trades": trades,
 	})
 }
-func (this *Poloniex) HandleTicker(client any, message any) any {
+func (this *Poloniex) HandleTicker(client any, message map[string]any) any {
 	//
 	//    {
 	//        "channel": "ticker",
@@ -1396,7 +1396,7 @@ func (this *Poloniex) HandleTicker(client any, message any) any {
 	client.(ccxt.ClientInterface).Resolve(newTickers, "ticker")
 	return message
 }
-func (this *Poloniex) HandleOrderBook(client any, message any) {
+func (this *Poloniex) HandleOrderBook(client any, message map[string]any) {
 	//
 	// snapshot
 	//
@@ -1495,7 +1495,7 @@ func (this *Poloniex) HandleOrderBook(client any, message any) {
 		}
 	}
 }
-func (this *Poloniex) HandleBalance(client any, message any) {
+func (this *Poloniex) HandleBalance(client any, message map[string]any) {
 	//
 	//    {
 	//       "channel": "balances",

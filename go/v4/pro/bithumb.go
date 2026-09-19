@@ -246,7 +246,7 @@ func (this *Bithumb) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterByArray(this.Tickers, "symbol", symbols)
 	return nil
 }
-func (this *Bithumb) HandleTicker(client any, message any) {
+func (this *Bithumb) HandleTicker(client any, message map[string]any) {
 	//
 	// generation 1
 	//
@@ -536,7 +536,7 @@ func (this *Bithumb) watchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
 }
-func (this *Bithumb) HandleOrderBook(client any, message any) {
+func (this *Bithumb) HandleOrderBook(client any, message map[string]any) {
 	//
 	// generation 1
 	//
@@ -767,7 +767,7 @@ func (this *Bithumb) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
 	return nil
 }
-func (this *Bithumb) HandleTrades(client any, message any) {
+func (this *Bithumb) HandleTrades(client any, message map[string]any) {
 	//
 	// generation 1
 	//
@@ -1013,7 +1013,7 @@ func (this *Bithumb) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	ch <- balance
 	return nil
 }
-func (this *Bithumb) HandleBalance(client any, message any) {
+func (this *Bithumb) HandleBalance(client any, message map[string]any) {
 	//
 	//    {
 	//        "type": "myAsset",
@@ -1186,7 +1186,7 @@ func (this *Bithumb) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterBySymbolSinceLimit(orders, symbol, since, limit, true)
 	return nil
 }
-func (this *Bithumb) HandleOrders(client any, message any) {
+func (this *Bithumb) HandleOrders(client any, message map[string]any) {
 	//
 	//    {
 	//        "type": "myOrder",

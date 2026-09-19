@@ -500,7 +500,7 @@ func (this *Krakenfutures) watchPositionsBody(ch chan any, optionalArgs ...any) 
 	ch <- this.FilterBySymbolsSinceLimit(this.Positions, symbols, since, limit, true)
 	return nil
 }
-func (this *Krakenfutures) HandlePositions(client any, message any) {
+func (this *Krakenfutures) HandlePositions(client any, message map[string]any) {
 	//
 	//    {
 	//        feed: 'open_positions',
@@ -779,7 +779,7 @@ func (this *Krakenfutures) watchBalanceBody(ch chan any, optionalArgs ...any) an
 	ch <- retRes52415
 	return nil
 }
-func (this *Krakenfutures) HandleTrade(client any, message any) {
+func (this *Krakenfutures) HandleTrade(client any, message map[string]any) {
 	//
 	// snapshot
 	//
@@ -950,7 +950,7 @@ func (this *Krakenfutures) ParseWsOrderTrade(trade any, optionalArgs ...any) any
 		},
 	}, market)
 }
-func (this *Krakenfutures) HandleOrder(client any, message any) any {
+func (this *Krakenfutures) HandleOrder(client any, message map[string]any) any {
 	//
 	//  update (verbose)
 	//
@@ -1107,7 +1107,7 @@ func (this *Krakenfutures) HandleOrder(client any, message any) any {
 			// get order without symbol
 			for i := 0; i < ccxt.GetArrayLength(orders); i++ {
 				var currentOrder any = ccxt.GetValue(orders, i)
-				if ccxt.IsEqual(ccxt.GetValue(currentOrder, "id"), ccxt.GetValue(message, "order_id")) {
+				if ccxt.IsEqual(ccxt.GetValue(currentOrder, "id"), message["order_id"]) {
 					var info map[string]any = this.Extend(this.SafeDict(currentOrder, "info", map[string]any{}), map[string]any{
 						"reason": reason,
 					})
@@ -1124,7 +1124,7 @@ func (this *Krakenfutures) HandleOrder(client any, message any) any {
 	}
 	return message
 }
-func (this *Krakenfutures) HandleOrderSnapshot(client any, message any) {
+func (this *Krakenfutures) HandleOrderSnapshot(client any, message map[string]any) {
 	//
 	// verbose
 	//
@@ -1289,7 +1289,7 @@ func (this *Krakenfutures) ParseWsOrder(order any, optionalArgs ...any) any {
 		"trades": nil,
 	})
 }
-func (this *Krakenfutures) HandleTicker(client any, message any) {
+func (this *Krakenfutures) HandleTicker(client any, message map[string]any) {
 	//
 	//    {
 	//        "time": 1680811086487,
@@ -1332,7 +1332,7 @@ func (this *Krakenfutures) HandleTicker(client any, message any) {
 		client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 	}
 }
-func (this *Krakenfutures) HandleBidAsk(client any, message any) {
+func (this *Krakenfutures) HandleBidAsk(client any, message map[string]any) {
 	//
 	//    {
 	//        "feed": "ticker_lite",
@@ -1442,7 +1442,7 @@ func (this *Krakenfutures) ParseWsTicker(ticker any, optionalArgs ...any) any {
 		"indexPrice":    this.SafeString(ticker, "index"),
 	})
 }
-func (this *Krakenfutures) HandleOrderBookSnapshot(client any, message any) {
+func (this *Krakenfutures) HandleOrderBookSnapshot(client any, message map[string]any) {
 	//
 	//    {
 	//        "feed": "book_snapshot",
@@ -1508,7 +1508,7 @@ func (this *Krakenfutures) HandleOrderBookSnapshot(client any, message any) {
 	ccxt.AddElementToObject(orderbook, "symbol", symbol)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
-func (this *Krakenfutures) HandleOrderBook(client any, message any) {
+func (this *Krakenfutures) HandleOrderBook(client any, message map[string]any) {
 	//
 	//    {
 	//        "feed": "book",
@@ -1540,7 +1540,7 @@ func (this *Krakenfutures) HandleOrderBook(client any, message any) {
 	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
-func (this *Krakenfutures) HandleBalance(client any, message any) {
+func (this *Krakenfutures) HandleBalance(client any, message map[string]any) {
 	//
 	// snapshot
 	//
@@ -1763,7 +1763,7 @@ func (this *Krakenfutures) HandleBalance(client any, message any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
 }
-func (this *Krakenfutures) HandleMyTrades(client any, message any) {
+func (this *Krakenfutures) HandleMyTrades(client any, message map[string]any) {
 	//
 	//    {
 	//        "feed": "fills_snapshot",

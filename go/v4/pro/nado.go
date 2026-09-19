@@ -2043,7 +2043,7 @@ func (this *Nado) ParseWsMyTrade(trade any, optionalArgs ...any) any {
 		"fee":          fee,
 	}, market)
 }
-func (this *Nado) HandleTrade(client any, message any) {
+func (this *Nado) HandleTrade(client any, message map[string]any) {
 	var marketId *string = this.SafeString(message, "product_id")
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
@@ -2058,7 +2058,7 @@ func (this *Nado) HandleTrade(client any, message any) {
 	trades.(ccxt.Appender).Append(trade)
 	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
 }
-func (this *Nado) HandleMyTrade(client any, message any) {
+func (this *Nado) HandleMyTrade(client any, message map[string]any) {
 	var trade any = this.ParseWsMyTrade(message)
 	if ccxt.IsEqual(this.MyTrades, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -2070,7 +2070,7 @@ func (this *Nado) HandleMyTrade(client any, message any) {
 	client.(ccxt.ClientInterface).Resolve(trades, "myTrades")
 	client.(ccxt.ClientInterface).Resolve(trades, ccxt.Add("myTrades:", symbol))
 }
-func (this *Nado) HandleOHLCV(client any, message any) {
+func (this *Nado) HandleOHLCV(client any, message map[string]any) {
 	//
 	//     {
 	//         "type": "latest_candlestick",
@@ -2176,7 +2176,7 @@ func (this *Nado) ParseWsOrder(order any, optionalArgs ...any) any {
 		"trades":              nil,
 	}, market)
 }
-func (this *Nado) HandleOrder(client any, message any) {
+func (this *Nado) HandleOrder(client any, message map[string]any) {
 	var order any = this.ParseWsOrder(message)
 	if ccxt.IsEqual(this.Orders, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
@@ -2250,7 +2250,7 @@ func (this *Nado) ParseWsPosition(position any, optionalArgs ...any) any {
 		"percentage":                  nil,
 	})
 }
-func (this *Nado) HandlePosition(client any, message any) {
+func (this *Nado) HandlePosition(client any, message map[string]any) {
 	var marketId *string = this.SafeString(message, "product_id")
 	var market any = this.SafeMarket(marketId)
 	if !ccxt.EvalTruthy(this.SafeBool(market, "contract", false)) {
@@ -2304,7 +2304,7 @@ func (this *Nado) ParseWsBidAsk(bidask any, optionalArgs ...any) any {
 		"info":      bidask,
 	}, market)
 }
-func (this *Nado) HandleBidAsk(client any, message any) {
+func (this *Nado) HandleBidAsk(client any, message map[string]any) {
 	var ticker any = this.ParseWsBidAsk(message)
 	var symbol *string = this.SafeString(ticker, "symbol")
 	if symbol == nil {
@@ -2355,7 +2355,7 @@ func (this *Nado) ParseWsAllBidsAsks(message any) any {
 	}
 	return result
 }
-func (this *Nado) HandleAllBidsAsks(client any, message any) {
+func (this *Nado) HandleAllBidsAsks(client any, message map[string]any) {
 	var tickers any = this.ParseWsAllBidsAsks(message)
 	var symbols []string = ccxt.ObjectKeys(tickers)
 	for i := 0; i < len(symbols); i++ {
@@ -2373,7 +2373,7 @@ func (this *Nado) HandleDelta(bookside any, delta any) {
 	var bidAsk []any = []any{this.ParseX18(this.SafeString(delta, 0)), this.ParseX18(this.SafeString(delta, 1))}
 	bookside.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 }
-func (this *Nado) HandleOrderBook(client any, message any) {
+func (this *Nado) HandleOrderBook(client any, message map[string]any) {
 	//
 	//     {
 	//         "type": "book_depth",

@@ -1117,7 +1117,7 @@ func (this *Xt) unWatchFundingRateBody(ch chan any, symbol any, optionalArgs ...
 	ch <- retRes70215
 	return nil
 }
-func (this *Xt) HandleFundingRate(client any, message any) any {
+func (this *Xt) HandleFundingRate(client any, message map[string]any) any {
 	//
 	//     {
 	//         "topic": "fund_rate",
@@ -1189,7 +1189,7 @@ func (this *Xt) loadPositionsSnapshotBody(ch chan any, client any, messageHash a
 	}
 	return nil
 }
-func (this *Xt) HandlePosition(client any, message any) {
+func (this *Xt) HandlePosition(client any, message map[string]any) {
 	//
 	//    {
 	//      topic: 'position',
@@ -1240,7 +1240,7 @@ func (this *Xt) HandlePosition(client any, message any) {
 	}
 	client.(ccxt.ClientInterface).Resolve([]any{position}, "position::contract")
 }
-func (this *Xt) HandleTicker(client any, message any) any {
+func (this *Xt) HandleTicker(client any, message map[string]any) any {
 	//
 	// spot
 	//
@@ -1323,7 +1323,7 @@ func (this *Xt) HandleTicker(client any, message any) any {
 	}
 	return message
 }
-func (this *Xt) HandleTickers(client any, message any) any {
+func (this *Xt) HandleTickers(client any, message map[string]any) any {
 	//
 	// spot
 	//
@@ -1427,7 +1427,7 @@ func (this *Xt) HandleTickers(client any, message any) any {
 	client.(ccxt.ClientInterface).Resolve(this.Tickers, messageHashStart)
 	return message
 }
-func (this *Xt) HandleOHLCV(client any, message any) any {
+func (this *Xt) HandleOHLCV(client any, message map[string]any) any {
 	//
 	// spot
 	//
@@ -1492,7 +1492,7 @@ func (this *Xt) HandleOHLCV(client any, message any) any {
 	}
 	return message
 }
-func (this *Xt) HandleTrade(client any, message any) any {
+func (this *Xt) HandleTrade(client any, message map[string]any) any {
 	//
 	// spot
 	//
@@ -1549,7 +1549,7 @@ func (this *Xt) HandleTrade(client any, message any) any {
 	}
 	return message
 }
-func (this *Xt) HandleOrderBook(client any, message any) {
+func (this *Xt) HandleOrderBook(client any, message map[string]any) {
 	//
 	// spot
 	//
@@ -1813,7 +1813,7 @@ func (this *Xt) ParseWsOrder(order any, optionalArgs ...any) any {
 		"trades": nil,
 	}, market)
 }
-func (this *Xt) HandleOrder(client any, message any) any {
+func (this *Xt) HandleOrder(client any, message map[string]any) any {
 	//
 	// spot
 	//
@@ -1878,7 +1878,7 @@ func (this *Xt) HandleOrder(client any, message any) any {
 	}
 	return message
 }
-func (this *Xt) HandleBalance(client any, message any) {
+func (this *Xt) HandleBalance(client any, message map[string]any) {
 	//
 	// spot
 	//
@@ -1932,7 +1932,7 @@ func (this *Xt) HandleBalance(client any, message any) {
 	}()
 	client.(ccxt.ClientInterface).Resolve(this.Balance, "balance::"+tradeType)
 }
-func (this *Xt) HandleMyTrades(client any, message any) {
+func (this *Xt) HandleMyTrades(client any, message map[string]any) {
 	//
 	// spot
 	//
@@ -2081,7 +2081,7 @@ func (this *Xt) HandleUnSubscription(client any, subscription any) {
 	}
 	this.CleanCache(subscription)
 }
-func (this *Xt) HandleErrorMessage(client any, message any) {
+func (this *Xt) HandleErrorMessage(client any, message map[string]any) {
 	//
 	//    {
 	//        "id": "123",

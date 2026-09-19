@@ -321,7 +321,7 @@ func (this *Hitbtc) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
 }
-func (this *Hitbtc) HandleOrderBook(client any, message any) {
+func (this *Hitbtc) HandleOrderBook(client any, message map[string]any) {
 	//
 	//    {
 	//        "ch": "orderbook/full",                 // Channel
@@ -496,7 +496,7 @@ func (this *Hitbtc) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterByArray(newTickers, "symbol", symbols)
 	return nil
 }
-func (this *Hitbtc) HandleTicker(client any, message any) {
+func (this *Hitbtc) HandleTicker(client any, message map[string]any) {
 	//
 	//    {
 	//        "ch": "ticker/1s",
@@ -668,7 +668,7 @@ func (this *Hitbtc) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterByArray(newTickers, "symbol", symbols)
 	return nil
 }
-func (this *Hitbtc) HandleBidAsk(client any, message any) {
+func (this *Hitbtc) HandleBidAsk(client any, message map[string]any) {
 	//
 	//     {
 	//         "ch": "orderbook/top/100ms", // or 'orderbook/top/100ms/batch'
@@ -771,7 +771,7 @@ func (this *Hitbtc) watchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp")
 	return nil
 }
-func (this *Hitbtc) HandleTrades(client any, message any) any {
+func (this *Hitbtc) HandleTrades(client any, message map[string]any) any {
 	//
 	//    {
 	//        "result": {
@@ -930,7 +930,7 @@ func (this *Hitbtc) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	ch <- this.FilterBySinceLimit(ohlcv, since, limit, 0)
 	return nil
 }
-func (this *Hitbtc) HandleOHLCV(client any, message any) any {
+func (this *Hitbtc) HandleOHLCV(client any, message map[string]any) any {
 	//
 	//    {
 	//        "ch": "candles/M1",                     // Channel
@@ -1068,7 +1068,7 @@ func (this *Hitbtc) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterBySinceLimit(orders, since, limit, "timestamp")
 	return nil
 }
-func (this *Hitbtc) HandleOrder(client any, message any) any {
+func (this *Hitbtc) HandleOrder(client any, message map[string]any) any {
 	//
 	//    {
 	//        "jsonrpc": "2.0",
@@ -1145,7 +1145,7 @@ func (this *Hitbtc) HandleOrder(client any, message any) any {
 	}
 	return message
 }
-func (this *Hitbtc) HandleOrderHelper(client any, message any, order any) {
+func (this *Hitbtc) HandleOrderHelper(client any, message map[string]any, order any) {
 	var orders any = this.Orders
 	if ccxt.IsEqual(orders, nil) {
 		return
@@ -1598,7 +1598,7 @@ func (this *Hitbtc) fetchOpenOrdersWsBody(ch chan any, optionalArgs ...any) any 
 		return nil
 	}
 }
-func (this *Hitbtc) HandleBalance(client any, message any) {
+func (this *Hitbtc) HandleBalance(client any, message map[string]any) {
 	//
 	//    {
 	//        "jsonrpc": "2.0",
@@ -1620,7 +1620,7 @@ func (this *Hitbtc) HandleBalance(client any, message any) {
 	this.Balance = this.DeepExtend(this.Balance, balance)
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
 }
-func (this *Hitbtc) HandleNotification(client any, message any) any {
+func (this *Hitbtc) HandleNotification(client any, message map[string]any) any {
 	//
 	//     { jsonrpc: "2.0", result: true, id: null }
 	//

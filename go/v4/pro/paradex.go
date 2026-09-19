@@ -164,7 +164,7 @@ func (this *Paradex) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
 	return nil
 }
-func (this *Paradex) HandleTrade(client any, message any) any {
+func (this *Paradex) HandleTrade(client any, message map[string]any) any {
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -242,7 +242,7 @@ func (this *Paradex) watchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
 }
-func (this *Paradex) HandleOrderBook(client any, message any) {
+func (this *Paradex) HandleOrderBook(client any, message map[string]any) {
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -472,7 +472,7 @@ func (this *Paradex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterBySymbolSinceLimit(orders, symbol, since, limit, true)
 	return nil
 }
-func (this *Paradex) HandleOrder(client any, message any) {
+func (this *Paradex) HandleOrder(client any, message map[string]any) {
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -516,7 +516,7 @@ func (this *Paradex) HandleOrder(client any, message any) {
 		client.(ccxt.ClientInterface).Resolve(this.Orders, symbolMessageHash)
 	}
 }
-func (this *Paradex) HandleTicker(client any, message any) any {
+func (this *Paradex) HandleTicker(client any, message map[string]any) any {
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -661,7 +661,7 @@ func (this *Paradex) watchFundingRatesBody(ch chan any, optionalArgs ...any) any
 	ch <- this.FilterByArray(this.FundingRates, "symbol", symbols)
 	return nil
 }
-func (this *Paradex) HandleFundingRate(client any, message any) {
+func (this *Paradex) HandleFundingRate(client any, message map[string]any) {
 	//
 	//     {
 	//         "jsonrpc": "2.0",

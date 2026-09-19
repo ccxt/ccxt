@@ -388,7 +388,7 @@ func (this *Coinbaseinternational) watchTickersBody(ch chan any, optionalArgs ..
 	ch <- this.FilterByArray(this.Tickers, "symbol", symbols)
 	return nil
 }
-func (this *Coinbaseinternational) HandleInstrument(client any, message any) {
+func (this *Coinbaseinternational) HandleInstrument(client any, message map[string]any) {
 	//
 	//    {
 	//        "sequence": 1,
@@ -500,7 +500,7 @@ func (this *Coinbaseinternational) ParseWsInstrument(ticker any, optionalArgs ..
 		"quoteVolume":   this.SafeString2(ticker, "total_24_hour_volume", "total24_hour_volume"),
 	})
 }
-func (this *Coinbaseinternational) HandleTicker(client any, message any) {
+func (this *Coinbaseinternational) HandleTicker(client any, message map[string]any) {
 	//
 	// snapshot
 	//    {
@@ -737,7 +737,7 @@ func (this *Coinbaseinternational) watchTradesForSymbolsBody(ch chan any, symbol
 	ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
 	return nil
 }
-func (this *Coinbaseinternational) HandleTrade(client any, message any) any {
+func (this *Coinbaseinternational) HandleTrade(client any, message map[string]any) any {
 	//
 	//    {
 	//       "sequence": 0,
@@ -857,7 +857,7 @@ func (this *Coinbaseinternational) watchOrderBookForSymbolsBody(ch chan any, sym
 	ch <- retRes65015
 	return nil
 }
-func (this *Coinbaseinternational) HandleOrderBook(client any, message any) {
+func (this *Coinbaseinternational) HandleOrderBook(client any, message map[string]any) {
 	//
 	// snapshot
 	//    {
@@ -935,7 +935,7 @@ func (this *Coinbaseinternational) HandleDeltas(orderbook any, deltas any) {
 		this.HandleDelta(orderbook, ccxt.GetValue(deltas, i))
 	}
 }
-func (this *Coinbaseinternational) HandleSubscriptionStatus(client any, message any) any {
+func (this *Coinbaseinternational) HandleSubscriptionStatus(client any, message map[string]any) any {
 	//
 	//    {
 	//       "channels": [
@@ -962,7 +962,7 @@ func (this *Coinbaseinternational) HandleSubscriptionStatus(client any, message 
 	//
 	return message
 }
-func (this *Coinbaseinternational) HandleFundingRate(client any, message any) {
+func (this *Coinbaseinternational) HandleFundingRate(client any, message map[string]any) {
 	//
 	// snapshot
 	//    {

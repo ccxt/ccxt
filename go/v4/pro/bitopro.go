@@ -119,7 +119,7 @@ func (this *Bitopro) watchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
 }
-func (this *Bitopro) HandleOrderBook(client any, message any) {
+func (this *Bitopro) HandleOrderBook(client any, message map[string]any) {
 	//
 	//     {
 	//         "event": "ORDER_BOOK",
@@ -199,7 +199,7 @@ func (this *Bitopro) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
 	return nil
 }
-func (this *Bitopro) HandleTrade(client any, message any) {
+func (this *Bitopro) HandleTrade(client any, message map[string]any) {
 	//
 	//     {
 	//         "event": "TRADE",
@@ -288,7 +288,7 @@ func (this *Bitopro) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
 	return nil
 }
-func (this *Bitopro) HandleMyTrade(client any, message any) {
+func (this *Bitopro) HandleMyTrade(client any, message map[string]any) {
 	//
 	//     {
 	//         "event": "USER_TRADE",
@@ -439,7 +439,7 @@ func (this *Bitopro) watchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	ch <- retRes35215
 	return nil
 }
-func (this *Bitopro) HandleTicker(client any, message any) {
+func (this *Bitopro) HandleTicker(client any, message map[string]any) {
 	//
 	//     {
 	//         "event": "TICKER",
@@ -542,7 +542,7 @@ func (this *Bitopro) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	ch <- retRes44215
 	return nil
 }
-func (this *Bitopro) HandleBalance(client any, message any) {
+func (this *Bitopro) HandleBalance(client any, message map[string]any) {
 	//
 	//     {
 	//         "event": "ACCOUNT_BALANCE",

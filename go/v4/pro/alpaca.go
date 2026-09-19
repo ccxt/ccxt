@@ -113,7 +113,7 @@ func (this *Alpaca) watchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	ch <- retRes8815
 	return nil
 }
-func (this *Alpaca) HandleTicker(client any, message any) {
+func (this *Alpaca) HandleTicker(client any, message map[string]any) {
 	//
 	//    {
 	//         "T": "q",
@@ -227,7 +227,7 @@ func (this *Alpaca) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	ch <- this.FilterBySinceLimit(ohlcv, since, limit, 0, true)
 	return nil
 }
-func (this *Alpaca) HandleOHLCV(client any, message any) {
+func (this *Alpaca) HandleOHLCV(client any, message map[string]any) {
 	//
 	//    {
 	//        "T": "b",
@@ -301,7 +301,7 @@ func (this *Alpaca) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
 }
-func (this *Alpaca) HandleOrderBook(client any, message any) {
+func (this *Alpaca) HandleOrderBook(client any, message map[string]any) {
 	//
 	// snapshot
 	//    {
@@ -408,7 +408,7 @@ func (this *Alpaca) watchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
 	return nil
 }
-func (this *Alpaca) HandleTrades(client any, message any) {
+func (this *Alpaca) HandleTrades(client any, message map[string]any) {
 	//
 	//     {
 	//         "T": "t",
@@ -550,11 +550,11 @@ func (this *Alpaca) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterBySymbolSinceLimit(orders, symbol, since, limit, true)
 	return nil
 }
-func (this *Alpaca) HandleTradeUpdate(client any, message any) {
+func (this *Alpaca) HandleTradeUpdate(client any, message map[string]any) {
 	this.HandleOrder(client, message)
 	this.HandleMyTrade(client, message)
 }
-func (this *Alpaca) HandleOrder(client any, message any) {
+func (this *Alpaca) HandleOrder(client any, message map[string]any) {
 	//
 	//    {
 	//        "stream": "trade_updates",
@@ -614,7 +614,7 @@ func (this *Alpaca) HandleOrder(client any, message any) {
 	messageHash = ccxt.Add("orders:", ccxt.GetValue(order, "symbol"))
 	client.(ccxt.ClientInterface).Resolve(orders, messageHash)
 }
-func (this *Alpaca) HandleMyTrade(client any, message any) {
+func (this *Alpaca) HandleMyTrade(client any, message map[string]any) {
 	//
 	//    {
 	//        "stream": "trade_updates",
@@ -791,7 +791,7 @@ func (this *Alpaca) authenticateBody(ch chan any, url any, optionalArgs ...any) 
 	ch <- retRes64715
 	return nil
 }
-func (this *Alpaca) HandleErrorMessage(client any, message any) any {
+func (this *Alpaca) HandleErrorMessage(client any, message map[string]any) any {
 	//
 	//    {
 	//        "T": "error",

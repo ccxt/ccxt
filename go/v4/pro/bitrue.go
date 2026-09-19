@@ -120,7 +120,7 @@ func (this *Bitrue) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	ch <- retRes8915
 	return nil
 }
-func (this *Bitrue) HandleBalance(client any, message any) {
+func (this *Bitrue) HandleBalance(client any, message map[string]any) {
 	//
 	//     {
 	//         "e": "BALANCE",
@@ -272,7 +272,7 @@ func (this *Bitrue) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterBySymbolSinceLimit(orders, symbol, since, limit, true)
 	return nil
 }
-func (this *Bitrue) HandleOrder(client any, message any) {
+func (this *Bitrue) HandleOrder(client any, message map[string]any) {
 	//
 	//    {
 	//        "e": "ORDER",

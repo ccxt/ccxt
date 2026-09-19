@@ -186,7 +186,7 @@ func (this *Bitstamp) unWatchChannelBody(ch chan any, channel any, subHash any, 
 	ch <- retRes13115
 	return nil
 }
-func (this *Bitstamp) HandleOrderBook(client any, message any) {
+func (this *Bitstamp) HandleOrderBook(client any, message map[string]any) {
 	//
 	// initial snapshot is fetched with ccxt's fetchOrderBook
 	// the feed does not include a snapshot, just the deltas
@@ -415,7 +415,7 @@ func (this *Bitstamp) ParseWsTrade(trade any, optionalArgs ...any) any {
 		"fee":          nil,
 	}, market)
 }
-func (this *Bitstamp) HandleTrade(client any, message any) {
+func (this *Bitstamp) HandleTrade(client any, message map[string]any) {
 	//
 	//     {
 	//         "data": {
@@ -499,7 +499,7 @@ func (this *Bitstamp) watchFundingRateBody(ch chan any, symbol any, optionalArgs
 	ch <- retRes39415
 	return nil
 }
-func (this *Bitstamp) HandleFundingRate(client any, message any) {
+func (this *Bitstamp) HandleFundingRate(client any, message map[string]any) {
 	//
 	//     {
 	//         "data": {
@@ -722,7 +722,7 @@ func (this *Bitstamp) unWatchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	ch <- retRes53815
 	return nil
 }
-func (this *Bitstamp) HandleMyTrades(client any, message any) {
+func (this *Bitstamp) HandleMyTrades(client any, message map[string]any) {
 	//
 	//     {
 	//         "data": {
@@ -812,7 +812,7 @@ func (this *Bitstamp) ParseWsMyTrade(trade any, optionalArgs ...any) any {
 		"fee":          fee,
 	}, market)
 }
-func (this *Bitstamp) HandleOrders(client any, message any) {
+func (this *Bitstamp) HandleOrders(client any, message map[string]any) {
 	//
 	//     {
 	//         "data": {

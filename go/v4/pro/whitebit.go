@@ -127,7 +127,7 @@ func (this *Whitebit) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	ch <- this.FilterBySinceLimit(ohlcv, since, limit, 0, true)
 	return nil
 }
-func (this *Whitebit) HandleOHLCV(client any, message any) any {
+func (this *Whitebit) HandleOHLCV(client any, message map[string]any) any {
 	//
 	// {
 	//     "method": "candles_update",
@@ -221,7 +221,7 @@ func (this *Whitebit) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
 }
-func (this *Whitebit) HandleOrderBook(client any, message any) {
+func (this *Whitebit) HandleOrderBook(client any, message map[string]any) {
 	//
 	// {
 	//     "method":"depth_update",
@@ -381,7 +381,7 @@ func (this *Whitebit) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterByArray(this.Tickers, "symbol", symbols)
 	return nil
 }
-func (this *Whitebit) HandleTicker(client any, message any) any {
+func (this *Whitebit) HandleTicker(client any, message map[string]any) any {
 	//
 	//   {
 	//       "method": "market_update",
@@ -476,7 +476,7 @@ func (this *Whitebit) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
 	return nil
 }
-func (this *Whitebit) HandleTrades(client any, message any) {
+func (this *Whitebit) HandleTrades(client any, message map[string]any) {
 	//
 	//    {
 	//        "method":"trades_update",
@@ -572,7 +572,7 @@ func (this *Whitebit) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterBySymbolSinceLimit(trades, symbol, since, limit, true)
 	return nil
 }
-func (this *Whitebit) HandleMyTrades(client any, message any, optionalArgs ...any) {
+func (this *Whitebit) HandleMyTrades(client any, message map[string]any, optionalArgs ...any) {
 	//
 	//   {
 	//       "method": "deals_update",
@@ -729,7 +729,7 @@ func (this *Whitebit) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterBySymbolSinceLimit(trades, symbol, since, limit, true)
 	return nil
 }
-func (this *Whitebit) HandleOrder(client any, message any, optionalArgs ...any) {
+func (this *Whitebit) HandleOrder(client any, message map[string]any, optionalArgs ...any) {
 	//
 	// {
 	//     "method": "ordersPending_update",
@@ -986,7 +986,7 @@ func (this *Whitebit) loadBalanceSnapshotBody(ch chan any, client any, messageHa
 	}
 	return nil
 }
-func (this *Whitebit) HandleBalance(client any, message any) {
+func (this *Whitebit) HandleBalance(client any, message map[string]any) {
 	//
 	// spot
 	//
@@ -1339,7 +1339,7 @@ func (this *Whitebit) authenticateBody(ch chan any, optionalArgs ...any) any {
 	ch <- authorized
 	return nil
 }
-func (this *Whitebit) HandleAuthenticate(client any, message any) any {
+func (this *Whitebit) HandleAuthenticate(client any, message map[string]any) any {
 	//
 	//     { error: null, result: { status: "success" }, id: 1656084550 }
 	//

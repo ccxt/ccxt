@@ -320,7 +320,7 @@ func (this *Cryptocom) HandleDeltas(bookside any, deltas any) {
 		this.HandleDelta(bookside, ccxt.GetValue(deltas, i))
 	}
 }
-func (this *Cryptocom) HandleOrderBook(client any, message any) {
+func (this *Cryptocom) HandleOrderBook(client any, message map[string]any) {
 	//
 	// snapshot
 	//    {
@@ -836,7 +836,7 @@ func (this *Cryptocom) unWatchTickersBody(ch chan any, optionalArgs ...any) any 
 	ch <- retRes57615
 	return nil
 }
-func (this *Cryptocom) HandleTicker(client any, message any) {
+func (this *Cryptocom) HandleTicker(client any, message map[string]any) {
 	//
 	//     {
 	//       "instrument_name": "ETHUSD-PERP",
@@ -993,7 +993,7 @@ func (this *Cryptocom) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterByArray(this.Bidsasks, "symbol", symbols)
 	return nil
 }
-func (this *Cryptocom) HandleBidAsk(client any, message any) {
+func (this *Cryptocom) HandleBidAsk(client any, message map[string]any) {
 	var data any = this.SafeList(message, "data", []any{})
 	var ticker any = this.SafeDict(data, 0, map[string]any{})
 	var parsedTicker any = this.ParseWsBidAsk(ticker)
@@ -1112,7 +1112,7 @@ func (this *Cryptocom) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ..
 	ch <- retRes78515
 	return nil
 }
-func (this *Cryptocom) HandleOHLCV(client any, message any) {
+func (this *Cryptocom) HandleOHLCV(client any, message map[string]any) {
 	//
 	//  {
 	//       "instrument_name": "BTC_USDT",
@@ -1373,7 +1373,7 @@ func (this *Cryptocom) loadPositionsSnapshotBody(ch chan any, client any, messag
 	}
 	return nil
 }
-func (this *Cryptocom) HandlePositions(client any, message any) {
+func (this *Cryptocom) HandlePositions(client any, message map[string]any) {
 	//
 	//    {
 	//        "subscription": "user.position_balance",
@@ -1458,7 +1458,7 @@ func (this *Cryptocom) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	ch <- retRes104915
 	return nil
 }
-func (this *Cryptocom) HandleBalance(client any, message any) {
+func (this *Cryptocom) HandleBalance(client any, message map[string]any) {
 	//
 	//     {
 	//         "id": 1,
@@ -1621,7 +1621,7 @@ func (this *Cryptocom) editOrderWsBody(ch chan any, id any, symbol any, typeVar 
 	ch <- retRes117215
 	return nil
 }
-func (this *Cryptocom) HandleOrder(client any, message any) {
+func (this *Cryptocom) HandleOrder(client any, message map[string]any) {
 	//
 	//    {
 	//        "id": 1,
@@ -1723,7 +1723,7 @@ func (this *Cryptocom) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) a
 	ch <- retRes124115
 	return nil
 }
-func (this *Cryptocom) HandleCancelAllOrders(client any, message any) {
+func (this *Cryptocom) HandleCancelAllOrders(client any, message map[string]any) {
 	//
 	//    {
 	//        "id": 1688914586647,
@@ -1930,7 +1930,7 @@ func (this *Cryptocom) HandleErrorMessage(client any, message any) any {
 		return nil
 	}
 }
-func (this *Cryptocom) HandleSubscribe(client any, message any) {
+func (this *Cryptocom) HandleSubscribe(client any, message map[string]any) {
 	var methods map[string]any = map[string]any{
 		"candlestick":           this.HandleOHLCV,
 		"ticker":                this.HandleTicker,
@@ -2054,17 +2054,17 @@ func (this *Cryptocom) authenticateBody(ch chan any, optionalArgs ...any) any {
 	ch <- retRes147415
 	return nil
 }
-func (this *Cryptocom) HandlePing(client any, message any) {
+func (this *Cryptocom) HandlePing(client any, message map[string]any) {
 	this.Spawn(this.PongAsync, client, message)
 }
-func (this *Cryptocom) HandleAuthenticate(client any, message any) {
+func (this *Cryptocom) HandleAuthenticate(client any, message map[string]any) {
 	//
 	//  { id: 1648132625434, method: "public/auth", code: 0 }
 	//
 	var future any = this.SafeValue(client.(ccxt.ClientInterface).GetFutures(), "authenticated")
 	future.(*ccxt.Future).Resolve(true)
 }
-func (this *Cryptocom) HandleUnsubscribe(client any, message any) {
+func (this *Cryptocom) HandleUnsubscribe(client any, message map[string]any) {
 	var id *string = this.SafeString(message, "id")
 	var keys []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
 	for i := 0; i < len(keys); i++ {

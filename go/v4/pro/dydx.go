@@ -131,7 +131,7 @@ func (this *Dydx) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	ch <- retRes8815
 	return nil
 }
-func (this *Dydx) HandleTrades(client any, message any) {
+func (this *Dydx) HandleTrades(client any, message map[string]any) {
 	//
 	// {
 	//     "type": "subscribed",
@@ -286,7 +286,7 @@ func (this *Dydx) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	ch <- retRes21115
 	return nil
 }
-func (this *Dydx) HandleOrderBook(client any, message any) {
+func (this *Dydx) HandleOrderBook(client any, message map[string]any) {
 	//
 	// {
 	//     "type": "subscribed",
@@ -435,7 +435,7 @@ func (this *Dydx) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	ch <- retRes32415
 	return nil
 }
-func (this *Dydx) HandleOHLCV(client any, message any) {
+func (this *Dydx) HandleOHLCV(client any, message map[string]any) {
 	//
 	// {
 	//     "type": "subscribed",

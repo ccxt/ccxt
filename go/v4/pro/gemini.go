@@ -199,7 +199,7 @@ func (this *Gemini) ParseWsTrade(trade any, optionalArgs ...any) any {
 		"fee":          nil,
 	}, market)
 }
-func (this *Gemini) HandleTrade(client any, message any) {
+func (this *Gemini) HandleTrade(client any, message map[string]any) {
 	//
 	//     {
 	//         "type": "trade",
@@ -225,7 +225,7 @@ func (this *Gemini) HandleTrade(client any, message any) {
 	var messageHash any = ccxt.Add("trades:", symbol)
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
-func (this *Gemini) HandleTrades(client any, message any) {
+func (this *Gemini) HandleTrades(client any, message map[string]any) {
 	//
 	//     {
 	//         "type": "l2_updates",
@@ -479,8 +479,8 @@ func (this *Gemini) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
 }
-func (this *Gemini) HandleOrderBook(client any, message any) {
-	var isInitial bool = (ccxt.InOp(message, "auction_events")) && (ccxt.InOp(message, "trades")) && (ccxt.InOp(message, "changes"))
+func (this *Gemini) HandleOrderBook(client any, message map[string]any) {
+	var isInitial bool = (func() bool { _, ok := message["auction_events"]; return ok }()) && (func() bool { _, ok := message["trades"]; return ok }()) && (func() bool { _, ok := message["changes"]; return ok }())
 	var changes []any = ccxt.SafeListTyped(message, "changes")
 	var marketId *string = this.SafeStringLower(message, "symbol")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
@@ -737,7 +737,7 @@ func (this *Gemini) HandleOrderBookForMultidata(client any, rawOrderBookChanges 
 	ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
-func (this *Gemini) HandleL2Updates(client any, message any) {
+func (this *Gemini) HandleL2Updates(client any, message map[string]any) {
 	//
 	//     {
 	//         "type": "l2_updates",
@@ -833,7 +833,7 @@ func (this *Gemini) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterBySymbolSinceLimit(orders, symbol, since, limit, true)
 	return nil
 }
-func (this *Gemini) HandleHeartbeat(client any, message any) any {
+func (this *Gemini) HandleHeartbeat(client any, message map[string]any) any {
 	//
 	//     {
 	//         "type": "heartbeat",
@@ -846,7 +846,7 @@ func (this *Gemini) HandleHeartbeat(client any, message any) any {
 	client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
 	return message
 }
-func (this *Gemini) HandleSubscription(client any, message any) any {
+func (this *Gemini) HandleSubscription(client any, message map[string]any) any {
 	//
 	//     {
 	//         "type": "subscription_ack",

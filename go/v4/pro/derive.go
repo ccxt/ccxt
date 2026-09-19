@@ -142,7 +142,7 @@ func (this *Derive) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
 }
-func (this *Derive) HandleOrderBook(client any, message any) {
+func (this *Derive) HandleOrderBook(client any, message map[string]any) {
 	//
 	// {
 	//     method: 'subscription',
@@ -225,7 +225,7 @@ func (this *Derive) watchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	ch <- retRes17215
 	return nil
 }
-func (this *Derive) HandleTicker(client any, message any) any {
+func (this *Derive) HandleTicker(client any, message map[string]any) any {
 	//
 	// {
 	//     method: 'subscription',
@@ -550,7 +550,7 @@ func (this *Derive) watchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	ch <- this.FilterBySymbolSinceLimit(trades, symbol, since, limit, true)
 	return nil
 }
-func (this *Derive) HandleTrade(client any, message any) {
+func (this *Derive) HandleTrade(client any, message map[string]any) {
 	//
 	//
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
@@ -708,7 +708,7 @@ func (this *Derive) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterBySymbolSinceLimit(orders, symbol, since, limit, true)
 	return nil
 }
-func (this *Derive) HandleOrder(client any, message any) {
+func (this *Derive) HandleOrder(client any, message map[string]any) {
 	//
 	// {
 	//     method: 'subscription',
@@ -862,7 +862,7 @@ func (this *Derive) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterBySymbolSinceLimit(trades, symbol, since, limit, true)
 	return nil
 }
-func (this *Derive) HandleMyTrade(client any, message any) {
+func (this *Derive) HandleMyTrade(client any, message map[string]any) {
 	//
 	//
 	var myTrades any = this.MyTrades

@@ -1005,7 +1005,7 @@ func (this *Coinbaseexchange) ParseWsOrder(order any, optionalArgs ...any) any {
 		"trades":             nil,
 	})
 }
-func (this *Coinbaseexchange) HandleTicker(client any, message any) any {
+func (this *Coinbaseexchange) HandleTicker(client any, message map[string]any) any {
 	//
 	//     {
 	//         "type": "ticker",
@@ -1104,7 +1104,7 @@ func (this *Coinbaseexchange) HandleDeltas(bookside any, deltas any) {
 		this.HandleDelta(bookside, ccxt.GetValue(deltas, i))
 	}
 }
-func (this *Coinbaseexchange) HandleOrderBook(client any, message any) {
+func (this *Coinbaseexchange) HandleOrderBook(client any, message map[string]any) {
 	//
 	// first message (snapshot)
 	//
@@ -1174,7 +1174,7 @@ func (this *Coinbaseexchange) HandleOrderBook(client any, message any) {
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 	}
 }
-func (this *Coinbaseexchange) HandleSubscriptionStatus(client any, message any) any {
+func (this *Coinbaseexchange) HandleSubscriptionStatus(client any, message map[string]any) any {
 	//
 	//     {
 	//         "type": "subscriptions",
@@ -1188,7 +1188,7 @@ func (this *Coinbaseexchange) HandleSubscriptionStatus(client any, message any) 
 	//
 	return message
 }
-func (this *Coinbaseexchange) HandleErrorMessage(client any, message any) any {
+func (this *Coinbaseexchange) HandleErrorMessage(client any, message map[string]any) any {
 	//
 	//     {
 	//         "type": "error",

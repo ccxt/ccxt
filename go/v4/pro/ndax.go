@@ -92,7 +92,7 @@ func (this *Ndax) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 	ch <- retRes7415
 	return nil
 }
-func (this *Ndax) HandleTicker(client any, message any) {
+func (this *Ndax) HandleTicker(client any, message map[string]any) {
 	var payload any = this.SafeDict(message, "o", map[string]any{})
 	//
 	//     {
@@ -189,7 +189,7 @@ func (this *Ndax) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
 	return nil
 }
-func (this *Ndax) HandleTrades(client any, message any) {
+func (this *Ndax) HandleTrades(client any, message map[string]any) {
 	var payload []any = ccxt.SafeListTyped(message, "o")
 	//
 	// initial snapshot
@@ -311,7 +311,7 @@ func (this *Ndax) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 	ch <- this.FilterBySinceLimit(ohlcv, since, limit, 0, true)
 	return nil
 }
-func (this *Ndax) HandleOHLCV(client any, message any) {
+func (this *Ndax) HandleOHLCV(client any, message map[string]any) {
 	//
 	//     {
 	//         "m": 1,
@@ -484,7 +484,7 @@ func (this *Ndax) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
 }
-func (this *Ndax) HandleOrderBook(client any, message any) {
+func (this *Ndax) HandleOrderBook(client any, message map[string]any) {
 	//
 	//     {
 	//         "m": 3,
@@ -588,7 +588,7 @@ func (this *Ndax) HandleOrderBook(client any, message any) {
 	ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
-func (this *Ndax) HandleOrderBookSubscription(client any, message any, subscription any) {
+func (this *Ndax) HandleOrderBookSubscription(client any, message map[string]any, subscription map[string]any) {
 	//
 	//     {
 	//         "m": 1,
@@ -624,7 +624,7 @@ func (this *Ndax) HandleOrderBookSubscription(client any, message any, subscript
 	var messageHash *string = this.SafeString(subscription, "messageHash")
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
-func (this *Ndax) HandleSubscriptionStatus(client any, message any) {
+func (this *Ndax) HandleSubscriptionStatus(client any, message map[string]any) {
 	//
 	//     {
 	//         "m": 1,

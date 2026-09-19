@@ -1759,7 +1759,7 @@ func (this *Phemex) HandleMessage(client any, message any) {
 		this.HandleBalance(typeVar, client, accounts)
 	}
 }
-func (this *Phemex) HandleAuthenticate(client any, message any) {
+func (this *Phemex) HandleAuthenticate(client any, message map[string]any) {
 	//
 	// {
 	//     "error": null,

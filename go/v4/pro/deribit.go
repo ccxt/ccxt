@@ -130,7 +130,7 @@ func (this *Deribit) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	ch <- retRes10615
 	return nil
 }
-func (this *Deribit) HandleBalance(client any, message any) {
+func (this *Deribit) HandleBalance(client any, message map[string]any) {
 	//
 	// subscription
 	//     {
@@ -312,7 +312,7 @@ func (this *Deribit) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterByArray(this.Tickers, "symbol", symbols)
 	return nil
 }
-func (this *Deribit) HandleTicker(client any, message any) {
+func (this *Deribit) HandleTicker(client any, message map[string]any) {
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -408,7 +408,7 @@ func (this *Deribit) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterByArray(this.Bidsasks, "symbol", symbols)
 	return nil
 }
-func (this *Deribit) HandleBidAsk(client any, message any) {
+func (this *Deribit) HandleBidAsk(client any, message map[string]any) {
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -533,7 +533,7 @@ func (this *Deribit) watchTradesForSymbolsBody(ch chan any, symbols any, optiona
 	ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
 	return nil
 }
-func (this *Deribit) HandleTrades(client any, message any) {
+func (this *Deribit) HandleTrades(client any, message map[string]any) {
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -635,7 +635,7 @@ func (this *Deribit) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterBySymbolSinceLimit(trades, symbol, since, limit, true)
 	return nil
 }
-func (this *Deribit) HandleMyTrades(client any, message any) {
+func (this *Deribit) HandleMyTrades(client any, message map[string]any) {
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -774,7 +774,7 @@ func (this *Deribit) watchOrderBookForSymbolsBody(ch chan any, symbols any, opti
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
 }
-func (this *Deribit) HandleOrderBook(client any, message any) {
+func (this *Deribit) HandleOrderBook(client any, message map[string]any) {
 	//
 	//  snapshot
 	//     {
@@ -968,7 +968,7 @@ func (this *Deribit) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterBySymbolSinceLimit(orders, symbol, since, limit, true)
 	return nil
 }
-func (this *Deribit) HandleOrders(client any, message any) {
+func (this *Deribit) HandleOrders(client any, message map[string]any) {
 	// Does not return a snapshot of current orders
 	//
 	//     {
@@ -1107,7 +1107,7 @@ func (this *Deribit) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes 
 	ch <- this.CreateOHLCVObject(symbol, timeframe, filtered)
 	return nil
 }
-func (this *Deribit) HandleOHLCV(client any, message any) {
+func (this *Deribit) HandleOHLCV(client any, message map[string]any) {
 	//
 	//     {
 	//         "jsonrpc": "2.0",

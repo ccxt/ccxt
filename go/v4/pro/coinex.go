@@ -104,7 +104,7 @@ func (this *Coinex) RequestId() any {
 	this.UnlockId()
 	return requestId
 }
-func (this *Coinex) HandleTicker(client any, message any) {
+func (this *Coinex) HandleTicker(client any, message map[string]any) {
 	//
 	//  spot
 	//
@@ -320,7 +320,7 @@ func (this *Coinex) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	ch <- retRes28615
 	return nil
 }
-func (this *Coinex) HandleBalance(client any, message any) {
+func (this *Coinex) HandleBalance(client any, message map[string]any) {
 	//
 	// spot
 	//
@@ -523,7 +523,7 @@ func (this *Coinex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterBySymbolSinceLimit(trades, symbol, since, limit, true)
 	return nil
 }
-func (this *Coinex) HandleMyTrades(client any, message any) {
+func (this *Coinex) HandleMyTrades(client any, message map[string]any) {
 	//
 	//     {
 	//         "method": "user_deals.update",
@@ -568,7 +568,7 @@ func (this *Coinex) HandleMyTrades(client any, message any) {
 	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Trades, symbol), messageWithType)
 	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Trades, symbol), messageHash)
 }
-func (this *Coinex) HandleTrades(client any, message any) {
+func (this *Coinex) HandleTrades(client any, message map[string]any) {
 	//
 	// spot
 	//
@@ -1047,7 +1047,7 @@ func (this *Coinex) HandleDeltas(bookside any, deltas any) {
 		this.HandleDelta(bookside, ccxt.GetValue(deltas, i))
 	}
 }
-func (this *Coinex) HandleOrderBook(client any, message any) {
+func (this *Coinex) HandleOrderBook(client any, message map[string]any) {
 	//
 	//     {
 	//         "method": "depth.update",
@@ -1200,7 +1200,7 @@ func (this *Coinex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterBySymbolSinceLimit(orders, symbol, since, limit, true)
 	return nil
 }
-func (this *Coinex) HandleOrders(client any, message any) {
+func (this *Coinex) HandleOrders(client any, message map[string]any) {
 	//
 	// spot
 	//
@@ -1550,7 +1550,7 @@ func (this *Coinex) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterByArray(this.Bidsasks, "symbol", symbols)
 	return nil
 }
-func (this *Coinex) HandleBidAsk(client any, message any) {
+func (this *Coinex) HandleBidAsk(client any, message map[string]any) {
 	//
 	//     {
 	//         "method": "bbo.update",
@@ -1644,7 +1644,7 @@ func (this *Coinex) HandleErrors(code any, reason any, url any, method any, head
 	}
 	return nil
 }
-func (this *Coinex) HandleAuthenticationMessage(client any, message any) {
+func (this *Coinex) HandleAuthenticationMessage(client any, message map[string]any) {
 	//
 	// success
 	//

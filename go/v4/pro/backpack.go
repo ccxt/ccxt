@@ -149,7 +149,7 @@ func (this *Backpack) watchPrivateBody(ch chan any, topics any, messageHashes an
 	ch <- retRes10115
 	return nil
 }
-func (this *Backpack) HandleUnsubscriptions(url any, messageHashes any, message any) {
+func (this *Backpack) HandleUnsubscriptions(url any, messageHashes any, message map[string]any) {
 	var client ccxt.ClientInterface = this.Client(url)
 	this.WatchMultiple(url, messageHashes, message, messageHashes)
 	for i := 0; i < ccxt.GetArrayLength(messageHashes); i++ {

@@ -354,7 +354,7 @@ func (this *Kraken) createOrderWsBody(ch chan any, symbol any, typeVar any, side
 	ch <- retRes30015
 	return nil
 }
-func (this *Kraken) HandleCreateEditOrder(client any, message any) {
+func (this *Kraken) HandleCreateEditOrder(client any, message map[string]any) {
 	//
 	//  createOrder
 	//     {
@@ -540,7 +540,7 @@ func (this *Kraken) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any) 
 	ch <- retRes42615
 	return nil
 }
-func (this *Kraken) HandleCancelOrder(client any, message any) {
+func (this *Kraken) HandleCancelOrder(client any, message map[string]any) {
 	//
 	//     {
 	//         "method": "cancel_order",
@@ -603,7 +603,7 @@ func (this *Kraken) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) any 
 	ch <- retRes47115
 	return nil
 }
-func (this *Kraken) HandleCancelAllOrders(client any, message any) {
+func (this *Kraken) HandleCancelAllOrders(client any, message map[string]any) {
 	//
 	//     {
 	//         "method": "cancel_all",
@@ -619,7 +619,7 @@ func (this *Kraken) HandleCancelAllOrders(client any, message any) {
 	var reqId *string = this.SafeString(message, "req_id")
 	client.(ccxt.ClientInterface).Resolve(message, reqId)
 }
-func (this *Kraken) HandleTicker(client any, message any) {
+func (this *Kraken) HandleTicker(client any, message map[string]any) {
 	//
 	//     {
 	//         "channel": "ticker",
@@ -678,7 +678,7 @@ func (this *Kraken) HandleTicker(client any, message any) {
 	ccxt.AddElementToObject(this.Tickers, symbol, result)
 	client.(ccxt.ClientInterface).Resolve(result, messageHash)
 }
-func (this *Kraken) HandleTrades(client any, message any) {
+func (this *Kraken) HandleTrades(client any, message map[string]any) {
 	//
 	//     {
 	//         "channel": "trade",
@@ -713,7 +713,7 @@ func (this *Kraken) HandleTrades(client any, message any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
-func (this *Kraken) HandleOHLCV(client any, message any) {
+func (this *Kraken) HandleOHLCV(client any, message map[string]any) {
 	//
 	//     {
 	//         "channel": "ohlc",
@@ -1124,7 +1124,7 @@ func (this *Kraken) Ping(client any) any {
 	}
 	return request
 }
-func (this *Kraken) HandlePong(client any, message any) any {
+func (this *Kraken) HandlePong(client any, message map[string]any) any {
 	client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
 	return message
 }
@@ -1149,7 +1149,7 @@ func (this *Kraken) watchHeartbeatBody(ch chan any, optionalArgs ...any) any {
 	ch <- retRes86315
 	return nil
 }
-func (this *Kraken) HandleHeartbeat(client any, message any) {
+func (this *Kraken) HandleHeartbeat(client any, message map[string]any) {
 	//
 	// every second (approx) if no other updates are sent
 	//
@@ -1158,7 +1158,7 @@ func (this *Kraken) HandleHeartbeat(client any, message any) {
 	var event *string = this.SafeString(message, "channel")
 	client.(ccxt.ClientInterface).Resolve(message, event)
 }
-func (this *Kraken) HandleOrderBook(client any, message any) {
+func (this *Kraken) HandleOrderBook(client any, message map[string]any) {
 	//
 	// first message (snapshot)
 	//
@@ -1310,7 +1310,7 @@ func (this *Kraken) FormatNumber(data any) any {
 	}
 	return joinedResult
 }
-func (this *Kraken) HandleSystemStatus(client any, message any) any {
+func (this *Kraken) HandleSystemStatus(client any, message map[string]any) any {
 	//
 	// todo: answer the question whether handleSystemStatus should be renamed
 	// and unified as handleStatus for any usage pattern that
@@ -1522,7 +1522,7 @@ func (this *Kraken) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	ch <- retRes117615
 	return nil
 }
-func (this *Kraken) HandleMyTrades(client any, message any, optionalArgs ...any) {
+func (this *Kraken) HandleMyTrades(client any, message map[string]any, optionalArgs ...any) {
 	//
 	//     {
 	//         "channel": "executions",
@@ -1681,7 +1681,7 @@ func (this *Kraken) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	ch <- retRes130715
 	return nil
 }
-func (this *Kraken) HandleOrders(client any, message any, optionalArgs ...any) {
+func (this *Kraken) HandleOrders(client any, message map[string]any, optionalArgs ...any) {
 	//
 	//     {
 	//         "channel": "executions",
@@ -1918,7 +1918,7 @@ func (this *Kraken) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	ch <- retRes150615
 	return nil
 }
-func (this *Kraken) HandleBalance(client any, message any) {
+func (this *Kraken) HandleBalance(client any, message map[string]any) {
 	//
 	//     {
 	//         "channel": "balances",
@@ -1979,7 +1979,7 @@ func (this *Kraken) GetMessageHash(unifiedElementName any, optionalArgs ...any) 
 	}
 	return messageHash
 }
-func (this *Kraken) HandleSubscriptionStatus(client any, message any) {
+func (this *Kraken) HandleSubscriptionStatus(client any, message map[string]any) {
 	//
 	// public
 	//

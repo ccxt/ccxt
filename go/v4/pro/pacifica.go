@@ -670,7 +670,7 @@ func (this *Pacifica) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs
 	ch <- retRes47615
 	return nil
 }
-func (this *Pacifica) HandleOrderBook(client any, message any) {
+func (this *Pacifica) HandleOrderBook(client any, message map[string]any) {
 	//
 	// {
 	//   "channel": "book",
@@ -988,7 +988,7 @@ func (this *Pacifica) unWatchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	ch <- retRes68415
 	return nil
 }
-func (this *Pacifica) HandleWsTickers(client any, message any) any {
+func (this *Pacifica) HandleWsTickers(client any, message map[string]any) any {
 	//
 	// {
 	//     "channel": "prices",
@@ -1034,7 +1034,7 @@ func (this *Pacifica) ParseWsTicker(rawTicker any, optionalArgs ...any) any {
 	_ = market
 	return this.ParseTicker(rawTicker, market)
 }
-func (this *Pacifica) HandleMyTrades(client any, message any) {
+func (this *Pacifica) HandleMyTrades(client any, message map[string]any) {
 	//
 	// {
 	//   "channel": "account_trades",
@@ -1204,7 +1204,7 @@ func (this *Pacifica) unWatchTradesBody(ch chan any, symbol any, optionalArgs ..
 	ch <- retRes84715
 	return nil
 }
-func (this *Pacifica) HandleTrades(client any, message any) {
+func (this *Pacifica) HandleTrades(client any, message map[string]any) {
 	//
 	// {
 	//   "channel": "trades",
@@ -1450,7 +1450,7 @@ func (this *Pacifica) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 	ch <- retRes103715
 	return nil
 }
-func (this *Pacifica) HandleOHLCV(client any, message any) {
+func (this *Pacifica) HandleOHLCV(client any, message map[string]any) {
 	//
 	// {
 	//   "channel": "candle",
@@ -1620,7 +1620,7 @@ func (this *Pacifica) unWatchOrdersBody(ch chan any, optionalArgs ...any) any {
 	ch <- retRes115615
 	return nil
 }
-func (this *Pacifica) HandleOrder(client any, message any) {
+func (this *Pacifica) HandleOrder(client any, message map[string]any) {
 	// not snapshot, only updates
 	// {
 	//   "channel": "account_order_updates",
@@ -1785,7 +1785,7 @@ func (this *Pacifica) HandleMyTradesUnsubscription(client any, subscription any)
 	}
 	this.CleanCache(topicStructure)
 }
-func (this *Pacifica) HandleSubscriptionResponse(client any, message any) {
+func (this *Pacifica) HandleSubscriptionResponse(client any, message map[string]any) {
 	//  {
 	//      "channel": "subscribe",
 	//      "data": {
@@ -1879,7 +1879,7 @@ func (this *Pacifica) Ping(client any) any {
 		"method": "ping",
 	}
 }
-func (this *Pacifica) HandlePong(client any, message any) any {
+func (this *Pacifica) HandlePong(client any, message map[string]any) any {
 	//
 	//   {
 	//       "channel": "pong"

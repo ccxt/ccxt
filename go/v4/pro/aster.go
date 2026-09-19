@@ -521,7 +521,7 @@ func (this *Aster) unWatchMarkPricesBody(ch chan any, optionalArgs ...any) any {
 	ch <- retRes36815
 	return nil
 }
-func (this *Aster) HandleTicker(client any, message any) {
+func (this *Aster) HandleTicker(client any, message map[string]any) {
 	//
 	//     {
 	//             "e": "24hrTicker",
@@ -555,7 +555,7 @@ func (this *Aster) HandleTicker(client any, message any) {
 	//     }
 	//
 	var marketType any = this.GetAccountTypeFromUrl(client.(ccxt.ClientInterface).GetUrl())
-	var ticker any = message
+	var ticker map[string]any = message
 	var parsed any = this.ParseWsTicker(ticker, marketType)
 	var symbol any = ccxt.GetValue(parsed, "symbol")
 	var messageHash any = ccxt.Add("ticker:", symbol)
@@ -729,7 +729,7 @@ func (this *Aster) unWatchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	ch <- retRes54215
 	return nil
 }
-func (this *Aster) HandleBidAsk(client any, message any) {
+func (this *Aster) HandleBidAsk(client any, message map[string]any) {
 	//
 	//     {
 	//             "e": "bookTicker",
@@ -744,7 +744,7 @@ func (this *Aster) HandleBidAsk(client any, message any) {
 	//     }
 	//
 	var marketType any = this.GetAccountTypeFromUrl(client.(ccxt.ClientInterface).GetUrl())
-	var data any = message
+	var data map[string]any = message
 	var marketId *string = this.SafeString(data, "s")
 	var market any = this.SafeMarket(marketId, nil, nil, marketType)
 	var ticker any = this.ParseWsBidAsk(data, market)
@@ -969,7 +969,7 @@ func (this *Aster) unWatchTradesForSymbolsBody(ch chan any, symbols any, optiona
 	ch <- retRes70915
 	return nil
 }
-func (this *Aster) HandleTrade(client any, message any) {
+func (this *Aster) HandleTrade(client any, message map[string]any) {
 	//
 	//     {
 	//         "e": "aggTrade",
@@ -985,7 +985,7 @@ func (this *Aster) HandleTrade(client any, message any) {
 	//     }
 	//
 	var marketType any = this.GetAccountTypeFromUrl(client.(ccxt.ClientInterface).GetUrl())
-	var trade any = message
+	var trade map[string]any = message
 	var marketId *string = this.SafeString(trade, "s")
 	var market any = this.SafeMarket(marketId, nil, nil, marketType)
 	var parsed any = this.ParseWsTrade(trade, market)
@@ -1361,7 +1361,7 @@ func (this *Aster) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, opti
 	ch <- retRes102215
 	return nil
 }
-func (this *Aster) HandleOrderBook(client any, message any) {
+func (this *Aster) HandleOrderBook(client any, message map[string]any) {
 	//
 	//     {
 	//             "e": "depthUpdate",
@@ -1386,7 +1386,7 @@ func (this *Aster) HandleOrderBook(client any, message any) {
 	//     }
 	//
 	var marketType any = this.GetAccountTypeFromUrl(client.(ccxt.ClientInterface).GetUrl())
-	var data any = message
+	var data map[string]any = message
 	var marketId *string = this.SafeString(data, "s")
 	var timestamp *int64 = this.SafeInteger(data, "T")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, marketType))
@@ -1628,7 +1628,7 @@ func (this *Aster) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes 
 	ch <- retRes120515
 	return nil
 }
-func (this *Aster) HandleOHLCV(client any, message any) {
+func (this *Aster) HandleOHLCV(client any, message map[string]any) {
 	//
 	//     {
 	//             "e": "kline",
@@ -1656,7 +1656,7 @@ func (this *Aster) HandleOHLCV(client any, message any) {
 	//     }
 	//
 	var marketType any = this.GetAccountTypeFromUrl(client.(ccxt.ClientInterface).GetUrl())
-	var data any = message
+	var data map[string]any = message
 	var marketId *string = this.SafeString(data, "s")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, marketType))
 	var symbol any = market["symbol"]
@@ -2144,7 +2144,7 @@ func (this *Aster) loadPositionsSnapshotBody(ch chan any, client any, messageHas
 	}
 	return nil
 }
-func (this *Aster) HandlePositions(client any, message any) {
+func (this *Aster) HandlePositions(client any, message map[string]any) {
 	//
 	//     {
 	//         "e": "ACCOUNT_UPDATE",
@@ -2651,7 +2651,7 @@ func (this *Aster) GetMarketFromOrder(client any, order any) any {
 	var marketType any = this.GetAccountTypeFromUrl(client.(ccxt.ClientInterface).GetUrl())
 	return this.SafeMarket(marketId, nil, nil, marketType)
 }
-func (this *Aster) HandleBalanceAndPosition(client any, message any) {
+func (this *Aster) HandleBalanceAndPosition(client any, message map[string]any) {
 	this.HandleBalance(client, message)
 	this.HandlePositions(client, message)
 }

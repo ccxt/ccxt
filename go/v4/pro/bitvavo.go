@@ -213,7 +213,7 @@ func (this *Bitvavo) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterByArray(tickers, "symbol", symbols)
 	return nil
 }
-func (this *Bitvavo) HandleTicker(client any, message any) {
+func (this *Bitvavo) HandleTicker(client any, message map[string]any) {
 	//
 	//     {
 	//         "event": "ticker24h",
@@ -288,7 +288,7 @@ func (this *Bitvavo) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterByArray(tickers, "symbol", symbols)
 	return nil
 }
-func (this *Bitvavo) HandleBidAsk(client any, message any) {
+func (this *Bitvavo) HandleBidAsk(client any, message map[string]any) {
 	var event string = "bidask"
 	var tickers []any = ccxt.SafeListTyped(message, "data")
 	var result []any = []any{}
@@ -367,7 +367,7 @@ func (this *Bitvavo) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
 	return nil
 }
-func (this *Bitvavo) HandleTrade(client any, message any) {
+func (this *Bitvavo) HandleTrade(client any, message map[string]any) {
 	//
 	//     {
 	//         "event": "trade",
@@ -587,7 +587,7 @@ func (this *Bitvavo) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	ch <- this.FilterBySinceLimit(ohlcv, since, limit, 0, true)
 	return nil
 }
-func (this *Bitvavo) HandleFetchOHLCV(client any, message any) {
+func (this *Bitvavo) HandleFetchOHLCV(client any, message map[string]any) {
 	//
 	//    {
 	//        action: 'getCandles',
@@ -602,7 +602,7 @@ func (this *Bitvavo) HandleFetchOHLCV(client any, message any) {
 	var messageHash *string = this.SafeString(message, "requestId")
 	client.(ccxt.ClientInterface).Resolve(ohlcv, messageHash)
 }
-func (this *Bitvavo) HandleOHLCV(client any, message any) {
+func (this *Bitvavo) HandleOHLCV(client any, message map[string]any) {
 	//
 	//     {
 	//         "event": "candle",
@@ -1058,7 +1058,7 @@ func (this *Bitvavo) HandleOrderBookMessage(client any, message any, orderbook a
 	}
 	return orderbook
 }
-func (this *Bitvavo) HandleOrderBook(client any, message any) {
+func (this *Bitvavo) HandleOrderBook(client any, message map[string]any) {
 	//
 	//     {
 	//         "event": "book",
@@ -1134,7 +1134,7 @@ func (this *Bitvavo) watchOrderBookSnapshotBody(ch chan any, client any, message
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
 }
-func (this *Bitvavo) HandleOrderBookSnapshot(client any, message any) {
+func (this *Bitvavo) HandleOrderBookSnapshot(client any, message map[string]any) {
 	//
 	//     {
 	//         "action": "getBook",
@@ -1186,7 +1186,7 @@ func (this *Bitvavo) HandleOrderBookSnapshot(client any, message any) {
 		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), snapshotHash)
 	}
 }
-func (this *Bitvavo) HandleOrderBookSubscription(client any, message any, subscription any) {
+func (this *Bitvavo) HandleOrderBookSubscription(client any, message map[string]any, subscription map[string]any) {
 	var symbol *string = this.SafeString(subscription, "symbol")
 	var limit *int64 = this.SafeInteger(subscription, "limit")
 	if ccxt.InOp(this.Orderbooks, symbol) {
@@ -1194,7 +1194,7 @@ func (this *Bitvavo) HandleOrderBookSubscription(client any, message any, subscr
 	}
 	ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
 }
-func (this *Bitvavo) HandleOrderBookSubscriptions(client any, message any, marketIds any) {
+func (this *Bitvavo) HandleOrderBookSubscriptions(client any, message map[string]any, marketIds any) {
 	var name string = "book"
 	for i := 0; i < ccxt.GetArrayLength(marketIds); i++ {
 		var marketId *string = this.SafeString(marketIds, i)
@@ -1245,7 +1245,7 @@ func (this *Bitvavo) unWatchChannelsBody(ch chan any, topic any, channels any, s
 	ch <- retRes93715
 	return nil
 }
-func (this *Bitvavo) HandleUnsubscriptionStatus(client any, message any) any {
+func (this *Bitvavo) HandleUnsubscriptionStatus(client any, message map[string]any) any {
 	//
 	//     {
 	//         "event": "unsubscribed",
@@ -1584,7 +1584,7 @@ func (this *Bitvavo) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) any
 	ch <- retRes115515
 	return nil
 }
-func (this *Bitvavo) HandleMultipleOrders(client any, message any) {
+func (this *Bitvavo) HandleMultipleOrders(client any, message map[string]any) {
 	//
 	//    {
 	//        action: 'privateCancelOrders',
@@ -1816,7 +1816,7 @@ func (this *Bitvavo) fetchMyTradesWsBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterBySymbolSinceLimit(myTrades, symbol, since, limit)
 	return nil
 }
-func (this *Bitvavo) HandleMyTrades(client any, message any) {
+func (this *Bitvavo) HandleMyTrades(client any, message map[string]any) {
 	//
 	//    {
 	//        action: 'privateGetTrades',
@@ -1889,7 +1889,7 @@ func (this *Bitvavo) withdrawWsBody(ch chan any, code any, amount any, address a
 	ch <- retRes134615
 	return nil
 }
-func (this *Bitvavo) HandleWithdraw(client any, message any) {
+func (this *Bitvavo) HandleWithdraw(client any, message map[string]any) {
 	//
 	//    {
 	//        action: 'privateWithdrawAssets',
@@ -1951,7 +1951,7 @@ func (this *Bitvavo) fetchWithdrawalsWsBody(ch chan any, optionalArgs ...any) an
 	ch <- this.FilterByCurrencySinceLimit(withdraws, code, since, limit)
 	return nil
 }
-func (this *Bitvavo) HandleWithdraws(client any, message any) {
+func (this *Bitvavo) HandleWithdraws(client any, message map[string]any) {
 	//
 	//    {
 	//        action: 'privateGetWithdrawalHistory',
@@ -2063,7 +2063,7 @@ func (this *Bitvavo) fetchDepositsWsBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterByCurrencySinceLimit(deposits, code, since, limit)
 	return nil
 }
-func (this *Bitvavo) HandleDeposits(client any, message any) {
+func (this *Bitvavo) HandleDeposits(client any, message map[string]any) {
 	//
 	//    {
 	//        action: 'privateGetDepositHistory',
@@ -2174,7 +2174,7 @@ func (this *Bitvavo) fetchCurrenciesWsBody(ch chan any, optionalArgs ...any) any
 	ch <- retRes151815
 	return nil
 }
-func (this *Bitvavo) HandleFetchCurrencies(client any, message any) {
+func (this *Bitvavo) HandleFetchCurrencies(client any, message map[string]any) {
 	//
 	//    {
 	//        action: 'getAssets',
@@ -2200,7 +2200,7 @@ func (this *Bitvavo) HandleFetchCurrencies(client any, message any) {
 	var currencies any = this.ParseCurrencies(response)
 	client.(ccxt.ClientInterface).Resolve(currencies, messageHash)
 }
-func (this *Bitvavo) HandleTradingFees(client any, message any) {
+func (this *Bitvavo) HandleTradingFees(client any, message map[string]any) {
 	//
 	//    {
 	//        action: 'privateGetAccount',
@@ -2251,7 +2251,7 @@ func (this *Bitvavo) fetchBalanceWsBody(ch chan any, optionalArgs ...any) any {
 	ch <- retRes158015
 	return nil
 }
-func (this *Bitvavo) HandleFetchBalance(client any, message any) {
+func (this *Bitvavo) HandleFetchBalance(client any, message map[string]any) {
 	//
 	//    {
 	//        action: 'privateGetBalance',
@@ -2269,7 +2269,7 @@ func (this *Bitvavo) HandleFetchBalance(client any, message any) {
 	var balance any = this.ParseBalance(response)
 	client.(ccxt.ClientInterface).Resolve(balance, messageHash)
 }
-func (this *Bitvavo) HandleSingleOrder(client any, message any) {
+func (this *Bitvavo) HandleSingleOrder(client any, message map[string]any) {
 	//
 	//    {
 	//        action: 'privateCreateOrder',
@@ -2303,7 +2303,7 @@ func (this *Bitvavo) HandleSingleOrder(client any, message any) {
 	var messageHash *string = this.SafeString(message, "requestId")
 	client.(ccxt.ClientInterface).Resolve(order, messageHash)
 }
-func (this *Bitvavo) HandleMarkets(client any, message any) {
+func (this *Bitvavo) HandleMarkets(client any, message map[string]any) {
 	//
 	//    {
 	//        action: 'getMarkets',
@@ -2360,7 +2360,7 @@ func (this *Bitvavo) ActionAndOrderIdMessageHash(action any, optionalArgs ...any
 	}
 	return ccxt.Add(action, orderId)
 }
-func (this *Bitvavo) HandleOrder(client any, message any) {
+func (this *Bitvavo) HandleOrder(client any, message map[string]any) {
 	//
 	//     {
 	//         "event": "order",
@@ -2395,7 +2395,7 @@ func (this *Bitvavo) HandleOrder(client any, message any) {
 	orders.(ccxt.Appender).Append(order)
 	client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
 }
-func (this *Bitvavo) HandleMyTrade(client any, message any) {
+func (this *Bitvavo) HandleMyTrade(client any, message map[string]any) {
 	//
 	//     {
 	//         "event": "fill",
@@ -2424,7 +2424,7 @@ func (this *Bitvavo) HandleMyTrade(client any, message any) {
 	tradesArray.(ccxt.Appender).Append(trade)
 	client.(ccxt.ClientInterface).Resolve(tradesArray, messageHash)
 }
-func (this *Bitvavo) HandleSubscriptionStatus(client any, message any) any {
+func (this *Bitvavo) HandleSubscriptionStatus(client any, message map[string]any) any {
 	//
 	//     {
 	//         "event": "subscribed",
@@ -2484,7 +2484,7 @@ func (this *Bitvavo) authenticateBody(ch chan any, optionalArgs ...any) any {
 	ch <- future
 	return nil
 }
-func (this *Bitvavo) HandleAuthenticationMessage(client any, message any) {
+func (this *Bitvavo) HandleAuthenticationMessage(client any, message map[string]any) {
 	//
 	//     {
 	//         "event": "authenticate",

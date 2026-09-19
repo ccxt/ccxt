@@ -158,7 +158,7 @@ func (this *Bitmex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterByArray(this.Tickers, "symbol", symbols)
 	return nil
 }
-func (this *Bitmex) HandleTicker(client any, message any) any {
+func (this *Bitmex) HandleTicker(client any, message map[string]any) any {
 	//
 	//     {
 	//         "table": "instrument",
@@ -503,7 +503,7 @@ func (this *Bitmex) watchLiquidationsForSymbolsBody(ch chan any, symbols any, op
 	ch <- this.FilterBySymbolsSinceLimit(this.Liquidations, symbols, since, limit, true)
 	return nil
 }
-func (this *Bitmex) HandleLiquidation(client any, message any) {
+func (this *Bitmex) HandleLiquidation(client any, message map[string]any) {
 	//
 	//    {
 	//        "table":"liquidation",
@@ -595,7 +595,7 @@ func (this *Bitmex) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	ch <- retRes49615
 	return nil
 }
-func (this *Bitmex) HandleBalance(client any, message any) {
+func (this *Bitmex) HandleBalance(client any, message map[string]any) {
 	//
 	//     {
 	//         "table": "margin",
@@ -700,7 +700,7 @@ func (this *Bitmex) HandleBalance(client any, message any) {
 	var messageHash *string = this.SafeString(message, "table")
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
 }
-func (this *Bitmex) HandleTrades(client any, message any) {
+func (this *Bitmex) HandleTrades(client any, message map[string]any) {
 	//
 	// initial snapshot
 	//
@@ -921,7 +921,7 @@ func (this *Bitmex) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterBySymbolsSinceLimit(this.Positions, symbols, since, limit, true)
 	return nil
 }
-func (this *Bitmex) HandlePositions(client any, message any) {
+func (this *Bitmex) HandlePositions(client any, message map[string]any) {
 	//
 	// partial
 	//    {
@@ -1176,7 +1176,7 @@ func (this *Bitmex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterBySymbolSinceLimit(orders, symbol, since, limit, true)
 	return nil
 }
-func (this *Bitmex) HandleOrders(client any, message any) {
+func (this *Bitmex) HandleOrders(client any, message map[string]any) {
 	//
 	//     {
 	//         "table": "order",
@@ -1421,7 +1421,7 @@ func (this *Bitmex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterBySymbolSinceLimit(trades, symbol, since, limit, true)
 	return nil
 }
-func (this *Bitmex) HandleMyTrades(client any, message any) {
+func (this *Bitmex) HandleMyTrades(client any, message map[string]any) {
 	//
 	//     {
 	//         "table":"execution",
@@ -1708,7 +1708,7 @@ func (this *Bitmex) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	ch <- this.FilterBySinceLimit(ohlcv, since, limit, 0, true)
 	return nil
 }
-func (this *Bitmex) HandleOHLCV(client any, message any) {
+func (this *Bitmex) HandleOHLCV(client any, message map[string]any) {
 	//
 	//     {
 	//         "table": "tradeBin1m",
@@ -1831,7 +1831,7 @@ func (this *Bitmex) watchHeartbeatBody(ch chan any, optionalArgs ...any) any {
 	ch <- retRes155915
 	return nil
 }
-func (this *Bitmex) HandleOrderBook(client any, message any) {
+func (this *Bitmex) HandleOrderBook(client any, message map[string]any) {
 	//
 	// first snapshot
 	//
@@ -2036,7 +2036,7 @@ func (this *Bitmex) HandleOrderBook(client any, message any) {
 		}
 	}
 }
-func (this *Bitmex) HandleSystemStatus(client any, message any) any {
+func (this *Bitmex) HandleSystemStatus(client any, message map[string]any) any {
 	//
 	// todo answer the question whether handleSystemStatus should be renamed
 	// and unified as handleStatus for any usage pattern that
@@ -2052,7 +2052,7 @@ func (this *Bitmex) HandleSystemStatus(client any, message any) any {
 	//
 	return message
 }
-func (this *Bitmex) HandleSubscriptionStatus(client any, message any) any {
+func (this *Bitmex) HandleSubscriptionStatus(client any, message map[string]any) any {
 	//
 	//     {
 	//         "success": true,

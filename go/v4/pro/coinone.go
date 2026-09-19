@@ -105,7 +105,7 @@ func (this *Coinone) watchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
 	return nil
 }
-func (this *Coinone) HandleOrderBook(client any, message any) {
+func (this *Coinone) HandleOrderBook(client any, message map[string]any) {
 	//
 	//     {
 	//         "response_type": "DATA",
@@ -201,7 +201,7 @@ func (this *Coinone) watchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	ch <- retRes16215
 	return nil
 }
-func (this *Coinone) HandleTicker(client any, message any) {
+func (this *Coinone) HandleTicker(client any, message map[string]any) {
 	//
 	//     {
 	//         "response_type": "DATA",
@@ -349,7 +349,7 @@ func (this *Coinone) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
 	return nil
 }
-func (this *Coinone) HandleTrades(client any, message any) {
+func (this *Coinone) HandleTrades(client any, message map[string]any) {
 	//
 	//     {
 	//         "response_type": "DATA",
