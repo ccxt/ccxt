@@ -2514,9 +2514,14 @@ func (this *BaseExchange) SetMarketsFromExchange(sourceExchange *BaseExchange) a
 	this.QuoteCurrencies = sourceExchange.QuoteCurrencies
 	this.Codes = sourceExchange.Codes
 	// check marketHelperProps
-	var sourceExchangeHelpers any = this.SafeList(sourceExchange.Options, "marketHelperProps", []any{})
-	for i := 0; i < GetArrayLength(sourceExchangeHelpers); i++ {
-		var helper any = GetValue(sourceExchangeHelpers, i)
+	var sourceExchangeHelpers []any = SafeListTyped(sourceExchange.Options, "marketHelperProps")
+	for i := 0; i < len(sourceExchangeHelpers); i++ {
+		var helper any = func() any {
+			if i >= 0 && i < len(sourceExchangeHelpers) {
+				return DerefScalar(sourceExchangeHelpers[i])
+			}
+			return nil
+		}()
 		if !IsEqual(GetValue(sourceExchange.Options, helper), nil) {
 			AddElementToObject(this.Options, helper, GetValue(sourceExchange.Options, helper))
 		}
@@ -8803,12 +8808,17 @@ func (this *BaseExchange) CleanUnsubscription(client *Client, subHash any, unsub
 }
 func (this *BaseExchange) CleanCache(subscription any) {
 	var topic *string = this.SafeString(subscription, "topic")
-	var symbols any = this.SafeList(subscription, "symbols", []any{})
-	var symbolsLength int = GetArrayLength(symbols)
+	var symbols []any = SafeListTyped(subscription, "symbols")
+	var symbolsLength int = len(symbols)
 	if topic != nil && *topic == "ohlcv" {
-		var symbolsAndTimeframes any = this.SafeList(subscription, "symbolsAndTimeframes", []any{})
-		for i := 0; i < GetArrayLength(symbolsAndTimeframes); i++ {
-			var symbolAndTimeFrame any = GetValue(symbolsAndTimeframes, i)
+		var symbolsAndTimeframes []any = SafeListTyped(subscription, "symbolsAndTimeframes")
+		for i := 0; i < len(symbolsAndTimeframes); i++ {
+			var symbolAndTimeFrame any = func() any {
+				if i >= 0 && i < len(symbolsAndTimeframes) {
+					return DerefScalar(symbolsAndTimeframes[i])
+				}
+				return nil
+			}()
 			var symbol *string = this.SafeString(symbolAndTimeFrame, 0)
 			var timeframe *string = this.SafeString(symbolAndTimeFrame, 1)
 			if symbol == nil {
@@ -8824,8 +8834,13 @@ func (this *BaseExchange) CleanCache(subscription any) {
 			}
 		}
 	} else if symbolsLength > 0 {
-		for i := 0; i < GetArrayLength(symbols); i++ {
-			var symbol any = GetValue(symbols, i)
+		for i := 0; i < len(symbols); i++ {
+			var symbol any = func() any {
+				if i >= 0 && i < len(symbols) {
+					return DerefScalar(symbols[i])
+				}
+				return nil
+			}()
 			if topic != nil && *topic == "trades" {
 				if InOp(this.Trades, symbol) {
 					Remove(this.Trades, symbol)

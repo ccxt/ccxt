@@ -1447,11 +1447,21 @@ func (this *Binance) HandleSubscriptionStatus(client any, message any) any {
 	return message
 }
 func (this *Binance) HandleUnSubscription(client any, subscription any) {
-	var messageHashes any = this.SafeList(subscription, "messageHashes", []any{})
-	var subMessageHashes any = this.SafeList(subscription, "subMessageHashes", []any{})
-	for j := 0; j < ccxt.GetArrayLength(messageHashes); j++ {
-		var unsubHash any = ccxt.GetValue(messageHashes, j)
-		var subHash any = ccxt.GetValue(subMessageHashes, j)
+	var messageHashes []any = ccxt.SafeListTyped(subscription, "messageHashes")
+	var subMessageHashes []any = ccxt.SafeListTyped(subscription, "subMessageHashes")
+	for j := 0; j < len(messageHashes); j++ {
+		var unsubHash any = func() any {
+			if j >= 0 && j < len(messageHashes) {
+				return ccxt.DerefScalar(messageHashes[j])
+			}
+			return nil
+		}()
+		var subHash any = func() any {
+			if j >= 0 && j < len(subMessageHashes) {
+				return ccxt.DerefScalar(subMessageHashes[j])
+			}
+			return nil
+		}()
 		this.CleanUnsubscription(ccxt.AsClient(client), subHash, unsubHash)
 	}
 	this.CleanCache(subscription)
@@ -4452,10 +4462,15 @@ func (this *Binance) HandlePositionsWs(client any, message any) {
 	//
 	//
 	var messageHash *string = this.SafeString(message, "id")
-	var result any = this.SafeList(message, "result", []any{})
+	var result []any = ccxt.SafeListTyped(message, "result")
 	var positions []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(result); i++ {
-		var parsed any = this.ParsePositionRisk(ccxt.GetValue(result, i))
+	for i := 0; i < len(result); i++ {
+		var parsed any = this.ParsePositionRisk(func() any {
+			if i >= 0 && i < len(result) {
+				return ccxt.DerefScalar(result[i])
+			}
+			return nil
+		}())
 		var entryPrice *string = this.SafeString(parsed, "entryPrice")
 		if (entryPrice == nil || *entryPrice != "0") && (entryPrice == nil || *entryPrice != "0.0") && (entryPrice == nil || *entryPrice != "0.00000000") {
 			positions = append(positions, parsed)
@@ -6123,10 +6138,15 @@ func (this *Binance) HandleOptionsOrderUpdate(client any, message any) {
 	//         ]
 	//     }
 	//
-	var orders any = this.SafeList(message, "o", []any{})
-	for i := 0; i < ccxt.GetArrayLength(orders); i++ {
-		var order any = ccxt.GetValue(orders, i)
-		var fills any = this.SafeList(order, "fi", []any{})
+	var orders []any = ccxt.SafeListTyped(message, "o")
+	for i := 0; i < len(orders); i++ {
+		var order any = func() any {
+			if i >= 0 && i < len(orders) {
+				return ccxt.DerefScalar(orders[i])
+			}
+			return nil
+		}()
+		var fills []any = ccxt.SafeListTyped(order, "fi")
 		var rawQty *string = this.SafeString(order, "q", "0")
 		var side string = "BUY"
 		if ccxt.Precise.StringLt(rawQty, "0") {
@@ -6134,7 +6154,7 @@ func (this *Binance) HandleOptionsOrderUpdate(client any, message any) {
 		}
 		var absQty *string = ccxt.Precise.StringAbs(rawQty)
 		var executionType string = "NEW"
-		if ccxt.GetArrayLength(fills) > 0 {
+		if len(fills) > 0 {
 			executionType = "TRADE"
 		}
 		// normalize eOptions fields to the flat format parseWsOrder/handleOrder expect
@@ -6156,8 +6176,13 @@ func (this *Binance) HandleOptionsOrderUpdate(client any, message any) {
 			"O": this.SafeInteger(order, "T"),
 		}
 		this.HandleOrder(client, normalizedOrder)
-		for j := 0; j < ccxt.GetArrayLength(fills); j++ {
-			var fill any = ccxt.GetValue(fills, j)
+		for j := 0; j < len(fills); j++ {
+			var fill any = func() any {
+				if j >= 0 && j < len(fills) {
+					return ccxt.DerefScalar(fills[j])
+				}
+				return nil
+			}()
 			var isMaker bool = (ccxt.IsEqual(this.SafeString(fill, "m"), "MAKER"))
 			// normalize fill fields to the flat format parseWsTrade/handleMyTrade expect
 			var normalizedTrade map[string]any = map[string]any{
@@ -6389,10 +6414,15 @@ func (this *Binance) HandlePositions(client any, message any) {
 	}
 	var cache any = ccxt.GetValue(this.Positions, accountType)
 	var data map[string]any = ccxt.SafeMapTyped(message, "a")
-	var rawPositions any = this.SafeList(data, "P", []any{})
+	var rawPositions []any = ccxt.SafeListTyped(data, "P")
 	var newPositions []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(rawPositions); i++ {
-		var rawPosition any = ccxt.GetValue(rawPositions, i)
+	for i := 0; i < len(rawPositions); i++ {
+		var rawPosition any = func() any {
+			if i >= 0 && i < len(rawPositions) {
+				return ccxt.DerefScalar(rawPositions[i])
+			}
+			return nil
+		}()
 		var position any = this.ParseWsPosition(rawPosition)
 		var timestamp *int64 = this.SafeInteger(message, "E")
 		ccxt.AddElementToObject(position, "timestamp", timestamp)
@@ -6962,9 +6992,14 @@ func (this *Binance) HandleOptionsAccountUpdate(client any, message any) {
 	if ccxt.IsEqual(accountType, nil) {
 		return
 	}
-	var B any = this.SafeList(message, "B", []any{})
-	for i := 0; i < ccxt.GetArrayLength(B); i++ {
-		var entry any = ccxt.GetValue(B, i)
+	var B []any = ccxt.SafeListTyped(message, "B")
+	for i := 0; i < len(B); i++ {
+		var entry any = func() any {
+			if i >= 0 && i < len(B) {
+				return ccxt.DerefScalar(B[i])
+			}
+			return nil
+		}()
 		var currencyId *string = this.SafeString(entry, "a")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		if code != nil {
@@ -6986,10 +7021,15 @@ func (this *Binance) HandleOptionsAccountUpdate(client any, message any) {
 		ccxt.AddElementToObject(this.Positions, accountType, ccxt.NewArrayCacheBySymbolBySide())
 	}
 	var cache any = ccxt.GetValue(this.Positions, accountType)
-	var P any = this.SafeList(message, "P", []any{})
+	var P []any = ccxt.SafeListTyped(message, "P")
 	var newPositions []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(P); i++ {
-		var rawPosition any = ccxt.GetValue(P, i)
+	for i := 0; i < len(P); i++ {
+		var rawPosition any = func() any {
+			if i >= 0 && i < len(P) {
+				return ccxt.DerefScalar(P[i])
+			}
+			return nil
+		}()
 		var position any = this.ParseWsOptionsPosition(rawPosition)
 		ccxt.AddElementToObject(position, "timestamp", timestamp)
 		ccxt.AddElementToObject(position, "datetime", this.Iso8601(timestamp))
