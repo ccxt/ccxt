@@ -4223,7 +4223,7 @@ public partial class BaseExchange
         }
         if ((currency != null))
         {
-            return getValue(currency, "id");
+            return (currency.ContainsKey("id") ? currency["id"] : null);
         }
         return code;
     }
@@ -7541,7 +7541,7 @@ public partial class BaseExchange
             {
                 throw new ExchangeError ((string)(this.id + " parseConversions() could not resolve currency")) ;
             }
-            codeVar = getValue(currency, "code");
+            codeVar = (currency.ContainsKey("code") ? currency["code"] : null);
         }
         if ((codeVar == null))
         {
