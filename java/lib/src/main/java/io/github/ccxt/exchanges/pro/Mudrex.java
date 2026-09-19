@@ -223,7 +223,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
         Map<String, Object> error = (Map<String, Object>) this.safeDict(message, "error");
         if (!java.util.Objects.equals(error, null))
         {
-            this.handleErrorMessage(client, message);
+            this.handleErrorMessage(client, (Map<String, Object>) (message));
             return;
         }
         String stream = this.safeString(message, "stream");
@@ -231,15 +231,15 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
         {
             if (((String)stream).indexOf("kline") >= 0 || ((String)stream).indexOf("markKline") >= 0)
             {
-                this.handleOHLCV(client, message);
+                this.handleOHLCV(client, (Map<String, Object>) (message));
             } else if (((String)stream).indexOf("ticker") >= 0)
             {
-                this.handleTicker(client, message);
+                this.handleTicker(client, (Map<String, Object>) (message));
             }
         }
     }
 
-    public void handleErrorMessage(Client client, Object message)
+    public void handleErrorMessage(Client client, Map<String, Object> message)
     {
         Map<String, Object> error = (Map<String, Object>) this.safeDict(message, "error", new HashMap<String, Object>() {{}});
         String code = this.safeString(error, "code");
@@ -252,7 +252,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
         throw new ExchangeError((String)feedback) ;
     }
 
-    public void handleOHLCV(Client client, Object message)
+    public void handleOHLCV(Client client, Map<String, Object> message)
     {
         String stream = this.safeString(message, "stream");
         if (java.util.Objects.equals(stream, null))
@@ -287,7 +287,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
         client.resolve(stored, messageHash);
     }
 
-    public void handleTicker(Client client, Object message)
+    public void handleTicker(Client client, Map<String, Object> message)
     {
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)data).size(); i++)

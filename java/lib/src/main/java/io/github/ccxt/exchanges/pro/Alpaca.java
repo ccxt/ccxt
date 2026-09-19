@@ -118,7 +118,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
 
     }
 
-    public void handleTicker(Client client, Object message)
+    public void handleTicker(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -225,7 +225,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
 
     }
 
-    public void handleOHLCV(Client client, Object message)
+    public void handleOHLCV(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -292,7 +292,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
 
     }
 
-    public void handleOrderBook(Client client, Object message)
+    public void handleOrderBook(Client client, Map<String, Object> message)
     {
         //
         // snapshot
@@ -351,7 +351,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
 
     public void handleDeltas(Object bookside, Object deltas)
     {
-        for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
+        for (var i = 0; i < ((List<?>)deltas).size(); i++)
         {
             this.handleDelta(bookside, Helpers.GetValue(deltas, i));
         }
@@ -399,7 +399,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
 
     }
 
-    public void handleTrades(Client client, Object message)
+    public void handleTrades(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -524,13 +524,13 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
 
     }
 
-    public void handleTradeUpdate(Client client, Object message)
+    public void handleTradeUpdate(Client client, Map<String, Object> message)
     {
-        this.handleOrder(client, message);
-        this.handleMyTrade(client, message);
+        this.handleOrder(client, (Map<String, Object>) (message));
+        this.handleMyTrade(client, (Map<String, Object>) (message));
     }
 
-    public void handleOrder(Client client, Object message)
+    public void handleOrder(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -593,7 +593,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         client.resolve(orders, messageHash);
     }
 
-    public void handleMyTrade(Client client, Object message)
+    public void handleMyTrade(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -653,7 +653,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object trade = this.parseMyTrade(rawOrder);
+        Object trade = this.parseMyTrade((Map<String, Object>) (rawOrder));
         if (java.util.Objects.equals(trade, null))
         {
             return;
@@ -665,7 +665,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         client.resolve(myTrades, messageHash);
     }
 
-    public Object parseMyTrade(Object trade, Object... optionalArgs)
+    public Object parseMyTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         //
         //    {
@@ -753,7 +753,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
                     put( "key", Alpaca.this.apiKey );
                     put( "secret", Alpaca.this.secret );
                 }};
-                if (Helpers.isEqual(url, Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "trading")))
+                if (java.util.Objects.equals(url, Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "trading")))
                 {
                     // this auth request is being deprecated in test environment
                     request = ((Object)new HashMap<String, Object>() {{
@@ -771,7 +771,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
 
     }
 
-    public Object handleErrorMessage(Client client, Object message)
+    public Object handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -785,7 +785,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         throw new ExchangeError((String)Helpers.add((((this.id + " code: ") + code) + " message: "), msg)) ;
     }
 
-    public Object handleConnected(Client client, Object message)
+    public Object handleConnected(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -798,24 +798,24 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
 
     public void handleCryptoMessage(Client client, Object message)
     {
-        for (var i = 0; i < Helpers.getArrayLength(message); i++)
+        for (var i = 0; i < ((List<?>)message).size(); i++)
         {
             Object data = Helpers.GetValue(message, i);
             String T = this.safeString(data, "T");
             String msg = this.safeString(data, "msg");
             if (java.util.Objects.equals(T, "subscription"))
             {
-                this.handleSubscription(client, data);
+                this.handleSubscription(client, (Map<String, Object>) (data));
                 return;
             }
             if (java.util.Objects.equals(T, "success") && java.util.Objects.equals(msg, "connected"))
             {
-                this.handleConnected(client, data);
+                this.handleConnected(client, (Map<String, Object>) (data));
                 return;
             }
             if (java.util.Objects.equals(T, "success") && java.util.Objects.equals(msg, "authenticated"))
             {
-                this.handleAuthenticate(client, data);
+                this.handleAuthenticate(client, (Map<String, Object>) (data));
                 return;
             }
             Map<String, Object> methods = new HashMap<String, Object>() {{
@@ -833,7 +833,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         }
     }
 
-    public void handleTradingMessage(Client client, Object message)
+    public void handleTradingMessage(Client client, Map<String, Object> message)
     {
         String stream = this.safeString(message, "stream");
         Map<String, Object> methods = new HashMap<String, Object>() {{
@@ -855,10 +855,10 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
             this.handleCryptoMessage(client, message);
             return;
         }
-        this.handleTradingMessage(client, message);
+        this.handleTradingMessage(client, (Map<String, Object>) (message));
     }
 
-    public void handleAuthenticate(Client client, Object message)
+    public void handleAuthenticate(Client client, Map<String, Object> message)
     {
         //
         // crypto
@@ -897,7 +897,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         throw new AuthenticationError((this.id + " failed to authenticate.")) ;
     }
 
-    public Object handleSubscription(Client client, Object message)
+    public Object handleSubscription(Client client, Map<String, Object> message)
     {
         //
         // crypto

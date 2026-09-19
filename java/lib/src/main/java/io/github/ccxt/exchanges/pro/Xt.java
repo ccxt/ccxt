@@ -205,11 +205,11 @@ public class Xt extends io.github.ccxt.exchanges.Xt
 
     public void handleDelta(Object orderbook, Object delta)
     {
-        Helpers.addElementToObject(orderbook, "nonce", this.safeInteger2(delta, "i", "u"));
+        ((Map<String, Object>)orderbook).put("nonce", this.safeInteger2(delta, "i", "u"));
         List<Object> obAsks = (List<Object>) this.safeList(delta, "a", new ArrayList<Object>(Arrays.asList()));
         List<Object> obBids = (List<Object>) this.safeList(delta, "b", new ArrayList<Object>(Arrays.asList()));
-        Object bids = Helpers.GetValue(orderbook, "bids");
-        Object asks = Helpers.GetValue(orderbook, "asks");
+        Object bids = ((Map<String, Object>)orderbook).get("bids");
+        Object asks = ((Map<String, Object>)orderbook).get("asks");
         for (var i = 0; i < ((List<?>)obBids).size(); i++)
         {
             Object bid = (obBids == null || i < 0 || i >= obBids.size() ? null : obBids.get(i));
@@ -270,7 +270,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 } else
                 {
                     Object listenKey = (this.getListenKey(isContract)).join();
-                    Object param = Helpers.add((name + "@"), listenKey);
+                    Object param = ((name + "@") + listenKey);
                     ((Map<String, Object>)subscribe).put("params", new ArrayList<Object>(Arrays.asList(param)));
                 }
             } else
@@ -346,7 +346,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 } else
                 {
                     Object listenKey = (this.getListenKey(isContract)).join();
-                    Object param = Helpers.add((name + "@"), listenKey);
+                    Object param = ((name + "@") + listenKey);
                     ((Map<String, Object>)unsubscribe).put("params", new ArrayList<Object>(Arrays.asList(param)));
                 }
             } else
@@ -1031,7 +1031,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
 
     }
 
-    public void handlePosition(Client client, Object message)
+    public void handlePosition(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -1875,7 +1875,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             }
         } else
         {
-            this.handleSubscriptionStatus(client, message);
+            this.handleSubscriptionStatus(client, (Map<String, Object>) (message));
         }
     }
 
@@ -1885,7 +1885,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         return "ping";
     }
 
-    public Object handleSubscriptionStatus(Client client, Object message)
+    public Object handleSubscriptionStatus(Client client, Map<String, Object> message)
     {
         //
         //     {

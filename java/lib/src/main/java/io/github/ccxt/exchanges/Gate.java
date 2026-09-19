@@ -2357,7 +2357,7 @@ public class Gate extends GateApi
                 for (var i = 0; i < ((List<?>)response).size(); i++)
                 {
                     Map<String, Object> contract = (Map<String, Object>) this.safeDict(response, i, new HashMap<String, Object>() {{}});
-                    Object parsedMarket = this.parseContractMarket(contract, settleId);
+                    Object parsedMarket = this.parseContractMarket((Map<String, Object>) (contract), (String) (settleId));
                     ((List<Object>)result).add(parsedMarket);
                 }
             }
@@ -2388,7 +2388,7 @@ public class Gate extends GateApi
                 for (var i = 0; i < ((List<?>)response).size(); i++)
                 {
                     Map<String, Object> contract = (Map<String, Object>) this.safeDict(response, i, new HashMap<String, Object>() {{}});
-                    Object parsedMarket = this.parseContractMarket(contract, settleId);
+                    Object parsedMarket = this.parseContractMarket((Map<String, Object>) (contract), (String) (settleId));
                     ((List<Object>)result).add(parsedMarket);
                 }
             }
@@ -2397,7 +2397,7 @@ public class Gate extends GateApi
 
     }
 
-    public Object parseContractMarket(Object market, Object settleId)
+    public Object parseContractMarket(Map<String, Object> market, String settleId)
     {
         //
         //  Perpetual swap
@@ -2824,7 +2824,7 @@ public class Gate extends GateApi
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object trigger = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : false;
         Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
-        var marginModequeryVariable = this.getMarginMode(trigger, parameters);
+        var marginModequeryVariable = this.getMarginMode((Boolean) (trigger), (Map<String, Object>) (parameters));
         var marginMode = ((List<Object>) marginModequeryVariable).get(0);
         var query = ((List<Object>) marginModequeryVariable).get(1);
         Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -2855,7 +2855,7 @@ public class Gate extends GateApi
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object trigger = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : false;
         Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
-        var marginModequeryVariable = this.getMarginMode(trigger, parameters);
+        var marginModequeryVariable = this.getMarginMode((Boolean) (trigger), (Map<String, Object>) (parameters));
         var marginMode = ((List<Object>) marginModequeryVariable).get(0);
         var query = ((List<Object>) marginModequeryVariable).get(1);
         Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2875,7 +2875,7 @@ public class Gate extends GateApi
         return new ArrayList<Object>(Arrays.asList(request, query));
     }
 
-    public Object getMarginMode(Object trigger, Object parameters)
+    public Object getMarginMode(Boolean trigger, Map<String, Object> parameters)
     {
         /**
          * @ignore
@@ -2888,7 +2888,7 @@ public class Gate extends GateApi
          */
         String defaultMarginMode = this.safeStringLower2(this.options, "defaultMarginMode", "marginMode", "spot"); // 'margin' is isolated margin on gate's api
         String marginMode = this.safeStringLower2(parameters, "marginMode", "account", defaultMarginMode);
-        parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("marginMode", "account")));
+        parameters = (Map<String, Object>) (this.omit(parameters, new ArrayList<Object>(Arrays.asList("marginMode", "account"))));
         if (java.util.Objects.equals(marginMode, "cross"))
         {
             marginMode = "cross_margin";
@@ -2914,7 +2914,7 @@ public class Gate extends GateApi
         Object isUnifiedAccount = false;
         List<Object> isUnifiedAccountparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "getMarginMode", "unifiedAccount");
         isUnifiedAccount = ((List<Object>) isUnifiedAccountparametersVariable).get(0);
-        parameters = ((List<Object>) isUnifiedAccountparametersVariable).get(1);
+        parameters = (Map<String, Object>) ((List<Object>) isUnifiedAccountparametersVariable).get(1);
         if (Boolean.TRUE.equals(isUnifiedAccount))
         {
             marginMode = "unified";
@@ -2922,7 +2922,7 @@ public class Gate extends GateApi
         return new ArrayList<Object>(Arrays.asList(marginMode, parameters));
     }
 
-    public Object getSettlementCurrencies(Object type, Object method)
+    public Object getSettlementCurrencies(String type, String method)
     {
         Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, type, new HashMap<String, Object>() {{}}); // [ 'BTC', 'USDT' ] unified codes
         Map<String, Object> fetchMarketsContractOptions = (Map<String, Object>) this.safeDict(options, method, new HashMap<String, Object>() {{}});
@@ -3280,7 +3280,7 @@ public class Gate extends GateApi
         }};
     }
 
-    public String parseFundingInterval(Object interval)
+    public String parseFundingInterval(String interval)
     {
         Map<String, Object> intervals = new HashMap<String, Object>() {{
             put( "3600000", "1h" );
@@ -3473,7 +3473,7 @@ public class Gate extends GateApi
             //        "futures_maker_fee": "0"
             //    }
             //
-            return this.parseTradingFee(response, market);
+            return this.parseTradingFee((Map<String, Object>) (response), market);
         }).thenApply(TradingFeeInterface::new);
 
     }
@@ -3511,12 +3511,12 @@ public class Gate extends GateApi
             //        "futures_maker_fee": "0"
             //    }
             //
-            return this.parseTradingFees(response);
+            return this.parseTradingFees((Map<String, Object>) (response));
         }).thenApply(TradingFees::new);
 
     }
 
-    public Object parseTradingFees(Object response)
+    public Object parseTradingFees(Map<String, Object> response)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         List<Object> symbols = this.symbols;
@@ -3524,12 +3524,12 @@ public class Gate extends GateApi
         {
             Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            ((Map<String, Object>)result).put((String)symbol, this.parseTradingFee(response, market));
+            ((Map<String, Object>)result).put((String)symbol, this.parseTradingFee((Map<String, Object>) (response), market));
         }
         return result;
     }
 
-    public Object parseTradingFee(Object info, Object... optionalArgs)
+    public Object parseTradingFee(Map<String, Object> info, Object... optionalArgs)
     {
         //
         //    {
@@ -3831,14 +3831,14 @@ public class Gate extends GateApi
         for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
             Object entry = Helpers.GetValue(response, i);
-            Object funding = this.parseFundingHistory(entry);
+            Object funding = this.parseFundingHistory((Map<String, Object>) (entry));
             ((List<Object>)result).add(funding);
         }
         List<Object> sorted = this.sortBy(result, "timestamp");
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
 
-    public Object parseFundingHistory(Object info, Object... optionalArgs)
+    public Object parseFundingHistory(Map<String, Object> info, Object... optionalArgs)
     {
         //
         //    {
@@ -4322,7 +4322,7 @@ public class Gate extends GateApi
             var requestrequestParamsVariable = this.prepareRequest(null, type, query);
             var request = ((List<Object>) requestrequestParamsVariable).get(0);
             var requestParams = ((List<Object>) requestrequestParamsVariable).get(1);
-            var marginModerequestQueryVariable = this.getMarginMode(false, requestParams);
+            var marginModerequestQueryVariable = this.getMarginMode((Boolean) (false), (Map<String, Object>) (requestParams));
             var marginMode = ((List<Object>) marginModerequestQueryVariable).get(0);
             var requestQuery = ((List<Object>) marginModerequestQueryVariable).get(1);
             if (!java.util.Objects.equals(symbol, null))
@@ -5132,7 +5132,7 @@ public class Gate extends GateApi
                 {
                     ((Map<String, Object>)request).put("currency_pair", ((Map<String, Object>)market).get("id")); // Should always be set for non-trigger
                 }
-                var marginModeparametersVariable = this.getMarginMode(false, parameters);
+                var marginModeparametersVariable = this.getMarginMode((Boolean) (false), (Map<String, Object>) (parameters));
                 marginMode = ((List<Object>) marginModeparametersVariable).get(0);
                 parameters = ((List<Object>) marginModeparametersVariable).get(1);
                 ((Map<String, Object>)request).put("account", marginMode);
@@ -5617,7 +5617,7 @@ final Object finalPointFee = pointFee;
         return this.safeString(statuses, status, ((String)status));
     }
 
-    public String parseTransactionType(Object type)
+    public String parseTransactionType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "d", "deposit" );
@@ -5701,7 +5701,7 @@ final Object finalPointFee = pointFee;
                 amountString = Precise.stringAbs(amountString);
             } else
             {
-                type = this.parseTransactionType(Helpers.GetValue(id, 0));
+                type = this.parseTransactionType((String) (Helpers.GetValue(id, 0)));
             }
         }
         String feeCostString = this.safeString2(transaction, "fee", "fee_amount");
@@ -6099,7 +6099,7 @@ final Object finalPointFee = pointFee;
             } else
             {
                 Object marginMode = null;
-                var marginModeparametersVariable = this.getMarginMode(false, parameters);
+                var marginModeparametersVariable = this.getMarginMode((Boolean) (false), (Map<String, Object>) (parameters));
                 marginMode = ((List<Object>) marginModeparametersVariable).get(0);
                 parameters = ((List<Object>) marginModeparametersVariable).get(1);
                 // spot order
@@ -6250,7 +6250,7 @@ final Object finalPointFee = pointFee;
                 // spot conditional order
                 Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "createOrder", new HashMap<String, Object>() {{}});
                 Object marginMode = null;
-                var marginModeparametersVariable = this.getMarginMode(true, parameters);
+                var marginModeparametersVariable = this.getMarginMode((Boolean) (true), (Map<String, Object>) (parameters));
                 marginMode = ((List<Object>) marginModeparametersVariable).get(0);
                 parameters = ((List<Object>) marginModeparametersVariable).get(1);
                 if (java.util.Objects.equals(timeInForce, null))
@@ -6917,7 +6917,7 @@ final Object finalRebate = rebate;
         var requestrequestParamsVariable = ((Boolean.TRUE.equals(contract))) ? this.prepareRequest(market, type, query) : this.spotOrderPrepareRequest(market, trigger, query);
         var request = ((List<Object>) requestrequestParamsVariable).get(0);
         var requestParams = ((List<Object>) requestrequestParamsVariable).get(1);
-        Helpers.addElementToObject(request, "order_id", String.valueOf(orderId));
+        ((Map<String, Object>)request).put("order_id", String.valueOf(orderId));
         return new ArrayList<Object>(Arrays.asList(request, requestParams));
     }
 
@@ -7118,7 +7118,7 @@ final Object finalRebate = rebate;
 
     }
 
-    public Object prepareOrdersByStatusRequest(Object status, Object... optionalArgs)
+    public Object prepareOrdersByStatusRequest(String status, Object... optionalArgs)
     {
         Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
@@ -7179,7 +7179,7 @@ final Object finalRebate = rebate;
         return new ArrayList<Object>(Arrays.asList(request, finalParams));
     }
 
-    public CompletableFuture<Object> fetchOrdersByStatus(Object status2, Object... optionalArgs)
+    public CompletableFuture<Object> fetchOrdersByStatus(String status2, Object... optionalArgs)
     {
         final Object status3 = status2;
         return BaseExchange.supplyAsync(() -> {
@@ -7203,7 +7203,7 @@ final Object finalRebate = rebate;
             Object trigger = this.safeBool2(parameters, "trigger", "stop");
             Object res = this.handleMarketTypeAndParams("fetchOrdersByStatus", market, parameters);
             String type = this.safeString(res, 0);
-            var requestrequestParamsVariable = this.prepareOrdersByStatusRequest(status, symbol, since, limit, parameters);
+            var requestrequestParamsVariable = this.prepareOrdersByStatusRequest((String) (status), symbol, since, limit, parameters);
             var request = ((List<Object>) requestrequestParamsVariable).get(0);
             var requestParams = ((List<Object>) requestrequestParamsVariable).get(1);
             Boolean spot = (java.util.Objects.equals(type, "spot")) || (java.util.Objects.equals(type, "margin"));
@@ -7453,7 +7453,7 @@ final Object finalRebate = rebate;
             var requestrequestParamsVariable = (((java.util.Objects.equals(type, "spot") || java.util.Objects.equals(type, "margin")))) ? this.spotOrderPrepareRequest(market, trigger, query) : this.prepareRequest(market, type, query);
             var request = ((List<Object>) requestrequestParamsVariable).get(0);
             var requestParams = ((List<Object>) requestrequestParamsVariable).get(1);
-            Helpers.addElementToObject(request, "order_id", id);
+            ((Map<String, Object>)request).put("order_id", id);
             Object response = null;
             if (java.util.Objects.equals(type, "spot") || java.util.Objects.equals(type, "margin"))
             {
@@ -9579,7 +9579,7 @@ final Object finalI = i;
 
     }
 
-    public Object parseSettlement(Object settlement, Object market)
+    public Object parseSettlement(Map<String, Object> settlement, Object... optionalArgs)
     {
         //
         // fetchSettlementHistory
@@ -9620,6 +9620,7 @@ final Object finalI = i;
         //         "fee": "0.03079386"
         //     }
         //
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object timestamp = this.safeTimestamp(settlement, "time");
         String marketId = this.safeString(settlement, "contract");
         return new HashMap<String, Object>() {{
@@ -9631,7 +9632,7 @@ final Object finalI = i;
         }};
     }
 
-    public Object parseSettlements(Object settlements, Object market)
+    public Object parseSettlements(Object settlements, Object... optionalArgs)
     {
         //
         // fetchSettlementHistory
@@ -9663,10 +9664,11 @@ final Object finalI = i;
         //         }
         //     ]
         //
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < Helpers.getArrayLength(settlements); i++)
+        for (var i = 0; i < ((List<?>)settlements).size(); i++)
         {
-            ((List<Object>)result).add(this.parseSettlement(Helpers.GetValue(settlements, i), market));
+            ((List<Object>)result).add(this.parseSettlement((Map<String, Object>) (Helpers.GetValue(settlements, i)), market));
         }
         return result;
     }
@@ -9910,7 +9912,7 @@ final Object finalI = i;
         }}, currency);
     }
 
-    public Object parseLedgerEntryType(Object type)
+    public Object parseLedgerEntryType(String type)
     {
         Map<String, Object> ledgerType = new HashMap<String, Object>() {{
             put( "deposit", "deposit" );

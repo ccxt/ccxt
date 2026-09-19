@@ -1390,7 +1390,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         }
         for (var i = 0; i < ((List<?>)rawBalances).size(); i++)
         {
-            this.parseWsBalance(Helpers.GetValue(rawBalances, i), account);
+            this.parseWsBalance((Map<String, Object>) (Helpers.GetValue(rawBalances, i)), account);
         }
         if (java.util.Objects.equals(this.safeValue(this.balance, account), null))
         {
@@ -1403,7 +1403,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(account)), messageHash);
     }
 
-    public void parseWsBalance(Object balance, Object... optionalArgs)
+    public void parseWsBalance(Map<String, Object> balance, Object... optionalArgs)
     {
         //
         // spot
@@ -2013,7 +2013,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         }};
         this.cleanCache(topicStructure);
         // clean swap balance if it existed
-        if (Helpers.inOp(this.balance, "swap"))
+        if (((Map<?, ?>)this.balance).containsKey("swap"))
         {
             ((Map<String,Object>)this.balance).remove("swap");
         }
@@ -2024,7 +2024,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         String subHash = "spotState";
         String unSubHash = ("unsubscribe:" + subHash);
         this.cleanUnsubscription(client, subHash, unSubHash, true);
-        if (Helpers.inOp(this.balance, "spot"))
+        if (((Map<?, ?>)this.balance).containsKey("spot"))
         {
             ((Map<String,Object>)this.balance).remove("spot");
         }

@@ -176,7 +176,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
 
     }
 
-    public void handleOrderBook(Client client, Object message)
+    public void handleOrderBook(Client client, Map<String, Object> message)
     {
         //
         // initial snapshot is fetched with ccxt's fetchOrderBook
@@ -254,7 +254,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
 
     public void handleBidAsks(Object bookSide, Object bidAsks)
     {
-        for (var i = 0; i < Helpers.getArrayLength(bidAsks); i++)
+        for (var i = 0; i < ((List<?>)bidAsks).size(); i++)
         {
             List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk(Helpers.GetValue(bidAsks, i));
             Helpers.callDynamically(bookSide, "storeArray", new Object[]{bidAsk});
@@ -405,7 +405,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         }}, market);
     }
 
-    public void handleTrade(Client client, Object message)
+    public void handleTrade(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -486,7 +486,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
 
     }
 
-    public void handleFundingRate(Client client, Object message)
+    public void handleFundingRate(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -557,7 +557,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
                 put( "type", finalChannel );
                 put( "params", parameters );
             }};
-            Object orders = (this.subscribePrivate(subscription, messageHash, parameters)).join();
+            Object orders = (this.subscribePrivate((Map<String, Object>) (subscription), messageHash, parameters)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
@@ -641,7 +641,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
                 put( "type", finalChannel );
                 put( "params", parameters );
             }};
-            Object trades = (this.subscribePrivate(subscription, messageHash, parameters)).join();
+            Object trades = (this.subscribePrivate((Map<String, Object>) (subscription), messageHash, parameters)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
@@ -684,7 +684,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
 
     }
 
-    public void handleMyTrades(Client client, Object message)
+    public void handleMyTrades(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -778,7 +778,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         }}, market);
     }
 
-    public void handleOrders(Client client, Object message)
+    public void handleOrders(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -937,7 +937,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         }}, market);
     }
 
-    public void handleOrderBookSubscription(Client client, Object message)
+    public void handleOrderBookSubscription(Client client, Map<String, Object> message)
     {
         String channel = this.safeString(message, "channel");
         if (java.util.Objects.equals(channel, null))
@@ -950,7 +950,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
     }
 
-    public void handleSubscriptionStatus(Client client, Object message)
+    public void handleSubscriptionStatus(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -971,11 +971,11 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         }
         if (Helpers.isGreaterThan(((String)channel).indexOf("order_book"), -1))
         {
-            this.handleOrderBookSubscription(client, message);
+            this.handleOrderBookSubscription(client, (Map<String, Object>) (message));
         }
     }
 
-    public void handleUnsubscriptionStatus(Client client, Object message)
+    public void handleUnsubscriptionStatus(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1043,7 +1043,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         return newCache;
     }
 
-    public void handleSubject(Client client, Object message)
+    public void handleSubject(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1165,13 +1165,13 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         String eventVar = this.safeString(message, "event");
         if (java.util.Objects.equals(eventVar, "bts:subscription_succeeded"))
         {
-            this.handleSubscriptionStatus(client, message);
+            this.handleSubscriptionStatus(client, (Map<String, Object>) (message));
         } else if (java.util.Objects.equals(eventVar, "bts:unsubscription_succeeded"))
         {
-            this.handleUnsubscriptionStatus(client, message);
+            this.handleUnsubscriptionStatus(client, (Map<String, Object>) (message));
         } else
         {
-            this.handleSubject(client, message);
+            this.handleSubject(client, (Map<String, Object>) (message));
         }
     }
 
@@ -1244,7 +1244,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
 
     }
 
-    public CompletableFuture<Object> subscribePrivate(Object subscription, Object messageHash2, Object... optionalArgs)
+    public CompletableFuture<Object> subscribePrivate(Map<String, Object> subscription, Object messageHash2, Object... optionalArgs)
     {
         final Object messageHash3 = messageHash2;
         return BaseExchange.supplyAsync(() -> {
@@ -1261,7 +1261,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
                     put( "auth", ((Map<String, Object>)Bitstamp.this.options).get("wsSessionToken") );
                 }} );
             }};
-            Helpers.addElementToObject(subscription, "messageHash", messageHash);
+            ((Map<String, Object>)subscription).put("messageHash", messageHash);
             return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription)).join();
         });
 

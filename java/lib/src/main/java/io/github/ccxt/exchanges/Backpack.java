@@ -1011,7 +1011,7 @@ public class Backpack extends BackpackApi
         }});
     }
 
-    public String parseMarketType(Object type)
+    public String parseMarketType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "SPOT", "spot" );
@@ -1772,7 +1772,7 @@ public class Backpack extends BackpackApi
         //         }
         //     }
         //
-        List<Object> balanceKeys = Helpers.objectKeys(response);
+        List<Object> balanceKeys = new ArrayList<Object>(((Map<String, Object>)response).keySet());
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)balanceKeys).size(); i++)
         {
@@ -2251,7 +2251,7 @@ public class Backpack extends BackpackApi
         final Object finalType = type;
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "symbol", ((Map<String, Object>)market).get("id") );
-            put( "side", Backpack.this.encodeOrderSide(finalSide) );
+            put( "side", Backpack.this.encodeOrderSide((String) (finalSide)) );
             put( "orderType", Backpack.this.capitalize(finalType) );
         }};
         String triggerPrice = this.safeString(parameters, "triggerPrice");
@@ -2344,7 +2344,7 @@ public class Backpack extends BackpackApi
         return this.extend(request, parameters);
     }
 
-    public String encodeOrderSide(Object side)
+    public String encodeOrderSide(String side)
     {
         Map<String, Object> sides = new HashMap<String, Object>() {{
             put( "buy", "Bid" );
@@ -2985,10 +2985,10 @@ public class Backpack extends BackpackApi
             Map<String, Object> order = (Map<String, Object>) this.safeDict(parameters, i, new HashMap<String, Object>() {{}});
             Map<String, Object> sortedOrder = this.keysort(order);
             Object orderQuery = this.urlencode(sortedOrder);
-            payload = (payload + (((Helpers.add("instruction=", instruction) + "&") + orderQuery) + "&"));
+            payload = (payload + (((("instruction=" + instruction) + "&") + orderQuery) + "&"));
             if (Helpers.isEqual(i, (Helpers.subtract(Helpers.getArrayLength(parameters), 1))))
             {
-                payload = Helpers.add(payload, Helpers.add((Helpers.add("timestamp=", ts) + "&window="), recvWindow));
+                payload = (payload + ((("timestamp=" + ts) + "&window=") + recvWindow));
             }
         }
         return payload;

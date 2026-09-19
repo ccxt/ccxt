@@ -1366,7 +1366,7 @@ public class Latoken extends LatokenApi
         return this.safeString(statuses, status, status);
     }
 
-    public String parseOrderType(Object status)
+    public String parseOrderType(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "ORDER_TYPE_MARKET", "market" );
@@ -2059,7 +2059,7 @@ public class Latoken extends LatokenApi
         return this.safeString(statuses, status, status);
     }
 
-    public String parseTransactionType(Object type)
+    public String parseTransactionType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "TRANSACTION_TYPE_DEPOSIT", "deposit" );

@@ -163,7 +163,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
 
     }
 
-    public Object handleTicker(Client client, Object message)
+    public Object handleTicker(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -492,7 +492,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
 
     }
 
-    public void handleLiquidation(Client client, Object message)
+    public void handleLiquidation(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -575,7 +575,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
 
     }
 
-    public void handleBalance(Client client, Object message)
+    public void handleBalance(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -682,7 +682,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
         client.resolve(this.balance, messageHash);
     }
 
-    public void handleTrades(Client client, Object message)
+    public void handleTrades(Client client, Map<String, Object> message)
     {
         //
         // initial snapshot
@@ -822,7 +822,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
 
     }
 
-    public void handleAuthenticationMessage(Client client, Object message)
+    public void handleAuthenticationMessage(Client client, Map<String, Object> message)
     {
         Boolean authenticated = (Boolean) this.safeBool(message, "success", false);
         String messageHash = "authenticated";
@@ -889,7 +889,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
 
     }
 
-    public void handlePositions(Client client, Object message)
+    public void handlePositions(Client client, Map<String, Object> message)
     {
         //
         // partial
@@ -1138,7 +1138,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
 
     }
 
-    public void handleOrders(Client client, Object message)
+    public void handleOrders(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1375,7 +1375,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
 
     }
 
-    public void handleMyTrades(Client client, Object message)
+    public void handleMyTrades(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1642,7 +1642,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
 
     }
 
-    public void handleOHLCV(Client client, Object message)
+    public void handleOHLCV(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1759,7 +1759,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
 
     }
 
-    public void handleOrderBook(Client client, Object message)
+    public void handleOrderBook(Client client, Map<String, Object> message)
     {
         //
         // first snapshot
@@ -1843,7 +1843,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
                 Double price = this.safeFloat((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "price");
-                Object size = this.convertFromRawQuantity(symbol, this.safeString((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "size"));
+                Object size = this.convertFromRawQuantity((String) (symbol), this.safeString((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "size"));
                 String id = this.safeString((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "id");
                 String side = this.safeString((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "side");
                 side = (((java.util.Objects.equals(side, "Buy")))) ? "bids" : "asks";
@@ -1874,7 +1874,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
                 Object symbol = ((Map<String, Object>)market).get("symbol");
                 Object orderbook = ((Map<?, ?>)this.orderbooks).get(symbol);
                 Double price = this.safeNumber((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "price");
-                Object size = (((java.util.Objects.equals(action, "delete")))) ? 0 : this.convertFromRawQuantity(symbol, this.safeString((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "size", "0"));
+                Object size = (((java.util.Objects.equals(action, "delete")))) ? 0 : this.convertFromRawQuantity((String) (symbol), this.safeString((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "size", "0"));
                 String id = this.safeString((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "id");
                 String side = this.safeString((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "side");
                 side = (((java.util.Objects.equals(side, "Buy")))) ? "bids" : "asks";
@@ -1897,7 +1897,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
         }
     }
 
-    public Object handleSystemStatus(Client client, Object message)
+    public Object handleSystemStatus(Client client, Map<String, Object> message)
     {
         //
         // todo answer the question whether handleSystemStatus should be renamed
@@ -1915,7 +1915,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
         return message;
     }
 
-    public Object handleSubscriptionStatus(Client client, Object message)
+    public Object handleSubscriptionStatus(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -2033,7 +2033,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
                 String op = this.safeString(request, "op");
                 if (java.util.Objects.equals(op, "authKeyExpires"))
                 {
-                    this.handleAuthenticationMessage(client, message);
+                    this.handleAuthenticationMessage(client, (Map<String, Object>) (message));
                 }
             } else
             {

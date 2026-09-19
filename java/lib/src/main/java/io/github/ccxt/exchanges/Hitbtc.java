@@ -1717,7 +1717,7 @@ public class Hitbtc extends HitbtcApi
         }}, market);
     }
 
-    public CompletableFuture<Object> fetchTransactionsHelper(Object types, Object code2, Object since2, Object limit2, Object parameters)
+    public CompletableFuture<Object> fetchTransactionsHelper(String types, String code2, Object since2, Object limit2, Map<String, Object> parameters)
     {
         final Object code3 = code2;
         final Object since3 = since2;
@@ -1793,7 +1793,7 @@ public class Hitbtc extends HitbtcApi
         return this.safeString(statuses, status, status);
     }
 
-    public String parseTransactionType(Object type)
+    public String parseTransactionType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "DEPOSIT", "deposit" );
@@ -1911,7 +1911,7 @@ public class Hitbtc extends HitbtcApi
             Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
             Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            return (this.fetchTransactionsHelper("DEPOSIT,WITHDRAW", code, since, limit, parameters)).join();
+            return (this.fetchTransactionsHelper("DEPOSIT,WITHDRAW", (String) (code), since, limit, (Map<String, Object>) (parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -1936,7 +1936,7 @@ public class Hitbtc extends HitbtcApi
             Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
             Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            return (this.fetchTransactionsHelper("DEPOSIT", code, since, limit, parameters)).join();
+            return (this.fetchTransactionsHelper("DEPOSIT", (String) (code), since, limit, (Map<String, Object>) (parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -1961,7 +1961,7 @@ public class Hitbtc extends HitbtcApi
             Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
             Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            return (this.fetchTransactionsHelper("WITHDRAW", code, since, limit, parameters)).join();
+            return (this.fetchTransactionsHelper("WITHDRAW", (String) (code), since, limit, (Map<String, Object>) (parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -3351,7 +3351,7 @@ public class Hitbtc extends HitbtcApi
         }};
     }
 
-    public CompletableFuture<Object> convertCurrencyNetwork(String code2, Object amount, Object fromNetwork2, Object toNetwork2, Object parameters)
+    public CompletableFuture<Object> convertCurrencyNetwork(String code2, Object amount, Object fromNetwork2, Object toNetwork2, Object... optionalArgs)
     {
         final Object code3 = code2;
         final Object fromNetwork3 = fromNetwork2;
@@ -3360,6 +3360,7 @@ public class Hitbtc extends HitbtcApi
             Object code = code3;
             Object fromNetwork = fromNetwork3;
             Object toNetwork = toNetwork3;
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -4144,7 +4145,7 @@ public class Hitbtc extends HitbtcApi
         }};
     }
 
-    public CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount2, Object type, Object... optionalArgs)
+    public CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount2, String type, Object... optionalArgs)
     {
         final Object amount3 = amount2;
         return BaseExchange.supplyAsync(() -> {

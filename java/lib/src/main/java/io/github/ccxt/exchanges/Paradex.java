@@ -1851,7 +1851,7 @@ public class Paradex extends ParadexApi
 
     public Object signHash(Object hash, Object privateKey)
     {
-        Object signature = ecdsa(Helpers.slice(hash, -64, null), Helpers.slice(privateKey, -64, null), secp256k1(), null);
+        Object signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
         Object r = Helpers.GetValue(signature, "r");
         Object s = Helpers.GetValue(signature, "s");
         String v = this.intToBase16(this.sum(27, Helpers.GetValue(signature, "v")));
@@ -1860,7 +1860,7 @@ public class Paradex extends ParadexApi
 
     public Object signMessage(Object message, Object privateKey)
     {
-        return this.signHash(this.hashMessage(message), Helpers.slice(privateKey, -64, null));
+        return this.signHash(this.hashMessage(message), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))));
     }
 
     public CompletableFuture<Object> getSystemConfig()
@@ -2491,8 +2491,8 @@ public class Paradex extends ParadexApi
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             request = this.omit(request, new ArrayList<Object>(Arrays.asList("instruction", "client_id", "flags")));
-            Helpers.addElementToObject(request, "order_id", id);
-            Helpers.addElementToObject(request, "id", id);
+            ((Map<String, Object>)request).put("order_id", id);
+            ((Map<String, Object>)request).put("id", id);
             request = (this.signOrderRequest((Map<String, Object>) (request), true)).join();
             Map<String, Object> response = (this.privatePutOrdersOrderId(request)).join();
             //
@@ -3073,7 +3073,7 @@ public class Paradex extends ParadexApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        for (var i = 0; i < Helpers.getArrayLength(response); i++)
+        for (var i = 0; i < ((List<?>)response).size(); i++)
         {
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i, new HashMap<String, Object>() {{}});
             String currencyId = this.safeString(balance, "token");
@@ -3856,7 +3856,7 @@ public class Paradex extends ParadexApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", ((Map<String, Object>)market).get("id") );
                 put( "leverage", finalLeverage );
-                put( "margin_type", Paradex.this.encodeMarginMode(marginMode) );
+                put( "margin_type", Paradex.this.encodeMarginMode((String) (marginMode)) );
             }};
             return (this.privatePostAccountMarginMarket(this.extend(request, parameters))).join();
         });
@@ -3922,7 +3922,7 @@ public class Paradex extends ParadexApi
         }};
     }
 
-    public String encodeMarginMode(Object mode)
+    public String encodeMarginMode(String mode)
     {
         Map<String, Object> modes = new HashMap<String, Object>() {{
             put( "cross", "CROSS" );
@@ -3964,7 +3964,7 @@ public class Paradex extends ParadexApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", ((Map<String, Object>)market).get("id") );
                 put( "leverage", leverage );
-                put( "margin_type", Paradex.this.encodeMarginMode(finalMarginMode) );
+                put( "margin_type", Paradex.this.encodeMarginMode((String) (finalMarginMode)) );
             }};
             return (this.privatePostAccountMarginMarket(this.extend(request, parameters))).join();
         });

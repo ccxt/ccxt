@@ -128,7 +128,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
 
     }
 
-    public void handleTrades(Client client, Object message)
+    public void handleTrades(Client client, Map<String, Object> message)
     {
         //
         // {
@@ -273,7 +273,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
 
     }
 
-    public void handleOrderBook(Client client, Object message)
+    public void handleOrderBook(Client client, Map<String, Object> message)
     {
         //
         // {
@@ -412,7 +412,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
 
     }
 
-    public void handleOHLCV(Client client, Object message)
+    public void handleOHLCV(Client client, Map<String, Object> message)
     {
         //
         // {

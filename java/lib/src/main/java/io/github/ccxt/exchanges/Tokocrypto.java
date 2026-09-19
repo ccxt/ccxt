@@ -1807,12 +1807,12 @@ public class Tokocrypto extends TokocryptoApi
             //         "timestamp":1659666786943
             //     }
             //
-            return this.parseBalanceCustom(response, type, marginMode);
+            return this.parseBalanceCustom((Map<String, Object>) (response), type, marginMode);
         }).thenApply(Balances::new);
 
     }
 
-    public Object parseBalanceCustom(Object response, Object... optionalArgs)
+    public Object parseBalanceCustom(Map<String, Object> response, Object... optionalArgs)
     {
         Object type = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object marginMode = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
@@ -2022,7 +2022,7 @@ public class Tokocrypto extends TokocryptoApi
         }}, market);
     }
 
-    public String parseOrderType(Object status)
+    public String parseOrderType(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "2", "market" );
@@ -2811,7 +2811,7 @@ public class Tokocrypto extends TokocryptoApi
 
     }
 
-    public Object parseTransactionStatusByType(Object status, Object... optionalArgs)
+    public Object parseTransactionStatusByType(String status, Object... optionalArgs)
     {
         Object type = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Map<String, Object> statusesByType = new HashMap<String, Object>() {{
@@ -3104,7 +3104,7 @@ public class Tokocrypto extends TokocryptoApi
             }
         } else
         {
-            if (((List<?>)Helpers.objectKeys(parameters)).size() > 0)
+            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
             {
                 url = Helpers.add(url, ("?" + this.urlencode(parameters)));
             }
@@ -3213,18 +3213,18 @@ public class Tokocrypto extends TokocryptoApi
     public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Object... optionalArgs)
     {
         Object config = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-        if ((((Map<?, ?>)config).containsKey("noCoin")) && !(Helpers.inOp(parameters, "coin")))
+        if ((((Map<?, ?>)config).containsKey("noCoin")) && !(((Map<?, ?>)parameters).containsKey("coin")))
         {
-            return Helpers.GetValue(config, "noCoin");
-        } else if ((((Map<?, ?>)config).containsKey("noSymbol")) && !(Helpers.inOp(parameters, "symbol")))
+            return ((Map<String, Object>)config).get("noCoin");
+        } else if ((((Map<?, ?>)config).containsKey("noSymbol")) && !(((Map<?, ?>)parameters).containsKey("symbol")))
         {
-            return Helpers.GetValue(config, "noSymbol");
-        } else if ((((Map<?, ?>)config).containsKey("noPoolId")) && !(Helpers.inOp(parameters, "poolId")))
+            return ((Map<String, Object>)config).get("noSymbol");
+        } else if ((((Map<?, ?>)config).containsKey("noPoolId")) && !(((Map<?, ?>)parameters).containsKey("poolId")))
         {
-            return Helpers.GetValue(config, "noPoolId");
-        } else if ((((Map<?, ?>)config).containsKey("byLimit")) && (Helpers.inOp(parameters, "limit")))
+            return ((Map<String, Object>)config).get("noPoolId");
+        } else if ((((Map<?, ?>)config).containsKey("byLimit")) && (((Map<?, ?>)parameters).containsKey("limit")))
         {
-            Object limit = Helpers.GetValue(parameters, "limit");
+            Object limit = ((Map<String, Object>)parameters).get("limit");
             List<Object> byLimit = (List<Object>) this.safeList(config, "byLimit", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)byLimit).size(); i++)
             {

@@ -1604,7 +1604,7 @@ public class Bitteam extends BitteamApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public String parseOrderType(Object status)
+    public String parseOrderType(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "market", "market" );
@@ -1613,7 +1613,7 @@ public class Bitteam extends BitteamApi
         return this.safeString(statuses, status, status);
     }
 
-    public String parseValueToPricision(Object valueObject, Object valueKey, Object preciseObject, Object precisionKey)
+    public String parseValueToPricision(Map<String, Object> valueObject, Object valueKey, Object preciseObject, Object precisionKey)
     {
         String valueRawString = this.safeString(valueObject, valueKey);
         String precisionRawString = this.safeString(preciseObject, precisionKey);
@@ -2687,7 +2687,7 @@ public class Bitteam extends BitteamApi
         String addressTo = this.safeString(transaction, "recipient");
         String tag = this.safeString(transaction, "message");
         String type = this.parseTransactionType(this.safeString(transaction, "type"));
-        String amount = this.parseValueToPricision(transaction, "amount", currencyObject, "decimals");
+        String amount = this.parseValueToPricision((Map<String, Object>) (transaction), "amount", currencyObject, "decimals");
         String status = this.parseTransactionStatus(this.safeString(transaction, "status"));
         final Object finalNetworkId = networkId;
         return new HashMap<String, Object>() {{
@@ -2714,7 +2714,7 @@ public class Bitteam extends BitteamApi
         }};
     }
 
-    public String parseTransactionType(Object type)
+    public String parseTransactionType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "deposit", "deposit" );

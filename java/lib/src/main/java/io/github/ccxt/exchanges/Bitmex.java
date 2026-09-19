@@ -881,7 +881,7 @@ public class Bitmex extends BitmexApi
         }});
     }
 
-    public Object convertFromRealAmount(Object code, Object amount)
+    public Object convertFromRealAmount(String code, Object amount)
     {
         Map<String, Object> currency = (Map<String, Object>) this.currency(code);
         String precision = this.safeString(currency, "precision");
@@ -911,19 +911,19 @@ public class Bitmex extends BitmexApi
         Boolean oldPrecision = (Boolean) this.safeBool(this.options, "oldPrecision");
         if ((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)) && (!java.util.Objects.equals(oldPrecision, true)))
         {
-            amount = this.convertFromRealAmount(((Map<String, Object>)market).get("base"), amount);
+            amount = this.convertFromRealAmount((String) (((Map<String, Object>)market).get("base")), amount);
         }
         return super.amountToPrecision(symbol, amount);
     }
 
-    public Object convertFromRawQuantity(Object symbol, Object rawQuantity, Object... optionalArgs)
+    public Object convertFromRawQuantity(String symbol, String rawQuantity, Object... optionalArgs)
     {
         Object currencySide = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "base";
         if (java.util.Objects.equals(this.safeBool(this.options, "oldPrecision"), true))
         {
             return this.parseNumber(rawQuantity);
         }
-        symbol = this.safeSymbol(symbol);
+        symbol = (String) (this.safeSymbol(symbol));
         boolean marketExists = this.inArray(symbol, this.symbols);
         if (!marketExists)
         {
@@ -937,9 +937,9 @@ public class Bitmex extends BitmexApi
         return this.parseNumber(rawQuantity);
     }
 
-    public Object convertFromRawCost(Object symbol, Object rawQuantity)
+    public Object convertFromRawCost(String symbol, String rawQuantity)
     {
-        return this.convertFromRawQuantity(symbol, rawQuantity, "quote");
+        return this.convertFromRawQuantity((String) (symbol), (String) (rawQuantity), "quote");
     }
 
     /**
@@ -1488,7 +1488,7 @@ public class Bitmex extends BitmexApi
             {
                 Object order = (orders == null || i < 0 || i >= orders.size() ? null : orders.get(i));
                 String side = (((java.util.Objects.equals(Helpers.GetValue(order, "side"), "Sell")))) ? "asks" : "bids";
-                Object amount = this.convertFromRawQuantity(symbol, this.safeString(order, "size"));
+                Object amount = this.convertFromRawQuantity((String) (symbol), this.safeString(order, "size"));
                 Double price = this.safeNumber(order, "price");
                 // https://github.com/ccxt/ccxt/issues/4926
                 // https://github.com/ccxt/ccxt/issues/4927
@@ -1785,7 +1785,7 @@ public class Bitmex extends BitmexApi
 
     }
 
-    public Object parseLedgerEntryType(Object type)
+    public Object parseLedgerEntryType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "Withdrawal", "transaction" );
@@ -2255,7 +2255,7 @@ public class Bitmex extends BitmexApi
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(ohlcv, "symbol");
         market = this.safeMarket(marketId, market);
-        Object volume = this.convertFromRawQuantity(((Map<String, Object>)market).get("symbol"), this.safeString(ohlcv, "volume"));
+        Object volume = this.convertFromRawQuantity((String) (((Map<String, Object>)market).get("symbol")), this.safeString(ohlcv, "volume"));
         return new ArrayList<Object>(Arrays.asList(this.parse8601(this.safeString(ohlcv, "timestamp")), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), volume));
     }
 
@@ -2565,14 +2565,14 @@ public class Bitmex extends BitmexApi
         }
         if (Helpers.isTrue(isInverse))
         {
-            cost = this.convertFromRawQuantity(symbol, qty);
+            cost = this.convertFromRawQuantity((String) (symbol), qty);
         } else
         {
-            amount = this.convertFromRawQuantity(symbol, qty);
+            amount = this.convertFromRawQuantity((String) (symbol), qty);
         }
         String average = this.safeString(order, "avgPx");
         Object filled = null;
-        Object cumQty = this.numberToString(this.convertFromRawQuantity(symbol, this.safeString(order, "cumQty")));
+        Object cumQty = this.numberToString(this.convertFromRawQuantity((String) (symbol), this.safeString(order, "cumQty")));
         if (Helpers.isTrue(isInverse))
         {
             filled = Precise.stringDiv(cumQty, average);
@@ -2615,7 +2615,7 @@ public class Bitmex extends BitmexApi
             put( "cost", finalCost );
             put( "average", average );
             put( "filled", finalFilled );
-            put( "remaining", Bitmex.this.convertFromRawQuantity(symbol, remaining) );
+            put( "remaining", Bitmex.this.convertFromRawQuantity((String) (symbol), remaining) );
             put( "status", Bitmex.this.parseOrderStatus(Bitmex.this.safeString(order, "ordStatus")) );
             put( "fee", null );
             put( "trades", null );
@@ -3471,7 +3471,7 @@ public class Bitmex extends BitmexApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
-            Object qty = this.convertFromRealAmount(code, amount);
+            Object qty = this.convertFromRealAmount((String) (code), amount);
             String networkCode = null;
             List<Object> networkCodeparametersVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
             networkCode = (String) ((List<Object>) networkCodeparametersVariable).get(0);
@@ -4507,16 +4507,16 @@ public class Bitmex extends BitmexApi
         Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
         Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < Helpers.getArrayLength(settlements); i++)
+        for (var i = 0; i < ((List<?>)settlements).size(); i++)
         {
-            ((List<Object>)result).add(this.parseSettlement(Helpers.GetValue(settlements, i), market));
+            ((List<Object>)result).add(this.parseSettlement((Map<String, Object>) (Helpers.GetValue(settlements, i)), market));
         }
         List<Object> sorted = this.sortBy(result, "timestamp");
         String symbol = this.safeString(market, "symbol");
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
 
-    public Object parseSettlement(Object settlement, Object... optionalArgs)
+    public Object parseSettlement(Map<String, Object> settlement, Object... optionalArgs)
     {
         //
         //    {
@@ -4637,7 +4637,7 @@ public class Bitmex extends BitmexApi
         Object query = Helpers.add((("/api/" + this.version) + "/"), path);
         if (java.util.Objects.equals(method, "GET"))
         {
-            if (((List<?>)Helpers.objectKeys(parameters)).size() > 0)
+            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
             {
                 query = (query + ("?" + this.urlencode(parameters)));
             }
@@ -4674,7 +4674,7 @@ public class Bitmex extends BitmexApi
             ((Map<String, Object>)headers).put("api-expires", stringExpires);
             if (java.util.Objects.equals(method, "POST") || java.util.Objects.equals(method, "PUT") || java.util.Objects.equals(method, "DELETE"))
             {
-                if (((List<?>)Helpers.objectKeys(parameters)).size() > 0)
+                if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
                 {
                     body = this.json(parameters);
                     auth = Helpers.add(auth, body);

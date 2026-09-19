@@ -132,7 +132,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
 
     }
 
-    public Object handleOHLCV(Client client, Object message)
+    public Object handleOHLCV(Client client, Map<String, Object> message)
     {
         //
         // {
@@ -219,7 +219,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
 
     }
 
-    public void handleOrderBook(Client client, Object message)
+    public void handleOrderBook(Client client, Map<String, Object> message)
     {
         //
         // {
@@ -297,7 +297,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
 
     public void handleDeltas(Object bookside, Object deltas)
     {
-        for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
+        for (var i = 0; i < ((List<?>)deltas).size(); i++)
         {
             this.handleDelta(bookside, Helpers.GetValue(deltas, i));
         }
@@ -327,7 +327,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             Object method = "market_subscribe";
             String messageHash = ("ticker:" + symbol);
             // every time we want to subscribe to another market we have to "re-subscribe" sending it all again
-            return (this.watchMultipleSubscription(messageHash, method, symbol, false, parameters)).join();
+            return (this.watchMultipleSubscription(messageHash, method, (String) (symbol), false, parameters)).join();
         }).thenApply(Ticker::new);
 
     }
@@ -375,7 +375,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
 
     }
 
-    public Object handleTicker(Client client, Object message)
+    public Object handleTicker(Client client, Map<String, Object> message)
     {
         //
         //   {
@@ -456,7 +456,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             String messageHash = (("trades" + ":") + symbol);
             Object method = "trades_subscribe";
             // every time we want to subscribe to another market we have to 're-subscribe' sending it all again
-            Object trades = (this.watchMultipleSubscription(messageHash, method, symbol, false, parameters)).join();
+            Object trades = (this.watchMultipleSubscription(messageHash, method, (String) (symbol), false, parameters)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
@@ -466,7 +466,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
 
     }
 
-    public void handleTrades(Client client, Object message)
+    public void handleTrades(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -546,7 +546,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             symbol = ((Map<String, Object>)market).get("symbol");
             String messageHash = ("myTrades:" + symbol);
             Object method = "deals_subscribe";
-            Object trades = (this.watchMultipleSubscription(messageHash, method, symbol, true, parameters)).join();
+            Object trades = (this.watchMultipleSubscription(messageHash, method, (String) (symbol), true, parameters)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
@@ -556,7 +556,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
 
     }
 
-    public void handleMyTrades(Client client, Object message, Object... optionalArgs)
+    public void handleMyTrades(Client client, Map<String, Object> message, Object... optionalArgs)
     {
         //
         //   {
@@ -701,7 +701,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             symbol = ((Map<String, Object>)market).get("symbol");
             String messageHash = ("orders:" + symbol);
             Object method = "ordersPending_subscribe";
-            Object trades = (this.watchMultipleSubscription(messageHash, method, symbol, false, parameters)).join();
+            Object trades = (this.watchMultipleSubscription(messageHash, method, (String) (symbol), false, parameters)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
@@ -711,7 +711,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
 
     }
 
-    public void handleOrder(Client client, Object message, Object... optionalArgs)
+    public void handleOrder(Client client, Map<String, Object> message, Object... optionalArgs)
     {
         //
         // {
@@ -980,7 +980,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
 
     }
 
-    public void handleBalance(Client client, Object message)
+    public void handleBalance(Client client, Map<String, Object> message)
     {
         //
         // spot
@@ -1091,7 +1091,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
 
     }
 
-    public CompletableFuture<Object> watchMultipleSubscription(Object messageHash, Object method2, Object symbol, Object... optionalArgs)
+    public CompletableFuture<Object> watchMultipleSubscription(Object messageHash, Object method2, String symbol, Object... optionalArgs)
     {
         final Object method3 = method2;
         return BaseExchange.supplyAsync(() -> {
@@ -1296,7 +1296,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
 
     }
 
-    public Object handleAuthenticate(Client client, Object message)
+    public Object handleAuthenticate(Client client, Map<String, Object> message)
     {
         //
         //     { error: null, result: { status: "success" }, id: 1656084550 }
@@ -1355,13 +1355,13 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         String result = this.safeString(message, "result");
         if (java.util.Objects.equals(result, "pong"))
         {
-            this.handlePong(client, message);
+            this.handlePong(client, (Map<String, Object>) (message));
             return;
         }
         Long id = this.safeInteger(message, "id");
         if (!java.util.Objects.equals(id, null))
         {
-            this.handleSubscriptionStatus(client, message, id);
+            this.handleSubscriptionStatus(client, (Map<String, Object>) (message), id);
             return;
         }
         Map<String, Object> methods = new HashMap<String, Object>() {{
@@ -1383,7 +1383,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         }
     }
 
-    public void handleSubscriptionStatus(Client client, Object message, Object id)
+    public void handleSubscriptionStatus(Client client, Map<String, Object> message, Object id)
     {
         // not every method stores its subscription
         // as an object so we can't do indeById here
@@ -1408,7 +1408,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         }
     }
 
-    public Object handlePong(Client client, Object message)
+    public Object handlePong(Client client, Map<String, Object> message)
     {
         client.lastPong = ((Number)this.milliseconds()).longValue();
         return message;

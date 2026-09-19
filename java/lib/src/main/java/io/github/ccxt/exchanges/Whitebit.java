@@ -4614,7 +4614,7 @@ public class Whitebit extends WhitebitApi
 
     }
 
-    public Object parseFundingHistory(Object contract, Object... optionalArgs)
+    public Object parseFundingHistory(Map<String, Object> contract, Object... optionalArgs)
     {
         //
         //     {
@@ -4650,7 +4650,7 @@ public class Whitebit extends WhitebitApi
         for (var i = 0; i < Helpers.getArrayLength(contracts); i++)
         {
             Object contract = Helpers.GetValue(contracts, i);
-            ((List<Object>)result).add(this.parseFundingHistory(contract, market));
+            ((List<Object>)result).add(this.parseFundingHistory((Map<String, Object>) (contract), market));
         }
         List<Object> sorted = this.sortBy(result, "timestamp");
         return this.filterBySinceLimit(sorted, since, limit);

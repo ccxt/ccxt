@@ -80,7 +80,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         return newValue;
     }
 
-    public CompletableFuture<Object> watchPublic(Object messageHash, Object message, Object subscription2)
+    public CompletableFuture<Object> watchPublic(Object messageHash, Map<String, Object> message, Map<String, Object> subscription2)
     {
         final Object subscription3 = subscription2;
         return BaseExchange.supplyAsync(() -> {
@@ -90,10 +90,10 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             Map<String, Object> request = this.extend(message, new HashMap<String, Object>() {{
                 put( "id", requestId );
             }});
-            subscription = this.extend(subscription, new HashMap<String, Object>() {{
+            subscription = (Map<String, Object>) (this.extend(subscription, new HashMap<String, Object>() {{
                 put( "id", requestId );
                 put( "method", "subscribe" );
-            }});
+            }}));
             return (this.watch(url, messageHash, request, messageHash, subscription)).join();
         });
 
@@ -139,7 +139,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 put( "limit", finalLimit );
                 put( "params", parameters );
             }};
-            Object orderbook = (this.watchPublic(topic, request, subscription)).join();
+            Object orderbook = (this.watchPublic(topic, (Map<String, Object>) (request), (Map<String, Object>) (subscription))).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(OrderBook::new);
 
@@ -214,7 +214,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 put( "symbol", symbol );
                 put( "params", parameters );
             }};
-            return (this.watchPublic(topic, request, subscription)).join();
+            return (this.watchPublic(topic, (Map<String, Object>) (request), (Map<String, Object>) (subscription))).join();
         }).thenApply(Ticker::new);
 
     }
@@ -364,7 +364,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             Object subscription = new HashMap<String, Object>() {{
                 put( "name", topic );
             }};
-            return (this.unWatchPublic(messageHash, request, subscription)).join();
+            return (this.unWatchPublic(messageHash, (Map<String, Object>) (request), (Map<String, Object>) (subscription))).join();
         });
 
     }
@@ -399,12 +399,12 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             Object subscription = new HashMap<String, Object>() {{
                 put( "name", topic );
             }};
-            return (this.unWatchPublic(messageHah, request, subscription)).join();
+            return (this.unWatchPublic(messageHah, (Map<String, Object>) (request), (Map<String, Object>) (subscription))).join();
         });
 
     }
 
-    public CompletableFuture<Object> unWatchPublic(Object messageHash, Object message, Object subscription2)
+    public CompletableFuture<Object> unWatchPublic(Object messageHash, Map<String, Object> message, Map<String, Object> subscription2)
     {
         final Object subscription3 = subscription2;
         return BaseExchange.supplyAsync(() -> {
@@ -414,10 +414,10 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             Map<String, Object> request = this.extend(message, new HashMap<String, Object>() {{
                 put( "id", requestId );
             }});
-            subscription = this.extend(subscription, new HashMap<String, Object>() {{
+            subscription = (Map<String, Object>) (this.extend(subscription, new HashMap<String, Object>() {{
                 put( "id", requestId );
                 put( "method", "unsubscribe" );
-            }});
+            }}));
             return (this.watch(url, messageHash, request, messageHash, subscription)).join();
         });
 
@@ -425,7 +425,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
 
     public void handleOrderBookUnSubscription(Client client, Object topic)
     {
-        List<Object> parsedTopic = (List<Object>) Helpers.split(topic, ".");
+        Object parsedTopic = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("."))));
         String marketId = this.safeString(parsedTopic, 1);
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -433,18 +433,18 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         {
             ((Map<String,Object>)this.orderbooks).remove((String)symbol);
         }
-        if ((topic != null && ((Map<?, ?>)client.subscriptions).containsKey(topic)))
+        if (((Map<?, ?>)client.subscriptions).containsKey(topic))
         {
             ((Map<String,Object>)client.subscriptions).remove((String)topic);
         }
         var error = new UnsubscribeError(((this.id + " orderbook ") + symbol));
         client.reject(error, topic);
-        client.resolve(error, Helpers.add("unwatch", topic));
+        client.resolve(error, ("unwatch" + topic));
     }
 
     public void handleTradesUnSubscription(Client client, Object topic)
     {
-        List<Object> parsedTopic = (List<Object>) Helpers.split(topic, ".");
+        Object parsedTopic = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("."))));
         String marketId = this.safeString(parsedTopic, 1);
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -452,13 +452,13 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         {
             ((Map<String,Object>)this.trades).remove((String)symbol);
         }
-        if ((topic != null && ((Map<?, ?>)client.subscriptions).containsKey(topic)))
+        if (((Map<?, ?>)client.subscriptions).containsKey(topic))
         {
             ((Map<String,Object>)client.subscriptions).remove((String)topic);
         }
         var error = new UnsubscribeError(((this.id + " trades ") + symbol));
         client.reject(error, topic);
-        client.resolve(error, Helpers.add("unwatch", topic));
+        client.resolve(error, ("unwatch" + topic));
     }
 
     public Object handleUnSubscribe(Client client, Map<String, Object> message)
@@ -528,7 +528,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 put( "symbol", symbol );
                 put( "params", parameters );
             }};
-            Object trades = (this.watchPublic(topic, request, subscription)).join();
+            Object trades = (this.watchPublic(topic, (Map<String, Object>) (request), (Map<String, Object>) (subscription))).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{((Map<String, Object>)market).get("symbol"), limit});
@@ -604,7 +604,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
 
     }
 
-    public CompletableFuture<Object> watchPrivate(Object messageHash, Object message, Object subscription2)
+    public CompletableFuture<Object> watchPrivate(Object messageHash, Map<String, Object> message, Map<String, Object> subscription2)
     {
         final Object subscription3 = subscription2;
         return BaseExchange.supplyAsync(() -> {
@@ -615,10 +615,10 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             Map<String, Object> request = this.extend(message, new HashMap<String, Object>() {{
                 put( "id", requestId );
             }});
-            subscription = this.extend(subscription, new HashMap<String, Object>() {{
+            subscription = (Map<String, Object>) (this.extend(subscription, new HashMap<String, Object>() {{
                 put( "id", requestId );
                 put( "method", "subscribe" );
-            }});
+            }}));
             return (this.watch(url, messageHash, request, messageHash, subscription)).join();
         });
 
@@ -673,7 +673,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 put( "params", finalParameters );
             }};
             Object message = this.extend(request, parameters);
-            Object orders = (this.watchPrivate(messageHash, message, subscription)).join();
+            Object orders = (this.watchPrivate(messageHash, (Map<String, Object>) (message), (Map<String, Object>) (subscription))).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
@@ -818,7 +818,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 put( "params", finalParameters );
             }};
             Object message = this.extend(request, parameters);
-            Object trades = (this.watchPrivate(messageHash, message, subscription)).join();
+            Object trades = (this.watchPrivate(messageHash, (Map<String, Object>) (message), (Map<String, Object>) (subscription))).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});

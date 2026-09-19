@@ -4068,18 +4068,18 @@ public class Okx extends OkxApi
 
     }
 
-    public Object parseBalanceByType(Object type, Object response)
+    public Object parseBalanceByType(String type, Map<String, Object> response)
     {
         if (java.util.Objects.equals(type, "funding"))
         {
-            return this.parseFundingBalance(response);
+            return this.parseFundingBalance((Map<String, Object>) (response));
         } else
         {
-            return this.parseTradingBalance(response);
+            return this.parseTradingBalance((Map<String, Object>) (response));
         }
     }
 
-    public Object parseTradingBalance(Object response)
+    public Object parseTradingBalance(Map<String, Object> response)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
@@ -4116,7 +4116,7 @@ public class Okx extends OkxApi
         return this.safeBalance(result);
     }
 
-    public Object parseFundingBalance(Object response)
+    public Object parseFundingBalance(Map<String, Object> response)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
@@ -4359,7 +4359,7 @@ public class Okx extends OkxApi
             //         "msg": ""
             //     }
             //
-            return this.parseBalanceByType(marketType, response);
+            return this.parseBalanceByType((String) (marketType), (Map<String, Object>) (response));
         }).thenApply(Balances::new);
 
     }
@@ -4953,7 +4953,7 @@ public class Okx extends OkxApi
 
     }
 
-    public Object editOrderRequest(Object id, String symbol, Object type, Object side, Object... optionalArgs)
+    public Object editOrderRequest(Object id, String symbol, String type, String side, Object... optionalArgs)
     {
         Object amount = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object price = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
@@ -5116,7 +5116,7 @@ public class Okx extends OkxApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object request = this.editOrderRequest(id, (String) (symbol), type, side, amount, price, parameters);
+            Object request = this.editOrderRequest(id, (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             Object isAlgoOrder = null;
             if ((java.util.Objects.equals(type, "trigger")) || (java.util.Objects.equals(type, "conditional")) || (java.util.Objects.equals(type, "move_order_stop")) || (java.util.Objects.equals(type, "oco")) || (java.util.Objects.equals(type, "iceberg")) || (java.util.Objects.equals(type, "twap")))
             {
@@ -6869,7 +6869,7 @@ public class Okx extends OkxApi
 
     }
 
-    public Object parseLedgerEntryType(Object type)
+    public Object parseLedgerEntryType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "1", "transfer" );
@@ -8662,7 +8662,7 @@ public class Okx extends OkxApi
         }};
     }
 
-    public String parseFundingInterval(Object interval)
+    public String parseFundingInterval(String interval)
     {
         Map<String, Object> intervals = new HashMap<String, Object>() {{
             put( "3600000", "1h" );
@@ -9300,7 +9300,7 @@ public class Okx extends OkxApi
         //    ]
         //
         Map<String, Object> borrowRateHistories = new HashMap<String, Object>() {{}};
-        for (var i = 0; i < Helpers.getArrayLength(response); i++)
+        for (var i = 0; i < ((List<?>)response).size(); i++)
         {
             Object item = Helpers.GetValue(response, i);
             String code = this.safeCurrencyCode(this.safeString(item, "ccy"));
@@ -9881,7 +9881,7 @@ public class Okx extends OkxApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> loan = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            return this.parseMarginLoan(loan, currency);
+            return this.parseMarginLoan((Map<String, Object>) (loan), currency);
         }).thenApply(MarginLoan::new);
 
     }
@@ -9939,12 +9939,12 @@ public class Okx extends OkxApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> loan = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            return this.parseMarginLoan(loan, currency);
+            return this.parseMarginLoan((Map<String, Object>) (loan), currency);
         }).thenApply(MarginLoan::new);
 
     }
 
-    public Object parseMarginLoan(Object info, Object... optionalArgs)
+    public Object parseMarginLoan(Map<String, Object> info, Object... optionalArgs)
     {
         //
         //     {
@@ -10502,14 +10502,14 @@ public class Okx extends OkxApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object settlements = this.parseSettlements(data, market);
+            Object settlements = this.parseSettlements(data, (Map<String, Object>) (market));
             List<Object> sorted = this.sortBy(settlements, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, ((Map<String, Object>)market).get("symbol"), since, limit);
         });
 
     }
 
-    public Object parseSettlement(Object settlement, Object market)
+    public Object parseSettlement(Map<String, Object> settlement, Map<String, Object> market)
     {
         //
         //     {
@@ -10528,7 +10528,7 @@ public class Okx extends OkxApi
         }};
     }
 
-    public Object parseSettlements(Object settlements, Object market)
+    public Object parseSettlements(Object settlements, Map<String, Object> market)
     {
         //
         //     {
@@ -10543,14 +10543,14 @@ public class Okx extends OkxApi
         //     }
         //
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < Helpers.getArrayLength(settlements); i++)
+        for (var i = 0; i < ((List<?>)settlements).size(); i++)
         {
             Object entry = Helpers.GetValue(settlements, i);
             Long timestamp = this.safeInteger(entry, "ts");
             List<Object> details = (List<Object>) this.safeList(entry, "details", new ArrayList<Object>(Arrays.asList()));
             for (var j = 0; j < ((List<?>)details).size(); j++)
             {
-                Object settlement = this.parseSettlement((details == null || j < 0 || j >= details.size() ? null : details.get(j)), market);
+                Object settlement = this.parseSettlement((Map<String, Object>) ((details == null || j < 0 || j >= details.size() ? null : details.get(j))), (Map<String, Object>) (market));
                 ((List<Object>)result).add(this.extend(settlement, new HashMap<String, Object>() {{
                     put( "timestamp", timestamp );
                     put( "datetime", Okx.this.iso8601(timestamp) );

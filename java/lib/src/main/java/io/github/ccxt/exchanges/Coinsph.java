@@ -851,10 +851,10 @@ public class Coinsph extends CoinsphApi
         Object config = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
         if ((((Map<?, ?>)config).containsKey("noSymbol")) && !(Helpers.inOp(parameters, "symbol")))
         {
-            return Helpers.GetValue(config, "noSymbol");
+            return ((Map<String, Object>)config).get("noSymbol");
         } else if ((((Map<?, ?>)config).containsKey("noSymbolAndNoSymbols")) && !(Helpers.inOp(parameters, "symbol")) && !(Helpers.inOp(parameters, "symbols")))
         {
-            return Helpers.GetValue(config, "noSymbolAndNoSymbols");
+            return ((Map<String, Object>)config).get("noSymbolAndNoSymbols");
         } else if ((((Map<?, ?>)config).containsKey("byNumberOfSymbols")) && (Helpers.inOp(parameters, "symbols")))
         {
             Object symbols = Helpers.GetValue(parameters, "symbols");
@@ -1738,7 +1738,7 @@ public class Coinsph extends CoinsphApi
             String orderType = this.safeString(parameters, "type", type);
             orderType = this.encodeOrderType(orderType);
             parameters = this.omit(parameters, "type");
-            String orderSide = this.encodeOrderSide(side);
+            String orderSide = this.encodeOrderSide((String) (side));
             final Object finalOrderType = orderType;
             final Object finalOrderSide = orderSide;
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2153,7 +2153,7 @@ public class Coinsph extends CoinsphApi
         }}, market);
     }
 
-    public String parseOrderSide(Object status)
+    public String parseOrderSide(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "BUY", "buy" );
@@ -2166,7 +2166,7 @@ public class Coinsph extends CoinsphApi
         return this.safeString(statuses, status, status);
     }
 
-    public String encodeOrderSide(Object status)
+    public String encodeOrderSide(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "buy", "BUY" );
@@ -2179,7 +2179,7 @@ public class Coinsph extends CoinsphApi
         return this.safeString(statuses, status, status);
     }
 
-    public String parseOrderType(Object status)
+    public String parseOrderType(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "MARKET", "market" );
@@ -2197,7 +2197,7 @@ public class Coinsph extends CoinsphApi
         return this.safeString(statuses, status, status);
     }
 
-    public String encodeOrderType(Object status)
+    public String encodeOrderType(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "market", "MARKET" );
@@ -2232,7 +2232,7 @@ public class Coinsph extends CoinsphApi
         return this.safeString(statuses, status, status);
     }
 
-    public String parseOrderTimeInForce(Object status)
+    public String parseOrderTimeInForce(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "GTC", "GTC" );
@@ -2790,7 +2790,7 @@ public class Coinsph extends CoinsphApi
         Object stringifiedArray = this.json(array);
         stringifiedArray = Helpers.replace(((String)stringifiedArray), "[", "%5B");
         stringifiedArray = Helpers.replace(((String)stringifiedArray), "]", "%5D");
-        Object urlEncodedParam = Helpers.add(Helpers.add(key, "="), stringifiedArray);
+        String urlEncodedParam = ((key + "=") + stringifiedArray);
         return urlEncodedParam;
     }
 

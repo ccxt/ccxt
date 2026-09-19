@@ -2081,7 +2081,7 @@ public class Hashkey extends HashkeyApi
                 //     ]
                 //
                 Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
-                return this.parseSwapBalance(balance);
+                return this.parseSwapBalance((Map<String, Object>) (balance));
             } else if (java.util.Objects.equals(marketType, "spot"))
             {
                 Map<String, Object> response = (this.privateGetApiV1Account(this.extend(request, parameters))).join();
@@ -2149,7 +2149,7 @@ public class Hashkey extends HashkeyApi
         return this.safeBalance(result);
     }
 
-    public Object parseSwapBalance(Object balance)
+    public Object parseSwapBalance(Map<String, Object> balance)
     {
         //
         //     {
@@ -2842,7 +2842,7 @@ public class Hashkey extends HashkeyApi
 
     }
 
-    public Object parseLedgerEntryType(Object type)
+    public Object parseLedgerEntryType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "1", "trade" );
@@ -3379,7 +3379,7 @@ public class Hashkey extends HashkeyApi
             Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             String methodName = "cancelOrder";
-            this.checkTypeParam(methodName, parameters);
+            this.checkTypeParam(methodName, (Map<String, Object>) (parameters));
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3563,7 +3563,7 @@ public class Hashkey extends HashkeyApi
             Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             String methodName = "fetchOrder";
-            this.checkTypeParam(methodName, parameters);
+            this.checkTypeParam(methodName, (Map<String, Object>) (parameters));
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3645,7 +3645,7 @@ public class Hashkey extends HashkeyApi
             Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             String methodName = "fetchOpenOrders";
-            this.checkTypeParam(methodName, parameters);
+            this.checkTypeParam(methodName, (Map<String, Object>) (parameters));
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3840,7 +3840,7 @@ public class Hashkey extends HashkeyApi
             Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             String methodName = "fetchCanceledAndClosedOrders";
-            this.checkTypeParam(methodName, parameters);
+            this.checkTypeParam(methodName, (Map<String, Object>) (parameters));
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -3922,7 +3922,7 @@ public class Hashkey extends HashkeyApi
 
     }
 
-    public void checkTypeParam(Object methodName, Object parameters)
+    public void checkTypeParam(Object methodName, Map<String, Object> parameters)
     {
         // some hashkey endpoints have a type param for swap markets that defines the type of an order
         // type param is reserved in ccxt for defining the type of the market
@@ -3930,7 +3930,7 @@ public class Hashkey extends HashkeyApi
         String paramsType = this.safeString(parameters, "type");
         if ((!java.util.Objects.equals(paramsType, null)) && (!java.util.Objects.equals(paramsType, "spot")) && (!java.util.Objects.equals(paramsType, "swap")))
         {
-            throw new BadRequest((((Helpers.add((this.id + " "), methodName) + " () type parameter can not be \"") + paramsType) + "\". It should define the type of the market (\"spot\" or \"swap\"). To define the type of an order use the trigger parameter (true for trigger orders)")) ;
+            throw new BadRequest((((((this.id + " ") + methodName) + " () type parameter can not be \"") + paramsType) + "\". It should define the type of the market (\"spot\" or \"swap\"). To define the type of an order use the trigger parameter (true for trigger orders)")) ;
         }
     }
 
@@ -4079,7 +4079,7 @@ public class Hashkey extends HashkeyApi
         }
         Object timeInForce = this.safeString(order, "timeInForce");
         Object postOnly = null;
-        var typetimeInForcepostOnlyVariable = this.parseOrderTypeTimeInForceAndPostOnly(type, timeInForce);
+        var typetimeInForcepostOnlyVariable = this.parseOrderTypeTimeInForceAndPostOnly((String) (type), (String) (timeInForce));
         type = ((List<Object>) typetimeInForcepostOnlyVariable).get(0);
         timeInForce = ((List<Object>) typetimeInForcepostOnlyVariable).get(1);
         postOnly = ((List<Object>) typetimeInForcepostOnlyVariable).get(2);
@@ -4173,7 +4173,7 @@ public class Hashkey extends HashkeyApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrderTypeTimeInForceAndPostOnly(Object type, Object timeInForce)
+    public Object parseOrderTypeTimeInForceAndPostOnly(String type, String timeInForce)
     {
         Object postOnly = null;
         if (java.util.Objects.equals(type, "LIMIT_MAKER"))
@@ -4184,11 +4184,11 @@ public class Hashkey extends HashkeyApi
             postOnly = true;
             timeInForce = "PO";
         }
-        type = this.parseOrderType(type);
+        type = (String) (this.parseOrderType((String) (type)));
         return new ArrayList<Object>(Arrays.asList(type, timeInForce, postOnly));
     }
 
-    public String parseOrderType(Object type)
+    public String parseOrderType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "MARKET", "market" );
@@ -4727,12 +4727,12 @@ public class Hashkey extends HashkeyApi
             parameters = ((List<Object>) sideparametersVariable).get(1);
             if (java.util.Objects.equals(side, null))
             {
-                throw new ArgumentsRequired((Helpers.add((this.id + " "), type) + "Margin() requires a params[\"side\"] argument, either \"long\" or \"short\"")) ;
+                throw new ArgumentsRequired((((this.id + " ") + type) + "Margin() requires a params[\"side\"] argument, either \"long\" or \"short\"")) ;
             }
             side = side.toUpperCase();
             if ((!java.util.Objects.equals(side, "LONG")) && (!java.util.Objects.equals(side, "SHORT")))
             {
-                throw new ArgumentsRequired((Helpers.add((this.id + " "), type) + "Margin() params[\"side\"] must be either long or short")) ;
+                throw new ArgumentsRequired((((this.id + " ") + type) + "Margin() params[\"side\"] must be either long or short")) ;
             }
             Object amountString = this.numberToString(amount);
             if (java.util.Objects.equals(type, "reduce"))

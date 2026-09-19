@@ -1155,7 +1155,7 @@ public class Hibachi extends HibachiApi
             }
             Object nonce = this.nonce();
             Object request = this.createOrderRequest(nonce, (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
-            Helpers.addElementToObject(request, "accountId", this.getAccountId());
+            ((Map<String, Object>)request).put("accountId", this.getAccountId());
             Map<String, Object> response = (this.privatePostTradeOrder(request)).join();
             //
             // {
@@ -1201,7 +1201,7 @@ public class Hibachi extends HibachiApi
                 Double price = this.safeNumber(rawOrder, "price");
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Object orderRequest = this.createOrderRequest(Helpers.add(nonce, i), symbol, type, side, amount, price, orderParams);
-                Helpers.addElementToObject(orderRequest, "action", "place");
+                ((Map<String, Object>)orderRequest).put("action", "place");
                 ((List<Object>)requestOrders).add(orderRequest);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1288,7 +1288,7 @@ public class Hibachi extends HibachiApi
             }
             Object nonce = this.nonce();
             Object request = this.editOrderRequest(nonce, (String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
-            Helpers.addElementToObject(request, "accountId", this.getAccountId());
+            ((Map<String, Object>)request).put("accountId", this.getAccountId());
             (this.privatePutTradeOrder(request)).join();
             // At this time the response body is empty. A 200 response means the update request is accepted and sent to process
             //
@@ -1334,7 +1334,7 @@ public class Hibachi extends HibachiApi
                 Double price = this.safeNumber(rawOrder, "price");
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Object orderRequest = this.editOrderRequest(Helpers.add(nonce, i), id, symbol, type, side, amount, price, orderParams);
-                Helpers.addElementToObject(orderRequest, "action", "modify");
+                ((Map<String, Object>)orderRequest).put("action", "modify");
                 ((List<Object>)requestOrders).add(orderRequest);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1617,7 +1617,7 @@ public class Hibachi extends HibachiApi
 
     public Object signMessage(Object message, Object privateKey)
     {
-        if ((Helpers.getArrayLength(privateKey) == 44))
+        if ((((String)privateKey).length() == 44))
         {
             // For Exchange Managed account, the key length is 44 and we use HMAC to sign the message
             return this.hmac(message, this.encode(privateKey), sha256(), "hex");
@@ -1625,7 +1625,7 @@ public class Hibachi extends HibachiApi
         {
             // For Trustless account, the key length is 66 including '0x' and we use ECDSA to sign the message
             Object hash = this.hash(message, sha256(), "hex");
-            Object signature = ecdsa(Helpers.slice(hash, -64, null), Helpers.slice(privateKey, -64, null), secp256k1(), null);
+            Object signature = ecdsa(Helpers.slice(hash, -64, null), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
             Object r = Helpers.GetValue(signature, "r");
             Object s = Helpers.GetValue(signature, "s");
             String v = this.intToBase16(Helpers.GetValue(signature, "v"));
@@ -2255,7 +2255,7 @@ public class Hibachi extends HibachiApi
         return null;
     }
 
-    public String parseTransactionType(Object type)
+    public String parseTransactionType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "deposit", "transaction" );
@@ -2687,7 +2687,7 @@ public class Hibachi extends HibachiApi
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < Helpers.getArrayLength(settlements); i++)
+        for (var i = 0; i < ((List<?>)settlements).size(); i++)
         {
             ((List<Object>)result).add(this.parseSettlement((Map<String, Object>) (Helpers.GetValue(settlements, i)), market));
         }

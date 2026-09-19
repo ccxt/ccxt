@@ -236,7 +236,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
 
     }
 
-    public void handleTicker(Client client, Object message)
+    public void handleTicker(Client client, Map<String, Object> message)
     {
         //
         // generation 1
@@ -491,7 +491,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
 
     }
 
-    public void handleOrderBook(Client client, Object message)
+    public void handleOrderBook(Client client, Map<String, Object> message)
     {
         //
         // generation 1
@@ -707,7 +707,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
 
     }
 
-    public void handleTrades(Client client, Object message)
+    public void handleTrades(Client client, Map<String, Object> message)
     {
         //
         // generation 1
@@ -856,7 +856,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         }}, market);
     }
 
-    public Object handleErrorMessage(Client client, Object message)
+    public Object handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -880,7 +880,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             client.reject(new ExchangeError((((this.id + " websocket error ") + errorName) + addedMessage)));
             return false;
         }
-        if (!(Helpers.inOp(message, "status")))
+        if (!(message.containsKey("status")))
         {
             return true;
         }
@@ -943,7 +943,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
 
     }
 
-    public void handleBalance(Client client, Object message)
+    public void handleBalance(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -1108,7 +1108,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
 
     }
 
-    public void handleOrders(Client client, Object message)
+    public void handleOrders(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -1293,7 +1293,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             this.handlePing(client, message);
             return;
         }
-        if (!java.util.Objects.equals(this.handleErrorMessage(client, message), true))
+        if (!java.util.Objects.equals(this.handleErrorMessage(client, (Map<String, Object>) (message)), true))
         {
             return;
         }

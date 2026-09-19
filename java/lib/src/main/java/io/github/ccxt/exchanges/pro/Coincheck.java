@@ -207,7 +207,7 @@ public class Coincheck extends io.github.ccxt.exchanges.Coincheck
             stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
-        for (var i = 0; i < Helpers.getArrayLength(message); i++)
+        for (var i = 0; i < ((List<?>)message).size(); i++)
         {
             Object data = this.safeValue(message, i);
             Object trade = this.parseWsTrade(data);

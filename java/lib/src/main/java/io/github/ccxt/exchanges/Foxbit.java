@@ -2420,7 +2420,7 @@ public class Foxbit extends FoxbitApi
         }};
     }
 
-    public Object parseLedgerEntryType(Object type)
+    public Object parseLedgerEntryType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "DEPOSITING", "transaction" );
@@ -2527,7 +2527,7 @@ public class Foxbit extends FoxbitApi
         Object signatureQuery = "";
         if (java.util.Objects.equals(method, "GET"))
         {
-            List<Object> paramKeys = Helpers.objectKeys(parameters);
+            List<Object> paramKeys = new ArrayList<Object>(((Map<String, Object>)parameters).keySet());
             Object paramKeysLength = ((List<?>)paramKeys).size();
             if (Helpers.isGreaterThan(paramKeysLength, 0))
             {

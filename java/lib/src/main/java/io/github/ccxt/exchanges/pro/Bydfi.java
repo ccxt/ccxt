@@ -367,7 +367,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         return messageHashes;
     }
 
-    public void handleTicker(Client client, Object message)
+    public void handleTicker(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -535,7 +535,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
 
     }
 
-    public void handleOHLCV(Client client, Object message)
+    public void handleOHLCV(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -722,7 +722,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
 
     }
 
-    public void handleOrderBook(Client client, Object message)
+    public void handleOrderBook(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -826,7 +826,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
 
     }
 
-    public void handleOrder(Client client, Object message)
+    public void handleOrder(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -996,7 +996,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
 
     }
 
-    public void handlePositions(Client client, Object message)
+    public void handlePositions(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1051,7 +1051,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
         Object cache = this.positions;
-        Map<String, Object> parsedPosition = (Map<String, Object>) this.parseWsPosition(rawPosition, market);
+        Map<String, Object> parsedPosition = (Map<String, Object>) this.parseWsPosition((Map<String, Object>) (rawPosition), market);
         Long timestamp = this.safeInteger(message, "T");
         Helpers.addElementToObject(parsedPosition, "timestamp", timestamp);
         Helpers.addElementToObject(parsedPosition, "datetime", this.iso8601(timestamp));
@@ -1060,7 +1060,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         client.resolve(new ArrayList<Object>(Arrays.asList(parsedPosition)), symbolMessageHash);
     }
 
-    public Object parseWsPosition(Object position, Object... optionalArgs)
+    public Object parseWsPosition(Map<String, Object> position, Object... optionalArgs)
     {
         //
         //     {
@@ -1196,7 +1196,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
 
     }
 
-    public void handleBalance(Client client, Object message)
+    public void handleBalance(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1268,7 +1268,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         }
     }
 
-    public Object handleSubscriptionStatus(Client client, Object message)
+    public Object handleSubscriptionStatus(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1300,7 +1300,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         this.cleanCache(subscription);
     }
 
-    public Object handlePong(Client client, Object message)
+    public Object handlePong(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1312,7 +1312,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         return message;
     }
 
-    public void handleErrorMessage(Client client, Object message)
+    public void handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1334,30 +1334,30 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         String code = this.safeString(message, "code");
         if (!java.util.Objects.equals(code, null) && (!java.util.Objects.equals(code, "0")))
         {
-            this.handleErrorMessage(client, message);
+            this.handleErrorMessage(client, (Map<String, Object>) (message));
         }
         String result = this.safeString(message, "result");
         if (java.util.Objects.equals(result, "pong"))
         {
-            this.handlePong(client, message);
+            this.handlePong(client, (Map<String, Object>) (message));
         } else if (!java.util.Objects.equals(result, null))
         {
-            this.handleSubscriptionStatus(client, message);
+            this.handleSubscriptionStatus(client, (Map<String, Object>) (message));
         } else
         {
             String eventVar = this.safeString(message, "e");
             if (java.util.Objects.equals(eventVar, "24hrTicker"))
             {
-                this.handleTicker(client, message);
+                this.handleTicker(client, (Map<String, Object>) (message));
             } else if (java.util.Objects.equals(eventVar, "kline"))
             {
-                this.handleOHLCV(client, message);
+                this.handleOHLCV(client, (Map<String, Object>) (message));
             } else if (java.util.Objects.equals(eventVar, "depthUpdate"))
             {
-                this.handleOrderBook(client, message);
+                this.handleOrderBook(client, (Map<String, Object>) (message));
             } else if (java.util.Objects.equals(eventVar, "ORDER_TRADE_UPDATE"))
             {
-                this.handleOrder(client, message);
+                this.handleOrder(client, (Map<String, Object>) (message));
             } else if (java.util.Objects.equals(eventVar, "ACCOUNT_UPDATE"))
             {
                 Map<String, Object> account = (Map<String, Object>) this.safeDict(message, "a", new HashMap<String, Object>() {{}});
@@ -1365,13 +1365,13 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                 Object balancesLength = ((List<?>)balances).size();
                 if (Helpers.isGreaterThan(balancesLength, 0))
                 {
-                    this.handleBalance(client, message);
+                    this.handleBalance(client, (Map<String, Object>) (message));
                 }
                 List<Object> positions = (List<Object>) this.safeList(account, "p", new ArrayList<Object>(Arrays.asList()));
                 Object positionsLength = ((List<?>)positions).size();
                 if (Helpers.isGreaterThan(positionsLength, 0))
                 {
-                    this.handlePositions(client, message);
+                    this.handlePositions(client, (Map<String, Object>) (message));
                 }
             }
         }

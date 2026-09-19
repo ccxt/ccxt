@@ -213,8 +213,8 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Object url = this.getUrlByMarket(market);
             ((Map<String, Object>)parameters).put("textIsRequired", true);
             Object request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
-            (this.authenticate(url, messageType)).join();
-            Object rawOrder = (this.requestPrivate(url, request, channel)).join();
+            (this.authenticate((String) (url), (String) (messageType))).join();
+            Object rawOrder = (this.requestPrivate((String) (url), (Map<String, Object>) (request), (String) (channel))).join();
             Map<String, Object> order = (Map<String, Object>) this.parseOrder(rawOrder, market);
             return order;
         }).thenApply(Order::new);
@@ -251,8 +251,8 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Object messageType = this.getTypeByMarket((Map<String, Object>) (market));
             Object channel = (messageType + ".order_batch_place");
             Object url = this.getUrlByMarket(market);
-            (this.authenticate(url, messageType)).join();
-            Object rawOrders = (this.requestPrivate(url, request, channel)).join();
+            (this.authenticate((String) (url), (String) (messageType))).join();
+            Object rawOrders = (this.requestPrivate((String) (url), (Map<String, Object>) (request), (String) (channel))).join();
             return this.parseOrders(rawOrders, market);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -299,8 +299,8 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             var requestrequestParamsVariable = (((java.util.Objects.equals(type, "spot")))) ? this.multiOrderSpotPrepareRequest(market, trigger, query) : this.prepareRequest(market, type, query);
             var request = ((List<Object>) requestrequestParamsVariable).get(0);
             var requestParams = ((List<Object>) requestrequestParamsVariable).get(1);
-            (this.authenticate(url, messageType)).join();
-            Object rawOrders = (this.requestPrivate(url, this.extend(request, requestParams), channel)).join();
+            (this.authenticate((String) (url), (String) (messageType))).join();
+            Object rawOrders = (this.requestPrivate((String) (url), (Map<String, Object>) (this.extend(request, requestParams)), (String) (channel))).join();
             return this.parseOrders(rawOrders, market);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -341,9 +341,9 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Object messageType = this.getTypeByMarket((Map<String, Object>) (market));
             Object channel = (messageType + ".order_cancel");
             Object url = this.getUrlByMarket(market);
-            (this.authenticate(url, messageType)).join();
-            Helpers.addElementToObject(request, "order_id", String.valueOf(id));
-            Object res = (this.requestPrivate(url, this.extend(request, requestParams), channel)).join();
+            (this.authenticate((String) (url), (String) (messageType))).join();
+            ((Map<String, Object>)request).put("order_id", String.valueOf(id));
+            Object res = (this.requestPrivate((String) (url), (Map<String, Object>) (this.extend(request, requestParams)), (String) (channel))).join();
             return this.parseOrder(res, market);
         }).thenApply(Order::new);
 
@@ -381,8 +381,8 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Object messageType = this.getTypeByMarket((Map<String, Object>) (market));
             Object channel = (messageType + ".order_amend");
             Object url = this.getUrlByMarket(market);
-            (this.authenticate(url, messageType)).join();
-            Object rawOrder = (this.requestPrivate(url, extendedRequest, channel)).join();
+            (this.authenticate((String) (url), (String) (messageType))).join();
+            Object rawOrder = (this.requestPrivate((String) (url), (Map<String, Object>) (extendedRequest), (String) (channel))).join();
             return this.parseOrder(rawOrder, market);
         }).thenApply(Order::new);
 
@@ -421,8 +421,8 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Object messageType = this.getTypeByMarket((Map<String, Object>) (market));
             Object channel = (messageType + ".order_status");
             Object url = this.getUrlByMarket(market);
-            (this.authenticate(url, messageType)).join();
-            Object rawOrder = (this.requestPrivate(url, this.extend(request, requestParams), channel)).join();
+            (this.authenticate((String) (url), (String) (messageType))).join();
+            Object rawOrder = (this.requestPrivate((String) (url), (Map<String, Object>) (this.extend(request, requestParams)), (String) (channel))).join();
             return this.parseOrder(rawOrder, market);
         }).thenApply(Order::new);
 
@@ -515,15 +515,15 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                     throw new NotSupported((this.id + " fetchOrdersByStatusWs is only supported by swap markets. Use rest API for other markets")) ;
                 }
             }
-            var requestrequestParamsVariable = this.prepareOrdersByStatusRequest(status, symbol, since, limit, parameters);
+            var requestrequestParamsVariable = this.prepareOrdersByStatusRequest((String) (status), symbol, since, limit, parameters);
             var request = ((List<Object>) requestrequestParamsVariable).get(0);
             var requestParams = ((List<Object>) requestrequestParamsVariable).get(1);
             Object newRequest = this.omit(request, new ArrayList<Object>(Arrays.asList("settle")));
             Object messageType = this.getTypeByMarket((Map<String, Object>) (market));
             Object channel = (messageType + ".order_list");
             Object url = this.getUrlByMarket(market);
-            (this.authenticate(url, messageType)).join();
-            Object rawOrders = (this.requestPrivate(url, this.extend(newRequest, requestParams), channel)).join();
+            (this.authenticate((String) (url), (String) (messageType))).join();
+            Object rawOrders = (this.requestPrivate((String) (url), (Map<String, Object>) (this.extend(newRequest, requestParams)), (String) (channel))).join();
             List<Object> orders = this.parseOrders(rawOrders, market);
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -560,7 +560,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             symbol = ((Map<String, Object>)market).get("symbol");
             Object marketId = ((Map<String, Object>)market).get("id");
             Object url = this.getUrlByMarket(market);
-            Boolean isEuUrl = Helpers.getIndexOf(url, "gateeu") >= 0;
+            Boolean isEuUrl = ((String)url).indexOf("gateeu") >= 0;
             Boolean isNonEuSpot = (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)) && !Boolean.TRUE.equals(isEuUrl);
             String intervalDefault = ((Boolean.TRUE.equals(isNonEuSpot))) ? "50" : "100ms";
             List<Object> intervalqueryVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "interval", intervalDefault);
@@ -604,7 +604,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 put( "symbol", finalSymbol );
                 put( "limit", finalLimit );
             }};
-            Object orderbook = (this.subscribePublic(url, messageHash, payload, channel, query, subscription)).join();
+            Object orderbook = (this.subscribePublic((String) (url), messageHash, payload, (String) (channel), query, subscription)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(OrderBook::new);
 
@@ -632,7 +632,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Object url = this.getUrlByMarket(market);
             symbol = ((Map<String, Object>)market).get("symbol");
             Object marketId = ((Map<String, Object>)market).get("id");
-            Boolean isEuUrl = Helpers.getIndexOf(url, "gateeu") >= 0;
+            Boolean isEuUrl = ((String)url).indexOf("gateeu") >= 0;
             Boolean isNonEuSpot = (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)) && !Boolean.TRUE.equals(isEuUrl);
             String intervalDefault = ((Boolean.TRUE.equals(isNonEuSpot))) ? "50" : "100ms";
             Object interval = intervalDefault;
@@ -673,13 +673,14 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             }
             String subMessageHash = (("orderbook" + ":") + symbol);
             String messageHash = (("unsubscribe:orderbook" + ":") + symbol);
-            return (this.unSubscribePublicMultiple(url, "orderbook", new ArrayList<Object>(Arrays.asList(symbol)), new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList(subMessageHash)), payload, channel, parameters)).join();
+            return (this.unSubscribePublicMultiple((String) (url), "orderbook", new ArrayList<Object>(Arrays.asList(symbol)), new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList(subMessageHash)), payload, (String) (channel), parameters)).join();
         });
 
     }
 
-    public void handleOrderBookSubscription(Client client, Object message, Object subscription)
+    public void handleOrderBookSubscription(Client client, Map<String, Object> message, Object... optionalArgs)
     {
+        Object subscription = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String symbol = this.safeString(subscription, "symbol");
         Long limit = this.safeInteger(subscription, "limit");
         if (!java.util.Objects.equals(symbol, null))
@@ -688,7 +689,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         }
     }
 
-    public void handleNewSpotOrderBook(Client client, Object message)
+    public void handleNewSpotOrderBook(Client client, Map<String, Object> message)
     {
         //
         //   {
@@ -749,7 +750,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         client.resolve(orderbook, messageHash);
     }
 
-    public void handleOrderBook(Client client, Object message)
+    public void handleOrderBook(Client client, Map<String, Object> message)
     {
         //
         // spot
@@ -807,7 +808,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         Object channel = this.safeString(message, "channel");
         if (java.util.Objects.equals(channel, "spot.obu"))
         {
-            this.handleNewSpotOrderBook(client, message);
+            this.handleNewSpotOrderBook(client, (Map<String, Object>) (message));
             return;
         }
         Object channelParts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("."))));
@@ -884,7 +885,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
 
     public void handleBidAsks(Object bookSide, Object bidAsks)
     {
-        for (var i = 0; i < Helpers.getArrayLength(bidAsks); i++)
+        for (var i = 0; i < ((List<?>)bidAsks).size(); i++)
         {
             Object bidAsk = Helpers.GetValue(bidAsks, i);
             if ((bidAsk instanceof List))
@@ -968,7 +969,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
 
     }
 
-    public void handleTicker(Client client, Object message)
+    public void handleTicker(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -988,7 +989,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         //        }
         //    }
         //
-        this.handleTickerAndBidAsk("ticker", client, message);
+        this.handleTickerAndBidAsk("ticker", client, (Map<String, Object>) (message));
     }
 
     /**
@@ -1016,7 +1017,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
 
     }
 
-    public void handleBidAsk(Client client, Object message)
+    public void handleBidAsk(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -1035,7 +1036,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         //        }
         //    }
         //
-        this.handleTickerAndBidAsk("bidask", client, message);
+        this.handleTickerAndBidAsk("bidask", client, (Map<String, Object>) (message));
     }
 
     public CompletableFuture<Object> subscribeWatchTickersAndBidsAsks(Object... optionalArgs)
@@ -1075,7 +1076,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 Object symbol = Helpers.GetValue(symbols, i);
                 ((List<Object>)messageHashes).add(Helpers.add((prefix + ":"), symbol));
             }
-            Object tickerOrBidAsk = (this.subscribePublicMultiple(url, messageHashes, marketIds, channel, parameters)).join();
+            Object tickerOrBidAsk = (this.subscribePublicMultiple((String) (url), messageHashes, marketIds, (String) (channel), parameters)).join();
             if (this.newUpdates)
             {
                 Map<String, Object> items = new HashMap<String, Object>() {{}};
@@ -1088,7 +1089,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
 
     }
 
-    public void handleTickerAndBidAsk(Object objectName, Client client, Object message)
+    public void handleTickerAndBidAsk(Object objectName, Client client, Map<String, Object> message)
     {
         Object channel = this.safeString(message, "channel");
         Object parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("."))));
@@ -1195,7 +1196,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 ((List<Object>)messageHashes).add(("trades:" + symbol));
             }
             Object url = this.getUrlByMarket(market);
-            Object trades = (this.subscribePublicMultiple(url, messageHashes, marketIds, channel, parameters)).join();
+            Object trades = (this.subscribePublicMultiple((String) (url), messageHashes, marketIds, (String) (channel), parameters)).join();
             if (this.newUpdates)
             {
                 Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0);
@@ -1239,7 +1240,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 ((List<Object>)messageHashes).add(("unsubscribe:trades:" + symbol));
             }
             Object url = this.getUrlByMarket(market);
-            return (this.unSubscribePublicMultiple(url, "trades", symbols, messageHashes, subMessageHashes, marketIds, channel, parameters)).join();
+            return (this.unSubscribePublicMultiple((String) (url), "trades", symbols, messageHashes, subMessageHashes, marketIds, (String) (channel), parameters)).join();
         });
 
     }
@@ -1263,7 +1264,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
 
     }
 
-    public void handleTrades(Client client, Object message)
+    public void handleTrades(Client client, Map<String, Object> message)
     {
         //
         // {
@@ -1344,7 +1345,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             String messageHash = ((("candles:" + interval) + ":") + ((Map<String, Object>)market).get("symbol"));
             Object url = this.getUrlByMarket(market);
             Object payload = new ArrayList<Object>(Arrays.asList(interval, marketId));
-            Object ohlcv = (this.subscribePublic(url, messageHash, payload, channel, parameters)).join();
+            Object ohlcv = (this.subscribePublic((String) (url), messageHash, payload, (String) (channel), parameters)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
@@ -1354,7 +1355,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
 
     }
 
-    public void handleOHLCV(Client client, Object message)
+    public void handleOHLCV(Client client, Map<String, Object> message)
     {
         //
         // {
@@ -1479,7 +1480,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Object payload = new ArrayList<Object>(Arrays.asList(marketId));
             // uid required for non spot markets
             Object requiresUid = (!java.util.Objects.equals(type, "spot"));
-            Object trades = (this.subscribePrivate(url, messageHash, payload, channel, parameters, requiresUid)).join();
+            Object trades = (this.subscribePrivate((String) (url), messageHash, payload, (String) (channel), (Map<String, Object>) (parameters), requiresUid)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
@@ -1489,7 +1490,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
 
     }
 
-    public void handleMyTrades(Client client, Object message)
+    public void handleMyTrades(Client client, Map<String, Object> message)
     {
         //
         // {
@@ -1588,12 +1589,12 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             // todo: add correct margin support
             Object channel = Helpers.add(channelType, ".balances");
             String messageHash = (type + ".balance");
-            return (this.subscribePrivate(url, messageHash, null, channel, parameters, requiresUid)).join();
+            return (this.subscribePrivate((String) (url), messageHash, null, (String) (channel), (Map<String, Object>) (parameters), requiresUid)).join();
         }).thenApply(Balances::new);
 
     }
 
-    public void handleBalance(Client client, Object message)
+    public void handleBalance(Client client, Map<String, Object> message)
     {
         //
         // spot order fill
@@ -1763,7 +1764,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             {
                 return client.future((type + ":fetchPositionsSnapshot")).getFuture().join();
             }
-            Object positions = (this.subscribePrivate(url, messageHash, payload, channel, query, true)).join();
+            Object positions = (this.subscribePrivate((String) (url), messageHash, payload, (String) (channel), (Map<String, Object>) (query), true)).join();
             if (this.newUpdates)
             {
                 return positions;
@@ -1822,7 +1823,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 }
             }
             // don't remove the future from the .futures cache
-            if ((messageHash != null && ((Map<?, ?>)client.futures).containsKey(messageHash)))
+            if (((Map<?, ?>)client.futures).containsKey(messageHash))
             {
                 io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, messageHash);
                 ((io.github.ccxt.ws.Future)future).resolve(cache);
@@ -1833,7 +1834,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
 
     }
 
-    public void handlePositions(Client client, Object message)
+    public void handlePositions(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -1905,7 +1906,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 Helpers.callDynamically(cache, "append", new Object[]{position});
             }
         }
-        Object messageHashes = this.findMessageHashes(client, Helpers.add(type, ":positions::"));
+        Object messageHashes = this.findMessageHashes(client, (type + ":positions::"));
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
@@ -1918,7 +1919,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 client.resolve(positions, messageHash);
             }
         }
-        client.resolve(newPositions, Helpers.add(type, ":positions"));
+        client.resolve(newPositions, (type + ":positions"));
     }
 
     /**
@@ -2006,7 +2007,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Object url = this.getUrlByMarketType((String) (type), isInverse);
             // uid required for non spot markets
             Object requiresUid = (!java.util.Objects.equals(type, "spot"));
-            Object orders = (this.subscribePrivate(url, messageHash, payload, channel, query, requiresUid)).join();
+            Object orders = (this.subscribePrivate((String) (url), messageHash, payload, (String) (channel), (Map<String, Object>) (query), requiresUid)).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
@@ -2016,7 +2017,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
 
     }
 
-    public void handleOrder(Client client, Object message)
+    public void handleOrder(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -2198,7 +2199,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 ((List<Object>)payload).add(((Map<String, Object>)market).get("id"));
             }
             Object channel = Helpers.add(typeId, ".liquidates");
-            Object newLiquidations = (this.subscribePrivate(url, messageHash, payload, channel, query, true)).join();
+            Object newLiquidations = (this.subscribePrivate((String) (url), messageHash, payload, (String) (channel), (Map<String, Object>) (query), true)).join();
             if (this.newUpdates)
             {
                 return newLiquidations;
@@ -2208,7 +2209,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
 
     }
 
-    public void handleLiquidation(Client client, Object message)
+    public void handleLiquidation(Client client, Map<String, Object> message)
     {
         //
         // future / delivery
@@ -2264,7 +2265,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         for (var i = 0; i < ((List<?>)rawLiquidations).size(); i++)
         {
             Object rawLiquidation = (rawLiquidations == null || i < 0 || i >= rawLiquidations.size() ? null : rawLiquidations.get(i));
-            Object liquidation = this.parseWsLiquidation(rawLiquidation);
+            Object liquidation = this.parseWsLiquidation((Map<String, Object>) (rawLiquidation));
             Helpers.callDynamically(cache, "append", new Object[]{liquidation});
             String symbol = this.safeString(liquidation, "symbol");
             List<Object> symbolLiquidations = (List<Object>) this.safeList(cache, symbol, new ArrayList<Object>(Arrays.asList()));
@@ -2273,7 +2274,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         client.resolve(newLiquidations, "myLiquidations");
     }
 
-    public Object parseWsLiquidation(Object liquidation, Object... optionalArgs)
+    public Object parseWsLiquidation(Map<String, Object> liquidation, Object... optionalArgs)
     {
         //
         // future / delivery
@@ -2324,7 +2325,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         }});
     }
 
-    public Object handleErrorMessage(Client client, Object message)
+    public Object handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -2426,13 +2427,13 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         return false;
     }
 
-    public void handleBalanceSubscription(Client client, Object message, Object... optionalArgs)
+    public void handleBalanceSubscription(Client client, Map<String, Object> message, Object... optionalArgs)
     {
         Object subscription = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         this.balance = new HashMap<String, Object>() {{}};
     }
 
-    public void handleSubscriptionStatus(Client client, Object message)
+    public void handleSubscriptionStatus(Client client, Map<String, Object> message)
     {
         Object channel = this.safeString(message, "channel");
         Map<String, Object> methods = new HashMap<String, Object>() {{
@@ -2462,7 +2463,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         }
     }
 
-    public void handleUnSubscribe(Client client, Object message)
+    public void handleUnSubscribe(Client client, Map<String, Object> message)
     {
         //
         // {
@@ -2603,26 +2604,26 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         //        ]
         //    }
         //
-        if (java.util.Objects.equals(this.handleErrorMessage(client, message), true))
+        if (java.util.Objects.equals(this.handleErrorMessage(client, (Map<String, Object>) (message)), true))
         {
             return;
         }
         String eventVar = this.safeString(message, "event");
         if (java.util.Objects.equals(eventVar, "subscribe"))
         {
-            this.handleSubscriptionStatus(client, message);
+            this.handleSubscriptionStatus(client, (Map<String, Object>) (message));
             return;
         }
         if (java.util.Objects.equals(eventVar, "unsubscribe"))
         {
-            this.handleUnSubscribe(client, message);
+            this.handleUnSubscribe(client, (Map<String, Object>) (message));
             return;
         }
         String channel = this.safeString(message, "channel", "");
         // after supporting more method we can create a mapping for this
         if (java.util.Objects.equals(channel, "spot.obu"))
         {
-            this.handleOrderBook(client, message);
+            this.handleOrderBook(client, (Map<String, Object>) (message));
             return;
         }
         Object channelParts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("."))));
@@ -2649,7 +2650,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         String requestId = this.safeString(message, "request_id");
         if (java.util.Objects.equals(requestId, "authenticated"))
         {
-            this.handleAuthenticationMessage(client, message);
+            this.handleAuthenticationMessage(client, (Map<String, Object>) (message));
             return;
         }
         if (!java.util.Objects.equals(requestId, null))
@@ -2740,7 +2741,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         return reqid;
     }
 
-    public CompletableFuture<Object> subscribePublic(Object url, Object messageHash2, Object payload, Object channel, Object... optionalArgs)
+    public CompletableFuture<Object> subscribePublic(String url, Object messageHash2, Object payload, String channel, Object... optionalArgs)
     {
         final Object messageHash3 = messageHash2;
         return BaseExchange.supplyAsync(() -> {
@@ -2759,10 +2760,10 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             if (!java.util.Objects.equals(subscription, null))
             {
                 Client client = this.client(url);
-                if (!((messageHash != null && ((Map<?, ?>)client.subscriptions).containsKey(messageHash))))
+                if (!(((Map<?, ?>)client.subscriptions).containsKey(messageHash)))
                 {
                     Object tempSubscriptionHash = String.valueOf(requestId);
-                    Helpers.addElementToObject(client.subscriptions, tempSubscriptionHash, messageHash);
+                    ((Map)client.subscriptions).put((String)tempSubscriptionHash, messageHash);
                 }
             }
             Map<String, Object> message = this.extend(request, parameters);
@@ -2771,7 +2772,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
 
     }
 
-    public CompletableFuture<Object> subscribePublicMultiple(Object url, Object messageHashes, Object payload, Object channel, Object... optionalArgs)
+    public CompletableFuture<Object> subscribePublicMultiple(String url, Object messageHashes, Object payload, String channel, Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2792,7 +2793,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
 
     }
 
-    public CompletableFuture<Object> unSubscribePublicMultiple(Object url, Object topic, Object symbols, Object messageHashes, Object subMessageHashes, Object payload, Object channel, Object... optionalArgs)
+    public CompletableFuture<Object> unSubscribePublicMultiple(String url, Object topic, Object symbols, Object messageHashes, Object subMessageHashes, Object payload, String channel, Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2821,33 +2822,33 @@ public class Gate extends io.github.ccxt.exchanges.Gate
 
     }
 
-    public CompletableFuture<Object> authenticate(Object url, Object messageType2)
+    public CompletableFuture<Object> authenticate(String url, String messageType2)
     {
         final Object messageType3 = messageType2;
         return BaseExchange.supplyAsync(() -> {
             Object messageType = messageType3;
-            Object channel = Helpers.add(messageType, ".login");
+            Object channel = (messageType + ".login");
             Client client = this.client(url);
             String messageHash = "authenticated";
             io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
             if (java.util.Objects.equals(authenticated, null))
             {
-                return (this.requestPrivate(url, new HashMap<String, Object>() {{}}, channel, messageHash)).join();
+                return (this.requestPrivate((String) (url), (Map<String, Object>) (new HashMap<String, Object>() {{}}), (String) (channel), messageHash)).join();
             }
             return future;
         });
 
     }
 
-    public void handleAuthenticationMessage(Client client, Object message)
+    public void handleAuthenticationMessage(Client client, Map<String, Object> message)
     {
         String messageHash = "authenticated";
         Object future = this.safeValue(client.futures, messageHash);
         ((io.github.ccxt.ws.Future)future).resolve(true);
     }
 
-    public CompletableFuture<Object> requestPrivate(Object url, Object reqParams, Object channel2, Object... optionalArgs)
+    public CompletableFuture<Object> requestPrivate(String url, Map<String, Object> reqParams, String channel2, Object... optionalArgs)
     {
         final Object channel3 = channel2;
         return BaseExchange.supplyAsync(() -> {
@@ -2893,7 +2894,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
 
     }
 
-    public CompletableFuture<Object> subscribePrivate(Object url, Object messageHash2, Object payload2, Object channel, Object parameters, Object... optionalArgs)
+    public CompletableFuture<Object> subscribePrivate(String url, Object messageHash2, Object payload2, String channel, Map<String, Object> parameters, Object... optionalArgs)
     {
         final Object messageHash3 = messageHash2;
         final Object payload3 = payload2;
@@ -2920,7 +2921,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             }
             Long time = this.seconds();
             String eventVar = "subscribe";
-            String signaturePayload = ((((((Helpers.add("channel=", channel) + "&") + "event=") + eventVar) + "&") + "time=") + String.valueOf(time));
+            String signaturePayload = ((((((("channel=" + channel) + "&") + "event=") + eventVar) + "&") + "time=") + String.valueOf(time));
             Object signature = this.hmac(this.encode(signaturePayload), this.encode(this.secret), sha512(), "hex");
             Map<String, Object> auth = new HashMap<String, Object>() {{
                 put( "method", "api_key" );
@@ -2940,11 +2941,11 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 ((Map<String, Object>)request).put("payload", payload);
             }
             Client client = this.client(url);
-            if (!((messageHash != null && ((Map<?, ?>)client.subscriptions).containsKey(messageHash))))
+            if (!(((Map<?, ?>)client.subscriptions).containsKey(messageHash)))
             {
                 Object tempSubscriptionHash = String.valueOf(requestId);
                 // in case of authenticationError we will throw
-                Helpers.addElementToObject(client.subscriptions, tempSubscriptionHash, messageHash);
+                ((Map)client.subscriptions).put((String)tempSubscriptionHash, messageHash);
             }
             Map<String, Object> message = this.extend(request, parameters);
             return (this.watch(url, messageHash, message, messageHash, messageHash)).join();

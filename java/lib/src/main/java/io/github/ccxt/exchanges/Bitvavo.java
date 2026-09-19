@@ -582,7 +582,7 @@ public class Bitvavo extends BitvavoApi
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         Object fees = this.fees;
-        for (var i = 0; i < Helpers.getArrayLength(markets); i++)
+        for (var i = 0; i < ((List<?>)markets).size(); i++)
         {
             Object market = Helpers.GetValue(markets, i);
             String id = this.safeString(market, "market");
@@ -1983,7 +1983,7 @@ final Object finalBase = base;
 
     }
 
-    public Object editOrderRequest(Object id, String symbol, Object type, Object side, Object... optionalArgs)
+    public Object editOrderRequest(Object id, String symbol, String type, String side, Object... optionalArgs)
     {
         Object amount = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object price = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
@@ -2061,7 +2061,7 @@ final Object finalBase = base;
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object request = this.editOrderRequest(id, (String) (symbol), type, side, amount, price, parameters);
+            Object request = this.editOrderRequest(id, (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             Map<String, Object> response = (this.privatePutOrder(request)).join();
             return this.parseOrder(response, market);
         }).thenApply(Order::new);
@@ -3336,7 +3336,7 @@ final Object finalBase = base;
         Object config = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
         if ((((Map<?, ?>)config).containsKey("noMarket")) && !(Helpers.inOp(parameters, "market")))
         {
-            return Helpers.GetValue(config, "noMarket");
+            return ((Map<String, Object>)config).get("noMarket");
         }
         return this.safeNumber(config, "cost", 1);
     }

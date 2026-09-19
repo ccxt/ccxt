@@ -1539,7 +1539,7 @@ public class Dydx extends DydxApi
         var encodedTx = ((List<Object>) encodedTxsignDocVariable).get(0);
         var signDoc = ((List<Object>) encodedTxsignDocVariable).get(1);
         Object signature = this.signHash(encodedTx, privateKey);
-        return this.encodeDydxTxRaw(signDoc, Helpers.add(Helpers.GetValue(signature, "r"), Helpers.GetValue(signature, "s")));
+        return this.encodeDydxTxRaw(signDoc, Helpers.add(((Map<String, Object>)signature).get("r"), ((Map<String, Object>)signature).get("s")));
     }
 
     public Object retrieveCredentials()
@@ -2229,7 +2229,7 @@ public class Dydx extends DydxApi
             put( "account", Dydx.this.safeString(sender, "address") );
             put( "referenceAccount", Dydx.this.safeString(recipient, "address") );
             put( "referenceId", Dydx.this.safeString(item, "transactionHash") );
-            put( "type", Dydx.this.parseLedgerEntryType(finalType) );
+            put( "type", Dydx.this.parseLedgerEntryType((String) (finalType)) );
             put( "currency", code );
             put( "amount", Dydx.this.parseNumber(amount) );
             put( "timestamp", timestamp );
@@ -2241,7 +2241,7 @@ public class Dydx extends DydxApi
         }}, currency);
     }
 
-    public Object parseLedgerEntryType(Object type)
+    public Object parseLedgerEntryType(String type)
     {
         Map<String, Object> ledgerType = new HashMap<String, Object>() {{
             put( "TRANSFER_IN", "transfer" );

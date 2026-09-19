@@ -616,7 +616,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
 
     }
 
-    public void handleOrderBook(Client client, Object message)
+    public void handleOrderBook(Client client, Map<String, Object> message)
     {
         //
         // {
@@ -882,7 +882,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
 
     }
 
-    public Object handleWsTickers(Client client, Object message)
+    public Object handleWsTickers(Client client, Map<String, Object> message)
     {
         //
         // {
@@ -927,7 +927,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         return this.parseTicker(rawTicker, market);
     }
 
-    public void handleMyTrades(Client client, Object message)
+    public void handleMyTrades(Client client, Map<String, Object> message)
     {
         //
         // {
@@ -1074,7 +1074,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
 
     }
 
-    public void handleTrades(Client client, Object message)
+    public void handleTrades(Client client, Map<String, Object> message)
     {
         //
         // {
@@ -1301,7 +1301,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
 
     }
 
-    public void handleOHLCV(Client client, Object message)
+    public void handleOHLCV(Client client, Map<String, Object> message)
     {
         //
         // {
@@ -1453,7 +1453,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
 
     }
 
-    public void handleOrder(Client client, Object message)
+    public void handleOrder(Client client, Map<String, Object> message)
     {
         // not snapshot, only updates
         // {
@@ -1517,7 +1517,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         client.resolve(stored, messageHash);
     }
 
-    public Object handleErrorMessage(Client client, Object message)
+    public Object handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         // 'rl' key is present only when a rate-limited API key is used
@@ -1627,7 +1627,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         this.cleanCache(topicStructure);
     }
 
-    public void handleSubscriptionResponse(Client client, Object message)
+    public void handleSubscriptionResponse(Client client, Map<String, Object> message)
     {
         //  {
         //      "channel": "subscribe",
@@ -1691,7 +1691,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         //     }
         // }
         //
-        if (java.util.Objects.equals(this.handleErrorMessage(client, message), true))
+        if (java.util.Objects.equals(this.handleErrorMessage(client, (Map<String, Object>) (message)), true))
         {
             return;
         }
@@ -1739,7 +1739,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         }};
     }
 
-    public Object handlePong(Client client, Object message)
+    public Object handlePong(Client client, Map<String, Object> message)
     {
         //
         //   {

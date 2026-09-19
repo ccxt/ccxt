@@ -817,7 +817,7 @@ public class Delta extends DeltaApi
         {
             return null;
         }
-        List<Object> keys = Helpers.objectKeys(input);
+        List<Object> keys = new ArrayList<Object>(((Map<String, Object>)input).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
@@ -3766,7 +3766,7 @@ public class Delta extends DeltaApi
 
     }
 
-    public Object parseSettlement(Object settlement, Object market)
+    public Object parseSettlement(Map<String, Object> settlement, Object market)
     {
         //
         //     {
@@ -3835,9 +3835,9 @@ public class Delta extends DeltaApi
     public Object parseSettlements(Object settlements, Object market)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < Helpers.getArrayLength(settlements); i++)
+        for (var i = 0; i < ((List<?>)settlements).size(); i++)
         {
-            ((List<Object>)result).add(this.parseSettlement(Helpers.GetValue(settlements, i), market));
+            ((List<Object>)result).add(this.parseSettlement((Map<String, Object>) (Helpers.GetValue(settlements, i)), market));
         }
         return result;
     }

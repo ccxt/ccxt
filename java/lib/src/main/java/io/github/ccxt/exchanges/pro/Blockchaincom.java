@@ -102,7 +102,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
 
     }
 
-    public void handleBalance(Client client, Object message)
+    public void handleBalance(Client client, Map<String, Object> message)
     {
         //
         //  subscribed
@@ -207,7 +207,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
 
     }
 
-    public void handleOHLCV(Client client, Object message)
+    public void handleOHLCV(Client client, Map<String, Object> message)
     {
         //
         //  subscribed
@@ -292,7 +292,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
 
     }
 
-    public void handleTicker(Client client, Object message)
+    public void handleTicker(Client client, Map<String, Object> message)
     {
         //
         //  subscribed
@@ -336,14 +336,14 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
         } else if (java.util.Objects.equals(eventVar, "updated"))
         {
             Map<String, Object> lastTicker = (Map<String, Object>) this.safeDict(this.tickers, symbol);
-            ticker = this.parseWsUpdatedTicker(message, lastTicker, market);
+            ticker = this.parseWsUpdatedTicker((Map<String, Object>) (message), lastTicker, market);
         }
         String messageHash = ("ticker:" + symbol);
         Helpers.addElementToObject(this.tickers, symbol, ticker);
         client.resolve(ticker, messageHash);
     }
 
-    public Object parseWsUpdatedTicker(Object ticker, Object... optionalArgs)
+    public Object parseWsUpdatedTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         //
         //     {
@@ -422,7 +422,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
 
     }
 
-    public void handleTrades(Client client, Object message)
+    public void handleTrades(Client client, Map<String, Object> message)
     {
         //
         //  subscribed
@@ -549,7 +549,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
 
     }
 
-    public void handleOrders(Client client, Object message)
+    public void handleOrders(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -710,7 +710,7 @@ final Object finalTradeId = tradeId;
             put( "clientOrderId", Blockchaincom.this.safeString(order, "clOrdID") );
             put( "datetime", datetime );
             put( "timestamp", Blockchaincom.this.parse8601(datetime) );
-            put( "status", Blockchaincom.this.parseWsOrderStatus(status) );
+            put( "status", Blockchaincom.this.parseWsOrderStatus((String) (status)) );
             put( "symbol", Blockchaincom.this.safeSymbol(marketId, finalMarket) );
             put( "type", Blockchaincom.this.safeString(order, "ordType") );
             put( "timeInForce", Blockchaincom.this.safeString(order, "timeInForce") );
@@ -734,7 +734,7 @@ final Object finalTradeId = tradeId;
         }}, market);
     }
 
-    public String parseWsOrderStatus(Object status)
+    public String parseWsOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "pending", "open" );
@@ -787,7 +787,7 @@ final Object finalTradeId = tradeId;
 
     }
 
-    public void handleOrderBook(Client client, Object message)
+    public void handleOrderBook(Client client, Map<String, Object> message)
     {
         //
         //  subscribe
@@ -894,7 +894,7 @@ final Object finalTradeId = tradeId;
         throw new NotSupported(((this.id + " received an unsupported message: ") + this.json(message))) ;
     }
 
-    public void handleAuthenticationMessage(Client client, Object message)
+    public void handleAuthenticationMessage(Client client, Map<String, Object> message)
     {
         //
         //     {

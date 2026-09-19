@@ -94,7 +94,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         }};
     }
 
-    public Object handlePong(Client client, Object message)
+    public Object handlePong(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -199,7 +199,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
 
     }
 
-    public void handleTrades(Client client, Object message)
+    public void handleTrades(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -275,7 +275,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
 
     }
 
-    public void handleTicker(Client client, Object message)
+    public void handleTicker(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -373,7 +373,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
 
     }
 
-    public void handleOrderBook(Client client, Object message)
+    public void handleOrderBook(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -431,7 +431,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         // 300 = '54885.0000000'
         // 301 = '0.06141566'
         // 302 ='53714.0000000'
-        for (var i = 0; i < Helpers.getArrayLength(entry); i++)
+        for (var i = 0; i < ((List<?>)entry).size(); i++)
         {
             if (!Helpers.isEqual((((double) i) % ((double) 2)), 0))
             {
@@ -495,7 +495,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
 
     }
 
-    public void handleOrders(Client client, Object message)
+    public void handleOrders(Client client, Map<String, Object> message)
     {
         // snapshot
         //     {
@@ -635,7 +635,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
 
     }
 
-    public void handleMyTrades(Client client, Object message)
+    public void handleMyTrades(Client client, Map<String, Object> message)
     {
         //
         // snapshot
@@ -752,7 +752,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
 
     }
 
-    public void handleBalance(Client client, Object message)
+    public void handleBalance(Client client, Map<String, Object> message)
     {
         //
         // snapshot
@@ -800,7 +800,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         {
             return;
         }
-        if (!(Helpers.inOp(this.balance, tradingAccountId)))
+        if (!(((Map<?, ?>)this.balance).containsKey(tradingAccountId)))
         {
             Helpers.addElementToObject(this.balance, tradingAccountId, new HashMap<String, Object>() {{}});
         }
@@ -874,7 +874,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
 
     }
 
-    public void handlePositions(Client client, Object message)
+    public void handlePositions(Client client, Map<String, Object> message)
     {
         // exchange does not return messages for sandbox mode
         // current method is implemented blindly
@@ -918,7 +918,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         client.resolve(positions, "positions");
     }
 
-    public void handleErrorMessage(Client client, Object message)
+    public void handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -955,37 +955,37 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             String response = this.safeString(result, "message");
             if (java.util.Objects.equals(response, "Keep alive pong"))
             {
-                this.handlePong(client, message);
+                this.handlePong(client, (Map<String, Object>) (message));
             }
         } else if (!java.util.Objects.equals(dataType, null))
         {
             if (java.util.Objects.equals(dataType, "V1TAAnonymousTradeUpdate"))
             {
-                this.handleTrades(client, message);
+                this.handleTrades(client, (Map<String, Object>) (message));
             }
             if (java.util.Objects.equals(dataType, "V1TATickerResponse"))
             {
-                this.handleTicker(client, message);
+                this.handleTicker(client, (Map<String, Object>) (message));
             }
             if (java.util.Objects.equals(dataType, "V1TALevel2"))
             {
-                this.handleOrderBook(client, message);
+                this.handleOrderBook(client, (Map<String, Object>) (message));
             }
             if (java.util.Objects.equals(dataType, "V1TAOrder"))
             {
-                this.handleOrders(client, message);
+                this.handleOrders(client, (Map<String, Object>) (message));
             }
             if (java.util.Objects.equals(dataType, "V1TATrade"))
             {
-                this.handleMyTrades(client, message);
+                this.handleMyTrades(client, (Map<String, Object>) (message));
             }
             if (java.util.Objects.equals(dataType, "V1TAAssetAccount"))
             {
-                this.handleBalance(client, message);
+                this.handleBalance(client, (Map<String, Object>) (message));
             }
             if (java.util.Objects.equals(dataType, "V1TAErrorResponse"))
             {
-                this.handleErrorMessage(client, message);
+                this.handleErrorMessage(client, (Map<String, Object>) (message));
             }
         }
     }

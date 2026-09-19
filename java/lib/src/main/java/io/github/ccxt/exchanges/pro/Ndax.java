@@ -101,7 +101,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
 
     }
 
-    public void handleTicker(Client client, Object message)
+    public void handleTicker(Client client, Map<String, Object> message)
     {
         Map<String, Object> payload = (Map<String, Object>) this.safeDict(message, "o", new HashMap<String, Object>() {{}});
         //
@@ -194,7 +194,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
 
     }
 
-    public void handleTrades(Client client, Object message)
+    public void handleTrades(Client client, Map<String, Object> message)
     {
         List<Object> payload = (List<Object>) this.safeList(message, "o", new ArrayList<Object>(Arrays.asList()));
         //
@@ -305,7 +305,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
 
     }
 
-    public void handleOHLCV(Client client, Object message)
+    public void handleOHLCV(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -482,7 +482,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
 
     }
 
-    public void handleOrderBook(Client client, Object message)
+    public void handleOrderBook(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -573,7 +573,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         client.resolve(orderbook, messageHash);
     }
 
-    public void handleOrderBookSubscription(Client client, Object message, Object subscription)
+    public void handleOrderBookSubscription(Client client, Map<String, Object> message, Map<String, Object> subscription)
     {
         //
         //     {
@@ -612,7 +612,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         client.resolve(orderbook, messageHash);
     }
 
-    public void handleSubscriptionStatus(Client client, Object message)
+    public void handleSubscriptionStatus(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -664,7 +664,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         {
             return;
         }
-        Helpers.addElementToObject(message, "o", Helpers.parseJson(payload));
+        ((Map<String, Object>)message).put("o", Helpers.parseJson(payload));
         Map<String, Object> methods = new HashMap<String, Object>() {{
             put( "SubscribeLevel2", "handleSubscriptionStatus");
             put( "SubscribeLevel1", "handleTicker");

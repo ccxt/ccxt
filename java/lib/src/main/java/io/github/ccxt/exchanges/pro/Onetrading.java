@@ -131,7 +131,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
 
     }
 
-    public void handleBalanceSnapshot(Client client, Object message)
+    public void handleBalanceSnapshot(Client client, Map<String, Object> message)
     {
         //
         // snapshot
@@ -196,7 +196,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         put( "price_points_mode", "INLINE" );
     }})) );
             }};
-            return (this.watchMany(messageHash, request, subscriptionHash, new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
+            return (this.watchMany(messageHash, (Map<String, Object>) (request), subscriptionHash, new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
         }).thenApply(Ticker::new);
 
     }
@@ -235,13 +235,13 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         put( "price_points_mode", "INLINE" );
     }})) );
             }};
-            Object tickers = (this.watchMany(messageHash, request, subscriptionHash, symbols, parameters)).join();
+            Object tickers = (this.watchMany(messageHash, (Map<String, Object>) (request), subscriptionHash, symbols, parameters)).join();
             return this.filterByArray(tickers, "symbol", symbols);
         }).thenApply(Tickers::new);
 
     }
 
-    public void handleTicker(Client client, Object message)
+    public void handleTicker(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -266,7 +266,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             Object ticker = (tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i));
             String marketId = this.safeString(ticker, "instrument");
             String symbol = this.safeSymbol(marketId);
-            Helpers.addElementToObject(this.tickers, symbol, this.parseWSTicker(ticker));
+            Helpers.addElementToObject(this.tickers, symbol, this.parseWSTicker((Map<String, Object>) (ticker)));
             Long timestamp = this.parse8601(datetime);
             Helpers.addElementToObject(Helpers.GetValue(this.tickers, symbol), "timestamp", timestamp);
             Helpers.addElementToObject(Helpers.GetValue(this.tickers, symbol), "datetime", this.iso8601(timestamp));
@@ -275,7 +275,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         client.resolve(this.tickers, "tickers");
     }
 
-    public Object parseWSTicker(Object ticker, Object... optionalArgs)
+    public Object parseWSTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         //
         //     {
@@ -411,13 +411,13 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         put( "depth", finalDepth );
     }})) );
             }};
-            Object orderbook = (this.watchMany(messageHash, request, subscriptionHash, new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
+            Object orderbook = (this.watchMany(messageHash, (Map<String, Object>) (request), subscriptionHash, new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(OrderBook::new);
 
     }
 
-    public void handleOrderBook(Client client, Object message)
+    public void handleOrderBook(Client client, Map<String, Object> message)
     {
         //
         //  snapshot
@@ -572,7 +572,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
 
     }
 
-    public void handleTrading(Client client, Object message)
+    public void handleTrading(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -623,14 +623,14 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object order = this.parseTradingOrder(message);
+        Object order = this.parseTradingOrder((Map<String, Object>) (message));
         Object orders = this.orders;
         Helpers.callDynamically(orders, "append", new Object[]{order});
         client.resolve(this.orders, ("orders:" + ((Map<String, Object>)order).get("symbol")));
         client.resolve(this.orders, "orders");
     }
 
-    public Object parseTradingOrder(Object order, Object... optionalArgs)
+    public Object parseTradingOrder(Map<String, Object> order, Object... optionalArgs)
     {
         //
         //     {
@@ -745,7 +745,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         }}, market);
     }
 
-    public String parseTradingOrderStatus(Object status)
+    public String parseTradingOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "CANCELLED", "canceled" );
@@ -759,7 +759,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         return this.safeString(statuses, status, status);
     }
 
-    public void handleOrders(Client client, Object message)
+    public void handleOrders(Client client, Map<String, Object> message)
     {
         //
         //  snapshot
@@ -852,7 +852,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         client.resolve(this.myTrades, "myTrades");
     }
 
-    public void handleAccountUpdate(Client client, Object message)
+    public void handleAccountUpdate(Client client, Map<String, Object> message)
     {
         //
         // order created
@@ -1097,7 +1097,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             Map<String, Object> previousOrder = (Map<String, Object>) this.safeDict(previousOrderArray, 0, new HashMap<String, Object>() {{}});
             symbol = ((Map<String, Object>)previousOrder).get("symbol");
             String filled = this.safeString(update, "filled_amount");
-            String status = this.parseWsOrderStatus(updateType);
+            String status = this.parseWsOrderStatus((String) (updateType));
             if (java.util.Objects.equals(updateType, "ORDER_CLOSED") && Precise.stringEq(filled, "0"))
             {
                 status = "canceled";
@@ -1127,7 +1127,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             Object newBalance = this.safeValue(update, Helpers.GetValue(balanceKeys, i));
             if (!java.util.Objects.equals(newBalance, null))
             {
-                this.updateBalance(newBalance);
+                this.updateBalance((Map<String, Object>) (newBalance));
             }
         }
         client.resolve(this.balance, "balance");
@@ -1143,7 +1143,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         }
     }
 
-    public String parseWsOrderStatus(Object status)
+    public String parseWsOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "ORDER_REJECTED", "rejected" );
@@ -1153,7 +1153,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         return this.safeString(statuses, status, status);
     }
 
-    public void updateBalance(Object balance)
+    public void updateBalance(Map<String, Object> balance)
     {
         //
         //     {
@@ -1278,7 +1278,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
 
     }
 
-    public void handleOHLCV(Client client, Object message)
+    public void handleOHLCV(Client client, Map<String, Object> message)
     {
         //
         //  snapshot
@@ -1360,7 +1360,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         return null;
     }
 
-    public Object handleSubscriptions(Client client, Object message)
+    public Object handleSubscriptions(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1376,7 +1376,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         return message;
     }
 
-    public Object handleHeartbeat(Client client, Object message)
+    public Object handleHeartbeat(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1389,7 +1389,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         return message;
     }
 
-    public Object handleErrorMessage(Client client, Object message)
+    public Object handleErrorMessage(Client client, Map<String, Object> message)
     {
         throw new ExchangeError(((this.id + " ") + this.json(message))) ;
     }
@@ -1399,7 +1399,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         String error = this.safeString(message, "error");
         if (!java.util.Objects.equals(error, null))
         {
-            this.handleErrorMessage(client, message);
+            this.handleErrorMessage(client, (Map<String, Object>) (message));
             return;
         }
         String type = this.safeString(message, "type");
@@ -1436,7 +1436,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         }
     }
 
-    public Object handlePricePointUpdates(Client client, Object message)
+    public Object handlePricePointUpdates(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1459,7 +1459,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         return message;
     }
 
-    public Object handleAuthenticationMessage(Client client, Object message)
+    public Object handleAuthenticationMessage(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -1476,7 +1476,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         return message;
     }
 
-    public CompletableFuture<Object> watchMany(Object messageHash, Object request, Object subscriptionHash, Object... optionalArgs)
+    public CompletableFuture<Object> watchMany(Object messageHash, Map<String, Object> request, Object subscriptionHash, Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1526,8 +1526,8 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
                 Object marketId = Helpers.GetValue(marketIds, i);
                 ((Map<String, Object>)subscription).put((String)marketId, true);
             }
-            Helpers.addElementToObject(request, "type", type);
-            Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(request, "channels"), 0), "instrument_codes", new ArrayList<Object>(((Map<String, Object>)subscription).keySet()));
+            ((Map<String, Object>)request).put("type", type);
+            Helpers.addElementToObject(Helpers.GetValue(request.get("channels"), 0), "instrument_codes", new ArrayList<Object>(((Map<String, Object>)subscription).keySet()));
             return (this.watch(url, messageHash, this.deepExtend(request, parameters), subscriptionHash, subscription)).join();
         });
 

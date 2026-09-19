@@ -2747,7 +2747,7 @@ public class Lbank extends LbankApi
 
     }
 
-    public Object getNetworkCodeForCurrency(Object currencyCode, Object parameters)
+    public Object getNetworkCodeForCurrency(String currencyCode, Map<String, Object> parameters)
     {
         Map<String, Object> defaultNetworks = (Map<String, Object>) this.safeDict(this.options, "defaultNetworks");
         String defaultNetwork = this.safeStringUpper(defaultNetworks, currencyCode);
@@ -2808,7 +2808,7 @@ public class Lbank extends LbankApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "assetCode", ((Map<String, Object>)currency).get("id") );
             }};
-            Object network = this.getNetworkCodeForCurrency(code, parameters);
+            Object network = this.getNetworkCodeForCurrency((String) (code), (Map<String, Object>) (parameters));
             if (!java.util.Objects.equals(network, null))
             {
                 ((Map<String, Object>)request).put("netWork", network); // ... yes, really lol
@@ -2963,7 +2963,7 @@ public class Lbank extends LbankApi
 
     }
 
-    public String parseTransactionStatus(String status, Object type)
+    public String parseTransactionStatus(String status, String type)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "deposit", new HashMap<String, Object>() {{
@@ -3579,7 +3579,7 @@ public class Lbank extends LbankApi
         //
         Object codes = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Map<String, Object> result = new HashMap<String, Object>() {{}};
-        for (var i = 0; i < Helpers.getArrayLength(response); i++)
+        for (var i = 0; i < ((List<?>)response).size(); i++)
         {
             Object fee = Helpers.GetValue(response, i);
             Boolean canWithdraw = (Boolean) this.safeBool(fee, "canWithDraw");

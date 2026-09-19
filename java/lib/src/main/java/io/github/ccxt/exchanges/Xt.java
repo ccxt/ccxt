@@ -6369,7 +6369,7 @@ final Object finalMarket = market;
             for (var i = 0; i < ((List<?>)items).size(); i++)
             {
                 Object entry = (items == null || i < 0 || i >= items.size() ? null : items.get(i));
-                ((List<Object>)result).add(this.parseFundingHistory(entry, market));
+                ((List<Object>)result).add(this.parseFundingHistory((Map<String, Object>) (entry), market));
             }
             List<Object> sorted = this.sortBy(result, "timestamp");
             return this.filterBySinceLimit(sorted, since, limit);
@@ -6377,7 +6377,7 @@ final Object finalMarket = market;
 
     }
 
-    public Object parseFundingHistory(Object contract, Object... optionalArgs)
+    public Object parseFundingHistory(Map<String, Object> contract, Object... optionalArgs)
     {
         //
         //     {

@@ -2325,7 +2325,7 @@ public class Bybit extends BybitApi
         return Helpers.subtract(this.milliseconds(), ((Map<String, Object>)this.options).get("timeDifference"));
     }
 
-    public Object addPaginationCursorToResult(Object response)
+    public Object addPaginationCursorToResult(Map<String, Object> response)
     {
         Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
         List<Object> data = (List<Object>) this.safeListN(result, new ArrayList<Object>(Arrays.asList("list", "rows", "data", "dataList")), new ArrayList<Object>(Arrays.asList()));
@@ -7016,7 +7016,7 @@ public class Bybit extends BybitApi
             //         "time": 1672221263862
             //     }
             //
-            Object data = this.addPaginationCursorToResult(response);
+            Object data = this.addPaginationCursorToResult((Map<String, Object>) (response));
             return this.parseOrders(data, market, since, limit);
         });
 
@@ -7253,7 +7253,7 @@ public class Bybit extends BybitApi
             //         "time": 1758187806376
             //     }
             //
-            Object data = this.addPaginationCursorToResult(response);
+            Object data = this.addPaginationCursorToResult((Map<String, Object>) (response));
             return this.parseOrders(data, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -7474,7 +7474,7 @@ public class Bybit extends BybitApi
             //         "time": 1758187806376
             //     }
             //
-            Object data = this.addPaginationCursorToResult(response);
+            Object data = this.addPaginationCursorToResult((Map<String, Object>) (response));
             return this.parseOrders(data, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -7617,7 +7617,7 @@ public class Bybit extends BybitApi
             //         "time": 1672283754510
             //     }
             //
-            Object trades = this.addPaginationCursorToResult(response);
+            Object trades = this.addPaginationCursorToResult((Map<String, Object>) (response));
             return this.parseTrades(trades, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -7822,7 +7822,7 @@ public class Bybit extends BybitApi
             //         "time": 1672191992512
             //     }
             //
-            Object data = this.addPaginationCursorToResult(response);
+            Object data = this.addPaginationCursorToResult((Map<String, Object>) (response));
             return this.parseTransactions(data, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -7922,7 +7922,7 @@ public class Bybit extends BybitApi
             //         "time": 1672194949928
             //     }
             //
-            Object data = this.addPaginationCursorToResult(response);
+            Object data = this.addPaginationCursorToResult((Map<String, Object>) (response));
             return this.parseTransactions(data, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -8216,7 +8216,7 @@ public class Bybit extends BybitApi
             //         "time": 1672132481405
             //     }
             //
-            Object data = this.addPaginationCursorToResult(response);
+            Object data = this.addPaginationCursorToResult((Map<String, Object>) (response));
             return this.parseLedger(data, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
@@ -8622,7 +8622,7 @@ public class Bybit extends BybitApi
             //         "time": 1657713693182
             //     }
             //
-            Object positions = this.addPaginationCursorToResult(response);
+            Object positions = this.addPaginationCursorToResult((Map<String, Object>) (response));
             List<Object> results = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)positions).size(); i++)
             {
@@ -9293,7 +9293,7 @@ public class Bybit extends BybitApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            Object data = this.addPaginationCursorToResult(response);
+            Object data = this.addPaginationCursorToResult((Map<String, Object>) (response));
             String id = this.safeString(result, "symbol");
             Map<String, Object> safeMarketObj = (Map<String, Object>) this.safeMarket(id, market, null, "contract");
             return this.parseOpenInterestsHistory(data, safeMarketObj, since, limit);
@@ -9369,7 +9369,7 @@ public class Bybit extends BybitApi
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             String id = this.safeString(result, "symbol");
             Map<String, Object> safeMarketObj = (Map<String, Object>) this.safeMarket(id, market, null, "contract");
-            Object data = this.addPaginationCursorToResult(response);
+            Object data = this.addPaginationCursorToResult((Map<String, Object>) (response));
             return this.parseOpenInterest((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0)), safeMarketObj);
         }).thenApply(OpenInterest::new);
 
@@ -9851,7 +9851,7 @@ public class Bybit extends BybitApi
             //         "time": 1670988271677
             //     }
             //
-            Object data = this.addPaginationCursorToResult(response);
+            Object data = this.addPaginationCursorToResult((Map<String, Object>) (response));
             return this.parseTransfers(data, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
 
@@ -10533,7 +10533,7 @@ public class Bybit extends BybitApi
 
     }
 
-    public Object parseSettlement(Object settlement, Object market)
+    public Object parseSettlement(Map<String, Object> settlement, Object market)
     {
         //
         // fetchSettlementHistory
@@ -10597,9 +10597,9 @@ public class Bybit extends BybitApi
         //     ]
         //
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < Helpers.getArrayLength(settlements); i++)
+        for (var i = 0; i < ((List<?>)settlements).size(); i++)
         {
-            ((List<Object>)result).add(this.parseSettlement(Helpers.GetValue(settlements, i), market));
+            ((List<Object>)result).add(this.parseSettlement((Map<String, Object>) (Helpers.GetValue(settlements, i)), market));
         }
         return result;
     }
@@ -10660,7 +10660,7 @@ public class Bybit extends BybitApi
         //     }
         //
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < Helpers.getArrayLength(volatility); i++)
+        for (var i = 0; i < ((List<?>)volatility).size(); i++)
         {
             Object entry = Helpers.GetValue(volatility, i);
             Long timestamp = this.safeInteger(entry, "time");
@@ -10994,7 +10994,7 @@ public class Bybit extends BybitApi
             //         "time": 1672283754510
             //     }
             //
-            Object liquidations = this.addPaginationCursorToResult(response);
+            Object liquidations = this.addPaginationCursorToResult((Map<String, Object>) (response));
             return this.parseLiquidations(liquidations, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Liquidation::new).collect(Collectors.toList()));
 
@@ -11084,7 +11084,7 @@ public class Bybit extends BybitApi
                 put( "category", finalSubType );
             }};
             Map<String, Object> response = (this.publicGetV5MarketRiskLimit(this.extend(request, parameters))).join();
-            Object result = this.addPaginationCursorToResult(response);
+            Object result = this.addPaginationCursorToResult((Map<String, Object>) (response));
             Map<String, Object> first = (Map<String, Object>) this.safeDict(result, 0);
             Object total = ((List<?>)result).size();
             Object lastIndex = Helpers.subtract(total, 1);
@@ -11290,7 +11290,7 @@ final Object finalMarket = market;
             request = ((List<Object>) requestparametersVariable).get(0);
             parameters = ((List<Object>) requestparametersVariable).get(1);
             Map<String, Object> response = (this.privateGetV5ExecutionList(this.extend(request, parameters))).join();
-            Object fundings = this.addPaginationCursorToResult(response);
+            Object fundings = this.addPaginationCursorToResult((Map<String, Object>) (response));
             return this.parseIncomes(fundings, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
 

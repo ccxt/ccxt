@@ -103,7 +103,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
 
     }
 
-    public void handleAuthenticationMessage(Client client, Object message)
+    public void handleAuthenticationMessage(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -175,7 +175,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
 
     }
 
-    public Object handleTrade(Client client, Object message)
+    public Object handleTrade(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -248,7 +248,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
 
     }
 
-    public void handleOrderBook(Client client, Object message)
+    public void handleOrderBook(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -463,7 +463,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
 
     }
 
-    public void handleOrder(Client client, Object message)
+    public void handleOrder(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -511,7 +511,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         }
     }
 
-    public Object handleTicker(Client client, Object message)
+    public Object handleTicker(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -649,7 +649,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
 
     }
 
-    public void handleFundingRate(Client client, Object message)
+    public void handleFundingRate(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -671,7 +671,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         //
         Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
         Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
-        Object fundingRate = this.parseFundingRateWs(data);
+        Object fundingRate = this.parseFundingRateWs((Map<String, Object>) (data));
         Object symbol = ((Map<String, Object>)fundingRate).get("symbol");
         Helpers.addElementToObject(this.fundingRates, ((String)symbol), fundingRate);
         String channel = this.safeString(parameters, "channel");
@@ -679,7 +679,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         client.resolve(fundingRate, messageHash);
     }
 
-    public Object parseFundingRateWs(Object contract, Object... optionalArgs)
+    public Object parseFundingRateWs(Map<String, Object> contract, Object... optionalArgs)
     {
         //
         //     {
@@ -720,7 +720,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         }};
     }
 
-    public Object handleErrorMessage(Client client, Object message)
+    public Object handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -759,7 +759,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
 
     public void handleMessage(Client client, Object message)
     {
-        if (!java.util.Objects.equals(this.handleErrorMessage(client, message), true))
+        if (!java.util.Objects.equals(this.handleErrorMessage(client, (Map<String, Object>) (message)), true))
         {
             return;
         }
@@ -794,7 +794,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         Map<String, Object> result = (Map<String, Object>) this.safeDict(message, "result");
         if (!java.util.Objects.equals(result, null))
         {
-            this.handleAuthenticationMessage(client, message);
+            this.handleAuthenticationMessage(client, (Map<String, Object>) (message));
             return;
         }
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "params");

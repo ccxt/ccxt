@@ -4614,7 +4614,7 @@ public class Btse extends BtseApi
         // the futures v3 trading api identifies contracts by the short trade-currency
         // form, for example RAVE-PERP instead of the RAVE-PERP-USDT market id, read
         // from the raw market info so that cached markets resolve it as well
-        return this.safeString(Helpers.GetValue(market, "info"), "tradeCurrency", Helpers.GetValue(market, "id"));
+        return this.safeString(((Map<String, Object>)market).get("info"), "tradeCurrency", ((Map<String, Object>)market).get("id"));
     }
 
     public Object cleanPath(Object path)

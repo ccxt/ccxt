@@ -110,7 +110,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         return newValue;
     }
 
-    public CompletableFuture<Object> watchPublic(Object messageHash, Object message)
+    public CompletableFuture<Object> watchPublic(Object messageHash, Map<String, Object> message)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -249,7 +249,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
 
     }
 
-    public void handleOrderBook(Client client, Object message)
+    public void handleOrderBook(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -305,7 +305,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                     }
                     if (Helpers.isGreaterThan(ts, timestamp))
                     {
-                        this.handleOrderBookMessage(client, message, orderbook);
+                        this.handleOrderBookMessage(client, (Map<String, Object>) (message), (Map<String, Object>) (orderbook));
                         client.resolve(orderbook, topic);
                     }
                 } catch(Exception e)
@@ -335,7 +335,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         }
     }
 
-    public void handleOrderBookSubscription(Client client, Object message, Object subscription)
+    public void handleOrderBookSubscription(Client client, Map<String, Object> message, Map<String, Object> subscription)
     {
         Long defaultLimit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
         Long limit = this.safeInteger(subscription, "limit", defaultLimit);
@@ -352,7 +352,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         this.spawn(() -> { try { this.fetchOrderBookSnapshot(client, message, subscription); } catch(Exception _e) { throw new RuntimeException(_e); } });
     }
 
-    public CompletableFuture<Object> fetchOrderBookSnapshot(Client client, Object message, Object subscription)
+    public CompletableFuture<Object> fetchOrderBookSnapshot(Client client, Map<String, Object> message, Map<String, Object> subscription)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -386,7 +386,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                         continue;
                     } else
                     {
-                        this.handleOrderBookMessage(client, messageItem, orderbook);
+                        this.handleOrderBookMessage(client, (Map<String, Object>) (messageItem), (Map<String, Object>) (orderbook));
                     }
                 }
                 if (!java.util.Objects.equals(symbol, null))
@@ -407,14 +407,14 @@ public class Woo extends io.github.ccxt.exchanges.Woo
 
     }
 
-    public Object handleOrderBookMessage(Client client, Object message, Object orderbook)
+    public Object handleOrderBookMessage(Client client, Map<String, Object> message, Map<String, Object> orderbook)
     {
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data");
-        this.handleDeltas(Helpers.GetValue(orderbook, "asks"), this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList())));
-        this.handleDeltas(Helpers.GetValue(orderbook, "bids"), this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList())));
+        this.handleDeltas(((Map<String, Object>)orderbook).get("asks"), this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList())));
+        this.handleDeltas(((Map<String, Object>)orderbook).get("bids"), this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList())));
         Long timestamp = this.safeInteger(message, "ts");
-        Helpers.addElementToObject(orderbook, "timestamp", timestamp);
-        Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
+        ((Map<String, Object>)orderbook).put("timestamp", timestamp);
+        ((Map<String, Object>)orderbook).put("datetime", this.iso8601(timestamp));
         return orderbook;
     }
 
@@ -460,7 +460,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 put( "topic", topic );
             }};
             Object message = this.extend(request, parameters);
-            return (this.watchPublic(topic, message)).join();
+            return (this.watchPublic(topic, (Map<String, Object>) (message))).join();
         }).thenApply(Ticker::new);
 
     }
@@ -534,7 +534,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         }}, market);
     }
 
-    public Object handleTicker(Client client, Object message)
+    public Object handleTicker(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -593,7 +593,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 put( "topic", topic );
             }};
             Object message = this.extend(request, parameters);
-            Object tickers = (this.watchPublic(topic, message)).join();
+            Object tickers = (this.watchPublic(topic, (Map<String, Object>) (message))).join();
             return this.filterByArray(tickers, "symbol", symbols);
         }).thenApply(Tickers::new);
 
@@ -630,7 +630,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
 
     }
 
-    public void handleTickers(Client client, Object message)
+    public void handleTickers(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -706,7 +706,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 put( "topic", topic );
             }};
             Object message = this.extend(request, parameters);
-            Object bidsasks = (this.watchPublic(topic, message)).join();
+            Object bidsasks = (this.watchPublic(topic, (Map<String, Object>) (message))).join();
             if (this.newUpdates)
             {
                 return bidsasks;
@@ -747,7 +747,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
 
     }
 
-    public void handleBidAsk(Client client, Object message)
+    public void handleBidAsk(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -776,7 +776,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 continue;
             }
             ((Map<String, Object>)ticker).put("ts", timestamp);
-            Object parsedTicker = this.parseWsBidAsk(ticker);
+            Object parsedTicker = this.parseWsBidAsk((Map<String, Object>) (ticker));
             Object symbol = ((Map<String, Object>)parsedTicker).get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -790,7 +790,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         client.resolve(result, topic);
     }
 
-    public Object parseWsBidAsk(Object ticker, Object... optionalArgs)
+    public Object parseWsBidAsk(Map<String, Object> ticker, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(ticker, "symbol");
@@ -847,7 +847,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 put( "topic", topic );
             }};
             Object message = this.extend(request, parameters);
-            Object ohlcv = (this.watchPublic(topic, message)).join();
+            Object ohlcv = (this.watchPublic(topic, (Map<String, Object>) (message))).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{((Map<String, Object>)market).get("symbol"), limit});
@@ -890,7 +890,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
 
     }
 
-    public void handleOHLCV(Client client, Object message)
+    public void handleOHLCV(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -964,7 +964,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 put( "topic", topic );
             }};
             Object message = this.extend(request, parameters);
-            Object trades = (this.watchPublic(topic, message)).join();
+            Object trades = (this.watchPublic(topic, (Map<String, Object>) (message))).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{((Map<String, Object>)market).get("symbol"), limit});
@@ -1001,7 +1001,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
 
     }
 
-    public void handleTrade(Client client, Object message)
+    public void handleTrade(Client client, Map<String, Object> message)
     {
         //
         // {
@@ -1172,7 +1172,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
 
     }
 
-    public CompletableFuture<Object> watchPrivate(Object messageHash, Object message, Object... optionalArgs)
+    public CompletableFuture<Object> watchPrivate(Object messageHash, Map<String, Object> message, Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1190,7 +1190,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
 
     }
 
-    public CompletableFuture<Object> watchPrivateMultiple(Object messageHashes, Object message, Object... optionalArgs)
+    public CompletableFuture<Object> watchPrivateMultiple(Object messageHashes, Map<String, Object> message, Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1249,7 +1249,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 put( "topic", topic );
             }};
             Object message = this.extend(request, parameters);
-            Object orders = (this.watchPrivate(messageHash, message)).join();
+            Object orders = (this.watchPrivate(messageHash, (Map<String, Object>) (message))).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
@@ -1300,7 +1300,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 put( "topic", topic );
             }};
             Object message = this.extend(request, parameters);
-            Object trades = (this.watchPrivate(messageHash, message)).join();
+            Object trades = (this.watchPrivate(messageHash, (Map<String, Object>) (message))).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
@@ -1434,7 +1434,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         }});
     }
 
-    public void handleOrderUpdate(Client client, Object message)
+    public void handleOrderUpdate(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1476,9 +1476,9 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 Object tradeId = this.omitZero(this.safeString(data, "tradeId"));
                 if (!java.util.Objects.equals(tradeId, null))
                 {
-                    this.handleMyTrade(client, order);
+                    this.handleMyTrade(client, (Map<String, Object>) (order));
                 }
-                this.handleOrder(client, order, topic);
+                this.handleOrder(client, (Map<String, Object>) (order), (String) (topic));
             }
         } else
         {
@@ -1486,13 +1486,13 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             Object tradeId = this.omitZero(this.safeString(data, "tradeId"));
             if (!java.util.Objects.equals(tradeId, null))
             {
-                this.handleMyTrade(client, data);
+                this.handleMyTrade(client, (Map<String, Object>) (data));
             }
-            this.handleOrder(client, data, topic);
+            this.handleOrder(client, (Map<String, Object>) (data), (String) (topic));
         }
     }
 
-    public void handleOrder(Client client, Object message, Object topic)
+    public void handleOrder(Client client, Map<String, Object> message, String topic)
     {
         Object parsed = this.parseWsOrder(message);
         String symbol = this.safeString(parsed, "symbol");
@@ -1525,12 +1525,12 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             }
             Helpers.callDynamically(cachedOrders, "append", new Object[]{parsed});
             client.resolve(this.orders, topic);
-            Object messageHashSymbol = Helpers.add(Helpers.add(topic, ":"), symbol);
+            Object messageHashSymbol = Helpers.add((topic + ":"), symbol);
             client.resolve(this.orders, messageHashSymbol);
         }
     }
 
-    public void handleMyTrade(Client client, Object message)
+    public void handleMyTrade(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -1635,7 +1635,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 put( "event", "subscribe" );
                 put( "topic", "position" );
             }};
-            Object newPositions = (this.watchPrivateMultiple(messageHashes, request, parameters)).join();
+            Object newPositions = (this.watchPrivateMultiple(messageHashes, (Map<String, Object>) (request), parameters)).join();
             if (this.newUpdates)
             {
                 return newPositions;
@@ -1681,7 +1681,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 }
             }
             // don't remove the future from the .futures cache
-            if ((messageHash != null && ((Map<?, ?>)client.futures).containsKey(messageHash)))
+            if (((Map<?, ?>)client.futures).containsKey(messageHash))
             {
                 io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, messageHash);
                 ((io.github.ccxt.ws.Future)future).resolve(cache);
@@ -1692,7 +1692,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
 
     }
 
-    public void handlePositions(Client client, Object message)
+    public void handlePositions(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -1767,12 +1767,12 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 put( "topic", topic );
             }};
             Object message = this.extend(request, parameters);
-            return (this.watchPrivate(messageHash, message)).join();
+            return (this.watchPrivate(messageHash, (Map<String, Object>) (message))).join();
         }).thenApply(Balances::new);
 
     }
 
-    public void handleBalance(Client client, Object message)
+    public void handleBalance(Client client, Map<String, Object> message)
     {
         //
         //   {
@@ -1815,7 +1815,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             Object value = Helpers.GetValue(balances, key);
             String code = this.safeCurrencyCode(key);
             Object account = this.account();
-            if ((!java.util.Objects.equals(code, null)) && (Helpers.inOp(this.balance, code)))
+            if ((!java.util.Objects.equals(code, null)) && (((Map<?, ?>)this.balance).containsKey(code)))
             {
                 account = (this.balance == null ? null : ((Map<?, ?>)this.balance).get(code));
             }
@@ -1860,12 +1860,12 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 put( "topic", topic );
             }};
             Object message = this.extend(request, parameters);
-            return (this.watchPublic(topic, message)).join();
+            return (this.watchPublic(topic, (Map<String, Object>) (message))).join();
         }).thenApply(FundingRate::new);
 
     }
 
-    public void handleFundingRate(Client client, Object message)
+    public void handleFundingRate(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1889,12 +1889,12 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         client.resolve(fundingRate, messageHash);
     }
 
-    public Object handleErrorMessage(Client client, Object message)
+    public Object handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         // {"id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed."}
         //
-        if (!(Helpers.inOp(message, "success")))
+        if (!(message.containsKey("success")))
         {
             return false;
         }
@@ -1930,7 +1930,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         }
     }
 
-    public void handleUnSubscription(Client client, Object message)
+    public void handleUnSubscription(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1957,7 +1957,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
 
     public void handleMessage(Client client, Object message)
     {
-        if (java.util.Objects.equals(this.handleErrorMessage(client, message), true))
+        if (java.util.Objects.equals(this.handleErrorMessage(client, (Map<String, Object>) (message)), true))
         {
             return;
         }
@@ -2032,7 +2032,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         }};
     }
 
-    public CompletableFuture<Object> pong(Client client, Object message)
+    public CompletableFuture<Object> pong(Client client, Map<String, Object> message)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2045,12 +2045,12 @@ public class Woo extends io.github.ccxt.exchanges.Woo
 
     }
 
-    public void handlePing(Client client, Object message)
+    public void handlePing(Client client, Map<String, Object> message)
     {
         this.spawn(() -> { try { this.pong(client, message); } catch(Exception _e) { throw new RuntimeException(_e); } });
     }
 
-    public Object handlePong(Client client, Object message)
+    public Object handlePong(Client client, Map<String, Object> message)
     {
         //
         // { event: "pong", ts: 1657117026090 }
@@ -2059,7 +2059,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         return message;
     }
 
-    public Object handleSubscribe(Client client, Object message)
+    public Object handleSubscribe(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -2080,7 +2080,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         return message;
     }
 
-    public void handleAuth(Client client, Object message)
+    public void handleAuth(Client client, Map<String, Object> message)
     {
         //
         //     {

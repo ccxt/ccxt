@@ -2354,7 +2354,7 @@ public class Krakenfutures extends KrakenfuturesApi
 
     }
 
-    public String parseOrderType(Object orderType)
+    public String parseOrderType(String orderType)
     {
         Map<String, Object> typesMap = new HashMap<String, Object>() {{
             put( "lmt", "limit" );
@@ -2954,7 +2954,7 @@ public class Krakenfutures extends KrakenfuturesApi
             put( "lastTradeTimestamp", null );
             put( "lastUpdateTimestamp", Krakenfutures.this.safeInteger(finalDetails, "lastUpdateTimestamp", lastUpdateTimestamp) );
             put( "symbol", symbol );
-            put( "type", Krakenfutures.this.parseOrderType(finalType) );
+            put( "type", Krakenfutures.this.parseOrderType((String) (finalType)) );
             put( "timeInForce", finalTimeInForce );
             put( "postOnly", java.util.Objects.equals(finalType, "post") );
             put( "reduceOnly", Krakenfutures.this.safeBool2(finalDetails, "reduceOnly", "reduce_only") );
@@ -3246,7 +3246,7 @@ public class Krakenfutures extends KrakenfuturesApi
         }};
     }
 
-    public Object parseLedgerEntryType(Object type)
+    public Object parseLedgerEntryType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "futures trade", "trade" );
@@ -4408,7 +4408,7 @@ final Object finalI = i;
         {
             postData = ("json=" + this.json(parameters));
             body = postData;
-        } else if (((List<?>)Helpers.objectKeys(parameters)).size() > 0)
+        } else if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
         {
             if (((Map<?, ?>)parameters).containsKey("orderIds"))
             {

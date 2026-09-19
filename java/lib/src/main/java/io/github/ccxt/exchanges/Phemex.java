@@ -1519,7 +1519,7 @@ public class Phemex extends PhemexApi
         return new ArrayList<Object>(Arrays.asList(this.parseNumber(this.fromEp(this.safeString(bidask, priceKey), market)), this.parseNumber(amount)));
     }
 
-    public Object customParseOrderBook(Object orderbook, Object symbol, Object... optionalArgs)
+    public Object customParseOrderBook(Map<String, Object> orderbook, Object symbol, Object... optionalArgs)
     {
         Object timestamp = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object bidsKey = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "bids";
@@ -1618,7 +1618,7 @@ public class Phemex extends PhemexApi
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Object book = this.safeDict2(result, "book", "orderbook_p", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeIntegerProduct(result, "timestamp", 0.000001);
-            Object orderbook = this.customParseOrderBook(book, symbol, timestamp, "bids", "asks", 0, 1, market);
+            Object orderbook = this.customParseOrderBook((Map<String, Object>) (book), symbol, timestamp, "bids", "asks", 0, 1, market);
             ((Map<String, Object>)orderbook).put("nonce", this.safeInteger(result, "sequence"));
             return orderbook;
         }).thenApply(OrderBook::new);
@@ -2472,7 +2472,7 @@ public class Phemex extends PhemexApi
         }}, market);
     }
 
-    public Object parseSpotBalance(Object response)
+    public Object parseSpotBalance(Map<String, Object> response)
     {
         //
         //     {
@@ -2529,7 +2529,7 @@ public class Phemex extends PhemexApi
         return this.safeBalance(result);
     }
 
-    public Object parseSwapBalance(Object response)
+    public Object parseSwapBalance(Map<String, Object> response)
     {
         // usdt
         //   {
@@ -2771,9 +2771,9 @@ public class Phemex extends PhemexApi
             //
             if (java.util.Objects.equals(type, "swap"))
             {
-                return this.parseSwapBalance(response);
+                return this.parseSwapBalance((Map<String, Object>) (response));
             }
-            return this.parseSpotBalance(response);
+            return this.parseSpotBalance((Map<String, Object>) (response));
         }).thenApply(Balances::new);
 
     }
@@ -2952,7 +2952,7 @@ public class Phemex extends PhemexApi
         }}, market);
     }
 
-    public String parseOrderSide(Object side)
+    public String parseOrderSide(String side)
     {
         Map<String, Object> sides = new HashMap<String, Object>() {{
             put( "1", "buy" );
@@ -2961,7 +2961,7 @@ public class Phemex extends PhemexApi
         return this.safeString(sides, side, side);
     }
 
-    public Object parseSwapOrder(Object order, Object... optionalArgs)
+    public Object parseSwapOrder(Map<String, Object> order, Object... optionalArgs)
     {
         //
         //     {
@@ -3168,7 +3168,7 @@ public class Phemex extends PhemexApi
         Boolean hasPnl = (((Map<?, ?>)order).containsKey("closedPnl")) || (((Map<?, ?>)order).containsKey("closedPnlRv")) || (((Map<?, ?>)order).containsKey("totalPnlRv"));
         if ((java.util.Objects.equals(isSwap, true)) || Boolean.TRUE.equals(hasPnl))
         {
-            return this.parseSwapOrder(order, market);
+            return this.parseSwapOrder((Map<String, Object>) (order), market);
         }
         return this.parseSpotOrder((Map<String, Object>) (order), market);
     }
@@ -5302,7 +5302,7 @@ public class Phemex extends PhemexApi
 
     }
 
-    public String parseMarginStatus(Object status)
+    public String parseMarginStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "0", "ok" );

@@ -538,8 +538,8 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                     {
                         throw new BadRequest((((this.id + " createDepositAddress network not found for currency ") + currencyCode) + " please specify networkId in params")) ;
                     }
-                    Object defaultNetwork = this.findDefaultNetwork(networks);
-                    networkId = Helpers.GetValue(defaultNetwork, "id");
+                    Object defaultNetwork = this.findDefaultNetwork((Map<String, Object>) (networks));
+                    networkId = ((Map<String, Object>)defaultNetwork).get("id");
                 } else
                 {
                     networkId = this.networkCodeToId(network, currencyCode);
@@ -1118,7 +1118,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
     }
 
-    public Object findDefaultNetwork(Object networks)
+    public Object findDefaultNetwork(Map<String, Object> networks)
     {
         List<Object> networksArray = this.toArray(networks);
         for (var i = 0; i < ((List<?>)networksArray).size(); i++)
@@ -1177,15 +1177,15 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
     {
         Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
         Map<String, Object> result = new HashMap<String, Object>() {{}};
-        for (var i = 0; i < Helpers.getArrayLength(networks); i++)
+        for (var i = 0; i < ((List<?>)networks).size(); i++)
         {
-            Map<String, Object> network = this.extend(this.parseNetwork(Helpers.GetValue(networks, i)), parameters);
+            Map<String, Object> network = this.extend(this.parseNetwork((Map<String, Object>) (Helpers.GetValue(networks, i))), parameters);
             Helpers.addElementToObject(result, network.get("network"), network);
         }
         return result;
     }
 
-    public Object parseNetwork(Object network, Object... optionalArgs)
+    public Object parseNetwork(Map<String, Object> network, Object... optionalArgs)
     {
         //
         //    {

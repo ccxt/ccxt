@@ -483,7 +483,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
 
     }
 
-    public void handleTicker(Client client, Object message)
+    public void handleTicker(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -519,7 +519,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         //
         String marketType = this.getAccountTypeFromUrl(client.url);
         Object ticker = message;
-        Map<String, Object> parsed = (Map<String, Object>) this.parseWsTicker(ticker, marketType);
+        Map<String, Object> parsed = (Map<String, Object>) this.parseWsTicker((Map<String, Object>) (ticker), (String) (marketType));
         Object symbol = ((Map<String, Object>)parsed).get("symbol");
         String messageHash = ("ticker:" + symbol);
         if (!java.util.Objects.equals(symbol, null))
@@ -529,7 +529,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         }
     }
 
-    public Object parseWsTicker(Object message, Object marketType)
+    public Object parseWsTicker(Map<String, Object> message, String marketType)
     {
         String eventVar = this.safeString(message, "e");
         String marketId = this.safeString(message, "s");
@@ -686,7 +686,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
 
     }
 
-    public void handleBidAsk(Client client, Object message)
+    public void handleBidAsk(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -705,7 +705,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         Object data = message;
         String marketId = this.safeString(data, "s");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
-        Object ticker = this.parseWsBidAsk(data, market);
+        Object ticker = this.parseWsBidAsk((Map<String, Object>) (data), market);
         Object symbol = ((Map<String, Object>)ticker).get("symbol");
         if (!java.util.Objects.equals(symbol, null))
         {
@@ -715,7 +715,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         client.resolve(ticker, messageHash);
     }
 
-    public Object parseWsBidAsk(Object message, Object... optionalArgs)
+    public Object parseWsBidAsk(Map<String, Object> message, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = this.safeInteger(message, "T");
@@ -900,7 +900,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
 
     }
 
-    public void handleTrade(Client client, Object message)
+    public void handleTrade(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1057,13 +1057,13 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         String side = this.safeStringLower(trade, "S");
         String takerOrMaker = null;
         String orderId = this.safeString(trade, "i");
-        if (Helpers.inOp(trade, "m"))
+        if (((Map<?, ?>)trade).containsKey("m"))
         {
             if (java.util.Objects.equals(side, null))
             {
-                side = (((java.util.Objects.equals(Helpers.GetValue(trade, "m"), true)))) ? "sell" : "buy"; // this is reversed intentionally
+                side = (((java.util.Objects.equals(((Map<String, Object>)trade).get("m"), true)))) ? "sell" : "buy"; // this is reversed intentionally
             }
-            takerOrMaker = (((java.util.Objects.equals(Helpers.GetValue(trade, "m"), true)))) ? "maker" : "taker";
+            takerOrMaker = (((java.util.Objects.equals(((Map<String, Object>)trade).get("m"), true)))) ? "maker" : "taker";
         }
         Object fee = null;
         String feeCost = this.safeString(trade, "n");
@@ -1274,7 +1274,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
 
     }
 
-    public void handleOrderBook(Client client, Object message)
+    public void handleOrderBook(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1510,7 +1510,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
 
     }
 
-    public void handleOHLCV(Client client, Object message)
+    public void handleOHLCV(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1747,7 +1747,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
 
     public void setBalanceCache(Client client, Object type)
     {
-        if (((type != null && ((Map<?, ?>)client.subscriptions).containsKey(type))) && (Helpers.inOp(this.balance, type)))
+        if (((type != null && ((Map<?, ?>)client.subscriptions).containsKey(type))) && ((type != null && ((Map<?, ?>)this.balance).containsKey(type))))
         {
             return;
         }
@@ -1781,7 +1781,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             Object response = (this.fetchBalance((Object)(parameters))).join();
             Helpers.addElementToObject(this.balance, type, this.extend(response, this.safeDict(this.balance, type, new HashMap<String, Object>() {{}})));
             // don't remove the future from the .futures cache
-            if ((messageHash != null && ((Map<?, ?>)client.futures).containsKey(messageHash)))
+            if (((Map<?, ?>)client.futures).containsKey(messageHash))
             {
                 io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, messageHash);
                 future.resolve();
@@ -1792,7 +1792,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
 
     }
 
-    public void handleBalance(Client client, Object message)
+    public void handleBalance(Client client, Map<String, Object> message)
     {
         //
         // spot balance update
@@ -1854,7 +1854,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             Helpers.addElementToObject(this.balance, accountType, new HashMap<String, Object>() {{}});
         }
         Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(accountType)), "info", message);
-        message = this.safeDict(message, "a", message);
+        message = (Map<String, Object>) (this.safeDict(message, "a", message));
         List<Object> B = (List<Object>) this.safeList(message, "B", new ArrayList<Object>(Arrays.asList()));
         String wallet = this.safeString(this.options, "wallet", "wb");
         for (var i = 0; i < ((List<?>)B).size(); i++)
@@ -1978,7 +1978,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 }
             }
             // don't remove the future from the .futures cache
-            if ((messageHash != null && ((Map<?, ?>)client.futures).containsKey(messageHash)))
+            if (((Map<?, ?>)client.futures).containsKey(messageHash))
             {
                 io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, messageHash);
                 ((io.github.ccxt.ws.Future)future).resolve(cache);
@@ -1989,7 +1989,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
 
     }
 
-    public void handlePositions(Client client, Object message)
+    public void handlePositions(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -2034,7 +2034,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         for (var i = 0; i < ((List<?>)rawPositions).size(); i++)
         {
             Object rawPosition = (rawPositions == null || i < 0 || i >= rawPositions.size() ? null : rawPositions.get(i));
-            Map<String, Object> position = (Map<String, Object>) this.parseWsPosition(rawPosition);
+            Map<String, Object> position = (Map<String, Object>) this.parseWsPosition((Map<String, Object>) (rawPosition));
             Long timestamp = this.safeInteger(message, "E");
             Helpers.addElementToObject(position, "timestamp", timestamp);
             Helpers.addElementToObject(position, "datetime", this.iso8601(timestamp));
@@ -2055,7 +2055,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         }
     }
 
-    public Object parseWsPosition(Object position, Object... optionalArgs)
+    public Object parseWsPosition(Map<String, Object> position, Object... optionalArgs)
     {
         //
         //     {
@@ -2228,19 +2228,19 @@ public class Aster extends io.github.ccxt.exchanges.Aster
 
     }
 
-    public void handleOrderUpdate(Client client, Object message)
+    public void handleOrderUpdate(Client client, Map<String, Object> message)
     {
         Object rawOrder = this.safeDict(message, "o", message);
         String e = this.safeString(message, "e");
         if ((java.util.Objects.equals(e, "ORDER_TRADE_UPDATE")) || (java.util.Objects.equals(e, "ALGO_UPDATE")))
         {
-            message = this.safeDict(message, "o", message);
+            message = (Map<String, Object>) (this.safeDict(message, "o", message));
         }
-        this.handleOrder(client, rawOrder);
-        this.handleMyTrade(client, message);
+        this.handleOrder(client, (Map<String, Object>) (rawOrder));
+        this.handleMyTrade(client, (Map<String, Object>) (message));
     }
 
-    public void handleMyTrade(Client client, Object message)
+    public void handleMyTrade(Client client, Map<String, Object> message)
     {
         String messageHash = "myTrades";
         String executionType = this.safeString(message, "x");
@@ -2326,7 +2326,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         }
     }
 
-    public void handleOrder(Client client, Object message)
+    public void handleOrder(Client client, Map<String, Object> message)
     {
         //
         // spot
@@ -2403,7 +2403,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         //     }
         //
         String messageHash = "orders";
-        Object market = this.getMarketFromOrder(client, message);
+        Object market = this.getMarketFromOrder(client, (Map<String, Object>) (message));
         if (java.util.Objects.equals(this.orders, null))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -2502,17 +2502,17 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         }});
     }
 
-    public Object getMarketFromOrder(Client client, Object order)
+    public Object getMarketFromOrder(Client client, Map<String, Object> order)
     {
         String marketId = this.safeString(order, "s");
         String marketType = this.getAccountTypeFromUrl(client.url);
         return this.safeMarket(marketId, null, null, marketType);
     }
 
-    public void handleBalanceAndPosition(Client client, Object message)
+    public void handleBalanceAndPosition(Client client, Map<String, Object> message)
     {
-        this.handleBalance(client, message);
-        this.handlePositions(client, message);
+        this.handleBalance(client, (Map<String, Object>) (message));
+        this.handlePositions(client, (Map<String, Object>) (message));
     }
 
     public void handleMessage(Client client, Object message)

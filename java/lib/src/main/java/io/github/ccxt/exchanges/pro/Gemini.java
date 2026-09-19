@@ -203,7 +203,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         }}, market);
     }
 
-    public void handleTrade(Client client, Object message)
+    public void handleTrade(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -233,7 +233,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         client.resolve(stored, messageHash);
     }
 
-    public void handleTrades(Client client, Object message)
+    public void handleTrades(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -301,7 +301,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         {
             Long tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
             Map<String, Object> storesForSymbols = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < Helpers.getArrayLength(trades); i++)
+            for (var i = 0; i < ((List<?>)trades).size(); i++)
             {
                 Object marketId = Helpers.GetValue(Helpers.GetValue(trades, i), "symbol");
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(((String)marketId).toLowerCase());
@@ -375,7 +375,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
 
     }
 
-    public Object handleOHLCV(Client client, Object message)
+    public Object handleOHLCV(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -483,9 +483,9 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
 
     }
 
-    public void handleOrderBook(Client client, Object message)
+    public void handleOrderBook(Client client, Map<String, Object> message)
     {
-        Boolean isInitial = (Helpers.inOp(message, "auction_events")) && (Helpers.inOp(message, "trades")) && (Helpers.inOp(message, "changes"));
+        Boolean isInitial = (message.containsKey("auction_events")) && (message.containsKey("trades")) && (message.containsKey("changes"));
         List<Object> changes = (List<Object>) this.safeList(message, "changes", new ArrayList<Object>(Arrays.asList()));
         String marketId = this.safeStringLower(message, "symbol");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
@@ -593,7 +593,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         //     type: 'update'
         // }
         //
-        Object marketId = Helpers.GetValue(Helpers.GetValue(rawBidAskChanges, 0), "symbol");
+        Object marketId = Helpers.GetValue((rawBidAskChanges == null || 0 >= ((List<?>)rawBidAskChanges).size() ? null : ((List<?>)rawBidAskChanges).get(0)), "symbol");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(((String)marketId).toLowerCase());
         Object symbol = ((Map<String, Object>)market).get("symbol");
         if (!(((Map<?, ?>)this.bidsasks).containsKey(symbol)))
@@ -604,7 +604,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         Object currentBidAsk = Helpers.GetValue(this.bidsasks, symbol);
         String messageHash = ("bidsasks:" + symbol);
         // last update always overwrites the previous state and is the latest state
-        for (var i = 0; i < Helpers.getArrayLength(rawBidAskChanges); i++)
+        for (var i = 0; i < ((List<?>)rawBidAskChanges).size(); i++)
         {
             Object entry = Helpers.GetValue(rawBidAskChanges, i);
             String rawSide = this.safeString(entry, "side");
@@ -699,7 +699,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         //   },
         //   ...
         //
-        Object marketId = Helpers.GetValue(Helpers.GetValue(rawOrderBookChanges, 0), "symbol");
+        Object marketId = Helpers.GetValue((rawOrderBookChanges == null || 0 >= ((List<?>)rawOrderBookChanges).size() ? null : ((List<?>)rawOrderBookChanges).get(0)), "symbol");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(((String)marketId).toLowerCase());
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String messageHash = ("orderbook:" + symbol);
@@ -711,7 +711,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         Object bids = Helpers.GetValue(orderbook, "bids");
         Object asks = Helpers.GetValue(orderbook, "asks");
-        for (var i = 0; i < Helpers.getArrayLength(rawOrderBookChanges); i++)
+        for (var i = 0; i < ((List<?>)rawOrderBookChanges).size(); i++)
         {
             Object entry = Helpers.GetValue(rawOrderBookChanges, i);
             Double price = this.safeNumber(entry, "price");
@@ -735,7 +735,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         client.resolve(orderbook, messageHash);
     }
 
-    public void handleL2Updates(Client client, Object message)
+    public void handleL2Updates(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -774,8 +774,8 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         //         ]
         //     }
         //
-        this.handleOrderBook(client, message);
-        this.handleTrades(client, message);
+        this.handleOrderBook(client, (Map<String, Object>) (message));
+        this.handleTrades(client, (Map<String, Object>) (message));
     }
 
     /**
@@ -823,7 +823,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
 
     }
 
-    public Object handleHeartbeat(Client client, Object message)
+    public Object handleHeartbeat(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -838,7 +838,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         return message;
     }
 
-    public Object handleSubscription(Client client, Object message)
+    public Object handleSubscription(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -885,7 +885,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object orders = this.orders;
-        for (var i = 0; i < Helpers.getArrayLength(message); i++)
+        for (var i = 0; i < ((List<?>)message).size(); i++)
         {
             Map<String, Object> order = (Map<String, Object>) this.parseWsOrder(Helpers.GetValue(message, i));
             Helpers.callDynamically(orders, "append", new Object[]{order});
@@ -944,9 +944,9 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             put( "timestamp", timestamp );
             put( "datetime", Gemini.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
-            put( "status", Gemini.this.parseWsOrderStatus(status) );
+            put( "status", Gemini.this.parseWsOrderStatus((String) (status)) );
             put( "symbol", Gemini.this.safeSymbol(marketId, market) );
-            put( "type", Gemini.this.parseWsOrderType(typeId) );
+            put( "type", Gemini.this.parseWsOrderType((String) (typeId)) );
             put( "timeInForce", finalTimeInForce );
             put( "postOnly", finalPostOnly );
             put( "side", Gemini.this.safeString(order, "side") );
@@ -962,7 +962,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         }}, market);
     }
 
-    public String parseWsOrderStatus(Object status)
+    public String parseWsOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "accepted", "open" );
@@ -975,7 +975,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         return this.safeString(statuses, status, status);
     }
 
-    public String parseWsOrderType(Object type)
+    public String parseWsOrderType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "exchange limit", "limit" );
@@ -985,7 +985,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         return this.safeString(types, type, type);
     }
 
-    public void handleError(Client client, Object message)
+    public void handleError(Client client, Map<String, Object> message)
     {
         throw new ExchangeError((String)this.json(message)) ;
     }
@@ -1036,7 +1036,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         String reason = this.safeString(message, "reason");
         if (java.util.Objects.equals(reason, "error"))
         {
-            this.handleError(client, message);
+            this.handleError(client, (Map<String, Object>) (message));
         }
         Map<String, Object> methods = new HashMap<String, Object>() {{
             put( "l2_updates", "handleL2Updates");
@@ -1047,7 +1047,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         String type = this.safeString(message, "type", "");
         if (((String)type).indexOf("candles") >= 0)
         {
-            this.handleOHLCV(client, message);
+            this.handleOHLCV(client, (Map<String, Object>) (message));
             return;
         }
         Object method = this.safeValue(methods, type);

@@ -1766,7 +1766,7 @@ public class Bydfi extends BydfiApi
             List<Object> walletparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "editOrder", "wallet", wallet);
             wallet = ((List<Object>) walletparametersVariable).get(0);
             parameters = ((List<Object>) walletparametersVariable).get(1);
-            Helpers.addElementToObject(request, "wallet", wallet);
+            ((Map<String, Object>)request).put("wallet", wallet);
             Map<String, Object> response = (this.privatePostV1FapiTradeEditOrder(request)).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data);
@@ -3241,7 +3241,7 @@ public class Bydfi extends BydfiApi
             put( "timestamp", timestamp );
             put( "datetime", Bydfi.this.iso8601(timestamp) );
         }};
-        for (var i = 0; i < Helpers.getArrayLength(response); i++)
+        for (var i = 0; i < ((List<?>)response).size(); i++)
         {
             Object balance = Helpers.GetValue(response, i);
             String symbol = this.safeString(balance, "asset");

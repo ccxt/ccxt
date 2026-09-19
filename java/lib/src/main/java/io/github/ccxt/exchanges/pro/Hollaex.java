@@ -100,7 +100,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
 
     }
 
-    public void handleOrderBook(Client client, Object message)
+    public void handleOrderBook(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -189,7 +189,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
 
     }
 
-    public void handleTrades(Client client, Object message)
+    public void handleTrades(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -270,7 +270,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
 
     }
 
-    public void handleMyTrades(Client client, Object message, Object... optionalArgs)
+    public void handleMyTrades(Client client, Map<String, Object> message, Object... optionalArgs)
     {
         //
         // {
@@ -377,7 +377,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
 
     }
 
-    public void handleOrder(Client client, Object message, Object... optionalArgs)
+    public void handleOrder(Client client, Map<String, Object> message, Object... optionalArgs)
     {
         //
         //     {
@@ -504,7 +504,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
 
     }
 
-    public void handleBalance(Client client, Object message)
+    public void handleBalance(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -536,7 +536,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
             String currencyId = this.safeString(parts, 0);
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
-            if ((!java.util.Objects.equals(code, null)) && (Helpers.inOp(this.balance, code)))
+            if ((!java.util.Objects.equals(code, null)) && (((Map<?, ?>)this.balance).containsKey(code)))
             {
                 account = (this.balance == null ? null : ((Map<?, ?>)this.balance).get(code));
             }
@@ -728,7 +728,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         String content = this.safeString(message, "message");
         if (java.util.Objects.equals(content, "pong"))
         {
-            this.handlePong(client, message);
+            this.handlePong(client, (Map<String, Object>) (message));
             return;
         }
         Map<String, Object> methods = new HashMap<String, Object>() {{
@@ -754,7 +754,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         }};
     }
 
-    public Object handlePong(Client client, Object message)
+    public Object handlePong(Client client, Map<String, Object> message)
     {
         client.lastPong = ((Number)this.milliseconds()).longValue();
         return message;

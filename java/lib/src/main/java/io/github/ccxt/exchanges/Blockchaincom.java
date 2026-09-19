@@ -652,7 +652,7 @@ public class Blockchaincom extends BlockchaincomApi
 
     }
 
-    public String parseOrderState(Object state)
+    public String parseOrderState(String state)
     {
         Map<String, Object> states = new HashMap<String, Object>() {{
             put( "OPEN", "open" );
@@ -1173,7 +1173,7 @@ public class Blockchaincom extends BlockchaincomApi
 
     }
 
-    public String parseTransactionState(Object state)
+    public String parseTransactionState(String state)
     {
         Map<String, Object> states = new HashMap<String, Object>() {{
             put( "COMPLETED", "ok" );

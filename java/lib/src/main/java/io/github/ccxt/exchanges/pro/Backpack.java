@@ -356,7 +356,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
 
     }
 
-    public void handleTicker(Client client, Object message)
+    public void handleTicker(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -503,7 +503,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
 
     }
 
-    public void handleBidAsk(Client client, Object message)
+    public void handleBidAsk(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -524,13 +524,13 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         String marketId = this.safeString(data, "s");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         String symbol = this.safeSymbol(marketId, market);
-        Object parsedBidAsk = this.parseWsBidAsk(data, market);
+        Object parsedBidAsk = this.parseWsBidAsk((Map<String, Object>) (data), market);
         String messageHash = (("bidask" + ":") + symbol);
         Helpers.addElementToObject(this.bidsasks, symbol, parsedBidAsk);
         client.resolve(parsedBidAsk, messageHash);
     }
 
-    public Object parseWsBidAsk(Object ticker, Object... optionalArgs)
+    public Object parseWsBidAsk(Map<String, Object> ticker, Object... optionalArgs)
     {
         //
         //     {
@@ -711,7 +711,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
 
     }
 
-    public void handleOHLCV(Client client, Object message)
+    public void handleOHLCV(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -912,7 +912,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
 
     }
 
-    public void handleTrades(Client client, Object message)
+    public void handleTrades(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1136,7 +1136,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
 
     }
 
-    public void handleOrderBook(Client client, Object message)
+    public void handleOrderBook(Client client, Map<String, Object> message)
     {
         //
         // initial snapshot is fetched with ccxt's fetchOrderBook
@@ -1203,7 +1203,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
 
     public void handleBidAsks(Object bookSide, Object bidAsks)
     {
-        for (var i = 0; i < Helpers.getArrayLength(bidAsks); i++)
+        for (var i = 0; i < ((List<?>)bidAsks).size(); i++)
         {
             List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk(Helpers.GetValue(bidAsks, i));
             Helpers.callDynamically(bookSide, "storeArray", new Object[]{bidAsk});
@@ -1331,7 +1331,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
 
     }
 
-    public void handleOrder(Client client, Object message)
+    public void handleOrder(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1572,7 +1572,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
 
     }
 
-    public void handlePositions(Client client, Object message)
+    public void handlePositions(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1604,7 +1604,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             this.positions = new ArrayCache.ArrayCacheBySymbolById();
         }
         Object cache = this.positions;
-        Map<String, Object> parsedPosition = (Map<String, Object>) this.parseWsPosition(data);
+        Map<String, Object> parsedPosition = (Map<String, Object>) this.parseWsPosition((Map<String, Object>) (data));
         Long microseconds = this.safeInteger(data, "E", 0);
         Long timestamp = this.parseToInt(Helpers.divide(microseconds, 1000));
         Helpers.addElementToObject(parsedPosition, "timestamp", timestamp);
@@ -1615,7 +1615,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         client.resolve(new ArrayList<Object>(Arrays.asList(parsedPosition)), symbolSpecificMessageHash);
     }
 
-    public Object parseWsPosition(Object position, Object... optionalArgs)
+    public Object parseWsPosition(Map<String, Object> position, Object... optionalArgs)
     {
         //
         //     {
@@ -1700,7 +1700,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
 
     public void handleMessage(Client client, Object message)
     {
-        if (!java.util.Objects.equals(this.handleErrorMessage(client, message), true))
+        if (!java.util.Objects.equals(this.handleErrorMessage(client, (Map<String, Object>) (message)), true))
         {
             return;
         }
@@ -1708,29 +1708,29 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         String eventVar = this.safeString(data, "e");
         if (java.util.Objects.equals(eventVar, "ticker"))
         {
-            this.handleTicker(client, message);
+            this.handleTicker(client, (Map<String, Object>) (message));
         } else if (java.util.Objects.equals(eventVar, "bookTicker"))
         {
-            this.handleBidAsk(client, message);
+            this.handleBidAsk(client, (Map<String, Object>) (message));
         } else if (java.util.Objects.equals(eventVar, "kline"))
         {
-            this.handleOHLCV(client, message);
+            this.handleOHLCV(client, (Map<String, Object>) (message));
         } else if (java.util.Objects.equals(eventVar, "trade"))
         {
-            this.handleTrades(client, message);
+            this.handleTrades(client, (Map<String, Object>) (message));
         } else if (java.util.Objects.equals(eventVar, "depth"))
         {
-            this.handleOrderBook(client, message);
+            this.handleOrderBook(client, (Map<String, Object>) (message));
         } else if (java.util.Objects.equals(eventVar, "orderAccepted") || java.util.Objects.equals(eventVar, "orderUpdate") || java.util.Objects.equals(eventVar, "orderFill") || java.util.Objects.equals(eventVar, "orderCancelled") || java.util.Objects.equals(eventVar, "orderExpired") || java.util.Objects.equals(eventVar, "orderModified") || java.util.Objects.equals(eventVar, "triggerPlaced") || java.util.Objects.equals(eventVar, "triggerFailed"))
         {
-            this.handleOrder(client, message);
+            this.handleOrder(client, (Map<String, Object>) (message));
         } else if (java.util.Objects.equals(eventVar, "positionAdjusted") || java.util.Objects.equals(eventVar, "positionOpened") || java.util.Objects.equals(eventVar, "positionClosed") || java.util.Objects.equals(eventVar, "positionUpdated"))
         {
-            this.handlePositions(client, message);
+            this.handlePositions(client, (Map<String, Object>) (message));
         }
     }
 
-    public Object handleErrorMessage(Client client, Object message)
+    public Object handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //     {

@@ -425,7 +425,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
 
     }
 
-    public void handleOrderRequest(Client client, Object message)
+    public void handleOrderRequest(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -788,7 +788,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, "startTime"), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, "quantity")));
     }
 
-    public Object handleOHLCV(Client client, Object message)
+    public Object handleOHLCV(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -839,7 +839,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         return message;
     }
 
-    public Object handleTrade(Client client, Object message)
+    public Object handleTrade(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -957,7 +957,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         }}, market);
     }
 
-    public String parseStatus(Object status)
+    public String parseStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "NEW", "open" );
@@ -1024,7 +1024,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         }}, market);
     }
 
-    public Object handleOrder(Client client, Object message)
+    public Object handleOrder(Client client, Map<String, Object> message)
     {
         //
         // Order is created
@@ -1147,7 +1147,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                         Helpers.addElementToObject(Helpers.GetValue(previousOrder, "fee"), "cost", Precise.stringAdd(stringOrderCost, stringTradeCost));
                     }
                     String rawState = this.safeString(order, "state");
-                    String state = this.parseStatus(rawState);
+                    String state = this.parseStatus((String) (rawState));
                     ((Map<String, Object>)previousOrder).put("status", state);
                     // update the newUpdates count
                     Helpers.callDynamically(orders, "append", new Object[]{previousOrder});
@@ -1232,7 +1232,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             put( "average", null );
             put( "filled", filledAmount );
             put( "remaining", Poloniex.this.safeString(order, "remaining_size") );
-            put( "status", Poloniex.this.parseStatus(status) );
+            put( "status", Poloniex.this.parseStatus((String) (status)) );
             put( "fee", new HashMap<String, Object>() {{
                 put( "rate", null );
                 put( "cost", Poloniex.this.safeString(order, "tradeFee") );
@@ -1242,7 +1242,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         }});
     }
 
-    public Object handleTicker(Client client, Object message)
+    public Object handleTicker(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -1303,7 +1303,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         return message;
     }
 
-    public void handleOrderBook(Client client, Object message)
+    public void handleOrderBook(Client client, Map<String, Object> message)
     {
         //
         // snapshot
@@ -1406,7 +1406,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         }
     }
 
-    public void handleBalance(Client client, Object message)
+    public void handleBalance(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -1458,7 +1458,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             put( "timestamp", timestamp );
             put( "datetime", Poloniex.this.iso8601(timestamp) );
         }};
-        for (var i = 0; i < Helpers.getArrayLength(response); i++)
+        for (var i = 0; i < ((List<?>)response).size(); i++)
         {
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i);
             String currencyId = this.safeString(balance, "currency");
@@ -1478,7 +1478,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
     {
         // emulated using the orders' stream
         String messageHash = "myTrades";
-        Object symbol = Helpers.GetValue(parsedTrade, "symbol");
+        Object symbol = ((Map<String, Object>)parsedTrade).get("symbol");
         if (java.util.Objects.equals(this.myTrades, null))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -1487,7 +1487,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         Object trades = this.myTrades;
         Helpers.callDynamically(trades, "append", new Object[]{parsedTrade});
         client.resolve(trades, messageHash);
-        Object symbolMessageHash = Helpers.add((messageHash + ":"), symbol);
+        Object symbolMessageHash = ((messageHash + ":") + symbol);
         client.resolve(trades, symbolMessageHash);
     }
 
@@ -1498,7 +1498,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
 
     public void handleMessage(Client client, Object message)
     {
-        if (java.util.Objects.equals(this.handleErrorMessage(client, message), true))
+        if (java.util.Objects.equals(this.handleErrorMessage(client, (Map<String, Object>) (message)), true))
         {
             return;
         }
@@ -1537,10 +1537,10 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         Object method = (((java.util.Objects.equals(type, null)))) ? null : this.safeValue(methods, type);
         if (java.util.Objects.equals(type, "auth"))
         {
-            this.handleAuthenticate(client, message);
+            this.handleAuthenticate(client, (Map<String, Object>) (message));
         } else if (java.util.Objects.equals(type, null))
         {
-            this.handleOrderRequest(client, message);
+            this.handleOrderRequest(client, (Map<String, Object>) (message));
         } else
         {
             List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
@@ -1552,7 +1552,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         }
     }
 
-    public Object handleErrorMessage(Client client, Object message)
+    public Object handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -1618,7 +1618,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         return false;
     }
 
-    public Object handleAuthenticate(Client client, Object message)
+    public Object handleAuthenticate(Client client, Map<String, Object> message)
     {
         //
         //    {

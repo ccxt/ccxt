@@ -2537,7 +2537,7 @@ public class Digifinex extends DigifinexApi
                 {
                     throw new OrderNotFound((((this.id + " cancelOrder() ") + id) + " not found")) ;
                 }
-                Object orders = this.parseCancelOrders(response);
+                Object orders = this.parseCancelOrders((Map<String, Object>) (response));
                 return this.safeDict(orders, 0);
             } else
             {
@@ -2551,7 +2551,7 @@ public class Digifinex extends DigifinexApi
 
     }
 
-    public Object parseCancelOrders(Object response)
+    public Object parseCancelOrders(Map<String, Object> response)
     {
         List<Object> success = (List<Object>) this.safeList(response, "success", new ArrayList<Object>(Arrays.asList()));
         List<Object> error = (List<Object>) this.safeList(response, "error", new ArrayList<Object>(Arrays.asList()));
@@ -2619,7 +2619,7 @@ public class Digifinex extends DigifinexApi
             //         ]
             //     }
             //
-            return this.parseCancelOrders(response);
+            return this.parseCancelOrders((Map<String, Object>) (response));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -3553,7 +3553,7 @@ public class Digifinex extends DigifinexApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object addresses = this.parseDepositAddresses(data, new ArrayList<Object>(Arrays.asList(((Map<String, Object>)currency).get("code"))));
-            Object address = this.safeValue(addresses, code);
+            Map<String, Object> address = (Map<String, Object>) this.safeDict(addresses, code);
             if (java.util.Objects.equals(address, null))
             {
                 throw new InvalidAddress((((this.id + " fetchDepositAddress() did not return an address for ") + code) + " - create the deposit address in the user settings on the exchange website first.")) ;
@@ -3563,7 +3563,7 @@ public class Digifinex extends DigifinexApi
 
     }
 
-    public CompletableFuture<Object> fetchTransactionsByType(Object type2, Object... optionalArgs)
+    public CompletableFuture<Object> fetchTransactionsByType(String type2, Object... optionalArgs)
     {
         final Object type3 = type2;
         return BaseExchange.supplyAsync(() -> {
@@ -4158,7 +4158,7 @@ public class Digifinex extends DigifinexApi
         }};
     }
 
-    public Object parseBorrowRates(Object info, Object codeKey)
+    public Object parseBorrowRates(Object info, String codeKey)
     {
         //
         //     {
@@ -4169,7 +4169,7 @@ public class Digifinex extends DigifinexApi
         //     },
         //
         Map<String, Object> result = new HashMap<String, Object>() {{}};
-        for (var i = 0; i < Helpers.getArrayLength(info); i++)
+        for (var i = 0; i < ((List<?>)info).size(); i++)
         {
             Object item = Helpers.GetValue(info, i);
             String currency = this.safeString(item, codeKey);
@@ -4289,7 +4289,7 @@ public class Digifinex extends DigifinexApi
         }};
     }
 
-    public String parseFundingInterval(Object interval)
+    public String parseFundingInterval(String interval)
     {
         Map<String, Object> intervals = new HashMap<String, Object>() {{
             put( "3600000", "1h" );
@@ -5216,7 +5216,7 @@ final Object finalI = i;
             String code = this.safeCurrencyCode(currencyId);
             if ((!java.util.Objects.equals(code, null)) && ((java.util.Objects.equals(codes, null)) || Helpers.isTrue((this.inArray(code, codes)))))
             {
-                Object depositWithdrawFee = this.safeValue(depositWithdrawFees, code);
+                Map<String, Object> depositWithdrawFee = (Map<String, Object>) this.safeDict(depositWithdrawFees, code);
                 if (java.util.Objects.equals(depositWithdrawFee, null))
                 {
                     ((Map<String, Object>)depositWithdrawFees).put((String)code, this.depositWithdrawFee(new HashMap<String, Object>() {{}}));

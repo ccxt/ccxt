@@ -938,7 +938,7 @@ public class Gemini extends GeminiApi
 
     }
 
-    public Object parseMarketActive(Object status)
+    public Object parseMarketActive(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "open", true );

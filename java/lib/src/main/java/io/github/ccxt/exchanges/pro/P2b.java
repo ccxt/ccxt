@@ -354,7 +354,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
 
     }
 
-    public Object handleOHLCV(Client client, Object message)
+    public Object handleOHLCV(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -402,7 +402,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         return message;
     }
 
-    public Object handleTrade(Client client, Object message)
+    public Object handleTrade(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -446,7 +446,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         return message;
     }
 
-    public Object handleTicker(Client client, Object message)
+    public Object handleTicker(Client client, Map<String, Object> message)
     {
         //
         // state
@@ -507,7 +507,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         return message;
     }
 
-    public void handleOrderBook(Client client, Object message)
+    public void handleOrderBook(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -580,14 +580,14 @@ public class P2b extends io.github.ccxt.exchanges.P2b
 
     public void handleMessage(Client client, Object message)
     {
-        if (java.util.Objects.equals(this.handleErrorMessage(client, message), true))
+        if (java.util.Objects.equals(this.handleErrorMessage(client, (Map<String, Object>) (message)), true))
         {
             return;
         }
         String result = this.safeString(message, "result");
         if (java.util.Objects.equals(result, "pong"))
         {
-            this.handlePong(client, message);
+            this.handlePong(client, (Map<String, Object>) (message));
             return;
         }
         String method = this.safeString(message, "method");
@@ -605,7 +605,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         }
     }
 
-    public Object handleErrorMessage(Client client, Object message)
+    public Object handleErrorMessage(Client client, Map<String, Object> message)
     {
         String error = this.safeString(message, "error");
         if (!java.util.Objects.equals(error, null))
@@ -628,7 +628,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         }};
     }
 
-    public Object handlePong(Client client, Object message)
+    public Object handlePong(Client client, Map<String, Object> message)
     {
         //
         //    {

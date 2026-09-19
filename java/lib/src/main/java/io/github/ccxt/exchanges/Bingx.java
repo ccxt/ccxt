@@ -2150,7 +2150,7 @@ public class Bingx extends BingxApi
             put( "symbol", Bingx.this.safeSymbol(marketId, finalMarket, "-") );
             put( "order", Bingx.this.safeString2(trade, "orderId", "i") );
             put( "type", Bingx.this.safeStringLower(trade, "o") );
-            put( "side", Bingx.this.parseOrderSide(finalSide) );
+            put( "side", Bingx.this.parseOrderSide((String) (finalSide)) );
             put( "takerOrMaker", finalTakeOrMaker );
             put( "price", finalPrice );
             put( "amount", finalAmount );
@@ -4363,7 +4363,7 @@ public class Bingx extends BingxApi
 
     }
 
-    public String parseOrderSide(Object side)
+    public String parseOrderSide(String side)
     {
         Map<String, Object> sides = new HashMap<String, Object>() {{
             put( "BUY", "buy" );
@@ -4774,7 +4774,7 @@ public class Bingx extends BingxApi
             put( "type", Bingx.this.parseOrderType((String) (rawType)) );
             put( "timeInForce", Bingx.this.safeString(finalOrder, "timeInForce") );
             put( "postOnly", null );
-            put( "side", Bingx.this.parseOrderSide(finalSide) );
+            put( "side", Bingx.this.parseOrderSide((String) (finalSide)) );
             put( "price", Bingx.this.safeString2(finalOrder, "price", "p") );
             put( "triggerPrice", finalTriggerPrice );
             put( "stopLossPrice", finalStopLossPrice );
@@ -6907,11 +6907,11 @@ public class Bingx extends BingxApi
 
     }
 
-    public Object parseParams(Object parameters)
+    public Object parseParams(Map<String, Object> parameters)
     {
         // const sortedParams = this.keysort (params);
         Object copied = this.clone(parameters);
-        List<Object> rawKeys = Helpers.objectKeys(parameters);
+        List<Object> rawKeys = new ArrayList<Object>(parameters.keySet());
         Object keys = this.sort(rawKeys);
         for (var i = 0; i < Helpers.getArrayLength(keys); i++)
         {
@@ -7373,8 +7373,8 @@ public class Bingx extends BingxApi
                 throw new NotSupported((this.id + " editOrder() is not supported for inverse swap markets")) ;
             }
             Object request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
-            Helpers.addElementToObject(request, "cancelOrderId", id);
-            Helpers.addElementToObject(request, "cancelReplaceMode", "STOP_ON_FAILURE");
+            ((Map<String, Object>)request).put("cancelOrderId", id);
+            ((Map<String, Object>)request).put("cancelReplaceMode", "STOP_ON_FAILURE");
             Object response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
@@ -7548,10 +7548,10 @@ public class Bingx extends BingxApi
         }};
     }
 
-    public Object customEncode(Object parameters)
+    public Object customEncode(Map<String, Object> parameters)
     {
         // const sortedParams = this.keysort (params);
-        List<Object> rawKeys = Helpers.objectKeys(parameters);
+        List<Object> rawKeys = new ArrayList<Object>(parameters.keySet());
         Object keys = this.sort(rawKeys);
         Object adjustedValue = null;
         Object result = null;
@@ -7753,10 +7753,10 @@ final Object finalMarket = market;
             Object encodeRequest = null;
             if (Boolean.TRUE.equals(isJsonContentType))
             {
-                encodeRequest = this.customEncode(parameters);
+                encodeRequest = this.customEncode((Map<String, Object>) (parameters));
             } else
             {
-                parsedParams = this.parseParams(parameters);
+                parsedParams = this.parseParams((Map<String, Object>) (parameters));
                 encodeRequest = this.rawencode(parsedParams, true);
             }
             Object encodeRequestSafe = (((java.util.Objects.equals(encodeRequest, null)))) ? "" : encodeRequest;

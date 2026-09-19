@@ -111,7 +111,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
 
     }
 
-    public void handleOrderBook(Client client, Object message)
+    public void handleOrderBook(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -179,7 +179,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
 
     public void handleDeltas(Object bookside, Object deltas)
     {
-        for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
+        for (var i = 0; i < ((List<?>)deltas).size(); i++)
         {
             this.handleDelta(bookside, Helpers.GetValue(deltas, i));
         }
@@ -289,7 +289,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
 
     }
 
-    public void handleBalance(Client client, Object message)
+    public void handleBalance(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -400,7 +400,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
 
     }
 
-    public void handleMyTrades(Client client, Object message)
+    public void handleMyTrades(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -511,7 +511,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
 
     }
 
-    public void handlePositions(Client client, Object message)
+    public void handlePositions(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -577,7 +577,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         client.resolve(newPositions, "positions");
     }
 
-    public void handleOrders(Client client, Object message)
+    public void handleOrders(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -685,7 +685,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
 
     }
 
-    public void handleFundingRate(Client client, Object message)
+    public void handleFundingRate(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -699,14 +699,14 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         //     }
         //
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Object fundingRate = this.parseWsFundingRate(data, null, message);
+        Object fundingRate = this.parseWsFundingRate((Map<String, Object>) (data), null, message);
         String symbol = this.safeString(fundingRate, "symbol");
         Helpers.addElementToObject(this.fundingRates, symbol, fundingRate);
         String messageHash = ("fundingRate:" + symbol);
         client.resolve(fundingRate, messageHash);
     }
 
-    public Object parseWsFundingRate(Object fundingRate, Object... optionalArgs)
+    public Object parseWsFundingRate(Map<String, Object> fundingRate, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object message = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
@@ -775,7 +775,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
 
     }
 
-    public void handleMarkPrice(Client client, Object message)
+    public void handleMarkPrice(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -858,7 +858,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
 
     }
 
-    public void handleTrades(Client client, Object message)
+    public void handleTrades(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -982,7 +982,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
 
     }
 
-    public void handleOHLCV(Client client, Object message)
+    public void handleOHLCV(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1051,7 +1051,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         return null;
     }
 
-    public Object handleErrorMessage(Client client, Object message)
+    public Object handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //     { "status": "ERROR", "error": { "code": 1001, "message": "Market not found." } }
@@ -1071,7 +1071,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
 
     public void handleMessage(Client client, Object message)
     {
-        if (java.util.Objects.equals(this.handleErrorMessage(client, message), true))
+        if (java.util.Objects.equals(this.handleErrorMessage(client, (Map<String, Object>) (message)), true))
         {
             return;
         }
@@ -1083,10 +1083,10 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             String side = this.safeString(first, "S");
             if (!java.util.Objects.equals(side, null))
             {
-                this.handleTrades(client, message);
+                this.handleTrades(client, (Map<String, Object>) (message));
             } else
             {
-                this.handleOHLCV(client, message);
+                this.handleOHLCV(client, (Map<String, Object>) (message));
             }
         } else if (!java.util.Objects.equals(data, null))
         {
@@ -1095,33 +1095,33 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             Boolean isAccountUpdate = false;
             if ((java.util.Objects.equals(type, "ORDER")) || (Helpers.inOp(data, "orders")))
             {
-                this.handleOrders(client, message);
+                this.handleOrders(client, (Map<String, Object>) (message));
                 isAccountUpdate = true;
             }
             if ((java.util.Objects.equals(type, "TRADE")) || (Helpers.inOp(data, "trades")))
             {
-                this.handleMyTrades(client, message);
+                this.handleMyTrades(client, (Map<String, Object>) (message));
                 isAccountUpdate = true;
             }
             if ((java.util.Objects.equals(type, "POSITION")) || (Helpers.inOp(data, "positions")))
             {
-                this.handlePositions(client, message);
+                this.handlePositions(client, (Map<String, Object>) (message));
                 isAccountUpdate = true;
             }
             if ((java.util.Objects.equals(type, "BALANCE")) || (Helpers.inOp(data, "balance")) || (Helpers.inOp(data, "spotBalances")))
             {
-                this.handleBalance(client, message);
+                this.handleBalance(client, (Map<String, Object>) (message));
                 isAccountUpdate = true;
             }
             if (java.util.Objects.equals(type, "MP"))
             {
-                this.handleMarkPrice(client, message);
+                this.handleMarkPrice(client, (Map<String, Object>) (message));
             } else if (Helpers.inOp(data, "f"))
             {
-                this.handleFundingRate(client, message);
+                this.handleFundingRate(client, (Map<String, Object>) (message));
             } else if (!Boolean.TRUE.equals(isAccountUpdate))
             {
-                this.handleOrderBook(client, message);
+                this.handleOrderBook(client, (Map<String, Object>) (message));
             }
         }
     }

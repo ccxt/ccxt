@@ -577,7 +577,7 @@ public class Nado extends NadoApi
             ((Map<String, Object>)order).put("appendix", appendix);
             Object contracts = (this.queryContracts()).join();
             String chainId = this.safeString(contracts, "chain_id");
-            Object signature = this.signOrder(order, productId, chainId);
+            Object signature = this.signOrder((Map<String, Object>) (order), productId, chainId);
             ((Map<String, Object>)placeOrder).put("order", order);
             ((Map<String, Object>)placeOrder).put("signature", signature);
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("expiration", "nonce", "appendix", "reduceOnly", "postOnly", "timeInForce", "id", "spotLeverage", "spot_leverage", "triggerPrice", "stopPrice", "triggerDirection", "stopLossPrice", "takeProfitPrice")));
@@ -745,8 +745,8 @@ public class Nado extends NadoApi
             {
                 throw new ExchangeError((this.id + " editOrder() requires endpoint_addr from contracts query")) ;
             }
-            Object cancelSignature = this.signCancellation(cancelTx, chainId, endpointAddress);
-            Object orderSignature = this.signOrder(order, productId, chainId);
+            Object cancelSignature = this.signCancellation((Map<String, Object>) (cancelTx), chainId, endpointAddress);
+            Object orderSignature = this.signOrder((Map<String, Object>) (order), productId, chainId);
             Map<String, Object> placeOrder = new HashMap<String, Object>() {{
                 put( "product_id", productId );
                 put( "order", order );
@@ -895,7 +895,7 @@ public class Nado extends NadoApi
             {
                 throw new ExchangeError((this.id + " cancelAllOrders() requires endpoint_addr from contracts query")) ;
             }
-            Object signature = this.signCancellationProducts(tx, chainId, endpointAddress);
+            Object signature = this.signCancellationProducts((Map<String, Object>) (tx), chainId, endpointAddress);
             Long requestId = this.safeInteger(parameters, "id");
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("id")));
             Map<String, Object> cancelProductOrders = new HashMap<String, Object>() {{
@@ -1014,7 +1014,7 @@ public class Nado extends NadoApi
             {
                 throw new ExchangeError((this.id + " cancelOrders() requires endpoint_addr from contracts query")) ;
             }
-            Object signature = this.signCancellation(tx, chainId, endpointAddress);
+            Object signature = this.signCancellation((Map<String, Object>) (tx), chainId, endpointAddress);
             Long requestId = this.safeInteger(parameters, "id");
             String requiredUnfilledAmountRaw = this.safeString(parameters, "required_unfilled_amount");
             String requiredUnfilledAmount = this.safeString(parameters, "requiredUnfilledAmount");
@@ -1158,7 +1158,7 @@ public class Nado extends NadoApi
             Object contracts = (this.queryContracts()).join();
             String chainId = this.safeString(contracts, "chain_id");
             String endpointAddress = this.safeString(contracts, "endpoint_addr");
-            Object signature = this.signFetchTriggerOrders(tx, chainId, endpointAddress);
+            Object signature = this.signFetchTriggerOrders((Map<String, Object>) (tx), chainId, endpointAddress);
             ((Map<String, Object>)request).put("signature", signature);
             Map<String, Object> response = (this.triggerPrivatePostQuery(this.extend(request, parameters))).join();
             //
@@ -3466,7 +3466,7 @@ public class Nado extends NadoApi
         return Precise.stringDiv(Precise.stringMul(value, "1000000000000000000"), "1", 0);
     }
 
-    public Object parseX18(Object value)
+    public Object parseX18(String value)
     {
         if (java.util.Objects.equals(value, null))
         {
@@ -3601,7 +3601,7 @@ public class Nado extends NadoApi
         return Helpers.slice(padded, 0, length);
     }
 
-    public Object signOrder(Object order, Object productId, Object chainId)
+    public Object signOrder(Map<String, Object> order, Object productId, String chainId)
     {
         Map<String, Object> domain = new HashMap<String, Object>() {{
             put( "name", "Nado" );
@@ -3635,7 +3635,7 @@ public class Nado extends NadoApi
         return this.signHash(hash, (String) (this.privateKey));
     }
 
-    public Object signCancellation(Object cancellation, Object chainId, Object endpointAddress)
+    public Object signCancellation(Map<String, Object> cancellation, String chainId, String endpointAddress)
     {
         Map<String, Object> domain = new HashMap<String, Object>() {{
             put( "name", "Nado" );
@@ -3663,7 +3663,7 @@ public class Nado extends NadoApi
         return this.signHash(hash, (String) (this.privateKey));
     }
 
-    public Object signCancellationProducts(Object cancellation, Object chainId, Object endpointAddress)
+    public Object signCancellationProducts(Map<String, Object> cancellation, String chainId, String endpointAddress)
     {
         Map<String, Object> domain = new HashMap<String, Object>() {{
             put( "name", "Nado" );
@@ -3688,7 +3688,7 @@ public class Nado extends NadoApi
         return this.signHash(hash, (String) (this.privateKey));
     }
 
-    public Object signFetchTriggerOrders(Object tx, Object chainId, Object endpointAddress)
+    public Object signFetchTriggerOrders(Map<String, Object> tx, String chainId, String endpointAddress)
     {
         Map<String, Object> domain = new HashMap<String, Object>() {{
             put( "name", "Nado" );

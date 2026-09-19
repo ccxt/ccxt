@@ -117,7 +117,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         return "ping";
     }
 
-    public Object handlePong(Client client, Object message)
+    public Object handlePong(Client client, Map<String, Object> message)
     {
         client.lastPong = ((Number)this.milliseconds()).longValue();
         return message;
@@ -358,7 +358,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
 
     }
 
-    public void handleTicker(Client client, Object message)
+    public void handleTicker(Client client, Map<String, Object> message)
     {
         //
         //     a: 'PO',
@@ -532,7 +532,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
 
     }
 
-    public void handleTrades(Client client, Object message)
+    public void handleTrades(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -738,7 +738,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
 
     }
 
-    public void handleOHLCV(Client client, Object message)
+    public void handleOHLCV(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -909,7 +909,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         return new ArrayList<Object>(Arrays.asList(("_" + aggregation), parameters));
     }
 
-    public void handleOrderBook(Client client, Object message)
+    public void handleOrderBook(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -944,7 +944,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             if (java.util.Objects.equals(type, "f"))
             {
                 // snapshot
-                this.handleOrderBookSnapshot(client, message);
+                this.handleOrderBookSnapshot(client, (Map<String, Object>) (message));
             } else
             {
                 // cache the updates until the snapshot is received
@@ -952,13 +952,13 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             }
         } else
         {
-            this.handleOrderBookMessage(client, message, orderbook);
+            this.handleOrderBookMessage(client, (Map<String, Object>) (message), orderbook);
             String messageHash = (("orderbook" + "::") + symbol);
             client.resolve(orderbook, messageHash);
         }
     }
 
-    public void handleOrderBookSnapshot(Client client, Object message)
+    public void handleOrderBookSnapshot(Client client, Map<String, Object> message)
     {
         List<Object> entries = (List<Object>) this.safeList(message, "r", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> first = (Map<String, Object>) this.safeDict(entries, 0, new HashMap<String, Object>() {{}});
@@ -995,14 +995,14 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         for (var j = 0; j < ((List<?>)cachedMessages).size(); j++)
         {
             Object cachedMessage = Helpers.GetValue(cachedMessages, j);
-            this.handleOrderBookMessage(client, cachedMessage, orderbook);
+            this.handleOrderBookMessage(client, (Map<String, Object>) (cachedMessage), orderbook);
         }
         Helpers.addElementToObject(orderbook, "cache", new ArrayList<Object>(Arrays.asList()));
         String messageHash = (("orderbook" + "::") + symbol);
         client.resolve(orderbook, messageHash);
     }
 
-    public void handleOrderBookMessage(Client client, Object message, Object orderbook)
+    public void handleOrderBookMessage(Client client, Map<String, Object> message, Object orderbook)
     {
         //     {
         //         "a": "PMO",
@@ -1088,7 +1088,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
 
     }
 
-    public void handleMyTrade(Client client, Object message)
+    public void handleMyTrade(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1183,7 +1183,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
 
     }
 
-    public void handleOrder(Client client, Object message)
+    public void handleOrder(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1355,7 +1355,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
 
     }
 
-    public void handlePosition(Client client, Object message)
+    public void handlePosition(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1484,44 +1484,44 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
     {
         if (java.util.Objects.equals(message, "pong"))
         {
-            this.handlePong(client, message);
+            this.handlePong(client, (Map<String, Object>) (message));
         } else
         {
             String m = this.safeString(message, "m");
             if ((!java.util.Objects.equals(m, null)) && (!java.util.Objects.equals(m, "Success")))
             {
-                this.handleErrorMessage(client, message);
+                this.handleErrorMessage(client, (Map<String, Object>) (message));
             }
             String action = this.safeString2(message, "a", "action");
             if (java.util.Objects.equals(action, "RecvTopicAction"))
             {
-                this.handleSubscriptionStatus(client, message);
+                this.handleSubscriptionStatus(client, (Map<String, Object>) (message));
             } else if (java.util.Objects.equals(action, "PO"))
             {
-                this.handleTicker(client, message);
+                this.handleTicker(client, (Map<String, Object>) (message));
             } else if (java.util.Objects.equals(action, "PMT"))
             {
-                this.handleTrades(client, message);
+                this.handleTrades(client, (Map<String, Object>) (message));
             } else if (java.util.Objects.equals(action, "PK"))
             {
-                this.handleOHLCV(client, message);
+                this.handleOHLCV(client, (Map<String, Object>) (message));
             } else if (java.util.Objects.equals(action, "PMO"))
             {
-                this.handleOrderBook(client, message);
+                this.handleOrderBook(client, (Map<String, Object>) (message));
             } else if (java.util.Objects.equals(action, "PushTrade"))
             {
-                this.handleMyTrade(client, message);
+                this.handleMyTrade(client, (Map<String, Object>) (message));
             } else if (java.util.Objects.equals(action, "PushOrder"))
             {
-                this.handleOrder(client, message);
+                this.handleOrder(client, (Map<String, Object>) (message));
             } else if (java.util.Objects.equals(action, "PushPosition"))
             {
-                this.handlePosition(client, message);
+                this.handlePosition(client, (Map<String, Object>) (message));
             }
         }
     }
 
-    public void handleSubscriptionStatus(Client client, Object message)
+    public void handleSubscriptionStatus(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1564,7 +1564,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         this.cleanCache(subscription);
     }
 
-    public void handleErrorMessage(Client client, Object message)
+    public void handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //     {

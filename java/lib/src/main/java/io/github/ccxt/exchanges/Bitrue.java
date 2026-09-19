@@ -3133,7 +3133,7 @@ public class Bitrue extends BitrueApi
 
     }
 
-    public Object parseTransactionStatusByType(Object status, Object... optionalArgs)
+    public Object parseTransactionStatusByType(String status, Object... optionalArgs)
     {
         Object type = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Map<String, Object> statusesByType = new HashMap<String, Object>() {{
@@ -3798,7 +3798,7 @@ public class Bitrue extends BitrueApi
                 Object signMessage = Helpers.add(Helpers.add(timestamp, method), signPath);
                 if (java.util.Objects.equals(method, "GET"))
                 {
-                    List<Object> keys = Helpers.objectKeys(parameters);
+                    List<Object> keys = new ArrayList<Object>(((Map<String, Object>)parameters).keySet());
                     Object keysLength = ((List<?>)keys).size();
                     if (Helpers.isGreaterThan(keysLength, 0))
                     {
@@ -3831,7 +3831,7 @@ public class Bitrue extends BitrueApi
             }
         } else
         {
-            if (((List<?>)Helpers.objectKeys(parameters)).size() > 0)
+            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(parameters)));
             }
@@ -3938,7 +3938,7 @@ public class Bitrue extends BitrueApi
         Object config = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
         if ((((Map<?, ?>)config).containsKey("noSymbol")) && !(Helpers.inOp(parameters, "symbol")))
         {
-            return Helpers.GetValue(config, "noSymbol");
+            return ((Map<String, Object>)config).get("noSymbol");
         } else if ((((Map<?, ?>)config).containsKey("byLimit")) && (Helpers.inOp(parameters, "limit")))
         {
             Object limit = Helpers.GetValue(parameters, "limit");

@@ -1047,7 +1047,7 @@ public class Deribit extends DeribitApi
         }});
     }
 
-    public Object codeFromOptions(Object methodName, Object... optionalArgs)
+    public Object codeFromOptions(String methodName, Object... optionalArgs)
     {
         Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
         String defaultCode = this.safeString(this.options, "code", "BTC");
@@ -2452,7 +2452,7 @@ public class Deribit extends DeribitApi
         return this.safeString(timeInForces, timeInForce, timeInForce);
     }
 
-    public String parseOrderType(Object orderType)
+    public String parseOrderType(String orderType)
     {
         Map<String, Object> orderTypes = new HashMap<String, Object>() {{
             put( "stop_limit", "limit" );
@@ -4318,14 +4318,14 @@ public class Deribit extends DeribitApi
 
     }
 
-    public Object addPaginationCursorToResult(Object cursor, Object data)
+    public Object addPaginationCursorToResult(String cursor, Object data)
     {
         if (!java.util.Objects.equals(cursor, null))
         {
-            Object dataLength = Helpers.getArrayLength(data);
+            Object dataLength = ((List<?>)data).size();
             if (Helpers.isGreaterThan(dataLength, 0))
             {
-                Object first = Helpers.GetValue(data, 0);
+                Object first = (data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0));
                 Object last = Helpers.GetValue(data, Helpers.subtract(dataLength, 1));
                 Helpers.addElementToObject(first, "continuation", cursor);
                 Helpers.addElementToObject(last, "continuation", cursor);
@@ -4898,10 +4898,10 @@ public class Deribit extends DeribitApi
         Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
         Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
-        Object request = Helpers.add((Helpers.add(((("/" + "api/") + this.version) + "/"), api) + "/"), path);
+        Object request = (((((("/" + "api/") + this.version) + "/") + api) + "/") + path);
         if (java.util.Objects.equals(api, "public"))
         {
-            if (((List<?>)Helpers.objectKeys(parameters)).size() > 0)
+            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
             {
                 request = (request + ("?" + this.urlencode(parameters)));
             }
@@ -4912,7 +4912,7 @@ public class Deribit extends DeribitApi
             Object nonce = String.valueOf(this.nonce());
             Object timestamp = String.valueOf(this.milliseconds());
             String requestBody = "";
-            if (((List<?>)Helpers.objectKeys(parameters)).size() > 0)
+            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
             {
                 request = (request + ("?" + this.urlencode(parameters)));
             }

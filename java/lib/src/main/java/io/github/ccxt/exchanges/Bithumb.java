@@ -3886,7 +3886,7 @@ public class Bithumb extends BithumbApi
         }};
     }
 
-    public Object fixCommaNumber(Object numberStr)
+    public Object fixCommaNumber(String numberStr)
     {
         // some endpoints need this https://github.com/ccxt/ccxt/issues/11031
         if (java.util.Objects.equals(numberStr, null))
@@ -3894,7 +3894,7 @@ public class Bithumb extends BithumbApi
             return null;
         }
         Object finalNumberStr = numberStr;
-        while (Helpers.isGreaterThan(Helpers.getIndexOf(finalNumberStr, ","), -1))
+        while (Helpers.isGreaterThan(((String)finalNumberStr).indexOf(","), -1))
         {
             finalNumberStr = Helpers.replace(((String)finalNumberStr), ",", "");
         }

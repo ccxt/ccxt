@@ -898,7 +898,7 @@ public class Btcbox extends BtcboxApi
 
     }
 
-    public CompletableFuture<Object> fetchOrdersByType(Object type2, Object... optionalArgs)
+    public CompletableFuture<Object> fetchOrdersByType(String type2, Object... optionalArgs)
     {
         final Object type3 = type2;
         return BaseExchange.supplyAsync(() -> {
@@ -1015,7 +1015,7 @@ public class Btcbox extends BtcboxApi
         Object url = Helpers.add((Helpers.add(Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("rest"), "/"), this.version) + "/"), path);
         if (java.util.Objects.equals(api, "public"))
         {
-            if (((List<?>)Helpers.objectKeys(parameters)).size() > 0)
+            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(parameters)));
             }

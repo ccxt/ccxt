@@ -2183,7 +2183,7 @@ public class Bitstamp extends BitstampApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", fees );
         }};
-        for (var i = 0; i < Helpers.getArrayLength(fees); i++)
+        for (var i = 0; i < ((List<?>)fees).size(); i++)
         {
             Map<String, Object> fee = (Map<String, Object>) this.parseTradingFee((Map<String, Object>) (Helpers.GetValue(fees, i)));
             Object symbol = ((Map<String, Object>)fee).get("symbol");
@@ -3227,7 +3227,7 @@ public class Bitstamp extends BitstampApi
         }}, market);
     }
 
-    public Object parseLedgerEntryType(Object type)
+    public Object parseLedgerEntryType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "0", "transaction" );
@@ -3549,7 +3549,7 @@ public class Bitstamp extends BitstampApi
             Object name = this.getCurrencyName(code);
             // the per-currency implicit methods (privatePostBtcAddress etc.) all route
             // through request(), called here directly to avoid dynamic dispatch
-            Object response = (this.request(Helpers.add(name, "_address/"), "private", "POST", parameters)).join();
+            Object response = (this.request((name + "_address/"), "private", "POST", parameters)).join();
             String address = this.safeString(response, "address");
             String tag = this.safeString2(response, "memo_id", "destination_tag");
             this.checkAddress(address);
@@ -3618,7 +3618,7 @@ public class Bitstamp extends BitstampApi
                 ((Map<String, Object>)request).put("address", address);
                 // the per-currency implicit methods (privatePostBtcWithdrawal etc.) all
                 // route through request(), called here directly to avoid dynamic dispatch
-                response = (this.request(Helpers.add(name, "_withdrawal/"), "private", "POST", this.extend(request, parameters))).join();
+                response = (this.request((name + "_withdrawal/"), "private", "POST", this.extend(request, parameters))).join();
             } else
             {
                 currency = this.currency(code);

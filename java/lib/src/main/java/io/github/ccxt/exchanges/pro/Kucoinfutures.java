@@ -106,7 +106,7 @@ public class Kucoinfutures extends io.github.ccxt.exchanges.Kucoinfutures
                 put( "currency", Kucoinfutures.this.safeString(currency, "id") );
                 put( "amount", amountToPrecision );
             }};
-            String toAccountString = this.parseTransferType(toAccount);
+            String toAccountString = this.parseTransferType((String) (toAccount));
             Object response = null;
             if (java.util.Objects.equals(toAccountString, "TRADE") || java.util.Objects.equals(toAccountString, "MAIN"))
             {
@@ -114,7 +114,7 @@ public class Kucoinfutures extends io.github.ccxt.exchanges.Kucoinfutures
                 response = (this.futuresPrivatePostTransferOut(this.extend(request, parameters))).join();
             } else if (java.util.Objects.equals(toAccount, "future") || java.util.Objects.equals(toAccount, "swap") || java.util.Objects.equals(toAccount, "contract"))
             {
-                ((Map<String, Object>)request).put("payAccountType", this.parseTransferType(fromAccount));
+                ((Map<String, Object>)request).put("payAccountType", this.parseTransferType((String) (fromAccount)));
                 response = (this.futuresPrivatePostTransferIn(this.extend(request, parameters))).join();
             } else
             {
@@ -131,7 +131,7 @@ public class Kucoinfutures extends io.github.ccxt.exchanges.Kucoinfutures
 
     }
 
-    public String parseTransferType(Object transferType)
+    public String parseTransferType(String transferType)
     {
         Map<String, Object> transferTypes = new HashMap<String, Object>() {{
             put( "spot", "TRADE" );

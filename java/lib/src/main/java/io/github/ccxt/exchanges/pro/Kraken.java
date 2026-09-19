@@ -374,7 +374,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
 
     }
 
-    public void handleCreateEditOrder(Client client, Object message)
+    public void handleCreateEditOrder(Client client, Map<String, Object> message)
     {
         //
         //  createOrder
@@ -530,7 +530,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
 
     }
 
-    public void handleCancelOrder(Client client, Object message)
+    public void handleCancelOrder(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -585,7 +585,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
 
     }
 
-    public void handleCancelAllOrders(Client client, Object message)
+    public void handleCancelAllOrders(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -603,7 +603,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         client.resolve(message, reqId);
     }
 
-    public void handleTicker(Client client, Object message)
+    public void handleTicker(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -668,7 +668,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         client.resolve(result, messageHash);
     }
 
-    public void handleTrades(Client client, Object message)
+    public void handleTrades(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -707,7 +707,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         client.resolve(stored, messageHash);
     }
 
-    public void handleOHLCV(Client client, Object message)
+    public void handleOHLCV(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1065,7 +1065,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         return request;
     }
 
-    public Object handlePong(Client client, Object message)
+    public Object handlePong(Client client, Map<String, Object> message)
     {
         client.lastPong = ((Number)this.milliseconds()).longValue();
         return message;
@@ -1085,7 +1085,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
 
     }
 
-    public void handleHeartbeat(Client client, Object message)
+    public void handleHeartbeat(Client client, Map<String, Object> message)
     {
         //
         // every second (approx) if no other updates are sent
@@ -1096,7 +1096,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         client.resolve(message, eventVar);
     }
 
-    public void handleOrderBook(Client client, Object message)
+    public void handleOrderBook(Client client, Map<String, Object> message)
     {
         //
         // first message (snapshot)
@@ -1241,7 +1241,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
     public void customHandleDeltas(Object bookside, Object deltas)
     {
         // const sortOrder = (key === 'bids') ? true : false;
-        for (var j = 0; j < Helpers.getArrayLength(deltas); j++)
+        for (var j = 0; j < ((List<?>)deltas).size(); j++)
         {
             Object delta = Helpers.GetValue(deltas, j);
             Double price = this.safeNumber(delta, "price");
@@ -1252,7 +1252,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
 
     public Object formatNumber(Object data)
     {
-        List<Object> parts = (List<Object>) Helpers.split(data, ".");
+        Object parts = new ArrayList<Object>(Arrays.asList(((String)data).split(java.util.regex.Pattern.quote("."))));
         String integer = this.safeString(parts, 0);
         String decimals = this.safeString(parts, 1, "");
         Object joinedResult = Helpers.add(integer, decimals);
@@ -1268,7 +1268,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         return joinedResult;
     }
 
-    public Object handleSystemStatus(Client client, Object message)
+    public Object handleSystemStatus(Client client, Map<String, Object> message)
     {
         //
         // todo: answer the question whether handleSystemStatus should be renamed
@@ -1390,7 +1390,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             if (!java.util.Objects.equals(symbol, null))
             {
                 symbol = this.symbol(symbol);
-                messageHash = Helpers.add(messageHash, (":" + symbol));
+                messageHash = (messageHash + (":" + symbol));
             }
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "privateV2");
             Object requestId = this.requestId();
@@ -1442,7 +1442,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
 
     }
 
-    public void handleMyTrades(Client client, Object message, Object... optionalArgs)
+    public void handleMyTrades(Client client, Map<String, Object> message, Object... optionalArgs)
     {
         //
         //     {
@@ -1597,7 +1597,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
 
     }
 
-    public void handleOrders(Client client, Object message, Object... optionalArgs)
+    public void handleOrders(Client client, Map<String, Object> message, Object... optionalArgs)
     {
         //
         //     {
@@ -1829,7 +1829,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
 
     }
 
-    public void handleBalance(Client client, Object message)
+    public void handleBalance(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1896,7 +1896,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         return messageHash;
     }
 
-    public void handleSubscriptionStatus(Client client, Object message)
+    public void handleSubscriptionStatus(Client client, Map<String, Object> message)
     {
         //
         // public
@@ -1928,7 +1928,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         }
     }
 
-    public Object handleErrorMessage(Client client, Object message)
+    public Object handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1999,7 +1999,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 Helpers.callDynamically(this, method, new Object[] {client, message});
             }
         }
-        if (java.util.Objects.equals(this.handleErrorMessage(client, message), true))
+        if (java.util.Objects.equals(this.handleErrorMessage(client, (Map<String, Object>) (message)), true))
         {
             String eventVar = this.safeString2(message, "event", "method");
             Map<String, Object> methods = new HashMap<String, Object>() {{

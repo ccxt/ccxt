@@ -1553,12 +1553,12 @@ public class Blofin extends BlofinApi
 
     }
 
-    public Object parseBalanceByType(Object response)
+    public Object parseBalanceByType(Map<String, Object> response)
     {
         List<Object> data = (List<Object>) this.safeList(response, "data");
         if ((!java.util.Objects.equals(data, null)) && (data instanceof List))
         {
-            return this.parseFundingBalance(response);
+            return this.parseFundingBalance((Map<String, Object>) (response));
         } else
         {
             return this.parseBalance(response);
@@ -1628,7 +1628,7 @@ public class Blofin extends BlofinApi
         return this.safeBalance(result);
     }
 
-    public Object parseFundingBalance(Object response)
+    public Object parseFundingBalance(Map<String, Object> response)
     {
         //
         //  {
@@ -1713,7 +1713,7 @@ public class Blofin extends BlofinApi
             {
                 response = (this.privateGetAccountBalance(this.extend(request, parameters))).join();
             }
-            return this.parseBalanceByType(response);
+            return this.parseBalanceByType((Map<String, Object>) (response));
         }).thenApply(Balances::new);
 
     }
@@ -2844,7 +2844,7 @@ public class Blofin extends BlofinApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseLedgerEntryType(Object type)
+    public Object parseLedgerEntryType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "1", "transfer" );
@@ -2948,7 +2948,7 @@ public class Blofin extends BlofinApi
                 ids = this.parseIds(ids);
                 if (!java.util.Objects.equals(tpslIds, null))
                 {
-                    for (var i = 0; i < Helpers.getArrayLength(tpslIds); i++)
+                    for (var i = 0; i < ((List<?>)tpslIds).size(); i++)
                     {
     final Object finalTpslIds = tpslIds;
                         final Object finalI = i;
@@ -2980,7 +2980,7 @@ public class Blofin extends BlofinApi
                 }
             } else
             {
-                for (var i = 0; i < Helpers.getArrayLength(clientOrderIds); i++)
+                for (var i = 0; i < ((List<?>)clientOrderIds).size(); i++)
                 {
     final Object finalClientOrderIds = clientOrderIds;
                     final Object finalI = i;

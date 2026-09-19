@@ -514,7 +514,7 @@ public class Btcmarkets extends BtcmarketsApi
         return this.safeString(statuses, status, status);
     }
 
-    public String parseTransactionType(Object type)
+    public String parseTransactionType(String type)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "Withdraw", "withdrawal" );

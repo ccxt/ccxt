@@ -200,7 +200,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
 
     }
 
-    public void handleOHLCV(Client client, Object message)
+    public void handleOHLCV(Client client, Map<String, Object> message)
     {
         //
         // request
@@ -365,7 +365,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
 
     }
 
-    public void handleTicker(Client client, Object message)
+    public void handleTicker(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -536,7 +536,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
 
     }
 
-    public void handleTrades(Client client, Object message)
+    public void handleTrades(Client client, Map<String, Object> message)
     {
         //
         // request
@@ -691,7 +691,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
 
     }
 
-    public void handleOrders(Client client, Object message)
+    public void handleOrders(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -815,14 +815,14 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             put( "amount", Lbank.this.safeString2(orderUpdate, "amount", "orderAmt") );
             put( "remaining", Lbank.this.safeString(orderUpdate, "remainAmt") );
             put( "filled", Lbank.this.safeString(orderUpdate, "accAmt") );
-            put( "status", Lbank.this.parseWsOrderStatus(status) );
+            put( "status", Lbank.this.parseWsOrderStatus((String) (status)) );
             put( "fee", null );
             put( "cost", finalCost );
             put( "trades", null );
         }}, market);
     }
 
-    public String parseWsOrderStatus(Object status)
+    public String parseWsOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "-1", "canceled" );
@@ -866,7 +866,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
 
     }
 
-    public void handleBalance(Client client, Object message)
+    public void handleBalance(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -990,7 +990,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
 
     }
 
-    public void handleOrderBook(Client client, Object message)
+    public void handleOrderBook(Client client, Map<String, Object> message)
     {
         //
         // request
@@ -1067,7 +1067,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         client.resolve(orderbook, messageHash);
     }
 
-    public void handleErrorMessage(Client client, Object message)
+    public void handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -1114,7 +1114,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         String status = this.safeString(message, "status");
         if (java.util.Objects.equals(status, "error"))
         {
-            this.handleErrorMessage(client, message);
+            this.handleErrorMessage(client, (Map<String, Object>) (message));
             return;
         }
         String type = this.safeString2(message, "type", "action");

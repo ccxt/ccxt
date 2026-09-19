@@ -3267,7 +3267,7 @@ public class Kucoin extends KucoinApi
         return result;
     }
 
-    public Object isFuturesMethod(Object methodName, Object parameters)
+    public Object isFuturesMethod(Object methodName, Map<String, Object> parameters)
     {
         //
         // Helper
@@ -3284,7 +3284,7 @@ public class Kucoin extends KucoinApi
             Object keys = new ArrayList<Object>(accountsByType.keySet());
             throw new ExchangeError(((this.id + " isFuturesMethod() type must be one of ") + String.join(", ", (List<String>)keys))) ;
         }
-        parameters = this.omit(parameters, "type");
+        parameters = (Map<String, Object>) (this.omit(parameters, "type"));
         return (java.util.Objects.equals(type, "contract")) || (java.util.Objects.equals(type, "future")) || (java.util.Objects.equals(type, "futures"));  // * (type === 'futures') deprecated, use (type === 'future')
     }
 
@@ -4777,11 +4777,11 @@ public class Kucoin extends KucoinApi
 
     }
 
-    public Object handleTriggerPrices(Object parameters)
+    public Object handleTriggerPrices(Map<String, Object> parameters)
     {
-        Object triggerPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
-        Object stopLossPrice = this.safeValue(parameters, "stopLossPrice");
-        Object takeProfitPrice = this.safeValue(parameters, "takeProfitPrice");
+        Double triggerPrice = this.safeNumber2(parameters, "triggerPrice", "stopPrice");
+        Double stopLossPrice = this.safeNumber(parameters, "stopLossPrice");
+        Double takeProfitPrice = this.safeNumber(parameters, "takeProfitPrice");
         Boolean isStopLoss = !java.util.Objects.equals(stopLossPrice, null);
         Boolean isTakeProfit = !java.util.Objects.equals(takeProfitPrice, null);
         if ((Boolean.TRUE.equals(isStopLoss) && Boolean.TRUE.equals(isTakeProfit)) || ((!java.util.Objects.equals(triggerPrice, null)) && (!java.util.Objects.equals(stopLossPrice, null))) || ((!java.util.Objects.equals(triggerPrice, null)) && Boolean.TRUE.equals(isTakeProfit)))
@@ -4915,7 +4915,7 @@ public class Kucoin extends KucoinApi
             List<Object> useSyncparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "sync", false);
             useSync = ((List<Object>) useSyncparametersVariable).get(0);
             parameters = ((List<Object>) useSyncparametersVariable).get(1);
-            List<Object> triggerPricestopLossPricetakeProfitPriceVariable = (List<Object>) this.handleTriggerPrices(parameters);
+            List<Object> triggerPricestopLossPricetakeProfitPriceVariable = (List<Object>) this.handleTriggerPrices((Map<String, Object>) (parameters));
             var triggerPrice = ((List<Object>) triggerPricestopLossPricetakeProfitPriceVariable).get(0);
             var stopLossPrice = ((List<Object>) triggerPricestopLossPricetakeProfitPriceVariable).get(1);
             var takeProfitPrice = ((List<Object>) triggerPricestopLossPricetakeProfitPriceVariable).get(2);
@@ -5038,7 +5038,7 @@ public class Kucoin extends KucoinApi
             ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
         }
         String tradeType = this.safeString(parameters, "tradeType"); // keep it for backward compatibility
-        List<Object> triggerPricestopLossPricetakeProfitPriceVariable = (List<Object>) this.handleTriggerPrices(parameters);
+        List<Object> triggerPricestopLossPricetakeProfitPriceVariable = (List<Object>) this.handleTriggerPrices((Map<String, Object>) (parameters));
         var triggerPrice = ((List<Object>) triggerPricestopLossPricetakeProfitPriceVariable).get(0);
         var stopLossPrice = ((List<Object>) triggerPricestopLossPricetakeProfitPriceVariable).get(1);
         var takeProfitPrice = ((List<Object>) triggerPricestopLossPricetakeProfitPriceVariable).get(2);
@@ -5231,7 +5231,7 @@ public class Kucoin extends KucoinApi
                 ((Map<String, Object>)request).put("size", Helpers.parseInt(sizeString));
             }
         }
-        List<Object> triggerPricestopLossPricetakeProfitPriceVariable = (List<Object>) this.handleTriggerPrices(parameters);
+        List<Object> triggerPricestopLossPricetakeProfitPriceVariable = (List<Object>) this.handleTriggerPrices((Map<String, Object>) (parameters));
         var triggerPrice = ((List<Object>) triggerPricestopLossPricetakeProfitPriceVariable).get(0);
         var stopLossPrice = ((List<Object>) triggerPricestopLossPricetakeProfitPriceVariable).get(1);
         var takeProfitPrice = ((List<Object>) triggerPricestopLossPricetakeProfitPriceVariable).get(2);
@@ -5535,7 +5535,7 @@ public class Kucoin extends KucoinApi
             }
         }
         // handling with conditional orders
-        List<Object> triggerPricestopLossPricetakeProfitPriceVariable = (List<Object>) this.handleTriggerPrices(parameters);
+        List<Object> triggerPricestopLossPricetakeProfitPriceVariable = (List<Object>) this.handleTriggerPrices((Map<String, Object>) (parameters));
         var triggerPrice = ((List<Object>) triggerPricestopLossPricetakeProfitPriceVariable).get(0);
         var stopLossPrice = ((List<Object>) triggerPricestopLossPricetakeProfitPriceVariable).get(1);
         var takeProfitPrice = ((List<Object>) triggerPricestopLossPricetakeProfitPriceVariable).get(2);
@@ -6643,7 +6643,7 @@ public class Kucoin extends KucoinApi
      * Check fetchSpotOrdersByStatus(), fetchContractOrdersByStatus() and fetchUtaOrdersByStatus() for more details on the extra parameters that can be used in params
      * @returns An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> fetchOrdersByStatus(Object status, Object... optionalArgs)
+    public CompletableFuture<Object> fetchOrdersByStatus(String status, Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -6699,7 +6699,7 @@ public class Kucoin extends KucoinApi
                 return (this.fetchSpotOrdersByStatus(status, symbol, since, limit, parameters)).join();
             } else
             {
-                return (this.fetchContractOrdersByStatus(status, symbol, since, limit, parameters)).join();
+                return (this.fetchContractOrdersByStatus((String) (status), symbol, since, limit, parameters)).join();
             }
         });
 
@@ -6854,7 +6854,7 @@ public class Kucoin extends KucoinApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> fetchContractOrdersByStatus(Object status2, Object... optionalArgs)
+    public CompletableFuture<Object> fetchContractOrdersByStatus(String status2, Object... optionalArgs)
     {
         final Object status3 = status2;
         return BaseExchange.supplyAsync(() -> {
@@ -9868,7 +9868,7 @@ public class Kucoin extends KucoinApi
 
     }
 
-    public Object parseBalanceHelper(Object entry)
+    public Object parseBalanceHelper(Map<String, Object> entry)
     {
         Object account = this.account();
         ((Map<String, Object>)account).put("used", this.safeString2(entry, "holdBalance", "hold"));
@@ -10063,11 +10063,11 @@ public class Kucoin extends KucoinApi
                     String quoteCode = this.safeCurrencyCode(this.safeString(quote, "currency"));
                     if (!java.util.Objects.equals(baseCode, null))
                     {
-                        result = this.mergeBalanceAccount(result, baseCode, this.parseBalanceHelper(base));
+                        result = this.mergeBalanceAccount(result, baseCode, this.parseBalanceHelper((Map<String, Object>) (base)));
                     }
                     if (!java.util.Objects.equals(quoteCode, null))
                     {
-                        result = this.mergeBalanceAccount(result, quoteCode, this.parseBalanceHelper(quote));
+                        result = this.mergeBalanceAccount(result, quoteCode, this.parseBalanceHelper((Map<String, Object>) (quote)));
                     }
                 }
             } else if (Boolean.TRUE.equals(cross))
@@ -10081,7 +10081,7 @@ public class Kucoin extends KucoinApi
                     String codeInner = this.safeCurrencyCode(currencyId);
                     if (!java.util.Objects.equals(codeInner, null))
                     {
-                        ((Map<String, Object>)result).put((String)codeInner, this.parseBalanceHelper(balance));
+                        ((Map<String, Object>)result).put((String)codeInner, this.parseBalanceHelper((Map<String, Object>) (balance)));
                     }
                 }
             } else
@@ -10313,7 +10313,7 @@ public class Kucoin extends KucoinApi
                         String currencyCode = this.safeCurrencyCode(currencyId);
                         if (!java.util.Objects.equals(currencyCode, null))
                         {
-                            result = this.mergeBalanceAccount(result, currencyCode, this.parseBalanceHelper(currencyEntry));
+                            result = this.mergeBalanceAccount(result, currencyCode, this.parseBalanceHelper((Map<String, Object>) (currencyEntry)));
                         }
                     }
                 }
@@ -10328,7 +10328,7 @@ public class Kucoin extends KucoinApi
                     String currencyCode = this.safeCurrencyCode(currencyId);
                     if (!java.util.Objects.equals(currencyCode, null))
                     {
-                        ((Map<String, Object>)result).put((String)currencyCode, this.parseBalanceHelper(currencyEntry));
+                        ((Map<String, Object>)result).put((String)currencyCode, this.parseBalanceHelper((Map<String, Object>) (currencyEntry)));
                     }
                 }
             }
@@ -10717,7 +10717,7 @@ public class Kucoin extends KucoinApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseLedgerEntryType(Object type)
+    public Object parseLedgerEntryType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "Assets Transferred in After Upgrading", "transfer" );
@@ -10765,7 +10765,7 @@ public class Kucoin extends KucoinApi
         return this.safeString(types, ((String)type), type);
     }
 
-    public String parseLedgerDirection(Object direction)
+    public String parseLedgerDirection(String direction)
     {
         Map<String, Object> directions = new HashMap<String, Object>() {{
             put( "in", "in" );
@@ -10778,7 +10778,7 @@ public class Kucoin extends KucoinApi
         return this.safeString(directions, direction, direction);
     }
 
-    public String parseLedgerStatus(Object status)
+    public String parseLedgerStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "Completed", "ok" );
@@ -11581,7 +11581,7 @@ public class Kucoin extends KucoinApi
         //     ]
         //
         Map<String, Object> borrowRateHistories = new HashMap<String, Object>() {{}};
-        for (var i = 0; i < Helpers.getArrayLength(response); i++)
+        for (var i = 0; i < ((List<?>)response).size(); i++)
         {
             Object item = Helpers.GetValue(response, i);
             String code = this.safeCurrencyCode(this.safeString(item, "currency"));
@@ -12335,7 +12335,7 @@ public class Kucoin extends KucoinApi
         }};
     }
 
-    public String parseFundingInterval(Object interval)
+    public String parseFundingInterval(String interval)
     {
         Map<String, Object> intervals = new HashMap<String, Object>() {{
             put( "3600000", "1h" );

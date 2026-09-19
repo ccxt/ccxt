@@ -127,7 +127,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
 
     }
 
-    public void handleBalance(Client client, Object message)
+    public void handleBalance(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -199,7 +199,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         //     }]
         //
         Helpers.addElementToObject(this.balance, "info", balances);
-        for (var i = 0; i < Helpers.getArrayLength(balances); i++)
+        for (var i = 0; i < ((List<?>)balances).size(); i++)
         {
             Object balance = Helpers.GetValue(balances, i);
             String currencyId = this.safeString(balance, "a");
@@ -278,7 +278,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
 
     }
 
-    public void handleOrder(Client client, Object message)
+    public void handleOrder(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -358,7 +358,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             put( "datetime", Bitrue.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", Bitrue.this.safeInteger(order, "T") );
             put( "symbol", Bitrue.this.safeSymbol(marketId, market) );
-            put( "type", Bitrue.this.parseWsOrderType(typeId) );
+            put( "type", Bitrue.this.parseWsOrderType((String) (typeId)) );
             put( "timeInForce", null );
             put( "postOnly", null );
             put( "side", side );
@@ -369,7 +369,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             put( "average", null );
             put( "filled", Bitrue.this.safeString(order, "z") );
             put( "remaining", null );
-            put( "status", Bitrue.this.parseWsOrderStatus(statusId) );
+            put( "status", Bitrue.this.parseWsOrderStatus((String) (statusId)) );
             put( "fee", new HashMap<String, Object>() {{
                 put( "currency", Bitrue.this.safeCurrencyCode(feeCurrencyId) );
                 put( "cost", Bitrue.this.safeNumber(order, "n") );
@@ -424,7 +424,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
 
     }
 
-    public void handleOrderBook(Client client, Object message)
+    public void handleOrderBook(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -525,7 +525,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
     public Object parseContractBidsAsks(Object bidsAsks, Object symbol)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < Helpers.getArrayLength(bidsAsks); i++)
+        for (var i = 0; i < ((List<?>)bidsAsks).size(); i++)
         {
             Object level = Helpers.GetValue(bidsAsks, i);
             Double price = this.safeNumber(level, 0);
@@ -604,7 +604,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
 
     }
 
-    public void handleTrades(Client client, Object message)
+    public void handleTrades(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -634,7 +634,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         {
             return;
         }
-        Object symbol = Helpers.GetValue(market, "symbol");
+        Object symbol = ((Map<String, Object>)market).get("symbol");
         Map<String, Object> tick = (Map<String, Object>) this.safeDict(message, "tick", new HashMap<String, Object>() {{}});
         List<Object> data = (List<Object>) this.safeList(tick, "data", new ArrayList<Object>(Arrays.asList()));
         Boolean appended = false;
@@ -653,7 +653,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         }
         if (Boolean.TRUE.equals(appended))
         {
-            String messageHash = Helpers.add("trades:", symbol);
+            String messageHash = ("trades:" + symbol);
             client.resolve(stored, messageHash);
         }
     }
@@ -745,7 +745,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
 
     }
 
-    public void handleOHLCV(Client client, Object message)
+    public void handleOHLCV(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -773,7 +773,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         {
             return;
         }
-        Object symbol = Helpers.GetValue(market, "symbol");
+        Object symbol = ((Map<String, Object>)market).get("symbol");
         String wsInterval = this.safeString(parts, 4);
         Map<String, Object> futuresTimeframes = (Map<String, Object>) this.safeDict(this.options, "futuresTimeframes", new HashMap<String, Object>() {{}});
         Object timeframe = this.findTimeframe(wsInterval, futuresTimeframes);
@@ -783,18 +783,18 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             return;
         }
         Object parsed = this.parseWsOHLCV(tick, market);
-        if (!((symbol != null && ((Map<?, ?>)this.ohlcvs).containsKey(symbol))))
+        if (!(((Map<?, ?>)this.ohlcvs).containsKey(symbol)))
         {
             Helpers.addElementToObject(this.ohlcvs, symbol, new HashMap<String, Object>() {{}});
         }
-        if (!(((Map<?, ?>)(symbol == null ? null : ((Map<?, ?>)this.ohlcvs).get(symbol))).containsKey(((String)timeframe))))
+        if (!(((Map<?, ?>)((Map<?, ?>)this.ohlcvs).get(symbol)).containsKey(((String)timeframe))))
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-            Helpers.addElementToObject((symbol == null ? null : ((Map<?, ?>)this.ohlcvs).get(symbol)), ((String)timeframe), new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
+            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)timeframe), new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
         }
-        Object stored = Helpers.GetValue((symbol == null ? null : ((Map<?, ?>)this.ohlcvs).get(symbol)), ((String)timeframe));
+        Object stored = Helpers.GetValue(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)timeframe));
         Helpers.callDynamically(stored, "append", new Object[]{parsed});
-        String messageHash = ((Helpers.add("ohlcv:", symbol) + ":") + timeframe);
+        String messageHash = ((("ohlcv:" + symbol) + ":") + timeframe);
         client.resolve(stored, messageHash);
     }
 
@@ -857,7 +857,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
 
     }
 
-    public void handleTicker(Client client, Object message)
+    public void handleTicker(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -883,20 +883,20 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         {
             return;
         }
-        Object symbol = Helpers.GetValue(market, "symbol");
+        Object symbol = ((Map<String, Object>)market).get("symbol");
         Map<String, Object> tick = (Map<String, Object>) this.safeDict(message, "tick");
         if (java.util.Objects.equals(tick, null))
         {
             return;
         }
         Long timestamp = this.safeInteger(message, "ts");
-        Map<String, Object> parsed = (Map<String, Object>) this.parseWsTicker(tick, market, timestamp);
+        Map<String, Object> parsed = (Map<String, Object>) this.parseWsTicker((Map<String, Object>) (tick), market, timestamp);
         Helpers.addElementToObject(this.tickers, symbol, parsed);
-        String messageHash = Helpers.add("ticker:", symbol);
+        String messageHash = ("ticker:" + symbol);
         client.resolve(parsed, messageHash);
     }
 
-    public Object parseWsTicker(Object tick, Object market, Object... optionalArgs)
+    public Object parseWsTicker(Map<String, Object> tick, Object market, Object... optionalArgs)
     {
         Object timestamp = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object symbol = Helpers.GetValue(market, "symbol");
@@ -931,7 +931,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         }}, market);
     }
 
-    public String parseWsOrderType(Object typeId)
+    public String parseWsOrderType(String typeId)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "1", "limit" );
@@ -941,7 +941,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         return this.safeString(types, typeId, typeId);
     }
 
-    public String parseWsOrderStatus(Object status)
+    public String parseWsOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "0", "open" );
@@ -954,12 +954,12 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         return this.safeString(statuses, status, status);
     }
 
-    public void handlePing(Client client, Object message)
+    public void handlePing(Client client, Map<String, Object> message)
     {
         this.spawn(() -> { try { this.pong(client, message); } catch(Exception _e) { throw new RuntimeException(_e); } });
     }
 
-    public CompletableFuture<Object> pong(Client client, Object message)
+    public CompletableFuture<Object> pong(Client client, Map<String, Object> message)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -981,25 +981,25 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
 
     public void handleMessage(Client client, Object message)
     {
-        if (Helpers.inOp(message, "channel"))
+        if (((Map<?, ?>)message).containsKey("channel"))
         {
             String channel = this.safeString(message, "channel");
             if (Helpers.isGreaterThan(((String)channel).indexOf("_depth_step"), -1))
             {
-                this.handleOrderBook(client, message);
+                this.handleOrderBook(client, (Map<String, Object>) (message));
             } else if (Helpers.isGreaterThan(((String)channel).indexOf("_trade_ticker"), -1))
             {
-                this.handleTrades(client, message);
+                this.handleTrades(client, (Map<String, Object>) (message));
             } else if (Helpers.isGreaterThan(((String)channel).indexOf("_kline_"), -1))
             {
-                this.handleOHLCV(client, message);
+                this.handleOHLCV(client, (Map<String, Object>) (message));
             } else if (Helpers.isGreaterThan(((String)channel).indexOf("_ticker"), -1))
             {
-                this.handleTicker(client, message);
+                this.handleTicker(client, (Map<String, Object>) (message));
             }
-        } else if (Helpers.inOp(message, "ping"))
+        } else if (((Map<?, ?>)message).containsKey("ping"))
         {
-            this.handlePing(client, message);
+            this.handlePing(client, (Map<String, Object>) (message));
         } else
         {
             String eventVar = this.safeString(message, "e");

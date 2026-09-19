@@ -2387,7 +2387,7 @@ public class Toobit extends ToobitApi
             put( "lastUpdateTimestamp", Toobit.this.safeInteger(order, "updateTime") );
             put( "status", Toobit.this.parseOrderStatus(Toobit.this.safeString(order, "status")) );
             put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
-            put( "type", Toobit.this.parseOrderType(finalRawType) );
+            put( "type", Toobit.this.parseOrderType((String) (finalRawType)) );
             put( "timeInForce", Toobit.this.safeString(order, "timeInForce") );
             put( "postOnly", (java.util.Objects.equals(finalRawType, "LIMIT_MAKER")) );
             put( "side", finalRawSideLower );
@@ -2425,7 +2425,7 @@ public class Toobit extends ToobitApi
         return this.safeString(statuses, status, status);
     }
 
-    public String parseOrderType(Object status)
+    public String parseOrderType(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "MARKET", "market" );
@@ -3094,7 +3094,7 @@ public class Toobit extends ToobitApi
         }}, currency);
     }
 
-    public String parseLedgerType(Object type)
+    public String parseLedgerType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "USER_ACCOUNT_TRANSFER", "transfer" );
@@ -3200,7 +3200,7 @@ public class Toobit extends ToobitApi
             Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
             Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            return (this.fetchDepositsOrWithdrawalsHelper("deposits", code, since, limit, parameters)).join();
+            return (this.fetchDepositsOrWithdrawalsHelper("deposits", (String) (code), since, limit, parameters)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -3225,12 +3225,12 @@ public class Toobit extends ToobitApi
             Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
             Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            return (this.fetchDepositsOrWithdrawalsHelper("withdrawals", code, since, limit, parameters)).join();
+            return (this.fetchDepositsOrWithdrawalsHelper("withdrawals", (String) (code), since, limit, parameters)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
 
-    public CompletableFuture<Object> fetchDepositsOrWithdrawalsHelper(Object type2, Object code2, Object since2, Object limit2, Object... optionalArgs)
+    public CompletableFuture<Object> fetchDepositsOrWithdrawalsHelper(String type2, String code2, Object since2, Object limit2, Object... optionalArgs)
     {
         final Object type3 = type2;
         final Object code3 = code2;

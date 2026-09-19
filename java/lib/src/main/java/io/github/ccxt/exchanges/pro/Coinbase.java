@@ -488,7 +488,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
 
     }
 
-    public void handleTickers(Client client, Object message)
+    public void handleTickers(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -926,7 +926,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
 
     }
 
-    public void handleTrade(Client client, Object message)
+    public void handleTrade(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -989,7 +989,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         this.tryResolveUsdc(client, messageHash, tradesArray);
     }
 
-    public void handleOrder(Client client, Object message)
+    public void handleOrder(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -1133,7 +1133,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         }
     }
 
-    public void handleOrderBook(Client client, Object message)
+    public void handleOrderBook(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -1208,7 +1208,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         }
     }
 
-    public Object handleSubscriptionStatus(Client client, Object message)
+    public Object handleSubscriptionStatus(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1251,7 +1251,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         return message;
     }
 
-    public Object handleHeartbeats(Client client, Object message)
+    public Object handleHeartbeats(Client client, Map<String, Object> message)
     {
         // although the subscription takes a product_ids parameter (i.e. symbol),
         // there is no (clear) way of mapping the message back to the symbol.

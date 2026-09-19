@@ -142,7 +142,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         //     ]
         //
         String topic = this.safeString(message, "topic");
-        if (java.util.Objects.equals(this.handleErrorMessage(client, message), true))
+        if (java.util.Objects.equals(this.handleErrorMessage(client, (Map<String, Object>) (message)), true))
         {
             return;
         }
@@ -271,7 +271,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
 
     }
 
-    public void handleTrades(Client client, Object message)
+    public void handleTrades(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -419,7 +419,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
 
     }
 
-    public void handleOHLCV(Client client, Object message)
+    public void handleOHLCV(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -575,7 +575,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
 
     }
 
-    public void handleTickers(Client client, Object message)
+    public void handleTickers(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -721,7 +721,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
 
     }
 
-    public void handleOrderBook(Client client, Object message)
+    public void handleOrderBook(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -747,7 +747,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         Boolean isSnapshot = (Boolean) this.safeBool(message, "f", false);
         if (java.util.Objects.equals(isSnapshot, true))
         {
-            this.setOrderBookSnapshot(client, message, "diffDepth");
+            this.setOrderBookSnapshot(client, (Map<String, Object>) (message), "diffDepth");
             return;
         }
         String marketId = this.safeString(message, "symbol");
@@ -781,7 +781,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         Helpers.callDynamically(bookside, "storeArray", new Object[]{bidAsk});
     }
 
-    public void handleOrderBookPartialSnapshot(Client client, Object message)
+    public void handleOrderBookPartialSnapshot(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -805,10 +805,10 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         //         shared: false
         //     }
         //
-        this.setOrderBookSnapshot(client, message, "depth");
+        this.setOrderBookSnapshot(client, (Map<String, Object>) (message), "depth");
     }
 
-    public void setOrderBookSnapshot(Client client, Object message, Object channel)
+    public void setOrderBookSnapshot(Client client, Map<String, Object> message, Object channel)
     {
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Object length = ((List<?>)data).size();
@@ -873,14 +873,14 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             }
             Object url = this.getUserStreamUrl();
             Client client = this.client(url);
-            this.setBalanceCache(client, marketType, subscriptionHash, parameters);
+            this.setBalanceCache(client, (String) (marketType), subscriptionHash, parameters);
             client.future((type + ":fetchBalanceSnapshot"));
             return (this.watch(url, messageHash, parameters, subscriptionHash, null)).join();
         }).thenApply(Balances::new);
 
     }
 
-    public void setBalanceCache(Client client, Object marketType, Object... optionalArgs)
+    public void setBalanceCache(Client client, String marketType, Object... optionalArgs)
     {
         Object subscriptionHash = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
@@ -897,7 +897,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         }
     }
 
-    public void handleBalance(Client client, Object message)
+    public void handleBalance(Client client, Map<String, Object> message)
     {
         //
         // spot
@@ -936,7 +936,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         List<Object> data = (List<Object>) this.safeList(message, "B", new ArrayList<Object>(Arrays.asList()));
         Long timestamp = this.safeInteger(message, "E");
         String type = (((java.util.Objects.equals(channel, "outboundContractAccountInfo")))) ? "contract" : "spot";
-        if (!(Helpers.inOp(this.balance, type)))
+        if (!(((Map<?, ?>)this.balance).containsKey(type)))
         {
             Helpers.addElementToObject(this.balance, type, new HashMap<String, Object>() {{}});
         }
@@ -961,7 +961,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), (type + ":balance"));
     }
 
-    public CompletableFuture<Object> loadBalanceSnapshot(Client client, Object messageHash2, Object marketType2)
+    public CompletableFuture<Object> loadBalanceSnapshot(Client client, Object messageHash2, String marketType2)
     {
         final Object messageHash3 = messageHash2;
         final Object marketType3 = marketType2;
@@ -975,7 +975,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             String type = (((java.util.Objects.equals(marketType, "spot")))) ? "spot" : "contract";
             Helpers.addElementToObject(this.balance, type, this.extend(response, this.safeDict(this.balance, type, new HashMap<String, Object>() {{}})));
             // don't remove the future from the .futures cache
-            if ((messageHash != null && ((Map<?, ?>)client.futures).containsKey(messageHash)))
+            if (((Map<?, ?>)client.futures).containsKey(messageHash))
             {
                 io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, messageHash);
                 future.resolve();
@@ -1031,7 +1031,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
 
     }
 
-    public void handleOrder(Client client, Object message)
+    public void handleOrder(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -1177,7 +1177,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
 
     }
 
-    public void handleMyTrade(Client client, Object message)
+    public void handleMyTrade(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -1201,7 +1201,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object trade = this.parseMyTrade(message);
+        Object trade = this.parseMyTrade((Map<String, Object>) (message));
         Helpers.callDynamically(myTrades, "append", new Object[]{trade});
         String messageHash = ("myTrades:" + ((Map<String, Object>)trade).get("symbol"));
         client.resolve(myTrades, messageHash);
@@ -1209,7 +1209,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         client.resolve(myTrades, messageHash);
     }
 
-    public Object parseMyTrade(Object trade, Object... optionalArgs)
+    public Object parseMyTrade(Map<String, Object> trade, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(trade, "s");
@@ -1304,10 +1304,10 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", false);
         if (java.util.Objects.equals(fetchPositionsSnapshot, true))
         {
-            Object messageHash = Helpers.add(type, ":fetchPositionsSnapshot");
+            String messageHash = (type + ":fetchPositionsSnapshot");
             if (!(((Map<?, ?>)client.futures).containsKey(messageHash)))
             {
-                client.future((String)messageHash);
+                client.future(messageHash);
                 this.spawn(() -> { try { this.loadPositionsSnapshot(client, messageHash, type, isPortfolioMargin); } catch(Exception _e) { throw new RuntimeException(_e); } });
             }
         } else
@@ -1336,11 +1336,11 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
                 Helpers.callDynamically(cache, "append", new Object[]{position});
             }
             // don't remove the future from the .futures cache
-            if ((messageHash != null && ((Map<?, ?>)client.futures).containsKey(messageHash)))
+            if (((Map<?, ?>)client.futures).containsKey(messageHash))
             {
                 io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, messageHash);
                 ((io.github.ccxt.ws.Future)future).resolve(cache);
-                client.resolve(cache, Helpers.add(type, ":positions"));
+                client.resolve(cache, (type + ":positions"));
             }
             return null;
         });
@@ -1393,7 +1393,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         for (var i = 0; i < Helpers.getArrayLength(rawPositions); i++)
         {
             Object rawPosition = Helpers.GetValue(rawPositions, i);
-            Map<String, Object> position = (Map<String, Object>) this.parseWsPosition(rawPosition);
+            Map<String, Object> position = (Map<String, Object>) this.parseWsPosition((Map<String, Object>) (rawPosition));
             Long timestamp = this.safeInteger(rawPosition, "E");
             Helpers.addElementToObject(position, "timestamp", timestamp);
             Helpers.addElementToObject(position, "datetime", this.iso8601(timestamp));
@@ -1420,7 +1420,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         client.resolve(newPositions, (accountType + ":positions"));
     }
 
-    public Object parseWsPosition(Object position, Object... optionalArgs)
+    public Object parseWsPosition(Map<String, Object> position, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(position, "s");
@@ -1557,7 +1557,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         return Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "common"), "/api/v1/ws/"), Helpers.GetValue(((Map<String, Object>)this.options).get("ws"), "listenKey"));
     }
 
-    public Object handleErrorMessage(Client client, Object message)
+    public Object handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //    {

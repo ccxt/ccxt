@@ -109,7 +109,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object messageHash = Helpers.add(Helpers.add(name, "@"), ((Map<String, Object>)market).get("id"));
+            Object messageHash = ((name + "@") + ((Map<String, Object>)market).get("id"));
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             final Object finalName = name;
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -138,7 +138,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             symbols = this.marketSymbols(symbols);
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList(methodName));
             List<Object> args = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < Helpers.getArrayLength(symbols); i++)
+            for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbols, i));
                 ((List<Object>)args).add(((String)((Map<String, Object>)market).get("id")));
@@ -205,7 +205,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
 
     }
 
-    public void handleTicker(Client client, Object message)
+    public void handleTicker(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -228,7 +228,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         //         ]
         //     }
         //
-        this.handleBidAsk(client, message);
+        this.handleBidAsk(client, (Map<String, Object>) (message));
         String eventVar = this.safeString(message, "event");
         List<Object> tickers = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         List<Object> result = new ArrayList<Object>(Arrays.asList());
@@ -275,7 +275,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
 
     }
 
-    public void handleBidAsk(Client client, Object message)
+    public void handleBidAsk(Client client, Map<String, Object> message)
     {
         String eventVar = "bidask";
         List<Object> tickers = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
@@ -283,7 +283,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         for (var i = 0; i < ((List<?>)tickers).size(); i++)
         {
             Object data = (tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i));
-            Object ticker = this.parseWsBidAsk(data);
+            Object ticker = this.parseWsBidAsk((Map<String, Object>) (data));
             Object symbol = ((Map<String, Object>)ticker).get("symbol");
             Helpers.addElementToObject(this.bidsasks, ((String)symbol), ticker);
             ((List<Object>)result).add(ticker);
@@ -293,7 +293,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         client.resolve(result, eventVar);
     }
 
-    public Object parseWsBidAsk(Object ticker, Object... optionalArgs)
+    public Object parseWsBidAsk(Map<String, Object> ticker, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(ticker, "market");
@@ -345,7 +345,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
 
     }
 
-    public void handleTrade(Client client, Object message)
+    public void handleTrade(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -543,7 +543,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
 
     }
 
-    public void handleFetchOHLCV(Client client, Object message)
+    public void handleFetchOHLCV(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -560,7 +560,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         client.resolve(ohlcv, messageHash);
     }
 
-    public void handleOHLCV(Client client, Object message)
+    public void handleOHLCV(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -944,7 +944,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         }
     }
 
-    public Object handleOrderBookMessage(Client client, Object message, Object orderbook)
+    public Object handleOrderBookMessage(Client client, Map<String, Object> message, Map<String, Object> orderbook)
     {
         //
         //     {
@@ -960,16 +960,16 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         //     }
         //
         Object nonce = this.safeInteger(message, "nonce");
-        if (Helpers.isGreaterThan(nonce, Helpers.GetValue(orderbook, "nonce")))
+        if (Helpers.isGreaterThan(nonce, ((Map<String, Object>)orderbook).get("nonce")))
         {
-            this.handleDeltas(Helpers.GetValue(orderbook, "asks"), this.safeList(message, "asks", new ArrayList<Object>(Arrays.asList())));
-            this.handleDeltas(Helpers.GetValue(orderbook, "bids"), this.safeList(message, "bids", new ArrayList<Object>(Arrays.asList())));
-            Helpers.addElementToObject(orderbook, "nonce", nonce);
+            this.handleDeltas(((Map<String, Object>)orderbook).get("asks"), this.safeList(message, "asks", new ArrayList<Object>(Arrays.asList())));
+            this.handleDeltas(((Map<String, Object>)orderbook).get("bids"), this.safeList(message, "bids", new ArrayList<Object>(Arrays.asList())));
+            ((Map<String, Object>)orderbook).put("nonce", nonce);
         }
         return orderbook;
     }
 
-    public void handleOrderBook(Client client, Object message)
+    public void handleOrderBook(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1013,12 +1013,12 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             ((List<Object>)((List<Object>)Helpers.GetValue(orderbook, "cache"))).add(message);
         } else
         {
-            this.handleOrderBookMessage(client, message, orderbook);
+            this.handleOrderBookMessage(client, (Map<String, Object>) (message), (Map<String, Object>) (orderbook));
             client.resolve(orderbook, messageHash);
         }
     }
 
-    public CompletableFuture<Object> watchOrderBookSnapshot(Client client, Object message, Object subscription)
+    public CompletableFuture<Object> watchOrderBookSnapshot(Client client, Map<String, Object> message, Map<String, Object> subscription)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1048,7 +1048,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
 
     }
 
-    public void handleOrderBookSnapshot(Client client, Object message)
+    public void handleOrderBookSnapshot(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1092,7 +1092,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         for (var i = 0; i < Helpers.getArrayLength(messages); i++)
         {
             Object messageItem = Helpers.GetValue(messages, i);
-            this.handleOrderBookMessage(client, messageItem, orderbook);
+            this.handleOrderBookMessage(client, (Map<String, Object>) (messageItem), (Map<String, Object>) (orderbook));
         }
         Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
         client.resolve(orderbook, messageHash);
@@ -1106,7 +1106,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         }
     }
 
-    public void handleOrderBookSubscription(Client client, Object message, Object subscription)
+    public void handleOrderBookSubscription(Client client, Map<String, Object> message, Map<String, Object> subscription)
     {
         String symbol = this.safeString(subscription, "symbol");
         Long limit = this.safeInteger(subscription, "limit");
@@ -1117,10 +1117,10 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
     }
 
-    public void handleOrderBookSubscriptions(Client client, Object message, Object marketIds)
+    public void handleOrderBookSubscriptions(Client client, Map<String, Object> message, Object marketIds)
     {
         String name = "book";
-        for (var i = 0; i < Helpers.getArrayLength(marketIds); i++)
+        for (var i = 0; i < ((List<?>)marketIds).size(); i++)
         {
             String marketId = this.safeString(marketIds, i);
             String symbol = this.safeSymbol(marketId, null, "-");
@@ -1170,7 +1170,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
 
     }
 
-    public Object handleUnsubscriptionStatus(Client client, Object message)
+    public Object handleUnsubscriptionStatus(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1347,7 +1347,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             }
             (this.authenticate()).join();
             Object request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
-            return (this.watchRequest("privateCreateOrder", request)).join();
+            return (this.watchRequest("privateCreateOrder", (Map<String, Object>) (request))).join();
         }).thenApply(Order::new);
 
     }
@@ -1379,8 +1379,8 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 (this.loadMarkets()).join();
             }
             (this.authenticate()).join();
-            Object request = this.editOrderRequest(id, (String) (symbol), type, side, amount, price, parameters);
-            return (this.watchRequest("privateUpdateOrder", request)).join();
+            Object request = this.editOrderRequest(id, (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+            return (this.watchRequest("privateUpdateOrder", (Map<String, Object>) (request))).join();
         }).thenApply(Order::new);
 
     }
@@ -1408,7 +1408,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             }
             (this.authenticate()).join();
             Object request = this.cancelOrderRequest((String) (id), symbol, parameters);
-            return (this.watchRequest("privateCancelOrder", request)).join();
+            return (this.watchRequest("privateCancelOrder", (Map<String, Object>) (request))).join();
         }).thenApply(Order::new);
 
     }
@@ -1452,12 +1452,12 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 market = this.market(symbol);
                 ((Map<String, Object>)request).put("market", ((Map<String, Object>)market).get("id"));
             }
-            return (this.watchRequest("privateCancelOrders", this.extend(request, parameters))).join();
+            return (this.watchRequest("privateCancelOrders", (Map<String, Object>) (this.extend(request, parameters)))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
-    public void handleMultipleOrders(Client client, Object message)
+    public void handleMultipleOrders(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -1510,7 +1510,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 put( "orderId", id );
                 put( "market", ((Map<String, Object>)market).get("id") );
             }};
-            return (this.watchRequest("privateGetOrder", this.extend(request, parameters))).join();
+            return (this.watchRequest("privateGetOrder", (Map<String, Object>) (this.extend(request, parameters)))).join();
         }).thenApply(Order::new);
 
     }
@@ -1545,7 +1545,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             }
             (this.authenticate()).join();
             Object request = this.fetchOrdersRequest(symbol, since, limit, parameters);
-            Object orders = (this.watchRequest("privateGetOrders", request)).join();
+            Object orders = (this.watchRequest("privateGetOrders", (Map<String, Object>) (request))).join();
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -1559,15 +1559,15 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         return Helpers.parseInt(Helpers.add(ts, randomPart));
     }
 
-    public CompletableFuture<Object> watchRequest(Object action, Object request)
+    public CompletableFuture<Object> watchRequest(Object action, Map<String, Object> request)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
             Object messageHash = this.requestId();
             Object messageHashStr = String.valueOf(messageHash);
-            Helpers.addElementToObject(request, "action", action);
-            Helpers.addElementToObject(request, "requestId", messageHash);
+            ((Map<String, Object>)request).put("action", action);
+            ((Map<String, Object>)request).put("requestId", messageHash);
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             return (this.watch(url, messageHashStr, request, messageHashStr, null)).join();
         });
@@ -1605,7 +1605,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 market = this.market(symbol);
                 ((Map<String, Object>)request).put("market", ((Map<String, Object>)market).get("id"));
             }
-            Object orders = (this.watchRequest("privateGetOrdersOpen", this.extend(request, parameters))).join();
+            Object orders = (this.watchRequest("privateGetOrdersOpen", (Map<String, Object>) (this.extend(request, parameters)))).join();
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -1641,13 +1641,13 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             }
             (this.authenticate()).join();
             Object request = this.fetchMyTradesRequest(symbol, since, limit, parameters);
-            Object myTrades = (this.watchRequest("privateGetTrades", request)).join();
+            Object myTrades = (this.watchRequest("privateGetTrades", (Map<String, Object>) (request))).join();
             return this.filterBySymbolSinceLimit(myTrades, symbol, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
 
-    public void handleMyTrades(Client client, Object message)
+    public void handleMyTrades(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -1707,12 +1707,12 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             }
             (this.authenticate()).join();
             Object request = this.withdrawRequest((String) (code), amount, address, tag, parameters);
-            return (this.watchRequest("privateWithdrawAssets", request)).join();
+            return (this.watchRequest("privateWithdrawAssets", (Map<String, Object>) (request))).join();
         }).thenApply(Transaction::new);
 
     }
 
-    public void handleWithdraw(Client client, Object message)
+    public void handleWithdraw(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -1758,13 +1758,13 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             }
             (this.authenticate()).join();
             Object request = this.fetchWithdrawalsRequest(code, since, limit, parameters);
-            Object withdraws = (this.watchRequest("privateGetWithdrawalHistory", request)).join();
+            Object withdraws = (this.watchRequest("privateGetWithdrawalHistory", (Map<String, Object>) (request))).join();
             return this.filterByCurrencySinceLimit(withdraws, code, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
 
-    public void handleWithdraws(Client client, Object message)
+    public void handleWithdraws(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -1818,7 +1818,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             }
             Object request = this.fetchOHLCVRequest((String) (symbol), timeframe, since, limit, parameters);
             Object action = "getCandles";
-            Object ohlcv = (this.watchRequest(action, request)).join();
+            Object ohlcv = (this.watchRequest(action, (Map<String, Object>) (request))).join();
             return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -1850,13 +1850,13 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             }
             (this.authenticate()).join();
             Object request = this.fetchDepositsRequest(code, since, limit, parameters);
-            Object deposits = (this.watchRequest("privateGetDepositHistory", request)).join();
+            Object deposits = (this.watchRequest("privateGetDepositHistory", (Map<String, Object>) (request))).join();
             return this.filterByCurrencySinceLimit(deposits, code, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
 
-    public void handleDeposits(Client client, Object message)
+    public void handleDeposits(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -1900,7 +1900,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 (this.loadMarkets()).join();
             }
             (this.authenticate()).join();
-            return (this.watchRequest("privateGetAccount", parameters)).join();
+            return (this.watchRequest("privateGetAccount", (Map<String, Object>) (parameters))).join();
         }).thenApply(TradingFees::new);
 
     }
@@ -1919,7 +1919,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         return BaseExchange.supplyAsync(() -> {
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            return (this.watchRequest("getMarkets", parameters)).join();
+            return (this.watchRequest("getMarkets", (Map<String, Object>) (parameters))).join();
         });
 
     }
@@ -1942,12 +1942,12 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             {
                 (this.loadMarkets()).join();
             }
-            return (this.watchRequest("getAssets", parameters)).join();
+            return (this.watchRequest("getAssets", (Map<String, Object>) (parameters))).join();
         });
 
     }
 
-    public void handleFetchCurrencies(Client client, Object message)
+    public void handleFetchCurrencies(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -1975,7 +1975,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         client.resolve(currencies, messageHash);
     }
 
-    public void handleTradingFees(Client client, Object message)
+    public void handleTradingFees(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -2014,12 +2014,12 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 (this.loadMarkets()).join();
             }
             (this.authenticate()).join();
-            return (this.watchRequest("privateGetBalance", parameters)).join();
+            return (this.watchRequest("privateGetBalance", (Map<String, Object>) (parameters))).join();
         }).thenApply(Balances::new);
 
     }
 
-    public void handleFetchBalance(Client client, Object message)
+    public void handleFetchBalance(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -2039,7 +2039,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         client.resolve(balance, messageHash);
     }
 
-    public void handleSingleOrder(Client client, Object message)
+    public void handleSingleOrder(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -2075,7 +2075,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         client.resolve(order, messageHash);
     }
 
-    public void handleMarkets(Client client, Object message)
+    public void handleMarkets(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -2102,7 +2102,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         client.resolve(markets, messageHash);
     }
 
-    public Object buildMessageHash(Object action, Object... optionalArgs)
+    public Object buildMessageHash(String action, Object... optionalArgs)
     {
         Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
         Map<String, Object> methods = new HashMap<String, Object>() {{
@@ -2139,7 +2139,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         return Helpers.add(action, orderId);
     }
 
-    public void handleOrder(Client client, Object message)
+    public void handleOrder(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -2177,7 +2177,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         client.resolve(this.orders, messageHash);
     }
 
-    public void handleMyTrade(Client client, Object message)
+    public void handleMyTrade(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -2209,7 +2209,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         client.resolve(tradesArray, messageHash);
     }
 
-    public Object handleSubscriptionStatus(Client client, Object message)
+    public Object handleSubscriptionStatus(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -2269,7 +2269,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
 
     }
 
-    public void handleAuthenticationMessage(Client client, Object message)
+    public void handleAuthenticationMessage(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -2295,7 +2295,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         }
     }
 
-    public Object handleErrorMessage(Client client, Object message)
+    public Object handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -2315,7 +2315,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         String error = this.safeString(message, "error");
         Object code = this.safeInteger(error, "errorCode");
         String action = this.safeString(message, "action");
-        Object buildMessage = this.buildMessageHash(action, message);
+        Object buildMessage = this.buildMessageHash((String) (action), message);
         String messageHash = this.safeString(message, "requestId", buildMessage);
         Boolean rejected = false;
         try
@@ -2382,7 +2382,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         String error = this.safeString(message, "error");
         if (!java.util.Objects.equals(error, null))
         {
-            this.handleErrorMessage(client, message);
+            this.handleErrorMessage(client, (Map<String, Object>) (message));
         }
         Map<String, Object> methods = new HashMap<String, Object>() {{
             put( "subscribed", "handleSubscriptionStatus");

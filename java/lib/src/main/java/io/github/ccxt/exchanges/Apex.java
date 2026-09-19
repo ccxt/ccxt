@@ -2443,7 +2443,7 @@ public class Apex extends ApexApi
         Object signBody = body;
         if (!java.util.Objects.equals(((String)method).toUpperCase(), "POST"))
         {
-            if (((List<?>)Helpers.objectKeys(parameters)).size() > 0)
+            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
             {
                 signPath = (signPath + ("?" + this.rawencode(parameters)));
                 url = (url + ("?" + this.rawencode(parameters)));

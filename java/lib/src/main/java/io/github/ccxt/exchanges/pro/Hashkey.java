@@ -151,7 +151,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
 
     }
 
-    public void handleOHLCV(Client client, Object message)
+    public void handleOHLCV(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -253,7 +253,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
 
     }
 
-    public void handleTicker(Client client, Object message)
+    public void handleTicker(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -329,7 +329,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
 
     }
 
-    public void handleTrades(Client client, Object message)
+    public void handleTrades(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -410,7 +410,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
 
     }
 
-    public void handleOrderBook(Client client, Object message)
+    public void handleOrderBook(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -499,7 +499,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
 
     }
 
-    public void handleOrder(Client client, Object message)
+    public void handleOrder(Client client, Map<String, Object> message)
     {
         //
         // swap
@@ -565,7 +565,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         Object type = this.parseOrderType(this.safeString(order, "o"));
         Object timeInForce = this.safeString(order, "f");
         Object postOnly = null;
-        var typetimeInForcepostOnlyVariable = this.parseOrderTypeTimeInForceAndPostOnly(type, timeInForce);
+        var typetimeInForcepostOnlyVariable = this.parseOrderTypeTimeInForceAndPostOnly((String) (type), (String) (timeInForce));
         type = ((List<Object>) typetimeInForcepostOnlyVariable).get(0);
         timeInForce = ((List<Object>) typetimeInForcepostOnlyVariable).get(1);
         postOnly = ((List<Object>) typetimeInForcepostOnlyVariable).get(2);
@@ -652,7 +652,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
 
     }
 
-    public void handleMyTrade(Client client, Object message, Object... optionalArgs)
+    public void handleMyTrade(Client client, Map<String, Object> message, Object... optionalArgs)
     {
         //
         //     {
@@ -805,7 +805,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
 
     }
 
-    public void handlePosition(Client client, Object message)
+    public void handlePosition(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -927,7 +927,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
 
     public void setBalanceCache(Client client, Object type, Object subscribeHash)
     {
-        if ((subscribeHash != null && ((Map<?, ?>)client.subscriptions).containsKey(subscribeHash)))
+        if (((Map<?, ?>)client.subscriptions).containsKey(subscribeHash))
         {
             return;
         }
@@ -935,7 +935,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         Boolean snapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", true);
         if (java.util.Objects.equals(snapshot, true))
         {
-            String messageHash = (Helpers.add(type, ":") + "fetchBalanceSnapshot");
+            String messageHash = ((type + ":") + "fetchBalanceSnapshot");
             if (!(((Map<?, ?>)client.futures).containsKey(messageHash)))
             {
                 client.future(messageHash);
@@ -955,18 +955,18 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             }}))).join();
             Helpers.addElementToObject(this.balance, type, this.extend(response, this.safeDict(this.balance, type, new HashMap<String, Object>() {{}})));
             // don't remove the future from the .futures cache
-            if ((messageHash != null && ((Map<?, ?>)client.futures).containsKey(messageHash)))
+            if (((Map<?, ?>)client.futures).containsKey(messageHash))
             {
                 io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, messageHash);
                 future.resolve();
-                client.resolve((type == null ? null : this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), Helpers.add("balance:", type));
+                client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), ("balance:" + type));
             }
             return null;
         });
 
     }
 
-    public void handleBalance(Client client, Object message)
+    public void handleBalance(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -991,7 +991,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         Map<String, Object> balanceUpdate = (Map<String, Object>) this.safeDict(data, 0);
         Boolean isSpot = java.util.Objects.equals(eventVar, "outboundAccountInfo");
         String type = ((Boolean.TRUE.equals(isSpot))) ? "spot" : "swap";
-        if (!(Helpers.inOp(this.balance, type)))
+        if (!(((Map<?, ?>)this.balance).containsKey(type)))
         {
             Helpers.addElementToObject(this.balance, type, new HashMap<String, Object>() {{}});
         }
@@ -1075,7 +1075,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
 
     }
 
-    public CompletableFuture<Object> keepAliveListenKey(Object listenKey2, Object... optionalArgs)
+    public CompletableFuture<Object> keepAliveListenKey(String listenKey2, Object... optionalArgs)
     {
         final Object listenKey3 = listenKey2;
         return BaseExchange.supplyAsync(() -> {
@@ -1116,28 +1116,28 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         String topic = this.safeString2(message, "topic", "e");
         if (java.util.Objects.equals(topic, "kline"))
         {
-            this.handleOHLCV(client, message);
+            this.handleOHLCV(client, (Map<String, Object>) (message));
         } else if (java.util.Objects.equals(topic, "realtimes"))
         {
-            this.handleTicker(client, message);
+            this.handleTicker(client, (Map<String, Object>) (message));
         } else if (java.util.Objects.equals(topic, "trade"))
         {
-            this.handleTrades(client, message);
+            this.handleTrades(client, (Map<String, Object>) (message));
         } else if (java.util.Objects.equals(topic, "depth"))
         {
-            this.handleOrderBook(client, message);
+            this.handleOrderBook(client, (Map<String, Object>) (message));
         } else if ((java.util.Objects.equals(topic, "contractExecutionReport")) || (java.util.Objects.equals(topic, "executionReport")))
         {
-            this.handleOrder(client, message);
+            this.handleOrder(client, (Map<String, Object>) (message));
         } else if (java.util.Objects.equals(topic, "ticketInfo"))
         {
-            this.handleMyTrade(client, message);
+            this.handleMyTrade(client, (Map<String, Object>) (message));
         } else if (java.util.Objects.equals(topic, "outboundContractPositionInfo"))
         {
-            this.handlePosition(client, message);
+            this.handlePosition(client, (Map<String, Object>) (message));
         } else if ((java.util.Objects.equals(topic, "outboundAccountInfo")) || (java.util.Objects.equals(topic, "outboundContractAccountInfo")))
         {
-            this.handleBalance(client, message);
+            this.handleBalance(client, (Map<String, Object>) (message));
         }
     }
 }

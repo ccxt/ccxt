@@ -2236,7 +2236,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
 
     }
 
-    public Object parseLedgerEntryType(Object type)
+    public Object parseLedgerEntryType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "transfer", "transfer" );
@@ -2587,7 +2587,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
 
     }
 
-    public String parseTransactionStatus(Object transaction)
+    public String parseTransactionStatus(Map<String, Object> transaction)
     {
         Object canceled = this.safeValue(transaction, "canceled_at");
         if ((!java.util.Objects.equals(canceled, null)) && (!java.util.Objects.equals(canceled, null)))
@@ -2681,7 +2681,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             put( "currency", code );
             put( "network", Coinbaseexchange.this.networkIdToCode(networkId, code) );
             put( "amount", finalAmount );
-            put( "status", Coinbaseexchange.this.parseTransactionStatus(transaction) );
+            put( "status", Coinbaseexchange.this.parseTransactionStatus((Map<String, Object>) (transaction)) );
             put( "timestamp", timestamp );
             put( "datetime", Coinbaseexchange.this.iso8601(timestamp) );
             put( "address", finalAddress );

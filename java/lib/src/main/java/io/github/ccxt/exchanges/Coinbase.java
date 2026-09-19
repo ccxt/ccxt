@@ -1964,17 +1964,17 @@ public class Coinbase extends CoinbaseApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                ((List<Object>)result).add(this.parseSpotMarket((data == null || i < 0 || i >= data.size() ? null : data.get(i)), feeTier));
+                ((List<Object>)result).add(this.parseSpotMarket((Map<String, Object>) ((data == null || i < 0 || i >= data.size() ? null : data.get(i))), (Map<String, Object>) (feeTier)));
             }
             List<Object> futureData = (List<Object>) this.safeList(expiringFutures, "products", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)futureData).size(); i++)
             {
-                ((List<Object>)result).add(this.parseContractMarket((futureData == null || i < 0 || i >= futureData.size() ? null : futureData.get(i)), expiringFeeTier));
+                ((List<Object>)result).add(this.parseContractMarket((Map<String, Object>) ((futureData == null || i < 0 || i >= futureData.size() ? null : futureData.get(i))), (Map<String, Object>) (expiringFeeTier)));
             }
             List<Object> perpetualData = (List<Object>) this.safeList(perpetualFutures, "products", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)perpetualData).size(); i++)
             {
-                ((List<Object>)result).add(this.parseContractMarket((perpetualData == null || i < 0 || i >= perpetualData.size() ? null : perpetualData.get(i)), perpetualFeeTier));
+                ((List<Object>)result).add(this.parseContractMarket((Map<String, Object>) ((perpetualData == null || i < 0 || i >= perpetualData.size() ? null : perpetualData.get(i))), (Map<String, Object>) (perpetualFeeTier)));
             }
             List<Object> newMarkets = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)result).size(); i++)
@@ -1997,7 +1997,7 @@ public class Coinbase extends CoinbaseApi
 
     }
 
-    public Object parseSpotMarket(Object market, Object feeTier)
+    public Object parseSpotMarket(Map<String, Object> market, Map<String, Object> feeTier)
     {
         //
         //         {
@@ -2098,7 +2098,7 @@ public class Coinbase extends CoinbaseApi
         }});
     }
 
-    public Object parseContractMarket(Object market, Object feeTier)
+    public Object parseContractMarket(Map<String, Object> market, Map<String, Object> feeTier)
     {
         // expiring
         //
@@ -2915,7 +2915,7 @@ public class Coinbase extends CoinbaseApi
         }}, market);
     }
 
-    public Object parseCustomBalance(Object response, Object... optionalArgs)
+    public Object parseCustomBalance(Map<String, Object> response, Object... optionalArgs)
     {
         Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
         List<Object> balances = (List<Object>) this.safeList2(response, "data", "accounts", new ArrayList<Object>(Arrays.asList()));
@@ -3103,7 +3103,7 @@ public class Coinbase extends CoinbaseApi
             //     }
             //
             ((Map<String, Object>)parameters).put("type", marketType);
-            return this.parseCustomBalance(response, parameters);
+            return this.parseCustomBalance((Map<String, Object>) (response), parameters);
         }).thenApply(Balances::new);
 
     }
@@ -3175,7 +3175,7 @@ public class Coinbase extends CoinbaseApi
 
     }
 
-    public String parseLedgerEntryStatus(Object status)
+    public String parseLedgerEntryStatus(String status)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "completed", "ok" );
@@ -3183,7 +3183,7 @@ public class Coinbase extends CoinbaseApi
         return this.safeString(types, status, status);
     }
 
-    public Object parseLedgerEntryType(Object type)
+    public Object parseLedgerEntryType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "buy", "trade" );
@@ -3520,7 +3520,7 @@ public class Coinbase extends CoinbaseApi
         }}, currency);
     }
 
-    public CompletableFuture<Object> findAccountId(Object code, Object... optionalArgs)
+    public CompletableFuture<Object> findAccountId(String code, Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3580,7 +3580,7 @@ public class Coinbase extends CoinbaseApi
                 {
                     throw new ArgumentsRequired((this.id + " prepareAccountRequestWithCurrencyCode() method requires an account_id (or accountId) parameter OR a currency code argument")) ;
                 }
-                accountId = (this.findAccountId(code, parameters)).join();
+                accountId = (this.findAccountId((String) (code), parameters)).join();
                 if (java.util.Objects.equals(accountId, null))
                 {
                     throw new ExchangeError((((this.id + " prepareAccountRequestWithCurrencyCode() could not find account id for ") + code) + ". You might try to generate the deposit address in the website for that coin first.")) ;
@@ -4470,7 +4470,7 @@ public class Coinbase extends CoinbaseApi
 
     }
 
-    public CompletableFuture<Object> fetchOrdersByStatus(Object status, Object... optionalArgs)
+    public CompletableFuture<Object> fetchOrdersByStatus(String status, Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -5132,7 +5132,7 @@ public class Coinbase extends CoinbaseApi
                 {
                     throw new ArgumentsRequired((this.id + " withdraw() requires an account_id (or accountId) parameter OR a currency code argument")) ;
                 }
-                accountId = (this.findAccountId(code, parameters)).join();
+                accountId = (this.findAccountId((String) (code), parameters)).join();
                 if (java.util.Objects.equals(accountId, null))
                 {
                     throw new ExchangeError(((this.id + " withdraw() could not find account id for ") + code)) ;
@@ -5406,7 +5406,7 @@ public class Coinbase extends CoinbaseApi
                 {
                     throw new ArgumentsRequired((this.id + " deposit() requires an account_id (or accountId) parameter OR a currency code argument")) ;
                 }
-                accountId = (this.findAccountId(code, parameters)).join();
+                accountId = (this.findAccountId((String) (code), parameters)).join();
                 if (java.util.Objects.equals(accountId, null))
                 {
                     throw new ExchangeError(((this.id + " deposit() could not find account id for ") + code)) ;
@@ -5495,7 +5495,7 @@ public class Coinbase extends CoinbaseApi
                 {
                     throw new ArgumentsRequired((this.id + " fetchDeposit() requires an account_id (or accountId) parameter OR a currency code argument")) ;
                 }
-                accountId = (this.findAccountId(code, parameters)).join();
+                accountId = (this.findAccountId((String) (code), parameters)).join();
                 if (java.util.Objects.equals(accountId, null))
                 {
                     throw new ExchangeError(((this.id + " fetchDeposit() could not find account id for ") + code)) ;
@@ -5635,7 +5635,7 @@ public class Coinbase extends CoinbaseApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "payment_method", new HashMap<String, Object>() {{}});
-            return this.parseDepositMethodId(result);
+            return this.parseDepositMethodId((Map<String, Object>) (result));
         });
 
     }
@@ -5644,15 +5644,15 @@ public class Coinbase extends CoinbaseApi
     {
         Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < Helpers.getArrayLength(ids); i++)
+        for (var i = 0; i < ((List<?>)ids).size(); i++)
         {
-            Map<String, Object> id = this.extend(this.parseDepositMethodId(Helpers.GetValue(ids, i)), parameters);
+            Map<String, Object> id = this.extend(this.parseDepositMethodId((Map<String, Object>) (Helpers.GetValue(ids, i))), parameters);
             ((List<Object>)result).add(id);
         }
         return result;
     }
 
-    public Object parseDepositMethodId(Object depositId)
+    public Object parseDepositMethodId(Map<String, Object> depositId)
     {
         return new HashMap<String, Object>() {{
             put( "info", depositId );

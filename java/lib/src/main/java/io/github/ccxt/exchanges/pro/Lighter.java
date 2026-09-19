@@ -189,19 +189,19 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         }
     }
 
-    public Object handleOrderBookMessage(Client client, Object message, Object orderbook)
+    public Object handleOrderBookMessage(Client client, Map<String, Object> message, Map<String, Object> orderbook)
     {
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "order_book", new HashMap<String, Object>() {{}});
-        this.handleDeltas(Helpers.GetValue(orderbook, "asks"), this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList())));
-        this.handleDeltas(Helpers.GetValue(orderbook, "bids"), this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList())));
-        Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(data, "offset"));
+        this.handleDeltas(((Map<String, Object>)orderbook).get("asks"), this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList())));
+        this.handleDeltas(((Map<String, Object>)orderbook).get("bids"), this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList())));
+        ((Map<String, Object>)orderbook).put("nonce", this.safeInteger(data, "offset"));
         Long timestamp = this.safeInteger(message, "timestamp");
-        Helpers.addElementToObject(orderbook, "timestamp", timestamp);
-        Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
+        ((Map<String, Object>)orderbook).put("timestamp", timestamp);
+        ((Map<String, Object>)orderbook).put("datetime", this.iso8601(timestamp));
         return orderbook;
     }
 
-    public void handleOrderBook(Client client, Object message)
+    public void handleOrderBook(Client client, Map<String, Object> message)
     {
         //
         // {
@@ -248,7 +248,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             Helpers.callDynamically(orderbook, "reset", new Object[]{parsed});
         } else if (java.util.Objects.equals(type, "update/order_book"))
         {
-            this.handleOrderBookMessage(client, message, orderbook);
+            this.handleOrderBookMessage(client, (Map<String, Object>) (message), (Map<String, Object>) (orderbook));
         }
         Object messageHash = this.getMessageHash("orderbook", symbol);
         client.resolve(orderbook, messageHash);
@@ -318,7 +318,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
 
     }
 
-    public void handleTicker(Client client, Object message)
+    public void handleTicker(Client client, Map<String, Object> message)
     {
         //
         // watchTicker
@@ -678,7 +678,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         }}, market);
     }
 
-    public void handleTrades(Client client, Object message)
+    public void handleTrades(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -720,7 +720,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         Object liquidationDataLength = ((List<?>)liquidationData).size();
         if (Helpers.isGreaterThan(liquidationDataLength, 0))
         {
-            this.handleLiquidation(client, message);
+            this.handleLiquidation(client, (Map<String, Object>) (message));
         }
         List<Object> data = (List<Object>) this.safeList(message, "trades", new ArrayList<Object>(Arrays.asList()));
         String channel = this.safeString(message, "channel", "");
@@ -1069,7 +1069,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
 
     }
 
-    public Object parseWsLiquidation(Object liquidation, Object... optionalArgs)
+    public Object parseWsLiquidation(Map<String, Object> liquidation, Object... optionalArgs)
     {
         //
         //     {
@@ -1127,7 +1127,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         }});
     }
 
-    public void handleLiquidation(Client client, Object message)
+    public void handleLiquidation(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1182,7 +1182,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         for (var i = 0; Helpers.isLessThan(i, dataLength); i++)
         {
             Object iReversed = Helpers.subtract(Helpers.subtract(dataLength, 1), i);
-            Object liquidation = this.parseWsLiquidation(Helpers.GetValue(data, iReversed), market);
+            Object liquidation = this.parseWsLiquidation((Map<String, Object>) (Helpers.GetValue(data, iReversed)), market);
             Helpers.callDynamically(stored, "append", new Object[]{liquidation});
         }
         Object messageHash = this.getMessageHash("liquidations", symbol);
@@ -1604,7 +1604,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
 
     }
 
-    public void handleWsSendtxApi(Client client, Object message)
+    public void handleWsSendtxApi(Client client, Map<String, Object> message)
     {
         //
         //     {"code":200,"id":"1786459718284","predicted_execution_time_ms":1786459719662,"tx_hash":"9959d3feb30d0a89fcfd4532f071ac99a98ee1202aa2a7f2c1299932b1e540b6ecdabd2b92616a14","type":"jsonapi/sendtx"}
@@ -1736,28 +1736,28 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         }
         if (java.util.Objects.equals(type, "jsonapi/sendtx"))
         {
-            this.handleWsSendtxApi(client, message);
+            this.handleWsSendtxApi(client, (Map<String, Object>) (message));
             return;
         }
         if (java.util.Objects.equals(type, "unsubscribed"))
         {
-            this.handleUnSubscription(client, message);
+            this.handleUnSubscription(client, (Map<String, Object>) (message));
             return;
         }
         String channel = this.safeString(message, "channel", "");
         if (((String)channel).indexOf("order_book:") >= 0)
         {
-            this.handleOrderBook(client, message);
+            this.handleOrderBook(client, (Map<String, Object>) (message));
             return;
         }
         if (((String)channel).indexOf("market_stats:") >= 0)
         {
-            this.handleTicker(client, message);
+            this.handleTicker(client, (Map<String, Object>) (message));
             return;
         }
         if (((String)channel).indexOf("trade:") >= 0)
         {
-            this.handleTrades(client, message);
+            this.handleTrades(client, (Map<String, Object>) (message));
             return;
         }
         if (((String)channel).indexOf("account_all_trades:") >= 0)
@@ -1787,11 +1787,11 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         }
         if (java.util.Objects.equals(channel, ""))
         {
-            this.handleSubscriptionStatus(client, message);
+            this.handleSubscriptionStatus(client, (Map<String, Object>) (message));
         }
     }
 
-    public Object handleSubscriptionStatus(Client client, Object message)
+    public Object handleSubscriptionStatus(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1802,7 +1802,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         return message;
     }
 
-    public void handleUnSubscription(Client client, Object message)
+    public void handleUnSubscription(Client client, Map<String, Object> message)
     {
         //
         //     {

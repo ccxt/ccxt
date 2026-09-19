@@ -1803,7 +1803,7 @@ public class Pacifica extends PacificaApi
             //   "has_more": true   // not included to info!
             // }
             //
-            Object data = this.addPaginationCursorToResult(response);
+            Object data = this.addPaginationCursorToResult((Map<String, Object>) (response));
             return this.parseTrades(data, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -2691,7 +2691,7 @@ public class Pacifica extends PacificaApi
             //   "has_more": true
             // }
             //
-            Object data = this.addPaginationCursorToResult(response);
+            Object data = this.addPaginationCursorToResult((Map<String, Object>) (response));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
@@ -3054,14 +3054,14 @@ public class Pacifica extends PacificaApi
             //   "has_more": true
             // }
             //
-            Object data = this.addPaginationCursorToResult(response);
+            Object data = this.addPaginationCursorToResult((Map<String, Object>) (response));
             List<Object> orders = this.parseOrders(data, market, since, limit);
             return orders;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
-    public Object addPaginationCursorToResult(Object response)
+    public Object addPaginationCursorToResult(Map<String, Object> response)
     {
         List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
         String paginationCursor = this.safeString(response, "next_cursor");
@@ -3879,7 +3879,7 @@ public class Pacifica extends PacificaApi
             //   "next_cursor": "11114Lz77",
             //   "has_more": true
             // }
-            Object data = this.addPaginationCursorToResult(response);
+            Object data = this.addPaginationCursorToResult((Map<String, Object>) (response));
             return this.parseLedger(data, null, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
@@ -3920,7 +3920,7 @@ public class Pacifica extends PacificaApi
         }}, currency);
     }
 
-    public Object parseLedgerEntryType(Object type)
+    public Object parseLedgerEntryType(String type)
     {
         Map<String, Object> ledgerType = new HashMap<String, Object>() {{
             put( "subaccount_transfer", "transfer" );
@@ -4013,7 +4013,7 @@ public class Pacifica extends PacificaApi
             //   "next_cursor": "11114Lz77",
             //   "has_more": true
             // }
-            Object data = this.addPaginationCursorToResult(response);
+            Object data = this.addPaginationCursorToResult((Map<String, Object>) (response));
             return this.parseIncomes(data, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
 

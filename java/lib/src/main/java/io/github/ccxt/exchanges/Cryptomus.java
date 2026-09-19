@@ -850,7 +850,7 @@ public class Cryptomus extends CryptomusApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", balance );
         }};
-        for (var i = 0; i < Helpers.getArrayLength(balance); i++)
+        for (var i = 0; i < ((List<?>)balance).size(); i++)
         {
             Object balanceEntry = Helpers.GetValue(balance, i);
             String currencyId = this.safeString(balanceEntry, "ticker");
@@ -1393,7 +1393,7 @@ public class Cryptomus extends CryptomusApi
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         List<Object> takerFees = new ArrayList<Object>(Arrays.asList());
         List<Object> makerFees = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < Helpers.getArrayLength(feeTiers); i++)
+        for (var i = 0; i < ((List<?>)feeTiers).size(); i++)
         {
             Object tier = Helpers.GetValue(feeTiers, i);
             Double turnover = this.safeNumber(tier, "from_turnover");

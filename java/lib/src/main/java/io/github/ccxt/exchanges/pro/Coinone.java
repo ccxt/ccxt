@@ -109,7 +109,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
 
     }
 
-    public void handleOrderBook(Client client, Object message)
+    public void handleOrderBook(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -204,7 +204,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
 
     }
 
-    public void handleTicker(Client client, Object message)
+    public void handleTicker(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -347,7 +347,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
 
     }
 
-    public void handleTrades(Client client, Object message)
+    public void handleTrades(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -453,7 +453,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         String type = this.safeString(message, "response_type");
         if (java.util.Objects.equals(type, "PONG"))
         {
-            this.handlePong(client, message);
+            this.handlePong(client, (Map<String, Object>) (message));
             return;
         }
         if (java.util.Objects.equals(type, "DATA"))
@@ -491,7 +491,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         }};
     }
 
-    public Object handlePong(Client client, Object message)
+    public Object handlePong(Client client, Map<String, Object> message)
     {
         //
         //     {

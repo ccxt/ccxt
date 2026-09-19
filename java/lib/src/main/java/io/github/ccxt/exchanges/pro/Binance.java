@@ -331,7 +331,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
     {
         if (java.util.Objects.equals(type, "future"))
         {
-            return Helpers.add(Helpers.add(this.getWsUrl(type, "private"), "?listenKey="), listenKey);
+            return ((this.getWsUrl(type, "private") + "?listenKey=") + listenKey);
         }
         return Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), ((String)type)), "/"), listenKey);
     }
@@ -490,7 +490,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 throw new NotSupported((this.id + " watchLiquidationsForSymbols() does not support options markets, there is no public liquidation stream for eOptions")) ;
             }
             Object numSubscriptions = ((List<?>)subscriptionHashes).size();
-            Object url = Helpers.add(Helpers.add(this.getWsUrl(type, this.getFutureWsCategory("forceOrder")), "/"), this.stream((String) (type), (String) (streamHash), numSubscriptions));
+            Object url = ((this.getWsUrl(type, this.getFutureWsCategory("forceOrder")) + "/") + this.stream((String) (type), (String) (streamHash), numSubscriptions));
             Object requestId = this.requestId(url);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "SUBSCRIBE" );
@@ -510,7 +510,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
     }
 
-    public void handleLiquidation(Client client, Object message)
+    public void handleLiquidation(Client client, Map<String, Object> message)
     {
         //
         // future
@@ -929,7 +929,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 ((List<Object>)subParams).add(symbolHash);
             }
             Object messageHashesLength = ((List<?>)messageHashes).size();
-            Object url = Helpers.add(Helpers.add(this.getWsUrl(type, this.getFutureWsCategory(name)), "/"), this.stream((String) (type), (String) (streamHash), messageHashesLength));
+            Object url = ((this.getWsUrl(type, this.getFutureWsCategory(name)) + "/") + this.stream((String) (type), (String) (streamHash), messageHashesLength));
             Object requestId = this.requestId(url);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "SUBSCRIBE" );
@@ -1011,7 +1011,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 ((List<Object>)subParams).add(symbolHash);
             }
             Object messageHashesLength = ((List<?>)subMessageHashes).size();
-            Object url = Helpers.add(Helpers.add(this.getWsUrl(type, this.getFutureWsCategory("depth")), "/"), this.stream((String) (type), (String) (streamHash), messageHashesLength));
+            Object url = ((this.getWsUrl(type, this.getFutureWsCategory("depth")) + "/") + this.stream((String) (type), (String) (streamHash), messageHashesLength));
             Object requestId = this.requestId(url);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "UNSUBSCRIBE" );
@@ -1117,7 +1117,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
     }
 
-    public void handleFetchOrderBook(Client client, Object message)
+    public void handleFetchOrderBook(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -1197,7 +1197,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                         // 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
                         if ((Helpers.isLessThanOrEqual(U, Helpers.GetValue(orderbook, "nonce"))) && (Helpers.isGreaterThanOrEqual(u, Helpers.GetValue(orderbook, "nonce"))) || (Helpers.isEqual(pu, Helpers.GetValue(orderbook, "nonce"))))
                         {
-                            this.handleOrderBookMessage(client, messageItem, orderbook);
+                            this.handleOrderBookMessage(client, (Map<String, Object>) (messageItem), orderbook);
                         }
                     } else
                     {
@@ -1209,7 +1209,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                         // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
                         if ((Helpers.isLessThanOrEqual((Helpers.subtract(U, 1)), Helpers.GetValue(orderbook, "nonce"))) && (Helpers.isGreaterThanOrEqual((Helpers.subtract(u, 1)), Helpers.GetValue(orderbook, "nonce"))))
                         {
-                            this.handleOrderBookMessage(client, messageItem, orderbook);
+                            this.handleOrderBookMessage(client, (Map<String, Object>) (messageItem), orderbook);
                         }
                     }
                 }
@@ -1243,7 +1243,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         }
     }
 
-    public Object handleOrderBookMessage(Client client, Object message, Object orderbook)
+    public Object handleOrderBookMessage(Client client, Map<String, Object> message, Object orderbook)
     {
         Long u = this.safeInteger(message, "u");
         this.handleDeltas(Helpers.GetValue(orderbook, "asks"), this.safeList(message, "a", new ArrayList<Object>(Arrays.asList())));
@@ -1338,7 +1338,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                         }
                         if (Boolean.TRUE.equals(conditional))
                         {
-                            this.handleOrderBookMessage(client, message, orderbook);
+                            this.handleOrderBookMessage(client, (Map<String, Object>) (message), orderbook);
                             if (Helpers.isLessThan(nonce, this.safeInteger(orderbook, "nonce", 0)))
                             {
                                 client.resolve(orderbook, messageHash);
@@ -1362,7 +1362,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                         // 6. While listening to the stream, each new event's pu should be equal to the previous event's u, otherwise initialize the process from step 3
                         if ((Helpers.isLessThanOrEqual(U, nonce)) || ((pu != null && nonce != null && pu == nonce)))
                         {
-                            this.handleOrderBookMessage(client, message, orderbook);
+                            this.handleOrderBookMessage(client, (Map<String, Object>) (message), orderbook);
                             if (Helpers.isLessThanOrEqual(nonce, this.safeInteger(orderbook, "nonce", 0)))
                             {
                                 client.resolve(orderbook, messageHash);
@@ -1542,7 +1542,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }
             Object query = this.omit(parameters, "type");
             Object subParamsLength = ((List<?>)subParams).size();
-            Object url = Helpers.add(Helpers.add(this.getWsUrl(type, this.getFutureWsCategory((String) (name))), "/"), this.stream((String) (type), (String) (streamHash), subParamsLength));
+            Object url = ((this.getWsUrl(type, this.getFutureWsCategory((String) (name))) + "/") + this.stream((String) (type), (String) (streamHash), subParamsLength));
             Object requestId = this.requestId(url);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "SUBSCRIBE" );
@@ -1650,7 +1650,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }
             Object query = this.omit(parameters, "type");
             Object subParamsLength = ((List<?>)subParams).size();
-            Object url = Helpers.add(Helpers.add(this.getWsUrl(type, this.getFutureWsCategory((String) (name))), "/"), this.stream((String) (type), (String) (streamHash), subParamsLength));
+            Object url = ((this.getWsUrl(type, this.getFutureWsCategory((String) (name))) + "/") + this.stream((String) (type), (String) (streamHash), subParamsLength));
             Object requestId = this.requestId(url);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "UNSUBSCRIBE" );
@@ -2092,7 +2092,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 ((List<Object>)rawHashes).add((((((marketId + "@") + klineType) + "_") + interval) + utcSuffix));
                 ((List<Object>)messageHashes).add(((("ohlcv::" + ((Map<String, Object>)market).get("symbol")) + "::") + timeframeString));
             }
-            Object url = Helpers.add(Helpers.add(this.getWsUrl(wsUrlType, this.getFutureWsCategory(klineType)), "/"), this.stream((String) (wsUrlType), "multipleOHLCV"));
+            Object url = ((this.getWsUrl(wsUrlType, this.getFutureWsCategory(klineType)) + "/") + this.stream((String) (wsUrlType), "multipleOHLCV"));
             Object requestId = this.requestId(url);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "SUBSCRIBE" );
@@ -2191,7 +2191,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 ((List<Object>)subMessageHashes).add(((("ohlcv::" + ((Map<String, Object>)market).get("symbol")) + "::") + timeframeString));
                 ((List<Object>)messageHashes).add(((("unsubscribe::ohlcv::" + ((Map<String, Object>)market).get("symbol")) + "::") + timeframeString));
             }
-            Object url = Helpers.add(Helpers.add(this.getWsUrl(wsUrlType, this.getFutureWsCategory(klineType)), "/"), this.stream((String) (wsUrlType), "multipleOHLCV"));
+            Object url = ((this.getWsUrl(wsUrlType, this.getFutureWsCategory(klineType)) + "/") + this.stream((String) (wsUrlType), "multipleOHLCV"));
             Object requestId = this.requestId(url);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "UNSUBSCRIBE" );
@@ -2245,7 +2245,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
     }
 
-    public void handleOHLCV(Client client, Object message)
+    public void handleOHLCV(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -2446,7 +2446,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
     }
 
-    public void handleFetchOHLCV(Client client, Object message)
+    public void handleFetchOHLCV(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -3012,7 +3012,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 streamHash = Helpers.add((channelName + "::"), String.join(",", (List<String>)symbols));
             }
-            Object url = Helpers.add(Helpers.add(this.getWsUrl(rawMarketType, this.getFutureWsCategory((String) (channelName))), "/"), this.stream((String) (rawMarketType), (String) (streamHash)));
+            Object url = ((this.getWsUrl(rawMarketType, this.getFutureWsCategory((String) (channelName))) + "/") + this.stream((String) (rawMarketType), (String) (streamHash)));
             Object requestId = this.requestId(url);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", ((Helpers.isTrue(isUnsubscribe))) ? "UNSUBSCRIBE" : "SUBSCRIBE" );
@@ -3212,7 +3212,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         }}, market);
     }
 
-    public void handleTickerWs(Client client, Object message)
+    public void handleTickerWs(Client client, Map<String, Object> message)
     {
         //
         // ticker.price
@@ -3950,7 +3950,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
     public void setBalanceCache(Client client, Object type, Object... optionalArgs)
     {
         Object isPortfolioMargin = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : false;
-        if (((type != null && ((Map<?, ?>)client.subscriptions).containsKey(type))) && (Helpers.inOp(this.balance, type)))
+        if (((type != null && ((Map<?, ?>)client.subscriptions).containsKey(type))) && ((type != null && ((Map<?, ?>)this.balance).containsKey(type))))
         {
             return;
         }
@@ -4060,13 +4060,13 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
     }
 
-    public void handleBalanceWs(Client client, Object message)
+    public void handleBalanceWs(Client client, Map<String, Object> message)
     {
         //
         //
         String messageHash = this.safeString(message, "id");
         Object rawBalance = null;
-        if ((Helpers.GetValue(message, "result") instanceof List))
+        if ((((Map<String, Object>)message).get("result") instanceof List))
         {
             // account.balance
             rawBalance = this.safeList(message, "result", new ArrayList<Object>(Arrays.asList()));
@@ -4080,7 +4080,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         client.resolve(parsedBalances, messageHash);
     }
 
-    public void handleAccountStatusWs(Client client, Object message)
+    public void handleAccountStatusWs(Client client, Map<String, Object> message)
     {
         //
         // spot
@@ -4228,7 +4228,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
     }
 
-    public void handlePositionsWs(Client client, Object message)
+    public void handlePositionsWs(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -4608,12 +4608,12 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             List<Object> returnRateLimitsparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrderWs", "returnRateLimits", false);
             returnRateLimits = ((List<Object>) returnRateLimitsparametersVariable).get(0);
             parameters = ((List<Object>) returnRateLimitsparametersVariable).get(1);
-            Helpers.addElementToObject(payload, "returnRateLimits", returnRateLimits);
+            ((Map<String, Object>)payload).put("returnRateLimits", returnRateLimits);
             Boolean test = (Boolean) this.safeBool(parameters, "test", false);
             parameters = this.omit(parameters, "test");
             if ((java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true)) && (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)) && Boolean.TRUE.equals(isConditional))
             {
-                Helpers.addElementToObject(payload, "algoType", "CONDITIONAL");
+                ((Map<String, Object>)payload).put("algoType", "CONDITIONAL");
             }
             final Object finalParameters = parameters;
             Map<String, Object> message = new HashMap<String, Object>() {{
@@ -4643,7 +4643,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
     }
 
-    public void handleOrderWs(Client client, Object message)
+    public void handleOrderWs(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -4698,7 +4698,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         client.resolve(order, messageHash);
     }
 
-    public void handleOrdersWs(Client client, Object message)
+    public void handleOrdersWs(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -4809,7 +4809,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
     }
 
-    public void handleEditOrderWs(Client client, Object message)
+    public void handleEditOrderWs(Client client, Map<String, Object> message)
     {
         //
         // spot
@@ -5843,7 +5843,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             if ((oField instanceof List))
             {
                 // eOptions format: o is an array of orders with nested fi fills
-                this.handleOptionsOrderUpdate(client, message);
+                this.handleOptionsOrderUpdate(client, (Map<String, Object>) (message));
                 return;
             }
             message = this.safeDict(message, "o", message);
@@ -5923,7 +5923,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         client.resolve(parsed, ("stock:quote:" + symbol));
     }
 
-    public void handleOptionsOrderUpdate(Client client, Object message)
+    public void handleOptionsOrderUpdate(Client client, Map<String, Object> message)
     {
         //
         // eOptions ORDER_TRADE_UPDATE: "o" is an array of orders (not a dict like futures)
@@ -6190,7 +6190,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
     }
 
-    public void handlePositions(Client client, Object message)
+    public void handlePositions(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -6222,7 +6222,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         // each account is connected to a different endpoint
         // and has exactly one subscriptionhash which is the account type
         Object subscriptions = client.subscriptions;
-        List<Object> subscriptionsKeys = Helpers.objectKeys(subscriptions);
+        List<Object> subscriptionsKeys = new ArrayList<Object>(((Map<String, Object>)subscriptions).keySet());
         Object accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
         if (java.util.Objects.equals(this.positions, null))
         {
@@ -6519,7 +6519,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
     }
 
-    public void handleTradesWs(Client client, Object message)
+    public void handleTradesWs(Client client, Map<String, Object> message)
     {
         //
         // fetchMyTradesWs
@@ -6812,7 +6812,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
     public void handleAcountUpdate(Client client, Object message)
     {
         this.handleBalance(client, message);
-        this.handlePositions(client, message);
+        this.handlePositions(client, (Map<String, Object>) (message));
     }
 
     public void handleOptionsAccountUpdate(Client client, Object message)

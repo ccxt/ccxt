@@ -4318,7 +4318,7 @@ public class Aster extends AsterApi
         }}, currency);
     }
 
-    public Object parseLedgerEntryType(Object type)
+    public Object parseLedgerEntryType(String type)
     {
         Map<String, Object> ledgerType = new HashMap<String, Object>() {{
             put( "TRANSFER", "transfer" );
@@ -4394,7 +4394,7 @@ public class Aster extends AsterApi
 
     }
 
-    public Object parsePositionRisk(Object position, Object... optionalArgs)
+    public Object parsePositionRisk(Map<String, Object> position, Object... optionalArgs)
     {
         //
         //     {
@@ -4458,7 +4458,7 @@ public class Aster extends AsterApi
         Double contractSize = this.safeNumber(market, "contractSize");
         Object contractSizeString = this.numberToString(contractSize);
         // as oppose to notionalValue
-        Boolean linear = (Helpers.inOp(position, "notional"));
+        Boolean linear = (position.containsKey("notional"));
         if (java.util.Objects.equals(marginMode, "cross"))
         {
             // calculate collateral
@@ -4650,7 +4650,7 @@ public class Aster extends AsterApi
                 String entryPriceString = this.safeString(rawPosition, "entryPrice");
                 if (Precise.stringGt(entryPriceString, "0"))
                 {
-                    ((List<Object>)result).add(this.parsePositionRisk(rawPosition));
+                    ((List<Object>)result).add(this.parsePositionRisk((Map<String, Object>) (rawPosition)));
                 }
             }
             symbols = this.marketSymbols(symbols);
@@ -4705,7 +4705,7 @@ public class Aster extends AsterApi
 
     }
 
-    public Object parseAccountPositions(Object account, Object... optionalArgs)
+    public Object parseAccountPositions(Map<String, Object> account, Object... optionalArgs)
     {
         Object filterClosed = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : false;
         List<Object> positions = (List<Object>) this.safeList(account, "positions", new ArrayList<Object>(Arrays.asList()));
@@ -4742,10 +4742,10 @@ public class Aster extends AsterApi
                 if (balances.containsKey(code))
                 {
                     final Object finalCode = code;
-                    Object parsed = this.parseAccountPosition(this.extend(position, new HashMap<String, Object>() {{
+                    Object parsed = this.parseAccountPosition((Map<String, Object>) (this.extend(position, new HashMap<String, Object>() {{
                         put( "crossMargin", Helpers.GetValue(Helpers.GetValue(balances, finalCode), "crossMargin") );
                         put( "crossWalletBalance", Helpers.GetValue(Helpers.GetValue(balances, finalCode), "crossWalletBalance") );
-                    }}), market);
+                    }})), market);
                     ((List<Object>)result).add(parsed);
                 }
             }
@@ -4753,7 +4753,7 @@ public class Aster extends AsterApi
         return result;
     }
 
-    public Object parseAccountPosition(Object position, Object... optionalArgs)
+    public Object parseAccountPosition(Map<String, Object> position, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(position, "symbol");
@@ -4778,7 +4778,7 @@ public class Aster extends AsterApi
             }
         }
         // as oppose to notionalValue
-        Boolean usdm = (Helpers.inOp(position, "notional"));
+        Boolean usdm = (position.containsKey("notional"));
         String maintenanceMarginString = this.safeString(position, "maintMargin");
         Object maintenanceMargin = this.parseNumber(maintenanceMarginString);
         String entryPriceString = this.safeString(position, "entryPrice");
@@ -4984,7 +4984,7 @@ public class Aster extends AsterApi
             List<Object> filterClosedparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchAccountPositions", "filterClosed", false);
             filterClosed = ((List<Object>) filterClosedparametersVariable).get(0);
             parameters = ((List<Object>) filterClosedparametersVariable).get(1);
-            Object result = this.parseAccountPositions(response, filterClosed);
+            Object result = this.parseAccountPositions((Map<String, Object>) (response), filterClosed);
             symbols = this.marketSymbols(symbols);
             return this.filterByArrayPositions(result, "symbol", symbols, false);
         });
@@ -5059,7 +5059,7 @@ public class Aster extends AsterApi
 
     public Object signMessage(Object message, Object privateKey)
     {
-        return this.signHash(this.keccakMessage(message), Helpers.slice(privateKey, -64, null));
+        return this.signHash(this.keccakMessage(message), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))));
     }
 
     public Object signWithdrawPayload(Object withdrawPayload, Object network)
@@ -5306,7 +5306,7 @@ public class Aster extends AsterApi
     public Object signHash(Object hash, Object privateKey)
     {
         this.checkRequiredCredentials();
-        Object signature = ecdsa(Helpers.slice(hash, -64, null), Helpers.slice(privateKey, -64, null), secp256k1(), null);
+        Object signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
         Object r = Helpers.GetValue(signature, "r");
         Object s = Helpers.GetValue(signature, "s");
         String v = this.intToBase16(this.sum(27, Helpers.GetValue(signature, "v")));
@@ -5323,7 +5323,7 @@ public class Aster extends AsterApi
         Object url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), "/"), path);
         if (java.util.Objects.equals(api, "fapiPublic") || java.util.Objects.equals(api, "sapiPublic"))
         {
-            if (((List<?>)Helpers.objectKeys(parameters)).size() > 0)
+            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
             {
                 url = (url + ("?" + this.rawencode(parameters)));
             }

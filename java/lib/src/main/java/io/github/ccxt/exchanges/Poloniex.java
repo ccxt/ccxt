@@ -866,8 +866,8 @@ public class Poloniex extends PoloniexApi
         //           ],
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object ohlcvLength = Helpers.getArrayLength(ohlcv);
-        Boolean isContract = Helpers.isEqual(ohlcvLength, 9);
+        Object ohlcvLength = ((List<?>)ohlcv).size();
+        Boolean isContract = java.util.Objects.equals(ohlcvLength, 9);
         if (Boolean.TRUE.equals(isContract))
         {
             return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, 7), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 0), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 5)));
@@ -2197,7 +2197,7 @@ public class Poloniex extends PoloniexApi
         }}, market);
     }
 
-    public String parseOrderType(Object status)
+    public String parseOrderType(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "MARKET", "market" );
@@ -2209,16 +2209,16 @@ public class Poloniex extends PoloniexApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOpenOrders(Object orders, Object market, Object result)
+    public Object parseOpenOrders(Object orders, Map<String, Object> market, Object result)
     {
-        for (var i = 0; i < Helpers.getArrayLength(orders); i++)
+        for (var i = 0; i < ((List<?>)orders).size(); i++)
         {
             Object order = Helpers.GetValue(orders, i);
             Map<String, Object> extended = this.extend(order, new HashMap<String, Object>() {{
                 put( "status", "open" );
                 put( "type", "limit" );
-                put( "side", Helpers.GetValue(order, "type") );
-                put( "price", Helpers.GetValue(order, "rate") );
+                put( "side", ((Map<String, Object>)order).get("type") );
+                put( "price", ((Map<String, Object>)order).get("rate") );
             }});
             ((List<Object>)result).add(this.parseOrder(extended, market));
         }
@@ -2475,7 +2475,7 @@ public class Poloniex extends PoloniexApi
                 put( "side", ((String)((String)side)).toUpperCase() );
             }};
             Double triggerPrice = this.safeNumber2(parameters, "stopPrice", "triggerPrice");
-            var requestparametersVariable = this.orderRequest(symbol, type, side, amount, request, price, parameters);
+            var requestparametersVariable = this.orderRequest(symbol, type, side, amount, (Map<String, Object>) (request), price, parameters);
             request = ((List<Object>) requestparametersVariable).get(0);
             parameters = ((List<Object>) requestparametersVariable).get(1);
             Object response = new HashMap<String, Object>() {{}};
@@ -2504,7 +2504,7 @@ public class Poloniex extends PoloniexApi
 
     }
 
-    public Object orderRequest(Object symbol, Object type, Object side, Object amount, Object request, Object... optionalArgs)
+    public Object orderRequest(Object symbol, Object type, Object side, Object amount, Map<String, Object> request, Object... optionalArgs)
     {
         Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
@@ -2519,7 +2519,7 @@ public class Poloniex extends PoloniexApi
             if (!java.util.Objects.equals(marginMode, null))
             {
                 this.checkRequiredArgument("createOrder", marginMode, "marginMode", new ArrayList<Object>(Arrays.asList("cross", "isolated")));
-                Helpers.addElementToObject(request, "mgnMode", marginMode.toUpperCase());
+                ((Map<String, Object>)request).put("mgnMode", marginMode.toUpperCase());
             }
             String hedged = null;
             List<Object> hedgedparametersVariable = (List<Object>) this.handleParamString(parameters, "hedged");
@@ -2548,12 +2548,12 @@ public class Poloniex extends PoloniexApi
                 throw new InvalidOrder((((this.id + " createOrder() does not support trigger orders for ") + ((Map<String, Object>)market).get("type")) + " markets")) ;
             }
             upperCaseType = (((java.util.Objects.equals(price, null)))) ? "STOP" : "STOP_LIMIT";
-            Helpers.addElementToObject(request, "stopPrice", triggerPrice);
+            ((Map<String, Object>)request).put("stopPrice", triggerPrice);
         } else if (Helpers.isTrue(isPostOnly))
         {
             upperCaseType = "LIMIT_MAKER";
         }
-        Helpers.addElementToObject(request, "type", upperCaseType);
+        ((Map<String, Object>)request).put("type", upperCaseType);
         if (Boolean.TRUE.equals(isMarket))
         {
             if (java.util.Objects.equals(side, "buy"))
@@ -2585,25 +2585,25 @@ public class Poloniex extends PoloniexApi
                     quoteAmount = this.costToPrecision(symbol, amount);
                 }
                 Object amountKey = (((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)))) ? "amount" : "sz";
-                Helpers.addElementToObject(request, amountKey, quoteAmount);
+                ((Map<String, Object>)request).put((String)amountKey, quoteAmount);
             } else
             {
                 Object amountKey = (((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)))) ? "quantity" : "sz";
-                Helpers.addElementToObject(request, amountKey, this.amountToPrecision(symbol, amount));
+                ((Map<String, Object>)request).put((String)amountKey, this.amountToPrecision(symbol, amount));
             }
         } else
         {
             Object amountKey = (((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)))) ? "quantity" : "sz";
-            Helpers.addElementToObject(request, amountKey, this.amountToPrecision(symbol, amount));
+            ((Map<String, Object>)request).put((String)amountKey, this.amountToPrecision(symbol, amount));
             String priceKey = (((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)))) ? "price" : "px";
-            Helpers.addElementToObject(request, priceKey, this.priceToPrecision(symbol, price));
+            ((Map<String, Object>)request).put((String)priceKey, this.priceToPrecision(symbol, price));
         }
         String clientOrderId = this.safeString2(parameters, "clientOrderId", "clOrdId");
         if (!java.util.Objects.equals(clientOrderId, null))
         {
             // the futures v3 api silently ignores the spot key and generates its own id
             String clientOrderIdKey = (((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)))) ? "clientOrderId" : "clOrdId";
-            Helpers.addElementToObject(request, clientOrderIdKey, clientOrderId);
+            ((Map<String, Object>)request).put((String)clientOrderIdKey, clientOrderId);
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "clOrdId")));
         }
         // remember the timestamp before issuing the request
@@ -2645,7 +2645,7 @@ public class Poloniex extends PoloniexApi
                 put( "id", id );
             }};
             Double triggerPrice = this.safeNumber2(parameters, "stopPrice", "triggerPrice");
-            var requestparametersVariable = this.orderRequest(symbol, type, side, amount, request, price, parameters);
+            var requestparametersVariable = this.orderRequest(symbol, type, side, amount, (Map<String, Object>) (request), price, parameters);
             request = ((List<Object>) requestparametersVariable).get(0);
             parameters = ((List<Object>) requestparametersVariable).get(1);
             Object response = new HashMap<String, Object>() {{}};
@@ -3279,7 +3279,7 @@ public class Poloniex extends PoloniexApi
             //         "address" : "0xfxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxf"
             //     }
             //
-            return this.parseDepositAddressSpecial(response, currency, networkEntry);
+            return this.parseDepositAddressSpecial((Map<String, Object>) (response), currency, (Map<String, Object>) (networkEntry));
         }).thenApply(DepositAddress::new);
 
     }
@@ -3318,7 +3318,7 @@ public class Poloniex extends PoloniexApi
             {
                 throw new ExchangeError((this.id + " fetchDepositAddress() returned an empty response, you might need to try \"createDepositAddress\" at first and then use \"fetchDepositAddress\"")) ;
             }
-            return this.parseDepositAddressSpecial(response, currency, networkEntry);
+            return this.parseDepositAddressSpecial((Map<String, Object>) (response), currency, (Map<String, Object>) (networkEntry));
         }).thenApply(DepositAddress::new);
 
     }
@@ -3356,18 +3356,18 @@ public class Poloniex extends PoloniexApi
         return new ArrayList<Object>(Arrays.asList(request, parameters, currency, networkEntry));
     }
 
-    public Object parseDepositAddressSpecial(Object response, Object currency, Object networkEntry)
+    public Object parseDepositAddressSpecial(Map<String, Object> response, Object currency, Map<String, Object> networkEntry)
     {
         String address = this.safeString(response, "address");
         if (java.util.Objects.equals(address, null))
         {
-            address = this.safeString(response, Helpers.GetValue(networkEntry, "id"));
+            address = this.safeString(response, ((Map<String, Object>)networkEntry).get("id"));
         }
         String tag = null;
         this.checkAddress(address);
         if (!java.util.Objects.equals(networkEntry, null))
         {
-            String depositAddress = this.safeString(Helpers.GetValue(networkEntry, "info"), "depositAddress");
+            String depositAddress = this.safeString(((Map<String, Object>)networkEntry).get("info"), "depositAddress");
             if (!java.util.Objects.equals(depositAddress, null))
             {
                 tag = address;
@@ -3379,7 +3379,7 @@ public class Poloniex extends PoloniexApi
         final Object finalTag = tag;
         return new HashMap<String, Object>() {{
             put( "info", response );
-            put( "currency", Helpers.GetValue(currency, "code") );
+            put( "currency", ((Map<String, Object>)currency).get("code") );
             put( "network", Poloniex.this.safeString(finalNetworkEntry, "network") );
             put( "address", finalAddress );
             put( "tag", finalTag );
@@ -3755,7 +3755,7 @@ public class Poloniex extends PoloniexApi
         Object currencyIdKey = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
         Map<String, Object> depositWithdrawFees = new HashMap<String, Object>() {{}};
         codes = this.marketCodes(codes);
-        List<Object> responseKeys = Helpers.objectKeys(response);
+        List<Object> responseKeys = new ArrayList<Object>(((Map<String, Object>)response).keySet());
         for (var i = 0; i < ((List<?>)responseKeys).size(); i++)
         {
             Object currencyId = (responseKeys == null || i < 0 || i >= responseKeys.size() ? null : responseKeys.get(i));
@@ -4472,7 +4472,7 @@ public class Poloniex extends PoloniexApi
         }
         if (java.util.Objects.equals(method, "GET") && (((Map<?, ?>)parameters).containsKey("symbol")))
         {
-            Helpers.addElementToObject(parameters, "symbol", this.encodeURIComponent(Helpers.GetValue(parameters, "symbol"))); // handle symbols like 索拉拉/USDT'
+            ((Map<String, Object>)parameters).put("symbol", this.encodeURIComponent(((Map<String, Object>)parameters).get("symbol"))); // handle symbols like 索拉拉/USDT'
         }
         Object query = this.omit(parameters, this.extractParams(path));
         Object implodedPath = this.implodeParams(path, parameters);

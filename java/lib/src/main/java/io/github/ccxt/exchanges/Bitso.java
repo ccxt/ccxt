@@ -452,7 +452,7 @@ public class Bitso extends BitsoApi
 
     }
 
-    public Object parseLedgerEntryType(Object type)
+    public Object parseLedgerEntryType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "funding", "transaction" );

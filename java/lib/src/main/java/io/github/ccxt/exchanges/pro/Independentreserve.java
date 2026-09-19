@@ -90,7 +90,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
 
     }
 
-    public void handleTrades(Client client, Object message)
+    public void handleTrades(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -199,7 +199,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
 
     }
 
-    public void handleOrderBook(Client client, Object message)
+    public void handleOrderBook(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -325,13 +325,13 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
 
     public void handleDeltas(Object bookside, Object deltas)
     {
-        for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
+        for (var i = 0; i < ((List<?>)deltas).size(); i++)
         {
             this.handleDelta(bookside, Helpers.GetValue(deltas, i));
         }
     }
 
-    public Object handleHeartbeat(Client client, Object message)
+    public Object handleHeartbeat(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -342,7 +342,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
         return message;
     }
 
-    public Object handleSubscriptions(Client client, Object message)
+    public Object handleSubscriptions(Client client, Map<String, Object> message)
     {
         //
         //    {

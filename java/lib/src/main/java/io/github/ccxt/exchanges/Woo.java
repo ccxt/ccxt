@@ -1298,7 +1298,7 @@ public class Woo extends WooApi
         String price = this.safeString2(trade, "executed_price", "executedPrice");
         String amount = this.safeString2(trade, "executed_quantity", "executedQuantity");
         String order_id = this.safeString2(trade, "order_id", "orderId");
-        Object fee = this.parseTokenAndFeeTemp(trade, new ArrayList<Object>(Arrays.asList("fee_asset", "feeAsset")), new ArrayList<Object>(Arrays.asList("fee")));
+        Object fee = this.parseTokenAndFeeTemp((Map<String, Object>) (trade), new ArrayList<Object>(Arrays.asList("fee_asset", "feeAsset")), new ArrayList<Object>(Arrays.asList("fee")));
         String feeCost = this.safeString(fee, "cost");
         if ((!java.util.Objects.equals(fee, null)) && (!java.util.Objects.equals(feeCost, null)))
         {
@@ -1333,7 +1333,7 @@ public class Woo extends WooApi
         }}, market);
     }
 
-    public Object parseTokenAndFeeTemp(Object item, Object feeTokenKeys, Object feeAmountKeys)
+    public Object parseTokenAndFeeTemp(Map<String, Object> item, Object feeTokenKeys, Object feeAmountKeys)
     {
         String feeCost = this.safeStringN(item, feeAmountKeys);
         Object fee = null;
@@ -1862,7 +1862,7 @@ public class Woo extends WooApi
             parameters = ((List<Object>) marginModeparametersVariable).get(1);
             if (!java.util.Objects.equals(marginMode, null))
             {
-                ((Map<String, Object>)request).put("marginMode", this.encodeMarginMode(marginMode));
+                ((Map<String, Object>)request).put("marginMode", this.encodeMarginMode((String) (marginMode)));
             }
             String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
             Object stopLoss = this.safeValue(parameters, "stopLoss");
@@ -2013,7 +2013,7 @@ public class Woo extends WooApi
 
     }
 
-    public String encodeMarginMode(Object mode)
+    public String encodeMarginMode(String mode)
     {
         Map<String, Object> modes = new HashMap<String, Object>() {{
             put( "cross", "CROSS" );
@@ -3459,11 +3459,11 @@ public class Woo extends WooApi
         List<Object> networkCodeparametersVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
         networkCode = ((List<Object>) networkCodeparametersVariable).get(0);
         parameters = (Map<String, Object>) ((List<Object>) networkCodeparametersVariable).get(1);
-        networkCode = this.networkIdToCode(networkCode, Helpers.GetValue(currency, "code"));
-        Object networkEntry = (((java.util.Objects.equals(networkCode, null)))) ? null : this.safeDict(Helpers.GetValue(currency, "networks"), networkCode);
+        networkCode = this.networkIdToCode(networkCode, ((Map<String, Object>)currency).get("code"));
+        Object networkEntry = (((java.util.Objects.equals(networkCode, null)))) ? null : this.safeDict(((Map<String, Object>)currency).get("networks"), networkCode);
         if (java.util.Objects.equals(networkEntry, null))
         {
-            List<Object> supportedNetworks = Helpers.objectKeys(Helpers.GetValue(currency, "networks"));
+            List<Object> supportedNetworks = new ArrayList<Object>(((Map<String, Object>)((Map<String, Object>)currency).get("networks")).keySet());
             throw new BadRequest(((this.id + "  can not determine a network code, please provide unified \"network\" param, one from the following: ") + this.json(supportedNetworks))) ;
         }
         String currentyNetworkId = this.safeString(networkEntry, "currencyNetworkId");
@@ -3629,7 +3629,7 @@ public class Woo extends WooApi
         String side = this.safeString(item, "tokenSide");
         String direction = (((java.util.Objects.equals(side, "DEPOSIT")))) ? "in" : "out";
         Object timestamp = this.safeTimestamp(item, "createdTime");
-        Object fee = this.parseTokenAndFeeTemp(item, new ArrayList<Object>(Arrays.asList("feeToken")), new ArrayList<Object>(Arrays.asList("feeAmount")));
+        Object fee = this.parseTokenAndFeeTemp((Map<String, Object>) (item), new ArrayList<Object>(Arrays.asList("feeToken")), new ArrayList<Object>(Arrays.asList("feeAmount")));
         return this.safeLedgerEntry(new HashMap<String, Object>() {{
             put( "info", item );
             put( "id", Woo.this.safeString(item, "id") );
@@ -3649,7 +3649,7 @@ public class Woo extends WooApi
         }}, currency);
     }
 
-    public Object parseLedgerEntryType(Object type)
+    public Object parseLedgerEntryType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "BALANCE", "transaction" );
@@ -3798,7 +3798,7 @@ public class Woo extends WooApi
         {
             movementDirection = "withdrawal";
         }
-        Object fee = this.parseTokenAndFeeTemp(transaction, new ArrayList<Object>(Arrays.asList("fee_token", "feeToken")), new ArrayList<Object>(Arrays.asList("fee_amount", "feeAmount")));
+        Object fee = this.parseTokenAndFeeTemp((Map<String, Object>) (transaction), new ArrayList<Object>(Arrays.asList("fee_token", "feeToken")), new ArrayList<Object>(Arrays.asList("fee_amount", "feeAmount")));
         String addressTo = this.safeStringN(transaction, new ArrayList<Object>(Arrays.asList("target_address", "targetAddress", "addressTo")));
         String addressFrom = this.safeString2(transaction, "source_address", "sourceAddress");
         Object timestamp = this.safeTimestampN(transaction, new ArrayList<Object>(Arrays.asList("created_time", "createdTime")), this.safeInteger(transaction, "timestamp"));
@@ -4788,7 +4788,7 @@ public class Woo extends WooApi
                 List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchLeverage", parameters, "cross");
                 marginMode = ((List<Object>) marginModeparametersVariable).get(0);
                 parameters = ((List<Object>) marginModeparametersVariable).get(1);
-                ((Map<String, Object>)request).put("marginMode", this.encodeMarginMode(marginMode));
+                ((Map<String, Object>)request).put("marginMode", this.encodeMarginMode((String) (marginMode)));
                 response = (this.v3PrivateGetFuturesLeverage(this.extend(request, parameters))).join();
             } else
             {
@@ -4885,7 +4885,7 @@ public class Woo extends WooApi
                 List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("setLeverage", parameters, "cross");
                 marginMode = ((List<Object>) marginModeparametersVariable).get(0);
                 parameters = ((List<Object>) marginModeparametersVariable).get(1);
-                ((Map<String, Object>)request).put("marginMode", this.encodeMarginMode(marginMode));
+                ((Map<String, Object>)request).put("marginMode", this.encodeMarginMode((String) (marginMode)));
                 return (this.v3PrivatePutFuturesLeverage(this.extend(request, parameters))).join();
             } else
             {

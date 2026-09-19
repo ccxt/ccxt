@@ -9128,7 +9128,7 @@ public class Binance extends BinanceApi
                 {
                     if (Boolean.TRUE.equals(isConditional))
                     {
-                        Helpers.addElementToObject(request, "algoType", "CONDITIONAL");
+                        ((Map<String, Object>)request).put("algoType", "CONDITIONAL");
                         response = (this.fapiPrivatePostAlgoOrder(request)).join();
                     } else
                     {
@@ -9150,7 +9150,7 @@ public class Binance extends BinanceApi
                 {
                     if (Boolean.TRUE.equals(isConditional))
                     {
-                        Helpers.addElementToObject(request, "algoType", "CONDITIONAL");
+                        ((Map<String, Object>)request).put("algoType", "CONDITIONAL");
                         response = (this.dapiPrivatePostAlgoOrder(request)).join();
                     } else
                     {

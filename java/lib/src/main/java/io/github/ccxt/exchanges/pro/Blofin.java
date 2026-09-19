@@ -164,7 +164,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
 
     }
 
-    public void handleTrades(Client client, Object message)
+    public void handleTrades(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -273,7 +273,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
 
     }
 
-    public void handleOrderBook(Client client, Object message)
+    public void handleOrderBook(Client client, Map<String, Object> message)
     {
         //
         //   {
@@ -379,7 +379,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
 
     }
 
-    public void handleTicker(Client client, Object message)
+    public void handleTicker(Client client, Map<String, Object> message)
     {
         //
         // message
@@ -394,7 +394,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         //         ],
         //     }
         //
-        this.handleBidAsk(client, message);
+        this.handleBidAsk(client, (Map<String, Object>) (message));
         Map<String, Object> arg = (Map<String, Object>) this.safeDict(message, "arg");
         String channelName = this.safeString(arg, "channel");
         List<Object> data = (List<Object>) this.safeList(message, "data");
@@ -467,12 +467,12 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
 
     }
 
-    public void handleBidAsk(Client client, Object message)
+    public void handleBidAsk(Client client, Map<String, Object> message)
     {
         List<Object> data = (List<Object>) this.safeList(message, "data");
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object ticker = this.parseWsBidAsk((data == null || i < 0 || i >= data.size() ? null : data.get(i)));
+            Object ticker = this.parseWsBidAsk((Map<String, Object>) ((data == null || i < 0 || i >= data.size() ? null : data.get(i))));
             Object symbol = ((Map<String, Object>)ticker).get("symbol");
             String messageHash = ("bidask:" + symbol);
             Helpers.addElementToObject(this.bidsasks, ((String)symbol), ticker);
@@ -480,7 +480,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         }
     }
 
-    public Object parseWsBidAsk(Object ticker, Object... optionalArgs)
+    public Object parseWsBidAsk(Map<String, Object> ticker, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(ticker, "instId");
@@ -568,7 +568,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
 
     }
 
-    public void handleOHLCV(Client client, Object message)
+    public void handleOHLCV(Client client, Map<String, Object> message)
     {
         //
         // message
@@ -648,7 +648,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
 
     }
 
-    public void handleBalance(Client client, Object message)
+    public void handleBalance(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -659,16 +659,16 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         //     }
         //
         String marketType = "swap"; // for now
-        if (!(Helpers.inOp(this.balance, marketType)))
+        if (!(((Map<?, ?>)this.balance).containsKey(marketType)))
         {
             Helpers.addElementToObject(this.balance, marketType, new HashMap<String, Object>() {{}});
         }
-        Helpers.addElementToObject(this.balance, marketType, this.parseWsBalance(message));
+        Helpers.addElementToObject(this.balance, marketType, this.parseWsBalance((Map<String, Object>) (message)));
         String messageHash = (marketType + ":balance");
         client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(marketType)), messageHash);
     }
 
-    public Object parseWsBalance(Object message)
+    public Object parseWsBalance(Map<String, Object> message)
     {
         return this.parseBalance(message);
     }
@@ -743,7 +743,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
 
     }
 
-    public void handleOrders(Client client, Object message)
+    public void handleOrders(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -815,7 +815,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
 
     }
 
-    public void handlePositions(Client client, Object message)
+    public void handlePositions(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -886,7 +886,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
 
     }
 
-    public void handleFundingRate(Client client, Object message)
+    public void handleFundingRate(Client client, Map<String, Object> message)
     {
         //
         //     {

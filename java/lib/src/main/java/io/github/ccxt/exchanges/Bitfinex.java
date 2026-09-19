@@ -1173,15 +1173,15 @@ public class Bitfinex extends BitfinexApi
                 ((Map<String, Object>)indexedNetworks).put((String)networkName, networksList);
             }
             List<Object> ids = (List<Object>) this.safeList(response, 0, new ArrayList<Object>(Arrays.asList()));
-            return this.parseCurrenciesCustom(ids, indexed, indexedNetworks);
+            return this.parseCurrenciesCustom(ids, (Map<String, Object>) (indexed), (Map<String, Object>) (indexedNetworks));
         });
 
     }
 
-    public Object parseCurrenciesCustom(Object ids, Object indexed, Object indexedNetworks)
+    public Object parseCurrenciesCustom(Object ids, Map<String, Object> indexed, Map<String, Object> indexedNetworks)
     {
         List<Object> allowedIds = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < Helpers.getArrayLength(ids); i++)
+        for (var i = 0; i < ((List<?>)ids).size(); i++)
         {
             Object id = Helpers.GetValue(ids, i);
             if (Helpers.isTrue(((String)id).endsWith("F0")))
@@ -1194,26 +1194,26 @@ public class Bitfinex extends BitfinexApi
         List<Object> arr = this.toArray(allowedIds);
         for (var i = 0; i < ((List<?>)arr).size(); i++)
         {
-            Object parsed = this.parseCurrencyCustom((arr == null || i < 0 || i >= arr.size() ? null : arr.get(i)), indexed, indexedNetworks);
+            Object parsed = this.parseCurrencyCustom((arr == null || i < 0 || i >= arr.size() ? null : arr.get(i)), (Map<String, Object>) (indexed), (Map<String, Object>) (indexedNetworks));
             Object code = ((Map<String, Object>)parsed).get("code");
             Helpers.addElementToObject(result, code, parsed);
         }
         return result;
     }
 
-    public Object parseCurrencyCustom(Object id, Object indexed, Object indexedNetworks)
+    public Object parseCurrencyCustom(Object id, Map<String, Object> indexed, Map<String, Object> indexedNetworks)
     {
         String code = this.safeCurrencyCode(id);
-        List<Object> label = (List<Object>) this.safeList(Helpers.GetValue(indexed, "label"), id, new ArrayList<Object>(Arrays.asList()));
+        List<Object> label = (List<Object>) this.safeList(((Map<String, Object>)indexed).get("label"), id, new ArrayList<Object>(Arrays.asList()));
         String name = this.safeString(label, 1);
-        List<Object> pool = (List<Object>) this.safeList(Helpers.GetValue(indexed, "pool"), id, new ArrayList<Object>(Arrays.asList()));
+        List<Object> pool = (List<Object>) this.safeList(((Map<String, Object>)indexed).get("pool"), id, new ArrayList<Object>(Arrays.asList()));
         String rawType = this.safeString(pool, 1);
-        Boolean isCryptoCoin = (!java.util.Objects.equals(rawType, null)) || (Helpers.inOp(Helpers.GetValue(indexed, "explorer"), id)); // "hacky" solution
+        Boolean isCryptoCoin = (!java.util.Objects.equals(rawType, null)) || (Helpers.inOp(((Map<String, Object>)indexed).get("explorer"), id)); // "hacky" solution
         String type = ((Boolean.TRUE.equals(isCryptoCoin))) ? "crypto" : null;
-        List<Object> feeValues = (List<Object>) this.safeList(Helpers.GetValue(indexed, "fees"), id, new ArrayList<Object>(Arrays.asList()));
+        List<Object> feeValues = (List<Object>) this.safeList(((Map<String, Object>)indexed).get("fees"), id, new ArrayList<Object>(Arrays.asList()));
         List<Object> fees = (List<Object>) this.safeList(feeValues, 1, new ArrayList<Object>(Arrays.asList()));
         Double fee = this.safeNumber(fees, 1);
-        List<Object> undl = (List<Object>) this.safeList(Helpers.GetValue(indexed, "undl"), id, new ArrayList<Object>(Arrays.asList()));
+        List<Object> undl = (List<Object>) this.safeList(((Map<String, Object>)indexed).get("undl"), id, new ArrayList<Object>(Arrays.asList()));
         String defaultCurrencyPrecision = this.safeString(this.options, "defaultCurrencyPrecision", "8"); // kept here for backward-compatibility
         // numberToString instead of an `as string` cast: the describe() default for this option is the
         // NUMBER 8 (and users may override with numbers too), and the hard cast makes the C# build throw
@@ -1232,7 +1232,7 @@ public class Bitfinex extends BitfinexApi
                 continue;
             }
             Object network = this.networkIdToCode(networkId, code);
-            List<Object> dwStatuses = (List<Object>) this.safeList(Helpers.GetValue(indexed, "statuses"), networkId, new ArrayList<Object>(Arrays.asList()));
+            List<Object> dwStatuses = (List<Object>) this.safeList(((Map<String, Object>)indexed).get("statuses"), networkId, new ArrayList<Object>(Arrays.asList()));
             if (!java.util.Objects.equals(network, null))
             {
                 final Object finalNetworkId = networkId;
@@ -1277,7 +1277,7 @@ public class Bitfinex extends BitfinexApi
                 }} );
             }} );
             put( "networks", networks );
-            put( "margin", Bitfinex.this.inArray(finalId, Helpers.GetValue(indexed, "marginables")) );
+            put( "margin", Bitfinex.this.inArray(finalId, ((Map<String, Object>)indexed).get("marginables")) );
         }});
     }
 
@@ -1385,8 +1385,8 @@ public class Bitfinex extends BitfinexApi
                 throw new ArgumentsRequired(((this.id + " transfer() toAccount must be one of ") + String.join(", ", (List<String>)keys))) ;
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
-            Object fromCurrencyId = this.convertDerivativesId(currency, fromAccount);
-            Object toCurrencyId = this.convertDerivativesId(currency, toAccount);
+            Object fromCurrencyId = this.convertDerivativesId((Map<String, Object>) (currency), fromAccount);
+            Object toCurrencyId = this.convertDerivativesId((Map<String, Object>) (currency), toAccount);
             Object requestedAmount = this.currencyToPrecision(code, amount);
             // this request is slightly different from v1 fromAccount -> from
             final Object finalFromId = fromId;
@@ -1491,7 +1491,7 @@ public class Bitfinex extends BitfinexApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object convertDerivativesId(Object currency, Object type)
+    public Object convertDerivativesId(Map<String, Object> currency, Object type)
     {
         // there is a difference between this and the v1 api, namely trading wallet is called margin in v2
         // {
@@ -2098,7 +2098,7 @@ public class Bitfinex extends BitfinexApi
         return this.safeString(statuses, state, status);
     }
 
-    public Object parseOrderFlags(Object flags)
+    public Object parseOrderFlags(String flags)
     {
         // flags can be added to each other...
         Map<String, Object> flagValues = new HashMap<String, Object>() {{
@@ -2109,7 +2109,7 @@ public class Bitfinex extends BitfinexApi
         return this.safeList(flagValues, flags);
     }
 
-    public String parseTimeInForce(Object orderType)
+    public String parseTimeInForce(String orderType)
     {
         Map<String, Object> orderTypes = new HashMap<String, Object>() {{
             put( "EXCHANGE IOC", "IOC" );

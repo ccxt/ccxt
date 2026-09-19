@@ -1161,12 +1161,12 @@ public class Kraken extends KrakenApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            return this.parseTradingFee(result, market);
+            return this.parseTradingFee((Map<String, Object>) (result), market);
         }).thenApply(TradingFeeInterface::new);
 
     }
 
-    public Object parseTradingFee(Object response, Object market)
+    public Object parseTradingFee(Map<String, Object> response, Object market)
     {
         Map<String, Object> makerFees = (Map<String, Object>) this.safeDict(response, "fees_maker", new HashMap<String, Object>() {{}});
         Map<String, Object> takerFees = (Map<String, Object>) this.safeDict(response, "fees", new HashMap<String, Object>() {{}});
@@ -1488,7 +1488,7 @@ public class Kraken extends KrakenApi
 
     }
 
-    public Object parseLedgerEntryType(Object type)
+    public Object parseLedgerEntryType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "trade", "trade" );
@@ -2093,9 +2093,9 @@ public class Kraken extends KrakenApi
                 put( "volume", Kraken.this.amountToPrecision(symbol, amount) );
             }};
             Object orderRequest = this.orderRequest("createOrder", (String) (symbol), (String) (type), (Map<String, Object>) (request), amount, price, parameters);
-            String flags = this.safeString((orderRequest == null || 0 >= ((List<?>)orderRequest).size() ? null : ((List<?>)orderRequest).get(0)), "oflags", "");
+            String flags = this.safeString(((List<Object>)orderRequest).get(0), "oflags", "");
             Boolean isUsingCost = Helpers.isGreaterThan(((String)flags).indexOf("viqc"), -1);
-            Map<String, Object> response = (this.privatePostAddOrder(this.extend((orderRequest == null || 0 >= ((List<?>)orderRequest).size() ? null : ((List<?>)orderRequest).get(0)), (orderRequest == null || 1 >= ((List<?>)orderRequest).size() ? null : ((List<?>)orderRequest).get(1))))).join();
+            Map<String, Object> response = (this.privatePostAddOrder(this.extend(((List<Object>)orderRequest).get(0), ((List<Object>)orderRequest).get(1)))).join();
             //
             //     {
             //         "error": [],
@@ -2166,7 +2166,7 @@ public class Kraken extends KrakenApi
                     put( "volume", parsedAmount );
                 }};
                 Object orderRequest = this.orderRequest("createOrders", marketId, type, (Map<String, Object>) (req), amount, price, orderParams);
-                ((List<Object>)ordersRequests).add((orderRequest == null || 0 >= ((List<?>)orderRequest).size() ? null : ((List<?>)orderRequest).get(0)));
+                ((List<Object>)ordersRequests).add(((List<Object>)orderRequest).get(0));
             }
             orderSymbols = this.marketSymbols(orderSymbols, null, false, true, true);
             Object response = null;
@@ -2275,7 +2275,7 @@ public class Kraken extends KrakenApi
         return this.safeString(statuses, status, status);
     }
 
-    public String parseOrderType(Object status)
+    public String parseOrderType(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "take-profit", "market" );
@@ -2542,7 +2542,7 @@ final Object finalId = id;
                 stopLossPrice = triggerPrice;
             }
         }
-        String typeParsed = this.parseOrderType(rawType);
+        String typeParsed = this.parseOrderType((String) (rawType));
         // unlike from endpoints which provide eg: "take-profit-limit"
         // for "space-delimited" orders we dont have market/limit suffixes, their format is
         // eg: `stop loss > limit 123`, so we need to parse them manually
@@ -3571,7 +3571,7 @@ final Object finalId = id;
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseNetwork(Object network)
+    public Object parseNetwork(String network)
     {
         Map<String, Object> withdrawMethods = (Map<String, Object>) this.safeDict(this.options, "withdrawMethods", new HashMap<String, Object>() {{}});
         return this.safeString(withdrawMethods, network, network);
@@ -3695,13 +3695,13 @@ final Object finalId = id;
         }};
     }
 
-    public Object parseTransactionsByType(Object type, Object transactions, Object... optionalArgs)
+    public Object parseTransactionsByType(String type, Object transactions, Object... optionalArgs)
     {
         Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
         Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < Helpers.getArrayLength(transactions); i++)
+        for (var i = 0; i < ((List<?>)transactions).size(); i++)
         {
             Map<String, Object> transaction = (Map<String, Object>) this.parseTransaction(this.extend(new HashMap<String, Object>() {{
                 put( "type", type );
@@ -4418,7 +4418,7 @@ final Object finalId = id;
         Object url = Helpers.add((Helpers.add((("/" + this.version) + "/"), api) + "/"), path);
         if (java.util.Objects.equals(api, "public"))
         {
-            if (((List<?>)Helpers.objectKeys(parameters)).size() > 0)
+            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
             {
                 // rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
                 url = (url + ("?" + this.urlencodeNested(parameters)));

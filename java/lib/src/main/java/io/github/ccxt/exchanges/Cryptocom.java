@@ -3255,7 +3255,7 @@ public class Cryptocom extends CryptocomApi
         }}, market);
     }
 
-    public String parseDepositStatus(Object status)
+    public String parseDepositStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "0", "pending" );
@@ -3266,7 +3266,7 @@ public class Cryptocom extends CryptocomApi
         return this.safeString(statuses, status, status);
     }
 
-    public String parseWithdrawalStatus(Object status)
+    public String parseWithdrawalStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "0", "pending" );
@@ -3650,7 +3650,7 @@ public class Cryptocom extends CryptocomApi
         }}, currency);
     }
 
-    public Object parseLedgerEntryType(Object type)
+    public Object parseLedgerEntryType(String type)
     {
         Map<String, Object> ledgerType = new HashMap<String, Object>() {{
             put( "TRADING", "trade" );
@@ -3842,7 +3842,7 @@ public class Cryptocom extends CryptocomApi
 
     }
 
-    public Object parseSettlement(Map<String, Object> settlement, Object market)
+    public Object parseSettlement(Map<String, Object> settlement, Object... optionalArgs)
     {
         //
         //     {
@@ -3852,6 +3852,7 @@ public class Cryptocom extends CryptocomApi
         //         "t": 1685087999500
         //     }
         //
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = this.safeInteger(settlement, "x");
         String marketId = this.safeString(settlement, "i");
         return new HashMap<String, Object>() {{
@@ -3863,7 +3864,7 @@ public class Cryptocom extends CryptocomApi
         }};
     }
 
-    public Object parseSettlements(Object settlements, Object market)
+    public Object parseSettlements(Object settlements, Object... optionalArgs)
     {
         //
         //     [
@@ -3875,8 +3876,9 @@ public class Cryptocom extends CryptocomApi
         //         }
         //     ]
         //
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < Helpers.getArrayLength(settlements); i++)
+        for (var i = 0; i < ((List<?>)settlements).size(); i++)
         {
             ((List<Object>)result).add(this.parseSettlement((Map<String, Object>) (Helpers.GetValue(settlements, i)), market));
         }

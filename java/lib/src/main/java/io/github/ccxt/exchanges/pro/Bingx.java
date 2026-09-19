@@ -265,7 +265,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
 
     }
 
-    public void handleTicker(Client client, Object message)
+    public void handleTicker(Client client, Map<String, Object> message)
     {
         //
         // swap
@@ -332,7 +332,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         // ticker even when the market id could not be resolved
         String inverseUrl = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "inverse");
         Boolean isInverse = (!java.util.Objects.equals(inverseUrl, null)) && ((((String)client.url).indexOf(((String)inverseUrl)) == 0));
-        Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(data, market, isInverse);
+        Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker((Map<String, Object>) (data), market, isInverse);
         Helpers.addElementToObject(this.tickers, symbol, ticker);
         client.resolve(ticker, this.getMessageHash("ticker", symbol));
         if (java.util.Objects.equals(this.safeString(message, "dataType"), "all@ticker"))
@@ -341,7 +341,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         }
     }
 
-    public Object parseWsTicker(Object message, Object... optionalArgs)
+    public Object parseWsTicker(Map<String, Object> message, Object... optionalArgs)
     {
         //
         //     {
@@ -547,7 +547,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
 
     }
 
-    public void handleTrades(Client client, Object message)
+    public void handleTrades(Client client, Map<String, Object> message)
     {
         //
         // spot: first snapshot
@@ -779,7 +779,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         Helpers.callDynamically(bookside, "store", new Object[]{price, amount});
     }
 
-    public void handleOrderBook(Client client, Object message)
+    public void handleOrderBook(Client client, Map<String, Object> message)
     {
         //
         // spot
@@ -919,7 +919,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, timestamp), this.safeNumber(ohlcv, "o"), this.safeNumber(ohlcv, "h"), this.safeNumber(ohlcv, "l"), this.safeNumber(ohlcv, "c"), this.safeNumber(ohlcv, "v")));
     }
 
-    public void handleOHLCV(Client client, Object message)
+    public void handleOHLCV(Client client, Map<String, Object> message)
     {
         //
         // spot:
@@ -1390,7 +1390,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             }
             Object url = Helpers.add((baseUrl + "?listenKey="), ((Map<String, Object>)this.options).get("listenKey"));
             Client client = this.client(url);
-            this.setBalanceCache(client, type, subType, subscriptionHash, parameters);
+            this.setBalanceCache(client, type, (String) (subType), subscriptionHash, (Map<String, Object>) (parameters));
             Object fetchBalanceSnapshot = null;
             Object awaitBalanceSnapshot = null;
             List<Object> fetchBalanceSnapshotparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchBalance", "fetchBalanceSnapshot", true);
@@ -1412,16 +1412,16 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
 
     }
 
-    public void setBalanceCache(Client client, Object type, Object subType, Object subscriptionHash, Object parameters)
+    public void setBalanceCache(Client client, Object type, String subType, Object subscriptionHash, Map<String, Object> parameters)
     {
-        if ((subscriptionHash != null && ((Map<?, ?>)client.subscriptions).containsKey(subscriptionHash)))
+        if (((Map<?, ?>)client.subscriptions).containsKey(subscriptionHash))
         {
             return;
         }
         Object fetchBalanceSnapshot = false;
         List<Object> fetchBalanceSnapshotparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchBalance", "fetchBalanceSnapshot", true);
         fetchBalanceSnapshot = ((List<Object>) fetchBalanceSnapshotparametersVariable).get(0);
-        parameters = ((List<Object>) fetchBalanceSnapshotparametersVariable).get(1);
+        parameters = (Map<String, Object>) ((List<Object>) fetchBalanceSnapshotparametersVariable).get(1);
         if (Boolean.TRUE.equals(fetchBalanceSnapshot))
         {
             Object messageHash = Helpers.add(type, ":fetchBalanceSnapshot");
@@ -1436,7 +1436,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         }
     }
 
-    public CompletableFuture<Object> loadBalanceSnapshot(Client client, Object messageHash2, Object type2, Object subType)
+    public CompletableFuture<Object> loadBalanceSnapshot(Client client, Object messageHash2, Object type2, String subType)
     {
         final Object messageHash3 = messageHash2;
         final Object type3 = type2;
@@ -1450,7 +1450,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             }}))).join();
             Helpers.addElementToObject(this.balance, type, this.extend(response, this.safeDict(this.balance, type, new HashMap<String, Object>() {{}})));
             // don't remove the future from the .futures cache
-            if ((messageHash != null && ((Map<?, ?>)client.futures).containsKey(messageHash)))
+            if (((Map<?, ?>)client.futures).containsKey(messageHash))
             {
                 io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, messageHash);
                 future.resolve();
@@ -1515,7 +1515,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             String baseUrl = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), subType);
             Object url = Helpers.add((baseUrl + "?listenKey="), ((Map<String, Object>)this.options).get("listenKey"));
             Client client = this.client(url);
-            this.setPositionsCache(client, type, symbols);
+            this.setPositionsCache(client, (String) (type), symbols);
             Object fetchPositionsSnapshot = null;
             Object awaitPositionsSnapshot = null;
             List<Object> fetchPositionsSnapshotparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchPositions", "fetchPositionsSnapshot", true);
@@ -1544,7 +1544,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
 
     }
 
-    public void setPositionsCache(Client client, Object type, Object... optionalArgs)
+    public void setPositionsCache(Client client, String type, Object... optionalArgs)
     {
         Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         if (!java.util.Objects.equals(this.positions, null))
@@ -1554,7 +1554,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
         if (java.util.Objects.equals(fetchPositionsSnapshot, true))
         {
-            Object messageHash = Helpers.add(type, ":fetchPositionsSnapshot");
+            Object messageHash = (type + ":fetchPositionsSnapshot");
             if (!(((Map<?, ?>)client.futures).containsKey(messageHash)))
             {
                 client.future((String)messageHash);
@@ -1566,7 +1566,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         }
     }
 
-    public CompletableFuture<Object> loadPositionsSnapshot(Client client, Object messageHash2, Object type)
+    public CompletableFuture<Object> loadPositionsSnapshot(Client client, Object messageHash2, String type)
     {
         final Object messageHash3 = messageHash2;
         return BaseExchange.supplyAsync(() -> {
@@ -1587,7 +1587,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
                 }
             }
             // don't remove the future from the .futures cache
-            if ((messageHash != null && ((Map<?, ?>)client.futures).containsKey(messageHash)))
+            if (((Map<?, ?>)client.futures).containsKey(messageHash))
             {
                 io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, messageHash);
                 ((io.github.ccxt.ws.Future)future).resolve(cache);
@@ -1598,7 +1598,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
 
     }
 
-    public Object parseWsPosition(Object position, Object... optionalArgs)
+    public Object parseWsPosition(Map<String, Object> position, Object... optionalArgs)
     {
         //
         //     {
@@ -1663,7 +1663,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         }});
     }
 
-    public void handlePositions(Client client, Object message)
+    public void handlePositions(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1701,7 +1701,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         for (var i = 0; i < ((List<?>)rawPositions).size(); i++)
         {
             Object rawPosition = (rawPositions == null || i < 0 || i >= rawPositions.size() ? null : rawPositions.get(i));
-            Map<String, Object> position = (Map<String, Object>) this.parseWsPosition(rawPosition);
+            Map<String, Object> position = (Map<String, Object>) this.parseWsPosition((Map<String, Object>) (rawPosition));
             String symbol = this.safeString(position, "symbol");
             if (java.util.Objects.equals(symbol, null))
             {
@@ -1729,7 +1729,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         client.resolve(newPositions, "swap:positions");
     }
 
-    public Object handleErrorMessage(Client client, Object message)
+    public Object handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         // { code: 100400, msg: '', timestamp: 1696245808833 }
@@ -1892,7 +1892,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
 
     }
 
-    public void handleOrder(Client client, Object message)
+    public void handleOrder(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1977,7 +1977,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         //        }
         //    }
         //
-        Boolean isSpot = (Helpers.inOp(message, "dataType"));
+        Boolean isSpot = (message.containsKey("dataType"));
         Object data = this.safeDict2(message, "data", "o", new HashMap<String, Object>() {{}});
         if (java.util.Objects.equals(this.orders, null))
         {
@@ -1995,7 +1995,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         client.resolve(stored, Helpers.add((messageHash + ":"), symbol));
     }
 
-    public void handleMyTrades(Client client, Object message)
+    public void handleMyTrades(Client client, Map<String, Object> message)
     {
         //
         //
@@ -2053,7 +2053,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         //        }
         //    }
         //
-        Boolean isSpot = (Helpers.inOp(message, "dataType"));
+        Boolean isSpot = (message.containsKey("dataType"));
         Object result = this.safeDict2(message, "data", "o", new HashMap<String, Object>() {{}});
         Object cachedTrades = this.myTrades;
         if (java.util.Objects.equals(cachedTrades, null))
@@ -2075,7 +2075,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         client.resolve(cachedTrades, Helpers.add((messageHash + ":"), symbol));
     }
 
-    public void handleBalance(Client client, Object message)
+    public void handleBalance(Client client, Map<String, Object> message)
     {
         // spot
         //     {
@@ -2119,7 +2119,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         String spotUrl = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "spot");
         Boolean isSpot = (!java.util.Objects.equals(spotUrl, null)) && ((((String)client.url).indexOf(((String)spotUrl)) == 0));
         String type = ((Boolean.TRUE.equals(isSpot))) ? "spot" : "swap";
-        if (!(Helpers.inOp(this.balance, type)))
+        if (!(((Map<?, ?>)this.balance).containsKey(type)))
         {
             Helpers.addElementToObject(this.balance, type, new HashMap<String, Object>() {{}});
         }
@@ -2146,7 +2146,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
 
     public void handleMessage(Client client, Object message)
     {
-        if (!Boolean.TRUE.equals(this.handleErrorMessage(client, message)))
+        if (!Boolean.TRUE.equals(this.handleErrorMessage(client, (Map<String, Object>) (message))))
         {
             return;
         }
@@ -2159,22 +2159,22 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         String dataType = this.safeString(message, "dataType", "");
         if (((String)dataType).indexOf("@depth") >= 0)
         {
-            this.handleOrderBook(client, message);
+            this.handleOrderBook(client, (Map<String, Object>) (message));
             return;
         }
         if (((String)dataType).indexOf("@ticker") >= 0)
         {
-            this.handleTicker(client, message);
+            this.handleTicker(client, (Map<String, Object>) (message));
             return;
         }
         if (((String)dataType).indexOf("@trade") >= 0)
         {
-            this.handleTrades(client, message);
+            this.handleTrades(client, (Map<String, Object>) (message));
             return;
         }
         if (((String)dataType).indexOf("@kline") >= 0)
         {
-            this.handleOHLCV(client, message);
+            this.handleOHLCV(client, (Map<String, Object>) (message));
             return;
         }
         if (((String)dataType).indexOf("executionReport") >= 0)
@@ -2183,41 +2183,41 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             String type = this.safeString(data, "x");
             if (java.util.Objects.equals(type, "TRADE"))
             {
-                this.handleMyTrades(client, message);
+                this.handleMyTrades(client, (Map<String, Object>) (message));
             }
-            this.handleOrder(client, message);
+            this.handleOrder(client, (Map<String, Object>) (message));
             return;
         }
         String e = this.safeString(message, "e");
         if (java.util.Objects.equals(e, "ACCOUNT_UPDATE"))
         {
-            this.handleBalance(client, message);
-            this.handlePositions(client, message);
+            this.handleBalance(client, (Map<String, Object>) (message));
+            this.handlePositions(client, (Map<String, Object>) (message));
         }
         if (java.util.Objects.equals(e, "ORDER_TRADE_UPDATE"))
         {
-            this.handleOrder(client, message);
+            this.handleOrder(client, (Map<String, Object>) (message));
             Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "o", new HashMap<String, Object>() {{}});
             String type = this.safeString(data, "x");
             String status = this.safeString(data, "X");
             if ((java.util.Objects.equals(type, "TRADE")) && (java.util.Objects.equals(status, "FILLED")))
             {
-                this.handleMyTrades(client, message);
+                this.handleMyTrades(client, (Map<String, Object>) (message));
             }
         }
         Map<String, Object> msgData = (Map<String, Object>) this.safeDict(message, "data");
         String msgEvent = this.safeString(msgData, "e");
         if (java.util.Objects.equals(msgEvent, "24hTicker"))
         {
-            this.handleTicker(client, message);
+            this.handleTicker(client, (Map<String, Object>) (message));
         }
         if (java.util.Objects.equals(dataType, "") && java.util.Objects.equals(msgEvent, null) && java.util.Objects.equals(e, null))
         {
-            this.handleSubscriptionStatus(client, message);
+            this.handleSubscriptionStatus(client, (Map<String, Object>) (message));
         }
     }
 
-    public Object handleSubscriptionStatus(Client client, Object message)
+    public Object handleSubscriptionStatus(Client client, Map<String, Object> message)
     {
         //
         //     {

@@ -68,12 +68,12 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         }});
     }
 
-    public CompletableFuture<Object> watchPublic(Object path, Object messageHash, Object marketId)
+    public CompletableFuture<Object> watchPublic(Object path, Object messageHash, String marketId)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object url = Helpers.add((Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("ws"), "public"), "/"), path) + "/"), marketId);
+            Object url = ((Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("ws"), "public"), "/"), path) + "/") + marketId);
             return (this.watch(url, messageHash, null, messageHash, null)).join();
         });
 
@@ -118,13 +118,13 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             {
                 endPart = ((((Map<String, Object>)market).get("id") + ":") + this.numberToString(limit));
             }
-            Object orderbook = (this.watchPublic("order-books", messageHash, endPart)).join();
+            Object orderbook = (this.watchPublic("order-books", messageHash, (String) (endPart))).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(OrderBook::new);
 
     }
 
-    public void handleOrderBook(Client client, Object message)
+    public void handleOrderBook(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -189,7 +189,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
             String messageHash = (("TRADE" + ":") + symbol);
-            Object trades = (this.watchPublic("trades", messageHash, ((Map<String, Object>)market).get("id"))).join();
+            Object trades = (this.watchPublic("trades", messageHash, (String) (((Map<String, Object>)market).get("id")))).join();
             if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
@@ -199,7 +199,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
 
     }
 
-    public void handleTrade(Client client, Object message)
+    public void handleTrade(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -284,7 +284,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
 
     }
 
-    public void handleMyTrade(Client client, Object message)
+    public void handleMyTrade(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -438,12 +438,12 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
             String messageHash = (("TICKER" + ":") + symbol);
-            return (this.watchPublic("tickers", messageHash, ((Map<String, Object>)market).get("id"))).join();
+            return (this.watchPublic("tickers", messageHash, (String) (((Map<String, Object>)market).get("id")))).join();
         }).thenApply(Ticker::new);
 
     }
 
-    public void handleTicker(Client client, Object message)
+    public void handleTicker(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -484,7 +484,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
 
     public void authenticate(Object url)
     {
-        if ((!java.util.Objects.equals(this.clients, null)) && ((url != null && ((Map<?, ?>)this.clients).containsKey(url))))
+        if ((!java.util.Objects.equals(this.clients, null)) && (((Map<?, ?>)this.clients).containsKey(url)))
         {
             return;
         }
@@ -545,7 +545,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
 
     }
 
-    public void handleBalance(Client client, Object message)
+    public void handleBalance(Client client, Map<String, Object> message)
     {
         //
         //     {

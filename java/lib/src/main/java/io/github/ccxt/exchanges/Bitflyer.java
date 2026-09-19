@@ -1394,7 +1394,7 @@ public class Bitflyer extends BitflyerApi
 
     }
 
-    public String parseDepositStatus(Object status)
+    public String parseDepositStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "PENDING", "pending" );
@@ -1403,7 +1403,7 @@ public class Bitflyer extends BitflyerApi
         return this.safeString(statuses, status, status);
     }
 
-    public String parseWithdrawalStatus(Object status)
+    public String parseWithdrawalStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "PENDING", "pending" );
@@ -1586,7 +1586,7 @@ public class Bitflyer extends BitflyerApi
         request = Helpers.add(request, path);
         if (java.util.Objects.equals(method, "GET"))
         {
-            if (((List<?>)Helpers.objectKeys(parameters)).size() > 0)
+            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
             {
                 request = (request + ("?" + this.urlencode(parameters)));
             }
@@ -1599,7 +1599,7 @@ public class Bitflyer extends BitflyerApi
             Object nonce = String.valueOf(this.nonce());
             Object content = new ArrayList<Object>(Arrays.asList(nonce, method, request));
             Object auth = String.join("", (List<String>)content);
-            if (((List<?>)Helpers.objectKeys(parameters)).size() > 0)
+            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
             {
                 if (!java.util.Objects.equals(method, "GET"))
                 {

@@ -371,7 +371,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
     }
 
-    public void handleInstrument(Client client, Object message)
+    public void handleInstrument(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -486,7 +486,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         }});
     }
 
-    public void handleTicker(Client client, Object message)
+    public void handleTicker(Client client, Map<String, Object> message)
     {
         //
         // snapshot
@@ -599,7 +599,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
     }
 
-    public void handleOHLCV(Client client, Object message)
+    public void handleOHLCV(Client client, Map<String, Object> message)
     {
         //
         // {
@@ -700,7 +700,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
     }
 
-    public Object handleTrade(Client client, Object message)
+    public Object handleTrade(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -810,7 +810,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
     }
 
-    public void handleOrderBook(Client client, Object message)
+    public void handleOrderBook(Client client, Map<String, Object> message)
     {
         //
         // snapshot
@@ -893,7 +893,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         }
     }
 
-    public Object handleSubscriptionStatus(Client client, Object message)
+    public Object handleSubscriptionStatus(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -922,7 +922,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         return message;
     }
 
-    public void handleFundingRate(Client client, Object message)
+    public void handleFundingRate(Client client, Map<String, Object> message)
     {
         //
         // snapshot
@@ -952,7 +952,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         client.resolve(fundingRate, Helpers.add((channel + "::"), fundingRate.get("symbol")));
     }
 
-    public Object handleErrorMessage(Client client, Object message)
+    public Object handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -984,7 +984,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
     public void handleMessage(Client client, Object message)
     {
-        if (java.util.Objects.equals(this.handleErrorMessage(client, message), true))
+        if (java.util.Objects.equals(this.handleErrorMessage(client, (Map<String, Object>) (message)), true))
         {
             return;
         }
@@ -1006,7 +1006,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         }
         if (Helpers.isGreaterThan(((String)channel).indexOf("CANDLES"), -1))
         {
-            this.handleOHLCV(client, message);
+            this.handleOHLCV(client, (Map<String, Object>) (message));
         }
         Object method = this.safeValue(methods, channel);
         if (!java.util.Objects.equals(method, null))

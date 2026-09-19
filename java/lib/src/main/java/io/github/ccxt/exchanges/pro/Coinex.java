@@ -120,7 +120,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         return requestId;
     }
 
-    public void handleTicker(Client client, Object message)
+    public void handleTicker(Client client, Map<String, Object> message)
     {
         //
         //  spot
@@ -332,7 +332,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
 
     }
 
-    public void handleBalance(Client client, Object message)
+    public void handleBalance(Client client, Map<String, Object> message)
     {
         //
         // spot
@@ -545,7 +545,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
 
     }
 
-    public void handleMyTrades(Client client, Object message)
+    public void handleMyTrades(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -588,7 +588,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         client.resolve(Helpers.GetValue(this.trades, symbol), messageHash);
     }
 
-    public void handleTrades(Client client, Object message)
+    public void handleTrades(Client client, Map<String, Object> message)
     {
         //
         // spot
@@ -1033,7 +1033,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         }
     }
 
-    public void handleOrderBook(Client client, Object message)
+    public void handleOrderBook(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1185,7 +1185,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
 
     }
 
-    public void handleOrders(Client client, Object message)
+    public void handleOrders(Client client, Map<String, Object> message)
     {
         //
         // spot
@@ -1454,13 +1454,13 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             put( "remaining", Coinex.this.safeString2(order, "unfilled_amount", "unfill_amount") );
             put( "cost", null );
             put( "average", null );
-            put( "status", Coinex.this.parseWsOrderStatus(status) );
+            put( "status", Coinex.this.parseWsOrderStatus((String) (status)) );
             put( "fee", finalFee );
             put( "trades", null );
         }}, market);
     }
 
-    public String parseWsOrderStatus(Object status)
+    public String parseWsOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "active_success", "open" );
@@ -1534,7 +1534,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
 
     }
 
-    public void handleBidAsk(Client client, Object message)
+    public void handleBidAsk(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1612,7 +1612,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             Helpers.callDynamically(this, handler, new Object[] {client, message});
             return;
         }
-        this.handleSubscriptionStatus(client, message);
+        this.handleSubscriptionStatus(client, (Map<String, Object>) (message));
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
@@ -1640,7 +1640,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         return null;
     }
 
-    public void handleAuthenticationMessage(Client client, Object message)
+    public void handleAuthenticationMessage(Client client, Map<String, Object> message)
     {
         //
         // success
@@ -1677,7 +1677,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         }
     }
 
-    public void handleSubscriptionStatus(Client client, Object message)
+    public void handleSubscriptionStatus(Client client, Map<String, Object> message)
     {
         Object id = this.safeInteger(message, "id");
         Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, id);

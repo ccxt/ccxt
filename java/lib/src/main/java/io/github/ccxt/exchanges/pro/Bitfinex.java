@@ -261,7 +261,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
 
     }
 
-    public void handleOHLCV(Client client, Object message, Object subscription)
+    public void handleOHLCV(Client client, Object message, Map<String, Object> subscription)
     {
         //
         // initial snapshot
@@ -517,7 +517,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         client.resolve(tradesArray, messageHash);
     }
 
-    public void handleTrades(Client client, Object message, Object subscription)
+    public void handleTrades(Client client, Object message, Map<String, Object> subscription)
     {
         //
         // initial snapshot
@@ -561,8 +561,8 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             stored = new ArrayCache(((Number)tradesLimit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
-        Object messageLength = Helpers.getArrayLength(message);
-        if (Helpers.isEqual(messageLength, 2))
+        Object messageLength = ((List<?>)message).size();
+        if (java.util.Objects.equals(messageLength, 2))
         {
             // initial snapshot
             List<Object> trades = (List<Object>) this.safeList(message, 1, new ArrayList<Object>(Arrays.asList()));
@@ -636,7 +636,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         //    ]
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object numFields = Helpers.getArrayLength(trade);
+        Object numFields = ((List<?>)trade).size();
         Boolean isPublic = Helpers.isLessThanOrEqual(numFields, 8);
         Object marketId = ((Helpers.isTrue((!Boolean.TRUE.equals(isPublic))))) ? this.safeString(trade, 1) : null;
         market = this.safeMarket(marketId, market);
@@ -707,7 +707,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         }}, market);
     }
 
-    public void handleTicker(Client client, Object message, Object subscription)
+    public void handleTicker(Client client, Object message, Map<String, Object> subscription)
     {
         //
         // [
@@ -822,7 +822,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
 
     }
 
-    public void handleOrderBook(Client client, Object message, Object subscription)
+    public void handleOrderBook(Client client, Object message, Map<String, Object> subscription)
     {
         //
         // first message (snapshot)
@@ -872,7 +872,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
             if (Boolean.TRUE.equals(isRaw))
             {
-                Object deltas = Helpers.GetValue(message, 1);
+                Object deltas = (message == null || 1 >= ((List<?>)message).size() ? null : ((List<?>)message).get(1));
                 for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
                 {
                     Object delta = Helpers.GetValue(deltas, i);
@@ -886,7 +886,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
                 }
             } else
             {
-                Object deltas = Helpers.GetValue(message, 1);
+                Object deltas = (message == null || 1 >= ((List<?>)message).size() ? null : ((List<?>)message).get(1));
                 for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
                 {
                     Object delta = Helpers.GetValue(deltas, i);
@@ -908,7 +908,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         } else
         {
             io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
-            Object deltas = Helpers.GetValue(message, 1);
+            Object deltas = (message == null || 1 >= ((List<?>)message).size() ? null : ((List<?>)message).get(1));
             io.github.ccxt.ws.WsOrderBook orderbookItem = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
             if (Boolean.TRUE.equals(isRaw))
             {
@@ -935,7 +935,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         }
     }
 
-    public void handleChecksum(Client client, Object message, Object subscription)
+    public void handleChecksum(Client client, Object message, Map<String, Object> subscription)
     {
         //
         // [ 173904, "cs", -890884919 ]
@@ -1015,7 +1015,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
 
     }
 
-    public void handleBalance(Client client, Object message, Object subscription)
+    public void handleBalance(Client client, Object message, Map<String, Object> subscription)
     {
         //
         // snapshot (exchange + margin together)
@@ -1138,7 +1138,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         return account;
     }
 
-    public Object handleSystemStatus(Client client, Object message)
+    public Object handleSystemStatus(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1151,7 +1151,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         return message;
     }
 
-    public Object handleUnsubscriptionStatus(Client client, Object message)
+    public Object handleUnsubscriptionStatus(Client client, Map<String, Object> message)
     {
         //
         // {
@@ -1177,7 +1177,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         return true;
     }
 
-    public Object handleSubscriptionStatus(Client client, Object message)
+    public Object handleSubscriptionStatus(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1208,7 +1208,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             put( "trades", "trades" );
         }};
         String unifiedChannel = this.safeString(mappings, this.safeString(message, "channel"));
-        if (Helpers.inOp(message, "key"))
+        if (message.containsKey("key"))
         {
             // handle ohlcv differently because the message is different
             String key = this.safeString(message, "key");
@@ -1259,7 +1259,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
 
     }
 
-    public void handleAuthenticationMessage(Client client, Object message)
+    public void handleAuthenticationMessage(Client client, Map<String, Object> message)
     {
         String messageHash = "authenticated";
         String status = this.safeString(message, "status");
@@ -1319,7 +1319,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
 
     }
 
-    public void handleOrders(Client client, Object message, Object subscription)
+    public void handleOrders(Client client, Object message, Map<String, Object> subscription)
     {
         //
         // limit order
@@ -1404,7 +1404,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         }
     }
 
-    public String parseWsOrderStatus(Object status)
+    public String parseWsOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "ACTIVE", "open" );
@@ -1478,7 +1478,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         String rawState = this.safeString(order, 13, "");
         Object stateParts = new ArrayList<Object>(Arrays.asList(((String)rawState).split(java.util.regex.Pattern.quote(" "))));
         String trimmedStatus = this.safeString(stateParts, 0);
-        String status = this.parseWsOrderStatus(trimmedStatus);
+        String status = this.parseWsOrderStatus((String) (trimmedStatus));
         String price = this.safeString(order, 16);
         Long timestamp = (Long) this.safeInteger2(order, 5, 4);
         String average = this.safeString(order, 17);

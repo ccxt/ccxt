@@ -103,7 +103,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
 
     }
 
-    public void handleTrades(Client client, Object message, Object subscription)
+    public void handleTrades(Client client, Map<String, Object> message, Map<String, Object> subscription)
     {
         //
         //     {
@@ -126,7 +126,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         {
             return;
         }
-        Object symbol = Helpers.GetValue(subscription, "symbol");
+        Object symbol = ((Map<String, Object>)subscription).get("symbol");
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         String messageHash = Helpers.add("trades:", symbol);
         Object stored = this.safeValue(this.trades, symbol);
@@ -221,7 +221,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
 
     }
 
-    public void handleOrderBook(Client client, Object message, Object subscription)
+    public void handleOrderBook(Client client, Map<String, Object> message, Map<String, Object> subscription)
     {
         //
         //     {
@@ -255,7 +255,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         //         "timestamp": 1660598775360
         //     }
         //
-        Object symbol = Helpers.GetValue(subscription, "symbol");
+        Object symbol = ((Map<String, Object>)subscription).get("symbol");
         String messageHash = Helpers.add("orderbook:", symbol);
         Long timestamp = this.safeInteger(message, "timestamp");
         if (!((symbol != null && ((Map<?, ?>)this.orderbooks).containsKey(symbol))))

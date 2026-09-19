@@ -118,7 +118,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
 
     }
 
-    public Object handleTicker(Client client, Object message)
+    public Object handleTicker(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -209,7 +209,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
 
     }
 
-    public Object handleTrades(Client client, Object message)
+    public Object handleTrades(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -314,7 +314,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
 
     }
 
-    public void handleOHLCV(Client client, Object message)
+    public void handleOHLCV(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -412,7 +412,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
 
     }
 
-    public void handleOrderBookSnapshot(Client client, Object message, Object subscription)
+    public void handleOrderBookSnapshot(Client client, Map<String, Object> message, Map<String, Object> subscription)
     {
         //
         //     {
@@ -449,13 +449,13 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         Object messages = ((List<Object>)Helpers.GetValue(orderbook, "cache"));
         for (var i = 0; i < ((List<?>)messages).size(); i++)
         {
-            this.handleOrderBookMessage(client, Helpers.GetValue(messages, i), orderbook);
+            this.handleOrderBookMessage(client, (Map<String, Object>) (Helpers.GetValue(messages, i)), orderbook);
         }
         Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
         client.resolve(orderbook, messageHash);
     }
 
-    public CompletableFuture<Object> watchOrderBookSnapshot(Client client, Object message, Object subscription)
+    public CompletableFuture<Object> watchOrderBookSnapshot(Client client, Map<String, Object> message, Map<String, Object> subscription)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -513,7 +513,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         }
     }
 
-    public Object handleOrderBookMessage(Client client, Object message, Object orderbook)
+    public Object handleOrderBookMessage(Client client, Map<String, Object> message, Object orderbook)
     {
         //
         //     {
@@ -556,7 +556,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         return orderbook;
     }
 
-    public void handleOrderBook(Client client, Object message)
+    public void handleOrderBook(Client client, Map<String, Object> message)
     {
         //
         // deltas
@@ -591,12 +591,12 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
             ((List<Object>)((List<Object>)Helpers.GetValue(orderbook, "cache"))).add(message);
         } else
         {
-            this.handleOrderBookMessage(client, message, orderbook);
+            this.handleOrderBookMessage(client, (Map<String, Object>) (message), orderbook);
             client.resolve(orderbook, messageHash);
         }
     }
 
-    public void handleOrderBookSubscription(Client client, Object message, Object subscription)
+    public void handleOrderBookSubscription(Client client, Map<String, Object> message, Map<String, Object> subscription)
     {
         String symbol = this.safeString(subscription, "symbol");
         if (java.util.Objects.equals(symbol, null))
@@ -613,7 +613,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         this.spawn(() -> { try { this.watchOrderBookSnapshot(client, message, subscription); } catch(Exception _e) { throw new RuntimeException(_e); } });
     }
 
-    public Object handleSubscriptionStatus(Client client, Object message)
+    public Object handleSubscriptionStatus(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -646,7 +646,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         return message;
     }
 
-    public Object handleSystemStatus(Client client, Object message)
+    public Object handleSystemStatus(Client client, Map<String, Object> message)
     {
         //
         // todo: answer the question whether handleSystemStatus should be renamed
@@ -661,7 +661,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         return message;
     }
 
-    public void handleSubject(Client client, Object message)
+    public void handleSubject(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -703,7 +703,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         }
     }
 
-    public CompletableFuture<Object> pong(Client client, Object message)
+    public CompletableFuture<Object> pong(Client client, Map<String, Object> message)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -719,12 +719,12 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
 
     }
 
-    public void handlePing(Client client, Object message)
+    public void handlePing(Client client, Map<String, Object> message)
     {
         this.spawn(() -> { try { this.pong(client, message); } catch(Exception _e) { throw new RuntimeException(_e); } });
     }
 
-    public Object handleErrorMessage(Client client, Object message)
+    public Object handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -769,7 +769,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
 
     public void handleMessage(Client client, Object message)
     {
-        if (java.util.Objects.equals(this.handleErrorMessage(client, message), true))
+        if (java.util.Objects.equals(this.handleErrorMessage(client, (Map<String, Object>) (message)), true))
         {
             //
             //     {"id":1583414227,"status":"ok","subbed":"market.btcusdt.mbp.150","ts":1583414229143}
@@ -784,14 +784,14 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
             //
             if (!java.util.Objects.equals(this.safeString(message, "id"), null))
             {
-                this.handleSubscriptionStatus(client, message);
+                this.handleSubscriptionStatus(client, (Map<String, Object>) (message));
             } else if (!java.util.Objects.equals(this.safeString(message, "ch"), null))
             {
                 // route by channel aka topic aka subject
-                this.handleSubject(client, message);
+                this.handleSubject(client, (Map<String, Object>) (message));
             } else if (!java.util.Objects.equals(this.safeString(message, "ping"), null))
             {
-                this.handlePing(client, message);
+                this.handlePing(client, (Map<String, Object>) (message));
             }
         }
     }

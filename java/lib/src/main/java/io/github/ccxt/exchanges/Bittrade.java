@@ -732,12 +732,12 @@ public class Bittrade extends BittradeApi
             //                 "market-sell-order-rate-must-less-than":  0.1,
             //                  "market-buy-order-rate-must-less-than":  0.1        } }
             //
-            return this.parseTradingLimits(this.safeDict(response, "data", new HashMap<String, Object>() {{}}));
+            return this.parseTradingLimits((Map<String, Object>) (this.safeDict(response, "data", new HashMap<String, Object>() {{}})));
         });
 
     }
 
-    public Object parseTradingLimits(Object limits, Object... optionalArgs)
+    public Object parseTradingLimits(Map<String, Object> limits, Object... optionalArgs)
     {
         //
         //   {                                  symbol: "aidocbtc",
@@ -2297,12 +2297,12 @@ public class Bittrade extends BittradeApi
             //         }
             //     }
             //
-            return this.parseCancelOrders(response);
+            return this.parseCancelOrders((Map<String, Object>) (response));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
-    public Object parseCancelOrders(Object orders)
+    public Object parseCancelOrders(Map<String, Object> orders)
     {
         //
         //    {
@@ -2776,7 +2776,7 @@ public class Bittrade extends BittradeApi
             }
         } else
         {
-            if (((List<?>)Helpers.objectKeys(parameters)).size() > 0)
+            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(parameters)));
             }

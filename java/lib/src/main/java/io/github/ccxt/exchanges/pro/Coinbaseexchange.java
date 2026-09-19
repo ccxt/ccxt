@@ -557,7 +557,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
 
     }
 
-    public Object handleTrade(Client client, Object message)
+    public Object handleTrade(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -599,7 +599,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
         return message;
     }
 
-    public Object handleMyTrade(Client client, Object message)
+    public Object handleMyTrade(Client client, Map<String, Object> message)
     {
         String marketId = this.safeString(message, "product_id");
         if (!java.util.Objects.equals(marketId, null))
@@ -676,7 +676,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
         Object parsed = super.parseTrade(trade);
         String feeRate = null;
         Boolean isMaker = false;
-        if (Helpers.inOp(trade, "maker_fee_rate"))
+        if (((Map<?, ?>)trade).containsKey("maker_fee_rate"))
         {
             isMaker = true;
             Helpers.addElementToObject(parsed, "takerOrMaker", "maker");
@@ -713,7 +713,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
         return parsed;
     }
 
-    public String parseWsOrderStatus(Object status)
+    public String parseWsOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "filled", "closed" );
@@ -722,7 +722,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
         return this.safeString(statuses, status, "open");
     }
 
-    public void handleOrder(Client client, Object message)
+    public void handleOrder(Client client, Map<String, Object> message)
     {
         //
         // Order is created
@@ -934,7 +934,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
         String time = this.safeString(order, "time");
         Long timestamp = this.parse8601(time);
         String reason = this.safeString(order, "reason");
-        String status = this.parseWsOrderStatus(reason);
+        String status = this.parseWsOrderStatus((String) (reason));
         String orderType = this.safeString(order, "order_type");
         String remaining = this.safeString(order, "remaining_size");
         String type = this.safeString(order, "type");
@@ -979,7 +979,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
         }});
     }
 
-    public Object handleTicker(Client client, Object message)
+    public Object handleTicker(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1083,13 +1083,13 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
 
     public void handleDeltas(Object bookside, Object deltas)
     {
-        for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
+        for (var i = 0; i < ((List<?>)deltas).size(); i++)
         {
             this.handleDelta(bookside, Helpers.GetValue(deltas, i));
         }
     }
 
-    public void handleOrderBook(Client client, Object message)
+    public void handleOrderBook(Client client, Map<String, Object> message)
     {
         //
         // first message (snapshot)
@@ -1159,7 +1159,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
         }
     }
 
-    public Object handleSubscriptionStatus(Client client, Object message)
+    public Object handleSubscriptionStatus(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1175,7 +1175,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
         return message;
     }
 
-    public Object handleErrorMessage(Client client, Object message)
+    public Object handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1233,11 +1233,11 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             {
                 if (Boolean.TRUE.equals(authenticated))
                 {
-                    this.handleMyTrade(client, message);
-                    this.handleOrder(client, message);
+                    this.handleMyTrade(client, (Map<String, Object>) (message));
+                    this.handleOrder(client, (Map<String, Object>) (message));
                 } else
                 {
-                    this.handleTrade(client, message);
+                    this.handleTrade(client, (Map<String, Object>) (message));
                 }
             }
         } else

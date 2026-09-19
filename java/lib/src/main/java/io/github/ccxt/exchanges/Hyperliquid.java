@@ -1893,7 +1893,7 @@ public class Hyperliquid extends HyperliquidApi
 
     public Object signHash(Object hash, Object privateKey)
     {
-        Object signature = ecdsa(Helpers.slice(hash, -64, null), Helpers.slice(privateKey, -64, null), secp256k1(), null);
+        Object signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
         return new HashMap<String, Object>() {{
             put( "r", ("0x" + Helpers.GetValue(signature, "r")) );
             put( "s", ("0x" + Helpers.GetValue(signature, "s")) );
@@ -1903,7 +1903,7 @@ public class Hyperliquid extends HyperliquidApi
 
     public Object signMessage(Object message, Object privateKey)
     {
-        return this.signHash(this.hashMessage(message), Helpers.slice(privateKey, -64, null));
+        return this.signHash(this.hashMessage(message), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))));
     }
 
     public Object constructPhantomAgent(Object hash, Object... optionalArgs)
@@ -1990,7 +1990,7 @@ public class Hyperliquid extends HyperliquidApi
         return signature;
     }
 
-    public Object signUserSignedAction(Object messageTypes, Object message)
+    public Object signUserSignedAction(Map<String, Object> messageTypes, Map<String, Object> message)
     {
         String zeroAddress = this.safeString(this.options, "zeroAddress");
         Integer chainId = 421614; // check this out
@@ -2005,7 +2005,7 @@ public class Hyperliquid extends HyperliquidApi
         return signature;
     }
 
-    public Object buildUsdSendSig(Object message)
+    public Object buildUsdSendSig(Map<String, Object> message)
     {
         Map<String, Object> messageTypes = new HashMap<String, Object>() {{
             put( "HyperliquidTransaction:UsdSend", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
@@ -2022,10 +2022,10 @@ public class Hyperliquid extends HyperliquidApi
     put( "type", "uint64" );
 }})) );
         }};
-        return this.signUserSignedAction(messageTypes, message);
+        return this.signUserSignedAction((Map<String, Object>) (messageTypes), (Map<String, Object>) (message));
     }
 
-    public Object buildUsdClassSendSig(Object message)
+    public Object buildUsdClassSendSig(Map<String, Object> message)
     {
         Map<String, Object> messageTypes = new HashMap<String, Object>() {{
             put( "HyperliquidTransaction:UsdClassTransfer", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
@@ -2042,10 +2042,10 @@ public class Hyperliquid extends HyperliquidApi
     put( "type", "uint64" );
 }})) );
         }};
-        return this.signUserSignedAction(messageTypes, message);
+        return this.signUserSignedAction((Map<String, Object>) (messageTypes), (Map<String, Object>) (message));
     }
 
-    public Object buildWithdrawSig(Object message)
+    public Object buildWithdrawSig(Map<String, Object> message)
     {
         Map<String, Object> messageTypes = new HashMap<String, Object>() {{
             put( "HyperliquidTransaction:Withdraw", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
@@ -2062,10 +2062,10 @@ public class Hyperliquid extends HyperliquidApi
     put( "type", "uint64" );
 }})) );
         }};
-        return this.signUserSignedAction(messageTypes, message);
+        return this.signUserSignedAction((Map<String, Object>) (messageTypes), (Map<String, Object>) (message));
     }
 
-    public Object buildUserDexAbstractionSig(Object message)
+    public Object buildUserDexAbstractionSig(Map<String, Object> message)
     {
         Map<String, Object> messageTypes = new HashMap<String, Object>() {{
             put( "HyperliquidTransaction:UserDexAbstraction", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
@@ -2082,10 +2082,10 @@ public class Hyperliquid extends HyperliquidApi
     put( "type", "uint64" );
 }})) );
         }};
-        return this.signUserSignedAction(messageTypes, message);
+        return this.signUserSignedAction((Map<String, Object>) (messageTypes), (Map<String, Object>) (message));
     }
 
-    public Object buildUserAbstractionSig(Object message)
+    public Object buildUserAbstractionSig(Map<String, Object> message)
     {
         Map<String, Object> messageTypes = new HashMap<String, Object>() {{
             put( "HyperliquidTransaction:UserSetAbstraction", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
@@ -2102,10 +2102,10 @@ public class Hyperliquid extends HyperliquidApi
     put( "type", "uint64" );
 }})) );
         }};
-        return this.signUserSignedAction(messageTypes, message);
+        return this.signUserSignedAction((Map<String, Object>) (messageTypes), (Map<String, Object>) (message));
     }
 
-    public Object buildApproveBuilderFeeSig(Object message)
+    public Object buildApproveBuilderFeeSig(Map<String, Object> message)
     {
         Map<String, Object> messageTypes = new HashMap<String, Object>() {{
             put( "HyperliquidTransaction:ApproveBuilderFee", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
@@ -2122,7 +2122,7 @@ public class Hyperliquid extends HyperliquidApi
     put( "type", "uint64" );
 }})) );
         }};
-        return this.signUserSignedAction(messageTypes, message);
+        return this.signUserSignedAction((Map<String, Object>) (messageTypes), (Map<String, Object>) (message));
     }
 
     public CompletableFuture<Object> setRef()
@@ -2174,7 +2174,7 @@ public class Hyperliquid extends HyperliquidApi
                 put( "builder", builder );
                 put( "nonce", nonce );
             }};
-            Object sig = this.buildApproveBuilderFeeSig(payload);
+            Object sig = this.buildApproveBuilderFeeSig((Map<String, Object>) (payload));
             Map<String, Object> action = new HashMap<String, Object>() {{
                 put( "hyperliquidChain", ((Map<String, Object>)payload).get("hyperliquidChain") );
                 put( "signatureChainId", "0x66eee" );
@@ -2356,7 +2356,7 @@ public class Hyperliquid extends HyperliquidApi
                 put( "abstraction", abstraction );
                 put( "nonce", nonce );
             }};
-            Object sig = this.buildUserAbstractionSig(payload);
+            Object sig = this.buildUserAbstractionSig((Map<String, Object>) (payload));
             Map<String, Object> action = new HashMap<String, Object>() {{
                 put( "hyperliquidChain", ((Map<String, Object>)payload).get("hyperliquidChain") );
                 put( "signatureChainId", "0x66eee" );
@@ -2415,7 +2415,7 @@ public class Hyperliquid extends HyperliquidApi
                 put( "enabled", enabled );
                 put( "nonce", nonce );
             }};
-            Object sig = this.buildUserDexAbstractionSig(payload);
+            Object sig = this.buildUserDexAbstractionSig((Map<String, Object>) (payload));
             Map<String, Object> action = new HashMap<String, Object>() {{
                 put( "hyperliquidChain", ((Map<String, Object>)payload).get("hyperliquidChain") );
                 put( "signatureChainId", "0x66eee" );
@@ -2777,7 +2777,7 @@ public class Hyperliquid extends HyperliquidApi
         String defaultSlippage = this.safeString(this.options, "defaultSlippage");
         defaultSlippage = this.safeString(parameters, "slippage", defaultSlippage);
         Boolean hasClientOrderId = false;
-        for (var i = 0; i < Helpers.getArrayLength(orders); i++)
+        for (var i = 0; i < ((List<?>)orders).size(); i++)
         {
             Object rawOrder = Helpers.GetValue(orders, i);
             Object orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
@@ -2789,7 +2789,7 @@ public class Hyperliquid extends HyperliquidApi
         }
         if (Boolean.TRUE.equals(hasClientOrderId))
         {
-            for (var i = 0; i < Helpers.getArrayLength(orders); i++)
+            for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
                 Object rawOrder = Helpers.GetValue(orders, i);
                 Object orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
@@ -2804,7 +2804,7 @@ public class Hyperliquid extends HyperliquidApi
         Long nonce = this.milliseconds();
         List<Object> orderReq = new ArrayList<Object>(Arrays.asList());
         String grouping = "na";
-        for (var i = 0; i < Helpers.getArrayLength(orders); i++)
+        for (var i = 0; i < ((List<?>)orders).size(); i++)
         {
             Object rawOrder = Helpers.GetValue(orders, i);
             String marketId = this.safeString(rawOrder, "symbol");
@@ -3321,7 +3321,7 @@ final Object finalClientOrderId = clientOrderId;
         Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
         this.checkRequiredCredentials();
         Boolean hasClientOrderId = false;
-        for (var i = 0; i < Helpers.getArrayLength(orders); i++)
+        for (var i = 0; i < ((List<?>)orders).size(); i++)
         {
             Object rawOrder = Helpers.GetValue(orders, i);
             Object orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
@@ -3333,7 +3333,7 @@ final Object finalClientOrderId = clientOrderId;
         }
         if (Boolean.TRUE.equals(hasClientOrderId))
         {
-            for (var i = 0; i < Helpers.getArrayLength(orders); i++)
+            for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
                 Object rawOrder = Helpers.GetValue(orders, i);
                 Object orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
@@ -3346,7 +3346,7 @@ final Object finalClientOrderId = clientOrderId;
         }
         parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("slippage", "clientOrderId", "client_id", "slippage", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "timeInForce")));
         List<Object> modifies = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < Helpers.getArrayLength(orders); i++)
+        for (var i = 0; i < ((List<?>)orders).size(); i++)
         {
             Object rawOrder = Helpers.GetValue(orders, i);
             String id = this.safeString(rawOrder, "id");
@@ -3704,7 +3704,7 @@ final Object finalClientOrderId = clientOrderId;
 
     }
 
-    public String getDexFromHip3Symbol(Object market)
+    public String getDexFromHip3Symbol(Map<String, Object> market)
     {
         String baseName = this.safeString(market, "baseName", "");
         Object part = new ArrayList<Object>(Arrays.asList(((String)baseName).split(java.util.regex.Pattern.quote(":"))));
@@ -3763,7 +3763,7 @@ final Object finalClientOrderId = clientOrderId;
             {
                 market = this.market(symbol);
                 // check if is hip3 symbol
-                String dexName = this.getDexFromHip3Symbol(market);
+                String dexName = this.getDexFromHip3Symbol((Map<String, Object>) (market));
                 if (!java.util.Objects.equals(dexName, null))
                 {
                     ((Map<String, Object>)request).put("dex", dexName);
@@ -3937,7 +3937,7 @@ final Object finalClientOrderId = clientOrderId;
             {
                 market = this.market(symbol);
                 // check if is hip3 symbol
-                String dexName = this.getDexFromHip3Symbol(market);
+                String dexName = this.getDexFromHip3Symbol((Map<String, Object>) (market));
                 if (!java.util.Objects.equals(dexName, null))
                 {
                     ((Map<String, Object>)request).put("dex", dexName);
@@ -4305,7 +4305,7 @@ final Object finalClientOrderId = clientOrderId;
         return this.safeString(statuses, status, status);
     }
 
-    public String parseOrderType(Object status)
+    public String parseOrderType(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "stop limit", "limit" );
@@ -4510,11 +4510,11 @@ final Object finalClientOrderId = clientOrderId;
             if (java.util.Objects.equals(dexName, null))
             {
                 Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbols, i));
-                dexName = this.getDexFromHip3Symbol(market);
+                dexName = this.getDexFromHip3Symbol((Map<String, Object>) (market));
             } else
             {
                 Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbols, i));
-                String currentDexName = this.getDexFromHip3Symbol(market);
+                String currentDexName = this.getDexFromHip3Symbol((Map<String, Object>) (market));
                 if (!java.util.Objects.equals(currentDexName, dexName))
                 {
                     throw new NotSupported((((this.id + " ") + methodName) + " only supports fetching positions for one DEX at a time for HIP3 markets")) ;
@@ -5030,7 +5030,7 @@ final Object finalClientOrderId = clientOrderId;
                     put( "toPerp", toPerp );
                     put( "nonce", nonce );
                 }};
-                Object transferSig = this.buildUsdClassSendSig(transferPayload);
+                Object transferSig = this.buildUsdClassSendSig((Map<String, Object>) (transferPayload));
                 Map<String, Object> transferRequest = new HashMap<String, Object>() {{
                     put( "action", new HashMap<String, Object>() {{
                         put( "hyperliquidChain", ((Map<String, Object>)transferPayload).get("hyperliquidChain") );
@@ -5214,7 +5214,7 @@ final Object finalClientOrderId = clientOrderId;
                     put( "amount", String.valueOf(amount) );
                     put( "time", nonce );
                 }};
-                sig = this.buildWithdrawSig(payload);
+                sig = this.buildWithdrawSig((Map<String, Object>) (payload));
                 action = new HashMap<String, Object>() {{
                     put( "hyperliquidChain", ((Map<String, Object>)payload).get("hyperliquidChain") );
                     put( "signatureChainId", "0x66eee" );
@@ -5533,7 +5533,7 @@ final Object finalClientOrderId = clientOrderId;
         }}, currency);
     }
 
-    public Object parseLedgerEntryType(Object type)
+    public Object parseLedgerEntryType(String type)
     {
         Map<String, Object> ledgerType = new HashMap<String, Object>() {{
             put( "internalTransfer", "transfer" );

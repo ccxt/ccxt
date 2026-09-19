@@ -1353,7 +1353,7 @@ public class Alpaca extends AlpacaApi
 
     }
 
-    public String generateClientOrderId(Object parameters)
+    public String generateClientOrderId(Map<String, Object> parameters)
     {
         String clientOrderIdprefix = this.safeString(this.options, "clientOrderId");
         Object uuid = this.uuid();
@@ -1523,7 +1523,7 @@ public class Alpaca extends AlpacaApi
             }
             ((Map<String, Object>)request).put("time_in_force", defaultTIF);
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("timeInForce", "triggerPrice")));
-            ((Map<String, Object>)request).put("client_order_id", this.generateClientOrderId(parameters));
+            ((Map<String, Object>)request).put("client_order_id", this.generateClientOrderId((Map<String, Object>) (parameters)));
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId")));
             Map<String, Object> order = (this.traderPrivatePostV2Orders(this.extend(request, parameters))).join();
             //
@@ -1886,7 +1886,7 @@ public class Alpaca extends AlpacaApi
                 // the venue only accepts lowercase values, normalize the unified uppercase spellings
                 ((Map<String, Object>)request).put("time_in_force", ((String)timeInForce).toLowerCase());
             }
-            ((Map<String, Object>)request).put("client_order_id", this.generateClientOrderId(parameters));
+            ((Map<String, Object>)request).put("client_order_id", this.generateClientOrderId((Map<String, Object>) (parameters)));
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId")));
             Map<String, Object> response = (this.traderPrivatePatchV2OrdersOrderId(this.extend(request, parameters))).join();
             return this.parseOrder(response, market);
@@ -2613,7 +2613,7 @@ public class Alpaca extends AlpacaApi
         return this.safeString(statuses, status, status);
     }
 
-    public String parseTransactionType(Object type)
+    public String parseTransactionType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "INCOMING", "deposit" );
