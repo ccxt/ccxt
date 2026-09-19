@@ -6,7 +6,7 @@ import { ed25519 } from '@noble/curves/ed25519.js';
 import Exchange from './abstract/binance.js';
 import { ExchangeError, ArgumentsRequired, OperationFailed, OperationRejected, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, NullResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet, MarketClosed } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface, MarginMode, MarginModes, MarketMarginModes, Leverage, Leverages, Num, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRates, IsolatedBorrowRate, Dict, LeverageTier, LeverageTiers, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, Position, ADL, Bool, Fee, FeeString, MarketType, List, NullableDict, NullableList, SubType, CurrencyInterface, DepositWithdrawFees, Status, PositionModeInfo, MarginLoan, Endpoint, AllGreeks } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface, MarginMode, MarginModes, MarketMarginModes, Leverage, Leverages, Num, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRates, IsolatedBorrowRate, Dict, LeverageTier, LeverageTiers, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, Position, ADL, Bool, Fee, FeeString, MarketType, List, NullableDict, NullableList, SubType, CurrencyInterface, DepositWithdrawFees, Status, PositionModeInfo, MarginLoan, Endpoint, AllGreeks, BalanceAccount, LastPrice, DepositWithdrawFee } from './base/types.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { rsa } from './base/functions/rsa.js';
 import { eddsa } from './base/functions/crypto.js';
@@ -2821,12 +2821,12 @@ export default class binance extends Exchange {
         }
     }
 
-    override setSandboxMode (enable: boolean) {
+    override setSandboxMode (enable: boolean): void {
         super.setSandboxMode (enable);
         this.options['sandboxMode'] = enable;
     }
 
-    override createExpiredOptionMarket (symbol: string) {
+    override createExpiredOptionMarket (symbol: string): MarketInterface {
         // support expired option contracts
         const settle = 'USDT';
         const optionParts = symbol.split ('-');
@@ -2960,7 +2960,7 @@ export default class binance extends Exchange {
         return super.safeMarket (marketId, market, delimiter, marketType);
     }
 
-    override nonce () {
+    override nonce (): number {
         return this.milliseconds () - this.options['timeDifference'];
     }
 
@@ -3113,7 +3113,7 @@ export default class binance extends Exchange {
      * @see https://demo.binance.com/en/my/settings/api-management
      * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
      */
-    override enableDemoTrading (enable: boolean) {
+    override enableDemoTrading (enable: boolean): void {
         if (this.isSandboxModeEnabled) {
             throw new NotSupported (this.id + ' demo trading is not supported in the sandbox environment. Please check https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd to see the differences');
         }
@@ -3948,7 +3948,7 @@ export default class binance extends Exchange {
         return this.safeMarketStructure (entry);
     }
 
-    parseBalanceHelper (entry: any) {
+    parseBalanceHelper (entry: any): BalanceAccount {
         const account = this.account ();
         account['used'] = this.safeString (entry, 'locked');
         account['free'] = this.safeString (entry, 'free');
@@ -3958,7 +3958,7 @@ export default class binance extends Exchange {
         return account;
     }
 
-    parseBalanceCustom (response: any, type: Str = undefined, marginMode: Str = undefined, isPortfolioMargin = false): Balances {
+    parseBalanceCustom (response: any, type: Str = undefined, marginMode: Str = undefined, isPortfolioMargin: boolean = false): Balances {
         let result: Dict = {
             'info': response,
         };
@@ -4722,7 +4722,7 @@ export default class binance extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    checkNoStockSymbols (symbols: Strings, methodName: string) {
+    checkNoStockSymbols (symbols: Strings, methodName: string): void {
         if (symbols === undefined) {
             return;
         }
@@ -4851,7 +4851,7 @@ export default class binance extends Exchange {
         return this.parseLastPrices (response, symbols);
     }
 
-    override parseLastPrice (entry: any, market: Market = undefined) {
+    override parseLastPrice (entry: any, market: Market = undefined): LastPrice {
         //
         // spot
         //
@@ -4948,7 +4948,7 @@ export default class binance extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    parseTickersForRolling (response: any, symbols: any) {
+    parseTickersForRolling (response: any, symbols: any): Tickers {
         const results: List = [];
         for (let i = 0; i < response.length; i++) {
             const marketId = this.safeString (response[i], 'symbol');
@@ -5769,7 +5769,7 @@ export default class binance extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    editSpotOrderRequest (id: string, symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}) {
+    editSpotOrderRequest (id: string, symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): Dict {
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a type argument');
         }
@@ -5905,7 +5905,7 @@ export default class binance extends Exchange {
         return this.extend (request, params);
     }
 
-    editContractOrderRequest (id: Str, symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}) {
+    editContractOrderRequest (id: Str, symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): Dict {
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a type argument');
         }
@@ -6130,7 +6130,7 @@ export default class binance extends Exchange {
         return this.parseOrders (response);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',
@@ -6151,7 +6151,7 @@ export default class binance extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderTypeByMarket (type: Str, marketType: Str) {
+    parseOrderTypeByMarket (type: Str, marketType: Str): Str {
         let types: Dict = {};
         if ((marketType !== undefined) && marketType === 'spot') {
             types = {
@@ -7075,7 +7075,7 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} request to be sent to the exchange
      */
-    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}) {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): Dict {
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a type argument');
         }
@@ -9225,7 +9225,7 @@ export default class binance extends Exchange {
         return this.filterBySinceLimit (trades, since, limit);
     }
 
-    parseDustTrade (trade: any, market: Market = undefined) {
+    parseDustTrade (trade: any, market: Market = undefined): Trade {
         //
         //     {
         //       "fromAsset": "USDT",
@@ -9564,7 +9564,7 @@ export default class binance extends Exchange {
         return this.parseTransactions (responseList, currency, since, limit);
     }
 
-    parseTransactionStatusByType (status: any, type: Str = undefined) {
+    parseTransactionStatusByType (status: any, type: Str = undefined): Str {
         if (type === undefined) {
             return status;
         }
@@ -9847,7 +9847,7 @@ export default class binance extends Exchange {
         };
     }
 
-    override parseIncome (income: any, market: Market = undefined) {
+    override parseIncome (income: any, market: Market = undefined): object {
         //
         //     {
         //       "symbol": "ETHUSDT",
@@ -10379,7 +10379,7 @@ export default class binance extends Exchange {
         return this.parseDepositWithdrawFees (response, codes, 'coin');
     }
 
-    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined) {
+    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined): DepositWithdrawFee {
         //
         //    {
         //        "coin": "BAT",
@@ -10936,7 +10936,7 @@ export default class binance extends Exchange {
         return this.parseFundingRateHistories (response, market, since, limit) as FundingRateHistory[];
     }
 
-    override parseFundingRateHistory (contract: any, market: Market = undefined) {
+    override parseFundingRateHistory (contract: any, market: Market = undefined): FundingRateHistory {
         //
         //     {
         //         "symbol": "BTCUSDT",
@@ -11048,7 +11048,7 @@ export default class binance extends Exchange {
         } as FundingRate;
     }
 
-    parseAccountPositions (account: any, filterClosed = false) {
+    parseAccountPositions (account: any, filterClosed: boolean = false): Position[] {
         const positions = this.safeList (account, 'positions', []);
         const assets = this.safeList (account, 'assets', []);
         const balances: Dict = {};
@@ -11088,7 +11088,7 @@ export default class binance extends Exchange {
         return result;
     }
 
-    parseAccountPosition (position: any, market: Market = undefined) {
+    parseAccountPosition (position: any, market: Market = undefined): Position {
         //
         // usdm
         //
@@ -11341,7 +11341,7 @@ export default class binance extends Exchange {
         };
     }
 
-    parsePositionRisk (position: any, market: Market = undefined) {
+    parsePositionRisk (position: any, market: Market = undefined): Position {
         //
         // usdm
         //
@@ -11580,7 +11580,7 @@ export default class binance extends Exchange {
         });
     }
 
-    async loadLeverageBrackets (reload = false, params: Dict = {}) {
+    async loadLeverageBrackets (reload: boolean = false, params: Dict = {}): Promise<Dict> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -11867,7 +11867,7 @@ export default class binance extends Exchange {
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
-    parseOptionPosition (position: Dict, market: Market = undefined) {
+    parseOptionPosition (position: Dict, market: Market = undefined): Position {
         //
         //     {
         //         "entryPrice": "27.70000000",
@@ -12717,7 +12717,7 @@ export default class binance extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
-    parseSettlement (settlement: any, market: any) {
+    parseSettlement (settlement: any, market: any): Dict {
         //
         // fetchSettlementHistory
         //
@@ -12759,7 +12759,7 @@ export default class binance extends Exchange {
         };
     }
 
-    parseSettlements (settlements: any, market: any) {
+    parseSettlements (settlements: any, market: any): Dict[] {
         //
         // fetchSettlementHistory
         //
@@ -13003,7 +13003,7 @@ export default class binance extends Exchange {
         }, currency) as LedgerEntry;
     }
 
-    parseLedgerEntryType (type: any) {
+    parseLedgerEntryType (type: any): Str {
         const ledgerType: Dict = {
             'FEE': 'fee',
             'FUNDING_FEE': 'fee',
@@ -13066,7 +13066,7 @@ export default class binance extends Exchange {
         return scheme + '//' + domain + '/';
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: any = undefined) {
+    override sign (path: any, api: any = 'public', method: string = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: any = undefined): Dict {
         const urls = this.urls;
         if (!(api in urls['api'])) {
             throw new NotSupported (this.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints');
@@ -13206,7 +13206,7 @@ export default class binance extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    getExceptionsByUrl (url: Str, exactOrBroad: string) {
+    getExceptionsByUrl (url: Str, exactOrBroad: string): Dict {
         if (url === undefined) {
             return {};
         }
@@ -13320,7 +13320,7 @@ export default class binance extends Exchange {
         return undefined;
     }
 
-    override calculateRateLimiterCost (api: any, method: any, path: any, params: any, config: Dict = {}) {
+    override calculateRateLimiterCost (api: any, method: any, path: any, params: any, config: Dict = {}): Num {
         if (('noCoin' in config) && !('coin' in params)) {
             return config['noCoin'];
         } else if (('noSymbol' in config) && !('symbol' in params)) {
@@ -13341,7 +13341,7 @@ export default class binance extends Exchange {
         return this.safeNumber (config, 'cost', 1);
     }
 
-    override async request (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined, config = {}) {
+    override async request (path: any, api: any = 'public', method: string = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined, config: Dict = {}) {
         const response = await this.fetch2 (path, api, method, params, headers, body, config);
         // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
         if (api === 'private') {
@@ -13350,7 +13350,7 @@ export default class binance extends Exchange {
         return response;
     }
 
-    async modifyMarginHelper (symbol: string, amount: any, addOrReduce: any, params: Dict = {}) {
+    async modifyMarginHelper (symbol: string, amount: any, addOrReduce: any, params: Dict = {}): Promise<MarginModification> {
         // used to modify isolated positions
         let defaultType = this.safeString (this.options, 'defaultType', 'future');
         if (defaultType === 'spot') {
@@ -13617,7 +13617,7 @@ export default class binance extends Exchange {
         return this.parseBorrowRateHistory (response, code, since, limit);
     }
 
-    override parseBorrowRate (info: any, currency: Currency = undefined) {
+    override parseBorrowRate (info: any, currency: Currency = undefined): CrossBorrowRate {
         //
         //    {
         //        "asset": "USDT",
@@ -14088,7 +14088,7 @@ export default class binance extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} an array of [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    override async fetchOpenInterestHistory (symbol: string, timeframe = '5m', since: Int = undefined, limit: Int = undefined, params: Dict = {}) {
+    override async fetchOpenInterestHistory (symbol: string, timeframe: string = '5m', since: Int = undefined, limit: Int = undefined, params: Dict = {}) {
         if (timeframe === '1m') {
             throw new BadRequest (this.id + ' fetchOpenInterestHistory cannot use the 1m timeframe');
         }
@@ -14226,7 +14226,7 @@ export default class binance extends Exchange {
         }
     }
 
-    override parseOpenInterest (interest: any, market: Market = undefined) {
+    override parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
         const timestamp = this.safeInteger2 (interest, 'timestamp', 'time');
         const id = this.safeString (interest, 'symbol');
         const amount = this.safeNumber2 (interest, 'sumOpenInterest', 'openInterest');
@@ -14417,7 +14417,7 @@ export default class binance extends Exchange {
         return this.parseLiquidations (liquidationsList, market, since, limit);
     }
 
-    override parseLiquidation (liquidation: any, market: Market = undefined) {
+    override parseLiquidation (liquidation: any, market: Market = undefined): Liquidation {
         //
         // margin
         //
