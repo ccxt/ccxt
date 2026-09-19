@@ -6379,6 +6379,7 @@ export default class bingx extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
+            params = this.omit (params, [ 'subType', 'defaultSubType' ]);
         }
         if (since !== undefined) {
             request['startTime'] = since;

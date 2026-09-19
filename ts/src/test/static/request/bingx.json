@@ -2141,6 +2141,110 @@
         ],
         "fetchMyLiquidations": [
             {
+                "description": "Inverse liquidations use symbol over linear subType",
+                "method": "fetchMyLiquidations",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/forceOrders?autoCloseType=LIQUIDATION&symbol=SOL-USD&timestamp=1721280070629&signature=32b7e26877af1f0ed4f3936811cb38f68bc27eac5e44b63022de5a92123f6b7f",
+                "input": [
+                    "SOL/USD:SOL",
+                    null,
+                    null,
+                    {
+                        "subType": "linear"
+                    }
+                ]
+            },
+            {
+                "description": "Inverse liquidations use symbol over linear defaultSubType",
+                "method": "fetchMyLiquidations",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/forceOrders?autoCloseType=LIQUIDATION&symbol=SOL-USD&timestamp=1721280070629&signature=32b7e26877af1f0ed4f3936811cb38f68bc27eac5e44b63022de5a92123f6b7f",
+                "input": [
+                    "SOL/USD:SOL",
+                    null,
+                    null,
+                    {
+                        "defaultSubType": "linear"
+                    }
+                ]
+            },
+            {
+                "description": "Linear liquidations use symbol over inverse subType",
+                "method": "fetchMyLiquidations",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/forceOrders?autoCloseType=LIQUIDATION&symbol=BTC-USDT&timestamp=1721280070629&signature=32b7e26877af1f0ed4f3936811cb38f68bc27eac5e44b63022de5a92123f6b7f",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "subType": "inverse"
+                    }
+                ]
+            },
+            {
+                "description": "Linear liquidations use symbol over inverse defaultSubType",
+                "method": "fetchMyLiquidations",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/forceOrders?autoCloseType=LIQUIDATION&symbol=BTC-USDT&timestamp=1721280070629&signature=32b7e26877af1f0ed4f3936811cb38f68bc27eac5e44b63022de5a92123f6b7f",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "defaultSubType": "inverse"
+                    }
+                ]
+            },
+            {
+                "description": "Liquidations without symbol respect inverse subType",
+                "method": "fetchMyLiquidations",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/forceOrders?autoCloseType=LIQUIDATION&timestamp=1721280070629&signature=32b7e26877af1f0ed4f3936811cb38f68bc27eac5e44b63022de5a92123f6b7f",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "subType": "inverse"
+                    }
+                ]
+            },
+            {
+                "description": "Liquidations without symbol respect inverse defaultSubType",
+                "method": "fetchMyLiquidations",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/forceOrders?autoCloseType=LIQUIDATION&timestamp=1721280070629&signature=32b7e26877af1f0ed4f3936811cb38f68bc27eac5e44b63022de5a92123f6b7f",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "defaultSubType": "inverse"
+                    }
+                ]
+            },
+            {
+                "description": "Liquidations without symbol respect linear subType",
+                "method": "fetchMyLiquidations",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/forceOrders?autoCloseType=LIQUIDATION&timestamp=1721280070629&signature=32b7e26877af1f0ed4f3936811cb38f68bc27eac5e44b63022de5a92123f6b7f",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "subType": "linear"
+                    }
+                ]
+            },
+            {
+                "description": "Liquidations without symbol respect linear defaultSubType",
+                "method": "fetchMyLiquidations",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/forceOrders?autoCloseType=LIQUIDATION&timestamp=1721280070629&signature=32b7e26877af1f0ed4f3936811cb38f68bc27eac5e44b63022de5a92123f6b7f",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "defaultSubType": "linear"
+                    }
+                ]
+            },
+            {
                 "disabled": true,
                 "description": "Linear swap fetch my liquidations",
                 "method": "fetchMyLiquidations",
