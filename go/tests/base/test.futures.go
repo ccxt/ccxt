@@ -25,7 +25,8 @@ func BroadCastResultToMultipleReceivers() {
 
 	go func() {
 		defer wg.Done()
-		time.Sleep(1 * time.Second)
+		// a short head start lets both receivers register before the resolve
+		time.Sleep(20 * time.Millisecond)
 		fut.Resolve("hello")
 	}()
 
@@ -56,7 +57,8 @@ func AwaitAfterResolveTest() {
 
 	go func() {
 		defer wg.Done()
-		time.Sleep(1 * time.Second)
+		// awaits strictly after the resolve below (20ms) has happened
+		time.Sleep(60 * time.Millisecond)
 		ch1 := fut.Await()
 		<-ch1
 		// fmt.Println("Got result from ch1:", res)
@@ -70,7 +72,7 @@ func AwaitAfterResolveTest() {
 
 	go func() {
 		defer wg.Done()
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(20 * time.Millisecond)
 		fut.Resolve("Hello world!")
 		// fmt.Println("Resolved future")
 	}()
@@ -85,7 +87,8 @@ func FuturesRaceMultipleReceiversTest() {
 	fut := client.NewFuture("ob:BTC/USDT")
 
 	go func(fut *ccxt.Future) {
-		time.Sleep(2 * time.Second)
+		// both races below are registered synchronously before this fires
+		time.Sleep(20 * time.Millisecond)
 		// fmt.Println("[main]resolving future now", fut)
 		fut.Resolve("hello")
 		// fmt.Println("[main]resolved future", fut)
