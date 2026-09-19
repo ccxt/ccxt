@@ -913,7 +913,7 @@ public partial class BaseExchange
                 }
             }
         }
-        if (isTrue(tail) && !isEqual(limit, null))
+        if (isTrue(tail) && (limit != null))
         {
             return this.toArray(this.arraySlice(result, prefixUnaryNeg(ref limit)));
         }
@@ -943,7 +943,7 @@ public partial class BaseExchange
                 bool entryFiledEqualValue = isEqual(this.safeValue(entry, field), value);
                 bool firstCondition = ((bool) valueIsDefined) ? entryFiledEqualValue : true;
                 object entryKeyValue = this.safeValue(entry, key);
-                bool entryKeyGESince = ((entryKeyValue != null)) && ((entryKeyValue != null)) && (!isEqual(entryKeyValue, 0)) && (!isEqual(since, null)) && (isGreaterThanOrEqual(entryKeyValue, since));
+                bool entryKeyGESince = ((entryKeyValue != null)) && ((entryKeyValue != null)) && (!isEqual(entryKeyValue, 0)) && ((since != null)) && (isGreaterThanOrEqual(entryKeyValue, since));
                 bool secondCondition = ((bool) sinceIsDefined) ? entryKeyGESince : true;
                 if (firstCondition && secondCondition)
                 {
@@ -951,7 +951,7 @@ public partial class BaseExchange
                 }
             }
         }
-        if (isTrue(tail) && !isEqual(limit, null))
+        if (isTrue(tail) && (limit != null))
         {
             return this.toArray(this.arraySlice(result, prefixUnaryNeg(ref limit)));
         }
@@ -2789,7 +2789,7 @@ public partial class BaseExchange
         {
             takerOrMaker = "taker";
         }
-        string? rate = ((bool) (!isEqual(feeRate, null))) ? this.numberToString(feeRate) : this.safeString(market, takerOrMaker);
+        string? rate = ((bool) ((feeRate != null))) ? this.numberToString(feeRate) : this.safeString(market, takerOrMaker);
         cost = Precise.stringMul(cost, rate);
         return new Dictionary<string, object>() {
             { "type", takerOrMaker },
@@ -2877,7 +2877,7 @@ public partial class BaseExchange
     {
         // this approach is being used by multiple exchanges (mexc, woo, coinsbit, dydx, ...)
         object id = null;
-        if (!isEqual(timestamp, null))
+        if ((timestamp != null))
         {
             id = this.numberToString(timestamp);
             if ((side != null))
@@ -5290,17 +5290,17 @@ public partial class BaseExchange
     public virtual object setTakeProfitAndStopLossParams(object symbol, object type, object side, object amount, object price = null, object takeProfit = null, object stopLoss = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((isEqual(takeProfit, null)) && (isEqual(stopLoss, null)))
+        if (((takeProfit == null)) && ((stopLoss == null)))
         {
             throw new ArgumentsRequired ((string)(this.id + " createOrderWithTakeProfitAndStopLoss() requires either a takeProfit or stopLoss argument")) ;
         }
-        if (!isEqual(takeProfit, null))
+        if ((takeProfit != null))
         {
             ((IDictionary<string,object>)parameters)["takeProfit"] = new Dictionary<string, object>() {
                 { "triggerPrice", takeProfit },
             };
         }
-        if (!isEqual(stopLoss, null))
+        if ((stopLoss != null))
         {
             ((IDictionary<string,object>)parameters)["stopLoss"] = new Dictionary<string, object>() {
                 { "triggerPrice", stopLoss },
@@ -6843,7 +6843,7 @@ public partial class BaseExchange
         {
             maxEntriesPerRequest = newMaxEntriesPerRequest;
         }
-        if (isEqual(maxEntriesPerRequest, null))
+        if ((maxEntriesPerRequest == null))
         {
             maxEntriesPerRequest = 1000; // default to 1000
         }
@@ -6880,7 +6880,7 @@ public partial class BaseExchange
         parameters = ((IList<object>)maxEntriesPerRequestparametersVariable)[1];
         if ((isEqual(paginationDirection, "forward")))
         {
-            if (isEqual(since, null))
+            if ((since == null))
             {
                 throw new ArgumentsRequired ((string)(this.id + " pagination requires a since argument when paginationDirection set to forward")) ;
             }
@@ -6922,7 +6922,7 @@ public partial class BaseExchange
                     {
                         break;
                     }
-                    if ((!isEqual(since, null)) && (isLessThanOrEqual(paginationTimestamp, since)))
+                    if (((since != null)) && (isLessThanOrEqual(paginationTimestamp, since)))
                     {
                         break;
                     }
@@ -7034,7 +7034,7 @@ public partial class BaseExchange
         object step = multiply(time, maxEntriesPerRequest);
         Int64? until = this.safeInteger2(parameters, "until", "till"); // do not omit it here
         object currentSince = subtract(subtract(current, (multiply(maxCalls, step))), 1);
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             if (!isEqual(until, null))
             {
@@ -7053,7 +7053,7 @@ public partial class BaseExchange
         }
         if (!isEqual(until, null))
         {
-            if (isEqual(since, null))
+            if ((since == null))
             {
                 throw new ArgumentsRequired ((string)(this.id + " fetchPaginatedCallDeterministic() requires a since argument when until is set")) ;
             }
@@ -7115,7 +7115,7 @@ public partial class BaseExchange
             {
                 if (!isEqual(cursorValue, null))
                 {
-                    if (!isEqual(cursorIncrement, null))
+                    if ((cursorIncrement != null))
                     {
                         cursorValue = add(this.parseToInt(cursorValue), cursorIncrement);
                     }
@@ -7184,7 +7184,7 @@ public partial class BaseExchange
                     break;
                 }
                 Int64? lastTimestamp = this.safeInteger(last, "timestamp");
-                if (isEqual(since, null))
+                if ((since == null))
                 {
                     throw new ArgumentsRequired ((string)(this.id + " fetchPaginatedCallCursor() requires a since argument")) ;
                 }
