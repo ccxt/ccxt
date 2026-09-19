@@ -489,7 +489,7 @@ public partial class modetrade : ccxt.modetrade
             stored = new ArrayCacheByTimestamp(limit);
             ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = stored;
         }
-        ccxt.pro.ArrayCache ohlcvCache = ((ccxt.pro.ArrayCache)getValue(getValue(this.ohlcvs, symbol), timeframe));
+        ccxt.pro.ArrayCacheByTimestamp ohlcvCache = ((ccxt.pro.ArrayCacheByTimestamp)getValue(getValue(this.ohlcvs, symbol), timeframe));
         callDynamically(ohlcvCache, "append", new object[] {parsed});
         callDynamically(client, "resolve", new object[] {ohlcvCache, topic});
     }

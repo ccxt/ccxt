@@ -3712,7 +3712,9 @@ function wsCacheElementReadType (node) {
     return wsCacheElementSourceOk (node) ? type : undefined;
 }
 
-// `this.ohlcvs[symbol][timeframe]` — printed `getValue(getValue(this.ohlcvs, symbol), timeframe)`
+// `this.ohlcvs[symbol][timeframe]` — printed `getValue(getValue(this.ohlcvs, symbol), timeframe)`.
+// Every writer stores `new ArrayCacheByTimestamp`, a SIBLING of ArrayCache (both : BaseCache),
+// so the exact box is ArrayCacheByTimestamp; an ArrayCache cast throws on the first kline frame.
 function wsOhlcvsBucketReadType (node) {
     if (node?.kind !== ts.SyntaxKind.ElementAccessExpression) {
         return undefined;
@@ -3728,7 +3730,7 @@ function wsOhlcvsBucketReadType (node) {
     if (receiver.name?.escapedText !== 'ohlcvs') {
         return undefined;
     }
-    return wsCacheElementSourceOk (node) ? 'ccxt.pro.ArrayCache' : undefined;
+    return wsCacheElementSourceOk (node) ? 'ccxt.pro.ArrayCacheByTimestamp' : undefined;
 }
 
 // ===== U45: pro-tree residuals — ws cache FIELD reads and awaited ws flights =====

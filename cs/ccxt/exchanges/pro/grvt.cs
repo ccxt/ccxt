@@ -528,7 +528,7 @@ public partial class grvt : ccxt.grvt
             object limit = this.handleOption("watchOHLCV", "limit", 1000);
             ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = new ArrayCacheByTimestamp(limit);
         }
-        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)getValue(getValue(this.ohlcvs, symbol), timeframe));
+        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)getValue(getValue(this.ohlcvs, symbol), timeframe));
         List<object> parsed = this.parseWsOHLCV(data, market);
         callDynamically(stored, "append", new object[] {parsed});
         List<object> resolveData = new List<object>() {symbol, timeframe, stored};

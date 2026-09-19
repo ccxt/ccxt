@@ -1045,7 +1045,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             var stored = new ArrayCacheByTimestamp(limit);
             ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = stored;
         }
-        ccxt.pro.ArrayCache ohlcv = ((ccxt.pro.ArrayCache)getValue(getValue(this.ohlcvs, symbol), timeframe));
+        ccxt.pro.ArrayCacheByTimestamp ohlcv = ((ccxt.pro.ArrayCacheByTimestamp)getValue(getValue(this.ohlcvs, symbol), timeframe));
         IList<object> parsed = this.parseOHLCV(data);
         callDynamically(ohlcv, "append", new object[] {parsed});
         string messageHash = ((("candles:" + timeframe) + ":") + symbol);

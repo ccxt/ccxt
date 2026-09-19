@@ -143,7 +143,7 @@ public partial class whitebit : ccxt.whitebit
                 var stored = new ArrayCacheByTimestamp(limit);
                 ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))["unknown"] = stored;
             }
-            ccxt.pro.ArrayCache ohlcv = ((ccxt.pro.ArrayCache)getValue(getValue(this.ohlcvs, symbol), "unknown"));
+            ccxt.pro.ArrayCacheByTimestamp ohlcv = ((ccxt.pro.ArrayCacheByTimestamp)getValue(getValue(this.ohlcvs, symbol), "unknown"));
             callDynamically(ohlcv, "append", new object[] {parsed});
             callDynamically(client, "resolve", new object[] {ohlcv, messageHash});
         }
