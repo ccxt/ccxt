@@ -6,7 +6,7 @@ import bybitRest from '../bybit.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError, BadRequest, NotSupported } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, OHLCV, Str, Strings, Ticker, OrderBook, Order, Trade, Tickers, Position, Balances, OrderType, OrderSide, Num, Dict, Liquidation, Bool, Market, NullableList, NullableDict } from '../base/types.js';
+import type { Int, OHLCV, Str, Strings, Ticker, OrderBook, Order, Trade, Tickers, Position, Balances, OrderType, OrderSide, Num, Dict, Dictionary, Liquidation, Bool, Market, NullableList, NullableDict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -174,7 +174,7 @@ export default class bybit extends bybitRest {
         };
     }
 
-    requestId () {
+    requestId (): number {
         this.lockId ();
         const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
@@ -182,7 +182,7 @@ export default class bybit extends bybitRest {
         return requestId;
     }
 
-    async getUrlByMarketType (symbol: Str = undefined, isPrivate: Bool = false, method: Str = undefined, params: Dict = {}) {
+    async getUrlByMarketType (symbol: Str = undefined, isPrivate: Bool = false, method: Str = undefined, params: Dict = {}): Promise<string> {
         const accessibility = isPrivate ? 'private' : 'public';
         if (method === undefined) {
             method = '';
@@ -228,7 +228,7 @@ export default class bybit extends bybitRest {
         return url;
     }
 
-    cleanParams (params: any) {
+    cleanParams (params: Dict): Dict {
         params = this.omit (params, [ 'type', 'subType', 'settle', 'defaultSettle', 'unifiedMargin' ]);
         return params;
     }
@@ -264,7 +264,7 @@ export default class bybit extends bybitRest {
      * @param {string} [params.trailingTriggerPrice] the price to trigger a trailing order, default uses the price argument
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}) {
+    override async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -311,7 +311,7 @@ export default class bybit extends bybitRest {
      * @param {string} [params.tpTriggerby] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for takeProfit
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async editOrderWs (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params: Dict = {}) {
+    override async editOrderWs (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -346,7 +346,7 @@ export default class bybit extends bybitRest {
      * @param {string} [params.orderFilter] *spot only* 'Order' or 'StopOrder' or 'tpslOrder'
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrderWs (id: string, symbol: Str = undefined, params: Dict = {}) {
+    override async cancelOrderWs (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -485,7 +485,7 @@ export default class bybit extends bybitRest {
         return this.unWatchTickers ([ symbol ], params);
     }
 
-    handleTicker (client: Client, message: any) {
+    handleTicker (client: Client, message: Dict): void {
         //
         // linear
         //     {
@@ -665,7 +665,7 @@ export default class bybit extends bybitRest {
         return this.filterByArray (this.bidsasks, 'symbol', symbols);
     }
 
-    parseWsBidAsk (orderbook: any, market: Market = undefined) {
+    parseWsBidAsk (orderbook: any, market: Market = undefined): Ticker {
         const timestamp = this.safeInteger (orderbook, 'timestamp');
         const bids = this.sortBy (this.aggregate (orderbook['bids']), 0);
         const asks = this.sortBy (this.aggregate (orderbook['asks']), 0);
@@ -714,7 +714,7 @@ export default class bybit extends bybitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params: Dict = {}) {
+    override async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Dictionary<Dictionary<OHLCV[]>>> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -794,7 +794,7 @@ export default class bybit extends bybitRest {
         return await this.unWatchOHLCVForSymbols ([ [ symbol, timeframe ] ], params);
     }
 
-    handleOHLCV (client: Client, message: any) {
+    handleOHLCV (client: Client, message: Dict): void {
         //
         //     {
         //         "topic": "kline.5.BTCUSDT",
@@ -997,7 +997,7 @@ export default class bybit extends bybitRest {
         return this.unWatchOrderBookForSymbols ([ symbol ], params);
     }
 
-    handleOrderBook (client: Client, message: any) {
+    handleOrderBook (client: Client, message: Dict): void {
         //
         //     {
         //         "topic": "orderbook.50.BTCUSDT",
@@ -1070,12 +1070,12 @@ export default class bybit extends bybitRest {
         }
     }
 
-    override handleDelta (bookside: any, delta: any) {
+    override handleDelta (bookside: any, delta: any): void {
         const bidAsk = this.parseOrderBookBidAsk (delta, 0, 1);
         bookside.storeArray (bidAsk);
     }
 
-    override handleDeltas (bookside: any, deltas: any) {
+    override handleDeltas (bookside: any, deltas: any): void {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
@@ -1180,7 +1180,7 @@ export default class bybit extends bybitRest {
         return this.unWatchTradesForSymbols ([ symbol ], params);
     }
 
-    handleTrades (client: Client, message: any) {
+    handleTrades (client: Client, message: Dict): void {
         //
         //     {
         //         "topic": "publicTrade.BTCUSDT",
@@ -1223,7 +1223,7 @@ export default class bybit extends bybitRest {
         client.resolve (stored, messageHash);
     }
 
-    override parseWsTrade (trade: any, market: Market = undefined) {
+    override parseWsTrade (trade: any, market: Market = undefined): Trade {
         //
         // public
         //    {
@@ -1294,7 +1294,7 @@ export default class bybit extends bybitRest {
         }, market);
     }
 
-    getPrivateType (url: any) {
+    getPrivateType (url: string): string {
         if (url.indexOf ('spot') >= 0) {
             return 'spot';
         } else if (url.indexOf ('v5/private') >= 0) {
@@ -1386,7 +1386,7 @@ export default class bybit extends bybitRest {
         return await this.unWatchTopics (url, 'myTrades', [ ], [ messageHash ], [ subHash ], [ topic ], params);
     }
 
-    handleMyTrades (client: Client, message: any) {
+    handleMyTrades (client: Client, message: Dict): void {
         //
         // spot
         //    {
@@ -1575,7 +1575,7 @@ export default class bybit extends bybitRest {
         return this.filterBySymbolsSinceLimit (cache, symbols, since, limit, true);
     }
 
-    setPositionsCache (client: Client, symbols: Strings = undefined) {
+    setPositionsCache (client: Client, symbols: Strings = undefined): void {
         if (this.positions !== undefined) {
             return;
         }
@@ -1591,7 +1591,7 @@ export default class bybit extends bybitRest {
         }
     }
 
-    async loadPositionsSnapshot (client: Client, messageHash: any) {
+    async loadPositionsSnapshot (client: Client, messageHash: string): Promise<void> {
         // as only one ws channel gives positions for all types, for snapshot must load all positions
         const fetchFunctions = [
             this.fetchPositions (undefined, { 'type': 'swap', 'subType': 'linear' }),
@@ -1615,7 +1615,7 @@ export default class bybit extends bybitRest {
         }
     }
 
-    handlePositions (client: any, message: any) {
+    handlePositions (client: Client, message: Dict): void {
         //
         //    {
         //        topic: 'position',
@@ -1751,7 +1751,7 @@ export default class bybit extends bybitRest {
         return this.filterBySymbolsSinceLimit (this.liquidations, [ symbol ], since, limit, true);
     }
 
-    handleLiquidation (client: Client, message: any) {
+    handleLiquidation (client: Client, message: Dict): void {
         //
         //     {
         //         "data": {
@@ -1815,7 +1815,7 @@ export default class bybit extends bybitRest {
         }
     }
 
-    parseWsLiquidation (liquidation: any, market: Market = undefined) {
+    parseWsLiquidation (liquidation: any, market: Market = undefined): Liquidation {
         //
         //     {
         //         "price": "0.03803",
@@ -1917,7 +1917,7 @@ export default class bybit extends bybitRest {
         return await this.unWatchTopics (url, 'orders', [ ], [ messageHash ], [ subHash ], topics, params);
     }
 
-    handleOrderWs (client: Client, message: any) {
+    handleOrderWs (client: Client, message: Dict): void {
         //
         //    {
         //        "reqId":"1",
@@ -1944,7 +1944,7 @@ export default class bybit extends bybitRest {
         client.resolve (order, messageHash);
     }
 
-    handleOrder (client: Client, message: any) {
+    handleOrder (client: Client, message: Dict): void {
         //
         //     spot
         //     {
@@ -2123,7 +2123,7 @@ export default class bybit extends bybitRest {
         return await this.watchTopics (url, [ messageHash ], topics, params);
     }
 
-    handleBalance (client: Client, message: any) {
+    handleBalance (client: Client, message: Dict): void {
         //
         // spot
         //    {
@@ -2317,7 +2317,7 @@ export default class bybit extends bybitRest {
         }
     }
 
-    parseWsBalance (balance: any, accountType: Str = undefined) {
+    parseWsBalance (balance: Dict, accountType: Str = undefined): void {
         //
         // spot
         //    {
@@ -2376,7 +2376,7 @@ export default class bybit extends bybitRest {
         }
     }
 
-    async watchTopics (url: any, messageHashes: any, topics: any, params: Dict = {}) {
+    async watchTopics (url: string, messageHashes: string[], topics: any, params: Dict = {}): Promise<any> {
         const client = this.client (url);
         const newTopics: string[] = [];
         const topicsLength = topics.length;
@@ -2428,7 +2428,7 @@ export default class bybit extends bybitRest {
         return await this.watchMultiple (url, messageHashes, message, messageHashes, subscription);
     }
 
-    async unWatchTopics (url: string, topic: string, symbols: Strings, messageHashes: string[], subMessageHashes: string[], topics: any, params: Dict = {}, subExtension: Dict = {}) {
+    async unWatchTopics (url: string, topic: string, symbols: Strings, messageHashes: string[], subMessageHashes: string[], topics: any, params: Dict = {}, subExtension: Dict = {}): Promise<any> {
         const reqId = this.requestId ();
         const request: Dict = {
             'op': 'unsubscribe',
@@ -2446,7 +2446,7 @@ export default class bybit extends bybitRest {
         return await this.watchMultiple (url, messageHashes, message, messageHashes, this.extend (subscription, subExtension));
     }
 
-    async authenticate (url: any, params: Dict = {}) {
+    async authenticate (url: string, params: Dict = {}): Promise<any> {
         this.checkRequiredCredentials ();
         const messageHash = 'authenticated';
         const client = this.client (url);
@@ -2470,7 +2470,7 @@ export default class bybit extends bybitRest {
         return await future;
     }
 
-    handleErrorMessage (client: Client, message: any): Bool {
+    handleErrorMessage (client: Client, message: Dict): Bool {
         //
         //   {
         //       "success": false,
@@ -2582,7 +2582,7 @@ export default class bybit extends bybitRest {
         }
     }
 
-    override handleMessage (client: Client, message: any) {
+    override handleMessage (client: Client, message: Dict): void {
         const topic = this.safeString2 (message, 'topic', 'op', '');
         if (this.handleErrorMessage (client, message) === true) {
             return;
@@ -2659,14 +2659,14 @@ export default class bybit extends bybitRest {
         }
     }
 
-    override ping (client: Client) {
+    override ping (client: Client): Dict {
         return {
             'req_id': this.requestId (),
             'op': 'ping',
         };
     }
 
-    handlePong (client: Client, message: any) {
+    handlePong (client: Client, message: Dict): Dict {
         //
         //   {
         //       "success": true,
@@ -2689,7 +2689,7 @@ export default class bybit extends bybitRest {
         return message;
     }
 
-    handleAuthenticate (client: Client, message: any) {
+    handleAuthenticate (client: Client, message: Dict): Dict {
         //
         //    {
         //        "success": true,
@@ -2728,7 +2728,7 @@ export default class bybit extends bybitRest {
         return message;
     }
 
-    handleSubscriptionStatus (client: Client, message: any) {
+    handleSubscriptionStatus (client: Client, message: Dict): Dict {
         //
         //    {
         //        "topic": "kline",
@@ -2746,7 +2746,7 @@ export default class bybit extends bybitRest {
         return message;
     }
 
-    handleUnSubscribe (client: Client, message: any) {
+    handleUnSubscribe (client: Client, message: Dict): Dict {
         //
         // {"success":true,"ret_msg":"","conn_id":"7188110e-6908-41e9-b863-6365127e92ad","req_id":"3","op":"unsubscribe"}
         //

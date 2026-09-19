@@ -2,7 +2,7 @@
 
 import lunoRest from '../luno.js';
 import { ArrayCache } from '../base/ws/Cache.js';
-import type { Int, Trade, OrderBook, IndexType, Dict , Market, Str } from '../base/types.js';
+import type { Int, Trade, OrderBook, IndexType, Dict, Market, Str, Num } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -70,7 +70,7 @@ export default class luno extends lunoRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client: Client, message: any, subscription: any) {
+    handleTrades (client: Client, message: Dict, subscription: Dict): void {
         //
         //     {
         //         "sequence": "110980825",
@@ -171,7 +171,7 @@ export default class luno extends lunoRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message: any, subscription: any) {
+    handleOrderBook (client: Client, message: Dict, subscription: Dict): void {
         //
         //     {
         //         "sequence": "24352",
@@ -239,7 +239,7 @@ export default class luno extends lunoRest {
         };
     }
 
-    override parseOrderBookBidsAsks (bidasks: any, priceKey: IndexType = 'price', amountKey: IndexType = 'volume', thirdKey: IndexType = 2) {
+    override parseOrderBookBidsAsks (bidasks: any, priceKey: IndexType = 'price', amountKey: IndexType = 'volume', thirdKey: IndexType = 2): any[] {
         bidasks = this.toArray (bidasks);
         const result: any[] = [];
         for (let i = 0; i < bidasks.length; i++) {
@@ -248,7 +248,7 @@ export default class luno extends lunoRest {
         return result;
     }
 
-    customParseBidAsk (bidask: any, priceKey: IndexType = 'price', amountKey: IndexType = 'volume', thirdKey: IndexType = 2) {
+    customParseBidAsk (bidask: any, priceKey: IndexType = 'price', amountKey: IndexType = 'volume', thirdKey: IndexType = 2): Num[] {
         const price = this.safeNumber (bidask, priceKey);
         const amount = this.safeNumber (bidask, amountKey);
         const result = [ price, amount ];
@@ -259,7 +259,7 @@ export default class luno extends lunoRest {
         return result;
     }
 
-    override handleDelta (orderbook: any, message: any) {
+    override handleDelta (orderbook: any, message: Dict): void {
         //
         //  create
         //     {
@@ -323,7 +323,7 @@ export default class luno extends lunoRest {
         }
     }
 
-    override handleMessage (client: Client, message: any) {
+    override handleMessage (client: Client, message: any): void {
         if (message === '') {
             return;
         }
