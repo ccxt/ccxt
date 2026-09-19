@@ -1096,7 +1096,7 @@ export default class zebpay extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    orderRequest (symbol: any, type: any, amount: any, request: Dict, price: Num = undefined, params = {}) {
+    orderRequest (symbol: string, type: string, amount: Num, request: Dict, price: Num = undefined, params: Dict = {}) {
         const upperCaseType = type.toUpperCase ();
         const triggerPrice = this.safeString (params, 'stopLossPrice');
         const quoteOrderQty = this.safeString2 (params, 'quoteOrderQty', 'cost', undefined);
@@ -1614,7 +1614,7 @@ export default class zebpay extends Exchange {
         });
     }
 
-    async fetchSpotMarkets (params: any = {}): Promise<Market[]> {
+    async fetchSpotMarkets (params: Dict = {}): Promise<Market[]> {
         const response = await this.publicSpotGetV2ExExchangeInfo (params);
         //
         //    {
@@ -1688,7 +1688,7 @@ export default class zebpay extends Exchange {
         return result;
     }
 
-    async fetchSwapMarkets (params: any = {}): Promise<Market[]> {
+    async fetchSwapMarkets (params: Dict = {}): Promise<Market[]> {
         const response = await this.publicSwapGetV1MarketMarkets (params);
         //
         //    {
