@@ -4183,10 +4183,10 @@ public partial class BaseExchange
         IList<object> arrayData = this.toArray(data);
         for (int i = 0; i < (arrayData?.Count ?? 0); i++)
         {
-            object itemOrItems = this.parseLedgerEntry(arrayData[i], currency);
+            IDictionary<string, object> itemOrItems = ((IDictionary<string, object>)this.parseLedgerEntry(arrayData[i], currency));
             if (((itemOrItems is IList<object>) || (itemOrItems.GetType().IsGenericType && itemOrItems.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
-                for (int j = 0; j < getArrayLength(itemOrItems); j++)
+                for (int j = 0; j < (itemOrItems?.Count ?? 0); j++)
                 {
                     ((IList<object>)result).Add(this.extend(getValue(itemOrItems, j), parameters));
                 }
@@ -6076,7 +6076,7 @@ public partial class BaseExchange
         for (int i = 0; i < getArrayLength(response); i++)
         {
             object item = getValue(response, i);
-            object borrowRate = this.parseBorrowRate(item);
+            IDictionary<string, object> borrowRate = ((IDictionary<string, object>)this.parseBorrowRate(item));
             ((IList<object>)result).Add(borrowRate);
         }
         List<object> sorted = this.sortBy(result, "timestamp");
@@ -6089,7 +6089,7 @@ public partial class BaseExchange
         for (int i = 0; i < getArrayLength(info); i++)
         {
             object item = getValue(info, i);
-            object borrowRate = this.parseIsolatedBorrowRate(item);
+            IDictionary<string, object> borrowRate = ((IDictionary<string, object>)this.parseIsolatedBorrowRate(item));
             string? symbol = this.safeString(borrowRate, "symbol");
             ((IDictionary<string,object>)result)[(string)((string)symbol)] = borrowRate;
         }
@@ -6126,7 +6126,7 @@ public partial class BaseExchange
         for (int i = 0; i < getArrayLength(response); i++)
         {
             object entry = getValue(response, i);
-            object parsed = this.parseFundingRate(entry);
+            IDictionary<string, object> parsed = ((IDictionary<string, object>)this.parseFundingRate(entry));
             if (!isEqual(getValue(parsed, "symbol"), null))
             {
                 ((IDictionary<string,object>)fundingRates)[(string)getValue(parsed, "symbol")] = parsed;
@@ -6362,7 +6362,7 @@ public partial class BaseExchange
         for (int i = 0; i < getArrayLength(response); i++)
         {
             object entry = getValue(response, i);
-            object parsed = this.parseOpenInterest(entry);
+            IDictionary<string, object> parsed = ((IDictionary<string, object>)this.parseOpenInterest(entry));
             if (!isEqual(getValue(parsed, "symbol"), null))
             {
                 ((IDictionary<string,object>)result)[(string)getValue(parsed, "symbol")] = parsed;
@@ -6377,7 +6377,7 @@ public partial class BaseExchange
         for (int i = 0; i < getArrayLength(response); i++)
         {
             object entry = getValue(response, i);
-            object interest = this.parseOpenInterest(entry, market);
+            IDictionary<string, object> interest = ((IDictionary<string, object>)this.parseOpenInterest(entry, market));
             ((IList<object>)interests).Add(interest);
         }
         List<object> sorted = this.sortBy(interests, "timestamp");
@@ -7394,7 +7394,7 @@ public partial class BaseExchange
         for (int i = 0; i < getArrayLength(liquidations); i++)
         {
             object entry = getValue(liquidations, i);
-            object parsed = this.parseLiquidation(entry, market);
+            IDictionary<string, object> parsed = ((IDictionary<string, object>)this.parseLiquidation(entry, market));
             ((IList<object>)result).Add(parsed);
         }
         List<object> sorted = this.sortBy(result, "timestamp");
@@ -7418,7 +7418,7 @@ public partial class BaseExchange
         {
             for (int i = 0; i < getArrayLength(greeks); i++)
             {
-                object parsedTicker = this.parseGreeks(getValue(greeks, i));
+                IDictionary<string, object> parsedTicker = ((IDictionary<string, object>)this.parseGreeks(getValue(greeks, i)));
                 Dictionary<string, object> greek = this.extend(parsedTicker, parameters);
                 ((IList<object>)results).Add(greek);
             }
@@ -7429,7 +7429,7 @@ public partial class BaseExchange
             {
                 string? marketId = ((string)marketIds[i]);
                 Dictionary<string, object> market = this.safeMarket(marketId);
-                object parsed = this.parseGreeks(getValue(greeks, marketId), market);
+                IDictionary<string, object> parsed = ((IDictionary<string, object>)this.parseGreeks(getValue(greeks, marketId), market));
                 Dictionary<string, object> greek = this.extend(parsed, parameters);
                 ((IList<object>)results).Add(greek);
             }

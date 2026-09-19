@@ -1888,7 +1888,7 @@ public partial class PredictionExchange : BaseExchange
         List<object> results = new List<object>() {};
         for (int i = 0; i < (rows?.Count ?? 0); i++)
         {
-            object parsed = this.parsePredictionPosition(rows[i]);
+            IDictionary<string, object> parsed = ((IDictionary<string, object>)this.parsePredictionPosition(rows[i]));
             Dictionary<string, object> position = this.extend(parsed, parameters);
             ((IList<object>)results).Add(position);
         }

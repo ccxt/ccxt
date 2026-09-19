@@ -4816,7 +4816,7 @@ public partial class bitget : Exchange
         //      }
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        object result = this.parseTransaction(data, currency);
+        IDictionary<string, object> result = ((IDictionary<string, object>)this.parseTransaction(data, currency));
         ((IDictionary<string,object>)result)["type"] = "withdrawal";
         IDictionary<string, object> withdrawOptions = this.safeDict(this.options, "withdraw", new Dictionary<string, object>() {});
         bool? fillResponseFromRequest = this.safeBool(withdrawOptions, "fillResponseFromRequest", true);
@@ -6413,7 +6413,7 @@ public partial class bitget : Exchange
             string? marketId = this.safeString(entry, "symbol");
             string? symbol = this.safeSymbol(marketId, null, null, marketType);
             Dictionary<string, object> market = this.market(symbol);
-            object fee = this.parseTradingFee(entry, market);
+            IDictionary<string, object> fee = ((IDictionary<string, object>)this.parseTradingFee(entry, market));
             ((IDictionary<string,object>)result)[(string)symbol] = fee;
         }
         return ccxt.BaseExchange.ToTradingFees(result);
