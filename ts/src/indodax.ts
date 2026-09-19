@@ -439,9 +439,9 @@ export default class indodax extends Exchange {
     }
 
     override parseBalance (response: any): Balances {
-        const balances = this.safeValue (response, 'return', {});
+        const balances = this.safeDict (response, 'return', {});
         const free = this.safeDict (balances, 'balance', {});
-        const used = this.safeValue (balances, 'balance_hold', {});
+        const used = this.safeDict (balances, 'balance_hold', {});
         const timestamp = this.safeTimestamp (balances, 'server_time');
         const result: Dict = {
             'info': response,
@@ -522,7 +522,7 @@ export default class indodax extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const market = this.market (symbol);
+        const market: Market = this.market (symbol);
         const request: Dict = {
             'pair': market['id'],
         };
@@ -1040,7 +1040,7 @@ export default class indodax extends Exchange {
             request[market['baseId'] as string] = this.amountToPrecision (symbol, amount);
         }
         const result = await this.privatePostTrade (this.extend (request, params));
-        const data = this.safeValue (result, 'return', {});
+        const data = this.safeDict (result, 'return', {});
         const id = this.safeString (data, 'order_id');
         return this.safeOrder ({
             'info': result,
@@ -1127,7 +1127,7 @@ export default class indodax extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'return', {});
+        const data = this.safeDict (response, 'return', {});
         const currencyId = this.safeString (data, 'currency');
         return {
             'info': response,
@@ -1250,7 +1250,7 @@ export default class indodax extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'return', {});
+        const data = this.safeDict (response, 'return', {});
         const withdraw = this.safeDict (data, 'withdraw', {});
         const deposit = this.safeDict (data, 'deposit', {});
         let transactions: List = [];
@@ -1268,8 +1268,8 @@ export default class indodax extends Exchange {
             }
         } else {
             currency = this.currency (code);
-            const withdraws = this.safeValue (withdraw, currency['id'], []);
-            const deposits = this.safeValue (deposit, currency['id'], []);
+            const withdraws = this.safeList (withdraw, currency['id'], []);
+            const deposits = this.safeList (deposit, currency['id'], []);
             transactions = this.arrayConcat (withdraws, deposits);
         }
         return this.parseTransactions (transactions, currency, since, limit);
@@ -1552,7 +1552,7 @@ export default class indodax extends Exchange {
         if (Array.isArray (response)) {
             return undefined; // public endpoints may return []-arrays
         }
-        const error = this.safeValue (response, 'error', '');
+        const error = this.safeString (response, 'error', '');
         if (!('success' in response) && error === '') {
             return undefined; // no 'success' property on public responses
         }
