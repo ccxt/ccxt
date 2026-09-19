@@ -643,29 +643,29 @@ impl OpinionCore {
             if (slug != Value::Null) {
                 let __ws_arg_1 = self.extend(Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("slug".to_string(), slug.clone());
+                        m.insert("slug".to_string(), slug);
                     m
                 }), &[singleRest.clone()]);
                 singleResponse = self.opinion_public_get_market_slug_slug(&[__ws_arg_1]).await;
             }  else {
                 let __ws_arg_2 = self.extend(Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("marketId".to_string(), eventId.clone());
+                        m.insert("marketId".to_string(), eventId);
                     m
-                }), &[singleRest.clone()]);
+                }), &[singleRest]);
                 singleResponse = self.opinion_public_get_market_categorical_market_id(&[__ws_arg_2]).await;
             }
-            let mut singleResult: Value = self.safe_dict_k(singleResponse.clone(), "result", &[Value::Map({
+            let mut singleResult: Value = self.safe_dict_k(singleResponse, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut singleData: Value = self.safe_dict_k(singleResult.clone(), "data", &[Value::Map({
+            let mut singleData: Value = self.safe_dict_k(singleResult, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut single: Value = self.parse_event(singleData.clone());
+            let mut single: Value = self.parse_event(singleData);
             self.index_event_outcomes(single.clone());
-            return self.apply_event_fetch_params(Value::from(vec![single.clone()]), &[params.clone(), queries.clone()]);
+            return self.apply_event_fetch_params(Value::from(vec![single]), &[params.clone(), queries.clone()]);
         }
         let mut rest: Value = self.omit(params.clone(), Value::from(vec![Value::Str("query".into()), Value::Str("queries".into()), Value::Str("tags".into()), Value::Str("status".into()), Value::Str("sort".into()), Value::Str("searchIn".into()), Value::Str("limit".into())]), &[]);
         let mut pageLimit: Value = self.safe_integer_k(self.options.clone(), "defaultFetchEventsLimit", &[Value::Int(20)]);
@@ -744,7 +744,7 @@ impl OpinionCore {
         }
         }
         self.populate_outcomes();
-        return self.apply_event_fetch_params(parsedEvents, &[params.clone(), queries.clone()]);
+        return self.apply_event_fetch_params(parsedEvents, &[params, queries]);
 
     Value::Null
 }
@@ -777,7 +777,7 @@ impl OpinionCore {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("marketId".to_string(), id);
                 m
-            }), &[params.clone()]);
+            }), &[params]);
             response = self.opinion_public_get_market_categorical_market_id(&[__ws_arg_5]).await;
         }
         let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
@@ -923,11 +923,11 @@ impl OpinionCore {
         let __ws_arg_11 = self.safe_string2(rawEvent.clone(), Value::Str("coverUrl".into()), Value::Str("thumbnailUrl".into()), &[]);
         return self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), eventId.clone());
+        m.insert("id".to_string(), eventId);
         m.insert("event".to_string(), eventHandle);
         m.insert("title".to_string(), title);
         m.insert("description".to_string(), __ws_arg_6);
-        m.insert("slug".to_string(), slug.clone());
+        m.insert("slug".to_string(), slug);
         m.insert("category".to_string(), __ws_arg_7);
         m.insert("tags".to_string(), labels);
         m.insert("markets".to_string(), marketsList);
@@ -971,7 +971,7 @@ impl OpinionCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("token_id".to_string(), tokenId);
     m
-}), &[params.clone()])]).await]);
+}), &[params])]).await]);
         let mut priceResponsebookResponseVariable = promise_all(&promises).await;
         let mut priceResponse: Value = priceResponsebookResponseVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut bookResponse: Value = priceResponsebookResponseVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
@@ -1165,7 +1165,7 @@ impl OpinionCore {
                 m.insert("token_id".to_string(), tokenId);
             m
         });
-        let __ws_arg_15 = self.extend(request, &[params.clone()]);
+        let __ws_arg_15 = self.extend(request, &[params]);
         let mut response: Value = self.opinion_public_get_token_orderbook(&[__ws_arg_15]).await;
         //
         //     {
@@ -1225,7 +1225,7 @@ impl OpinionCore {
                 m.insert("token_id".to_string(), tokenId);
                 m.insert("interval".to_string(), interval);
             m
-        }), &[params.clone()]);
+        }), &[params]);
         let mut response: Value = self.opinion_public_get_token_price_history(&[__ws_arg_16]).await;
         //
         //     {
@@ -1556,7 +1556,7 @@ impl OpinionCore {
         let mut sideInt: Value = (if (sideStr.as_str() == Some("BUY")) { Value::Int(0) } else { Value::Int(1) });
         let mut salt: Value = self.number_to_string(self.milliseconds());
         let mut postOnly: Value = self.safe_bool_k(params.clone(), "postOnly", &[Value::Bool(false)]);
-        let mut rest: Value = self.omit(params.clone(), Value::from(vec![Value::Str("postOnly".into())]), &[]);
+        let mut rest: Value = self.omit(params, Value::from(vec![Value::Str("postOnly".into())]), &[]);
         let mut maker: Value = self.load_multi_sign_address().await;
         // Ethereum addresses are case-insensitive - a checksummed multiSignAddress compared
         // against a differently-cased walletAddress with strict equality would pick the wrong
@@ -1647,7 +1647,7 @@ impl OpinionCore {
                 m.insert("orderId".to_string(), id.clone());
             m
         });
-        let __ws_arg_19 = self.extend(request, &[params.clone()]);
+        let __ws_arg_19 = self.extend(request, &[params]);
         let mut response: Value = self.opinion_private_post_order_cancel(&[__ws_arg_19]).await;
         let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1788,7 +1788,7 @@ impl OpinionCore {
 })]);
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("marketId".to_string(), self.safe_integer_k(info, "marketId", &[])); }
         }
-        let __ws_arg_20 = self.extend(request, &[params.clone()]);
+        let __ws_arg_20 = self.extend(request, &[params]);
         let mut response: Value = self.opinion_private_get_order(&[__ws_arg_20]).await;
         let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1825,7 +1825,7 @@ impl OpinionCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("orderId".to_string(), id);
             m
-        }), &[params.clone()]);
+        }), &[params]);
         let mut response: Value = self.opinion_private_get_order_order_id(&[__ws_arg_21]).await;
         let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1865,7 +1865,7 @@ impl OpinionCore {
                 m.insert("status".to_string(), Value::Str("1".into()));
             m
         });
-        let __ws_arg_22 = self.extend(request, &[params.clone()]);
+        let __ws_arg_22 = self.extend(request, &[params]);
         return self.fetch_orders(&[outcome, since, limit, __ws_arg_22]).await;
 
     Value::Null
@@ -1896,7 +1896,7 @@ impl OpinionCore {
                 m.insert("status".to_string(), Value::Str("2,3,4,5".into()));
             m
         });
-        let __ws_arg_23 = self.extend(request, &[params.clone()]);
+        let __ws_arg_23 = self.extend(request, &[params]);
         return self.fetch_orders(&[outcome, since, limit, __ws_arg_23]).await;
 
     Value::Null
@@ -1939,7 +1939,7 @@ impl OpinionCore {
 })]);
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("marketId".to_string(), self.safe_integer_k(info.clone(), "marketId", &[])); }
         }
-        let __ws_arg_24 = self.extend(request, &[params.clone()]);
+        let __ws_arg_24 = self.extend(request, &[params]);
         let mut response: Value = self.opinion_private_get_trade_user_wallet_address(&[__ws_arg_24]).await;
         let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2080,7 +2080,7 @@ impl OpinionCore {
                 m.insert("chain_id".to_string(), Value::Str("56".into()));
             m
         });
-        let __ws_arg_25 = self.extend(request, &[params.clone()]);
+        let __ws_arg_25 = self.extend(request, &[params]);
         let mut response: Value = self.opinion_private_get_user_balance(&[__ws_arg_25]).await;
         let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2172,7 +2172,7 @@ impl OpinionCore {
                 m.insert("walletAddress".to_string(), self.walletAddress.clone());
             m
         });
-        let __ws_arg_26 = self.extend(request, &[params.clone()]);
+        let __ws_arg_26 = self.extend(request, &[params]);
         let mut response: Value = self.opinion_private_get_positions_user_wallet_address(&[__ws_arg_26]).await;
         let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2336,7 +2336,7 @@ impl OpinionCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.opinion_private_post_auth_api_key(&[params.clone()]).await;
+        let mut response: Value = self.opinion_private_post_auth_api_key(&[params]).await;
         let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2359,7 +2359,7 @@ impl OpinionCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.opinion_private_get_auth_api_key(&[params.clone()]).await;
+        let mut response: Value = self.opinion_private_get_auth_api_key(&[params]).await;
         let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2382,7 +2382,7 @@ impl OpinionCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.opinion_private_delete_auth_api_key(&[params.clone()]).await;
+        let mut response: Value = self.opinion_private_delete_auth_api_key(&[params]).await;
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("apiKey".to_string(), Value::Null); }
         // sign() prefers this.apiKey over options['apiKey'] - clear it too, or a directly-set
         // exchange.apiKey would keep being used for private calls after the key is revoked.

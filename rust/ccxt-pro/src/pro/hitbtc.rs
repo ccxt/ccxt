@@ -572,8 +572,6 @@ impl HitbtcCore {
 }
 
     pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
         //    {
         //        "ch": "orderbook/full",                 // Channel
@@ -597,7 +595,7 @@ impl HitbtcCore {
         //        }
         //    }
         //
-        let mut snapshot: Value = (match __pro_message.get("snapshot").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
+        let mut snapshot: Value = self.safe_dict_k(message.clone(), "snapshot", &[]);
         let mut data: Value = self.safe_dict2(message, Value::Str("snapshot".into()), Value::Str("update".into()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -611,7 +609,8 @@ impl HitbtcCore {
             let mut marketId: Value = marketIds.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            let mut item: Value = data.as_map().and_then(|__m| marketId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+            let mut item: Value = get_value(&data, &marketId);
+            let mut item: Value = get_value(&data, &marketId);
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbooks::".into()), symbol).into());
             if !(in_op(&self.orderbooks, &symbol)) {
                 let mut subscription: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), messageHash.clone(), &[Value::Map({
@@ -758,8 +757,6 @@ impl HitbtcCore {
 }
 
     pub fn handle_ticker(&mut self, mut client: Value, mut message: Value) {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
         //    {
         //        "ch": "ticker/1s",
@@ -798,10 +795,10 @@ impl HitbtcCore {
         //        }
         //    }
         //
-        let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
+        let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         let mut marketIds: Value = object_keys(&data);
         let mut result: Value = Value::from(vec![]);
         let mut topic: Value = Value::Str("tickers".into());
@@ -812,7 +809,7 @@ impl HitbtcCore {
             let mut marketId: Value = marketIds.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            let mut ticker: Value = self.parse_ws_ticker(data.as_map().and_then(|__m| marketId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &[market]);
+            let mut ticker: Value = self.parse_ws_ticker(get_value(&data, &marketId), &[market]);
             add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
             append_to_array(&mut result, ticker.clone());
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", topic, Value::Str("::".into())).into()), symbol).into());
@@ -941,8 +938,6 @@ impl HitbtcCore {
 }
 
     pub fn handle_bid_ask(&mut self, mut client: Value, mut message: Value) {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
         //     {
         //         "ch": "orderbook/top/100ms", // or 'orderbook/top/100ms/batch'
@@ -957,10 +952,10 @@ impl HitbtcCore {
         //         }
         //     }
         //
-        let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
+        let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         let mut marketIds: Value = object_keys(&data);
         let mut result: Value = Value::from(vec![]);
         let mut topic: Value = Value::Str("bidask".into());
@@ -971,7 +966,7 @@ impl HitbtcCore {
             let mut marketId: Value = marketIds.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            let mut ticker: Value = self.parse_ws_bid_ask(data.as_map().and_then(|__m| marketId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &[market]);
+            let mut ticker: Value = self.parse_ws_bid_ask(get_value(&data, &marketId), &[market]);
             add_element_to_object(&mut self.bidsasks, &symbol, ticker.clone());
             append_to_array(&mut result, ticker.clone());
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", topic, Value::Str("::".into())).into()), symbol).into());
@@ -1103,7 +1098,7 @@ impl HitbtcCore {
                 stored = ArrayCache::new(tradesLimit);
                 add_element_to_object(&mut self.trades, &symbol, stored.clone());
             }
-            let mut trades: Value = self.parse_ws_trades(data.as_map().and_then(|__m| marketId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &[market]);
+            let mut trades: Value = self.parse_ws_trades(get_value(&data, &marketId), &[market]);
             {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_384: bool = true;
@@ -1134,7 +1129,7 @@ impl HitbtcCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_386: bool = true;
             while { if !__for_first_386 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_386 = false; i.as_f64().unwrap_or(f64::NAN) < ((tradesArray.len() as i64) as f64) } {
-            let __ws_arg_0 = self.parse_ws_trade(tradesArray.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[market.clone()]);
+            let __ws_arg_0 = self.parse_ws_trade(get_value(&tradesArray, &i), &[market.clone()]);
             let mut trade: Value = self.extend(__ws_arg_0, &[params.clone()]);
             append_to_array(&mut result, trade);
         }
@@ -1224,8 +1219,6 @@ impl HitbtcCore {
 }
 
     pub fn handle_ohlcv(&mut self, mut client: Value, mut message: Value) -> Value {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
         //    {
         //        "ch": "candles/M1",                     // Channel
@@ -1264,7 +1257,7 @@ impl HitbtcCore {
             m
         })]);
         let mut marketIds: Value = object_keys(&data);
-        let mut channel: Value = (match __pro_message.get("ch").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
+        let mut channel: Value = self.safe_string_k(message.clone(), "ch", &[Value::Str("".into())]);
         let mut splitChannel: Value = split(&channel, &Value::Str("/".into()));
         let mut period: Value = self.safe_string(splitChannel, Value::Int(1), &[]);
         let mut timeframe: Value = self.find_timeframe(period, &[]);
@@ -1288,7 +1281,7 @@ impl HitbtcCore {
                 stored = ArrayCacheByTimestamp::new(limit);
                 add_element_to_object(get_value_mut(&mut self.ohlcvs, &symbol), &timeframe, stored.clone());
             }
-            let mut ohlcvs: Value = self.parse_ws_ohlc_vs(data.as_map().and_then(|__m| marketId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &[market]);
+            let mut ohlcvs: Value = self.parse_ws_ohlc_vs(get_value(&data, &marketId), &[market]);
             {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_387: bool = true;
@@ -1360,8 +1353,6 @@ impl HitbtcCore {
 }
 
     pub fn handle_order(&mut self, mut client: Value, mut message: Value) -> Value {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
         //    {
         //        "jsonrpc": "2.0",
@@ -1427,7 +1418,7 @@ impl HitbtcCore {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[]);
             self.orders = ArrayCacheBySymbolById::new(limit);
         }
-        let mut data: Value = (match __pro_message.get("params").cloned() { Some(Value::Str(__s)) if __s.is_empty() => Value::from(vec![]), Some(__v) => __v, None => Value::from(vec![]) });
+        let mut data: Value = self.safe_value_k(message.clone(), "params", &[Value::from(vec![])]);
         if (matches!(&data, Value::Arr(_))) {
             {
                                 let mut i: Value = Value::Int(0);
@@ -1446,14 +1437,12 @@ impl HitbtcCore {
 }
 
     pub fn handle_order_helper(&self, mut client: Value, mut message: Value, mut order: Value) {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         let mut orders: Value = self.orders.clone();
         if (orders == Value::Null) {
             return;
         }
         let mut marketId: Value = self.safe_string_lower2(order.clone(), Value::Str("instrument".into()), Value::Str("symbol".into()), &[]);
-        let mut method: Value = (match __pro_message.get("method").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
+        let mut method: Value = self.safe_string_k(message, "method", &[Value::Str("".into())]);
         let mut splitMethod: Value = split(&method, &Value::Str("_order".into()));
         let mut messageHash: Value = self.safe_string(splitMethod, Value::Int(0), &[]);
         let mut symbol: Value = self.safe_symbol(marketId, &[]);
@@ -1682,7 +1671,7 @@ impl HitbtcCore {
         }  else if (marketType.as_str() == Some("margin")) || (marginMode != Value::Null) {
             return self.trade_request(Value::Str("margin_new_order".into()), &[request.clone()]).await;
         }  else {
-            return self.trade_request(Value::Str("spot_new_order".into()), &[request.clone()]).await;
+            return self.trade_request(Value::Str("spot_new_order".into()), &[request]).await;
         }
 
     Value::Null
@@ -1731,7 +1720,7 @@ impl HitbtcCore {
         }  else if (marketType.as_str() == Some("margin")) || (marginMode != Value::Null) {
             return self.trade_request(Value::Str("margin_cancel_order".into()), &[request.clone()]).await;
         }  else {
-            return self.trade_request(Value::Str("spot_cancel_order".into()), &[request.clone()]).await;
+            return self.trade_request(Value::Str("spot_cancel_order".into()), &[request]).await;
         }
 
     Value::Null
@@ -1821,15 +1810,13 @@ impl HitbtcCore {
         }  else if (marketType.as_str() == Some("margin")) || (marginMode != Value::Null) {
             return self.trade_request(Value::Str("margin_get_orders".into()), &[request.clone()]).await;
         }  else {
-            return self.trade_request(Value::Str("spot_get_orders".into()), &[request.clone()]).await;
+            return self.trade_request(Value::Str("spot_get_orders".into()), &[request]).await;
         }
 
     Value::Null
 }
 
     pub fn handle_balance(&mut self, mut client: Value, mut message: Value) {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
         //    {
         //        "jsonrpc": "2.0",
@@ -1845,8 +1832,8 @@ impl HitbtcCore {
         //        ]
         //    }
         //
-        let mut messageHash: Value = (match __pro_message.get("method").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        let mut params: Value = (match __pro_message.get("params").cloned() { Some(Value::Str(__s)) if __s.is_empty() => Value::Null, Some(__v) => __v, None => Value::Null });
+        let mut messageHash: Value = self.safe_string_k(message.clone(), "method", &[]);
+        let mut params: Value = self.safe_value_k(message, "params", &[]);
         let mut balance: Value = self.parse_balance(params);
         { let __t = self.deep_extend(self.balance.clone(), &[balance.clone()]); self.balance = __t; }
         client.resolve(&[self.balance.clone(), messageHash]);
@@ -1859,8 +1846,6 @@ impl HitbtcCore {
 }
 
     pub fn handle_order_request(&self, mut client: Value, mut message: Value) -> Value {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
         // createOrderWs, cancelOrderWs
         //
@@ -1888,14 +1873,11 @@ impl HitbtcCore {
         //        "id": 1700233093414
         //    }
         //
-        let mut messageHash: Value = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        let mut result: Value = (match __pro_message.get("result").cloned() { Some(Value::Str(__s)) if __s.is_empty() => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}), Some(__v) => __v, None => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
+        let mut messageHash: Value = self.safe_string_k(message.clone(), "id", &[]);
+        let mut result: Value = self.safe_value_k(message.clone(), "result", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
         if (matches!(&result, Value::Arr(_))) {
             let mut parsedOrders: Value = Value::from(vec![]);
             {
@@ -1917,8 +1899,6 @@ impl HitbtcCore {
 }
 
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         if is_true(&self.handle_error(client.clone(), message.clone())) {
             return;
         }
@@ -1954,7 +1934,7 @@ impl HitbtcCore {
                 self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
             }
         }  else {
-            let mut result: Value = (match __pro_message.get("result").cloned() { Some(Value::Str(__s)) if __s.is_empty() => Value::Null, Some(__v) => __v, None => Value::Null });
+            let mut result: Value = self.safe_value_k(message.clone(), "result", &[]);
             let mut clientOrderId: Option<String> = self.safe_string_k(result.clone(), "client_order_id", &[]).as_str().map(str::to_owned);
             if (clientOrderId.is_some()) {
                 self.handle_order_request(client.clone(), message.clone());
@@ -1970,22 +1950,20 @@ impl HitbtcCore {
                 })]);
                 let mut arrayLength: f64 = ((result.len() as i64) as f64);
                 if (arrayLength == 0.0) || (matches!(&first, Value::Dict(__d) if __d.contains_key("client_order_id"))) {
-                    self.handle_order_request(client.clone(), message.clone());
+                    self.handle_order_request(client, message);
                 }
             }
         }
 }
 
     pub fn handle_authenticate(&self, mut client: Value, mut message: Value) -> Value {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
         //    {
         //        "jsonrpc": "2.0",
         //        "result": true
         //    }
         //
-        let mut success: Value = (match __pro_message.get("result").cloned() { Some(__v) if matches!(__v, Value::Bool(_)) => __v, _ => Value::Null });
+        let mut success: Value = self.safe_bool_k(message.clone(), "result", &[]);
         let mut messageHash: Value = Value::Str("authenticated".into());
         if (success.as_bool() == Some(true)) {
             let mut future: Value = self.safe_value(get_value(&client, &Value::Str("futures".into())), messageHash.clone(), &[]);
@@ -2003,8 +1981,6 @@ impl HitbtcCore {
 }
 
     pub fn handle_error(&self, mut client: Value, mut message: Value) -> Value {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
         //    {
         //        jsonrpc: '2.0',
@@ -2016,7 +1992,7 @@ impl HitbtcCore {
         //        id: 1700228604325
         //    }
         //
-        let mut error: Value = (match __pro_message.get("error").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
+        let mut error: Value = self.safe_dict_k(message.clone(), "error", &[]);
         if (error != Value::Null) {
             let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                 let mut code: Value = self.safe_value_k(error.clone(), "code", &[]);
@@ -2035,7 +2011,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &messageHash);
                     }
                 }  else {
-                    let mut id: Value = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
+                    let mut id: Value = self.safe_string_k(message, "id", &[]);
                     client.reject(&[e, id.clone()]);
                 }
                 return Value::Bool(true);

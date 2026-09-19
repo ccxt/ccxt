@@ -645,7 +645,7 @@ impl LbankCore {
         let mut marketId: Value = (match __pro_message.get("pair").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
         let mut market: Value = self.safe_market(&[marketId]);
-        let mut parsedTicker: Value = self.parse_ws_ticker(message, &[market.clone()]);
+        let mut parsedTicker: Value = self.parse_ws_ticker(message, &[market]);
         add_element_to_object(&mut self.tickers, &symbol, parsedTicker.clone());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol).into());
         client.resolve(&[parsedTicker.clone(), messageHash.clone()]);
@@ -703,7 +703,7 @@ impl LbankCore {
         m.insert("quoteVolume".to_string(), self.safe_string_k(tickerData, "turnover", &[]));
         m.insert("info".to_string(), ticker);
     m
-}), &[market.clone()]);
+}), &[market]);
 
     Value::Null
 }
@@ -891,7 +891,7 @@ impl LbankCore {
         m.insert("fee".to_string(), Value::Null);
         m.insert("info".to_string(), trade);
     m
-}), &[market.clone()]);
+}), &[market]);
 
     Value::Null
 }
@@ -1071,7 +1071,7 @@ impl LbankCore {
         m.insert("cost".to_string(), cost);
         m.insert("trades".to_string(), Value::Null);
     m
-}), &[market.clone()]);
+}), &[market]);
 
     Value::Null
 }

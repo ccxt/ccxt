@@ -1325,7 +1325,7 @@ impl CoinoneCore {
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), fee);
     m
-}), &[market.clone()]);
+}), &[market]);
 
     Value::Null
 }
@@ -1382,7 +1382,7 @@ impl CoinoneCore {
         //     }
         //
         let mut data: Value = self.safe_list_k(response, "transactions", &[Value::from(vec![])]);
-        return self.parse_trades(data, &[market.clone(), since, limit]);
+        return self.parse_trades(data, &[market, since, limit]);
 
     Value::Null
 }
@@ -1433,7 +1433,7 @@ impl CoinoneCore {
         });
         let __ws_arg_5 = self.extend(request, &[params]);
         let mut response: Value = self.v2_1_private_post_order_limit(&[__ws_arg_5]).await;
-        return self.parse_order(response, &[market.clone()]);
+        return self.parse_order(response, &[market]);
 
     Value::Null
 }
@@ -1468,7 +1468,7 @@ impl CoinoneCore {
         });
         let __ws_arg_6 = self.extend(request, &[params]);
         let mut response: Value = self.v2_private_post_order_query_order(&[__ws_arg_6]).await;
-        return self.parse_order(response, &[market.clone()]);
+        return self.parse_order(response, &[market]);
 
     Value::Null
 }
@@ -1597,19 +1597,19 @@ impl CoinoneCore {
         m.insert("type".to_string(), Value::Str("limit".into()));
         m.insert("timeInForce".to_string(), Value::Null);
         m.insert("postOnly".to_string(), Value::Null);
-        m.insert("side".to_string(), side.clone());
+        m.insert("side".to_string(), side);
         m.insert("price".to_string(), self.safe_string_k(order.clone(), "price", &[]));
         m.insert("triggerPrice".to_string(), Value::Null);
         m.insert("cost".to_string(), Value::Null);
         m.insert("average".to_string(), self.safe_string2(order.clone(), Value::Str("averageExecutedPrice".into()), Value::Str("average_executed_price".into()), &[]));
         m.insert("amount".to_string(), amountString);
-        m.insert("filled".to_string(), self.safe_string2(order.clone(), Value::Str("executedQty".into()), Value::Str("executed_qty".into()), &[]));
+        m.insert("filled".to_string(), self.safe_string2(order, Value::Str("executedQty".into()), Value::Str("executed_qty".into()), &[]));
         m.insert("remaining".to_string(), remainingString);
         m.insert("status".to_string(), status);
         m.insert("fee".to_string(), fee);
         m.insert("trades".to_string(), Value::Null);
     m
-}), &[market.clone()]);
+}), &[market]);
 
     Value::Null
 }
@@ -1667,7 +1667,7 @@ impl CoinoneCore {
         //     }
         //
         let mut openOrders: Value = self.safe_list2(response, Value::Str("open_orders".into()), Value::Str("limitOrders".into()), &[Value::from(vec![])]);
-        return self.parse_orders(openOrders, &[market.clone(), since, limit]);
+        return self.parse_orders(openOrders, &[market, since, limit]);
 
     Value::Null
 }
@@ -1725,7 +1725,7 @@ impl CoinoneCore {
         //     }
         //
         let mut completeOrders: Value = self.safe_list_k(response, "completeOrders", &[Value::from(vec![])]);
-        return self.parse_trades(completeOrders, &[market.clone(), since, limit]);
+        return self.parse_trades(completeOrders, &[market, since, limit]);
 
     Value::Null
 }
@@ -1759,7 +1759,7 @@ impl CoinoneCore {
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("order_id".to_string(), id.clone());
+                m.insert("order_id".to_string(), id);
                 m.insert("price".to_string(), price);
                 m.insert("qty".to_string(), qty);
                 m.insert("is_ask".to_string(), isAsk);
@@ -1845,10 +1845,10 @@ impl CoinoneCore {
             add_element_to_object(&mut depositAddress, &Value::Str("info".into()), address.clone());
             if ((secondPart.as_deref() == Some("tag")) || (secondPart.as_deref() == Some("memo"))) {
                 add_element_to_object(&mut depositAddress, &Value::Str("tag".into()), value.clone());
-                add_element_to_object(&mut depositAddress, &Value::Str("info".into()), Value::from(vec![address.clone(), value.clone()]));
+                add_element_to_object(&mut depositAddress, &Value::Str("info".into()), Value::from(vec![address, value]));
             }
             if (code != Value::Null) {
-                add_element_to_object(&mut result, &code, depositAddress.clone());
+                add_element_to_object(&mut result, &code, depositAddress);
             }
         }
         }

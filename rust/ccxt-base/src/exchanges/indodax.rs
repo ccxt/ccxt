@@ -1980,13 +1980,13 @@ impl IndodaxCore {
                         }
                         }
                     }  else {
-                        let mut _netIdTmp: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
+                        let mut _netIdTmp: Value = self.network_id_to_code(&[networkId, code.clone()]);
                         if (_netIdTmp != Value::Null) {
                             network = to_upper(&_netIdTmp);
                         }
                     }
                 }
-                let mut finalNetwork: Value = network.clone(); // java req
+                let mut finalNetwork: Value = network; // java req
                 if (code != Value::Null) {
                     add_element_to_object(&mut result, &code, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1995,8 +1995,8 @@ impl IndodaxCore {
     m
 }));
         m.insert("currency".to_string(), code.clone());
-        m.insert("network".to_string(), finalNetwork.clone());
-        m.insert("address".to_string(), address.clone());
+        m.insert("network".to_string(), finalNetwork);
+        m.insert("address".to_string(), address);
         m.insert("tag".to_string(), Value::Null);
     m
 }));

@@ -3092,7 +3092,7 @@ impl BitteamCore {
                 }
                 if Value::Int(url.as_str().and_then(|__s| __s.find("/cmc/orderbook/")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                     let mut parts: Value = split(&url, &Value::Str("/cmc/orderbook/".into()));
-                    let mut symbolId: Value = self.safe_string(parts.clone(), Value::Int(1), &[]);
+                    let mut symbolId: Value = self.safe_string(parts, Value::Int(1), &[]);
                     panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" symbolId ".into())).into()), symbolId).into()), Value::Str(" not found".into()))));
                 }
             }

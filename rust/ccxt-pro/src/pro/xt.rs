@@ -2143,7 +2143,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut subscriptionsById: Value = self.index_by(get_value(&client, &Value::Str("subscriptions".into())), Value::Str("id".into()));
         let mut unsubscribe: Value = Value::Bool(false);
         if (id != Value::Null) {
-            let mut subscription: Value = self.safe_dict(subscriptionsById, id.clone(), &[Value::Map({
+            let mut subscription: Value = self.safe_dict(subscriptionsById, id, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);

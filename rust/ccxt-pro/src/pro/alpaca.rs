@@ -1018,7 +1018,7 @@ impl AlpacaCore {
                     m
                 });
             }
-            self.watch(url, messageHash.clone(), &[request.clone(), messageHash.clone(), future.clone()]).await;
+            self.watch(url, messageHash.clone(), &[request, messageHash.clone(), future.clone()]).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;
 
@@ -1152,7 +1152,7 @@ impl AlpacaCore {
         let mut status: Option<String> = self.safe_string_k(data, "status", &[]).as_str().map(str::to_owned);
         if (T.as_deref() == Some("success")) || (status.as_deref() == Some("authorized")) {
             let mut promise: Value = get_value(&client, &Value::Str("futures".into())).as_map().and_then(|__m| __m.get("authenticated")).cloned().unwrap_or(Value::Null);
-            promise.resolve(&[message.clone()]);
+            promise.resolve(&[message]);
             return;
         }
         panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" failed to authenticate.".into()))));

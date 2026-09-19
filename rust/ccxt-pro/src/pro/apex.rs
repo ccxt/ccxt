@@ -594,7 +594,7 @@ impl ApexCore {
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("op".to_string(), Value::Str("subscribe".into()));
-                    m.insert("args".to_string(), newTopics.clone());
+                    m.insert("args".to_string(), newTopics);
                 m
             });
             message = self.extend(request, &[params]);
@@ -736,7 +736,7 @@ impl ApexCore {
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol).into());
         let mut topic: Value = add(&Value::Str(format!("{}{}", Value::Str("instrumentInfo".into()), Value::Str(".H.".into())).into()), &market.as_map().and_then(|__m| __m.get("id2")).cloned().unwrap_or(Value::Null));
         let mut topics: Value = Value::from(vec![topic]);
-        return self.watch_topics(url, Value::from(vec![messageHash]), topics.clone(), &[params]).await;
+        return self.watch_topics(url, Value::from(vec![messageHash]), topics, &[params]).await;
 
     Value::Null
 }
@@ -775,7 +775,7 @@ impl ApexCore {
             append_to_array(&mut messageHashes, messageHash);
         }
         }
-        let mut ticker: Value = self.watch_topics(url, messageHashes, topics.clone(), &[params]).await;
+        let mut ticker: Value = self.watch_topics(url, messageHashes, topics, &[params]).await;
         if is_true(&self.newUpdates) {
             let mut result: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1071,7 +1071,7 @@ impl ApexCore {
             return self.filter_by_symbols_since_limit(snapshot, &[symbols.clone(), since.clone(), limit.clone(), Value::Bool(true)]);
         }
         let mut topics: Value = Value::from(vec![Value::Str("positions".into())]);
-        let mut newPositions: Value = self.watch_topics(url, Value::from(vec![messageHash]), topics.clone(), &[params]).await;
+        let mut newPositions: Value = self.watch_topics(url, Value::from(vec![messageHash]), topics, &[params]).await;
         if is_true(&self.newUpdates) {
             return newPositions;
         }
@@ -1110,7 +1110,7 @@ impl ApexCore {
         let mut url: Value = self.get_ws_private_url();
         self.authenticate(url.clone(), &[]).await;
         let mut topics: Value = Value::from(vec![Value::Str("orders".into())]);
-        let mut orders: Value = self.watch_topics(url, Value::from(vec![messageHash]), topics.clone(), &[params]).await;
+        let mut orders: Value = self.watch_topics(url, Value::from(vec![messageHash]), topics, &[params]).await;
         if is_true(&self.newUpdates) {
             limit = orders.get_limit(symbol.clone(), limit.clone());
         }
@@ -1324,7 +1324,7 @@ impl ApexCore {
                 add_element_to_object(&mut position, &Value::Str("side".into()), Value::Null);
             }  else {
                 // regular update
-                cache.append(position.clone());
+                cache.append(position);
             }
         }
         }
@@ -1532,7 +1532,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         // unified auth acknowledgement
         let mut type_var: Option<String> = self.safe_string_k(message.clone(), "type", &[]).as_str().map(str::to_owned);
         if (type_var.as_deref() == Some("AUTH_RESP")) {
-            self.handle_authenticate(client.clone(), message.clone());
+            self.handle_authenticate(client, message.clone());
         }
 }
 
@@ -1590,7 +1590,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub fn handle_ping(&mut self, mut client: Value, mut message: Value) {
         crate::set_value(&mut client, &Value::Str("lastPong".into()), self.milliseconds());
-        self.spawn(&[Value::Str("pong".into()).clone(), client.clone(), message.clone()]);
+        self.spawn(&[Value::Str("pong".into()).clone(), client, message.clone()]);
 }
 
     pub fn handle_account(&mut self, mut client: Value, mut message: Value) {
@@ -1610,7 +1610,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut orders: Value = self.safe_list_k(contents, "orders", &[Value::from(vec![])]);
         if (orders != Value::Null) {
-            self.handle_order(client.clone(), orders);
+            self.handle_order(client, orders);
         }
 }
 

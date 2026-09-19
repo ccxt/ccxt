@@ -646,7 +646,7 @@ impl PacificaCore {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), orderId);
                     m.insert("clientOrderId".to_string(), clientOrderId);
-                    m.insert("status".to_string(), status.clone());
+                    m.insert("status".to_string(), status);
                     m.insert("info".to_string(), response.clone());
                     m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
                 m
@@ -728,7 +728,7 @@ impl PacificaCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), orderId);
         m.insert("clientOrderId".to_string(), clientOrderId);
-        m.insert("status".to_string(), status.clone());
+        m.insert("status".to_string(), status);
         m.insert("info".to_string(), response);
         m.insert("symbol".to_string(), symbol);
     m

@@ -1558,7 +1558,7 @@ impl CexCore {
         add_element_to_object(&mut storedOrderBook, &Value::Str("timestamp".into()), timestamp.clone());
         add_element_to_object(&mut storedOrderBook, &Value::Str("datetime".into()), self.iso8601(timestamp));
         add_element_to_object(&mut storedOrderBook, &Value::Str("nonce".into()), incrementalId);
-        client.resolve(&[storedOrderBook, messageHash.clone()]);
+        client.resolve(&[storedOrderBook, messageHash]);
 }
 
     pub fn handle_delta(&self, mut bookside: Value, mut delta: Value) {
@@ -1670,7 +1670,7 @@ impl CexCore {
 }));
         }
         add_element_to_object(get_value_mut(&mut self.ohlcvs, &symbol), &Value::Str("unknown".into()), stored.clone());
-        client.resolve(&[stored, messageHash.clone()]);
+        client.resolve(&[stored, messageHash]);
 }
 
     pub fn handle_ohlcv24(&self, mut client: Value, mut message: Value) -> Value {
@@ -1707,7 +1707,7 @@ impl CexCore {
         let mut ohlcv: Value = Value::from(vec![self.safe_timestamp(data.clone(), Value::Str("time".into()), &[]), self.safe_number_k(data.clone(), "o", &[]), self.safe_number_k(data.clone(), "h", &[]), self.safe_number_k(data.clone(), "l", &[]), self.safe_number_k(data.clone(), "c", &[]), self.safe_number_k(data, "v", &[])]);
         let mut stored: Value = self.safe_value(self.ohlcvs.clone(), symbol, &[]);
         stored.append(ohlcv);
-        client.resolve(&[stored, messageHash.clone()]);
+        client.resolve(&[stored, messageHash]);
 }
 
     pub fn handle_ohlcv(&self, mut client: Value, mut message: Value) {
@@ -1738,7 +1738,7 @@ impl CexCore {
         }
         let mut dataLength: f64 = ((data.len() as i64) as f64);
         if dataLength > ((0i64) as f64) {
-            client.resolve(&[stored, messageHash.clone()]);
+            client.resolve(&[stored, messageHash]);
         }
 }
 
@@ -1922,7 +1922,7 @@ impl CexCore {
                 m.insert("type".to_string(), side);
                 m.insert("amount".to_string(), amount);
                 m.insert("price".to_string(), price);
-                m.insert("order_id".to_string(), id.clone());
+                m.insert("order_id".to_string(), id);
             m
         }), &[params]);
         let mut messageHash: Value = self.request_id();
@@ -1966,7 +1966,7 @@ impl CexCore {
         }
         let mut data: Value = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("order_id".to_string(), id.clone());
+                m.insert("order_id".to_string(), id);
             m
         }), &[params]);
         let mut messageHash: Value = self.request_id();
@@ -2058,7 +2058,7 @@ impl CexCore {
         //
         let mut data: Value = self.safe_value_k(message.clone(), "data", &[]);
         let mut messageHash: Value = self.safe_string_k(message, "oid", &[]);
-        client.resolve(&[data, messageHash.clone()]);
+        client.resolve(&[data, messageHash]);
 }
 
     pub fn handle_connected(&self, mut client: Value, mut message: Value) -> Value {
@@ -2084,7 +2084,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut messageHash: Value = self.safe_string_k(message.clone(), "oid", &[]);
             let mut future: Value = self.safe_value(get_value(&client, &Value::Str("futures".into())), messageHash.clone(), &[]);
             if (future != Value::Null) {
-                client.reject(&[Value::from(error.clone()), messageHash.clone()]);
+                client.reject(&[Value::from(error.clone()), messageHash]);
                 return Value::Bool(true);
             }  else {
                 panic!("{}", error);
@@ -2130,7 +2130,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         });
         let mut handler: Value = self.safe_value(handlers, event.clone(), &[]);
         if (handler != Value::Null) {
-            self.dispatch_ws_handler(&handler, &[client.clone(), message.clone()]);
+            self.dispatch_ws_handler(&handler, &[client, message.clone()]);
         }
 }
 

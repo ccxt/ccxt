@@ -2307,15 +2307,15 @@ impl BitoproCore {
                 let mut nonce: Value = self.milliseconds();
                 let mut rawData: Value = Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("nonce".to_string(), nonce.clone());
+                        m.insert("nonce".to_string(), nonce);
                     m
                 });
                 let mut data: Value = json_stringify(&rawData);
-                let mut payload: Value = self.string_to_base64(data.clone(), &[]);
+                let mut payload: Value = self.string_to_base64(data, &[]);
                 let mut signature: Value = self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha384".into()), &[]);
                 add_element_to_object(&mut headers, &Value::Str("X-BITOPRO-APIKEY".into()), self.apiKey.clone());
-                add_element_to_object(&mut headers, &Value::Str("X-BITOPRO-PAYLOAD".into()), payload.clone());
-                add_element_to_object(&mut headers, &Value::Str("X-BITOPRO-SIGNATURE".into()), signature.clone());
+                add_element_to_object(&mut headers, &Value::Str("X-BITOPRO-PAYLOAD".into()), payload);
+                add_element_to_object(&mut headers, &Value::Str("X-BITOPRO-SIGNATURE".into()), signature);
             }
         }  else if (api.as_str() == Some("public")) && (method.as_str() == Some("GET")) {
             if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
@@ -2325,10 +2325,10 @@ impl BitoproCore {
         url = add(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("rest")).cloned().unwrap_or(Value::Null), &url);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), url.clone());
+        m.insert("url".to_string(), url);
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), body.clone());
-        m.insert("headers".to_string(), headers.clone());
+        m.insert("body".to_string(), body);
+        m.insert("headers".to_string(), headers);
     m
 });
 

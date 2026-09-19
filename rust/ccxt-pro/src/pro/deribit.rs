@@ -1135,7 +1135,7 @@ impl DeribitCore {
         if (get_value(&delta, &Value::Int(0)).as_str() == Some("new")) || (get_value(&delta, &Value::Int(0)).as_str() == Some("change")) {
             bookside.store_array(Value::from(vec![price.clone(), amount.clone(), Value::Int(1)]));
         }  else if (get_value(&delta, &Value::Int(0)).as_str() == Some("delete")) {
-            bookside.store_array(Value::from(vec![price.clone(), amount.clone(), Value::Int(0)]));
+            bookside.store_array(Value::from(vec![price, amount, Value::Int(0)]));
         }
 }
 

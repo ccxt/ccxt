@@ -171,11 +171,11 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                 let mut idMatch: bool = (eventId != Value::Null) && (self.safe_string_k(event.clone(), "id", &[]).as_str() == eventId.as_str());
                 let mut slugMatch: bool = (slug != Value::Null) && (self.safe_string_k(event.clone(), "slug", &[]).as_str() == slug.as_str());
                 if idMatch || slugMatch {
-                    append_to_array(&mut filtered, event.clone());
+                    append_to_array(&mut filtered, event);
                 }
             }
             }
-            result = filtered.clone();
+            result = filtered;
         }
         result = self.filter_events_by_status(result.clone(), &[self.safe_string_k(params.clone(), "status", &[])]);
         result = self.filter_events_by_tags(result.clone(), &[self.safe_list_k(params.clone(), "tags", &[])]);
@@ -241,7 +241,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             let mut isActive: Value = self.safe_bool_k(event.clone(), "active", &[]);
             // keep events whose status is unknown (already filtered server-side, no `active` field)
             if (isActive == Value::Null) || (isActive.as_bool() == wantActive.as_bool()) {
-                append_to_array(&mut result, event.clone());
+                append_to_array(&mut result, event);
             }
         }
         }
@@ -294,7 +294,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             }
             }
             if matched {
-                append_to_array(&mut result, event.clone());
+                append_to_array(&mut result, event);
             }
         }
         }
@@ -392,7 +392,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             }
             }
             if matched {
-                append_to_array(&mut result, event.clone());
+                append_to_array(&mut result, event);
             }
         }
         }
@@ -462,7 +462,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                 add_element_to_object(&mut self.pred_mut().events, &handle, event.clone());
             }
             if (slug != Value::Null) {
-                add_element_to_object(&mut self.pred_mut().events_by_slug, &slug, event.clone());
+                add_element_to_object(&mut self.pred_mut().events_by_slug, &slug, event);
             }
         }
         }
@@ -491,7 +491,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             let mut identity: Value = self.safe_string2(event.clone(), Value::Str("id".into()), Value::Str("event".into()), &[keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)]);
             if !(in_op(&seen, &identity)) {
                 add_element_to_object(&mut seen, &identity, Value::Bool(true));
-                append_to_array(&mut result, event.clone());
+                append_to_array(&mut result, event);
             }
         }
         }
@@ -513,7 +513,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             return self.pred().events.clone();
         }
         let mut events: Value = self.fetch_events(&[params]).await;
-        return self.set_events(events.clone());
+        return self.set_events(events);
 
     Value::Null
 } }
@@ -892,7 +892,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         if (self.markets.clone() == Value::Null) {
             { let __t = self.create_safe_dictionary(&[]); self.markets = __t; }
         }
-        let mut markets: Value = self.safe_list_k(event.clone(), "markets", &[Value::from(vec![])]);
+        let mut markets: Value = self.safe_list_k(event, "markets", &[Value::from(vec![])]);
         let mut marketsLength: f64 = ((markets.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
@@ -952,11 +952,11 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                     }
                 }
                 }
-                missing = stillMissing.clone();
+                missing = stillMissing;
                 missingLength = Value::Int(missing.len() as i64);
             }
             if missingLength.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
-                self.fetch_outcomes(missing.clone()).await;
+                self.fetch_outcomes(missing).await;
             }
             return self.pred().outcomes.clone();
         }
@@ -1673,7 +1673,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // safeBool, not this.options['...'] — a raw missing-key access throws KeyError in Python/PHP
         // when the option is undeclared (it is for every prediction exchange)
         if matches!(self.safe_bool_k(self.options.clone(), "createMarketBuyOrderRequiresPrice", &[Value::Bool(false)]), Value::Bool(true)) || matches!(self.safe_bool_k(self.has.clone(), "createMarketBuyOrderWithCost", &[Value::Bool(false)]), Value::Bool(true)) {
-            return <Self as crate::prediction_exchange_generated::PredictionBase>::create_order(self, outcome.clone(), Value::Str("market".into()), Value::Str("buy".into()), cost.clone(), &[Value::Int(1), params.clone()]).await;
+            return <Self as crate::prediction_exchange_generated::PredictionBase>::create_order(self, outcome, Value::Str("market".into()), Value::Str("buy".into()), cost, &[Value::Int(1), params]).await;
         }
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createMarketBuyOrderWithCost() is not supported yet".into()))));
 
@@ -1695,7 +1695,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         if matches!(self.safe_bool_k(self.options.clone(), "createMarketSellOrderRequiresPrice", &[Value::Bool(false)]), Value::Bool(true)) || matches!(self.safe_bool_k(self.has.clone(), "createMarketSellOrderWithCost", &[Value::Bool(false)]), Value::Bool(true)) {
-            return <Self as crate::prediction_exchange_generated::PredictionBase>::create_order(self, outcome.clone(), Value::Str("market".into()), Value::Str("sell".into()), cost.clone(), &[Value::Int(1), params.clone()]).await;
+            return <Self as crate::prediction_exchange_generated::PredictionBase>::create_order(self, outcome, Value::Str("market".into()), Value::Str("sell".into()), cost, &[Value::Int(1), params]).await;
         }
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createMarketSellOrderWithCost() is not supported yet".into()))));
 
@@ -1938,7 +1938,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("amount".to_string(), self.parse_number(amount, &[]));
                 m.insert("filled".to_string(), self.parse_number(filled, &[]));
                 m.insert("remaining".to_string(), self.parse_number(remaining, &[]));
-                m.insert("cost".to_string(), self.parse_number(cost.clone(), &[]));
+                m.insert("cost".to_string(), self.parse_number(cost, &[]));
                 m.insert("fee".to_string(), fee);
                 m.insert("reduceOnly".to_string(), self.safe_bool_k(outcomeOrder.clone(), "reduceOnly", &[]));
                 m.insert("postOnly".to_string(), postOnly);
@@ -2272,7 +2272,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut tail = get_arg(optional_args, 3, Value::Bool(false));
-        return self.filter_by_value_since_limit(array, Value::Str("outcome".into()), &[outcome.clone(), since, limit, Value::Str("timestamp".into()), tail]);
+        return self.filter_by_value_since_limit(array, Value::Str("outcome".into()), &[outcome, since, limit, Value::Str("timestamp".into()), tail]);
 
     Value::Null
 }
@@ -2282,8 +2282,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut tail = get_arg(optional_args, 3, Value::Bool(false));
-        let mut result: Value = self.filter_by_array(array, Value::Str("outcome".into()), &[outcomes.clone(), Value::Bool(false)]);
-        return self.filter_by_since_limit(result.clone(), &[since, limit, Value::Str("timestamp".into()), tail]);
+        let mut result: Value = self.filter_by_array(array, Value::Str("outcome".into()), &[outcomes, Value::Bool(false)]);
+        return self.filter_by_since_limit(result, &[since, limit, Value::Str("timestamp".into()), tail]);
 
     Value::Null
 }
@@ -2307,7 +2307,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     fn cost_to_prediction_precision(&self, mut outcome: Value, mut cost: Value) -> Value {
         let mut outcomeObj: Value = self.outcome(outcome.clone());
         let mut marketSymbol: Value = self.safe_string_k(outcomeObj, "market", &[]);
-        return self.cost_to_precision(marketSymbol, cost.clone());
+        return self.cost_to_precision(marketSymbol, cost);
 
     Value::Null
 }
