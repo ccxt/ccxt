@@ -710,7 +710,7 @@ public partial class myriad : PredictionExchange
         string? marketSlug = this.safeString(position, "marketSlug", "");
         string? outcomeTitle = this.safeString(position, "outcomeTitle", "");
         object outcome = this.slugToOutcomeSymbol(marketSlug, marketSlug, outcomeTitle);
-        object marketSymbol = this.slugToMarketSymbol(marketSlug, marketSlug);
+        string? marketSymbol = ((string)this.slugToMarketSymbol(marketSlug, marketSlug));
         object networkId = this.safeString(position, "networkId");
         string? marketId = this.safeString(position, "marketId");
         string? outcomeId = this.safeString(position, "outcomeId");
@@ -849,7 +849,7 @@ public partial class myriad : PredictionExchange
         // builds and signs an EIP-1559 (type 0x02) transaction, returning the signed raw tx hex.
         // tx fields (nonce/gas/fees/value) are hex strings; chainId is an int. Verified
         // byte-identical to ethers' serialization
-        object accessList = this.rlpEncodeList(new List<object>() {});
+        string? accessList = ((string)this.rlpEncodeList(new List<object>() {}));
         List<object> fields = new List<object> {this.rlpEncodeBytes(this.intToRlpHex(this.safeInteger(tx, "chainId"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "nonce"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "maxPriorityFeePerGas"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "maxFeePerGas"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "gasLimit"))), this.rlpEncodeBytes(this.remove0xPrefix(this.safeString(tx, "to"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "value", "0x0"))), this.rlpEncodeBytes(this.remove0xPrefix(this.safeString(tx, "data", "0x"))), accessList};
         string payload = ("02" + (this.rlpEncodeList(fields)));
         object hashHex = this.hash(this.base16ToBinary(payload), keccak, "hex");
@@ -1070,7 +1070,7 @@ public partial class myriad : PredictionExchange
         string? networkId = this.safeString(info, "networkId", this.safeString(this.options, "defaultNetworkId", "56"));
         string? marketId = this.safeString(info, "marketId");
         Int64? outcomeId = this.safeInteger(info, "outcomeId", 0);
-        object trader = this.ethGetAddressFromPrivateKey(this.privateKey);
+        string? trader = ((string)this.ethGetAddressFromPrivateKey(this.privateKey));
         string typeStr = ((bool) ((type == null))) ? "limit" : ((string)type).ToLower();
         string sideStr = ((string)((string)side)).ToLower();
         int sideInt = ((bool) ((sideStr == "buy"))) ? 0 : 1;
@@ -1253,7 +1253,7 @@ public partial class myriad : PredictionExchange
         {
             throw new BadRequest ((string)(this.id + " createAmmOrder is missing calldata from fetchTradeQuote")) ;
         }
-        object fromAddress = this.ethGetAddressFromPrivateKey(this.privateKey);
+        string? fromAddress = ((string)this.ethGetAddressFromPrivateKey(this.privateKey));
         string? txHashParam = this.safeString2(parameters, "transactionHash", "txHash");
         bool hasPreBroadcastTxHash = ((txHashParam != null));
         bool? skipAllowance = this.safeBool(parameters, "skipAllowance", hasPreBroadcastTxHash);
@@ -1859,7 +1859,7 @@ public partial class myriad : PredictionExchange
         {
             throw new ArgumentsRequired ((string)(this.id + " cancelAllOrders() requires a privateKey to sign the cancellation")) ;
         }
-        object trader = this.ethGetAddressFromPrivateKey(this.privateKey);
+        string? trader = ((string)this.ethGetAddressFromPrivateKey(this.privateKey));
         string? marketId = this.safeString(parameters, "market_id", "0");
         string? networkId = this.safeString(parameters, "network_id", this.safeString(this.options, "defaultNetworkId", "56"));
         if ((outcome != null))
@@ -2424,7 +2424,7 @@ public partial class myriad : PredictionExchange
         // qualify the handle only with a real event slug (when passed); myriad market slugs are
         // globally unique, so do NOT fall back to networkId — that would prefix every handle.
         // eventSlug may be undefined (single-market load) — slugToMarketSymbol accepts a nullable slug.
-        object marketSymbol = this.slugToMarketSymbol(eventSlug, slug);
+        string? marketSymbol = ((string)this.slugToMarketSymbol(eventSlug, slug));
         // the collateral token (outcome + address + decimals) is per-market; carry it for on-chain trading
         IDictionary<string, object> tokenObj = this.safeDict(raw, "token", new Dictionary<string, object>() {});
         string? tokenAddress = this.safeString(tokenObj, "address");

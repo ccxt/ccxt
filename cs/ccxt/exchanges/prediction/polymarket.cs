@@ -1058,7 +1058,7 @@ public partial class polymarket : PredictionExchange
                 continue;
             }
             // Market outcome (no outcome suffix)
-            object marketSymbol = this.slugToMarketSymbol(eventSlug, marketSlug);
+            string? marketSymbol = ((string)this.slugToMarketSymbol(eventSlug, marketSlug));
             // Build outcomes array
             List<object> outcomes = new List<object>() {};
             for (int oi = 0; oi < (outcomeLabels?.Count ?? 0); oi++)
@@ -2542,8 +2542,8 @@ public partial class polymarket : PredictionExchange
         // 0=EOA, 1=POLY_PROXY, 2=GNOSIS_SAFE, 3=POLY_1271 (deposit wallet, default); funder/maker holds the USDC
         Int64? signatureType = this.safeInteger2(parameters, "signatureType", "signature_type", this.safeInteger(this.options, "signatureType", 3));
         // the signer/owner is the EOA behind the privateKey; the funder/maker is the proxy or deposit wallet (walletAddress)
-        object eoa = this.ethChecksumAddress(this.ethGetAddressFromPrivateKey(this.privateKey));
-        object funder = this.ethChecksumAddress(this.safeString2(parameters, "funder", "maker", this.safeString(this.options, "funder", this.walletAddress)));
+        string? eoa = ((string)this.ethChecksumAddress(this.ethGetAddressFromPrivateKey(this.privateKey)));
+        string? funder = ((string)this.ethChecksumAddress(this.safeString2(parameters, "funder", "maker", this.safeString(this.options, "funder", this.walletAddress))));
         // salt and timestamp default to the current time but can be pinned via params for idempotency
         string? salt = this.safeString(parameters, "salt", this.numberToString(this.milliseconds()));
         string? timestamp = this.safeString(parameters, "timestamp", this.numberToString(this.milliseconds()));
@@ -2588,8 +2588,8 @@ public partial class polymarket : PredictionExchange
         // POLY_1271 (type 3): the order signer is the deposit wallet itself — the exchange calls
         // wallet.isValidSignature and the inner ERC-7739 domain's verifyingContract is the wallet (the EOA
         // still produces the signature and is checked on-chain as the wallet owner). Otherwise signer = EOA.
-        object maker = funder;
-        object signer = ((bool) ((signatureType == 3))) ? funder : eoa;
+        string? maker = funder;
+        string? signer = ((bool) ((signatureType == 3))) ? funder : eoa;
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "salt", salt },
             { "maker", maker },
@@ -3353,10 +3353,10 @@ public partial class polymarket : PredictionExchange
                     throw new ArgumentsRequired ((string)(((this.id + " ") + (path)) + " requires a privateKey")) ;
                 }
                 // the L1 signer/owner is the EOA behind the privateKey (walletAddress is the proxy/deposit wallet, not the signer)
-                object address = this.ethChecksumAddress(this.ethGetAddressFromPrivateKey(this.privateKey));
+                string? address = ((string)this.ethChecksumAddress(this.ethGetAddressFromPrivateKey(this.privateKey)));
                 string timestamp = ((object)this.seconds()).ToString();
                 Int64? nonce = this.safeInteger(parameters, "nonce", 0);
-                object l1signature = this.signClobAuth(address, timestamp, nonce);
+                string? l1signature = ((string)this.signClobAuth(address, timestamp, nonce));
                 headers = this.extend(headers, new Dictionary<string, object>() {
                     { "POLY_ADDRESS", address },
                     { "POLY_SIGNATURE", l1signature },
@@ -3659,7 +3659,7 @@ public partial class polymarket : PredictionExchange
             ((IDictionary<string,object>)this.orderbooks)[(string)outcome] = seededBook;
         }
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, outcome);
-        object timestamp = this.parsePolyTimestamp(this.safeString(eventVar, "timestamp"));
+        Int64? timestamp = ((Int64)this.parsePolyTimestamp(this.safeString(eventVar, "timestamp")));
         IList<object> rawBids = (IList<object>)(this.safeList(eventVar, "bids", new List<object>() {}));
         IList<object> rawAsks = (IList<object>)(this.safeList(eventVar, "asks", new List<object>() {}));
         List<object> bids = new List<object>() {};
@@ -3690,7 +3690,7 @@ public partial class polymarket : PredictionExchange
 
     public virtual void handleOrderBookDelta(WebSocketClient client, object eventVar)
     {
-        object timestamp = this.parsePolyTimestamp(this.safeString(eventVar, "timestamp"));
+        Int64? timestamp = ((Int64)this.parsePolyTimestamp(this.safeString(eventVar, "timestamp")));
         IList<object> changes = (IList<object>)(this.safeList(eventVar, "price_changes", new List<object>() {}));
         Dictionary<string, object> updated = new Dictionary<string, object>() {};
         for (int i = 0; i < (changes?.Count ?? 0); i++)
@@ -3732,7 +3732,7 @@ public partial class polymarket : PredictionExchange
         {
             return;
         }
-        object timestamp = this.parsePolyTimestamp(this.safeString(eventVar, "timestamp"));
+        Int64? timestamp = ((Int64)this.parsePolyTimestamp(this.safeString(eventVar, "timestamp")));
         double? price = this.safeNumber(eventVar, "price");
         double? amount = this.safeNumber(eventVar, "size");
         IDictionary<string, object> market = ((IDictionary<string, object>)this.safeOutcome(tokenId));

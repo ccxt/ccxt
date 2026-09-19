@@ -2881,8 +2881,8 @@ public partial class testMainClass
         {
             string? exchangeName = ((string)exchanges[i]);
             object exchangeData = getValue(staticData, exchangeName);
-            object disabled = this.checkIfExchangeIsDisabled(exchangeName, exchangeData);
-            if (isTrue(disabled))
+            bool? disabled = ((bool)this.checkIfExchangeIsDisabled(exchangeName, exchangeData));
+            if ((disabled == true))
             {
                 continue;
             }

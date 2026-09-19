@@ -2088,7 +2088,7 @@ public partial class PredictionExchange : BaseExchange
             { "value", value },
             { "data", data },
         };
-        object signed = this.signEvmTransaction(tx, this.privateKey);
+        string? signed = ((string)this.signEvmTransaction(tx, this.privateKey));
         return await this.ethRpc(rpcUrl, "eth_sendRawTransaction", new List<object>() {signed});
     }
 

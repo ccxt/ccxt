@@ -2074,7 +2074,7 @@ public partial class cex : Exchange
                 throw new NullResponse ((string)(this.id + " returned empty response")) ;
             } else if (isEqual(getValue(body, 0), "{"))
             {
-                object fixedVar = this.fixStringifiedJsonMembers(body);
+                string? fixedVar = ((string)this.fixStringifiedJsonMembers(body));
                 response = this.parseJson(fixedVar);
             } else
             {

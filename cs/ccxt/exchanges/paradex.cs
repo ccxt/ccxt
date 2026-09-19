@@ -1828,7 +1828,7 @@ public partial class paradex : Exchange
 }} },
         };
         object msg = this.starknetEncodeStructuredData(domain, messageTypes, req, getValue(account, "address"));
-        object signature = this.starknetSign(msg, getValue(account, "privateKey"));
+        string? signature = ((string)this.starknetSign(msg, getValue(account, "privateKey")));
         ((IDictionary<string,object>)parameters)["signature"] = signature;
         ((IDictionary<string,object>)parameters)["account"] = getValue(account, "address");
         ((IDictionary<string,object>)parameters)["public_key"] = getValue(account, "publicKey");
@@ -1883,7 +1883,7 @@ public partial class paradex : Exchange
 }} },
         };
         object msg = this.starknetEncodeStructuredData(domain, messageTypes, req, getValue(account, "address"));
-        object signature = this.starknetSign(msg, getValue(account, "privateKey"));
+        string? signature = ((string)this.starknetSign(msg, getValue(account, "privateKey")));
         ((IDictionary<string,object>)parameters)["signature"] = signature;
         ((IDictionary<string,object>)parameters)["account"] = getValue(account, "address");
         ((IDictionary<string,object>)parameters)["timestamp"] = ((IDictionary<string,object>)req)["timestamp"];
@@ -2200,7 +2200,7 @@ public partial class paradex : Exchange
         }
         object domain = await this.prepareParadexDomain();
         object msg = this.starknetEncodeStructuredData(domain, messageTypes, orderReq, getValue(account, "address"));
-        object signature = this.starknetSign(msg, getValue(account, "privateKey"));
+        string? signature = ((string)this.starknetSign(msg, getValue(account, "privateKey")));
         ((IDictionary<string,object>)request)["signature"] = signature;
         ((IDictionary<string,object>)request)["signature_timestamp"] = ((IDictionary<string,object>)orderReq)["timestamp"];
         return request;

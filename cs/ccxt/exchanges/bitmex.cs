@@ -1412,7 +1412,7 @@ public partial class bitmex : Exchange
         {
             object order = orders[i];
             string side = ((bool) (isEqual(getValue(order, "side"), "Sell"))) ? "asks" : "bids";
-            object amount = this.convertFromRawQuantity(symbol, this.safeString(order, "size"));
+            double? amount = ((double)this.convertFromRawQuantity(symbol, this.safeString(order, "size")));
             double? price = this.safeNumber(order, "price");
             // https://github.com/ccxt/ccxt/issues/4926
             // https://github.com/ccxt/ccxt/issues/4927
@@ -2096,7 +2096,7 @@ public partial class bitmex : Exchange
         //
         string? marketId = this.safeString(ohlcv, "symbol");
         market = this.safeMarket(marketId, market);
-        object volume = this.convertFromRawQuantity(getValue(market, "symbol"), this.safeString(ohlcv, "volume"));
+        double? volume = ((double)this.convertFromRawQuantity(getValue(market, "symbol"), this.safeString(ohlcv, "volume")));
         return new List<object> {this.parse8601(this.safeString(ohlcv, "timestamp")), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), volume};
     }
 
@@ -2267,7 +2267,7 @@ public partial class bitmex : Exchange
         string? symbol = this.safeSymbol(marketId, market);
         Int64? timestamp = this.parse8601(this.safeString(trade, "timestamp"));
         string? priceString = this.safeString2(trade, "avgPx", "price");
-        object amountString = this.convertFromRawQuantity(symbol, this.safeString2(trade, "size", "lastQty"));
+        double? amountString = ((double)this.convertFromRawQuantity(symbol, this.safeString2(trade, "size", "lastQty")));
         string? execCost = this.numberToString(this.convertFromRawCost(symbol, this.safeString(trade, "execCost")));
         string? id = this.safeString(trade, "trdMatchID");
         string? order = this.safeString(trade, "orderID");

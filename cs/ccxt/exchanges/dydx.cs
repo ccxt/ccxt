@@ -2104,7 +2104,7 @@ public partial class dydx : Exchange
 
     public async virtual Task<Dictionary<string, object>> estimateTxFee(object message, object memo, object account)
     {
-        object txBytes = this.encodeDydxTxForSimulation(message, memo, getValue(account, "sequence"), getValue(account, "pub_key"));
+        string? txBytes = ((string)this.encodeDydxTxForSimulation(message, memo, getValue(account, "sequence"), getValue(account, "pub_key")));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "txBytes", txBytes },
         };

@@ -2467,7 +2467,7 @@ public partial class bydfi : Exchange
         market = this.safeMarket(marketId, market);
         string? buyOrSell = this.safeString(position, "side");
         string? rawPositionSide = this.safeStringLower(position, "positionSide");
-        object positionSide = this.parsePositionSide(buyOrSell);
+        string? positionSide = ((string)this.parsePositionSide(buyOrSell));
         bool? hedged = null;
         bool isFetchPositionsHistory = false;
         if ((rawPositionSide != null))

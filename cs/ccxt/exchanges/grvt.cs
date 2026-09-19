@@ -793,7 +793,7 @@ public partial class grvt : Exchange
         {
             return new Dictionary<string, object>() {};
         }
-        object walletAddress = this.ethGetAddressFromPrivateKey(this.privateKey);
+        string? walletAddress = ((string)this.ethGetAddressFromPrivateKey(this.privateKey));
         object request = new Dictionary<string, object>() {
             { "address", walletAddress },
             { "signature", this.defaultSignature() },
@@ -2181,11 +2181,11 @@ public partial class grvt : Exchange
             response = await this.privateTradingPostFullV1Transfer(this.extend(request, parameters));
         } catch(Exception error)
         {
-            object msg = this.exceptionMessage(error);
+            string? msg = ((string)this.exceptionMessage(error));
             bool isFromFundingAccount = isEqual(fromAccountVar, "funding");
             if (isFromFundingAccount && (getIndexOf(msg, "You are not authorized") >= 0))
             {
-                throw new PermissionDenied ((string)((this.id + " transfer() failed. Ensure you use funding api-keys when trying to transfer from Funding accounts: ") + (msg))) ;
+                throw new PermissionDenied ((string)((this.id + " transfer() failed. Ensure you use funding api-keys when trying to transfer from Funding accounts: ") + msg)) ;
             }
             throw error;
         }
