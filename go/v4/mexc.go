@@ -1545,9 +1545,14 @@ func (this *Mexc) ParseCurrency(rawCurrency any) any {
 	var id *string = this.SafeString(rawCurrency, "coin")
 	var code *string = this.SafeCurrencyCode(id)
 	var networks map[string]any = map[string]any{}
-	var chains any = this.SafeList(rawCurrency, "networkList", []any{})
-	for j := 0; j < GetArrayLength(chains); j++ {
-		var chain any = GetValue(chains, j)
+	var chains []any = SafeListTyped(rawCurrency, "networkList")
+	for j := 0; j < len(chains); j++ {
+		var chain any = func() any {
+			if j >= 0 && j < len(chains) {
+				return DerefScalar(chains[j])
+			}
+			return nil
+		}()
 		var networkId *string = this.SafeString2(chain, "netWork", "network")
 		var network any = this.NetworkIdToCode(networkId, code)
 		if network != nil {
@@ -1689,10 +1694,15 @@ func (this *Mexc) fetchSpotMarketsBody(ch chan any, optionalArgs ...any) any {
 	// Notes:
 	// - 'quoteAssetPrecision' & 'baseAssetPrecision' are not currency's real blockchain precision (to view currency's actual individual precision, refer to fetchCurrencies() method).
 	//
-	var data any = this.SafeList(response, "symbols", []any{})
+	var data []any = SafeListTyped(response, "symbols")
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(data); i++ {
-		var market any = GetValue(data, i)
+	for i := 0; i < len(data); i++ {
+		var market any = func() any {
+			if i >= 0 && i < len(data) {
+				return DerefScalar(data[i])
+			}
+			return nil
+		}()
 		var id *string = this.SafeString(market, "symbol")
 		var baseId *string = this.SafeString(market, "baseAsset")
 		var quoteId *string = this.SafeString(market, "quoteAsset")
@@ -1834,10 +1844,15 @@ func (this *Mexc) fetchSwapMarketsBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(data); i++ {
-		var market any = GetValue(data, i)
+	for i := 0; i < len(data); i++ {
+		var market any = func() any {
+			if i >= 0 && i < len(data) {
+				return DerefScalar(data[i])
+			}
+			return nil
+		}()
 		var id *string = this.SafeString(market, "symbol")
 		var baseId *string = this.SafeString(market, "baseCoin")
 		var quoteId *string = this.SafeString(market, "quoteCoin")
@@ -4607,10 +4622,15 @@ func (this *Mexc) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.FetchAccountHelperAsync(marketType, query))
 	PanicOnError(response)
-	var data any = this.SafeList(response, "balances", []any{})
+	var data []any = SafeListTyped(response, "balances")
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(data); i++ {
-		var account any = GetValue(data, i)
+	for i := 0; i < len(data); i++ {
+		var account any = func() any {
+			if i >= 0 && i < len(data) {
+				return DerefScalar(data[i])
+			}
+			return nil
+		}()
 		var currencyId *string = this.SafeString2(account, "asset", "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		result = append(result, map[string]any{
@@ -5381,10 +5401,15 @@ func (this *Mexc) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var resultList any = this.SafeList(data, "resultList", []any{})
+	var resultList []any = SafeListTyped(data, "resultList")
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(resultList); i++ {
-		var entry any = GetValue(resultList, i)
+	for i := 0; i < len(resultList); i++ {
+		var entry any = func() any {
+			if i >= 0 && i < len(resultList) {
+				return DerefScalar(resultList[i])
+			}
+			return nil
+		}()
 		var timestamp *int64 = this.SafeInteger(entry, "settleTime")
 		result = append(result, map[string]any{
 			"info":      entry,
@@ -5602,10 +5627,15 @@ func (this *Mexc) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 	//    }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var result any = this.SafeList(data, "resultList", []any{})
+	var result []any = SafeListTyped(data, "resultList")
 	var rates []any = []any{}
-	for i := 0; i < GetArrayLength(result); i++ {
-		var entry any = GetValue(result, i)
+	for i := 0; i < len(result); i++ {
+		var entry any = func() any {
+			if i >= 0 && i < len(result) {
+				return DerefScalar(result[i])
+			}
+			return nil
+		}()
 		var marketId *string = this.SafeString(entry, "symbol")
 		var symbolInner *string = this.SafeSymbol(marketId)
 		var timestamp *int64 = this.SafeInteger(entry, "settleTime")
@@ -7205,10 +7235,15 @@ func (this *Mexc) ParseTransactionFee(transaction any, optionalArgs ...any) any 
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var networkList any = this.SafeList(transaction, "networkList", []any{})
+	var networkList []any = SafeListTyped(transaction, "networkList")
 	var result map[string]any = map[string]any{}
-	for j := 0; j < GetArrayLength(networkList); j++ {
-		var networkEntry any = GetValue(networkList, j)
+	for j := 0; j < len(networkList); j++ {
+		var networkEntry any = func() any {
+			if j >= 0 && j < len(networkList) {
+				return DerefScalar(networkList[j])
+			}
+			return nil
+		}()
 		var networkId *string = this.SafeString(networkEntry, "network")
 		var networkCode *string = this.SafeString(GetValue(this.Options, "networks"), networkId, networkId)
 		var fee *float64 = this.SafeNumber(networkEntry, "withdrawFee")
@@ -7308,10 +7343,15 @@ func (this *Mexc) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var networkList any = this.SafeList(fee, "networkList", []any{})
+	var networkList []any = SafeListTyped(fee, "networkList")
 	var result any = this.DepositWithdrawFee(fee)
-	for j := 0; j < GetArrayLength(networkList); j++ {
-		var networkEntry any = GetValue(networkList, j)
+	for j := 0; j < len(networkList); j++ {
+		var networkEntry any = func() any {
+			if j >= 0 && j < len(networkList) {
+				return DerefScalar(networkList[j])
+			}
+			return nil
+		}()
 		var networkId *string = this.SafeString(networkEntry, "network")
 		var networkCode any = this.NetworkIdToCode(networkId, this.SafeString(currency, "code"))
 		if networkCode != nil {

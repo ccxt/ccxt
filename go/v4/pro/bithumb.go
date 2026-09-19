@@ -631,9 +631,14 @@ func (this *Bithumb) HandleOrderBook(client any, message any) {
 	ccxt.AddElementToObject(orderbook, "symbol", symbol)
 	var bids any = ccxt.GetValue(orderbook, "bids")
 	var asks any = ccxt.GetValue(orderbook, "asks")
-	var units any = this.SafeList(message, "orderbook_units", []any{})
-	for i := 0; i < ccxt.GetArrayLength(units); i++ {
-		var entry any = ccxt.GetValue(units, i)
+	var units []any = ccxt.SafeListTyped(message, "orderbook_units")
+	for i := 0; i < len(units); i++ {
+		var entry any = func() any {
+			if i >= 0 && i < len(units) {
+				return ccxt.DerefScalar(units[i])
+			}
+			return nil
+		}()
 		var bidPrice *float64 = this.SafeNumber(entry, "bid_price")
 		var bidSize *float64 = this.SafeNumber(entry, "bid_size")
 		var askPrice *float64 = this.SafeNumber(entry, "ask_price")
@@ -1025,12 +1030,17 @@ func (this *Bithumb) HandleBalance(client any, message any) {
 	//    }
 	//
 	var messageHash string = "myAsset"
-	var assets any = this.SafeList(message, "assets", []any{})
+	var assets []any = ccxt.SafeListTyped(message, "assets")
 	if ccxt.IsEqual(this.Balance, nil) {
 		this.Balance = map[string]any{}
 	}
-	for i := 0; i < ccxt.GetArrayLength(assets); i++ {
-		var asset any = ccxt.GetValue(assets, i)
+	for i := 0; i < len(assets); i++ {
+		var asset any = func() any {
+			if i >= 0 && i < len(assets) {
+				return ccxt.DerefScalar(assets[i])
+			}
+			return nil
+		}()
 		var currencyId *string = this.SafeString(asset, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()

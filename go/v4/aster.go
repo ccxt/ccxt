@@ -1233,7 +1233,7 @@ func (this *Aster) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var sapiResult map[string]any = SafeMapTyped(results, 0)
 	var sapiRows any = this.SafeList(sapiResult, "symbols", []any{})
 	var fapiResult map[string]any = SafeMapTyped(results, 1)
-	var fapiRows any = this.SafeList(fapiResult, "symbols", []any{})
+	var fapiRows []any = SafeListTyped(fapiResult, "symbols")
 	//
 	// example:
 	//
@@ -1329,8 +1329,13 @@ func (this *Aster) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//
 	//
 	var fapiRowsFiltered []any = []any{}
-	for i := 0; i < GetArrayLength(fapiRows); i++ {
-		var market any = GetValue(fapiRows, i)
+	for i := 0; i < len(fapiRows); i++ {
+		var market any = func() any {
+			if i >= 0 && i < len(fapiRows) {
+				return DerefScalar(fapiRows[i])
+			}
+			return nil
+		}()
 		// tmp skip some markets with base = undefined
 		if this.SafeString(market, "baseAsset") != nil {
 			fapiRowsFiltered = append(fapiRowsFiltered, market)
@@ -4599,12 +4604,17 @@ func (this *Aster) ParsePositionRisk(position any, optionalArgs ...any) any {
 	var symbol *string = this.SafeString(market, "symbol")
 	var isolatedMarginString *string = this.SafeString(position, "isolatedMargin")
 	var leverageBrackets map[string]any = SafeMapTyped(this.Options, "leverageBrackets")
-	var leverageBracket any = this.SafeList(leverageBrackets, symbol, []any{})
+	var leverageBracket []any = SafeListTyped(leverageBrackets, symbol)
 	var notionalString *string = this.SafeString2(position, "notional", "notionalValue")
 	var notionalStringAbs *string = Precise.StringAbs(notionalString)
 	var maintenanceMarginPercentageString any = nil
-	for i := 0; i < GetArrayLength(leverageBracket); i++ {
-		var bracket any = GetValue(leverageBracket, i)
+	for i := 0; i < len(leverageBracket); i++ {
+		var bracket any = func() any {
+			if i >= 0 && i < len(leverageBracket) {
+				return DerefScalar(leverageBracket[i])
+			}
+			return nil
+		}()
 		if Precise.StringLt(notionalStringAbs, GetValue(bracket, 0)) {
 			break
 		}
@@ -4879,11 +4889,16 @@ func (this *Aster) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 func (this *Aster) ParseAccountPositions(account any, optionalArgs ...any) any {
 	filterClosed := GetArg(optionalArgs, 0, false)
 	_ = filterClosed
-	var positions any = this.SafeList(account, "positions", []any{})
-	var assets any = this.SafeList(account, "assets", []any{})
+	var positions []any = SafeListTyped(account, "positions")
+	var assets []any = SafeListTyped(account, "assets")
 	var balances map[string]any = map[string]any{}
-	for i := 0; i < GetArrayLength(assets); i++ {
-		var entry any = GetValue(assets, i)
+	for i := 0; i < len(assets); i++ {
+		var entry any = func() any {
+			if i >= 0 && i < len(assets) {
+				return DerefScalar(assets[i])
+			}
+			return nil
+		}()
 		var currencyId *string = this.SafeString(entry, "asset")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var crossWalletBalance *string = this.SafeString(entry, "crossWalletBalance")
@@ -4896,8 +4911,13 @@ func (this *Aster) ParseAccountPositions(account any, optionalArgs ...any) any {
 		}
 	}
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(positions); i++ {
-		var position any = GetValue(positions, i)
+	for i := 0; i < len(positions); i++ {
+		var position any = func() any {
+			if i >= 0 && i < len(positions) {
+				return DerefScalar(positions[i])
+			}
+			return nil
+		}()
 		var marketId *string = this.SafeString(position, "symbol")
 		var market any = this.SafeMarket(marketId, nil, nil, "contract")
 		var code any = func() any {
@@ -4967,10 +4987,15 @@ func (this *Aster) ParseAccountPosition(position any, optionalArgs ...any) any {
 	}
 	var contracts any = this.ParseNumber(contractsStringAbs)
 	var leverageBrackets map[string]any = SafeMapTyped(this.Options, "leverageBrackets")
-	var leverageBracket any = this.SafeList(leverageBrackets, symbol, []any{})
+	var leverageBracket []any = SafeListTyped(leverageBrackets, symbol)
 	var maintenanceMarginPercentageString any = nil
-	for i := 0; i < GetArrayLength(leverageBracket); i++ {
-		var bracket any = GetValue(leverageBracket, i)
+	for i := 0; i < len(leverageBracket); i++ {
+		var bracket any = func() any {
+			if i >= 0 && i < len(leverageBracket) {
+				return DerefScalar(leverageBracket[i])
+			}
+			return nil
+		}()
 		if Precise.StringLt(notionalStringAbs, GetValue(bracket, 0)) {
 			break
 		}
@@ -5200,10 +5225,15 @@ func (this *Aster) loadLeverageBracketsBody(ch chan any, optionalArgs ...any) an
 			var entry any = GetValue(entries, i)
 			var marketId *string = this.SafeString(entry, "symbol")
 			var symbol *string = this.SafeSymbol(marketId, nil, nil, "contract")
-			var brackets any = this.SafeList(entry, "brackets", []any{})
+			var brackets []any = SafeListTyped(entry, "brackets")
 			var result []any = []any{}
-			for j := 0; j < GetArrayLength(brackets); j++ {
-				var bracket any = GetValue(brackets, j)
+			for j := 0; j < len(brackets); j++ {
+				var bracket any = func() any {
+					if j >= 0 && j < len(brackets) {
+						return DerefScalar(brackets[j])
+					}
+					return nil
+				}()
 				var floorValue *string = this.SafeString(bracket, "notionalFloor")
 				var maintenanceMarginPercentage *string = this.SafeString(bracket, "maintMarginRatio")
 				result = append(result, []any{floorValue, maintenanceMarginPercentage})

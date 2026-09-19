@@ -875,10 +875,15 @@ func (this *Tokocrypto) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes77712)
 	}
 	var data map[string]any = SafeMapTyped(response, "data")
-	var list any = this.SafeList(data, "list", []any{})
+	var list []any = SafeListTyped(data, "list")
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(list); i++ {
-		var market any = GetValue(list, i)
+	for i := 0; i < len(list); i++ {
+		var market any = func() any {
+			if i >= 0 && i < len(list) {
+				return DerefScalar(list[i])
+			}
+			return nil
+		}()
 		var baseId *string = this.SafeString(market, "baseAsset")
 		var quoteId *string = this.SafeString(market, "quoteAsset")
 		var id *string = this.SafeString(market, "symbol")
@@ -892,9 +897,14 @@ func (this *Tokocrypto) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var filtersByType map[string]any = this.IndexBy(filters, "filterType")
 		var status *string = this.SafeString(market, "spotTradingEnable")
 		var active bool = (status != nil && *status == "1")
-		var permissions any = this.SafeList(market, "permissions", []any{})
-		for j := 0; j < GetArrayLength(permissions); j++ {
-			if IsEqual(GetValue(permissions, j), "TRD_GRP_003") {
+		var permissions []any = SafeListTyped(market, "permissions")
+		for j := 0; j < len(permissions); j++ {
+			if IsEqual(func() any {
+				if j >= 0 && j < len(permissions) {
+					return DerefScalar(permissions[j])
+				}
+				return nil
+			}(), "TRD_GRP_003") {
 				active = false
 				break
 			}
@@ -1856,9 +1866,14 @@ func (this *Tokocrypto) ParseBalanceCustom(response any, optionalArgs ...any) an
 		"datetime":  this.Iso8601(timestamp),
 	}
 	var data map[string]any = SafeMapTyped(response, "data")
-	var balances any = this.SafeList(data, "accountAssets", []any{})
-	for i := 0; i < GetArrayLength(balances); i++ {
-		var balance any = GetValue(balances, i)
+	var balances []any = SafeListTyped(data, "accountAssets")
+	for i := 0; i < len(balances); i++ {
+		var balance any = func() any {
+			if i >= 0 && i < len(balances) {
+				return DerefScalar(balances[i])
+			}
+			return nil
+		}()
 		var currencyId *string = this.SafeString(balance, "asset")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()
@@ -3244,9 +3259,14 @@ func (this *Tokocrypto) CalculateRateLimiterCost(api any, method any, path any, 
 		return GetValue(config, "noPoolId")
 	} else if (InOp(config, "byLimit")) && (InOp(params, "limit")) {
 		var limit any = GetValue(params, "limit")
-		var byLimit any = this.SafeList(config, "byLimit", []any{})
-		for i := 0; i < GetArrayLength(byLimit); i++ {
-			var entry any = GetValue(byLimit, i)
+		var byLimit []any = SafeListTyped(config, "byLimit")
+		for i := 0; i < len(byLimit); i++ {
+			var entry any = func() any {
+				if i >= 0 && i < len(byLimit) {
+					return DerefScalar(byLimit[i])
+				}
+				return nil
+			}()
 			if IsLessThanOrEqual(limit, GetValue(entry, 0)) {
 				return GetValue(entry, 1)
 			}

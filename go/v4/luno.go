@@ -628,9 +628,14 @@ func (this *Luno) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var result []any = []any{}
-	var markets any = this.SafeList(response, "markets", []any{})
-	for i := 0; i < GetArrayLength(markets); i++ {
-		var market any = GetValue(markets, i)
+	var markets []any = SafeListTyped(response, "markets")
+	for i := 0; i < len(markets); i++ {
+		var market any = func() any {
+			if i >= 0 && i < len(markets) {
+				return DerefScalar(markets[i])
+			}
+			return nil
+		}()
 		var id *string = this.SafeString(market, "market_id")
 		var baseId *string = this.SafeString(market, "base_currency")
 		var quoteId *string = this.SafeString(market, "counter_currency")
@@ -741,10 +746,15 @@ func (this *Luno) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.PrivateGetBalance(params))
 	PanicOnError(response)
-	var wallets any = this.SafeList(response, "balance", []any{})
+	var wallets []any = SafeListTyped(response, "balance")
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(wallets); i++ {
-		var account any = GetValue(wallets, i)
+	for i := 0; i < len(wallets); i++ {
+		var account any = func() any {
+			if i >= 0 && i < len(wallets) {
+				return DerefScalar(wallets[i])
+			}
+			return nil
+		}()
 		var accountId *string = this.SafeString(account, "account_id")
 		var currencyId *string = this.SafeString(account, "asset")
 		var code *string = this.SafeCurrencyCode(currencyId)
@@ -760,14 +770,19 @@ func (this *Luno) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 	return nil
 }
 func (this *Luno) ParseBalance(response any) any {
-	var wallets any = this.SafeList(response, "balance", []any{})
+	var wallets []any = SafeListTyped(response, "balance")
 	var result map[string]any = map[string]any{
 		"info":      response,
 		"timestamp": nil,
 		"datetime":  nil,
 	}
-	for i := 0; i < GetArrayLength(wallets); i++ {
-		var wallet any = GetValue(wallets, i)
+	for i := 0; i < len(wallets); i++ {
+		var wallet any = func() any {
+			if i >= 0 && i < len(wallets) {
+				return DerefScalar(wallets[i])
+			}
+			return nil
+		}()
 		var currencyId *string = this.SafeString(wallet, "asset")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var reserved *string = this.SafeString(wallet, "reserved")

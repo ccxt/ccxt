@@ -374,14 +374,19 @@ func (this *Btcturk) ParseMarket(entry any) any {
 	var quoteId *string = this.SafeString(entry, "denominator")
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
-	var filters any = this.SafeList(entry, "filters", []any{})
+	var filters []any = SafeListTyped(entry, "filters")
 	var minPrice *float64 = nil
 	var maxPrice *float64 = nil
 	var minAmount *float64 = nil
 	var maxAmount *float64 = nil
 	var minCost *float64 = nil
-	for j := 0; j < GetArrayLength(filters); j++ {
-		var filter any = GetValue(filters, j)
+	for j := 0; j < len(filters); j++ {
+		var filter any = func() any {
+			if j >= 0 && j < len(filters) {
+				return DerefScalar(filters[j])
+			}
+			return nil
+		}()
 		var filterType *string = this.SafeString(filter, "filterType")
 		if filterType != nil && *filterType == "PRICE_FILTER" {
 			minPrice = this.SafeNumber(filter, "minPrice")
@@ -443,14 +448,19 @@ func (this *Btcturk) ParseMarket(entry any) any {
 	})
 }
 func (this *Btcturk) ParseBalance(response any) any {
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var result map[string]any = map[string]any{
 		"info":      response,
 		"timestamp": nil,
 		"datetime":  nil,
 	}
-	for i := 0; i < GetArrayLength(data); i++ {
-		var entry any = GetValue(data, i)
+	for i := 0; i < len(data); i++ {
+		var entry any = func() any {
+			if i >= 0 && i < len(data) {
+				return DerefScalar(data[i])
+			}
+			return nil
+		}()
 		var currencyId *string = this.SafeString(entry, "asset")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()

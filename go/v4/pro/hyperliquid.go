@@ -274,10 +274,15 @@ func (this *Hyperliquid) cancelOrdersWsBody(ch chan any, ids any, optionalArgs .
 	ccxt.PanicOnError(response)
 	var responseObj map[string]any = ccxt.SafeMapTyped(response, "response")
 	var data map[string]any = ccxt.SafeMapTyped(responseObj, "data")
-	var statuses any = this.SafeList(data, "statuses", []any{})
+	var statuses []any = ccxt.SafeListTyped(data, "statuses")
 	var orders []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(statuses); i++ {
-		var status any = ccxt.GetValue(statuses, i)
+	for i := 0; i < len(statuses); i++ {
+		var status any = func() any {
+			if i >= 0 && i < len(statuses) {
+				return ccxt.DerefScalar(statuses[i])
+			}
+			return nil
+		}()
 		orders = append(orders, this.SafeOrder(map[string]any{
 			"info":   status,
 			"status": status,
@@ -907,13 +912,18 @@ func (this *Hyperliquid) HandleMyTrades(client any, message any) {
 	}
 	var trades any = this.MyTrades
 	var symbols map[string]any = map[string]any{}
-	var data any = this.SafeList(entry, "fills", []any{})
-	var dataLength int = ccxt.GetArrayLength(data)
+	var data []any = ccxt.SafeListTyped(entry, "fills")
+	var dataLength int = len(data)
 	if dataLength == 0 {
 		return
 	}
-	for i := 0; i < ccxt.GetArrayLength(data); i++ {
-		var rawTrade any = ccxt.GetValue(data, i)
+	for i := 0; i < len(data); i++ {
+		var rawTrade any = func() any {
+			if i >= 0 && i < len(data) {
+				return ccxt.DerefScalar(data[i])
+			}
+			return nil
+		}()
 		var parsed any = this.ParseWsTrade(rawTrade)
 		var symbol any = ccxt.GetValue(parsed, "symbol")
 		ccxt.AddElementToObject(symbols, symbol, true)
@@ -1689,9 +1699,14 @@ func (this *Hyperliquid) HandlePositions(client any, message any) {
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var clearinghouseState map[string]any = ccxt.SafeMapTyped(data, "clearinghouseState")
 	var newPositions []any = []any{}
-	var rawPositions any = this.SafeList(clearinghouseState, "assetPositions", []any{})
-	for i := 0; i < ccxt.GetArrayLength(rawPositions); i++ {
-		var rawPosition any = ccxt.GetValue(rawPositions, i)
+	var rawPositions []any = ccxt.SafeListTyped(clearinghouseState, "assetPositions")
+	for i := 0; i < len(rawPositions); i++ {
+		var rawPosition any = func() any {
+			if i >= 0 && i < len(rawPositions) {
+				return ccxt.DerefScalar(rawPositions[i])
+			}
+			return nil
+		}()
 		var position any = this.ParsePosition(rawPosition)
 		newPositions = append(newPositions, position)
 		cache.(ccxt.Appender).Append(position)
@@ -1909,20 +1924,25 @@ func (this *Hyperliquid) HandleOrder(client any, message any) {
 	//         ]
 	//     }
 	//
-	var data any = this.SafeList(message, "data", []any{})
+	var data []any = ccxt.SafeListTyped(message, "data")
 	if ccxt.IsEqual(this.Orders, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var dataLength int = ccxt.GetArrayLength(data)
+	var dataLength int = len(data)
 	if dataLength == 0 {
 		return
 	}
 	var stored any = this.Orders
 	var messageHash string = "order"
 	var marketSymbols map[string]any = map[string]any{}
-	for i := 0; i < ccxt.GetArrayLength(data); i++ {
-		var rawOrder any = ccxt.GetValue(data, i)
+	for i := 0; i < len(data); i++ {
+		var rawOrder any = func() any {
+			if i >= 0 && i < len(data) {
+				return ccxt.DerefScalar(data[i])
+			}
+			return nil
+		}()
 		var order any = this.ParseOrder(rawOrder)
 		stored.(ccxt.Appender).Append(order)
 		var symbol *string = this.SafeString(order, "symbol")

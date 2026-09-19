@@ -441,11 +441,16 @@ func (this *Foxbit) ParseCurrency(rawCurrency any) any {
 	var code *string = this.SafeCurrencyCode(currencyId)
 	var depositInfo map[string]any = SafeMapTyped(rawCurrency, "deposit_info")
 	var withdrawInfo map[string]any = SafeMapTyped(rawCurrency, "withdraw_info")
-	var networks any = this.SafeList(rawCurrency, "networks", []any{})
+	var networks []any = SafeListTyped(rawCurrency, "networks")
 	var typeVar *string = this.SafeStringLower(rawCurrency, "type")
 	var parsedNetworks map[string]any = map[string]any{}
-	for j := 0; j < GetArrayLength(networks); j++ {
-		var network any = GetValue(networks, j)
+	for j := 0; j < len(networks); j++ {
+		var network any = func() any {
+			if j >= 0 && j < len(networks) {
+				return DerefScalar(networks[j])
+			}
+			return nil
+		}()
 		var networkId *string = this.SafeString(network, "code")
 		var networkCode any = this.NetworkIdToCode(networkId, code)
 		var networkWithdrawInfo map[string]any = SafeMapTyped(network, "withdraw_info")
@@ -789,10 +794,15 @@ func (this *Foxbit) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	//         "taker": "0.005"
 	//     }
 	// ]
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var result map[string]any = map[string]any{}
-	for i := 0; i < GetArrayLength(data); i++ {
-		var entry any = GetValue(data, i)
+	for i := 0; i < len(data); i++ {
+		var entry any = func() any {
+			if i >= 0 && i < len(data) {
+				return DerefScalar(data[i])
+			}
+			return nil
+		}()
 		var marketId *string = this.SafeString(entry, "market_symbol")
 		var market any = this.SafeMarket(marketId)
 		var symbol any = GetValue(market, "symbol")
@@ -1039,12 +1049,17 @@ func (this *Foxbit) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     ]
 	// }
-	var accounts any = this.SafeList(response, "data", []any{})
+	var accounts []any = SafeListTyped(response, "data")
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	for i := 0; i < GetArrayLength(accounts); i++ {
-		var account any = GetValue(accounts, i)
+	for i := 0; i < len(accounts); i++ {
+		var account any = func() any {
+			if i >= 0 && i < len(accounts) {
+				return DerefScalar(accounts[i])
+			}
+			return nil
+		}()
 		var currencyId *string = this.SafeString(account, "currency_symbol")
 		var currencyCode *string = this.SafeCurrencyCode(currencyId)
 		var total *string = this.SafeString(account, "balance")

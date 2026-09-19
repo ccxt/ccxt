@@ -921,9 +921,14 @@ func (this *Cryptocom) ParseCurrency(currency any) any {
 	var id *string = this.SafeString(currency, "_coin_id")
 	var code *string = this.SafeCurrencyCode(id)
 	var networks map[string]any = map[string]any{}
-	var chains any = this.SafeList(currency, "network_list", []any{})
-	for j := 0; j < GetArrayLength(chains); j++ {
-		var chain any = GetValue(chains, j)
+	var chains []any = SafeListTyped(currency, "network_list")
+	for j := 0; j < len(chains); j++ {
+		var chain any = func() any {
+			if j >= 0 && j < len(chains) {
+				return DerefScalar(chains[j])
+			}
+			return nil
+		}()
 		var networkId *string = this.SafeString(chain, "network_id")
 		var network any = this.NetworkIdToCode(networkId, code)
 		if network != nil {
@@ -1075,10 +1080,15 @@ func (this *Cryptocom) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var resultResponse map[string]any = SafeMapTyped(response, "result")
-	var data any = this.SafeList(resultResponse, "data", []any{})
+	var data []any = SafeListTyped(resultResponse, "data")
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(data); i++ {
-		var market any = GetValue(data, i)
+	for i := 0; i < len(data); i++ {
+		var market any = func() any {
+			if i >= 0 && i < len(data) {
+				return DerefScalar(data[i])
+			}
+			return nil
+		}()
 		var inst_type *string = this.SafeString(market, "inst_type")
 		var spot bool = (inst_type != nil && *inst_type == "CCY_PAIR")
 		var swap bool = (inst_type != nil && *inst_type == "PERPETUAL_SWAP")
@@ -1679,13 +1689,23 @@ func (this *Cryptocom) fetchOrderBookBody(ch chan any, symbol any, optionalArgs 
 }
 func (this *Cryptocom) ParseBalance(response any) any {
 	var responseResult map[string]any = SafeMapTyped(response, "result")
-	var data any = this.SafeList(responseResult, "data", []any{})
-	var positionBalances any = this.SafeList(GetValue(data, 0), "position_balances", []any{})
+	var data []any = SafeListTyped(responseResult, "data")
+	var positionBalances []any = SafeListTyped(func() any {
+		if 0 >= 0 && 0 < len(data) {
+			return DerefScalar(data[0])
+		}
+		return nil
+	}(), "position_balances")
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	for i := 0; i < GetArrayLength(positionBalances); i++ {
-		var balance any = GetValue(positionBalances, i)
+	for i := 0; i < len(positionBalances); i++ {
+		var balance any = func() any {
+			if i >= 0 && i < len(positionBalances) {
+				return DerefScalar(positionBalances[i])
+			}
+			return nil
+		}()
 		var currencyId *string = this.SafeString(balance, "instrument_name")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()
@@ -4134,11 +4154,16 @@ func (this *Cryptocom) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var data any = this.SafeList(result, "data", []any{})
+	var data []any = SafeListTyped(result, "data")
 	var marketId *string = this.SafeString(result, "instrument_name")
 	var rates []any = []any{}
-	for i := 0; i < GetArrayLength(data); i++ {
-		var entry any = GetValue(data, i)
+	for i := 0; i < len(data); i++ {
+		var entry any = func() any {
+			if i >= 0 && i < len(data) {
+				return DerefScalar(data[i])
+			}
+			return nil
+		}()
 		var timestamp *int64 = this.SafeInteger(entry, "t")
 		rates = append(rates, map[string]any{
 			"info":        entry,
@@ -4283,10 +4308,15 @@ func (this *Cryptocom) fetchPositionsBody(ch chan any, optionalArgs ...any) any 
 	//     }
 	//
 	var responseResult map[string]any = SafeMapTyped(response, "result")
-	var positions any = this.SafeList(responseResult, "data", []any{})
+	var positions []any = SafeListTyped(responseResult, "data")
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(positions); i++ {
-		var entry any = GetValue(positions, i)
+	for i := 0; i < len(positions); i++ {
+		var entry any = func() any {
+			if i >= 0 && i < len(positions) {
+				return DerefScalar(positions[i])
+			}
+			return nil
+		}()
 		var marketId *string = this.SafeString(entry, "instrument_name")
 		var marketInner any = this.SafeMarket(marketId, nil, nil, "contract")
 		result = append(result, this.ParsePosition(entry, marketInner))

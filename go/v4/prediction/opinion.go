@@ -199,15 +199,20 @@ func (this *Opinion) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		response := (<-this.OpinionPublicGetMarket(this.Extend(request, rest)))
 		ccxt.PanicOnError(response)
 		var result map[string]any = ccxt.SafeMapTyped(response, "result")
-		var rawMarkets any = this.SafeList(result, "list", []any{})
-		var rawMarketsLength int = ccxt.GetArrayLength(rawMarkets)
+		var rawMarkets []any = ccxt.SafeListTyped(result, "list")
+		var rawMarketsLength int = len(rawMarkets)
 		fetchedRawCount = this.Sum(fetchedRawCount, rawMarketsLength)
 		// categorical parents expand into several flatMarkets entries each, so the raw,
 		// unflattened row count in 'total' must be compared against fetchedRawCount, not
 		// flatMarkets.length - otherwise expansion makes the comparison meaningless
 		var total *int64 = this.SafeInteger(result, "total")
 		for i := 0; i < rawMarketsLength; i++ {
-			var raw any = ccxt.GetValue(rawMarkets, i)
+			var raw any = func() any {
+				if i >= 0 && i < len(rawMarkets) {
+					return ccxt.DerefScalar(rawMarkets[i])
+				}
+				return nil
+			}()
 			var marketType *int64 = this.SafeInteger(raw, "marketType")
 			if marketType != nil && *marketType == 1 {
 				var event any = this.ParseEvent(raw)
@@ -517,11 +522,16 @@ func (this *Opinion) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 		response := (<-this.OpinionPublicGetMarket(this.Extend(request, rest)))
 		ccxt.PanicOnError(response)
 		var result map[string]any = ccxt.SafeMapTyped(response, "result")
-		var pageEvents any = this.SafeList(result, "list", []any{})
-		var pageEventsLength int = ccxt.GetArrayLength(pageEvents)
+		var pageEvents []any = ccxt.SafeListTyped(result, "list")
+		var pageEventsLength int = len(pageEvents)
 		fetchedRawCount = this.Sum(fetchedRawCount, pageEventsLength)
 		for i := 0; i < pageEventsLength; i++ {
-			rawEvents = append(rawEvents, ccxt.GetValue(pageEvents, i))
+			rawEvents = append(rawEvents, func() any {
+				if i >= 0 && i < len(pageEvents) {
+					return ccxt.DerefScalar(pageEvents[i])
+				}
+				return nil
+			}())
 		}
 		var total *int64 = this.SafeInteger(result, "total")
 		if (ccxt.IsLessThan(pageEventsLength, reqLimit)) || (ccxt.IsGreaterThanOrEqual(page, maxPages)) || ((total != nil) && (ccxt.IsGreaterThanOrEqual(fetchedRawCount, total))) || (ccxt.IsGreaterThanOrEqual(fetchedRawCount, fetchCap)) {
@@ -538,10 +548,15 @@ func (this *Opinion) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 		var event any = this.ParseEvent(ccxt.GetValue(rawEvents, i))
 		parsedEvents = append(parsedEvents, event)
 		// register the parsed markets so populateOutcomes can index their outcomes
-		var eventMarkets any = this.SafeList(event, "markets", []any{})
-		var eventMarketsLength int = ccxt.GetArrayLength(eventMarkets)
+		var eventMarkets []any = ccxt.SafeListTyped(event, "markets")
+		var eventMarketsLength int = len(eventMarkets)
 		for mi := 0; mi < eventMarketsLength; mi++ {
-			var m any = ccxt.GetValue(eventMarkets, mi)
+			var m any = func() any {
+				if mi >= 0 && mi < len(eventMarkets) {
+					return ccxt.DerefScalar(eventMarkets[mi])
+				}
+				return nil
+			}()
 			ccxt.AddElementToObject(this.Markets, ccxt.GetValue(m, "market"), m)
 		}
 	}
@@ -700,11 +715,16 @@ func (this *Opinion) ParseEvent(rawEvent any) any {
 		}
 		return this.ShortenSlug(slug)
 	}()
-	var rawChildren any = this.SafeList(rawEvent, "childMarkets", []any{})
-	var rawChildrenLength int = ccxt.GetArrayLength(rawChildren)
+	var rawChildren []any = ccxt.SafeListTyped(rawEvent, "childMarkets")
+	var rawChildrenLength int = len(rawChildren)
 	var marketsList []any = []any{}
 	for i := 0; i < rawChildrenLength; i++ {
-		marketsList = append(marketsList, this.ParseOpinionMarket(ccxt.GetValue(rawChildren, i), slug))
+		marketsList = append(marketsList, this.ParseOpinionMarket(func() any {
+			if i >= 0 && i < len(rawChildren) {
+				return ccxt.DerefScalar(rawChildren[i])
+			}
+			return nil
+		}(), slug))
 	}
 	var statusEnum *string = this.SafeString(rawEvent, "statusEnum")
 	var active bool = (statusEnum != nil && *statusEnum == "Activated")
@@ -1011,11 +1031,16 @@ func (this *Opinion) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ...an
 	//     }
 	//
 	var result map[string]any = ccxt.SafeMapTyped(response, "result")
-	var history any = this.SafeList(result, "history", []any{})
+	var history []any = ccxt.SafeListTyped(result, "history")
 	var candles []any = []any{}
-	var historyLength int = ccxt.GetArrayLength(history)
+	var historyLength int = len(history)
 	for i := 0; i < historyLength; i++ {
-		var point any = ccxt.GetValue(history, i)
+		var point any = func() any {
+			if i >= 0 && i < len(history) {
+				return ccxt.DerefScalar(history[i])
+			}
+			return nil
+		}()
 		var price *float64 = this.SafeNumber(point, "p")
 		var timestamp *int64 = this.SafeTimestamp(point, "t")
 		if (price != nil) && (timestamp != nil) {
@@ -1078,11 +1103,16 @@ func (this *Opinion) loadQuoteTokenBody(ch chan any, quoteTokenAddress any) any 
 	response := (<-this.OpinionPublicGetQuoteToken(map[string]any{}))
 	ccxt.PanicOnError(response)
 	var result map[string]any = ccxt.SafeMapTyped(response, "result")
-	var list any = this.SafeList(result, "list", []any{})
-	var listLength int = ccxt.GetArrayLength(list)
+	var list []any = ccxt.SafeListTyped(result, "list")
+	var listLength int = len(list)
 	var quoteTokens map[string]any = map[string]any{}
 	for i := 0; i < listLength; i++ {
-		var entry any = ccxt.GetValue(list, i)
+		var entry any = func() any {
+			if i >= 0 && i < len(list) {
+				return ccxt.DerefScalar(list[i])
+			}
+			return nil
+		}()
 		var address *string = this.SafeStringLower(entry, "quoteTokenAddress")
 		if address != nil {
 			ccxt.AddElementToObject(quoteTokens, address, entry)
@@ -1854,10 +1884,15 @@ func (this *Opinion) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	response := (<-this.OpinionPrivateGetUserBalance(this.Extend(request, params)))
 	ccxt.PanicOnError(response)
 	var result map[string]any = ccxt.SafeMapTyped(response, "result")
-	var rawBalances any = this.SafeList(result, "balances", []any{})
-	var rawBalancesLength int = ccxt.GetArrayLength(rawBalances)
+	var rawBalances []any = ccxt.SafeListTyped(result, "balances")
+	var rawBalancesLength int = len(rawBalances)
 	for i := 0; i < rawBalancesLength; i++ {
-		var rawBalance any = ccxt.GetValue(rawBalances, i)
+		var rawBalance any = func() any {
+			if i >= 0 && i < len(rawBalances) {
+				return ccxt.DerefScalar(rawBalances[i])
+			}
+			return nil
+		}()
 		var quoteTokenAddress *string = this.SafeString(rawBalance, "quoteToken")
 
 		quoteToken := (<-this.LoadQuoteTokenAsync(quoteTokenAddress))
@@ -1882,10 +1917,15 @@ func (this *Opinion) ParseBalance(response any) any {
 		"info": response,
 	}
 	var data map[string]any = ccxt.SafeMapTyped(response, "result")
-	var balances any = this.SafeList(data, "balances", []any{})
-	var balancesLength int = ccxt.GetArrayLength(balances)
+	var balances []any = ccxt.SafeListTyped(data, "balances")
+	var balancesLength int = len(balances)
 	for i := 0; i < balancesLength; i++ {
-		var balance any = ccxt.GetValue(balances, i)
+		var balance any = func() any {
+			if i >= 0 && i < len(balances) {
+				return ccxt.DerefScalar(balances[i])
+			}
+			return nil
+		}()
 		var code *string = this.SafeString(balance, "symbol", "USDT")
 		ccxt.AddElementToObject(result, code, map[string]any{
 			"free":  this.SafeNumber(balance, "availableBalance"),

@@ -104,10 +104,15 @@ func (this *Deribit) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	ccxt.PanicOnError(retRes888)
 	var messageHash string = "balance"
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var currencies any = this.SafeList(this.Options, "currencies", []any{})
+	var currencies []any = ccxt.SafeListTyped(this.Options, "currencies")
 	var channels []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(currencies); i++ {
-		var currencyCode any = ccxt.GetValue(currencies, i)
+	for i := 0; i < len(currencies); i++ {
+		var currencyCode any = func() any {
+			if i >= 0 && i < len(currencies) {
+				return ccxt.DerefScalar(currencies[i])
+			}
+			return nil
+		}()
 		channels = append(channels, ccxt.Add("user.portfolio.", currencyCode))
 	}
 	var subscribe map[string]any = map[string]any{
@@ -851,15 +856,35 @@ func (this *Deribit) HandleOrderBook(client any, message any) {
 	client.(ccxt.ClientInterface).Resolve(storedOrderBook, messageHash)
 }
 func (this *Deribit) CleanOrderBook(data any) any {
-	var bids any = this.SafeList(data, "bids", []any{})
-	var asks any = this.SafeList(data, "asks", []any{})
+	var bids []any = ccxt.SafeListTyped(data, "bids")
+	var asks []any = ccxt.SafeListTyped(data, "asks")
 	var cleanedBids []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(bids); i++ {
-		cleanedBids = append(cleanedBids, []any{ccxt.GetValue(ccxt.GetValue(bids, i), 1), ccxt.GetValue(ccxt.GetValue(bids, i), 2)})
+	for i := 0; i < len(bids); i++ {
+		cleanedBids = append(cleanedBids, []any{ccxt.GetValue(func() any {
+			if i >= 0 && i < len(bids) {
+				return ccxt.DerefScalar(bids[i])
+			}
+			return nil
+		}(), 1), ccxt.GetValue(func() any {
+			if i >= 0 && i < len(bids) {
+				return ccxt.DerefScalar(bids[i])
+			}
+			return nil
+		}(), 2)})
 	}
 	var cleanedAsks []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(asks); i++ {
-		cleanedAsks = append(cleanedAsks, []any{ccxt.GetValue(ccxt.GetValue(asks, i), 1), ccxt.GetValue(ccxt.GetValue(asks, i), 2)})
+	for i := 0; i < len(asks); i++ {
+		cleanedAsks = append(cleanedAsks, []any{ccxt.GetValue(func() any {
+			if i >= 0 && i < len(asks) {
+				return ccxt.DerefScalar(asks[i])
+			}
+			return nil
+		}(), 1), ccxt.GetValue(func() any {
+			if i >= 0 && i < len(asks) {
+				return ccxt.DerefScalar(asks[i])
+			}
+			return nil
+		}(), 2)})
 	}
 	ccxt.AddElementToObject(data, "bids", cleanedBids)
 	ccxt.AddElementToObject(data, "asks", cleanedAsks)

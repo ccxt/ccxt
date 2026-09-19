@@ -860,9 +860,14 @@ func (this *Bitget) HandleOHLCV(client any, message any) {
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
 		ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, stored)
 	}
-	var data any = this.SafeList(message, "data", []any{})
-	for i := 0; i < ccxt.GetArrayLength(data); i++ {
-		var parsed any = this.ParseWsOHLCV(ccxt.GetValue(data, i), market)
+	var data []any = ccxt.SafeListTyped(message, "data")
+	for i := 0; i < len(data); i++ {
+		var parsed any = this.ParseWsOHLCV(func() any {
+			if i >= 0 && i < len(data) {
+				return ccxt.DerefScalar(data[i])
+			}
+			return nil
+		}(), market)
 		stored.(ccxt.Appender).Append(parsed)
 	}
 	var messageHash any = nil
@@ -1493,8 +1498,8 @@ func (this *Bitget) HandleTrades(client any, message any) {
 		stored = ccxt.NewArrayCache(limit)
 		ccxt.AddElementToObject(this.Trades, symbol, stored)
 	}
-	var data any = this.SafeList(message, "data", []any{})
-	var length int = ccxt.GetArrayLength(data)
+	var data []any = ccxt.SafeListTyped(message, "data")
+	var length int = len(data)
 	// fix chronological order by reversing
 	for i := 0; i < length; i++ {
 		var index any = ccxt.Subtract(ccxt.Subtract(length, i), 1)
@@ -1829,10 +1834,15 @@ func (this *Bitget) HandlePositions(client any, message any) {
 		ccxt.AddElementToObject(this.Positions, instType, ccxt.NewArrayCacheBySymbolBySide())
 	}
 	var cache any = ccxt.GetValue(this.Positions, instType)
-	var rawPositions any = this.SafeList(message, "data", []any{})
+	var rawPositions []any = ccxt.SafeListTyped(message, "data")
 	var newPositions []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(rawPositions); i++ {
-		var rawPosition any = ccxt.GetValue(rawPositions, i)
+	for i := 0; i < len(rawPositions); i++ {
+		var rawPosition any = func() any {
+			if i >= 0 && i < len(rawPositions) {
+				return ccxt.DerefScalar(rawPositions[i])
+			}
+			return nil
+		}()
 		var marketId *string = this.SafeString2(rawPosition, "instId", "symbol")
 		var market any = this.SafeMarket(marketId, nil, nil, "contract")
 		var position any = this.ParseWsPosition(rawPosition, market)
@@ -2755,13 +2765,18 @@ func (this *Bitget) HandleMyTrades(client any, message any) {
 		this.MyTrades = ccxt.NewArrayCache(limit)
 	}
 	var stored any = this.MyTrades
-	var data any = this.SafeList(message, "data", []any{})
-	var length int = ccxt.GetArrayLength(data)
+	var data []any = ccxt.SafeListTyped(message, "data")
+	var length int = len(data)
 	var messageHash string = "myTrades"
 	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 	var instType *string = this.SafeStringLower(arg, "instType")
 	for i := 0; i < length; i++ {
-		var trade any = ccxt.GetValue(data, i)
+		var trade any = func() any {
+			if i >= 0 && i < len(data) {
+				return ccxt.DerefScalar(data[i])
+			}
+			return nil
+		}()
 		var market any = nil
 		if instType != nil && *instType == "uta" {
 			// UTA fills carry the product in 'category'; resolve the matching
@@ -2965,13 +2980,23 @@ func (this *Bitget) HandleBalance(client any, message any) {
 	//
 	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 	var instType *string = this.SafeStringLower(arg, "instType")
-	var data any = this.SafeList(message, "data", []any{})
-	for i := 0; i < ccxt.GetArrayLength(data); i++ {
-		var rawBalance any = ccxt.GetValue(data, i)
+	var data []any = ccxt.SafeListTyped(message, "data")
+	for i := 0; i < len(data); i++ {
+		var rawBalance any = func() any {
+			if i >= 0 && i < len(data) {
+				return ccxt.DerefScalar(data[i])
+			}
+			return nil
+		}()
 		if instType != nil && *instType == "uta" {
-			var coins any = this.SafeList(rawBalance, "coin", []any{})
-			for j := 0; j < ccxt.GetArrayLength(coins); j++ {
-				var entry any = ccxt.GetValue(coins, j)
+			var coins []any = ccxt.SafeListTyped(rawBalance, "coin")
+			for j := 0; j < len(coins); j++ {
+				var entry any = func() any {
+					if j >= 0 && j < len(coins) {
+						return ccxt.DerefScalar(coins[j])
+					}
+					return nil
+				}()
 				var currencyId *string = this.SafeString(entry, "coin")
 				var code *string = this.SafeCurrencyCode(currencyId)
 				var account any = this.Account()

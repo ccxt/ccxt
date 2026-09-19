@@ -1295,15 +1295,20 @@ func (this *Bydfi) HandleBalance(client any, message any) {
 	var messageHash string = "balance"
 	if ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash) {
 		var data map[string]any = ccxt.SafeMapTyped(message, "a")
-		var balances any = this.SafeList(data, "B", []any{})
+		var balances []any = ccxt.SafeListTyped(data, "B")
 		var timestamp *int64 = this.SafeInteger(message, "T")
 		var result map[string]any = map[string]any{
 			"info":      message,
 			"timestamp": timestamp,
 			"datetime":  this.Iso8601(timestamp),
 		}
-		for i := 0; i < ccxt.GetArrayLength(balances); i++ {
-			var balance any = ccxt.GetValue(balances, i)
+		for i := 0; i < len(balances); i++ {
+			var balance any = func() any {
+				if i >= 0 && i < len(balances) {
+					return ccxt.DerefScalar(balances[i])
+				}
+				return nil
+			}()
 			var currencyId *string = this.SafeString(balance, "a")
 			var code *string = this.SafeCurrencyCode(currencyId)
 			var account any = this.Account()
@@ -1335,10 +1340,15 @@ func (this *Bydfi) HandleSubscriptionStatus(client any, message any) any {
 	return message
 }
 func (this *Bydfi) HandleUnSubscription(client any, subscription any) {
-	var messageHashes any = this.SafeList(subscription, "messageHashes", []any{})
+	var messageHashes []any = ccxt.SafeListTyped(subscription, "messageHashes")
 	var subHashIsPrefix *bool = this.SafeBool(subscription, "subHashIsPrefix", false)
-	for i := 0; i < ccxt.GetArrayLength(messageHashes); i++ {
-		var unsubHash any = ccxt.GetValue(messageHashes, i)
+	for i := 0; i < len(messageHashes); i++ {
+		var unsubHash any = func() any {
+			if i >= 0 && i < len(messageHashes) {
+				return ccxt.DerefScalar(messageHashes[i])
+			}
+			return nil
+		}()
 		var subHash string = ccxt.Replace(unsubHash, "unsubscribe::", "")
 		this.CleanUnsubscription(ccxt.AsClient(client), subHash, unsubHash, subHashIsPrefix)
 	}
@@ -1391,13 +1401,13 @@ func (this *Bydfi) HandleMessage(client any, message any) {
 			this.HandleOrder(client, message)
 		} else if event != nil && *event == "ACCOUNT_UPDATE" {
 			var account map[string]any = ccxt.SafeMapTyped(message, "a")
-			var balances any = this.SafeList(account, "B", []any{})
-			var balancesLength int = ccxt.GetArrayLength(balances)
+			var balances []any = ccxt.SafeListTyped(account, "B")
+			var balancesLength int = len(balances)
 			if balancesLength > 0 {
 				this.HandleBalance(client, message)
 			}
-			var positions any = this.SafeList(account, "p", []any{})
-			var positionsLength int = ccxt.GetArrayLength(positions)
+			var positions []any = ccxt.SafeListTyped(account, "p")
+			var positionsLength int = len(positions)
 			if positionsLength > 0 {
 				this.HandlePositions(client, message)
 			}

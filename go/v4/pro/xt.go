@@ -208,18 +208,28 @@ func (this *Xt) GetCacheIndex(orderbook any, cache any) any {
 }
 func (this *Xt) HandleDelta(orderbook any, delta any) {
 	ccxt.AddElementToObject(orderbook, "nonce", this.SafeInteger2(delta, "i", "u"))
-	var obAsks any = this.SafeList(delta, "a", []any{})
-	var obBids any = this.SafeList(delta, "b", []any{})
+	var obAsks []any = ccxt.SafeListTyped(delta, "a")
+	var obBids []any = ccxt.SafeListTyped(delta, "b")
 	var bids any = ccxt.GetValue(orderbook, "bids")
 	var asks any = ccxt.GetValue(orderbook, "asks")
-	for i := 0; i < ccxt.GetArrayLength(obBids); i++ {
-		var bid any = ccxt.GetValue(obBids, i)
+	for i := 0; i < len(obBids); i++ {
+		var bid any = func() any {
+			if i >= 0 && i < len(obBids) {
+				return ccxt.DerefScalar(obBids[i])
+			}
+			return nil
+		}()
 		var price *float64 = this.SafeNumber(bid, 0)
 		var quantity *float64 = this.SafeNumber(bid, 1)
 		bids.(ccxt.IOrderBookSide).Store(price, quantity)
 	}
-	for i := 0; i < ccxt.GetArrayLength(obAsks); i++ {
-		var ask any = ccxt.GetValue(obAsks, i)
+	for i := 0; i < len(obAsks); i++ {
+		var ask any = func() any {
+			if i >= 0 && i < len(obAsks) {
+				return ccxt.DerefScalar(obAsks[i])
+			}
+			return nil
+		}()
 		var price *float64 = this.SafeNumber(ask, 0)
 		var quantity *float64 = this.SafeNumber(ask, 1)
 		asks.(ccxt.IOrderBookSide).Store(price, quantity)
@@ -2052,11 +2062,21 @@ func (this *Xt) HandleSubscriptionStatus(client any, message any) any {
 	return message
 }
 func (this *Xt) HandleUnSubscription(client any, subscription any) {
-	var messageHashes any = this.SafeList(subscription, "messageHashes", []any{})
-	var subMessageHashes any = this.SafeList(subscription, "subMessageHashes", []any{})
-	for j := 0; j < ccxt.GetArrayLength(messageHashes); j++ {
-		var unsubHash any = ccxt.GetValue(messageHashes, j)
-		var subHash any = ccxt.GetValue(subMessageHashes, j)
+	var messageHashes []any = ccxt.SafeListTyped(subscription, "messageHashes")
+	var subMessageHashes []any = ccxt.SafeListTyped(subscription, "subMessageHashes")
+	for j := 0; j < len(messageHashes); j++ {
+		var unsubHash any = func() any {
+			if j >= 0 && j < len(messageHashes) {
+				return ccxt.DerefScalar(messageHashes[j])
+			}
+			return nil
+		}()
+		var subHash any = func() any {
+			if j >= 0 && j < len(subMessageHashes) {
+				return ccxt.DerefScalar(subMessageHashes[j])
+			}
+			return nil
+		}()
 		this.CleanUnsubscription(ccxt.AsClient(client), subHash, unsubHash)
 	}
 	this.CleanCache(subscription)

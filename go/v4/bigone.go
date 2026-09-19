@@ -595,10 +595,15 @@ func (this *Bigone) ParseCurrency(rawCurrency any) any {
 	var code *string = this.SafeCurrencyCode(id)
 	var name *string = this.SafeString(rawCurrency, "name")
 	var networks map[string]any = map[string]any{}
-	var chains any = this.SafeList(rawCurrency, "binding_gateways", []any{})
+	var chains []any = SafeListTyped(rawCurrency, "binding_gateways")
 	var currencyMaxPrecision any = this.ParsePrecision(this.SafeString2(rawCurrency, "withdrawal_scale", "scale"))
-	for j := 0; j < GetArrayLength(chains); j++ {
-		var chain any = GetValue(chains, j)
+	for j := 0; j < len(chains); j++ {
+		var chain any = func() any {
+			if j >= 0 && j < len(chains) {
+				return DerefScalar(chains[j])
+			}
+			return nil
+		}()
 		var networkId *string = this.SafeString(chain, "gateway_name")
 		var networkCode any = this.NetworkIdToCode(networkId, code)
 		var deposit *bool = this.SafeBool(chain, "is_deposit_enabled")
@@ -631,7 +636,7 @@ func (this *Bigone) ParseCurrency(rawCurrency any) any {
 			})
 		}
 	}
-	var chainLength int = GetArrayLength(chains)
+	var chainLength int = len(chains)
 	var typeVar string
 	if IsEqual(this.SafeBool(rawCurrency, "is_fiat"), true) {
 		typeVar = "fiat"
@@ -745,10 +750,15 @@ func (this *Bigone) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//        ...
 	//    ]
 	//
-	var markets any = this.SafeList(response, "data", []any{})
+	var markets []any = SafeListTyped(response, "data")
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(markets); i++ {
-		var market any = GetValue(markets, i)
+	for i := 0; i < len(markets); i++ {
+		var market any = func() any {
+			if i >= 0 && i < len(markets) {
+				return DerefScalar(markets[i])
+			}
+			return nil
+		}()
 		var baseAsset map[string]any = SafeMapTyped(market, "base_asset")
 		var quoteAsset map[string]any = SafeMapTyped(market, "quote_asset")
 		var baseId *string = this.SafeString(baseAsset, "symbol")
@@ -1614,9 +1624,14 @@ func (this *Bigone) ParseBalance(response any) any {
 		"timestamp": nil,
 		"datetime":  nil,
 	}
-	var balances any = this.SafeList(response, "data", []any{})
-	for i := 0; i < GetArrayLength(balances); i++ {
-		var balance any = GetValue(balances, i)
+	var balances []any = SafeListTyped(response, "data")
+	for i := 0; i < len(balances); i++ {
+		var balance any = func() any {
+			if i >= 0 && i < len(balances) {
+				return DerefScalar(balances[i])
+			}
+			return nil
+		}()
 		var symbol *string = this.SafeString(balance, "asset_symbol")
 		var code *string = this.SafeCurrencyCode(symbol)
 		var account any = this.Account()
@@ -2043,19 +2058,29 @@ func (this *Bigone) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var cancelled any = this.SafeList(data, "cancelled", []any{})
-	var failed any = this.SafeList(data, "failed", []any{})
+	var cancelled []any = SafeListTyped(data, "cancelled")
+	var failed []any = SafeListTyped(data, "failed")
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(cancelled); i++ {
-		var orderId any = GetValue(cancelled, i)
+	for i := 0; i < len(cancelled); i++ {
+		var orderId any = func() any {
+			if i >= 0 && i < len(cancelled) {
+				return DerefScalar(cancelled[i])
+			}
+			return nil
+		}()
 		result = append(result, this.SafeOrder(map[string]any{
 			"info":   orderId,
 			"id":     orderId,
 			"status": "canceled",
 		}))
 	}
-	for i := 0; i < GetArrayLength(failed); i++ {
-		var orderId any = GetValue(failed, i)
+	for i := 0; i < len(failed); i++ {
+		var orderId any = func() any {
+			if i >= 0 && i < len(failed) {
+				return DerefScalar(failed[i])
+			}
+			return nil
+		}()
 		result = append(result, this.SafeOrder(map[string]any{
 			"info":   orderId,
 			"id":     orderId,

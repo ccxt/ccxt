@@ -926,11 +926,16 @@ func (this *Bithumb) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		//
 		var result map[string]any = SafeMapTyped(response, 0)
 		timestamp = this.SafeInteger(result, "timestamp")
-		var orderBookUnits any = this.SafeList(result, "orderbook_units", []any{})
+		var orderBookUnits []any = SafeListTyped(result, "orderbook_units")
 		var bids []any = []any{}
 		var asks []any = []any{}
-		for i := 0; i < GetArrayLength(orderBookUnits); i++ {
-			var entry any = GetValue(orderBookUnits, i)
+		for i := 0; i < len(orderBookUnits); i++ {
+			var entry any = func() any {
+				if i >= 0 && i < len(orderBookUnits) {
+					return DerefScalar(orderBookUnits[i])
+				}
+				return nil
+			}()
 			bids = append(bids, map[string]any{
 				"price":    this.SafeString(entry, "bid_price"),
 				"quantity": this.SafeString(entry, "bid_size"),

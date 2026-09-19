@@ -2449,19 +2449,34 @@ func (this *Kucoin) HandleSubscriptionStatus(client any, message any) {
 	}
 	var isUnSub *bool = this.SafeBool(subscription, "unsubscribe", false)
 	if isUnSub != nil && *isUnSub == true {
-		var messageHashes any = this.SafeList(subscription, "messageHashes", []any{})
-		var subMessageHashes any = this.SafeList(subscription, "subMessageHashes", []any{})
-		for i := 0; i < ccxt.GetArrayLength(messageHashes); i++ {
-			var messageHash any = ccxt.GetValue(messageHashes, i)
-			var subHash any = ccxt.GetValue(subMessageHashes, i)
+		var messageHashes []any = ccxt.SafeListTyped(subscription, "messageHashes")
+		var subMessageHashes []any = ccxt.SafeListTyped(subscription, "subMessageHashes")
+		for i := 0; i < len(messageHashes); i++ {
+			var messageHash any = func() any {
+				if i >= 0 && i < len(messageHashes) {
+					return ccxt.DerefScalar(messageHashes[i])
+				}
+				return nil
+			}()
+			var subHash any = func() any {
+				if i >= 0 && i < len(subMessageHashes) {
+					return ccxt.DerefScalar(subMessageHashes[i])
+				}
+				return nil
+			}()
 			this.CleanUnsubscription(ccxt.AsClient(client), subHash, messageHash)
 		}
 		var topic *string = this.SafeString(subscription, "topic")
 		if topic != nil && *topic == "fundingRate" {
 			// todo: add fundingRate topic to cleanCache
-			var symbols any = this.SafeList(subscription, "symbols", []any{})
-			for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-				var symbol any = ccxt.GetValue(symbols, i)
+			var symbols []any = ccxt.SafeListTyped(subscription, "symbols")
+			for i := 0; i < len(symbols); i++ {
+				var symbol any = func() any {
+					if i >= 0 && i < len(symbols) {
+						return ccxt.DerefScalar(symbols[i])
+					}
+					return nil
+				}()
 				if ccxt.InOp(this.FundingRates, symbol) {
 					ccxt.Remove(this.FundingRates, symbol)
 				}

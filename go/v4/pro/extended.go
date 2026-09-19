@@ -1014,9 +1014,14 @@ func (this *Extended) HandleOHLCV(client any, message any) {
 		return
 	}
 	ccxt.AddElementToObject(subscription, "nonce", nonce)
-	var data any = this.SafeList(message, "data", []any{})
-	for i := 0; i < ccxt.GetArrayLength(data); i++ {
-		var parsed any = this.ParseOHLCV(ccxt.GetValue(data, i))
+	var data []any = ccxt.SafeListTyped(message, "data")
+	for i := 0; i < len(data); i++ {
+		var parsed any = this.ParseOHLCV(func() any {
+			if i >= 0 && i < len(data) {
+				return ccxt.DerefScalar(data[i])
+			}
+			return nil
+		}())
 		stored.(ccxt.Appender).Append(parsed)
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)

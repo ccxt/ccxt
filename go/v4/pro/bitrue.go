@@ -619,16 +619,21 @@ func (this *Bitrue) HandleTrades(client any, message any) {
 	}
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var tick map[string]any = ccxt.SafeMapTyped(message, "tick")
-	var data any = this.SafeList(tick, "data", []any{})
+	var data []any = ccxt.SafeListTyped(tick, "data")
 	var appended bool = false
 	var stored any = this.SafeValue(this.Trades, symbol)
-	for i := 0; i < ccxt.GetArrayLength(data); i++ {
+	for i := 0; i < len(data); i++ {
 		if ccxt.IsEqual(stored, nil) {
 			var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 			stored = ccxt.NewArrayCache(limit)
 			ccxt.AddElementToObject(this.Trades, symbol, stored)
 		}
-		var trade any = this.ParseWsTrade(ccxt.GetValue(data, i), market)
+		var trade any = this.ParseWsTrade(func() any {
+			if i >= 0 && i < len(data) {
+				return ccxt.DerefScalar(data[i])
+			}
+			return nil
+		}(), market)
 		stored.(ccxt.Appender).Append(trade)
 		appended = true
 	}

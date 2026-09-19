@@ -775,12 +775,12 @@ func (this *Lighter) HandleTrades(client any, message any) {
 	//         "type": "subscribed/trade"
 	//     }
 	//
-	var liquidationData any = this.SafeList(message, "liquidation_trades", []any{})
-	var liquidationDataLength int = ccxt.GetArrayLength(liquidationData)
+	var liquidationData []any = ccxt.SafeListTyped(message, "liquidation_trades")
+	var liquidationDataLength int = len(liquidationData)
 	if liquidationDataLength > 0 {
 		this.HandleLiquidation(client, message)
 	}
-	var data any = this.SafeList(message, "trades", []any{})
+	var data []any = ccxt.SafeListTyped(message, "trades")
 	var channel *string = this.SafeString(message, "channel", "")
 	var parts []string = ccxt.Split(channel, ":")
 	var marketId any = ccxt.GetValue(parts, 1)
@@ -792,7 +792,7 @@ func (this *Lighter) HandleTrades(client any, message any) {
 		stored = ccxt.NewArrayCache(limit)
 		ccxt.AddElementToObject(this.Trades, symbol, stored)
 	}
-	var dataLength int = ccxt.GetArrayLength(data)
+	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
 		var iReversed any = ccxt.Subtract(ccxt.Subtract(dataLength, 1), i)
 		var trade any = this.ParseWsTrade(ccxt.GetValue(data, iReversed), market)
@@ -1045,8 +1045,8 @@ func (this *Lighter) HandleMyTrades(client any, message any) any {
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = ccxt.GetValue(marketIds, i).(string)
 		var market any = this.SafeMarket(marketId)
-		var trades any = this.SafeList(data, marketId, []any{})
-		var tradesLength int = ccxt.GetArrayLength(trades)
+		var trades []any = ccxt.SafeListTyped(data, marketId)
+		var tradesLength int = len(trades)
 		for j := 0; j < tradesLength; j++ {
 			var jReversed any = ccxt.Subtract(ccxt.Subtract(tradesLength, 1), j)
 			var tradeRaw any = ccxt.GetValue(trades, jReversed)
@@ -1257,7 +1257,7 @@ func (this *Lighter) HandleLiquidation(client any, message any) {
 	//         "type": "subscribed/trade"
 	//     }
 	//
-	var data any = this.SafeList(message, "liquidation_trades", []any{})
+	var data []any = ccxt.SafeListTyped(message, "liquidation_trades")
 	var channel *string = this.SafeString(message, "channel", "")
 	var parts []string = ccxt.Split(channel, ":")
 	var marketId any = ccxt.GetValue(parts, 1)
@@ -1269,7 +1269,7 @@ func (this *Lighter) HandleLiquidation(client any, message any) {
 		this.Liquidations = ccxt.NewArrayCache(limit)
 		stored = this.Liquidations
 	}
-	var dataLength int = ccxt.GetArrayLength(data)
+	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
 		var iReversed any = ccxt.Subtract(ccxt.Subtract(dataLength, 1), i)
 		var liquidation any = this.ParseWsLiquidation(ccxt.GetValue(data, iReversed), market)

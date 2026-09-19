@@ -2487,9 +2487,14 @@ func (this *Bitfinex) createOrdersBody(ch chan any, orders any, optionalArgs ...
 	//     ]
 	//
 	var results []any = []any{}
-	var data any = this.SafeList(response, 4, []any{})
-	for i := 0; i < GetArrayLength(data); i++ {
-		var entry any = GetValue(data, i)
+	var data []any = SafeListTyped(response, 4)
+	for i := 0; i < len(data); i++ {
+		var entry any = func() any {
+			if i >= 0 && i < len(data) {
+				return DerefScalar(data[i])
+			}
+			return nil
+		}()
 		var individualOrder any = GetValue(entry, 4)
 		results = append(results, map[string]any{
 			"result": GetValue(individualOrder, 0),
@@ -2532,11 +2537,16 @@ func (this *Bitfinex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 
 	response := (<-this.PrivatePostAuthWOrderCancelMulti(this.Extend(request, params)))
 	PanicOnError(response)
-	var orders any = this.SafeList(response, 4, []any{})
+	var orders []any = SafeListTyped(response, 4)
 	var ordersList []any = []any{}
-	for i := 0; i < GetArrayLength(orders); i++ {
+	for i := 0; i < len(orders); i++ {
 		ordersList = append(ordersList, map[string]any{
-			"result": GetValue(orders, i),
+			"result": func() any {
+				if i >= 0 && i < len(orders) {
+					return DerefScalar(orders[i])
+				}
+				return nil
+			}(),
 		})
 	}
 
@@ -2696,11 +2706,16 @@ func (this *Bitfinex) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any
 	//         "Submitting 2 order cancellations."
 	//     ]
 	//
-	var orders any = this.SafeList(response, 4, []any{})
+	var orders []any = SafeListTyped(response, 4)
 	var ordersList []any = []any{}
-	for i := 0; i < GetArrayLength(orders); i++ {
+	for i := 0; i < len(orders); i++ {
 		ordersList = append(ordersList, map[string]any{
-			"result": GetValue(orders, i),
+			"result": func() any {
+				if i >= 0 && i < len(orders) {
+					return DerefScalar(orders[i])
+				}
+				return nil
+			}(),
 		})
 	}
 

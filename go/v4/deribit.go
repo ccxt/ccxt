@@ -1225,9 +1225,14 @@ func (this *Deribit) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		//         "testnet": false
 		//     }
 		//
-		var currenciesResult any = this.SafeList(currenciesResponse, "result", []any{})
-		for i := 0; i < GetArrayLength(currenciesResult); i++ {
-			var currencyId *string = this.SafeString(GetValue(currenciesResult, i), "currency")
+		var currenciesResult []any = SafeListTyped(currenciesResponse, "result")
+		for i := 0; i < len(currenciesResult); i++ {
+			var currencyId *string = this.SafeString(func() any {
+				if i >= 0 && i < len(currenciesResult) {
+					return DerefScalar(currenciesResult[i])
+				}
+				return nil
+			}(), "currency")
 			var request map[string]any = map[string]any{
 				"currency": currencyId,
 			}
@@ -1311,9 +1316,14 @@ func (this *Deribit) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 	for i := 0; i < len(instrumentsResponses); i++ {
-		var instrumentsResult any = this.SafeList(GetValue(instrumentsResponses, i), "result", []any{})
-		for k := 0; k < GetArrayLength(instrumentsResult); k++ {
-			var market any = GetValue(instrumentsResult, k)
+		var instrumentsResult []any = SafeListTyped(GetValue(instrumentsResponses, i), "result")
+		for k := 0; k < len(instrumentsResult); k++ {
+			var market any = func() any {
+				if k >= 0 && k < len(instrumentsResult) {
+					return DerefScalar(instrumentsResult[k])
+				}
+				return nil
+			}()
 			var kind *string = this.SafeString(market, "kind")
 			var isSpot bool = (kind != nil && *kind == "spot")
 			var id *string = this.SafeString(market, "instrument_name")
@@ -1926,10 +1936,15 @@ func (this *Deribit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	//         "testnet": false
 	//     }
 	//
-	var result any = this.SafeList(response, "result", []any{})
+	var result []any = SafeListTyped(response, "result")
 	var tickers map[string]any = map[string]any{}
-	for i := 0; i < GetArrayLength(result); i++ {
-		var ticker any = this.ParseTicker(GetValue(result, i))
+	for i := 0; i < len(result); i++ {
+		var ticker any = this.ParseTicker(func() any {
+			if i >= 0 && i < len(result) {
+				return DerefScalar(result[i])
+			}
+			return nil
+		}())
 		var symbol any = GetValue(ticker, "symbol")
 		if symbol != nil {
 			AddElementToObject(tickers, symbol, ticker)
@@ -2310,12 +2325,17 @@ func (this *Deribit) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var fees any = this.SafeList(result, "fees", []any{})
+	var fees []any = SafeListTyped(result, "fees")
 	var perpetualFee map[string]any = map[string]any{}
 	var futureFee map[string]any = map[string]any{}
 	var optionFee map[string]any = map[string]any{}
-	for i := 0; i < GetArrayLength(fees); i++ {
-		var fee any = GetValue(fees, i)
+	for i := 0; i < len(fees); i++ {
+		var fee any = func() any {
+			if i >= 0 && i < len(fees) {
+				return DerefScalar(fees[i])
+			}
+			return nil
+		}()
 		var instrumentType *string = this.SafeString(fee, "instrument_type")
 		if instrumentType != nil && *instrumentType == "future" {
 			futureFee = map[string]any{
@@ -3800,11 +3820,21 @@ func (this *Deribit) ParseVolatilityHistory(volatility any) any {
 	//         "testnet": false
 	//     }
 	//
-	var volatilityResult any = this.SafeList(volatility, "result", []any{})
+	var volatilityResult []any = SafeListTyped(volatility, "result")
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(volatilityResult); i++ {
-		var timestamp *int64 = this.SafeInteger(GetValue(volatilityResult, i), 0)
-		var volatilityObj *float64 = this.SafeNumber(GetValue(volatilityResult, i), 1)
+	for i := 0; i < len(volatilityResult); i++ {
+		var timestamp *int64 = this.SafeInteger(func() any {
+			if i >= 0 && i < len(volatilityResult) {
+				return DerefScalar(volatilityResult[i])
+			}
+			return nil
+		}(), 0)
+		var volatilityObj *float64 = this.SafeNumber(func() any {
+			if i >= 0 && i < len(volatilityResult) {
+				return DerefScalar(volatilityResult[i])
+			}
+			return nil
+		}(), 1)
 		result = append(result, map[string]any{
 			"info":       volatilityObj,
 			"timestamp":  timestamp,
@@ -4309,9 +4339,14 @@ func (this *Deribit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 	//    }
 	//
 	var rates []any = []any{}
-	var result any = this.SafeList(response, "result", []any{})
-	for i := 0; i < GetArrayLength(result); i++ {
-		var fr any = GetValue(result, i)
+	var result []any = SafeListTyped(response, "result")
+	for i := 0; i < len(result); i++ {
+		var fr any = func() any {
+			if i >= 0 && i < len(result) {
+				return DerefScalar(result[i])
+			}
+			return nil
+		}()
 		var rate any = this.ParseFundingRate(fr, market)
 		rates = append(rates, rate)
 	}

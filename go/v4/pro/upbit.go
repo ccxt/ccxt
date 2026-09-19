@@ -386,9 +386,14 @@ func (this *Upbit) HandleOrderBook(client any, message any) {
 	ccxt.AddElementToObject(orderbook, "symbol", symbol)
 	var bids any = ccxt.GetValue(orderbook, "bids")
 	var asks any = ccxt.GetValue(orderbook, "asks")
-	var data any = this.SafeList(message, "orderbook_units", []any{})
-	for i := 0; i < ccxt.GetArrayLength(data); i++ {
-		var entry any = ccxt.GetValue(data, i)
+	var data []any = ccxt.SafeListTyped(message, "orderbook_units")
+	for i := 0; i < len(data); i++ {
+		var entry any = func() any {
+			if i >= 0 && i < len(data) {
+				return ccxt.DerefScalar(data[i])
+			}
+			return nil
+		}()
 		var ask_price *float64 = this.SafeFloat(entry, "ask_price")
 		var ask_size *float64 = this.SafeFloat(entry, "ask_size")
 		var bid_price *float64 = this.SafeFloat(entry, "bid_price")
@@ -874,12 +879,17 @@ func (this *Upbit) HandleBalance(client any, message any) {
 	//     "stream_type": "REALTIME"
 	// }
 	//
-	var data any = this.SafeList(message, "assets", []any{})
+	var data []any = ccxt.SafeListTyped(message, "assets")
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
 	ccxt.AddElementToObject(this.Balance, "timestamp", timestamp)
 	ccxt.AddElementToObject(this.Balance, "datetime", this.Iso8601(timestamp))
-	for i := 0; i < ccxt.GetArrayLength(data); i++ {
-		var balance any = ccxt.GetValue(data, i)
+	for i := 0; i < len(data); i++ {
+		var balance any = func() any {
+			if i >= 0 && i < len(data) {
+				return ccxt.DerefScalar(data[i])
+			}
+			return nil
+		}()
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var available *string = this.SafeString(balance, "balance")

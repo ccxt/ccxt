@@ -302,9 +302,14 @@ func (this *Phemex) HandleTicker(client any, message any) {
 		var ticker any = this.SafeValue(message, "spot_market24h")
 		tickers = append(tickers, this.ParseTicker(ticker))
 	} else if ccxt.InOp(message, "data") {
-		var data any = this.SafeList(message, "data", []any{})
-		for i := 0; i < ccxt.GetArrayLength(data); i++ {
-			tickers = append(tickers, this.ParsePerpetualTicker(ccxt.GetValue(data, i)))
+		var data []any = ccxt.SafeListTyped(message, "data")
+		for i := 0; i < len(data); i++ {
+			tickers = append(tickers, this.ParsePerpetualTicker(func() any {
+				if i >= 0 && i < len(data) {
+					return ccxt.DerefScalar(data[i])
+				}
+				return nil
+			}()))
 		}
 	}
 	for i := 0; i < len(tickers); i++ {

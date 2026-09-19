@@ -550,15 +550,20 @@ func (this *Zebpay) ParseCurrency(rawCurrency any) any {
 	var code *string = this.SafeCurrencyCode(currencyId)
 	var name *string = this.SafeString(rawCurrency, "name")
 	var precision any = this.ParseNumber(this.ParsePrecision(this.SafeString(rawCurrency, "precision")))
-	var chains any = this.SafeList(rawCurrency, "chains", []any{})
+	var chains []any = SafeListTyped(rawCurrency, "chains")
 	var networks map[string]any = map[string]any{}
 	var minWithdrawFeeString any = nil
 	var minWithdrawString any = nil
 	var minDepositString any = nil
 	var deposit any = false
 	var withdraw any = false
-	for j := 0; j < GetArrayLength(chains); j++ {
-		var chain any = GetValue(chains, j)
+	for j := 0; j < len(chains); j++ {
+		var chain any = func() any {
+			if j >= 0 && j < len(chains) {
+				return DerefScalar(chains[j])
+			}
+			return nil
+		}()
 		var networkId *string = this.SafeString(chain, "chainId")
 		var networkCode any = this.NetworkIdToCode(networkId, code)
 		var depositAllowed bool = IsEqual(this.SafeBool(chain, "isDepositEnabled"), true)
@@ -775,10 +780,15 @@ func (this *Zebpay) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	//     "customMessage": ["OK"]
 	// }
 	//
-	var fees any = this.SafeList(response, "data", []any{})
+	var fees []any = SafeListTyped(response, "data")
 	var result map[string]any = map[string]any{}
-	for i := 0; i < GetArrayLength(fees); i++ {
-		var fee any = this.ParseTradingFee(GetValue(fees, i))
+	for i := 0; i < len(fees); i++ {
+		var fee any = this.ParseTradingFee(func() any {
+			if i >= 0 && i < len(fees) {
+				return DerefScalar(fees[i])
+			}
+			return nil
+		}())
 		var symbol any = GetValue(fee, "symbol")
 		if symbol != nil {
 			AddElementToObject(result, symbol, fee)
@@ -2232,9 +2242,14 @@ func (this *Zebpay) fetchSpotMarketsBody(ch chan any, optionalArgs ...any) any {
 	//
 	var result []any = []any{}
 	var data map[string]any = SafeMapTyped(response, "data")
-	var markets any = this.SafeList(data, "symbols", []any{})
-	for i := 0; i < GetArrayLength(markets); i++ {
-		var market any = GetValue(markets, i)
+	var markets []any = SafeListTyped(data, "symbols")
+	for i := 0; i < len(markets); i++ {
+		var market any = func() any {
+			if i >= 0 && i < len(markets) {
+				return DerefScalar(markets[i])
+			}
+			return nil
+		}()
 		var id *string = this.SafeString(market, "symbol")
 		var baseId *string = this.SafeString(market, "baseAsset")
 		var quoteId *string = this.SafeString(market, "quoteAsset")
@@ -2323,9 +2338,14 @@ func (this *Zebpay) fetchSwapMarketsBody(ch chan any, optionalArgs ...any) any {
 	//
 	var result []any = []any{}
 	var data map[string]any = SafeMapTyped(response, "data")
-	var markets any = this.SafeList(data, "symbols", []any{})
-	for i := 0; i < GetArrayLength(markets); i++ {
-		var market any = GetValue(markets, i)
+	var markets []any = SafeListTyped(data, "symbols")
+	for i := 0; i < len(markets); i++ {
+		var market any = func() any {
+			if i >= 0 && i < len(markets) {
+				return DerefScalar(markets[i])
+			}
+			return nil
+		}()
 		var id *string = this.SafeString(market, "symbol")
 		var baseId *string = this.SafeString(market, "baseAsset")
 		var quoteId *string = this.SafeString(market, "quoteAsset")
@@ -2376,9 +2396,14 @@ func (this *Zebpay) ParseBalance(response any) any {
 		"timestamp": nil,
 		"datetime":  nil,
 	}
-	var currencyList any = this.SafeList(response, "data", []any{})
-	for i := 0; i < GetArrayLength(currencyList); i++ {
-		var entry any = GetValue(currencyList, i)
+	var currencyList []any = SafeListTyped(response, "data")
+	for i := 0; i < len(currencyList); i++ {
+		var entry any = func() any {
+			if i >= 0 && i < len(currencyList) {
+				return DerefScalar(currencyList[i])
+			}
+			return nil
+		}()
 		var account any = this.Account()
 		AddElementToObject(account, "total", this.SafeString(entry, "total"))
 		AddElementToObject(account, "free", this.SafeString(entry, "free"))

@@ -2250,9 +2250,14 @@ func (this *Polymarket) fetchOrderTradesBody(ch chan any, id any, optionalArgs .
 		var trade any = ccxt.GetValue(trades, i)
 		var info map[string]any = ccxt.SafeMapTyped(trade, "info")
 		var belongs bool = (ccxt.IsEqual(this.SafeString(trade, "order"), id)) || (ccxt.IsEqual(this.SafeString(info, "taker_order_id"), id))
-		var makerOrders any = this.SafeList(info, "maker_orders", []any{})
-		for j := 0; j < ccxt.GetArrayLength(makerOrders); j++ {
-			if ccxt.IsEqual(this.SafeString(ccxt.GetValue(makerOrders, j), "order_id"), id) {
+		var makerOrders []any = ccxt.SafeListTyped(info, "maker_orders")
+		for j := 0; j < len(makerOrders); j++ {
+			if ccxt.IsEqual(this.SafeString(func() any {
+				if j >= 0 && j < len(makerOrders) {
+					return ccxt.DerefScalar(makerOrders[j])
+				}
+				return nil
+			}(), "order_id"), id) {
 				belongs = true
 			}
 		}
@@ -3651,11 +3656,16 @@ func (this *Polymarket) ParseEvent(rawEvent any) any {
 	// — filterEventsByTags reads event['tags'], not event.info.tags — can actually match.
 	// prefer the human-readable label ("Fed Rates") over the slug — matching is
 	// normalized (normalizeTagKey), so the display form is free to be the friendly one
-	var rawTags any = this.SafeList(rawEvent, "tags", []any{})
-	var rawTagsLength int = ccxt.GetArrayLength(rawTags)
+	var rawTags []any = ccxt.SafeListTyped(rawEvent, "tags")
+	var rawTagsLength int = len(rawTags)
 	var parsedTags []any = []any{}
 	for ti := 0; ti < rawTagsLength; ti++ {
-		var tagLabel *string = this.SafeString2(ccxt.GetValue(rawTags, ti), "label", "slug")
+		var tagLabel *string = this.SafeString2(func() any {
+			if ti >= 0 && ti < len(rawTags) {
+				return ccxt.DerefScalar(rawTags[ti])
+			}
+			return nil
+		}(), "label", "slug")
 		if tagLabel != nil {
 			parsedTags = append(parsedTags, tagLabel)
 		}

@@ -2018,11 +2018,16 @@ func (this *Gate) HandlePositions(client any, message any) {
 	//    }
 	//
 	var typeVar any = this.GetMarketTypeByUrl(client.(ccxt.ClientInterface).GetUrl())
-	var data any = this.SafeList(message, "result", []any{})
+	var data []any = ccxt.SafeListTyped(message, "result")
 	var cache any = ccxt.GetValue(this.Positions, typeVar)
 	var newPositions []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(data); i++ {
-		var rawPosition any = ccxt.GetValue(data, i)
+	for i := 0; i < len(data); i++ {
+		var rawPosition any = func() any {
+			if i >= 0 && i < len(data) {
+				return ccxt.DerefScalar(data[i])
+			}
+			return nil
+		}()
 		var position any = this.ParsePosition(rawPosition)
 		var symbol *string = this.SafeString(position, "symbol")
 		var side *string = this.SafeString(position, "side")
@@ -2439,15 +2444,20 @@ func (this *Gate) HandleLiquidation(client any, message any) {
 	//        ]
 	//    }
 	//
-	var rawLiquidations any = this.SafeList(message, "result", []any{})
+	var rawLiquidations []any = ccxt.SafeListTyped(message, "result")
 	var newLiquidations []any = []any{}
 	if ccxt.IsEqual(this.Liquidations, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "liquidationsLimit", 1000)
 		this.Liquidations = ccxt.NewArrayCache(limit)
 	}
 	var cache any = this.Liquidations
-	for i := 0; i < ccxt.GetArrayLength(rawLiquidations); i++ {
-		var rawLiquidation any = ccxt.GetValue(rawLiquidations, i)
+	for i := 0; i < len(rawLiquidations); i++ {
+		var rawLiquidation any = func() any {
+			if i >= 0 && i < len(rawLiquidations) {
+				return ccxt.DerefScalar(rawLiquidations[i])
+			}
+			return nil
+		}()
 		var liquidation any = this.ParseWsLiquidation(rawLiquidation)
 		cache.(ccxt.Appender).Append(liquidation)
 		var symbol *string = this.SafeString(liquidation, "symbol")
@@ -2587,15 +2597,20 @@ func (this *Gate) HandleErrorMessage(client any, message any) any {
 								return strings.Index(*channel, ".")
 							}() > 0) {
 								var parsedChannel []string = ccxt.Split(channel, ".")
-								var payload any = this.SafeList(message, "payload", []any{})
-								for i := 0; i < ccxt.GetArrayLength(payload); i++ {
+								var payload []any = ccxt.SafeListTyped(message, "payload")
+								for i := 0; i < len(payload); i++ {
 									var marketType any = func() any {
 										if ccxt.GetValue(parsedChannel, 0) == "futures" {
 											return "swap"
 										}
 										return ccxt.GetValue(parsedChannel, 0)
 									}()
-									var symbol *string = this.SafeSymbol(ccxt.GetValue(payload, i), nil, "_", marketType)
+									var symbol *string = this.SafeSymbol(func() any {
+										if i >= 0 && i < len(payload) {
+											return ccxt.DerefScalar(payload[i])
+										}
+										return nil
+									}(), nil, "_", marketType)
 									var messageHashSymbol any = ccxt.Add(ccxt.Add(ccxt.GetValue(parsedChannel, 1), ":"), symbol)
 									if (messageHashSymbol != nil) && (ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHashSymbol)) {
 										ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHashSymbol)
@@ -2695,11 +2710,21 @@ func (this *Gate) HandleUnSubscribe(client any, message any) {
 			if id != subId && (id == nil || subId == nil || *id != *subId) {
 				continue
 			}
-			var messageHashes any = this.SafeList(subscription, "messageHashes", []any{})
-			var subMessageHashes any = this.SafeList(subscription, "subMessageHashes", []any{})
-			for j := 0; j < ccxt.GetArrayLength(messageHashes); j++ {
-				var unsubHash any = ccxt.GetValue(messageHashes, j)
-				var subHash any = ccxt.GetValue(subMessageHashes, j)
+			var messageHashes []any = ccxt.SafeListTyped(subscription, "messageHashes")
+			var subMessageHashes []any = ccxt.SafeListTyped(subscription, "subMessageHashes")
+			for j := 0; j < len(messageHashes); j++ {
+				var unsubHash any = func() any {
+					if j >= 0 && j < len(messageHashes) {
+						return ccxt.DerefScalar(messageHashes[j])
+					}
+					return nil
+				}()
+				var subHash any = func() any {
+					if j >= 0 && j < len(subMessageHashes) {
+						return ccxt.DerefScalar(subMessageHashes[j])
+					}
+					return nil
+				}()
 				this.CleanUnsubscription(ccxt.AsClient(client), subHash, unsubHash)
 			}
 			this.CleanCache(subscription)

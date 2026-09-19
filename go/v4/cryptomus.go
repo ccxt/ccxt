@@ -1105,10 +1105,15 @@ func (this *Cryptomus) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArg
 	//         ]
 	//     }
 	//
-	var result any = this.SafeList(response, "result", []any{})
+	var result []any = SafeListTyped(response, "result")
 	var orders []any = []any{}
-	for i := 0; i < GetArrayLength(result); i++ {
-		var order any = GetValue(result, i)
+	for i := 0; i < len(result); i++ {
+		var order any = func() any {
+			if i >= 0 && i < len(result) {
+				return DerefScalar(result[i])
+			}
+			return nil
+		}()
 		orders = append(orders, this.ParseOrder(order, market))
 	}
 

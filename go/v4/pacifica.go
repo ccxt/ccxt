@@ -1113,9 +1113,14 @@ func (this *Pacifica) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	AddElementToObject(usdcAccount, "total", this.SafeString(data, "balance"))
 	AddElementToObject(usdcAccount, "used", this.SafeString(data, "total_margin_used"))
 	result["USDC"] = usdcAccount
-	var spotBalances any = this.SafeList(data, "spot_balances", []any{})
-	for i := 0; i < GetArrayLength(spotBalances); i++ {
-		var balance any = GetValue(spotBalances, i)
+	var spotBalances []any = SafeListTyped(data, "spot_balances")
+	for i := 0; i < len(spotBalances); i++ {
+		var balance any = func() any {
+			if i >= 0 && i < len(spotBalances) {
+				return DerefScalar(spotBalances[i])
+			}
+			return nil
+		}()
 		var currencyId *string = this.SafeString(balance, "symbol")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()
@@ -2298,10 +2303,15 @@ func (this *Pacifica) createOrdersBody(ch chan any, orders any, optionalArgs ...
 	// }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var results any = this.SafeList(data, "results", []any{})
+	var results []any = SafeListTyped(data, "results")
 	var ordersToReturn []any = []any{}
-	for i := 0; i < GetArrayLength(results); i++ {
-		var order any = GetValue(results, i)
+	for i := 0; i < len(results); i++ {
+		var order any = func() any {
+			if i >= 0 && i < len(results) {
+				return DerefScalar(results[i])
+			}
+			return nil
+		}()
 		var error *string = this.SafeString(order, "error")
 		var success *bool = this.SafeBool(order, "success", false)
 		var status string
@@ -2382,10 +2392,15 @@ func (this *Pacifica) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any
 	// }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var results any = this.SafeList(data, "results", []any{})
+	var results []any = SafeListTyped(data, "results")
 	var ordersToReturn []any = []any{}
-	for i := 0; i < GetArrayLength(results); i++ {
-		var order any = GetValue(results, i)
+	for i := 0; i < len(results); i++ {
+		var order any = func() any {
+			if i >= 0 && i < len(results) {
+				return DerefScalar(results[i])
+			}
+			return nil
+		}()
 		var error *string = this.SafeString(order, "error")
 		var success *bool = this.SafeBool(order, "success", false)
 		var status string
@@ -2419,10 +2434,15 @@ func (this *Pacifica) CancelOrdersRequest(ids any, optionalArgs ...any) any {
 		}
 		actions = append(actions, action)
 	}
-	var clientOrderIds any = this.SafeList(params, "clientOrderIds", []any{})
+	var clientOrderIds []any = SafeListTyped(params, "clientOrderIds")
 	params = this.Omit(params, "clientOrderIds")
-	for i := 0; i < GetArrayLength(clientOrderIds); i++ {
-		var cloid any = GetValue(clientOrderIds, i)
+	for i := 0; i < len(clientOrderIds); i++ {
+		var cloid any = func() any {
+			if i >= 0 && i < len(clientOrderIds) {
+				return DerefScalar(clientOrderIds[i])
+			}
+			return nil
+		}()
 		var cloidParams map[string]any = map[string]any{
 			"clientOrderId": cloid,
 		}
@@ -2846,10 +2866,15 @@ func (this *Pacifica) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	//   "code": null
 	// }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var result map[string]any = map[string]any{}
-	for i := 0; i < GetArrayLength(data); i++ {
-		var info any = GetValue(data, i)
+	for i := 0; i < len(data); i++ {
+		var info any = func() any {
+			if i >= 0 && i < len(data) {
+				return DerefScalar(data[i])
+			}
+			return nil
+		}()
 		var ticker any = this.ParseTicker(info)
 		var symbol *string = this.SafeString(ticker, "symbol")
 		if symbol != nil {
@@ -3569,10 +3594,15 @@ func (this *Pacifica) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	//   "code": null,
 	//   "last_order_id": 1557431179
 	// }
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(data); i++ {
-		result = append(result, this.ParsePosition(GetValue(data, i), nil))
+	for i := 0; i < len(data); i++ {
+		result = append(result, this.ParsePosition(func() any {
+			if i >= 0 && i < len(data) {
+				return DerefScalar(data[i])
+			}
+			return nil
+		}(), nil))
 	}
 
 	ch <- this.FilterByArrayPositions(result, "symbol", symbols, false)

@@ -835,20 +835,35 @@ func (this *Onetrading) HandleOrders(client any, message any) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var rawOrders any = this.SafeList(message, "orders", []any{})
-	var rawOrdersLength int = ccxt.GetArrayLength(rawOrders)
+	var rawOrders []any = ccxt.SafeListTyped(message, "orders")
+	var rawOrdersLength int = len(rawOrders)
 	if rawOrdersLength == 0 {
 		return
 	}
 	var orders any = this.Orders
-	for i := 0; i < ccxt.GetArrayLength(rawOrders); i++ {
-		var order any = this.ParseOrder(ccxt.GetValue(rawOrders, i))
+	for i := 0; i < len(rawOrders); i++ {
+		var order any = this.ParseOrder(func() any {
+			if i >= 0 && i < len(rawOrders) {
+				return ccxt.DerefScalar(rawOrders[i])
+			}
+			return nil
+		}())
 		var symbol *string = this.SafeString(order, "symbol", "")
 		orders.(ccxt.Appender).Append(order)
 		client.(ccxt.ClientInterface).Resolve(this.Orders, "orders:"+*symbol)
-		var rawTrades any = this.SafeList(ccxt.GetValue(rawOrders, i), "trades", []any{})
-		for ii := 0; ii < ccxt.GetArrayLength(rawTrades); ii++ {
-			var trade any = this.ParseTrade(ccxt.GetValue(rawTrades, ii))
+		var rawTrades []any = ccxt.SafeListTyped(func() any {
+			if i >= 0 && i < len(rawOrders) {
+				return ccxt.DerefScalar(rawOrders[i])
+			}
+			return nil
+		}(), "trades")
+		for ii := 0; ii < len(rawTrades); ii++ {
+			var trade any = this.ParseTrade(func() any {
+				if ii >= 0 && ii < len(rawTrades) {
+					return ccxt.DerefScalar(rawTrades[ii])
+				}
+				return nil
+			}())
 			symbol = this.SafeString(trade, "symbol", symbol)
 			this.MyTrades.(ccxt.Appender).Append(trade)
 			client.(ccxt.ClientInterface).Resolve(this.MyTrades, "myTrades:"+*symbol)

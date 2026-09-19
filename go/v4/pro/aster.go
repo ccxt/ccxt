@@ -2002,10 +2002,15 @@ func (this *Aster) HandleBalance(client any, message any) {
 	}
 	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, accountType), "info", message)
 	message = this.SafeDict(message, "a", message)
-	var B any = this.SafeList(message, "B", []any{})
+	var B []any = ccxt.SafeListTyped(message, "B")
 	var wallet *string = this.SafeString(this.Options, "wallet", "wb")
-	for i := 0; i < ccxt.GetArrayLength(B); i++ {
-		var entry any = ccxt.GetValue(B, i)
+	for i := 0; i < len(B); i++ {
+		var entry any = func() any {
+			if i >= 0 && i < len(B) {
+				return ccxt.DerefScalar(B[i])
+			}
+			return nil
+		}()
 		var currencyId *string = this.SafeString(entry, "a")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()
@@ -2177,10 +2182,15 @@ func (this *Aster) HandlePositions(client any, message any) {
 	}
 	var cache any = this.Positions
 	var data map[string]any = ccxt.SafeMapTyped(message, "a")
-	var rawPositions any = this.SafeList(data, "P", []any{})
+	var rawPositions []any = ccxt.SafeListTyped(data, "P")
 	var newPositions []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(rawPositions); i++ {
-		var rawPosition any = ccxt.GetValue(rawPositions, i)
+	for i := 0; i < len(rawPositions); i++ {
+		var rawPosition any = func() any {
+			if i >= 0 && i < len(rawPositions) {
+				return ccxt.DerefScalar(rawPositions[i])
+			}
+			return nil
+		}()
 		var position any = this.ParseWsPosition(rawPosition)
 		var timestamp *int64 = this.SafeInteger(message, "E")
 		ccxt.AddElementToObject(position, "timestamp", timestamp)

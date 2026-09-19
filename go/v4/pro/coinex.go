@@ -162,10 +162,15 @@ func (this *Coinex) HandleTicker(client any, message any) {
 	//
 	var defaultType *string = this.SafeString(this.Options, "defaultType")
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
-	var rawTickers any = this.SafeList(data, "state_list", []any{})
+	var rawTickers []any = ccxt.SafeListTyped(data, "state_list")
 	var newTickers map[string]any = map[string]any{}
-	for i := 0; i < ccxt.GetArrayLength(rawTickers); i++ {
-		var entry any = ccxt.GetValue(rawTickers, i)
+	for i := 0; i < len(rawTickers); i++ {
+		var entry any = func() any {
+			if i >= 0 && i < len(rawTickers) {
+				return ccxt.DerefScalar(rawTickers[i])
+			}
+			return nil
+		}()
 		var marketId *string = this.SafeString(entry, "market")
 		var symbol *string = this.SafeSymbol(marketId, nil, nil, defaultType)
 		var market any = this.SafeMarket(marketId, nil, nil, defaultType)

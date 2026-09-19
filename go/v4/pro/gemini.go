@@ -404,7 +404,7 @@ func (this *Gemini) HandleOHLCV(client any, message any) any {
 	var marketId string = ccxt.ToLower(this.SafeString(message, "symbol", ""))
 	var market any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeSymbol(marketId, market)
-	var changes any = this.SafeList(message, "changes", []any{})
+	var changes []any = ccxt.SafeListTyped(message, "changes")
 	var timeframe any = this.FindTimeframe(timeframeId)
 	var ohlcvsBySymbol any = this.SafeDict(this.Ohlcvs, symbol)
 	if ccxt.IsEqual(ohlcvsBySymbol, nil) {
@@ -418,7 +418,7 @@ func (this *Gemini) HandleOHLCV(client any, message any) any {
 			ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, stored)
 		}
 	}
-	var changesLength int = ccxt.GetArrayLength(changes)
+	var changesLength int = len(changes)
 	// reverse order of array to store candles in ascending order
 	for i := 0; i < changesLength; i++ {
 		var index any = ccxt.Subtract(ccxt.Subtract(changesLength, i), 1)
@@ -481,7 +481,7 @@ func (this *Gemini) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 }
 func (this *Gemini) HandleOrderBook(client any, message any) {
 	var isInitial bool = (ccxt.InOp(message, "auction_events")) && (ccxt.InOp(message, "trades")) && (ccxt.InOp(message, "changes"))
-	var changes any = this.SafeList(message, "changes", []any{})
+	var changes []any = ccxt.SafeListTyped(message, "changes")
 	var marketId *string = this.SafeStringLower(message, "symbol")
 	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
 	var symbol any = market["symbol"]
@@ -497,8 +497,13 @@ func (this *Gemini) HandleOrderBook(client any, message any) {
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook())
 	}
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
-	for i := 0; i < ccxt.GetArrayLength(changes); i++ {
-		var delta any = ccxt.GetValue(changes, i)
+	for i := 0; i < len(changes); i++ {
+		var delta any = func() any {
+			if i >= 0 && i < len(changes) {
+				return ccxt.DerefScalar(changes[i])
+			}
+			return nil
+		}()
 		var price *float64 = this.SafeNumber(delta, 1)
 		var size *float64 = this.SafeNumber(delta, 2)
 		var side string = func() string {

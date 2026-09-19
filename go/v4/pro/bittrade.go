@@ -225,7 +225,7 @@ func (this *Bittrade) HandleTrades(client any, message any) any {
 	//     }
 	//
 	var tick map[string]any = ccxt.SafeMapTyped(message, "tick")
-	var data any = this.SafeList(tick, "data", []any{})
+	var data []any = ccxt.SafeListTyped(tick, "data")
 	var ch *string = this.SafeString(message, "ch")
 	if ch == nil {
 		return message
@@ -240,8 +240,13 @@ func (this *Bittrade) HandleTrades(client any, message any) any {
 		tradesCache = ccxt.NewArrayCache(limit)
 		ccxt.AddElementToObject(this.Trades, symbol, tradesCache)
 	}
-	for i := 0; i < ccxt.GetArrayLength(data); i++ {
-		var trade any = this.ParseTrade(ccxt.GetValue(data, i), market)
+	for i := 0; i < len(data); i++ {
+		var trade any = this.ParseTrade(func() any {
+			if i >= 0 && i < len(data) {
+				return ccxt.DerefScalar(data[i])
+			}
+			return nil
+		}(), market)
 		tradesCache.(ccxt.Appender).Append(trade)
 	}
 	client.(ccxt.ClientInterface).Resolve(tradesCache, ch)

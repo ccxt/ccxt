@@ -357,13 +357,23 @@ func (this *Woofipro) HandleTickers(client any, message any) {
 	//     }
 	//
 	var topic *string = this.SafeString(message, "topic")
-	var data any = this.SafeList(message, "data", []any{})
+	var data []any = ccxt.SafeListTyped(message, "data")
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	var result []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(data); i++ {
-		var marketId *string = this.SafeString(ccxt.GetValue(data, i), "symbol")
+	for i := 0; i < len(data); i++ {
+		var marketId *string = this.SafeString(func() any {
+			if i >= 0 && i < len(data) {
+				return ccxt.DerefScalar(data[i])
+			}
+			return nil
+		}(), "symbol")
 		var market any = this.SafeMarket(marketId)
-		var ticker any = this.ParseWsTicker(this.Extend(ccxt.GetValue(data, i), map[string]any{
+		var ticker any = this.ParseWsTicker(this.Extend(func() any {
+			if i >= 0 && i < len(data) {
+				return ccxt.DerefScalar(data[i])
+			}
+			return nil
+		}(), map[string]any{
 			"date": timestamp,
 		}), market)
 		ccxt.AddElementToObject(this.Tickers, ccxt.GetValue(market, "symbol"), ticker)
@@ -430,11 +440,16 @@ func (this *Woofipro) HandleBidAsk(client any, message any) {
 	//     }
 	//
 	var topic *string = this.SafeString(message, "topic")
-	var data any = this.SafeList(message, "data", []any{})
+	var data []any = ccxt.SafeListTyped(message, "data")
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	var result []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(data); i++ {
-		var ticker any = this.ParseWsBidAsk(this.Extend(ccxt.GetValue(data, i), map[string]any{
+	for i := 0; i < len(data); i++ {
+		var ticker any = this.ParseWsBidAsk(this.Extend(func() any {
+			if i >= 0 && i < len(data) {
+				return ccxt.DerefScalar(data[i])
+			}
+			return nil
+		}(), map[string]any{
 			"ts": timestamp,
 		}))
 		if !ccxt.IsEqual(ccxt.GetValue(ticker, "symbol"), nil) {
@@ -1365,14 +1380,19 @@ func (this *Woofipro) HandlePositions(client any, message any) {
 	//    }
 	//
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
-	var rawPositions any = this.SafeList(data, "positions", []any{})
+	var rawPositions []any = ccxt.SafeListTyped(data, "positions")
 	if ccxt.IsEqual(this.Positions, nil) {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
 	var cache any = this.Positions
 	var newPositions []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(rawPositions); i++ {
-		var rawPosition any = ccxt.GetValue(rawPositions, i)
+	for i := 0; i < len(rawPositions); i++ {
+		var rawPosition any = func() any {
+			if i >= 0 && i < len(rawPositions) {
+				return ccxt.DerefScalar(rawPositions[i])
+			}
+			return nil
+		}()
 		var marketId *string = this.SafeString(rawPosition, "symbol")
 		var market any = this.SafeMarket(marketId)
 		var position any = this.ParseWsPosition(rawPosition, market)

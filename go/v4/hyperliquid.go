@@ -583,10 +583,15 @@ func (this *Hyperliquid) fetchMarketsBody(ch chan any, optionalArgs ...any) any 
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	var options any = this.SafeDict(this.Options, "fetchMarkets", map[string]any{})
-	var types any = this.SafeList(options, "types", []any{})
+	var types []any = SafeListTyped(options, "types")
 	var rawPromises []any = []any{}
-	for i := 0; i < GetArrayLength(types); i++ {
-		var marketType any = GetValue(types, i)
+	for i := 0; i < len(types); i++ {
+		var marketType any = func() any {
+			if i >= 0 && i < len(types) {
+				return DerefScalar(types[i])
+			}
+			return nil
+		}()
 		if IsEqual(marketType, "swap") {
 			rawPromises = append(rawPromises, this.FetchSwapMarketsAsync(params))
 		} else if IsEqual(marketType, "spot") {
@@ -2796,10 +2801,15 @@ func (this *Hyperliquid) createOrdersBody(ch chan any, orders any, optionalArgs 
 	//
 	var responseObj map[string]any = SafeMapTyped(response, "response")
 	var data map[string]any = SafeMapTyped(responseObj, "data")
-	var statuses any = this.SafeList(data, "statuses", []any{})
+	var statuses []any = SafeListTyped(data, "statuses")
 	var ordersToBeParsed []any = []any{}
-	for i := 0; i < GetArrayLength(statuses); i++ {
-		var order any = GetValue(statuses, i)
+	for i := 0; i < len(statuses); i++ {
+		var order any = func() any {
+			if i >= 0 && i < len(statuses) {
+				return DerefScalar(statuses[i])
+			}
+			return nil
+		}()
 		if IsEqual(order, "waitingForTrigger") {
 			ordersToBeParsed = append(ordersToBeParsed, map[string]any{
 				"status": order,
@@ -3135,10 +3145,15 @@ func (this *Hyperliquid) cancelOrdersBody(ch chan any, ids any, optionalArgs ...
 	//
 	var innerResponse map[string]any = SafeMapTyped(response, "response")
 	var data map[string]any = SafeMapTyped(innerResponse, "data")
-	var statuses any = this.SafeList(data, "statuses", []any{})
+	var statuses []any = SafeListTyped(data, "statuses")
 	var orders []any = []any{}
-	for i := 0; i < GetArrayLength(statuses); i++ {
-		var status any = GetValue(statuses, i)
+	for i := 0; i < len(statuses); i++ {
+		var status any = func() any {
+			if i >= 0 && i < len(statuses) {
+				return DerefScalar(statuses[i])
+			}
+			return nil
+		}()
 		orders = append(orders, this.SafeOrder(map[string]any{
 			"info":   status,
 			"status": status,
@@ -4858,10 +4873,15 @@ func (this *Hyperliquid) fetchPositionsBody(ch chan any, optionalArgs ...any) an
 	//         "withdrawable": "100.0"
 	//     }
 	//
-	var data any = this.SafeList(response, "assetPositions", []any{})
+	var data []any = SafeListTyped(response, "assetPositions")
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(data); i++ {
-		result = append(result, this.ParsePosition(GetValue(data, i)))
+	for i := 0; i < len(data); i++ {
+		result = append(result, this.ParsePosition(func() any {
+			if i >= 0 && i < len(data) {
+				return DerefScalar(data[i])
+			}
+			return nil
+		}()))
 	}
 
 	ch <- this.FilterByArrayPositions(result, "symbol", symbols, false)
@@ -6391,9 +6411,14 @@ func (this *Hyperliquid) HandleErrors(code any, reason any, url any, method any,
 	} else {
 		var responsePayload map[string]any = SafeMapTyped(response, "response")
 		var data map[string]any = SafeMapTyped(responsePayload, "data")
-		var statuses any = this.SafeList(data, "statuses", []any{})
-		for i := 0; i < GetArrayLength(statuses); i++ {
-			message = DerefScalar(this.SafeString(GetValue(statuses, i), "error"))
+		var statuses []any = SafeListTyped(data, "statuses")
+		for i := 0; i < len(statuses); i++ {
+			message = DerefScalar(this.SafeString(func() any {
+				if i >= 0 && i < len(statuses) {
+					return DerefScalar(statuses[i])
+				}
+				return nil
+			}(), "error"))
 			if !IsEqual(message, nil) {
 				break
 			}

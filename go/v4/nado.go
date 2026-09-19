@@ -860,12 +860,17 @@ func (this *Nado) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(response)
 	}
 	var data map[string]any = SafeMapTyped(response, "data")
-	var cancelledOrders any = this.SafeList(data, "cancelled_orders", []any{})
+	var cancelledOrders []any = SafeListTyped(data, "cancelled_orders")
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(cancelledOrders); i++ {
+	for i := 0; i < len(cancelledOrders); i++ {
 		result = append(result, this.ParseOrder(this.Extend(map[string]any{
 			"status": "canceled",
-		}, GetValue(cancelledOrders, i)), market))
+		}, func() any {
+			if i >= 0 && i < len(cancelledOrders) {
+				return DerefScalar(cancelledOrders[i])
+			}
+			return nil
+		}()), market))
 	}
 
 	ch <- result
@@ -989,12 +994,17 @@ func (this *Nado) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) an
 		PanicOnError(response)
 	}
 	var data map[string]any = SafeMapTyped(response, "data")
-	var cancelledOrders any = this.SafeList(data, "cancelled_orders", []any{})
+	var cancelledOrders []any = SafeListTyped(data, "cancelled_orders")
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(cancelledOrders); i++ {
+	for i := 0; i < len(cancelledOrders); i++ {
 		result = append(result, this.ParseOrder(this.Extend(map[string]any{
 			"status": "canceled",
-		}, GetValue(cancelledOrders, i)), market))
+		}, func() any {
+			if i >= 0 && i < len(cancelledOrders) {
+				return DerefScalar(cancelledOrders[i])
+			}
+			return nil
+		}()), market))
 	}
 
 	ch <- result
@@ -1443,9 +1453,14 @@ func (this *Nado) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var closedOrders []any = []any{}
-	var orders any = this.SafeList(response, "orders", []any{})
-	for i := 0; i < GetArrayLength(orders); i++ {
-		var order any = GetValue(orders, i)
+	var orders []any = SafeListTyped(response, "orders")
+	for i := 0; i < len(orders); i++ {
+		var order any = func() any {
+			if i >= 0 && i < len(orders) {
+				return DerefScalar(orders[i])
+			}
+			return nil
+		}()
 		if EvalTruthy(this.IsArchiveOrderClosed(order)) {
 			closedOrders = append(closedOrders, this.Extend(map[string]any{
 				"status": "closed",
@@ -1620,12 +1635,17 @@ func (this *Nado) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	var matches any = this.SafeList(response, "matches", []any{})
+	var matches []any = SafeListTyped(response, "matches")
 	var txs any = this.SafeList(response, "txs", []any{})
 	var txsBySubmission map[string]any = this.IndexBy(txs, "submission_idx")
 	var trades []any = []any{}
-	for i := 0; i < GetArrayLength(matches); i++ {
-		var match any = GetValue(matches, i)
+	for i := 0; i < len(matches); i++ {
+		var match any = func() any {
+			if i >= 0 && i < len(matches) {
+				return DerefScalar(matches[i])
+			}
+			return nil
+		}()
 		var submissionIdx *string = this.SafeString(match, "submission_idx")
 		var tx any = this.SafeDict(txsBySubmission, submissionIdx, map[string]any{})
 		trades = append(trades, this.Extend(tx, match))
@@ -1853,15 +1873,25 @@ func (this *Nado) queryTransactionsByEventTypeBody(ch chan any, eventType any, t
 	//         ]
 	//     }
 	//
-	var events any = this.SafeList(response, "events", []any{})
-	var txs any = this.SafeList(response, "txs", []any{})
+	var events []any = SafeListTyped(response, "events")
+	var txs []any = SafeListTyped(response, "txs")
 	var transactions []any = []any{}
-	for i := 0; i < GetArrayLength(events); i++ {
-		var event any = GetValue(events, i)
+	for i := 0; i < len(events); i++ {
+		var event any = func() any {
+			if i >= 0 && i < len(events) {
+				return DerefScalar(events[i])
+			}
+			return nil
+		}()
 		var submissionIdx *string = this.SafeString(event, "submission_idx")
 		var tx any = map[string]any{}
-		for j := 0; j < GetArrayLength(txs); j++ {
-			var rawTx any = GetValue(txs, j)
+		for j := 0; j < len(txs); j++ {
+			var rawTx any = func() any {
+				if j >= 0 && j < len(txs) {
+					return DerefScalar(txs[j])
+				}
+				return nil
+			}()
 			var txSubmissionIdx *string = this.SafeString(rawTx, "submission_idx")
 			if txSubmissionIdx == submissionIdx || (txSubmissionIdx != nil && submissionIdx != nil && *txSubmissionIdx == *submissionIdx) {
 				tx = rawTx
@@ -1946,11 +1976,16 @@ func (this *Nado) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var positions any = this.SafeList(data, "perp_balances", []any{})
-	var products any = this.SafeList(data, "perp_products", []any{})
+	var positions []any = SafeListTyped(data, "perp_balances")
+	var products []any = SafeListTyped(data, "perp_products")
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(positions); i++ {
-		var position any = GetValue(positions, i)
+	for i := 0; i < len(positions); i++ {
+		var position any = func() any {
+			if i >= 0 && i < len(positions) {
+				return DerefScalar(positions[i])
+			}
+			return nil
+		}()
 		var balance map[string]any = SafeMapTyped(position, "balance")
 		var amount *string = this.SafeString(balance, "amount")
 		if (amount == nil) || Precise.StringEquals(amount, "0") {
@@ -1958,8 +1993,13 @@ func (this *Nado) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		}
 		var productId *string = this.SafeString(position, "product_id")
 		var product any = map[string]any{}
-		for j := 0; j < GetArrayLength(products); j++ {
-			var rawProduct any = GetValue(products, j)
+		for j := 0; j < len(products); j++ {
+			var rawProduct any = func() any {
+				if j >= 0 && j < len(products) {
+					return DerefScalar(products[j])
+				}
+				return nil
+			}()
 			var rawProductId *string = this.SafeString(rawProduct, "product_id")
 			if rawProductId == productId || (rawProductId != nil && productId != nil && *rawProductId == *productId) {
 				product = rawProduct
@@ -2086,30 +2126,45 @@ func (this *Nado) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 
 	responses := (<-promiseAll([]any{symbolsRequest, pairsRequest, assetsRequest}))
 	PanicOnError(responses)
-	var symbols any = this.SafeList(responses, 0, []any{})
-	var pairs any = this.SafeList(responses, 1, []any{})
-	var assets any = this.SafeList(responses, 2, []any{})
+	var symbols []any = SafeListTyped(responses, 0)
+	var pairs []any = SafeListTyped(responses, 1)
+	var assets []any = SafeListTyped(responses, 2)
 	// product_id is a JSON number: JS object keys are always strings but a Python
 	// dict keeps int keys, so indexBy would never match the safeString lookups below
 	var pairsById map[string]any = map[string]any{}
-	for i := 0; i < GetArrayLength(pairs); i++ {
-		var rawPair any = GetValue(pairs, i)
+	for i := 0; i < len(pairs); i++ {
+		var rawPair any = func() any {
+			if i >= 0 && i < len(pairs) {
+				return DerefScalar(pairs[i])
+			}
+			return nil
+		}()
 		var pairProductId *string = this.SafeString(rawPair, "product_id")
 		if pairProductId != nil {
 			AddElementToObject(pairsById, pairProductId, rawPair)
 		}
 	}
 	var assetsById map[string]any = map[string]any{}
-	for i := 0; i < GetArrayLength(assets); i++ {
-		var rawAsset any = GetValue(assets, i)
+	for i := 0; i < len(assets); i++ {
+		var rawAsset any = func() any {
+			if i >= 0 && i < len(assets) {
+				return DerefScalar(assets[i])
+			}
+			return nil
+		}()
 		var assetProductId *string = this.SafeString(rawAsset, "product_id")
 		if assetProductId != nil {
 			AddElementToObject(assetsById, assetProductId, rawAsset)
 		}
 	}
 	var assetsByCode map[string]any = map[string]any{}
-	for i := 0; i < GetArrayLength(assets); i++ {
-		var rawAsset any = GetValue(assets, i)
+	for i := 0; i < len(assets); i++ {
+		var rawAsset any = func() any {
+			if i >= 0 && i < len(assets) {
+				return DerefScalar(assets[i])
+			}
+			return nil
+		}()
 		var assetSymbol *string = this.SafeString(rawAsset, "symbol")
 		var assetCode *string = this.SafeCurrencyCode(this.RemoveMarketSuffix(assetSymbol))
 		if assetCode == nil {
@@ -2129,8 +2184,13 @@ func (this *Nado) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 	var markets []any = []any{}
-	for i := 0; i < GetArrayLength(symbols); i++ {
-		var market any = GetValue(symbols, i)
+	for i := 0; i < len(symbols); i++ {
+		var market any = func() any {
+			if i >= 0 && i < len(symbols) {
+				return DerefScalar(symbols[i])
+			}
+			return nil
+		}()
 		var id *string = this.SafeString(market, "product_id")
 		var pair any = this.SafeDict(pairsById, id, map[string]any{})
 		var asset any = this.SafeDict(assetsById, id, map[string]any{})
@@ -2522,10 +2582,15 @@ func (this *Nado) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 	//         "next_idx": "1314805"
 	//     }
 	//
-	var fundingPayments any = this.SafeList(response, "funding_payments", []any{})
+	var fundingPayments []any = SafeListTyped(response, "funding_payments")
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(fundingPayments); i++ {
-		result = append(result, this.ParseFundingHistory(GetValue(fundingPayments, i), market))
+	for i := 0; i < len(fundingPayments); i++ {
+		result = append(result, this.ParseFundingHistory(func() any {
+			if i >= 0 && i < len(fundingPayments) {
+				return DerefScalar(fundingPayments[i])
+			}
+			return nil
+		}(), market))
 	}
 	var sorted []any = this.SortBy(result, "timestamp")
 
@@ -3238,9 +3303,14 @@ func (this *Nado) ParseBalance(response any) any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	var balances any = this.SafeList(response, "spot_balances", []any{})
-	for i := 0; i < GetArrayLength(balances); i++ {
-		var rawBalance any = GetValue(balances, i)
+	var balances []any = SafeListTyped(response, "spot_balances")
+	for i := 0; i < len(balances); i++ {
+		var rawBalance any = func() any {
+			if i >= 0 && i < len(balances) {
+				return DerefScalar(balances[i])
+			}
+			return nil
+		}()
 		var currencyId *string = this.SafeString(rawBalance, "product_id")
 		var code any = DerefScalar(this.SafeCurrencyCode(currencyId))
 		if IsEqual(code, "0") {

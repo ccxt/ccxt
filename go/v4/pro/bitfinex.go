@@ -1247,11 +1247,21 @@ func (this *Bitfinex) HandleUnsubscriptionStatus(client any, message any) any {
 	var subMessageHash *string = this.SafeString(client.(ccxt.ClientInterface).GetSubscriptions(), unSubChannel)
 	var subscription any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), ccxt.Add("unsubscribe:", subMessageHash))
 	ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), unSubChannel)
-	var messageHashes any = this.SafeList(subscription, "messageHashes", []any{})
-	var subMessageHashes any = this.SafeList(subscription, "subMessageHashes", []any{})
-	for i := 0; i < ccxt.GetArrayLength(messageHashes); i++ {
-		var messageHash any = ccxt.GetValue(messageHashes, i)
-		var subHash any = ccxt.GetValue(subMessageHashes, i)
+	var messageHashes []any = ccxt.SafeListTyped(subscription, "messageHashes")
+	var subMessageHashes []any = ccxt.SafeListTyped(subscription, "subMessageHashes")
+	for i := 0; i < len(messageHashes); i++ {
+		var messageHash any = func() any {
+			if i >= 0 && i < len(messageHashes) {
+				return ccxt.DerefScalar(messageHashes[i])
+			}
+			return nil
+		}()
+		var subHash any = func() any {
+			if i >= 0 && i < len(subMessageHashes) {
+				return ccxt.DerefScalar(subMessageHashes[i])
+			}
+			return nil
+		}()
 		this.CleanUnsubscription(ccxt.AsClient(client), subHash, messageHash)
 	}
 	this.CleanCache(subscription)

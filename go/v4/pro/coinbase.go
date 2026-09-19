@@ -593,12 +593,17 @@ func (this *Coinbase) HandleTickers(client any, message any) {
 	//
 	//
 	var channel *string = this.SafeString(message, "channel")
-	var events any = this.SafeList(message, "events", []any{})
+	var events []any = ccxt.SafeListTyped(message, "events")
 	var datetime *string = this.SafeString(message, "timestamp")
 	var timestamp *int64 = this.Parse8601(datetime)
 	var newTickers []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(events); i++ {
-		var tickersObj any = ccxt.GetValue(events, i)
+	for i := 0; i < len(events); i++ {
+		var tickersObj any = func() any {
+			if i >= 0 && i < len(events) {
+				return ccxt.DerefScalar(events[i])
+			}
+			return nil
+		}()
 		var tickers any = this.SafeList(tickersObj, "tickers", []any{})
 		for j := 0; j < ccxt.GetArrayLength(tickers); j++ {
 			var ticker any = ccxt.GetValue(tickers, j)
@@ -1282,11 +1287,21 @@ func (this *Coinbase) HandleSubscriptionStatus(client any, message any) any {
 	var subKeysLength int = len(subKeys)
 	if isUnsub && (subKeysLength == 0) {
 		var unSubObject any = this.SafeDict(this.Options, "unSubscription", map[string]any{})
-		var messageHashes any = this.SafeList(unSubObject, "messageHashes", []any{})
-		var subMessageHashes any = this.SafeList(unSubObject, "subMessageHashes", []any{})
-		for i := 0; i < ccxt.GetArrayLength(messageHashes); i++ {
-			var messageHash any = ccxt.GetValue(messageHashes, i)
-			var subHash any = ccxt.GetValue(subMessageHashes, i)
+		var messageHashes []any = ccxt.SafeListTyped(unSubObject, "messageHashes")
+		var subMessageHashes []any = ccxt.SafeListTyped(unSubObject, "subMessageHashes")
+		for i := 0; i < len(messageHashes); i++ {
+			var messageHash any = func() any {
+				if i >= 0 && i < len(messageHashes) {
+					return ccxt.DerefScalar(messageHashes[i])
+				}
+				return nil
+			}()
+			var subHash any = func() any {
+				if i >= 0 && i < len(subMessageHashes) {
+					return ccxt.DerefScalar(subMessageHashes[i])
+				}
+				return nil
+			}()
 			this.CleanUnsubscription(ccxt.AsClient(client), subHash, messageHash)
 		}
 		this.CleanCache(unSubObject)

@@ -894,10 +894,15 @@ func (this *Bitrue) ParseCurrency(rawCurrency any) any {
 	var id *string = this.SafeString(rawCurrency, "coin")
 	var name *string = this.SafeString(rawCurrency, "coinFulName")
 	var code *string = this.SafeCurrencyCode(id)
-	var networkDetails any = this.SafeList(rawCurrency, "chainDetail", []any{})
+	var networkDetails []any = SafeListTyped(rawCurrency, "chainDetail")
 	var networks map[string]any = map[string]any{}
-	for j := 0; j < GetArrayLength(networkDetails); j++ {
-		var entry any = GetValue(networkDetails, j)
+	for j := 0; j < len(networkDetails); j++ {
+		var entry any = func() any {
+			if j >= 0 && j < len(networkDetails) {
+				return DerefScalar(networkDetails[j])
+			}
+			return nil
+		}()
 		var networkId *string = this.SafeString(entry, "chain")
 		var network any = this.NetworkIdToCode(networkId, code)
 		if network != nil {
@@ -3410,8 +3415,8 @@ func (this *Bitrue) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var chainDetails any = this.SafeList(fee, "chainDetail", []any{})
-	var chainDetailLength int = GetArrayLength(chainDetails)
+	var chainDetails []any = SafeListTyped(fee, "chainDetail")
+	var chainDetailLength int = len(chainDetails)
 	var result map[string]any = map[string]any{
 		"info": fee,
 		"withdraw": map[string]any{
@@ -3426,7 +3431,12 @@ func (this *Bitrue) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 	}
 	if chainDetailLength != 0 {
 		for i := 0; i < chainDetailLength; i++ {
-			var chainDetail any = GetValue(chainDetails, i)
+			var chainDetail any = func() any {
+				if i >= 0 && i < len(chainDetails) {
+					return DerefScalar(chainDetails[i])
+				}
+				return nil
+			}()
 			var networkId *string = this.SafeString(chainDetail, "chain")
 			var currencyCode *string = this.SafeString(currency, "code")
 			var networkCode any = this.NetworkIdToCode(networkId, currencyCode)
@@ -3976,9 +3986,14 @@ func (this *Bitrue) CalculateRateLimiterCost(api any, method any, path any, para
 		return GetValue(config, "noSymbol")
 	} else if (InOp(config, "byLimit")) && (InOp(params, "limit")) {
 		var limit any = GetValue(params, "limit")
-		var byLimit any = this.SafeList(config, "byLimit", []any{})
-		for i := 0; i < GetArrayLength(byLimit); i++ {
-			var entry any = GetValue(byLimit, i)
+		var byLimit []any = SafeListTyped(config, "byLimit")
+		for i := 0; i < len(byLimit); i++ {
+			var entry any = func() any {
+				if i >= 0 && i < len(byLimit) {
+					return DerefScalar(byLimit[i])
+				}
+				return nil
+			}()
 			if IsLessThanOrEqual(limit, GetValue(entry, 0)) {
 				return GetValue(entry, 1)
 			}

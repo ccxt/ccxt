@@ -345,9 +345,14 @@ func (this *Limitless) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 				"limit": limit,
 			}, searchRest)))
 			ccxt.PanicOnError(response)
-			var found any = this.SafeList(response, "markets", []any{})
-			for j := 0; j < ccxt.GetArrayLength(found); j++ {
-				var raw any = ccxt.GetValue(found, j)
+			var found []any = ccxt.SafeListTyped(response, "markets")
+			for j := 0; j < len(found); j++ {
+				var raw any = func() any {
+					if j >= 0 && j < len(found) {
+						return ccxt.DerefScalar(found[j])
+					}
+					return nil
+				}()
 				var slug *string = this.SafeString(raw, "slug")
 				if ((slug != nil) && (slug == nil || *slug != "")) && !(func() bool {
 					if slug == nil {
@@ -399,8 +404,8 @@ func (this *Limitless) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			allRaw = this.ArrayConcat(allRaw, data)
 		}
 		var lastPageResponse map[string]any = ccxt.SafeMapTyped(responses, length - 1)
-		var lastPageData any = this.SafeList(lastPageResponse, "data", []any{})
-		var lastPageLength int = ccxt.GetArrayLength(lastPageData)
+		var lastPageData []any = ccxt.SafeListTyped(lastPageResponse, "data")
+		var lastPageLength int = len(lastPageData)
 		var allRawLength int = len(allRaw)
 		if ccxt.IsGreaterThanOrEqual(lastPageLength, pageSize) && ccxt.IsLessThan(allRawLength, maxMarkets) {
 			for true {
@@ -1038,11 +1043,16 @@ func (this *Limitless) ParseEvent(event any) any {
 		return nil
 	}()
 	var markets []any = []any{}
-	var rawMarkets any = this.SafeList(event, "markets", []any{})
+	var rawMarkets []any = ccxt.SafeListTyped(event, "markets")
 	// aggregate 24h volume across the markets so sort by volume works
 	var totalVolume any = 0
-	for i := 0; i < ccxt.GetArrayLength(rawMarkets); i++ {
-		var rawMarket any = ccxt.GetValue(rawMarkets, i)
+	for i := 0; i < len(rawMarkets); i++ {
+		var rawMarket any = func() any {
+			if i >= 0 && i < len(rawMarkets) {
+				return ccxt.DerefScalar(rawMarkets[i])
+			}
+			return nil
+		}()
 		// an already-parsed ccxt market row carries the unified 'market' handle + outcomes
 		// with 'symbol' kept as a legacy fallback — don't run it through parseMarket again
 		var marketSymbol *string = this.SafeString2(rawMarket, "market", "symbol")
@@ -1286,19 +1296,29 @@ func (this *Limitless) ParsePredictionTicker(ticker any, optionalArgs ...any) an
 	var midStr any = nil
 	if !ccxt.IsEqual(book, nil) {
 		// the book endpoint is quoted in the yes token, the no side mirrors at 1 - price
-		var rawBids any = this.SafeList(book, "bids", []any{})
-		var rawAsks any = this.SafeList(book, "asks", []any{})
-		var rawBidsLength int = ccxt.GetArrayLength(rawBids)
-		var rawAsksLength int = ccxt.GetArrayLength(rawAsks)
+		var rawBids []any = ccxt.SafeListTyped(book, "bids")
+		var rawAsks []any = ccxt.SafeListTyped(book, "asks")
+		var rawBidsLength int = len(rawBids)
+		var rawAsksLength int = len(rawAsks)
 		var yesBestBid any = func() any {
 			if rawBidsLength > 0 {
-				return ccxt.GetValue(rawBids, 0)
+				return func() any {
+					if 0 >= 0 && 0 < len(rawBids) {
+						return ccxt.DerefScalar(rawBids[0])
+					}
+					return nil
+				}()
 			}
 			return nil
 		}()
 		var yesBestAsk any = func() any {
 			if rawAsksLength > 0 {
-				return ccxt.GetValue(rawAsks, 0)
+				return func() any {
+					if 0 >= 0 && 0 < len(rawAsks) {
+						return ccxt.DerefScalar(rawAsks[0])
+					}
+					return nil
+				}()
 			}
 			return nil
 		}()
@@ -1539,10 +1559,15 @@ func (this *Limitless) fetchTradesBody(ch chan any, outcome any, optionalArgs ..
 	//         "totalRows": 13
 	//     }
 	//
-	var rows any = this.SafeList(response, "events", []any{})
+	var rows []any = ccxt.SafeListTyped(response, "events")
 	var filtered []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(rows); i++ {
-		var row any = ccxt.GetValue(rows, i)
+	for i := 0; i < len(rows); i++ {
+		var row any = func() any {
+			if i >= 0 && i < len(rows) {
+				return ccxt.DerefScalar(rows[i])
+			}
+			return nil
+		}()
 		var rowTokenId *string = this.SafeString(row, "tokenId")
 		if (tokenId != nil) && (rowTokenId != nil) && (rowTokenId != tokenId && (rowTokenId == nil || tokenId == nil || *rowTokenId != *tokenId)) {
 			continue
@@ -3055,8 +3080,8 @@ func (this *Limitless) cancelOrdersBody(ch chan any, ids any, optionalArgs ...an
 	response := (<-this.LimitlessPrivatePostOrdersCancelBatch(this.Extend(request, params)))
 	ccxt.PanicOnError(response)
 	var canceled any = this.SafeList(response, "canceled", []any{})
-	var failed any = this.SafeList(response, "failed", []any{})
-	var failedLethgn int = ccxt.GetArrayLength(failed)
+	var failed []any = ccxt.SafeListTyped(response, "failed")
+	var failedLethgn int = len(failed)
 	if failedLethgn > 0 {
 		var message any = this.Json(response)
 		var feedback any = ccxt.Add(this.Id+" cancelOrders failed: ", message)
@@ -3711,9 +3736,14 @@ func (this *Limitless) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 				"limit": limit,
 			}, rest)))
 			ccxt.PanicOnError(response)
-			var found any = this.SafeList(response, "markets", []any{})
-			for j := 0; j < ccxt.GetArrayLength(found); j++ {
-				var raw any = ccxt.GetValue(found, j)
+			var found []any = ccxt.SafeListTyped(response, "markets")
+			for j := 0; j < len(found); j++ {
+				var raw any = func() any {
+					if j >= 0 && j < len(found) {
+						return ccxt.DerefScalar(found[j])
+					}
+					return nil
+				}()
 				var rawSlug *string = this.SafeString(raw, "slug")
 				if ((rawSlug != nil) && (rawSlug == nil || *rawSlug != "")) && !(func() bool {
 					if rawSlug == nil {
@@ -3859,14 +3889,19 @@ func (this *Limitless) fetchRawActiveMarketsBody(ch chan any, optionalArgs ...an
 			response = (<-this.LimitlessPublicGetMarketsActive(this.Extend(request, rest)))
 			ccxt.PanicOnError(response)
 		}
-		var data any = this.SafeList(response, "data", []any{})
-		var dataLength int = ccxt.GetArrayLength(data)
+		var data []any = ccxt.SafeListTyped(response, "data")
+		var dataLength int = len(data)
 		if dataLength == 0 {
 			break
 		}
 		for i := 0; i < dataLength; i++ {
 			if ccxt.IsLessThan(collected, maxMarkets) {
-				allRaw = append(allRaw, ccxt.GetValue(data, i))
+				allRaw = append(allRaw, func() any {
+					if i >= 0 && i < len(data) {
+						return ccxt.DerefScalar(data[i])
+					}
+					return nil
+				}())
 				collected = this.Sum(collected, 1)
 			}
 		}

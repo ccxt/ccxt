@@ -1553,10 +1553,15 @@ func (this *Derive) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	// }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var data any = this.SafeList(result, "funding_rate_history", []any{})
+	var data []any = SafeListTyped(result, "funding_rate_history")
 	var rates []any = []any{}
-	for i := 0; i < GetArrayLength(data); i++ {
-		var entry any = GetValue(data, i)
+	for i := 0; i < len(data); i++ {
+		var entry any = func() any {
+			if i >= 0 && i < len(data) {
+				return DerefScalar(data[i])
+			}
+			return nil
+		}()
 		var timestamp *int64 = this.SafeInteger(entry, "timestamp")
 		rates = append(rates, map[string]any{
 			"info":        entry,
@@ -3284,9 +3289,14 @@ func (this *Derive) ParseBalance(response any) any {
 	}
 	for i := 0; i < GetArrayLength(response); i++ {
 		var subaccount any = GetValue(response, i)
-		var collaterals any = this.SafeList(subaccount, "collaterals", []any{})
-		for j := 0; j < GetArrayLength(collaterals); j++ {
-			var balance any = GetValue(collaterals, j)
+		var collaterals []any = SafeListTyped(subaccount, "collaterals")
+		for j := 0; j < len(collaterals); j++ {
+			var balance any = func() any {
+				if j >= 0 && j < len(collaterals) {
+					return DerefScalar(collaterals[j])
+				}
+				return nil
+			}()
 			var code *string = this.SafeCurrencyCode(this.SafeString(balance, "currency"))
 			var account any = this.SafeDict(result, code)
 			if IsEqual(account, nil) {

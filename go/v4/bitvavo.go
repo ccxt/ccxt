@@ -726,7 +726,7 @@ func (this *Bitvavo) ParseCurrency(rawCurrency any) any {
 	var code *string = this.SafeCurrencyCode(id)
 	var isFiat bool = this.InArray(code, fiatCurrencies)
 	var networks map[string]any = map[string]any{}
-	var networksArray any = this.SafeList(rawCurrency, "networks", []any{})
+	var networksArray []any = SafeListTyped(rawCurrency, "networks")
 	var deposit bool = IsEqual(this.SafeString(rawCurrency, "depositStatus"), "OK")
 	var withdrawal bool = IsEqual(this.SafeString(rawCurrency, "withdrawalStatus"), "OK")
 	var active bool = deposit && withdrawal
@@ -734,8 +734,13 @@ func (this *Bitvavo) ParseCurrency(rawCurrency any) any {
 	var precision *string = this.SafeString(rawCurrency, "decimals", "8")
 	var minWithdraw *float64 = this.SafeNumber(rawCurrency, "withdrawalMinAmount")
 	// btw, absolutely all of them have 1 network atm
-	for j := 0; j < GetArrayLength(networksArray); j++ {
-		var networkId any = GetValue(networksArray, j)
+	for j := 0; j < len(networksArray); j++ {
+		var networkId any = func() any {
+			if j >= 0 && j < len(networksArray) {
+				return DerefScalar(networksArray[j])
+			}
+			return nil
+		}()
 		var networkCode any = this.NetworkIdToCode(networkId, code)
 		if networkCode != nil {
 			AddElementToObject(networks, networkCode, map[string]any{

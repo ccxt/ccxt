@@ -1310,9 +1310,14 @@ func (this *Btse) ParseBalance(response any) any {
 		if !IsEqual(assets, nil) {
 			// futures wallet row: per-currency totals in assets, locked amounts in assetsInUse
 			// several wallet rows can report the same currency, so amounts are aggregated
-			var inUse any = this.SafeList(row, "assetsInUse", []any{})
-			for j := 0; j < GetArrayLength(inUse); j++ {
-				var usedRow any = GetValue(inUse, j)
+			var inUse []any = SafeListTyped(row, "assetsInUse")
+			for j := 0; j < len(inUse); j++ {
+				var usedRow any = func() any {
+					if j >= 0 && j < len(inUse) {
+						return DerefScalar(inUse[j])
+					}
+					return nil
+				}()
 				var usedCode *string = this.SafeCurrencyCode(this.SafeString(usedRow, "currency"))
 				if usedCode == nil {
 					continue
@@ -1419,10 +1424,15 @@ func (this *Btse) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any {
 		var market any = this.SafeMarket(marketId)
 		var symbol any = GetValue(market, "symbol")
 		if (symbols == nil) || this.InArray(symbol, symbols) {
-			var levels any = this.SafeList(entry, "riskLimits", []any{})
+			var levels []any = SafeListTyped(entry, "riskLimits")
 			var tiers []any = []any{}
-			for j := 0; j < GetArrayLength(levels); j++ {
-				var level any = GetValue(levels, j)
+			for j := 0; j < len(levels); j++ {
+				var level any = func() any {
+					if j >= 0 && j < len(levels) {
+						return DerefScalar(levels[j])
+					}
+					return nil
+				}()
 				// the endpoint only reports the notional ladder, the
 				// per-tier leverage and margin rates are not available
 				tiers = append(tiers, map[string]any{
@@ -1718,10 +1728,15 @@ func (this *Btse) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.PublicGetPublicApiMarketV1Ticker24hr(params))
 	PanicOnError(response)
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var rows []any = []any{}
-	for i := 0; i < GetArrayLength(data); i++ {
-		var row any = GetValue(data, i)
+	for i := 0; i < len(data); i++ {
+		var row any = func() any {
+			if i >= 0 && i < len(data) {
+				return DerefScalar(data[i])
+			}
+			return nil
+		}()
 		// spot rows do not carry an open interest
 		if this.SafeString(row, "openInterest") != nil {
 			rows = append(rows, row)
@@ -1820,10 +1835,15 @@ func (this *Btse) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.PublicGetPublicApiMarketV1Ticker24hr(params))
 	PanicOnError(response)
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var rows []any = []any{}
-	for i := 0; i < GetArrayLength(data); i++ {
-		var row any = GetValue(data, i)
+	for i := 0; i < len(data); i++ {
+		var row any = func() any {
+			if i >= 0 && i < len(data) {
+				return DerefScalar(data[i])
+			}
+			return nil
+		}()
 		// spot rows do not carry a funding rate
 		if this.SafeString(row, "fundingRate") != nil {
 			rows = append(rows, row)

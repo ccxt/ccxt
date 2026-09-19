@@ -649,9 +649,14 @@ func (this *Coinbaseinternational) HandleOHLCV(client any, message any) {
 		ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, ccxt.NewArrayCacheByTimestamp(limit))
 	}
 	var stored any = ccxt.GetValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
-	var data any = this.SafeList(message, "candles", []any{})
-	for i := 0; i < ccxt.GetArrayLength(data); i++ {
-		var tick any = ccxt.GetValue(data, i)
+	var data []any = ccxt.SafeListTyped(message, "candles")
+	for i := 0; i < len(data); i++ {
+		var tick any = func() any {
+			if i >= 0 && i < len(data) {
+				return ccxt.DerefScalar(data[i])
+			}
+			return nil
+		}()
 		var parsed any = this.ParseOHLCV(tick, market)
 		stored.(ccxt.Appender).Append(parsed)
 	}

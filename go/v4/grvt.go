@@ -1891,10 +1891,15 @@ func (this *Grvt) ParseBalance(response any) any {
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
 	}
-	var spotBalances any = this.SafeList(response, "spot_balances", []any{})
+	var spotBalances []any = SafeListTyped(response, "spot_balances")
 	var availableBalance *string = this.SafeString(response, "available_balance")
-	for i := 0; i < GetArrayLength(spotBalances); i++ {
-		var balance any = GetValue(spotBalances, i)
+	for i := 0; i < len(spotBalances); i++ {
+		var balance any = func() any {
+			if i >= 0 && i < len(spotBalances) {
+				return DerefScalar(spotBalances[i])
+			}
+			return nil
+		}()
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()
@@ -2908,10 +2913,15 @@ func (this *Grvt) ConvertToBigIntCustom(x any) any {
 }
 func (this *Grvt) EipMessageForOrder(order any, structureType any) any {
 	var priceMultiplier string = "1000000000"
-	var orderLegs any = this.SafeList(order, "legs", []any{})
+	var orderLegs []any = SafeListTyped(order, "legs")
 	var legs []any = []any{}
-	for i := 0; i < GetArrayLength(orderLegs); i++ {
-		var leg any = GetValue(orderLegs, i)
+	for i := 0; i < len(orderLegs); i++ {
+		var leg any = func() any {
+			if i >= 0 && i < len(orderLegs) {
+				return DerefScalar(orderLegs[i])
+			}
+			return nil
+		}()
 		var market any = this.Market(GetValue(leg, "instrument"))
 		var bigInt10 any = this.ConvertToBigIntCustom("10")
 		var precisionValue int = this.PrecisionFromString(this.SafeString(GetValue(market, "precision"), "base"))

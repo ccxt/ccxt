@@ -408,11 +408,16 @@ func (this *Coincheck) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	var exchangeStatuses any = this.SafeList(response, "exchange_status", []any{})
+	var exchangeStatuses []any = SafeListTyped(response, "exchange_status")
 	var status string = "ok"
 	var updated *int64 = nil
-	for i := 0; i < GetArrayLength(exchangeStatuses); i++ {
-		var exchangeStatus any = GetValue(exchangeStatuses, i)
+	for i := 0; i < len(exchangeStatuses); i++ {
+		var exchangeStatus any = func() any {
+			if i >= 0 && i < len(exchangeStatuses) {
+				return DerefScalar(exchangeStatuses[i])
+			}
+			return nil
+		}()
 		var rawStatus *string = this.SafeString(exchangeStatus, "status")
 		if IsEqual(updated, nil) {
 			updated = this.SafeTimestamp(exchangeStatus, "timestamp")

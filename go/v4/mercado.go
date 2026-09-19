@@ -1316,9 +1316,14 @@ func (this *Mercado) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 func (this *Mercado) OrdersToTrades(orders any) any {
 	var result []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
-		var trades any = this.SafeList(GetValue(orders, i), "trades", []any{})
-		for y := 0; y < GetArrayLength(trades); y++ {
-			result = append(result, GetValue(trades, y))
+		var trades []any = SafeListTyped(GetValue(orders, i), "trades")
+		for y := 0; y < len(trades); y++ {
+			result = append(result, func() any {
+				if y >= 0 && y < len(trades) {
+					return DerefScalar(trades[y])
+				}
+				return nil
+			}())
 		}
 	}
 	return result

@@ -2047,11 +2047,21 @@ func (this *Woo) HandleUnSubscription(client any, message any) {
 	var subscribeHash *string = this.SafeString(message, "data")
 	var unsubscribeHash any = ccxt.Add("unsubscribe::", subscribeHash)
 	var subscription any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), unsubscribeHash, map[string]any{})
-	var subMessageHashes any = this.SafeList(subscription, "subMessageHashes", []any{})
-	var unsubMessageHashes any = this.SafeList(subscription, "unsubMessageHashes", []any{})
-	for i := 0; i < ccxt.GetArrayLength(subMessageHashes); i++ {
-		var subHash any = ccxt.GetValue(subMessageHashes, i)
-		var unsubHash any = ccxt.GetValue(unsubMessageHashes, i)
+	var subMessageHashes []any = ccxt.SafeListTyped(subscription, "subMessageHashes")
+	var unsubMessageHashes []any = ccxt.SafeListTyped(subscription, "unsubMessageHashes")
+	for i := 0; i < len(subMessageHashes); i++ {
+		var subHash any = func() any {
+			if i >= 0 && i < len(subMessageHashes) {
+				return ccxt.DerefScalar(subMessageHashes[i])
+			}
+			return nil
+		}()
+		var unsubHash any = func() any {
+			if i >= 0 && i < len(unsubMessageHashes) {
+				return ccxt.DerefScalar(unsubMessageHashes[i])
+			}
+			return nil
+		}()
 		this.CleanUnsubscription(ccxt.AsClient(client), subHash, unsubHash)
 	}
 	this.CleanCache(subscription)

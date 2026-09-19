@@ -1812,10 +1812,15 @@ func (this *Cex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	//    }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var ids any = this.SafeList(data, "clientOrderIds", []any{})
+	var ids []any = SafeListTyped(data, "clientOrderIds")
 	var orders []any = []any{}
-	for i := 0; i < GetArrayLength(ids); i++ {
-		var id any = GetValue(ids, i)
+	for i := 0; i < len(ids); i++ {
+		var id any = func() any {
+			if i >= 0 && i < len(ids) {
+				return DerefScalar(ids[i])
+			}
+			return nil
+		}()
 		orders = append(orders, map[string]any{
 			"clientOrderId": id,
 		})

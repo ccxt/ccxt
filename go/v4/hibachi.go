@@ -1195,9 +1195,14 @@ func (this *Hibachi) createOrdersBody(ch chan any, orders any, optionalArgs ...a
 	// { "orders": [ { nonce: '1754349993908', orderId: '589642085255349248' } ] }
 	//
 	var ret []any = []any{}
-	var responseOrders any = this.SafeList(response, "orders", []any{})
-	for i := 0; i < GetArrayLength(responseOrders); i++ {
-		var responseOrder any = GetValue(responseOrders, i)
+	var responseOrders []any = SafeListTyped(response, "orders")
+	for i := 0; i < len(responseOrders); i++ {
+		var responseOrder any = func() any {
+			if i >= 0 && i < len(responseOrders) {
+				return DerefScalar(responseOrders[i])
+			}
+			return nil
+		}()
 		ret = append(ret, this.SafeOrder(map[string]any{
 			"info":   responseOrder,
 			"id":     this.SafeString(responseOrder, "orderId"),
@@ -1351,9 +1356,14 @@ func (this *Hibachi) editOrdersBody(ch chan any, orders any, optionalArgs ...any
 	// { "orders": [ { "orderId": "589636801329628160" } ] }
 	//
 	var ret []any = []any{}
-	var responseOrders any = this.SafeList(response, "orders", []any{})
-	for i := 0; i < GetArrayLength(responseOrders); i++ {
-		var responseOrder any = GetValue(responseOrders, i)
+	var responseOrders []any = SafeListTyped(response, "orders")
+	for i := 0; i < len(responseOrders); i++ {
+		var responseOrder any = func() any {
+			if i >= 0 && i < len(responseOrders) {
+				return DerefScalar(responseOrders[i])
+			}
+			return nil
+		}()
 		ret = append(ret, this.SafeOrder(map[string]any{
 			"info":   responseOrder,
 			"id":     this.SafeString(responseOrder, "orderId"),
@@ -1455,9 +1465,14 @@ func (this *Hibachi) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
 	// { "orders": [ { "orderId": "589636801329628160" } ] }
 	//
 	var ret []any = []any{}
-	var responseOrders any = this.SafeList(response, "orders", []any{})
-	for i := 0; i < GetArrayLength(responseOrders); i++ {
-		var responseOrder any = GetValue(responseOrders, i)
+	var responseOrders []any = SafeListTyped(response, "orders")
+	for i := 0; i < len(responseOrders); i++ {
+		var responseOrder any = func() any {
+			if i >= 0 && i < len(responseOrders) {
+				return DerefScalar(responseOrders[i])
+			}
+			return nil
+		}()
 		ret = append(ret, this.SafeOrder(map[string]any{
 			"info":   responseOrder,
 			"id":     this.SafeString(responseOrder, "orderId"),
@@ -3069,10 +3084,15 @@ func (this *Hibachi) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 	//     ]
 	// }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var rates []any = []any{}
-	for i := 0; i < GetArrayLength(data); i++ {
-		var entry any = GetValue(data, i)
+	for i := 0; i < len(data); i++ {
+		var entry any = func() any {
+			if i >= 0 && i < len(data) {
+				return DerefScalar(data[i])
+			}
+			return nil
+		}()
 		var timestamp *int64 = this.SafeIntegerProduct(entry, "fundingTimestamp", 1000)
 		rates = append(rates, map[string]any{
 			"info":        entry,

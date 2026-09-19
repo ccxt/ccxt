@@ -4394,17 +4394,22 @@ func (this *Bitget) ParseCurrency(rawCurrency any) any {
 	var entry any = rawCurrency
 	var id *string = this.SafeString(entry, "coin") // we don't use 'coinId' as it has no use. it is 'coin' field that needs to be used in currency related endpoints (deposit, withdraw, etc..)
 	var code *string = this.SafeCurrencyCode(id)
-	var chains any = this.SafeList(entry, "chains", []any{})
+	var chains []any = SafeListTyped(entry, "chains")
 	var networks map[string]any = map[string]any{}
 	var withdraw any = nil
 	var deposit any = nil
-	var chainsLength int = GetArrayLength(chains)
+	var chainsLength int = len(chains)
 	if chainsLength == 0 {
 		withdraw = false
 		deposit = false
 	}
 	for j := 0; j < chainsLength; j++ {
-		var chain any = GetValue(chains, j)
+		var chain any = func() any {
+			if j >= 0 && j < len(chains) {
+				return DerefScalar(chains[j])
+			}
+			return nil
+		}()
 		var networkId *string = this.SafeString(chain, "chain")
 		var network any = this.NetworkIdToCode(networkId, code)
 		if network == nil {
@@ -5760,9 +5765,14 @@ func (this *Bitget) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	//         ]
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 
-	ch <- this.ParseTicker(GetValue(data, 0), market)
+	ch <- this.ParseTicker(func() any {
+		if 0 >= 0 && 0 < len(data) {
+			return DerefScalar(data[0])
+		}
+		return nil
+	}(), market)
 	return nil
 }
 
@@ -5807,9 +5817,14 @@ func (this *Bitget) fetchMarkPriceBody(ch chan any, symbol any, optionalArgs ...
 		response = (<-this.PublicMixGetV2MixMarketSymbolPrice(this.Extend(request, params)))
 		PanicOnError(response)
 	}
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 
-	ch <- this.ParseTicker(GetValue(data, 0), market)
+	ch <- this.ParseTicker(func() any {
+		if 0 >= 0 && 0 < len(data) {
+			return DerefScalar(data[0])
+		}
+		return nil
+	}(), market)
 	return nil
 }
 
@@ -6534,10 +6549,15 @@ func (this *Bitget) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 		//         ]
 		//     }
 		//
-		var rows any = this.SafeList(utaResponse, "data", []any{})
+		var rows []any = SafeListTyped(utaResponse, "data")
 		var utaResult map[string]any = map[string]any{}
-		for i := 0; i < GetArrayLength(rows); i++ {
-			var entry any = GetValue(rows, i)
+		for i := 0; i < len(rows); i++ {
+			var entry any = func() any {
+				if i >= 0 && i < len(rows) {
+					return DerefScalar(rows[i])
+				}
+				return nil
+			}()
 			var entryMarketId *string = this.SafeString(entry, "symbol")
 			if (entryMarketId == nil) || (this.Markets_by_id == nil) || !(InOp(this.Markets_by_id, entryMarketId)) {
 				continue
@@ -6648,10 +6668,15 @@ func (this *Bitget) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	var result map[string]any = map[string]any{}
-	for i := 0; i < GetArrayLength(data); i++ {
-		var entry any = GetValue(data, i)
+	for i := 0; i < len(data); i++ {
+		var entry any = func() any {
+			if i >= 0 && i < len(data) {
+				return DerefScalar(data[i])
+			}
+			return nil
+		}()
 		var marketId *string = this.SafeString(entry, "symbol")
 		var symbol *string = this.SafeSymbol(marketId, nil, nil, marketType)
 		var market any = this.Market(symbol)
@@ -11892,9 +11917,14 @@ func (this *Bitget) fetchFundingRateBody(ch chan any, symbol any, optionalArgs .
 			PanicOnError(response)
 		}
 	}
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 
-	ch <- this.ParseFundingRate(GetValue(data, 0), market)
+	ch <- this.ParseFundingRate(func() any {
+		if 0 >= 0 && 0 < len(data) {
+			return DerefScalar(data[0])
+		}
+		return nil
+	}(), market)
 	return nil
 }
 
@@ -13104,8 +13134,8 @@ func (this *Bitget) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var chains any = this.SafeList(fee, "chains", []any{})
-	var chainsLength int = GetArrayLength(chains)
+	var chains []any = SafeListTyped(fee, "chains")
+	var chainsLength int = len(chains)
 	var result map[string]any = map[string]any{
 		"info": fee,
 		"withdraw": map[string]any{
@@ -13119,7 +13149,12 @@ func (this *Bitget) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 		"networks": map[string]any{},
 	}
 	for i := 0; i < chainsLength; i++ {
-		var chain any = GetValue(chains, i)
+		var chain any = func() any {
+			if i >= 0 && i < len(chains) {
+				return DerefScalar(chains[i])
+			}
+			return nil
+		}()
 		var networkId *string = this.SafeString(chain, "chain")
 		var currencyCode *string = this.SafeString(currency, "code")
 		var networkCode any = this.NetworkIdToCode(networkId, currencyCode)
@@ -14745,9 +14780,14 @@ func (this *Bitget) fetchConvertCurrenciesBody(ch chan any, optionalArgs ...any)
 	//     }
 	//
 	var result map[string]any = map[string]any{}
-	var data any = this.SafeList(response, "data", []any{})
-	for i := 0; i < GetArrayLength(data); i++ {
-		var entry any = GetValue(data, i)
+	var data []any = SafeListTyped(response, "data")
+	for i := 0; i < len(data); i++ {
+		var entry any = func() any {
+			if i >= 0 && i < len(data) {
+				return DerefScalar(data[i])
+			}
+			return nil
+		}()
 		var id *string = this.SafeString(entry, "coin")
 		var code *string = this.SafeCurrencyCode(id)
 		if code != nil {
