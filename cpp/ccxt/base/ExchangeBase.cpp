@@ -1,4 +1,5 @@
 #include "ExchangeBase.h"
+#include "JsonView.h"
 #include "Starknet.h"
 #include "ws/Cache.h"
 #include "ws/Client.h"
@@ -24,6 +25,22 @@
 
 #include <algorithm>
 #include <chrono>
+
+// view-aware container access: a json view is a read-only lazy container that
+// materialises on demand. Every code path that needs the real dict/list goes
+// through these instead of any_cast (which would throw on a view).
+static inline ccxt::dict dictOf (const ccxt::any& v) {
+    if (v.tag_ == ccxt::any::kView) {
+        return ccxt::any_cast<ccxt::dict> (viewMaterialize (viewOf (v)));
+    }
+    return ccxt::any_cast<ccxt::dict> (v);
+}
+static inline ccxt::list listOf (const ccxt::any& v) {
+    if (v.tag_ == ccxt::any::kView) {
+        return ccxt::any_cast<ccxt::list> (viewMaterialize (viewOf (v)));
+    }
+    return ccxt::any_cast<ccxt::list> (v);
+}
 #include <cmath>
 #include <cstdio>
 #include <cstring>
@@ -77,14 +94,16 @@ nlohmann::ordered_json anyToJson (const ccxt::any& v) {
     if (isFloat (v))      return toDouble (v);
     if (isList (v)) {
         nlohmann::ordered_json out = nlohmann::ordered_json::array ();
-        for (const auto& item : ccxt::any_cast<list> (v).items ()) {
+        const list l = listOf (v);
+        for (const auto& item : l.items ()) {
             out.push_back (anyToJson (item));
         }
         return out;
     }
     if (isDict (v)) {
         nlohmann::ordered_json out = nlohmann::ordered_json::object ();
-        for (const auto& kv : ccxt::any_cast<dict> (v).entries ()) {
+        const dict d = dictOf (v);
+        for (const auto& kv : d.entries ()) {
             out[kv.first] = anyToJson (kv.second);
         }
         return out;
@@ -116,78 +135,6 @@ ccxt::any jsonToAny (const nlohmann::ordered_json& j) {
     return ccxt::any {};
 }
 
-#ifdef CCXT_HAS_SIMDJSON
-// SIMD fast path for big payloads (live exchangeInfo is ~22MB): replaces the
-// digit-quoting scan + nlohmann parse + recursive build. Number semantics
-// mirror the old pipeline exactly: integer literals of 19+ digits stay exact
-// strings (int64 can't hold them and the old pre-pass quoted them), shorter
-// integers are int64, floats are doubles. Object field order is document
-// order (nlohmann::ordered_json parity).
-ccxt::any simdToAny (simdjson::ondemand::value v) {
-    using simdjson::ondemand::json_type;
-    switch (v.type ()) {
-    case json_type::null:
-        return ccxt::any {};
-    case json_type::boolean:
-        return ccxt::any (v.get_bool ().value ());
-    case json_type::string:
-        return ccxt::any (
-            std::string (std::string_view (v.get_string ().value ())));
-    case json_type::number: {
-        const simdjson::ondemand::number_type ntype =
-            v.get_number_type ().value ();
-        if (ntype == simdjson::ondemand::number_type::floating_point_number) {
-            return ccxt::any (v.get_double ().value ());
-        }
-        const std::string_view raw = v.raw_json_token ();
-        std::size_t digits = raw.size ();
-        if (!raw.empty () && raw[0] == '-') {
-            digits--;
-        }
-        if (digits >= 19) {
-            return ccxt::any (std::string (raw));   // exact, rides as a string
-        }
-        return ccxt::any (static_cast<long long> (v.get_int64 ().value ()));
-    }
-    case json_type::array: {
-        list out;
-        for (auto item : v.get_array ()) {
-            out.push (simdToAny (item.value ()));
-        }
-        return ccxt::any (out);
-    }
-    case json_type::object: {
-        dict out;
-        for (auto field : v.get_object ()) {
-            // fast path: the RAW key token spans [raw(), closing quote) with no
-            // allocation; when it carries no escape, intern it directly. JSON
-            // object keys are unique, so the build uses the unchecked setNew
-            // (no linear scan; the probe index is rebuilt lazily on first use).
-            const auto rawTok = field.key ().value ();
-            const char* k = rawTok.raw ();
-            const char* q = static_cast<const char*> (std::memchr (k, '"', 256));
-            if (q != nullptr) {
-                const std::string_view rawKey (k, static_cast<std::size_t> (q - k));
-                if (rawKey.find ('\\') == std::string_view::npos) {
-                    out.store->setNew (InternedKey (rawKey), simdToAny (field.value ()));
-                } else {
-                    out.store->setNew (
-                        InternedKey (std::string_view (field.unescaped_key ().value ())),
-                        simdToAny (field.value ()));
-                }
-            } else {
-                out.store->setNew (
-                    InternedKey (std::string_view (field.unescaped_key ().value ())),
-                    simdToAny (field.value ()));
-            }
-        }
-        return ccxt::any (out);
-    }
-    }
-    return ccxt::any {};
-}
-#endif
-
 // nlohmann::json objects sort keys, which would break request signing, so serialise
 // dictionaries by hand in insertion order.
 namespace {
@@ -215,7 +162,8 @@ void serialiseTo (const ccxt::any& v, std::string& out) {
     if (isDict (v)) {
         out += '{';
         bool first = true;
-        for (const auto& kv : ccxt::any_cast<dict> (v).entries ()) {
+        const dict d = dictOf (v);
+        for (const auto& kv : d.entries ()) {
             if (!first) out += ',';
             first = false;
             appendQuoted (kv.first.str (), out);
@@ -228,7 +176,8 @@ void serialiseTo (const ccxt::any& v, std::string& out) {
     if (isList (v)) {
         out += '[';
         bool first = true;
-        for (const auto& item : ccxt::any_cast<list> (v).items ()) {
+        const list l = listOf (v);
+        for (const auto& item : l.items ()) {
             if (!first) out += ',';
             first = false;
             serialiseTo (item, out);
@@ -260,14 +209,16 @@ std::string serialise (const ccxt::any& v) {
 ccxt::any deepClone (const ccxt::any& v) {
     if (isDict (v)) {
         dict out;
-        for (const auto& kv : ccxt::any_cast<dict> (v).entries ()) {
+        const dict d = dictOf (v);
+        for (const auto& kv : d.entries ()) {
             out.set (kv.first, deepClone (kv.second));
         }
         return ccxt::any (out);
     }
     if (isList (v)) {
         list out;
-        for (const auto& item : ccxt::any_cast<list> (v).items ()) {
+        const list l = listOf (v);
+        for (const auto& item : l.items ()) {
             out.push (deepClone (item));
         }
         return ccxt::any (out);
@@ -279,7 +230,8 @@ void deepMergeInto (dict& target, const ccxt::any& source) {
     if (!isDict (source)) {
         return;
     }
-    for (const auto& kv : ccxt::any_cast<dict> (source).entries ()) {
+    const dict d = dictOf (source);
+    for (const auto& kv : d.entries ()) {
         const ccxt::any existing = target.get (kv.first);
         if (isDict (kv.second) && isDict (existing)) {
             dict merged = ccxt::any_cast<dict> (existing);
@@ -550,7 +502,8 @@ ccxt::any ExchangeBase::extend (ccxt::any a, ccxt::any b) {
     dict out;
     for (const ccxt::any& source : { a, b }) {
         if (isDict (source)) {
-            for (const auto& kv : ccxt::any_cast<dict> (source).entries ()) {
+            const dict d = dictOf (source);
+            for (const auto& kv : d.entries ()) {
                 out.set (kv.first, kv.second);
             }
         }
@@ -670,7 +623,7 @@ ccxt::any ExchangeBase::keysort (ccxt::any obj) {
     if (!isDict (obj)) {
         return ccxt::any (out);
     }
-    const dict source = ccxt::any_cast<dict> (obj);
+    const dict source = dictOf (obj);
     std::vector<std::string> keys;
     for (const auto& kv : source.entries ()) {
         keys.push_back (kv.first);
@@ -703,7 +656,8 @@ ccxt::any ExchangeBase::omit (ccxt::any obj, ccxt::any keys, ccxt::any k2, ccxt:
         }
     }
     dict out;
-    for (const auto& kv : ccxt::any_cast<dict> (obj).entries ()) {
+    const dict d = dictOf (obj);
+    for (const auto& kv : d.entries ()) {
         if (drop.find (kv.first) == drop.end ()) {
             out.set (kv.first, kv.second);
         }
@@ -792,7 +746,7 @@ ccxt::any ExchangeBase::isEmpty (ccxt::any value) {
         return ccxt::any (ccxt::any_cast<list> (value).size () < 1);
     }
     if (isDict (value)) {
-        return ccxt::any (ccxt::any_cast<dict> (value).size () < 1);
+        return ccxt::any (dictOf (value).size () < 1);
     }
     return ccxt::any (false);
 }
@@ -1072,11 +1026,25 @@ ccxt::any ExchangeBase::parseJson (const ccxt::any& value) {
         if (text.size () >= (1u << 20)
             && !std::getenv ("CCXT_PARSE_FORCE_NLOHMANN")) {
             try {
-                simdjson::ondemand::parser parser;
-                const simdjson::padded_string padded (text);
-                auto doc = parser.iterate (padded);
-                if (!doc.error ()) {
-                    return simdToAny (doc.get_value ().value ());
+                if (!std::getenv ("CCXT_PARSE_EAGER")) {
+                    // lazy view (default): keep the padded buffer + parser +
+                    // document in a heap root; the parse tree is never
+                    // materialised until fields are actually read
+                    auto root = std::make_shared<ccxt::JsonViewRoot> ();
+                    root->buffer = simdjson::padded_string (text);
+                    auto docRes = root->parser.iterate (root->buffer);
+                    if (!docRes.error ()) {
+                        root->doc = std::move (docRes).value_unsafe ();
+                        return ccxt::any (
+                            ccxt::jsonView { root, ccxt::kJvObject, 0, 0 });
+                    }
+                } else {
+                    simdjson::ondemand::parser parser;
+                    const simdjson::padded_string padded (text);
+                    auto doc = parser.iterate (padded);
+                    if (!doc.error ()) {
+                        return simdToAny (doc.get_value ().value ());
+                    }
                 }
             } catch (const std::exception&) {
                 // fall through to the nlohmann path
@@ -1186,7 +1154,8 @@ namespace {
 void qsAppend (std::vector<std::pair<std::string, std::string>>& out,
                const std::string& prefix, const ccxt::any& value, bool arrayRepeat) {
     if (isDict (value)) {
-        for (const auto& kv : ccxt::any_cast<dict> (value).entries ()) {
+        const dict d = dictOf (value);
+        for (const auto& kv : d.entries ()) {
             const std::string key = prefix.empty () ? kv.first.str () : (prefix + "[" + kv.first.str () + "]");
             qsAppend (out, key, kv.second, arrayRepeat);
         }
@@ -3112,7 +3081,7 @@ ccxt::any ExchangeBase::ethEncodeStructuredData (ccxt::any domainAny, ccxt::any 
         const auto& fields = it->second;
         std::vector<unsigned char> out;
         for (const auto& field : fields) {
-            ccxt::any fieldValue = isDict (value) ? ccxt::any_cast<dict> (value).get (field.first) : ccxt::any {};
+            ccxt::any fieldValue = isDict (value) ? dictOf (value).get (field.first) : ccxt::any {};
             const auto base = arrayBase (field.second);
             std::vector<unsigned char> part;
             if (base.second) {
@@ -3417,7 +3386,7 @@ namespace {
             return;
         }
         if (isDict (value)) {
-            const std::vector<OrderedMap::entry> entries = ccxt::any_cast<dict> (value).entries ();
+            const std::vector<OrderedMap::entry> entries = dictOf (value).entries ();
             const std::size_t n = entries.size ();
             if (n < 16) {
                 putByte (out, static_cast<unsigned char> (0x80 | n));
