@@ -2178,7 +2178,7 @@ public class Modetrade extends ModetradeApi
             }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             ((Map<String, Object>)data).put("timestamp", this.safeInteger(response, "timestamp"));
-            Object order = this.parseOrder(data, market);
+            Map<String, Object> order = (Map<String, Object>) this.parseOrder(data, market);
             Helpers.addElementToObject(order, "type", type);
             return order;
         }).thenApply(Order::new);

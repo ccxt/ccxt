@@ -186,7 +186,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         Helpers.addElementToObject(this.balance, "info", data);
         String currencyId = this.safeString(data, "currency");
         String currencyCode = this.safeCurrencyCode(currencyId);
-        Object balance = this.parseBalance(data);
+        Map<String, Object> balance = (Map<String, Object>) this.parseBalance(data);
         if (!java.util.Objects.equals(currencyCode, null))
         {
             Helpers.addElementToObject(this.balance, currencyCode, balance);
@@ -338,7 +338,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "instrument_name");
         String symbol = this.safeSymbol(marketId);
-        Object ticker = this.parseTicker(data);
+        Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(data);
         String messageHash = this.safeString(parameters, "channel");
         Helpers.addElementToObject(this.tickers, symbol, ticker);
         client.resolve(ticker, messageHash);
@@ -545,7 +545,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         for (var i = 0; i < ((List<?>)trades).size(); i++)
         {
             Object trade = Helpers.GetValue(trades, i);
-            Object parsed = this.parseTrade(trade, market);
+            Map<String, Object> parsed = (Map<String, Object>) this.parseTrade(trade, market);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
         }
         Helpers.addElementToObject(this.trades, symbol, stored);
@@ -959,7 +959,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             orders = this.parseOrders(data);
         } else
         {
-            Object order = this.parseOrder(data);
+            Map<String, Object> order = (Map<String, Object>) this.parseOrder(data);
             orders = new ArrayList<Object>(Arrays.asList(order));
         }
         Object cachedOrders = this.orders;

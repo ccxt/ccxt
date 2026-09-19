@@ -767,7 +767,7 @@ public class Coinmate extends CoinmateApi
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(keys, i));
-                Object ticker = this.parseTicker(this.safeDict(data, Helpers.GetValue(keys, i)), market);
+                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(this.safeDict(data, Helpers.GetValue(keys, i)), market);
                 ((Map<String, Object>)result).put((String)((Map<String, Object>)market).get("symbol"), ticker);
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
@@ -1044,7 +1044,7 @@ public class Coinmate extends CoinmateApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data");
-            Object transaction = this.parseTransaction(data, currency);
+            Map<String, Object> transaction = (Map<String, Object>) this.parseTransaction(data, currency);
             Boolean fillResponseFromRequest = (Boolean) this.safeBool(withdrawOptions, "fillResponseFromRequest", true);
             if (java.util.Objects.equals(fillResponseFromRequest, true))
             {

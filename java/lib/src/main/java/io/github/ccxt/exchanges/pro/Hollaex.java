@@ -134,7 +134,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data");
         String timestamp = this.safeString(data, "timestamp");
         Long timestampMs = this.parse8601(timestamp);
-        Object snapshot = this.parseOrderBook(data, symbol, timestampMs);
+        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestampMs);
         Object orderbook = null;
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
@@ -314,7 +314,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         for (var i = 0; i < Helpers.getArrayLength(rawTrades); i++)
         {
             Object trade = Helpers.GetValue(rawTrades, i);
-            Object parsed = this.parseTrade(trade);
+            Map<String, Object> parsed = (Map<String, Object>) this.parseTrade(trade);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
             Object symbol = Helpers.GetValue(trade, "symbol");
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
@@ -463,7 +463,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         for (var i = 0; i < ((List<?>)rawOrders).size(); i++)
         {
             Object order = Helpers.GetValue(rawOrders, i);
-            Object parsed = this.parseOrder(order);
+            Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(order);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
             Object symbol = Helpers.GetValue(order, "symbol");
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);

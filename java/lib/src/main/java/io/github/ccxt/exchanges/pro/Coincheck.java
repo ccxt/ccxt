@@ -125,7 +125,7 @@ public class Coincheck extends io.github.ccxt.exchanges.Coincheck
         String symbol = this.symbol(this.safeString(message, 0));
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, 1, new HashMap<String, Object>() {{}});
         Object timestamp = this.safeTimestamp(data, "last_update_at");
-        Object snapshot = this.parseOrderBook(data, symbol, timestamp);
+        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp);
         Object orderbook = this.safeValue(this.orderbooks, symbol);
         if (java.util.Objects.equals(orderbook, null))
         {

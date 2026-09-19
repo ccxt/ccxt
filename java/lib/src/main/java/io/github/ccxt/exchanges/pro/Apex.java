@@ -427,7 +427,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
         if (Boolean.TRUE.equals(isSnapshot))
         {
-            Object snapshot = this.parseOrderBook(data, symbol, timestamp, "b", "a");
+            Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "b", "a");
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         } else
         {
@@ -445,7 +445,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
 
     public void handleDelta(Object bookside, Object delta)
     {
-        Object bidAsk = this.parseOrderBookBidAsk(delta, 0, 1);
+        List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk(delta, 0, 1);
         Helpers.callDynamically(bookside, "storeArray", new Object[]{bidAsk});
     }
 
@@ -962,7 +962,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         Map<String, Object> symbols = new HashMap<String, Object>() {{}};
         for (var i = 0; i < Helpers.getArrayLength(lists); i++)
         {
-            Object parsed = this.parseOrder(Helpers.GetValue(lists, i));
+            Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(Helpers.GetValue(lists, i));
             Object symbol = ((Map<String, Object>)parsed).get("symbol");
             ((Map<String, Object>)symbols).put((String)((String)symbol), true);
             Helpers.callDynamically(orders, "append", new Object[]{parsed});
@@ -1056,7 +1056,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         for (var i = 0; i < Helpers.getArrayLength(lists); i++)
         {
             Object rawPosition = Helpers.GetValue(lists, i);
-            Object position = this.parsePosition(rawPosition);
+            Map<String, Object> position = (Map<String, Object>) this.parsePosition(rawPosition);
             String side = this.safeString(position, "side");
             // hacky solution to handle closing positions
             // without crashing, we should handle this properly later

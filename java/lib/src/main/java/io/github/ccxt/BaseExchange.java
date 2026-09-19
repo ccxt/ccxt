@@ -4464,7 +4464,7 @@ public Object describe()
         Object countOrIdKey = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : 2;
         for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
         {
-            Object bidAsk = this.parseOrderBookBidAsk(Helpers.GetValue(deltas, i), priceKey, amountKey, countOrIdKey);
+            List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk(Helpers.GetValue(deltas, i), priceKey, amountKey, countOrIdKey);
             ((IOrderBookSide)bookSide).storeArray(bidAsk);
         }
     }
@@ -6928,7 +6928,7 @@ public Object describe()
         {
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object parsed = this.parseOrder(Helpers.GetValue(orders, i), market); // don't inline this call
+                Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(Helpers.GetValue(orders, i), market); // don't inline this call
                 Map<String, Object> order = this.extend(parsed, parameters);
                 ((List<Object>)results).add(order);
             }
@@ -6941,7 +6941,7 @@ public Object describe()
                 Map<String, Object> idExtended = this.extend(new HashMap<String, Object>() {{
                     put( "id", id );
                 }}, Helpers.GetValue(orders, id));
-                Object parsedOrder = this.parseOrder(idExtended, market); // don't  inline these calls
+                Map<String, Object> parsedOrder = (Map<String, Object>) this.parseOrder(idExtended, market); // don't  inline these calls
                 Map<String, Object> order = this.extend(parsedOrder, parameters);
                 ((List<Object>)results).add(order);
             }
@@ -8253,8 +8253,8 @@ public Object describe()
         {
             orderbook = new HashMap<String, Object>() {{}};
         }
-        Object bids = this.parseOrderBookBidsAsks(this.safeValue(orderbook, bidsKey, new ArrayList<Object>(Arrays.asList())), priceKey, amountKey, countOrIdKey);
-        Object asks = this.parseOrderBookBidsAsks(this.safeValue(orderbook, asksKey, new ArrayList<Object>(Arrays.asList())), priceKey, amountKey, countOrIdKey);
+        List<Object> bids = (List<Object>) this.parseOrderBookBidsAsks(this.safeValue(orderbook, bidsKey, new ArrayList<Object>(Arrays.asList())), priceKey, amountKey, countOrIdKey);
+        List<Object> asks = (List<Object>) this.parseOrderBookBidsAsks(this.safeValue(orderbook, asksKey, new ArrayList<Object>(Arrays.asList())), priceKey, amountKey, countOrIdKey);
         return new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "bids", BaseExchange.this.sortBy(bids, 0, true) );
@@ -10777,7 +10777,7 @@ public Object describe()
         {
             for (var i = 0; i < ((List<?>)tickers).size(); i++)
             {
-                Object parsedTicker = this.parseTicker(Helpers.GetValue(tickers, i));
+                Map<String, Object> parsedTicker = (Map<String, Object>) this.parseTicker(Helpers.GetValue(tickers, i));
                 Map<String, Object> ticker = this.extend(parsedTicker, parameters);
                 ((List<Object>)results).add(ticker);
             }
@@ -10788,7 +10788,7 @@ public Object describe()
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-                Object parsed = this.parseTicker(Helpers.GetValue(tickers, marketId), market);
+                Map<String, Object> parsed = (Map<String, Object>) this.parseTicker(Helpers.GetValue(tickers, marketId), market);
                 Map<String, Object> ticker = this.extend(parsed, parameters);
                 ((List<Object>)results).add(ticker);
             }
@@ -10843,7 +10843,7 @@ public Object describe()
         for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
             Object item = Helpers.GetValue(response, i);
-            Object borrowRate = this.parseBorrowRate(item);
+            Map<String, Object> borrowRate = (Map<String, Object>) this.parseBorrowRate(item);
             ((List<Object>)result).add(borrowRate);
         }
         List<Object> sorted = this.sortBy(result, "timestamp");
@@ -10901,7 +10901,7 @@ public Object describe()
         for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
             Object entry = Helpers.GetValue(response, i);
-            Object parsed = this.parseFundingRate(entry);
+            Map<String, Object> parsed = (Map<String, Object>) this.parseFundingRate(entry);
             if (!java.util.Objects.equals(((Map<String, Object>)parsed).get("symbol"), null))
             {
                 ((Map<String, Object>)fundingRates).put((String)((Map<String, Object>)parsed).get("symbol"), parsed);

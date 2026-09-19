@@ -329,7 +329,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             }
             io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
             Long timestamp = this.safeInteger(message, "ts");
-            Object snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks");
+            Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "bids", "asks");
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
             client.resolve(orderbook, topic);
         }
@@ -558,7 +558,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Long timestamp = this.safeInteger(message, "ts");
         Helpers.addElementToObject(data, "date", timestamp);
-        Object ticker = this.parseWsTicker(data, market);
+        Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(data, market);
         Helpers.addElementToObject(ticker, "symbol", ((Map<String, Object>)market).get("symbol"));
         Helpers.addElementToObject(this.tickers, ((Map<String, Object>)market).get("symbol"), ticker);
         client.resolve(ticker, topic);
@@ -669,7 +669,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         {
             String marketId = this.safeString(Helpers.GetValue(data, i), "symbol");
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-            Object ticker = this.parseWsTicker(this.extend(Helpers.GetValue(data, i), new HashMap<String, Object>() {{
+            Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(this.extend(Helpers.GetValue(data, i), new HashMap<String, Object>() {{
                 put( "date", timestamp );
             }}), market);
             Helpers.addElementToObject(this.tickers, ((Map<String, Object>)market).get("symbol"), ticker);
@@ -1733,7 +1733,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             Object marketId = Helpers.GetValue(postitionsIds, i);
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
             Object rawPosition = Helpers.GetValue(rawPositions, marketId);
-            Object position = this.parsePosition(rawPosition, market);
+            Map<String, Object> position = (Map<String, Object>) this.parsePosition(rawPosition, market);
             ((List<Object>)newPositions).add(position);
             Helpers.callDynamically(cache, "append", new Object[]{position});
             String messageHash = ("positions::" + ((Map<String, Object>)market).get("symbol"));
@@ -1879,7 +1879,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         //     }
         //
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Object fundingRate = this.parseFundingRate(data);
+        Map<String, Object> fundingRate = (Map<String, Object>) this.parseFundingRate(data);
         Object symbol = ((Map<String, Object>)fundingRate).get("symbol");
         if (!java.util.Objects.equals(symbol, null))
         {

@@ -1092,7 +1092,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             //         ]
             //     }
             //
-            Object orderbook = this.parseOrderBook(response, symbol);
+            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(response, symbol);
             ((Map<String, Object>)orderbook).put("nonce", this.safeInteger(response, "sequence"));
             return orderbook;
         }).thenApply(OrderBook::new);

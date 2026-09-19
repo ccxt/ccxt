@@ -3070,7 +3070,7 @@ final Object finalId = id;
             {
                 Object id = Helpers.GetValue(orderIds, i);
                 Object item = Helpers.GetValue(result, id);
-                Object order = this.parseOrder(this.extend(new HashMap<String, Object>() {{
+                Map<String, Object> order = (Map<String, Object>) this.parseOrder(this.extend(new HashMap<String, Object>() {{
                     put( "id", id );
                 }}, item));
                 ((List<Object>)orders).add(order);
@@ -3703,7 +3703,7 @@ final Object finalId = id;
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < Helpers.getArrayLength(transactions); i++)
         {
-            Object transaction = this.parseTransaction(this.extend(new HashMap<String, Object>() {{
+            Map<String, Object> transaction = (Map<String, Object>) this.parseTransaction(this.extend(new HashMap<String, Object>() {{
                 put( "type", type );
             }}, Helpers.GetValue(transactions, i)));
             ((List<Object>)result).add(transaction);

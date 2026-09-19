@@ -1837,7 +1837,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), timeframe, stored);
         }
-        Object parsed = this.parseOHLCV(message, market);
+        List<Object> parsed = (List<Object>) this.parseOHLCV(message, market);
         Helpers.callDynamically(stored, "append", new Object[]{parsed});
         String messageHash = ((("ohlcv:" + timeframe) + ":") + symbol);
         client.resolve(new ArrayList<Object>(Arrays.asList(symbol, timeframe, stored)), messageHash);
@@ -1920,7 +1920,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
 
     public void handleOrder(Client client, Object message)
     {
-        Object order = this.parseWsOrder(message);
+        Map<String, Object> order = (Map<String, Object>) this.parseWsOrder(message);
         if (java.util.Objects.equals(this.orders, null))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -2012,7 +2012,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         {
             return;
         }
-        Object position = this.parseWsPosition(message, market);
+        Map<String, Object> position = (Map<String, Object>) this.parseWsPosition(message, market);
         if (java.util.Objects.equals(this.positions, null))
         {
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();

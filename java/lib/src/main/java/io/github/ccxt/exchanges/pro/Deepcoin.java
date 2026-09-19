@@ -396,7 +396,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         String marketId = this.safeString(data, "I");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, "/");
         String symbol = this.safeSymbol(marketId, market);
-        Object parsedTicker = this.parseWsTicker(data, market);
+        Map<String, Object> parsedTicker = (Map<String, Object>) this.parseWsTicker(data, market);
         String messageHash = (("ticker" + "::") + symbol);
         Helpers.addElementToObject(this.tickers, symbol, parsedTicker);
         client.resolve(parsedTicker, messageHash);
@@ -989,7 +989,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             }
         }
         Long timestamp = this.safeInteger(message, "mt", 0);
-        Object snapshot = this.parseOrderBook(orderedEntries, symbol, timestamp);
+        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(orderedEntries, symbol, timestamp);
         Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         Object cachedMessages = ((List<Object>)Helpers.GetValue(orderbook, "cache"));
         for (var j = 0; j < ((List<?>)cachedMessages).size(); j++)
@@ -1230,7 +1230,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
                 Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
                 this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             }
-            Object parsed = this.parseWsOrder(data, market);
+            Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(data, market);
             Helpers.callDynamically(this.orders, "append", new Object[]{parsed});
             client.resolve(this.orders, messageHash);
             client.resolve(this.orders, symbolMessageHash);
@@ -1394,7 +1394,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             {
                 this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
             }
-            Object parsed = this.parseWsPosition(data, market);
+            Map<String, Object> parsed = (Map<String, Object>) this.parseWsPosition(data, market);
             Helpers.callDynamically(this.positions, "append", new Object[]{parsed});
             client.resolve(this.positions, messageHash);
             client.resolve(this.positions, symbolMessageHash);

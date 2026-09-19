@@ -403,7 +403,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         }
         List<Object> tickers = (List<Object>) this.safeList(message, "d", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> data = (Map<String, Object>) this.safeDict(tickers, 0, new HashMap<String, Object>() {{}});
-        Object ticker = this.parseWsTicker(data, market);
+        Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(data, market);
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String messageHash = ("ticker::" + symbol);
         Helpers.addElementToObject(this.tickers, symbol, ticker);
@@ -1174,7 +1174,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         Long nonce = this.safeInteger(message, "u");
         if (java.util.Objects.equals(eventVar, "depthSnapshot"))
         {
-            Object parsed = this.parseOrderBook(message, symbol, timestamp, "b", "a");
+            Map<String, Object> parsed = (Map<String, Object>) this.parseOrderBook(message, symbol, timestamp, "b", "a");
             ((Map<String, Object>)parsed).put("nonce", nonce);
             Helpers.callDynamically(orderbook, "reset", new Object[]{parsed});
         } else
@@ -1192,7 +1192,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
 
     public void handleDelta(Object bookside, Object delta)
     {
-        Object bidAsk = this.parseOrderBookBidAsk(delta);
+        List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk(delta);
         Helpers.callDynamically(bookside, "storeArray", new Object[]{bidAsk});
     }
 
@@ -1751,7 +1751,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
-            Object parsed = this.parseWsOrder(rawOrder);
+            Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(rawOrder);
             Helpers.callDynamically(orders, "append", new Object[]{parsed});
             Object symbol = ((Map<String, Object>)parsed).get("symbol");
             if (!java.util.Objects.equals(symbol, null))
@@ -2305,7 +2305,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Map<String, Object> rawPosition = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
-            Object position = this.parseWsPosition(rawPosition);
+            Map<String, Object> position = (Map<String, Object>) this.parseWsPosition(rawPosition);
             Helpers.callDynamically(cache, "append", new Object[]{position});
             ((List<Object>)newPositions).add(position);
         }

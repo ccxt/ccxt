@@ -1948,7 +1948,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         //     }
         //
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Object fundingRate = this.parseFundingRate(data);
+        Map<String, Object> fundingRate = (Map<String, Object>) this.parseFundingRate(data);
         Object symbol = ((Map<String, Object>)fundingRate).get("symbol");
         if (!java.util.Objects.equals(symbol, null))
         {

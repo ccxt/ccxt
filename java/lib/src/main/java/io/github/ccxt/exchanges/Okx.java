@@ -4879,7 +4879,7 @@ public class Okx extends OkxApi
             }
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            Object order = this.parseOrder(first, market);
+            Map<String, Object> order = (Map<String, Object>) this.parseOrder(first, market);
             Helpers.addElementToObject(order, "type", type);
             Helpers.addElementToObject(order, "side", side);
             return order;
@@ -5147,7 +5147,7 @@ public class Okx extends OkxApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            Object order = this.parseOrder(first, market);
+            Map<String, Object> order = (Map<String, Object>) this.parseOrder(first, market);
             Helpers.addElementToObject(order, "type", type);
             Helpers.addElementToObject(order, "side", side);
             return order;
@@ -9207,7 +9207,7 @@ public class Okx extends OkxApi
             Map<String, Object> rates = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Object rate = this.parseBorrowRate(Helpers.GetValue(data, i));
+                Map<String, Object> rate = (Map<String, Object>) this.parseBorrowRate(Helpers.GetValue(data, i));
                 String code = this.safeString(rate, "currency");
                 if (!java.util.Objects.equals(code, null))
                 {
@@ -9310,7 +9310,7 @@ public class Okx extends OkxApi
                 {
                     ((Map<String, Object>)borrowRateHistories).put((String)code, new ArrayList<Object>(Arrays.asList()));
                 }
-                Object borrowRateStructure = this.parseBorrowRate(item);
+                Map<String, Object> borrowRateStructure = (Map<String, Object>) this.parseBorrowRate(item);
                 // GET /api/v5/finance/savings/lending-rate-history returns annualized rates, unlike the hourly cross-margin endpoint
                 ((Map<String, Object>)borrowRateStructure).put("period", 31536000000L);
                 Object borrrowRateCode = Helpers.GetValue(borrowRateHistories, code);

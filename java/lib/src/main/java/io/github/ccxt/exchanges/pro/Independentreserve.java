@@ -249,7 +249,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
         if (java.util.Objects.equals(eventVar, "OrderBookSnapshot"))
         {
-            Object snapshot = this.parseOrderBook(orderBook, symbol, timestamp, "Bids", "Offers", "Price", "Volume");
+            Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(orderBook, symbol, timestamp, "Bids", "Offers", "Price", "Volume");
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
             // write through the parent index: php copies arrays by value, so
             // mutating the local bind would not persist the flag
@@ -319,7 +319,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
 
     public void handleDelta(Object bookside, Object delta)
     {
-        Object bidAsk = this.parseOrderBookBidAsk(delta, "Price", "Volume");
+        List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk(delta, "Price", "Volume");
         Helpers.callDynamically(bookside, "storeArray", new Object[]{bidAsk});
     }
 

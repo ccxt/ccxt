@@ -2900,7 +2900,7 @@ public class Poloniex extends PoloniexApi
             //         "updateTime": 1646196019020
             //     }
             //
-            Object order = this.parseOrder(response);
+            Map<String, Object> order = (Map<String, Object>) this.parseOrder(response);
             Helpers.addElementToObject(order, "id", id);
             return order;
         }).thenApply(Order::new);

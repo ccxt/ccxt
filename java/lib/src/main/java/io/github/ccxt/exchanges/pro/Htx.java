@@ -283,7 +283,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         Object parts = new ArrayList<Object>(Arrays.asList(((String)ch).split(java.util.regex.Pattern.quote("."))));
         String marketId = this.safeString(parts, 1);
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-        Object ticker = this.parseTicker(tick, market);
+        Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(tick, market);
         Long timestamp = this.safeInteger(message, "ts");
         Helpers.addElementToObject(ticker, "timestamp", timestamp);
         Helpers.addElementToObject(ticker, "datetime", this.iso8601(timestamp));
@@ -410,7 +410,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         }
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object trade = this.parseTrade(Helpers.GetValue(data, i), market);
+            Map<String, Object> trade = (Map<String, Object>) this.parseTrade(Helpers.GetValue(data, i), market);
             Helpers.callDynamically(tradesCache, "append", new Object[]{trade});
         }
         client.resolve(tradesCache, ch);
@@ -534,7 +534,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             }
         }
         Object tick = this.safeValue(message, "tick");
-        Object parsed = this.parseOHLCV(tick, market);
+        List<Object> parsed = (List<Object>) this.parseOHLCV(tick, market);
         Helpers.callDynamically(stored, "append", new Object[]{parsed});
         client.resolve(stored, ch);
     }
@@ -680,7 +680,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data");
             Object messages = ((List<Object>)Helpers.GetValue(orderbook, "cache"));
             Map<String, Object> firstMessage = (Map<String, Object>) this.safeDict(messages, 0, new HashMap<String, Object>() {{}});
-            Object snapshot = this.parseOrderBook(data, symbol);
+            Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol);
             Map<String, Object> tick = (Map<String, Object>) this.safeDict(firstMessage, "tick");
             Long sequence = this.safeInteger(tick, "prevSeqNum");
             Long nonce = this.safeInteger(data, "seqNum");
@@ -892,7 +892,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         Long timestamp = this.safeInteger(message, "ts");
         if (java.util.Objects.equals(eventVar, "snapshot"))
         {
-            Object snapshot = this.parseOrderBook(tick, symbol, timestamp);
+            Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(tick, symbol, timestamp);
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
             Helpers.addElementToObject(orderbook, "nonce", version);
         }
@@ -2036,7 +2036,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         for (var i = 0; i < ((List<?>)rawPositions).size(); i++)
         {
             Object rawPosition = Helpers.GetValue(rawPositions, i);
-            Object position = this.parsePosition(rawPosition);
+            Map<String, Object> position = (Map<String, Object>) this.parsePosition(rawPosition);
             Helpers.addElementToObject(position, "timestamp", timestamp);
             Helpers.addElementToObject(position, "datetime", this.iso8601(timestamp));
             Object marginMode = this.safeStringLower(position, "marginMode", defaultMarginMode);

@@ -2184,11 +2184,11 @@ public class Xt extends XtApi
             Long timestamp = (Long) this.safeInteger2(orderBook, "timestamp", "t");
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
-                Object ob = this.parseOrderBook(orderBook, symbol, timestamp);
+                Map<String, Object> ob = (Map<String, Object>) this.parseOrderBook(orderBook, symbol, timestamp);
                 ((Map<String, Object>)ob).put("nonce", this.safeInteger(orderBook, "lastUpdateId"));
                 return ob;
             }
-            Object swapOb = this.parseOrderBook(orderBook, symbol, timestamp, "b", "a");
+            Map<String, Object> swapOb = (Map<String, Object>) this.parseOrderBook(orderBook, symbol, timestamp, "b", "a");
             ((Map<String, Object>)swapOb).put("nonce", this.safeInteger2(orderBook, "u", "lastUpdateId"));
             return swapOb;
         }).thenApply(OrderBook::new);
@@ -2385,7 +2385,7 @@ public class Xt extends XtApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)tickers).size(); i++)
             {
-                Object ticker = this.parseTicker(Helpers.GetValue(tickers, i), market);
+                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(Helpers.GetValue(tickers, i), market);
                 Object symbol = ((Map<String, Object>)ticker).get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
@@ -2494,7 +2494,7 @@ public class Xt extends XtApi
                 String marketId = this.safeString(rawTicker, "s");
                 String marketType = ((Boolean.TRUE.equals(isContract))) ? "contract" : "spot";
                 Map<String, Object> marketInner = (Map<String, Object>) this.safeMarket(marketId, market, "_", marketType);
-                Object ticker = this.parseTicker(rawTicker, marketInner);
+                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(rawTicker, marketInner);
                 Object symbol = ((Map<String, Object>)ticker).get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {

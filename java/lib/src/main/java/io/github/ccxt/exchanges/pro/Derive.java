@@ -177,7 +177,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
         Long timestamp = this.safeInteger(data, "timestamp");
-        Object snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks");
+        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "bids", "asks");
         Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         client.resolve(orderbook, topic);
     }
@@ -557,7 +557,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         }
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object trade = this.parseTrade(Helpers.GetValue(data, i));
+            Map<String, Object> trade = (Map<String, Object>) this.parseTrade(Helpers.GetValue(data, i));
             Helpers.callDynamically(tradesArray, "append", new Object[]{trade});
         }
         Helpers.addElementToObject(this.trades, symbol, tradesArray);
@@ -843,7 +843,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         List<Object> rawTrades = (List<Object>) this.safeList(parameters, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)rawTrades).size(); i++)
         {
-            Object trade = this.parseTrade(message);
+            Map<String, Object> trade = (Map<String, Object>) this.parseTrade(message);
             Helpers.callDynamically(myTrades, "append", new Object[]{trade});
             client.resolve(myTrades, topic);
             Object messageHash = Helpers.add(topic, this.safeString(trade, "symbol", ""));

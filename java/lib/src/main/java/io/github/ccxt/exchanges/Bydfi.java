@@ -781,7 +781,7 @@ public class Bydfi extends BydfiApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Long timestamp = this.milliseconds();
-            Object orderBook = this.parseOrderBook(data, ((Map<String, Object>)market).get("symbol"), timestamp, "bids", "asks", "price", "amount");
+            Map<String, Object> orderBook = (Map<String, Object>) this.parseOrderBook(data, ((Map<String, Object>)market).get("symbol"), timestamp, "bids", "asks", "price", "amount");
             ((Map<String, Object>)orderBook).put("nonce", this.safeInteger(data, "lastUpdateId"));
             return orderBook;
         }).thenApply(OrderBook::new);

@@ -1062,7 +1062,7 @@ public class Cex extends CexApi
             {
                 market = this.safeMarket(key);
             }
-            Object parsed = this.parseTradingFee(Helpers.GetValue(response, key), market);
+            Map<String, Object> parsed = (Map<String, Object>) this.parseTradingFee(Helpers.GetValue(response, key), market);
             if (!java.util.Objects.equals(((Map<String, Object>)parsed).get("symbol"), null))
             {
                 ((Map<String, Object>)result).put((String)((Map<String, Object>)parsed).get("symbol"), parsed);

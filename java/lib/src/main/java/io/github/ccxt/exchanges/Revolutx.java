@@ -662,7 +662,7 @@ public class Revolutx extends RevolutxApi
             {
                 Map<String, Object> tickerData = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
                 ((Map<String, Object>)tickerData).put("timestamp", timestamp);
-                Object ticker = this.parseTicker(tickerData);
+                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(tickerData);
                 String symbol = this.safeString(ticker, "symbol", "");
                 if (java.util.Objects.equals(symbol, ""))
                 {
@@ -1242,7 +1242,7 @@ public class Revolutx extends RevolutxApi
             String venueOrderId = this.safeString(orderData, "venue_order_id");
             String state = this.safeString(orderData, "state");
             final Object finalType = type;
-            Object order = this.parseOrder(this.extend(orderData, new HashMap<String, Object>() {{
+            Map<String, Object> order = (Map<String, Object>) this.parseOrder(this.extend(orderData, new HashMap<String, Object>() {{
                 put( "id", venueOrderId );
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "status", state );
@@ -1755,7 +1755,7 @@ public class Revolutx extends RevolutxApi
             Object orderData = (((data instanceof List))) ? this.safeDict(data, 0, new HashMap<String, Object>() {{}}) : this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             String newVenueOrderId = this.safeString(orderData, "venue_order_id");
             String state = this.safeString(orderData, "state");
-            Object order = this.parseOrder(this.extend(orderData, new HashMap<String, Object>() {{
+            Map<String, Object> order = (Map<String, Object>) this.parseOrder(this.extend(orderData, new HashMap<String, Object>() {{
                 put( "id", newVenueOrderId );
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "status", state );

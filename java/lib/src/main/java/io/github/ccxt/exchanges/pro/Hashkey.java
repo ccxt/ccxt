@@ -284,7 +284,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         //     }
         //
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-        Object ticker = this.parseTicker(this.safeDict(data, 0));
+        Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(this.safeDict(data, 0));
         Object symbol = ((Map<String, Object>)ticker).get("symbol");
         String messageHash = Helpers.add("ticker:", symbol);
         Helpers.addElementToObject(this.tickers, ((String)symbol), ticker);
@@ -452,7 +452,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> dataEntry = (Map<String, Object>) this.safeDict(data, 0);
         Long timestamp = this.safeInteger(dataEntry, "t");
-        Object snapshot = this.parseOrderBook(dataEntry, symbol, timestamp, "b", "a");
+        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(dataEntry, symbol, timestamp, "b", "a");
         Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(message, "id"));
         Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
@@ -541,7 +541,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object parsed = this.parseWsOrder(message);
+        Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(message);
         Object orders = this.orders;
         Helpers.callDynamically(orders, "append", new Object[]{parsed});
         String messageHash = "orders";
@@ -833,7 +833,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
         Object positions = this.positions;
-        Object parsed = this.parseWsPosition(message);
+        Map<String, Object> parsed = (Map<String, Object>) this.parseWsPosition(message);
         Helpers.callDynamically(positions, "append", new Object[]{parsed});
         String messageHash = "positions";
         client.resolve(parsed, messageHash);

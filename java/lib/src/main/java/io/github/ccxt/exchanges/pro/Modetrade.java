@@ -193,7 +193,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
         Long timestamp = this.safeInteger(message, "ts");
-        Object snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks");
+        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "bids", "asks");
         Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         client.resolve(orderbook, topic);
     }
@@ -294,7 +294,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Long timestamp = this.safeInteger(message, "ts");
         ((Map<String, Object>)data).put("date", timestamp);
-        Object ticker = this.parseWsTicker(data, market);
+        Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(data, market);
         Helpers.addElementToObject(ticker, "symbol", ((Map<String, Object>)market).get("symbol"));
         Helpers.addElementToObject(this.tickers, ((Map<String, Object>)market).get("symbol"), ticker);
         client.resolve(ticker, topic);
@@ -364,7 +364,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         {
             String marketId = this.safeString(Helpers.GetValue(data, i), "symbol");
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-            Object ticker = this.parseWsTicker(this.extend(Helpers.GetValue(data, i), new HashMap<String, Object>() {{
+            Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(this.extend(Helpers.GetValue(data, i), new HashMap<String, Object>() {{
                 put( "date", timestamp );
             }}), market);
             Helpers.addElementToObject(this.tickers, ((Map<String, Object>)market).get("symbol"), ticker);
@@ -1346,7 +1346,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             Object rawPosition = Helpers.GetValue(rawPositions, i);
             String marketId = this.safeString(rawPosition, "symbol");
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-            Object position = this.parseWsPosition(rawPosition, market);
+            Map<String, Object> position = (Map<String, Object>) this.parseWsPosition(rawPosition, market);
             ((List<Object>)newPositions).add(position);
             Helpers.callDynamically(cache, "append", new Object[]{position});
             String messageHash = ("positions::" + ((Map<String, Object>)market).get("symbol"));

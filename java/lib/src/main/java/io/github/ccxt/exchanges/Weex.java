@@ -1825,7 +1825,7 @@ public class Weex extends WeexApi
             //         "lastUpdateId": 14138610208
             //     }
             //
-            Object orderbook = this.parseOrderBook(response, symbol);
+            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(response, symbol);
             ((Map<String, Object>)orderbook).put("nonce", this.safeInteger(response, "lastUpdateId"));
             return orderbook;
         }).thenApply(OrderBook::new);
@@ -3147,7 +3147,7 @@ public class Weex extends WeexApi
             {
                 throw new NullResponse((this.id + " parseOrder() returned empty response")) ;
             }
-            Object order = this.parseOrder(response, market);
+            Map<String, Object> order = (Map<String, Object>) this.parseOrder(response, market);
             Helpers.addElementToObject(order, "status", "canceled");
             return order;
         }).thenApply(Order::new);

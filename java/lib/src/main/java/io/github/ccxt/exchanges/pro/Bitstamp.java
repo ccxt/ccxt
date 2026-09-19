@@ -256,7 +256,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
     {
         for (var i = 0; i < Helpers.getArrayLength(bidAsks); i++)
         {
-            Object bidAsk = this.parseOrderBookBidAsk(Helpers.GetValue(bidAsks, i));
+            List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk(Helpers.GetValue(bidAsks, i));
             Helpers.callDynamically(bookSide, "storeArray", new Object[]{bidAsk});
         }
     }
@@ -512,7 +512,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Object fundingRate = this.parseFundingRate(data, market);
+        Map<String, Object> fundingRate = (Map<String, Object>) this.parseFundingRate(data, market);
         Helpers.addElementToObject(this.fundingRates, symbol, fundingRate);
         client.resolve(fundingRate, ("fundingRate:" + symbol));
     }
@@ -825,7 +825,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         Object stored = this.orders;
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         ((Map<String, Object>)order).put("event", this.safeString(message, "event"));
-        Object parsed = this.parseWsOrder(order, market);
+        Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(order, market);
         Helpers.callDynamically(stored, "append", new Object[]{parsed});
         client.resolve(this.orders, channel);
     }

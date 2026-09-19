@@ -2294,7 +2294,7 @@ public class Bingx extends BingxApi
             Map<String, Object> orderbook = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Long nonce = this.safeInteger(orderbook, "lastUpdateId");
             Long timestamp = (Long) this.safeInteger2(orderbook, "T", "ts");
-            Object result = this.parseOrderBook(orderbook, ((Map<String, Object>)market).get("symbol"), timestamp, "bids", "asks", 0, 1);
+            Map<String, Object> result = (Map<String, Object>) this.parseOrderBook(orderbook, ((Map<String, Object>)market).get("symbol"), timestamp, "bids", "asks", 0, 1);
             ((Map<String, Object>)result).put("nonce", nonce);
             return result;
         }).thenApply(OrderBook::new);
@@ -7206,7 +7206,7 @@ public class Bingx extends BingxApi
             for (var i = 0; i < ((List<?>)success).size(); i++)
             {
                 final Object finalI = i;
-                Object position = this.parsePosition(new HashMap<String, Object>() {{
+                Map<String, Object> position = (Map<String, Object>) this.parsePosition(new HashMap<String, Object>() {{
                     put( "positionId", Helpers.GetValue(success, finalI) );
                 }});
                 ((List<Object>)positions).add(position);

@@ -1415,7 +1415,7 @@ public class Bitrue extends BitrueApi
             //     }
             //
             Long timestamp = (Long) this.safeInteger2(response, "time", "lastUpdateId");
-            Object orderbook = this.parseOrderBook(response, symbol, timestamp);
+            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(response, symbol, timestamp);
             ((Map<String, Object>)orderbook).put("nonce", this.safeInteger(response, "lastUpdateId"));
             return orderbook;
         }).thenApply(OrderBook::new);

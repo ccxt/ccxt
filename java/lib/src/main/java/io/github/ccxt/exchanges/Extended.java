@@ -1054,7 +1054,7 @@ public class Extended extends ExtendedApi
                 String marketId = this.safeString(marketData, "name");
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
                 Map<String, Object> stats = (Map<String, Object>) this.safeDict(marketData, "marketStats", new HashMap<String, Object>() {{}});
-                Object ticker = this.parseTicker(stats, market);
+                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(stats, market);
                 Object symbol = ((Map<String, Object>)ticker).get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
@@ -1177,7 +1177,7 @@ public class Extended extends ExtendedApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Long timestamp = this.milliseconds();
-            Object orderbook = this.parseOrderBook(data, ((Map<String, Object>)market).get("symbol"), timestamp, "bid", "ask", "price", "qty");
+            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(data, ((Map<String, Object>)market).get("symbol"), timestamp, "bid", "ask", "price", "qty");
             if (!java.util.Objects.equals(limit, null))
             {
                 ((Map<String, Object>)orderbook).put("bids", this.arraySlice(((Map<String, Object>)orderbook).get("bids"), 0, limit));
@@ -2737,7 +2737,7 @@ public class Extended extends ExtendedApi
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
                 Map<String, Object> fee = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
-                Object parsed = this.parseTradingFee(fee);
+                Map<String, Object> parsed = (Map<String, Object>) this.parseTradingFee(fee);
                 String symbol = this.safeString(parsed, "symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {

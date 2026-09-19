@@ -8490,7 +8490,7 @@ public class Bybit extends BybitApi
             List<Object> positions = (List<Object>) this.safeList2(result, "list", "dataList", new ArrayList<Object>(Arrays.asList()));
             Long timestamp = this.safeInteger(response, "time");
             Map<String, Object> first = (Map<String, Object>) this.safeDict(positions, 0, new HashMap<String, Object>() {{}});
-            Object position = this.parsePosition(first, market);
+            Map<String, Object> position = (Map<String, Object>) this.parsePosition(first, market);
             Helpers.addElementToObject(position, "timestamp", timestamp);
             Helpers.addElementToObject(position, "datetime", this.iso8601(timestamp));
             return position;
@@ -9939,7 +9939,7 @@ public class Bybit extends BybitApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            Object transaction = this.parseMarginLoan(result, currency);
+            Map<String, Object> transaction = (Map<String, Object>) this.parseMarginLoan(result, currency);
             return this.extend(transaction, new HashMap<String, Object>() {{
                 put( "amount", amount );
             }});
@@ -10239,7 +10239,7 @@ public class Bybit extends BybitApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)fees).size(); i++)
             {
-                Object fee = this.parseTradingFee(Helpers.GetValue(fees, i));
+                Map<String, Object> fee = (Map<String, Object>) this.parseTradingFee(Helpers.GetValue(fees, i));
                 Object symbol = ((Map<String, Object>)fee).get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {

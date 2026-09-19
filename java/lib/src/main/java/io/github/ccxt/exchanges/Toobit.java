@@ -970,7 +970,7 @@ public class Toobit extends ToobitApi
             for (var i = 0; i < ((List<?>)coins).size(); i++)
             {
                 Object coin = Helpers.GetValue(coins, i);
-                Object parsed = this.parseCurrency(coin);
+                Map<String, Object> parsed = (Map<String, Object>) this.parseCurrency(coin);
                 if (!java.util.Objects.equals(parsed, null))
                 {
                     Object code = ((Map<String, Object>)parsed).get("code");
@@ -3159,7 +3159,7 @@ public class Toobit extends ToobitApi
             Object entry = response;
             String marketId = this.safeString(entry, "symbol");
             market = this.safeMarket(marketId, market);
-            Object fee = this.parseTradingFee(entry, market);
+            Map<String, Object> fee = (Map<String, Object>) this.parseTradingFee(entry, market);
             ((Map<String, Object>)result).put((String)((Map<String, Object>)market).get("symbol"), fee);
             return result;
         }).thenApply(TradingFees::new);

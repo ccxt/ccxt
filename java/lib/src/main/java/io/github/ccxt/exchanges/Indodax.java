@@ -756,7 +756,7 @@ public class Indodax extends IndodaxApi
                 Object rawTicker = Helpers.GetValue(tickers, key);
                 Object marketId = Helpers.replace(((String)key), "_", "");
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-                Object parsed = this.parseTicker(rawTicker, market);
+                Map<String, Object> parsed = (Map<String, Object>) this.parseTicker(rawTicker, market);
                 ((Map<String, Object>)parsedTickers).put((String)marketId, parsed);
             }
             return this.filterByArray(parsedTickers, "symbol", symbols);
@@ -1053,7 +1053,7 @@ public class Indodax extends IndodaxApi
             }};
             Map<String, Object> response = (this.privatePostGetOrder(this.extend(request, parameters))).join();
             Map<String, Object> orders = (Map<String, Object>) this.safeDict(response, "return", new HashMap<String, Object>() {{}});
-            Object order = this.parseOrder(this.extend(new HashMap<String, Object>() {{
+            Map<String, Object> order = (Map<String, Object>) this.parseOrder(this.extend(new HashMap<String, Object>() {{
                 put( "id", id );
             }}, ((Map<String, Object>)orders).get("order")), market);
             Helpers.addElementToObject(order, "info", response);

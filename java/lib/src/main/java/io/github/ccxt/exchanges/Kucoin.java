@@ -4770,7 +4770,7 @@ public class Kucoin extends KucoinApi
                     timestamp = this.parseToInt(Helpers.divide(nanoseconds, 1000000));
                 }
             }
-            Object orderbook = this.parseOrderBook(data, ((Map<String, Object>)market).get("symbol"), timestamp, "bids", "asks", Helpers.subtract(level, 2), Helpers.subtract(level, 1));
+            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(data, ((Map<String, Object>)market).get("symbol"), timestamp, "bids", "asks", Helpers.subtract(level, 2), Helpers.subtract(level, 1));
             ((Map<String, Object>)orderbook).put("nonce", this.safeInteger(data, "sequence"));
             return orderbook;
         }).thenApply(OrderBook::new);
@@ -11591,7 +11591,7 @@ public class Kucoin extends KucoinApi
                 {
                     ((Map<String, Object>)borrowRateHistories).put((String)code, new ArrayList<Object>(Arrays.asList()));
                 }
-                Object borrowRateStructure = this.parseBorrowRate(item);
+                Map<String, Object> borrowRateStructure = (Map<String, Object>) this.parseBorrowRate(item);
                 Object borrowRateHistoriesCode = Helpers.GetValue(borrowRateHistories, code);
                 ((List<Object>)borrowRateHistoriesCode).add(borrowRateStructure);
             }

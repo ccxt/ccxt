@@ -493,7 +493,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         //             }
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object parsed = this.parseOHLCV(ohlcv, market);
+        List<Object> parsed = (List<Object>) this.parseOHLCV(ohlcv, market);
         return parsed;
     }
 
@@ -621,7 +621,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Object ticker = Helpers.GetValue(data, i);
-            Object parsed = this.parseWsTicker(ticker);
+            Map<String, Object> parsed = (Map<String, Object>) this.parseWsTicker(ticker);
             Object symbol = ((Map<String, Object>)parsed).get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -777,7 +777,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
 
     public void handleDelta(Object bookside, Object delta)
     {
-        Object bidAsk = this.parseOrderBookBidAsk(delta);
+        List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk(delta);
         Helpers.callDynamically(bookside, "storeArray", new Object[]{bidAsk});
     }
 
@@ -829,7 +829,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             }
             io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
             Long timestamp = this.safeInteger(entry, "t");
-            Object snapshot = this.parseOrderBook(entry, symbol, timestamp, "b", "a");
+            Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(entry, symbol, timestamp, "b", "a");
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
             client.resolve(orderbook, messageHash);
         }
@@ -1070,7 +1070,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object orders = this.orders;
-        Object order = this.parseWsOrder(message);
+        Map<String, Object> order = (Map<String, Object>) this.parseWsOrder(message);
         Helpers.callDynamically(orders, "append", new Object[]{order});
         String messageHash = "orders";
         client.resolve(orders, messageHash);
@@ -1393,7 +1393,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         for (var i = 0; i < Helpers.getArrayLength(rawPositions); i++)
         {
             Object rawPosition = Helpers.GetValue(rawPositions, i);
-            Object position = this.parseWsPosition(rawPosition);
+            Map<String, Object> position = (Map<String, Object>) this.parseWsPosition(rawPosition);
             Long timestamp = this.safeInteger(rawPosition, "E");
             Helpers.addElementToObject(position, "timestamp", timestamp);
             Helpers.addElementToObject(position, "datetime", this.iso8601(timestamp));

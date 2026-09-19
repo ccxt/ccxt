@@ -160,7 +160,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
             Object symbol = ((Map<String, Object>)market).get("symbol");
             String messageHash = (("candles" + ":") + symbol);
-            Object parsed = this.parseOHLCV(data, market);
+            List<Object> parsed = (List<Object>) this.parseOHLCV(data, market);
             // this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol);
             if (!(((Map<?, ?>)this.ohlcvs).containsKey(symbol)))
             {
@@ -275,7 +275,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
         if (java.util.Objects.equals(isSnapshot, true))
         {
-            Object snapshot = this.parseOrderBook(data, symbol);
+            Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol);
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         } else
         {
@@ -402,7 +402,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         Object symbol = ((Map<String, Object>)market).get("symbol");
         Map<String, Object> rawTicker = (Map<String, Object>) this.safeDict(tickers, 1, new HashMap<String, Object>() {{}});
         String messageHash = (("ticker" + ":") + symbol);
-        Object ticker = this.parseTicker(rawTicker, market);
+        Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(rawTicker, market);
         Helpers.addElementToObject(this.tickers, symbol, ticker);
         // watchTicker
         client.resolve(ticker, messageHash);
@@ -749,7 +749,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         }
         Object stored = this.orders;
         Long status = this.safeInteger(parameters, 0);
-        Object parsed = this.parseWsOrder(this.extend(data, new HashMap<String, Object>() {{
+        Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(this.extend(data, new HashMap<String, Object>() {{
             put( "status", status );
         }}));
         Helpers.callDynamically(stored, "append", new Object[]{parsed});

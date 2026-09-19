@@ -1069,7 +1069,7 @@ public class Bittrade extends BittradeApi
                 }
                 Map<String, Object> tick = (Map<String, Object>) this.safeDict(response, "tick");
                 Long timestamp = this.safeInteger(tick, "ts", this.safeInteger(response, "ts"));
-                Object result = this.parseOrderBook(tick, symbol, timestamp);
+                Map<String, Object> result = (Map<String, Object>) this.parseOrderBook(tick, symbol, timestamp);
                 ((Map<String, Object>)result).put("nonce", this.safeInteger(tick, "version"));
                 return result;
             }
@@ -1122,7 +1122,7 @@ public class Bittrade extends BittradeApi
             //     }
             //
             Map<String, Object> tick = (Map<String, Object>) this.safeDict(response, "tick", new HashMap<String, Object>() {{}});
-            Object ticker = this.parseTicker(tick, market);
+            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(tick, market);
             Long timestamp = this.safeInteger(response, "ts");
             Helpers.addElementToObject(ticker, "timestamp", timestamp);
             Helpers.addElementToObject(ticker, "datetime", this.iso8601(timestamp));
@@ -1160,7 +1160,7 @@ public class Bittrade extends BittradeApi
                 String marketId = this.safeString(Helpers.GetValue(tickers, i), "symbol");
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
                 Object symbol = ((Map<String, Object>)market).get("symbol");
-                Object ticker = this.parseTicker(Helpers.GetValue(tickers, i), market);
+                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(Helpers.GetValue(tickers, i), market);
                 Helpers.addElementToObject(ticker, "timestamp", timestamp);
                 Helpers.addElementToObject(ticker, "datetime", this.iso8601(timestamp));
                 ((Map<String, Object>)result).put((String)symbol, ticker);
@@ -1405,7 +1405,7 @@ public class Bittrade extends BittradeApi
                 List<Object> trades = (List<Object>) this.safeList(Helpers.GetValue(data, i), "data", new ArrayList<Object>(Arrays.asList()));
                 for (var j = 0; j < ((List<?>)trades).size(); j++)
                 {
-                    Object trade = this.parseTrade(Helpers.GetValue(trades, j), market);
+                    Map<String, Object> trade = (Map<String, Object>) this.parseTrade(Helpers.GetValue(trades, j), market);
                     ((List<Object>)result).add(trade);
                 }
             }

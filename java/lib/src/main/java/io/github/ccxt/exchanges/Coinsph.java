@@ -1303,7 +1303,7 @@ public class Coinsph extends CoinsphApi
             //         ]
             //     }
             //
-            Object orderbook = this.parseOrderBook(response, symbol);
+            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(response, symbol);
             ((Map<String, Object>)orderbook).put("nonce", this.safeInteger(response, "lastUpdateId"));
             return orderbook;
         }).thenApply(OrderBook::new);
@@ -2322,7 +2322,7 @@ public class Coinsph extends CoinsphApi
             List<Object> fees = this.toArray(response);
             for (var i = 0; i < ((List<?>)fees).size(); i++)
             {
-                Object fee = this.parseTradingFee(Helpers.GetValue(fees, i));
+                Map<String, Object> fee = (Map<String, Object>) this.parseTradingFee(Helpers.GetValue(fees, i));
                 Object symbol = ((Map<String, Object>)fee).get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {

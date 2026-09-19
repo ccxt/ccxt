@@ -1411,7 +1411,7 @@ public class Digifinex extends DigifinexApi
                 Map<String, Object> rawTicker = this.extend(new HashMap<String, Object>() {{
                     put( "date", date );
                 }}, Helpers.GetValue(tickers, i));
-                Object ticker = this.parseTicker(rawTicker);
+                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(rawTicker);
                 Object symbol = ((Map<String, Object>)ticker).get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
@@ -2137,7 +2137,7 @@ public class Digifinex extends DigifinexApi
             {
                 throw new NullResponse((this.id + " createOrder() returned empty response")) ;
             }
-            Object order = this.parseOrder(response, market);
+            Map<String, Object> order = (Map<String, Object>) this.parseOrder(response, market);
             Helpers.addElementToObject(order, "symbol", ((Map<String, Object>)market).get("symbol"));
             Helpers.addElementToObject(order, "type", type);
             Helpers.addElementToObject(order, "side", side);
@@ -4174,7 +4174,7 @@ public class Digifinex extends DigifinexApi
             Object item = Helpers.GetValue(info, i);
             String currency = this.safeString(item, codeKey);
             String code = this.safeCurrencyCode(currency);
-            Object borrowRate = this.parseBorrowRate(item);
+            Map<String, Object> borrowRate = (Map<String, Object>) this.parseBorrowRate(item);
             if (!java.util.Objects.equals(code, null))
             {
                 ((Map<String, Object>)result).put((String)code, borrowRate);
@@ -4682,7 +4682,7 @@ public class Digifinex extends DigifinexApi
             //
             String dataRequest = (((java.util.Objects.equals(marketType, "swap")))) ? "data" : "positions";
             List<Object> data = (List<Object>) this.safeList(response, dataRequest, new ArrayList<Object>(Arrays.asList()));
-            Object position = this.parsePosition((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0)), market);
+            Map<String, Object> position = (Map<String, Object>) this.parsePosition((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0)), market);
             if (java.util.Objects.equals(marketType, "swap"))
             {
                 return position;

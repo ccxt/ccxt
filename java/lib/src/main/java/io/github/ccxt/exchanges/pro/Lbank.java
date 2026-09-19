@@ -391,7 +391,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         String marketId = this.safeString(message, "pair");
         String symbol = this.safeSymbol(marketId);
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-        Object parsedTicker = this.parseWsTicker(message, market);
+        Map<String, Object> parsedTicker = (Map<String, Object>) this.parseWsTicker(message, market);
         Helpers.addElementToObject(this.tickers, symbol, parsedTicker);
         String messageHash = ("ticker:" + symbol);
         client.resolve(parsedTicker, messageHash);
@@ -719,7 +719,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             myOrders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object order = this.parseWsOrder(message);
+        Map<String, Object> order = (Map<String, Object>) this.parseWsOrder(message);
         if (java.util.Objects.equals(myOrders, null))
         {
             return;
@@ -1059,7 +1059,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}));
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
-        Object snapshot = this.parseOrderBook(orderBook, symbol, timestamp, "bids", "asks");
+        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(orderBook, symbol, timestamp, "bids", "asks");
         Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         String messageHash = ("orderbook:" + symbol);
         client.resolve(orderbook, messageHash);

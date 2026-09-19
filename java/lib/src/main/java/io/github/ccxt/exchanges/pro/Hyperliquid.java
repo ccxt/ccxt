@@ -217,7 +217,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             Map<String, Object> dataObject = (Map<String, Object>) this.safeDict(responseObject, "data", new HashMap<String, Object>() {{}});
             List<Object> statuses = (List<Object>) this.safeList(dataObject, "statuses", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> first = (Map<String, Object>) this.safeDict(statuses, 0, new HashMap<String, Object>() {{}});
-            Object parsedOrder = this.parseOrder(first, market);
+            Map<String, Object> parsedOrder = (Map<String, Object>) this.parseOrder(first, market);
             return parsedOrder;
         }).thenApply(Order::new);
 
@@ -411,7 +411,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             put( "asks", Hyperliquid.this.safeList(rawData, 1, new ArrayList<Object>(Arrays.asList())) );
         }};
         Long timestamp = this.safeInteger(entry, "time");
-        Object snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "px", "sz");
+        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "px", "sz");
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
             io.github.ccxt.ws.WsOrderBook ob = this.orderBook(snapshot);
@@ -725,7 +725,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, "swap");
                 Object symbol = ((Map<String, Object>)market).get("symbol");
                 final Object finalMids = mids;
-                Object ticker = this.parseWsTicker(new HashMap<String, Object>() {{
+                Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(new HashMap<String, Object>() {{
                     put( "price", Hyperliquid.this.safeNumber(finalMids, name) );
                 }}, market);
                 Helpers.addElementToObject(this.tickers, symbol, ticker);
@@ -771,7 +771,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
         Map<String, Object> ctx = (Map<String, Object>) this.safeDict(data, "ctx", new HashMap<String, Object>() {{}});
-        Object ticker = this.parseWsTicker(ctx, market);
+        Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(ctx, market);
         Helpers.addElementToObject(this.tickers, symbol, ticker);
         String messageHash = ("ticker:" + symbol);
         client.resolve(ticker, messageHash);
@@ -1169,7 +1169,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), timeframe, stored);
         }
         Object ohlcv = Helpers.GetValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
-        Object parsed = this.parseOHLCV(data);
+        List<Object> parsed = (List<Object>) this.parseOHLCV(data);
         Helpers.callDynamically(ohlcv, "append", new Object[]{parsed});
         String messageHash = ((Helpers.add("candles:", timeframe) + ":") + symbol);
         client.resolve(ohlcv, messageHash);
@@ -1560,7 +1560,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         for (var i = 0; i < ((List<?>)rawPositions).size(); i++)
         {
             Object rawPosition = Helpers.GetValue(rawPositions, i);
-            Object position = this.parsePosition(rawPosition);
+            Map<String, Object> position = (Map<String, Object>) this.parsePosition(rawPosition);
             ((List<Object>)newPositions).add(position);
             Helpers.callDynamically(cache, "append", new Object[]{position});
         }
@@ -1781,7 +1781,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Object rawOrder = Helpers.GetValue(data, i);
-            Object order = this.parseOrder(rawOrder);
+            Map<String, Object> order = (Map<String, Object>) this.parseOrder(rawOrder);
             Helpers.callDynamically(stored, "append", new Object[]{order});
             String symbol = this.safeString(order, "symbol");
             ((Map<String, Object>)marketSymbols).put((String)symbol, true);

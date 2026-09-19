@@ -413,7 +413,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             put( "bids", bids );
             put( "asks", asks );
         }};
-        Object parsed = this.parseOrderBook(snapshot, symbol, timestamp);
+        Map<String, Object> parsed = (Map<String, Object>) this.parseOrderBook(snapshot, symbol, timestamp);
         List<Object> sequenceNumberRange = (List<Object>) this.safeList(data, "sequenceNumberRange", new ArrayList<Object>(Arrays.asList()));
         if (((List<?>)sequenceNumberRange).size() > 0)
         {
@@ -564,7 +564,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             for (var i = 0; i < ((List<?>)rawOrders).size(); i++)
             {
                 Object rawOrder = Helpers.GetValue(rawOrders, i);
-                Object parsedOrder = this.parseOrder(rawOrder);
+                Map<String, Object> parsedOrder = (Map<String, Object>) this.parseOrder(rawOrder);
                 Helpers.callDynamically(orders, "append", new Object[]{parsedOrder});
                 String symbol = this.safeString(parsedOrder, "symbol");
                 if (!java.util.Objects.equals(symbol, null))
@@ -697,7 +697,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             for (var i = 0; i < ((List<?>)rawTrades).size(); i++)
             {
                 Object rawTrade = Helpers.GetValue(rawTrades, i);
-                Object parsedTrade = this.parseTrade(rawTrade);
+                Map<String, Object> parsedTrade = (Map<String, Object>) this.parseTrade(rawTrade);
                 Helpers.callDynamically(trades, "append", new Object[]{parsedTrade});
                 String symbol = this.safeString(parsedTrade, "symbol");
                 if (!java.util.Objects.equals(symbol, null))
@@ -898,7 +898,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         for (var i = 0; i < ((List<?>)rawPositions).size(); i++)
         {
             Object rawPosition = Helpers.GetValue(rawPositions, i);
-            Object position = this.parsePosition(rawPosition);
+            Map<String, Object> position = (Map<String, Object>) this.parsePosition(rawPosition);
             Helpers.callDynamically(positions, "append", new Object[]{position});
             ((List<Object>)newPositions).add(position);
         }

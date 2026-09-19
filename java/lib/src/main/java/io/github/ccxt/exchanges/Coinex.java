@@ -3254,7 +3254,7 @@ public class Coinex extends CoinexApi
             {
                 Object entry = Helpers.GetValue(data, i);
                 Map<String, Object> item = (Map<String, Object>) this.safeDict(entry, "data", new HashMap<String, Object>() {{}});
-                Object order = this.parseOrder(item, market);
+                Map<String, Object> order = (Map<String, Object>) this.parseOrder(item, market);
                 ((List<Object>)results).add(order);
             }
             return results;
@@ -3449,7 +3449,7 @@ public class Coinex extends CoinexApi
                     throw new ExchangeError(feedback) ;
                 }
                 Map<String, Object> item = (Map<String, Object>) this.safeDict(entry, "data", new HashMap<String, Object>() {{}});
-                Object order = this.parseOrder(item);
+                Map<String, Object> order = (Map<String, Object>) this.parseOrder(item);
                 ((List<Object>)result).add(order);
             }
             return result;
@@ -5877,7 +5877,7 @@ final Object finalI = i;
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object transaction = this.parseMarginLoan(data, currency);
+            Map<String, Object> transaction = (Map<String, Object>) this.parseMarginLoan(data, currency);
             return this.extend(transaction, new HashMap<String, Object>() {{
                 put( "amount", amount );
                 put( "symbol", symbol );
@@ -5924,7 +5924,7 @@ final Object finalI = i;
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object transaction = this.parseMarginLoan(data, currency);
+            Map<String, Object> transaction = (Map<String, Object>) this.parseMarginLoan(data, currency);
             return this.extend(transaction, new HashMap<String, Object>() {{
                 put( "amount", amount );
                 put( "symbol", symbol );

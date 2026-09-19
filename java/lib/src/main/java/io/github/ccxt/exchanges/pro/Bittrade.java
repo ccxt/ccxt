@@ -146,7 +146,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         Object parts = new ArrayList<Object>(Arrays.asList(((String)ch).split(java.util.regex.Pattern.quote("."))));
         String marketId = this.safeString(parts, 1);
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-        Object ticker = this.parseTicker(tick, market);
+        Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(tick, market);
         Long timestamp = this.safeInteger(message, "ts");
         Helpers.addElementToObject(ticker, "timestamp", timestamp);
         Helpers.addElementToObject(ticker, "datetime", this.iso8601(timestamp));
@@ -251,7 +251,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         }
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object trade = this.parseTrade(Helpers.GetValue(data, i), market);
+            Map<String, Object> trade = (Map<String, Object>) this.parseTrade(Helpers.GetValue(data, i), market);
             Helpers.callDynamically(tradesCache, "append", new Object[]{trade});
         }
         client.resolve(tradesCache, ch);
@@ -352,7 +352,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
             Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe), stored);
         }
         Object tick = this.safeValue(message, "tick");
-        Object parsed = this.parseOHLCV(tick, market);
+        List<Object> parsed = (List<Object>) this.parseOHLCV(tick, market);
         Helpers.callDynamically(stored, "append", new Object[]{parsed});
         client.resolve(stored, ch);
     }
@@ -440,7 +440,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         Long timestamp = this.safeInteger(message, "ts");
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data");
-        Object snapshot = this.parseOrderBook(data, symbol);
+        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol);
         ((Map<String, Object>)snapshot).put("nonce", this.safeInteger(data, "seqNum"));
         ((Map<String, Object>)snapshot).put("timestamp", timestamp);
         ((Map<String, Object>)snapshot).put("datetime", this.iso8601(timestamp));

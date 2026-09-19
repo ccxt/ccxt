@@ -1635,7 +1635,7 @@ public class Delta extends DeltaApi
                 {
                     continue;
                 }
-                Object ticker = this.parseTicker(rawTicker);
+                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(rawTicker);
                 Object symbol = ((Map<String, Object>)ticker).get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
@@ -4025,7 +4025,7 @@ public class Delta extends DeltaApi
             //
             // {"result":{},"success":true}
             //
-            Object position = this.parsePosition(this.safeDict(response, "result", new HashMap<String, Object>() {{}}));
+            Map<String, Object> position = (Map<String, Object>) this.parsePosition(this.safeDict(response, "result", new HashMap<String, Object>() {{}}));
             return new ArrayList<Object>(Arrays.asList(position));
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 

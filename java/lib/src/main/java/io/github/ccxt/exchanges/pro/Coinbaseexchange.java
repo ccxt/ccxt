@@ -831,7 +831,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             }
             if (java.util.Objects.equals(previousOrder, null))
             {
-                Object parsed = this.parseWsOrder(message);
+                Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(message);
                 Helpers.callDynamically(orders, "append", new Object[]{parsed});
                 client.resolve(orders, messageHash);
             } else
@@ -897,7 +897,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                     } else if ((java.util.Objects.equals(type, "received")) || (java.util.Objects.equals(type, "done")))
                     {
                         Map<String, Object> info = this.extend(((Map<String, Object>)previousOrder).get("info"), message);
-                        Object order = this.parseWsOrder(info);
+                        Map<String, Object> order = (Map<String, Object>) this.parseWsOrder(info);
                         Object keys = new ArrayList<Object>(((Map<String, Object>)order).keySet());
                         // update the reference
                         for (var i = 0; i < ((List<?>)keys).size(); i++)
@@ -1003,7 +1003,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
         String marketId = this.safeString(message, "product_id");
         if (!java.util.Objects.equals(marketId, null))
         {
-            Object ticker = this.parseTicker(message);
+            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(message);
             Object symbol = ((Map<String, Object>)ticker).get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {

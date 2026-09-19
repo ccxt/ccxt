@@ -1109,7 +1109,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             Object rawTrade = Helpers.GetValue(message, i);
             String marketId = this.safeString(rawTrade, "symbol");
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-            Object parsed = this.parseTrade(rawTrade);
+            Map<String, Object> parsed = (Map<String, Object>) this.parseTrade(rawTrade);
             Helpers.callDynamically(cachedTrades, "append", new Object[]{parsed});
             Object symbol = ((Map<String, Object>)parsed).get("symbol");
             if (java.util.Objects.equals(type, null))
@@ -1364,7 +1364,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
                 Object rawOrder = Helpers.GetValue(orders, i);
-                Object parsedOrder = this.parseOrder(rawOrder);
+                Map<String, Object> parsedOrder = (Map<String, Object>) this.parseOrder(rawOrder);
                 ((List<Object>)parsedOrders).add(parsedOrder);
             }
         } else

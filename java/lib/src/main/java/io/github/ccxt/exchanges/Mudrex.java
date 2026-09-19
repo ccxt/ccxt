@@ -1025,7 +1025,7 @@ public class Mudrex extends MudrexApi
                 put( "order_type", ((Map<String, Object>)request).get("order_type") );
                 put( "trigger_type", ((Map<String, Object>)request).get("trigger_type") );
             }});
-            Object order = this.parseOrder(merged, market);
+            Map<String, Object> order = (Map<String, Object>) this.parseOrder(merged, market);
             Helpers.addElementToObject(order, "info", data);
             return order;
         }).thenApply(Order::new);
@@ -1419,7 +1419,7 @@ public class Mudrex extends MudrexApi
                 Object p = Helpers.GetValue(rows, i);
                 String symRaw = this.safeString(p, "symbol");
                 Map<String, Object> m = (Map<String, Object>) this.safeMarket(symRaw);
-                Object pos = this.parsePosition(p, m);
+                Map<String, Object> pos = (Map<String, Object>) this.parsePosition(p, m);
                 ((List<Object>)outPos).add(pos);
             }
             return this.filterByArrayPositions(outPos, "symbol", symbols, false);

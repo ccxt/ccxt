@@ -215,7 +215,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
             (this.authenticate(url, messageType)).join();
             Object rawOrder = (this.requestPrivate(url, request, channel)).join();
-            Object order = this.parseOrder(rawOrder, market);
+            Map<String, Object> order = (Map<String, Object>) this.parseOrder(rawOrder, market);
             return order;
         }).thenApply(Order::new);
 
@@ -732,7 +732,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
         if (java.util.Objects.equals(full, true))
         {
-            Object snapshopt = this.parseOrderBook(result, symbol, null, "b", "a");
+            Map<String, Object> snapshopt = (Map<String, Object>) this.parseOrderBook(result, symbol, null, "b", "a");
             ((Map<String, Object>)snapshopt).put("nonce", this.safeInteger(result, "u"));
             ((Map<String, Object>)snapshopt).put("timestamp", this.safeInteger(result, "t"));
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshopt});
@@ -1110,7 +1110,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Object rawTicker = Helpers.GetValue(results, i);
             String marketId = this.safeString(rawTicker, "s");
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, "_", marketType);
-            Object parsedItem = this.parseTicker(rawTicker, market);
+            Map<String, Object> parsedItem = (Map<String, Object>) this.parseTicker(rawTicker, market);
             Object symbol = ((Map<String, Object>)parsedItem).get("symbol");
             if (Boolean.TRUE.equals(isTicker))
             {
@@ -1392,7 +1392,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Object prefix = Helpers.add(timeframe, "_");
             Object marketId = Helpers.replace(subscription, (String)prefix, (String)"");
             String symbol = this.safeSymbol(marketId, null, "_", marketType);
-            Object parsed = this.parseOHLCV(ohlcv);
+            List<Object> parsed = (List<Object>) this.parseOHLCV(ohlcv);
             Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
             Object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
             if (java.util.Objects.equals(stored, null))
@@ -1872,7 +1872,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Object rawPosition = Helpers.GetValue(data, i);
-            Object position = this.parsePosition(rawPosition);
+            Map<String, Object> position = (Map<String, Object>) this.parsePosition(rawPosition);
             String symbol = this.safeString(position, "symbol");
             String side = this.safeString(position, "side");
             // Control when position is closed no side is returned

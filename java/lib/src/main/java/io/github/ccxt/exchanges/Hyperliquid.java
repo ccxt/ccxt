@@ -1478,7 +1478,7 @@ public class Hyperliquid extends HyperliquidApi
             {
                 Object market = Helpers.GetValue(response, i);
                 Object info = Helpers.GetValue(market, "info");
-                Object ticker = this.parseTicker(info, market);
+                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(info, market);
                 String symbol = this.safeString(ticker, "symbol");
                 ((Map<String, Object>)result).put((String)symbol, ticker);
             }

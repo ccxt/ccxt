@@ -2165,7 +2165,7 @@ public class Hitbtc extends HitbtcApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)response).size(); i++)
             {
-                Object fee = this.parseTradingFee(Helpers.GetValue(response, i));
+                Map<String, Object> fee = (Map<String, Object>) this.parseTradingFee(Helpers.GetValue(response, i));
                 Object symbol = ((Map<String, Object>)fee).get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
@@ -3531,7 +3531,7 @@ public class Hitbtc extends HitbtcApi
                 Object rawFundingRate = this.safeValue(response, marketId);
                 Map<String, Object> marketInner = (Map<String, Object>) this.market(marketId);
                 Object symbol = ((Map<String, Object>)marketInner).get("symbol");
-                Object fundingRate = this.parseFundingRate(rawFundingRate, marketInner);
+                Map<String, Object> fundingRate = (Map<String, Object>) this.parseFundingRate(rawFundingRate, marketInner);
                 ((Map<String, Object>)fundingRates).put((String)symbol, fundingRate);
             }
             return this.filterByArray(fundingRates, "symbol", symbols);

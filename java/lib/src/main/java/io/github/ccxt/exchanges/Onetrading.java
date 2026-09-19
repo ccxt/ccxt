@@ -1063,7 +1063,7 @@ public class Onetrading extends OnetradingApi
             List<Object> rawTickers = this.toArray(response);
             for (var i = 0; i < ((List<?>)rawTickers).size(); i++)
             {
-                Object ticker = this.parseTicker(Helpers.GetValue(rawTickers, i));
+                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(Helpers.GetValue(rawTickers, i));
                 Object symbol = ((Map<String, Object>)ticker).get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {

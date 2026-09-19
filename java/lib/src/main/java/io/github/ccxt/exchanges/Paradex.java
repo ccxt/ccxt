@@ -1148,7 +1148,7 @@ public class Paradex extends ParadexApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)fees).size(); i++)
             {
-                Object fee = this.parseTradingFee(Helpers.GetValue(fees, i));
+                Map<String, Object> fee = (Map<String, Object>) this.parseTradingFee(Helpers.GetValue(fees, i));
                 Object symbol = ((Map<String, Object>)fee).get("symbol");
                 ((Map<String, Object>)result).put((String)((String)symbol), fee);
             }
@@ -1603,7 +1603,7 @@ public class Paradex extends ParadexApi
                 ((Map<String, Object>)request).put("depth", limit);
             }
             Long timestamp = this.safeInteger(response, "last_updated_at");
-            Object orderbook = this.parseOrderBook(response, ((Map<String, Object>)market).get("symbol"), timestamp);
+            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(response, ((Map<String, Object>)market).get("symbol"), timestamp);
             ((Map<String, Object>)orderbook).put("nonce", this.safeInteger(response, "seq_no"));
             return orderbook;
         }).thenApply(OrderBook::new);
@@ -2445,7 +2445,7 @@ public class Paradex extends ParadexApi
             //     "type": "MARKET"
             // }
             //
-            Object order = this.parseOrder(response, market);
+            Map<String, Object> order = (Map<String, Object>) this.parseOrder(response, market);
             return order;
         }).thenApply(Order::new);
 

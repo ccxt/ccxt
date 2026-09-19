@@ -3011,7 +3011,7 @@ public class Mexc extends MexcApi
             //         "transactTime": 1661992652132
             //     }
             //
-            Object order = this.parseOrder(response, market);
+            Map<String, Object> order = (Map<String, Object>) this.parseOrder(response, market);
             Helpers.addElementToObject(order, "side", side);
             Helpers.addElementToObject(order, "type", type);
             if (java.util.Objects.equals(this.safeString(order, "price"), null))

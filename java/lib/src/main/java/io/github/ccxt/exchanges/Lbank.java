@@ -1855,7 +1855,7 @@ public class Lbank extends LbankApi
             //    }
             //
             Object balanceResponse = (((java.util.Objects.equals(response, null)))) ? new HashMap<String, Object>() {{}} : response;
-            Object balanceResult = this.parseBalance(balanceResponse);
+            Map<String, Object> balanceResult = (Map<String, Object>) this.parseBalance(balanceResponse);
             if (java.util.Objects.equals(balanceResult, null))
             {
                 throw new NullResponse((this.id + " fetchBalance() returned empty response")) ;
@@ -1935,7 +1935,7 @@ public class Lbank extends LbankApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)fees).size(); i++)
             {
-                Object fee = this.parseTradingFee(Helpers.GetValue(fees, i));
+                Map<String, Object> fee = (Map<String, Object>) this.parseTradingFee(Helpers.GetValue(fees, i));
                 Object symbol = ((Map<String, Object>)fee).get("symbol");
                 ((Map<String, Object>)result).put((String)((String)symbol), fee);
             }

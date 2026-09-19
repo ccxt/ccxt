@@ -797,7 +797,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Object ticker = Helpers.GetValue(data, i);
-            Object parsed = this.parseWsTicker(ticker, market);
+            Map<String, Object> parsed = (Map<String, Object>) this.parseWsTicker(ticker, market);
             Object symbol = ((Map<String, Object>)parsed).get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -1048,7 +1048,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         for (var i = 0; i < Helpers.getArrayLength(data); i++)
         {
             Object tick = Helpers.GetValue(data, i);
-            Object parsed = this.parseOHLCV(tick, market);
+            List<Object> parsed = (List<Object>) this.parseOHLCV(tick, market);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
         }
         client.resolve(stored, messageHash);
@@ -1303,7 +1303,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         for (var i = 0; i < ((List<?>)rawPositions).size(); i++)
         {
             Object rawPosition = Helpers.GetValue(rawPositions, i);
-            Object position = this.parsePosition(rawPosition);
+            Map<String, Object> position = (Map<String, Object>) this.parsePosition(rawPosition);
             ((List<Object>)newPositions).add(position);
             Helpers.callDynamically(cache, "append", new Object[]{position});
         }
@@ -1506,7 +1506,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         //
         String messageHash = this.safeString(message, "id");
         Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(message, "result", new HashMap<String, Object>() {{}});
-        Object order = this.parseOrder(rawOrder);
+        Map<String, Object> order = (Map<String, Object>) this.parseOrder(rawOrder);
         client.resolve(order, messageHash);
     }
 

@@ -5007,7 +5007,7 @@ final Object finalI = i;
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
                 Map<String, Object> fee = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
-                Object parsedFee = this.parseTradingFee(fee);
+                Map<String, Object> parsedFee = (Map<String, Object>) this.parseTradingFee(fee);
                 ((Map<String, Object>)result).put((String)((String)((Map<String, Object>)parsedFee).get("symbol")), parsedFee);
             }
             return result;

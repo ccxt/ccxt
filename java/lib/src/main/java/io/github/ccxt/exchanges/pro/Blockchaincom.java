@@ -645,12 +645,12 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
                 Object order = Helpers.GetValue(orders, i);
-                Object parsedOrder = this.parseWsOrder(order);
+                Map<String, Object> parsedOrder = (Map<String, Object>) this.parseWsOrder(order);
                 Helpers.callDynamically(cachedOrders, "append", new Object[]{parsedOrder});
             }
         } else if (java.util.Objects.equals(eventVar, "updated"))
         {
-            Object parsedOrder = this.parseWsOrder(message);
+            Map<String, Object> parsedOrder = (Map<String, Object>) this.parseWsOrder(message);
             Helpers.callDynamically(cachedOrders, "append", new Object[]{parsedOrder});
         }
         this.orders = cachedOrders;
@@ -841,7 +841,7 @@ final Object finalTradeId = tradeId;
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
         if (java.util.Objects.equals(eventVar, "snapshot"))
         {
-            Object snapshot = this.parseOrderBook(message, symbol, timestamp, "bids", "asks", "px", "qty", "num");
+            Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(message, symbol, timestamp, "bids", "asks", "px", "qty", "num");
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         } else if (java.util.Objects.equals(eventVar, "updated"))
         {
@@ -860,7 +860,7 @@ final Object finalTradeId = tradeId;
 
     public void handleDelta(Object bookside, Object delta)
     {
-        Object bookArray = this.parseOrderBookBidAsk(delta, "px", "qty", "num");
+        List<Object> bookArray = (List<Object>) this.parseOrderBookBidAsk(delta, "px", "qty", "num");
         Helpers.callDynamically(bookside, "storeArray", new Object[]{bookArray});
     }
 

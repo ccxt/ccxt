@@ -328,7 +328,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         {
             return;
         }
-        Object ticker = this.parseWsTicker(tickerMessage);
+        Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(tickerMessage);
         String messageHash = ("ticker:" + symbol);
         Helpers.addElementToObject(this.tickers, symbol, ticker);
         client.resolve(Helpers.GetValue(this.tickers, symbol), messageHash);
@@ -633,7 +633,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         //
         String sideId = this.safeString(delta, "orderType");
         String side = (((java.util.Objects.equals(sideId, "bid")))) ? "bids" : "asks";
-        Object bidAsk = this.parseOrderBookBidAsk(delta, "price", "quantity");
+        List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk(delta, "price", "quantity");
         Object orderbookSide = Helpers.GetValue(orderbook, side);
         Helpers.callDynamically(orderbookSide, "storeArray", new Object[]{bidAsk});
     }
@@ -1135,7 +1135,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         //    }
         //
         String messageHash = "myOrder";
-        Object parsed = this.parseWsOrder(message);
+        Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(message);
         String symbol = this.safeString(parsed, "symbol");
         // const orderId = this.safeString (parsed, 'id');
         if (java.util.Objects.equals(this.orders, null))

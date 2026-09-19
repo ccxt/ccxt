@@ -4006,7 +4006,7 @@ public class Gate extends GateApi
             Object priceKey = (((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)))) ? 0 : "p";
             Object amountKey = (((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)))) ? 1 : "s";
             Long nonce = this.safeInteger(response, "id");
-            Object result = this.parseOrderBook(response, symbol, timestamp, "bids", "asks", priceKey, amountKey);
+            Map<String, Object> result = (Map<String, Object>) this.parseOrderBook(response, symbol, timestamp, "bids", "asks", priceKey, amountKey);
             ((Map<String, Object>)result).put("nonce", nonce);
             return result;
         }).thenApply(OrderBook::new);

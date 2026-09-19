@@ -987,7 +987,7 @@ public class Ndax extends NdaxApi
                     nonce = Helpers.mathMax(nonce, newNonce);
                 }
             }
-            Object bidask = this.parseOrderBookBidAsk(level, priceKey, amountKey);
+            List<Object> bidask = (List<Object>) this.parseOrderBookBidAsk(level, priceKey, amountKey);
             Long levelSide = this.safeInteger(level, 9);
             Object side = (((!java.util.Objects.equals(levelSide, null) && !Helpers.isEqual(levelSide, 0)))) ? asksKey : bidsKey;
             ((List<Object>)Helpers.GetValue(result, side)).add(bidask);
@@ -2336,7 +2336,7 @@ public class Ndax extends NdaxApi
             }
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "ClOrderId")));
             Map<String, Object> response = (this.privatePostCancelOrder(this.extend(request, parameters))).join();
-            Object order = this.parseOrder(response, market);
+            Map<String, Object> order = (Map<String, Object>) this.parseOrder(response, market);
             final Object finalClientOrderId = clientOrderId;
             return this.extend(order, new HashMap<String, Object>() {{
                 put( "id", id );

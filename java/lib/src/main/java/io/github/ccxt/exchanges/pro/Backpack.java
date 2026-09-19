@@ -379,7 +379,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         String marketId = this.safeString(ticker, "s");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         String symbol = this.safeSymbol(marketId, market);
-        Object parsedTicker = this.parseWsTicker(ticker, market);
+        Map<String, Object> parsedTicker = (Map<String, Object>) this.parseWsTicker(ticker, market);
         String messageHash = (("ticker" + ":") + symbol);
         Helpers.addElementToObject(this.tickers, symbol, parsedTicker);
         client.resolve(parsedTicker, messageHash);
@@ -1205,7 +1205,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
     {
         for (var i = 0; i < Helpers.getArrayLength(bidAsks); i++)
         {
-            Object bidAsk = this.parseOrderBookBidAsk(Helpers.GetValue(bidAsks, i));
+            List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk(Helpers.GetValue(bidAsks, i));
             Helpers.callDynamically(bookSide, "storeArray", new Object[]{bidAsk});
         }
     }
@@ -1362,7 +1362,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         String marketId = this.safeString(data, "s");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
-        Object parsed = this.parseWsOrder(data, market);
+        Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(data, market);
         Object orders = this.orders;
         if (java.util.Objects.equals(orders, null))
         {
@@ -1604,7 +1604,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             this.positions = new ArrayCache.ArrayCacheBySymbolById();
         }
         Object cache = this.positions;
-        Object parsedPosition = this.parseWsPosition(data);
+        Map<String, Object> parsedPosition = (Map<String, Object>) this.parseWsPosition(data);
         Long microseconds = this.safeInteger(data, "E", 0);
         Long timestamp = this.parseToInt(Helpers.divide(microseconds, 1000));
         Helpers.addElementToObject(parsedPosition, "timestamp", timestamp);

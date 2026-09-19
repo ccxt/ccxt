@@ -343,7 +343,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         for (var i = 0; Helpers.isLessThan(i, ohlcvsLength); i++)
         {
             Object ohlcv = Helpers.GetValue(ohlcvs, Helpers.subtract(Helpers.subtract(ohlcvsLength, i), 1));
-            Object parsed = this.parseOHLCV(ohlcv, market);
+            List<Object> parsed = (List<Object>) this.parseOHLCV(ohlcv, market);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
         }
         client.resolve(stored, messageHash);
@@ -730,7 +730,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         String marketId = this.safeString(subscription, "symbol");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         String symbol = this.safeSymbol(marketId);
-        Object parsed = this.parseWsTicker(ticker, market);
+        Map<String, Object> parsed = (Map<String, Object>) this.parseWsTicker(ticker, market);
         String channel = "ticker";
         Object messageHash = Helpers.add((channel + ":"), marketId);
         Helpers.addElementToObject(this.tickers, symbol, parsed);
@@ -1380,14 +1380,14 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
                 Object value = Helpers.GetValue(data, i);
-                Object parsed = this.parseWsOrder(value);
+                Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(value);
                 Object symbol = ((Map<String, Object>)parsed).get("symbol");
                 ((Map<String, Object>)symbolIds).put((String)((String)symbol), true);
                 Helpers.callDynamically(orders, "append", new Object[]{parsed});
             }
         } else
         {
-            Object parsed = this.parseWsOrder(data);
+            Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(data);
             Helpers.callDynamically(orders, "append", new Object[]{parsed});
             Object symbol = ((Map<String, Object>)parsed).get("symbol");
             ((Map<String, Object>)symbolIds).put((String)((String)symbol), true);

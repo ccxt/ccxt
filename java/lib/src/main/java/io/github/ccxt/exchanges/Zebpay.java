@@ -765,7 +765,7 @@ public class Zebpay extends ZebpayApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)fees).size(); i++)
             {
-                Object fee = this.parseTradingFee(Helpers.GetValue(fees, i));
+                Map<String, Object> fee = (Map<String, Object>) this.parseTradingFee(Helpers.GetValue(fees, i));
                 Object symbol = ((Map<String, Object>)fee).get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
@@ -828,7 +828,7 @@ public class Zebpay extends ZebpayApi
                 response = (this.publicSwapGetV1MarketOrderBook(this.extend(request, parameters))).join();
             }
             Map<String, Object> bookData = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object orderbook = this.parseOrderBook(bookData, ((Map<String, Object>)market).get("symbol"), null, "bids", "asks", 0, 1);
+            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(bookData, ((Map<String, Object>)market).get("symbol"), null, "bids", "asks", 0, 1);
             ((Map<String, Object>)orderbook).put("nonce", this.safeInteger(bookData, "nonce"));
             return orderbook;
         }).thenApply(OrderBook::new);
@@ -1546,7 +1546,7 @@ public class Zebpay extends ZebpayApi
             //    }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object parsedOrder = this.parseOrder(data);
+            Map<String, Object> parsedOrder = (Map<String, Object>) this.parseOrder(data);
             return new ArrayList<Object>(Arrays.asList(parsedOrder));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
