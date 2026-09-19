@@ -741,7 +741,7 @@ export default class coinbase extends Exchange {
         return result;
     }
 
-    override parseAccount (account: any) {
+    override parseAccount (account: any): Account {
         //
         // fetchAccountsV2
         //
@@ -937,7 +937,7 @@ export default class coinbase extends Exchange {
         return this.parseTrades (buysData, undefined, since, limit);
     }
 
-    async fetchTransactionsWithMethod (method: any, code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
+    async fetchTransactionsWithMethod (method: string, code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         let request: NullableDict = undefined;
         [ request, params ] = await this.prepareAccountRequestWithCurrencyCode (code, limit, params);
         if (this.markets === undefined) {
@@ -1019,7 +1019,7 @@ export default class coinbase extends Exchange {
         return this.filterByArray (results, 'type', [ 'deposit', 'withdrawal' ], false);
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             'created': 'pending',
             'completed': 'ok',
@@ -1626,7 +1626,7 @@ export default class coinbase extends Exchange {
         return newMarkets;
     }
 
-    parseSpotMarket (market: any, feeTier: any): Market {
+    parseSpotMarket (market: Dict, feeTier: Dict): Market {
         //
         //         {
         //             "product_id": "TONE-USD",
@@ -1723,7 +1723,7 @@ export default class coinbase extends Exchange {
         });
     }
 
-    parseContractMarket (market: any, feeTier: any): Market {
+    parseContractMarket (market: Dict, feeTier: Dict): Market {
         // expiring
         //
         //        {
@@ -1920,7 +1920,7 @@ export default class coinbase extends Exchange {
         });
     }
 
-    async fetchCurrenciesFromCache (params: Dict = {}) {
+    async fetchCurrenciesFromCache (params: Dict = {}): Promise<Dict> {
         const options = this.safeDict (this.options, 'fetchCurrencies', {});
         const timestamp = this.safeInteger (options, 'timestamp');
         const expires = this.safeInteger (options, 'expires', 1000);
@@ -2235,7 +2235,7 @@ export default class coinbase extends Exchange {
         return await this.fetchTickerV2 (symbol, params);
     }
 
-    async fetchTickerV2 (symbol: string, params: Dict = {}) {
+    async fetchTickerV2 (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2266,7 +2266,7 @@ export default class coinbase extends Exchange {
         return this.parseTicker (bidAskLast, market);
     }
 
-    async fetchTickerV3 (symbol: string, params: Dict = {}) {
+    async fetchTickerV3 (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2442,7 +2442,7 @@ export default class coinbase extends Exchange {
         }, market);
     }
 
-    parseCustomBalance (response: any, params: Dict = {}) {
+    parseCustomBalance (response: Dict, params: Dict = {}): Balances {
         const balances = this.safeList2 (response, 'data', 'accounts', []);
         const accounts = this.safeList (params, 'type', this.options['accounts']);
         const v3Accounts = this.safeList (params, 'type', this.options['v3Accounts']);
@@ -2655,14 +2655,14 @@ export default class coinbase extends Exchange {
         return ledger;
     }
 
-    parseLedgerEntryStatus (status: any) {
+    parseLedgerEntryStatus (status: Str): Str {
         const types: Dict = {
             'completed': 'ok',
         };
         return this.safeString (types, status, status);
     }
 
-    parseLedgerEntryType (type: any) {
+    parseLedgerEntryType (type: Str): Str {
         const types: Dict = {
             'buy': 'trade',
             'sell': 'trade',
@@ -2987,7 +2987,7 @@ export default class coinbase extends Exchange {
         }, currency) as LedgerEntry;
     }
 
-    async findAccountId (code: any, params: Dict = {}) {
+    async findAccountId (code: Str, params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3001,7 +3001,7 @@ export default class coinbase extends Exchange {
         return undefined;
     }
 
-    prepareAccountRequest (limit: Int = undefined, params: Dict = {}) {
+    prepareAccountRequest (limit: Int = undefined, params: Dict = {}): Dict {
         const accountId = this.safeString2 (params, 'account_id', 'accountId');
         if (accountId === undefined) {
             throw new ArgumentsRequired (this.id + ' prepareAccountRequest() method requires an account_id (or accountId) parameter');
@@ -3015,7 +3015,7 @@ export default class coinbase extends Exchange {
         return request;
     }
 
-    async prepareAccountRequestWithCurrencyCode (code: Str = undefined, limit: Int = undefined, params: Dict = {}) {
+    async prepareAccountRequestWithCurrencyCode (code: Str = undefined, limit: Int = undefined, params: Dict = {}): Promise<[Dict, Dict]> {
         let accountId = this.safeString2 (params, 'account_id', 'accountId');
         params = this.omit (params, [ 'account_id', 'accountId' ]);
         if (accountId === undefined) {
@@ -3046,7 +3046,7 @@ export default class coinbase extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createMarketBuyOrderWithCost (symbol: string, cost: number, params: Dict = {}) {
+    override async createMarketBuyOrderWithCost (symbol: string, cost: number, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3087,7 +3087,7 @@ export default class coinbase extends Exchange {
      * @param {float} [params.reduceOnly] set to true for closing a position or use closePosition
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}) {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3443,7 +3443,7 @@ export default class coinbase extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'OPEN': 'open',
             'FILLED': 'closed',
@@ -3455,7 +3455,7 @@ export default class coinbase extends Exchange {
         return this.safeString (statuses, (status as string), status);
     }
 
-    parseOrderType (type: Str) {
+    parseOrderType (type: Str): Str {
         if (type === 'UNKNOWN_ORDER_TYPE') {
             return undefined;
         }
@@ -3468,7 +3468,7 @@ export default class coinbase extends Exchange {
         return this.safeString (types, (type as string), type);
     }
 
-    parseTimeInForce (timeInForce: Str) {
+    parseTimeInForce (timeInForce: Str): Str {
         const timeInForces: Dict = {
             'GOOD_UNTIL_CANCELLED': 'GTC',
             'GOOD_UNTIL_DATE_TIME': 'GTD',
@@ -3489,7 +3489,7 @@ export default class coinbase extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3507,7 +3507,7 @@ export default class coinbase extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrders (ids: string[], symbol: Str = undefined, params: Dict = {}) {
+    override async cancelOrders (ids: string[], symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3555,7 +3555,7 @@ export default class coinbase extends Exchange {
      * @param {boolean} [params.preview] default to false, wether to use the test/preview endpoint or not
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params: Dict = {}) {
+    override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3599,7 +3599,7 @@ export default class coinbase extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}) {
+    override async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3748,7 +3748,7 @@ export default class coinbase extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchOrdersByStatus (status: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+    async fetchOrdersByStatus (status: Str, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3888,7 +3888,7 @@ export default class coinbase extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}) {
+    override async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         return await this.fetchOrdersByStatus ('CANCELLED', symbol, since, limit, params);
     }
 
@@ -4066,7 +4066,7 @@ export default class coinbase extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}) {
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4194,7 +4194,7 @@ export default class coinbase extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchBidsAsks (symbols: Strings = undefined, params: Dict = {}) {
+    override async fetchBidsAsks (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4643,7 +4643,7 @@ export default class coinbase extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an array of [deposit id structures]{@link https://docs.ccxt.com/?id=deposit-id-structure}
      */
-    async fetchDepositMethodIds (params: Dict = {}) {
+    async fetchDepositMethodIds (params: Dict = {}): Promise<Dict[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4709,7 +4709,7 @@ export default class coinbase extends Exchange {
         return this.parseDepositMethodId (result);
     }
 
-    parseDepositMethodIds (ids: any, params: Dict = {}) {
+    parseDepositMethodIds (ids: Dict[], params: Dict = {}): Dict[] {
         const result: Dict[] = [];
         for (let i = 0; i < ids.length; i++) {
             const id = this.extend (this.parseDepositMethodId (ids[i]), params);
@@ -4718,7 +4718,7 @@ export default class coinbase extends Exchange {
         return result;
     }
 
-    parseDepositMethodId (depositId: any) {
+    parseDepositMethodId (depositId: Dict): Dict {
         return {
             'info': depositId,
             'id': this.safeString (depositId, 'id'),
@@ -4977,7 +4977,7 @@ export default class coinbase extends Exchange {
      * @param {string} [params.portfolio] *perpetual/swaps only* the portfolio UUID to fetch the position for, required for perpetual/swaps markets only
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    override async fetchPosition (symbol: string, params: Dict = {}) {
+    override async fetchPosition (symbol: string, params: Dict = {}): Promise<Position> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -5008,7 +5008,7 @@ export default class coinbase extends Exchange {
         return this.parsePosition (position, market);
     }
 
-    override parsePosition (position: Dict, market: Market = undefined) {
+    override parsePosition (position: Dict, market: Market = undefined): Position {
         //
         // {
         //     "product_id": "1r4njf84-0-0",
@@ -5230,7 +5230,7 @@ export default class coinbase extends Exchange {
         return result;
     }
 
-    parsePortfolioDetails (portfolioData: Dict) {
+    parsePortfolioDetails (portfolioData: Dict): Dict[] {
         const breakdown = portfolioData['breakdown'];
         const portfolioInfo = this.safeDict (breakdown, 'portfolio', {});
         const portfolioName = this.safeString (portfolioInfo, 'name', 'Unknown');
@@ -5278,7 +5278,7 @@ export default class coinbase extends Exchange {
         return parsedPositions;
     }
 
-    createAuthToken (seconds: Int, method: Str = undefined, url: Str = undefined, useEddsa = false) {
+    createAuthToken (seconds: Int, method: Str = undefined, url: Str = undefined, useEddsa = false): Str {
         // v1 https://docs.cdp.coinbase.com/api-reference/authentication#php-2
         // v2  https://docs.cdp.coinbase.com/api-reference/v2/authentication
         let uri: Str = undefined;
@@ -5324,7 +5324,7 @@ export default class coinbase extends Exchange {
         return this.milliseconds () - this.options['timeDifference'];
     }
 
-    override sign (path: any, api: any = [], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = [], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         const version = api[0];
         const signed = api[1] === 'private';
         const isV3 = version === 'v3';
