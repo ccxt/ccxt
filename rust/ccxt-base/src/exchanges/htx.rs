@@ -4217,7 +4217,7 @@ impl HtxCore {
     m
 })]);
         if (in_op(&futureMarketIdsForSymbols, &symbolOrMarketId)) {
-            return get_value(&futureMarketIdsForSymbols, &symbolOrMarketId);
+            return futureMarketIdsForSymbols.as_map().and_then(|__m| symbolOrMarketId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         }
         let mut futureMarkets: Value = self.filter_by(self.markets.clone(), Value::Str("future".into()), Value::Bool(true), &[]);
         let mut futuresCharsMaps: Value = Value::Map({
@@ -5816,7 +5816,7 @@ impl HtxCore {
     m
 })]);
         if (in_op(&uniqueNetworkIds, &networkCode)) {
-            return get_value(&uniqueNetworkIds, &networkCode);
+            return uniqueNetworkIds.as_map().and_then(|__m| networkCode.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         }  else {
             let mut networkTitle: Value = self.super_network_code_to_id(networkCode, &[currencyCode]);
             return self.safe_value(uniqueNetworkIds, networkTitle.clone(), &[networkTitle.clone()]);
@@ -6103,7 +6103,7 @@ impl HtxCore {
                         let mut __for_first_773: bool = true;
                         while { if !__for_first_773 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_773 = false; j.as_f64().unwrap_or(f64::NAN) < ((subCodes.len() as i64) as f64) } {
                         let mut subCode: Value = subCodes.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-                        result = self.merge_balance_account(result.clone(), subCode.clone(), get_value(&subResult, &subCode));
+                        result = self.merge_balance_account(result.clone(), subCode.clone(), subResult.as_map().and_then(|__m| subCode.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null));
                     }
                     }
                 }
@@ -11446,7 +11446,7 @@ impl HtxCore {
         let mut amountType: Value = self.safe_integer2(params.clone(), Value::Str("amount_type".into()), Value::Str("amountType".into()), &[Value::Int(2)]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("period".to_string(), get_value(&timeframes, &timeframe));
+                m.insert("period".to_string(), timeframes.as_map().and_then(|__m| timeframe.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null));
                 m.insert("amount_type".to_string(), amountType);
             m
         });

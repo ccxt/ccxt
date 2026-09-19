@@ -5040,7 +5040,7 @@ impl HashkeyCore {
         }  else if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             let __ws_arg_43 = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("symbol".to_string(), crate::value::get_value_k(&market, "id"));
+                    m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m
             }), &[params.clone()]);
             response = self.private_get_api_v1_futures_commission_rate(&[__ws_arg_43]).await;

@@ -2053,7 +2053,7 @@ impl PoloniexCore {
             m
         });
         if (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-            let mut tickers: Value = self.fetch_tickers(&[Value::from(vec![crate::value::get_value_k(&market, "symbol")]), params.clone()]).await;
+            let mut tickers: Value = self.fetch_tickers(&[Value::from(vec![market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)]), params.clone()]).await;
             return self.safe_dict(tickers.clone(), symbol.clone(), &[]);
         }
         let __ws_arg_3 = self.extend(request, &[params.clone()]);
@@ -2595,8 +2595,8 @@ impl PoloniexCore {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("status".to_string(), Value::Str("open".into()));
                     m.insert("type".to_string(), Value::Str("limit".into()));
-                    m.insert("side".to_string(), crate::value::get_value_k(&order, "type"));
-                    m.insert("price".to_string(), crate::value::get_value_k(&order, "rate"));
+                    m.insert("side".to_string(), order.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null));
+                    m.insert("price".to_string(), order.as_map().and_then(|__m| __m.get("rate")).cloned().unwrap_or(Value::Null));
                 m
             })]);
             append_to_array(&mut result, self.parse_order(extended, &[market.clone()]));

@@ -2163,8 +2163,8 @@ impl WooCore {
             let mut customCurrency: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("_coin_id".to_string(), id.clone());
-                    m.insert("_tokens_by_id".to_string(), get_value(&tokensById, &id));
-                    m.insert("_networks_by_id".to_string(), get_value(&networksById, &id));
+                    m.insert("_tokens_by_id".to_string(), tokensById.as_map().and_then(|__m| id.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null));
+                    m.insert("_networks_by_id".to_string(), networksById.as_map().and_then(|__m| id.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null));
                 m
             });
             let mut parsed: Value = self.parse_currency(customCurrency);

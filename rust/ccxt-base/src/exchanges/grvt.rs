@@ -4470,7 +4470,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         }
         let mut domainData: Value = self.eip_domain_data();
         let mut definitions: Value = self.eip_definitions();
-        let mut ethEncodedMessage: Value = self.eth_encode_structured_data(domainData, get_value(&definitions, &structureType), messageData.clone());
+        let mut ethEncodedMessage: Value = self.eth_encode_structured_data(domainData, definitions.as_map().and_then(|__m| structureType.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), messageData.clone());
         let mut ethEncodedMessageHashed: Value = add(&Value::Str("0x".into()), &self.hash(ethEncodedMessage, Value::Str("keccak".into()), &[Value::Str("hex".into())]));
         let mut usesPrivKey: Value = self.uses_private_key(); // py transpiler needs this line separated
         let mut secretOrPrivkey: Value = (if is_true(&usesPrivKey) { self.privateKey.clone() } else { self.secret.clone() });

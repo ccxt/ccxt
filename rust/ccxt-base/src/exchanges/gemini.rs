@@ -1610,8 +1610,7 @@ impl GeminiCore {
 })]);
             let mut lowerCaseId: Value = to_lower(&marketIdWithoutPerp);
             if (in_op(&conflictingMarkets, &lowerCaseId)) {
-                let mut conflictingMarket: Value = get_value(&conflictingMarkets, &lowerCaseId);
-                let mut conflictingMarket: Value = get_value(&conflictingMarkets, &lowerCaseId);
+                let mut conflictingMarket: Value = conflictingMarkets.as_map().and_then(|__m| lowerCaseId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
                 baseId = crate::value::get_value_k(&conflictingMarket, "base");
                 quoteId = crate::value::get_value_k(&conflictingMarket, "quote");
                 if isPerp {

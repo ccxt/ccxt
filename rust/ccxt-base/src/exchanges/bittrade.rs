@@ -2054,7 +2054,7 @@ impl BittradeCore {
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
             let mut account: Value = Value::Null;
             if (code != Value::Null) && (in_op(&result, &code)) {
-                account = get_value(&result, &code);
+                account = result.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
             }  else {
                 account = self.account();
             }

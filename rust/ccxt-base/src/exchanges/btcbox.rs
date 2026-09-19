@@ -1062,7 +1062,7 @@ impl BtcboxCore {
         let mut request: Value = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), id);
-                m.insert("coin".to_string(), crate::value::get_value_k(&market, "baseId"));
+                m.insert("coin".to_string(), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null));
             m
         }), &[params.clone()]);
         let __ws_arg_5 = self.extend(request, &[params]);

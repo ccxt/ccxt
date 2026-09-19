@@ -1239,8 +1239,8 @@ impl MudrexCore {
         // the create response omits the order/trigger type, so parse a merged copy - the base derivations, like timeInForce, need to see them - then keep the untouched raw payload under info
         let mut merged: Value = self.extend(data.clone(), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("order_type".to_string(), crate::value::get_value_k(&request, "order_type"));
-                m.insert("trigger_type".to_string(), crate::value::get_value_k(&request, "trigger_type"));
+                m.insert("order_type".to_string(), match &request { Value::Dict(__m15) => __m15.get("order_type").cloned().unwrap_or(Value::Null), _ => Value::Null });
+                m.insert("trigger_type".to_string(), match &request { Value::Dict(__m15) => __m15.get("trigger_type").cloned().unwrap_or(Value::Null), _ => Value::Null });
             m
         })]);
         let mut order: Value = self.parse_order(merged, &[market.clone()]);
@@ -2013,7 +2013,7 @@ impl MudrexCore {
             if (rebate == Value::Null) {
                 append_to_array(&mut rows, transactions.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
             }  else {
-                append_to_array(&mut rows, self.extend(get_value(&transactions, &i), &[Value::Map({
+                append_to_array(&mut rows, self.extend(transactions.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("rebate_amount".to_string(), rebate.clone());
                     m

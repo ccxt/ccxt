@@ -1351,7 +1351,7 @@ impl LbankCore {
         }
         let mut market: Value = self.market(symbol);
         if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-            let mut responseForSwap: Value = self.fetch_tickers(&[Value::from(vec![crate::value::get_value_k(&market, "symbol")]), params.clone()]).await;
+            let mut responseForSwap: Value = self.fetch_tickers(&[Value::from(vec![market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)]), params.clone()]).await;
             return self.safe_value(responseForSwap.clone(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[]);
         }
         let mut request: Value = Value::Map({
@@ -2242,7 +2242,7 @@ impl LbankCore {
         let mut market: Value = self.market(symbol.clone());
         let __ws_arg_10 = self.extend(params, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("category".to_string(), crate::value::get_value_k(&market, "id"));
+        m.insert("category".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
     m
 })]);
         let mut result: Value = self.fetch_trading_fees(&[__ws_arg_10]).await;
@@ -3956,7 +3956,7 @@ impl LbankCore {
                         if (resultValue == Value::Null) {
                             add_element_to_object(&mut result, &code, self.deposit_withdraw_fee(Value::from(vec![fee.clone()])));
                         }  else {
-                            let mut resultCodeInfo: Value = crate::value::get_value_k(&get_value(&result, &code), "info");
+                            let mut resultCodeInfo: Value = crate::value::get_value_k(&result.as_map().and_then(|__m| code.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), "info");
                             append_to_array(&mut resultCodeInfo, fee.clone());
                         }
                         let mut networkCode: Value = self.network_id_to_code(&[self.safe_string_k(fee.clone(), "chain", &[]), code.clone()]);

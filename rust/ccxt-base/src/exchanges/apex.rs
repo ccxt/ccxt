@@ -1789,24 +1789,23 @@ impl ApexCore {
             let mut marketsMap: Value = self.markets.clone();
             let mut marketsById: Value = self.markets_by_id.clone();
             if (marketsMap != Value::Null) && (in_op(&marketsMap, &marketId)) {
-                market = get_value(&marketsMap, &marketId);
+                market = marketsMap.as_map().and_then(|__m| marketId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
             }  else if (marketsById != Value::Null) && (in_op(&marketsById, &marketId)) {
-                market = get_value(&marketsById, &marketId);
+                market = marketsById.as_map().and_then(|__m| marketId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
             }  else {
                 let mut newMarketId: Value = self.add_hyphen_before_usdt(marketId.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
                 if (marketsById != Value::Null) && (in_op(&marketsById, &newMarketId)) {
-                    let mut markets: Value = get_value(&marketsById, &newMarketId);
-                    let mut markets: Value = get_value(&marketsById, &newMarketId);
+                    let mut markets: Value = marketsById.as_map().and_then(|__m| newMarketId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
                     let mut numMarkets: Value = get_array_length(&markets);
                     if numMarkets.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
-                        if is_equal(&crate::value::get_value_k(&get_value(&get_value(&marketsById, &newMarketId), &Value::Int(0)), "id2"), &marketId) {
-                            market = get_value(&get_value(&marketsById, &newMarketId), &Value::Int(0));
+                        if is_equal(&crate::value::get_value_k(&get_value(&marketsById.as_map().and_then(|__m| newMarketId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &Value::Int(0)), "id2"), &marketId) {
+                            market = get_value(&marketsById.as_map().and_then(|__m| newMarketId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &Value::Int(0));
                         }
                     }
                 }
             }
         }
-        return self.super_safe_market(marketId, market, delimiter, marketType);
+        return self.super_safe_market(marketId, market.clone(), delimiter, marketType);
 
     Value::Null
 }
@@ -1971,7 +1970,7 @@ impl ApexCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_order(data, &[market]);
+        return self.parse_order(data, &[market.clone()]);
 
     Value::Null
 }
@@ -2232,7 +2231,7 @@ impl ApexCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return Value::from(vec![self.parse_order(data, &[market])]);
+        return Value::from(vec![self.parse_order(data, &[market.clone()])]);
 
     Value::Null
 }
@@ -2408,7 +2407,7 @@ impl ApexCore {
     m
 })]);
         let mut orders: Value = self.safe_list_k(data, "orders", &[Value::from(vec![])]);
-        return self.parse_orders(orders, &[market, since, limit]);
+        return self.parse_orders(orders, &[market.clone(), since, limit]);
 
     Value::Null
 }
@@ -2512,7 +2511,7 @@ impl ApexCore {
     m
 })]);
         let mut orders: Value = self.safe_list_k(data, "orders", &[Value::from(vec![])]);
-        return self.parse_trades(orders, &[market, since, limit]);
+        return self.parse_trades(orders, &[market.clone(), since, limit]);
 
     Value::Null
 }
@@ -2569,7 +2568,7 @@ impl ApexCore {
     m
 })]);
         let mut fundingValues: Value = self.safe_list_k(data, "fundingValues", &[Value::from(vec![])]);
-        return self.parse_incomes(fundingValues, &[market, since, limit]);
+        return self.parse_incomes(fundingValues, &[market.clone(), since, limit]);
 
     Value::Null
 }
@@ -2597,7 +2596,7 @@ impl ApexCore {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), income.clone());
-        m.insert("symbol".to_string(), self.safe_symbol(marketId, &[market]));
+        m.insert("symbol".to_string(), self.safe_symbol(marketId, &[market.clone()]));
         m.insert("code".to_string(), code);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));

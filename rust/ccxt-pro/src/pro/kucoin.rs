@@ -476,7 +476,7 @@ impl KucoinCore {
         // fetch different urls and overwrite each other
         add_element_to_object(&mut urls, &connectId, self.call_dynamic("negotiate_helper", vec![privateChannel, connectId.clone(), params]).await);
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("urls".to_string(), urls.clone()); }
-        future = get_value(&urls, &connectId);
+        future = urls.as_map().and_then(|__m| connectId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         return future;
 
     Value::Null
@@ -3971,12 +3971,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut __for_first_472: bool = true;
             while { if !__for_first_472 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_472 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
             let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            if (get_value(&newPosition, &key) == Value::Null) {
+            if (newPosition.as_map().and_then(|__m| key.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null) == Value::Null) {
                 remove(&mut newPosition, &key);
             }
         }
         }
-        let mut position: Value = self.extend(currentPosition, &[newPosition]);
+        let mut position: Value = self.extend(currentPosition, &[newPosition.clone()]);
         cache.append(position.clone());
         client.resolve(&[position, messageHash.clone()]);
 }
@@ -4027,12 +4027,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut __for_first_473: bool = true;
             while { if !__for_first_473 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_473 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
             let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            if (get_value(&newPosition, &key) == Value::Null) {
+            if (newPosition.as_map().and_then(|__m| key.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null) == Value::Null) {
                 remove(&mut newPosition, &key);
             }
         }
         }
-        let mut position: Value = self.extend(currentPosition, &[newPosition]);
+        let mut position: Value = self.extend(currentPosition, &[newPosition.clone()]);
         cache.append(position);
         let mut messageHash: Value = Value::Str("positions".into());
         let mut symbolMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbol).into());
