@@ -1271,7 +1271,7 @@ export default class aster extends asterRest {
         ];
     }
 
-    async authenticate (type: string = 'spot', params: Dict = {}): Promise<any> {
+    async authenticate (type: string = 'spot', params: Dict = {}) {
         const time = this.milliseconds ();
         const lastAuthenticatedTimeOptions = this.safeDict (this.options, 'lastAuthenticatedTime', {});
         const lastAuthenticatedTime = this.safeInteger (lastAuthenticatedTimeOptions, type, 0);

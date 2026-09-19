@@ -978,7 +978,7 @@ export default class bitstamp extends bitstampRest {
         }
     }
 
-    async authenticate (params: Dict = {}): Promise<any> {
+    async authenticate (params: Dict = {}) {
         this.checkRequiredCredentials ();
         const time = this.milliseconds ();
         const expiresIn = this.safeInteger (this.options, 'expiresIn');

@@ -1464,7 +1464,7 @@ export default class bingx extends bingxRest {
         this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
     }
 
-    async authenticate (params: Dict = {}): Promise<any> {
+    async authenticate (params: Dict = {}) {
         const time = this.milliseconds ();
         const lastAuthenticatedTime = this.safeInteger (this.options, 'lastAuthenticatedTime', 0);
         const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 3600000); // 1 hour

@@ -789,7 +789,7 @@ export default class whitebit extends whitebitRest {
         }
     }
 
-    async loadBalanceSnapshot (client: any, messageHash: any, type: any, subscriptionHash: any): Promise<any> {
+    async loadBalanceSnapshot (client: any, messageHash: any, type: any, subscriptionHash: any) {
         const response = await this.fetchBalance ({ 'type': type });
         this.balance = this.extend (response, this.balance);
         // don't remove the future from the .futures cache

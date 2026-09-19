@@ -624,7 +624,7 @@ export default class grvt extends grvtRest {
         client.resolve (orderbook, messageHash);
     }
 
-    async authenticate (params: Dict = {}): Promise<any> {
+    async authenticate (params: Dict = {}) {
         this.checkRequiredCredentials ();
         await this.signIn ();
         const wsOptions = this.safeDict (this.options, 'ws', {});

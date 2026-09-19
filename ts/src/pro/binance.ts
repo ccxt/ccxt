@@ -2991,7 +2991,7 @@ export default class binance extends binanceRest {
         await this.ensureUserDataStreamWsSubscribeListenToken (type, renewParams);
     }
 
-    async authenticate (params: Dict = {}): Promise<any> {
+    async authenticate (params: Dict = {}) {
         const time = this.milliseconds ();
         const resolvedAuth = this.resolveAuthType ('authenticate', undefined, params);
         const type = resolvedAuth[0];
