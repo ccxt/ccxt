@@ -247,6 +247,24 @@
                     }
                 ],
                 "output": "{\"account\":\"bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt\",\"signature\":\"SHBGzpVrS1Giz9GuhhdQ22V1YVR5AgxCgmmB3Ba4ycSo8k9PomXtPUfVSdBWgDQKgK2iRCYiRAZ2yKz9GuoYzPL\",\"timestamp\":1769555623980,\"expiry_window\":5000,\"symbol\":\"BTC\",\"side\":\"bid\",\"take_profit\":{\"stop_price\":\"83000\"},\"stop_loss\":{\"stop_price\":\"90000\"}}"
+            },
+            {
+                "description": "Set position TP/SL with snake_case reduce_only (must not leak into the tpsl body)",
+                "method": "createOrder",
+                "url": "https://test-api.pacifica.fi/api/v1/positions/tpsl",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "limit",
+                    "buy",
+                    0.001,
+                    null,
+                    {
+                        "takeProfitPrice": 83000,
+                        "stopLossPrice": 90000,
+                        "reduce_only": true
+                    }
+                ],
+                "output": "{\"account\":\"bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt\",\"signature\":\"5MnF1UzXa913WUFkGY8cHbEQ98cNL7jk1CZgBkY1sB379S5Ahe6aEehTfbTZ49AJtDnr9p5Ke8zk2Qt5CoKPQG8c\",\"timestamp\":1789809700912,\"expiry_window\":5000,\"symbol\":\"BTC\",\"side\":\"bid\",\"take_profit\":{\"stop_price\":\"83000\"},\"stop_loss\":{\"stop_price\":\"90000\"}}"
             }
         ],
         "createOrders": [
