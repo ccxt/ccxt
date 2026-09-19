@@ -147,8 +147,8 @@ export default class bitteam extends Exchange {
     cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
     parseOrder(order: Dict, market?: Market): Order;
     parseOrderStatus(status: Str): Str;
-    parseOrderType(status: any): string;
-    parseValueToPricision(valueObject: any, valueKey: any, preciseObject: any, precisionKey: any): string | undefined;
+    parseOrderType(status: Str): Str;
+    parseValueToPricision(valueObject: Dict, valueKey: string, preciseObject: any, precisionKey: string): Str;
     /**
      * @method
      * @name bitteam#fetchTickers
@@ -218,13 +218,8 @@ export default class bitteam extends Exchange {
      */
     fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
-    parseTransactionType(type: any): string;
+    parseTransactionType(type: Str): Str;
     parseTransactionStatus(status: Str): Str;
-    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
-        url: string;
-        method: string;
-        body: Str;
-        headers: NullableDict;
-    };
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): Dict;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

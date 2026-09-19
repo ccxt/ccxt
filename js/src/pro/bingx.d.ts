@@ -28,9 +28,9 @@ export default class bingx extends bingxRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     unWatchTicker(symbol: string, params?: {}): Promise<any>;
-    handleTicker(client: Client, message: any): void;
-    parseWsTicker(message: any, market?: Market, isInverse?: Bool): Ticker;
-    getOrderBookLimitByMarketType(marketType: string, limit?: Int): number;
+    handleTicker(client: Client, message: Dict): void;
+    parseWsTicker(message: Dict, market?: Market, isInverse?: Bool): Ticker;
+    getOrderBookLimitByMarketType(marketType: string, limit?: Int): Int;
     getMessageHash(unifiedChannel: string, symbol?: Str, extra?: Str): string;
     /**
      * @method
@@ -59,7 +59,7 @@ export default class bingx extends bingxRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     unWatchTrades(symbol: string, params?: {}): Promise<any>;
-    handleTrades(client: Client, message: any): void;
+    handleTrades(client: Client, message: Dict): void;
     /**
      * @method
      * @name bingx#watchOrderBook
@@ -86,9 +86,9 @@ export default class bingx extends bingxRest {
      */
     unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
     handleDelta(bookside: any, delta: any): void;
-    handleOrderBook(client: Client, message: any): void;
+    handleOrderBook(client: Client, message: Dict): void;
     parseWsOHLCV(ohlcv: any, market?: Market): OHLCV;
-    handleOHLCV(client: Client, message: any): void;
+    handleOHLCV(client: Client, message: Dict): void;
     /**
      * @method
      * @name bingx#watchOHLCV
@@ -156,8 +156,8 @@ export default class bingx extends bingxRest {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     watchBalance(params?: {}): Promise<Balances>;
-    setBalanceCache(client: Client, type: any, subType: any, subscriptionHash: any, params: any): void;
-    loadBalanceSnapshot(client: Client, messageHash: any, type: any, subType: any): Promise<void>;
+    setBalanceCache(client: Client, type: any, subType: Str, subscriptionHash: string, params: Dict): void;
+    loadBalanceSnapshot(client: Client, messageHash: string, type: any, subType: Str): Promise<void>;
     /**
      * @method
      * @name bingx#watchPositions
@@ -170,18 +170,18 @@ export default class bingx extends bingxRest {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
-    setPositionsCache(client: Client, type: any, symbols?: Strings): void;
-    loadPositionsSnapshot(client: Client, messageHash: any, type: any): Promise<void>;
-    parseWsPosition(position: any, market?: Market): Position;
-    handlePositions(client: Client, message: any): void;
-    handleErrorMessage(client: Client, message: any): boolean;
-    keepAliveListenKey(params?: {}): Promise<void>;
-    authenticate(params?: {}): Promise<void>;
+    setPositionsCache(client: Client, type: Str, symbols?: Strings): void;
+    loadPositionsSnapshot(client: Client, messageHash: string, type: Str): Promise<void>;
+    parseWsPosition(position: Dict, market?: Market): Position;
+    handlePositions(client: Client, message: Dict): void;
+    handleErrorMessage(client: Client, message: Dict): boolean;
+    keepAliveListenKey(params?: Dict): Promise<void>;
+    authenticate(params?: Dict): Promise<void>;
     pong(client: Client, message: any): Promise<void>;
-    handleOrder(client: any, message: any): void;
-    handleMyTrades(client: Client, message: any): void;
-    handleBalance(client: Client, message: any): void;
+    handleOrder(client: Client, message: Dict): void;
+    handleMyTrades(client: Client, message: Dict): void;
+    handleBalance(client: Client, message: Dict): void;
     handleMessage(client: Client, message: any): void;
-    handleSubscriptionStatus(client: Client, message: any): any;
+    handleSubscriptionStatus(client: Client, message: Dict): Dict;
     handleUnSubscription(client: Client, subscription: Dict): void;
 }
