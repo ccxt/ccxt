@@ -831,6 +831,19 @@ impl Exchange {
         arg_default(optional_args)
     }
 
+    /// `safe_string_upper` with a `&str` key — the `safe_*_k` twin.
+    #[inline]
+    pub fn safe_string_upper_k(&self, obj: Value, key: &str, optional_args: &[Value]) -> Value {
+        let v = self.safe_string_k(obj, key, &[]);
+        if !v.is_null() {
+            if let Value::Str(s) = v {
+                return Value::Str(s);
+            }
+            return v;
+        }
+        arg_default(optional_args)
+    }
+
     pub fn safe_string_lower_n(&self, obj: Value, keys: Value, optional_args: &[Value]) -> Value {
         if let Value::Arr(ks) = keys {
             for k in ks.iter().cloned() {
@@ -863,6 +876,20 @@ impl Exchange {
 
     pub fn safe_string_lower(&self, obj: Value, key: Value, optional_args: &[Value]) -> Value {
         let v = self.safe_string(obj, key, &[]);
+        if !v.is_null() {
+            if let Value::Str(s) = v {
+                return Value::Str(s);
+            }
+            return v;
+        }
+        arg_default(optional_args)
+    }
+
+    /// `safe_string_lower` with a `&str` key — the `safe_*_k` twin of the
+    /// lookup above (same `get_value_k` path as the rest of the family).
+    #[inline]
+    pub fn safe_string_lower_k(&self, obj: Value, key: &str, optional_args: &[Value]) -> Value {
+        let v = self.safe_string_k(obj, key, &[]);
         if !v.is_null() {
             if let Value::Str(s) = v {
                 return Value::Str(s);
@@ -1615,6 +1642,33 @@ impl Exchange {
         }
     }
 
+    /// `safe_integer_product` with a `&str` key — the `safe_*_k` twin.
+    #[inline]
+    pub fn safe_integer_product_k(
+        &self,
+        obj: Value,
+        key: &str,
+        factor: Value,
+        optional_args: &[Value],
+    ) -> Value {
+        let v = self.safe_value_k(obj, key, &[]);
+        let n = match v {
+            Value::Int(n) => Some(n as f64),
+            Value::Float(f) => Some(f),
+            Value::Str(s) => s.parse::<f64>().ok(),
+            _ => None,
+        };
+        let f = match factor {
+            Value::Int(n) => n as f64,
+            Value::Float(f) => f,
+            _ => return arg_default(optional_args),
+        };
+        match n {
+            Some(x) => Value::Int((x * f) as i64),
+            None => arg_default(optional_args),
+        }
+    }
+
     pub fn safe_integer_product2(
         &self,
         obj: Value,
@@ -1685,6 +1739,16 @@ impl Exchange {
     /// converted to integer milliseconds.
     pub fn safe_timestamp(&self, obj: Value, key: Value, optional_args: &[Value]) -> Value {
         match self.safe_float(obj, key, &[]) {
+            Value::Float(f) => Value::Int((f * 1000.0) as i64),
+            Value::Int(n) => Value::Int(n * 1000),
+            _ => arg_default(optional_args),
+        }
+    }
+
+    /// `safe_timestamp` with a `&str` key — the `safe_*_k` twin.
+    #[inline]
+    pub fn safe_timestamp_k(&self, obj: Value, key: &str, optional_args: &[Value]) -> Value {
+        match self.safe_float_k(obj, key, &[]) {
             Value::Float(f) => Value::Int((f * 1000.0) as i64),
             Value::Int(n) => Value::Int(n * 1000),
             _ => arg_default(optional_args),
