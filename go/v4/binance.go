@@ -4556,10 +4556,10 @@ func (this *Binance) TokenizedConvertHistory(optionalArgs ...any) any {
 	var request any = map[string]any{
 		"timestamp": this.Milliseconds(),
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "startTime", since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "size", limit)
 	}
 	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
@@ -5982,7 +5982,7 @@ func (this *Binance) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
 	}
 	var response any = nil
@@ -6935,11 +6935,11 @@ func (this *Binance) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	var price *string = this.SafeString(params, "price")
 	var until *int64 = this.SafeInteger(params, "until")
 	params = this.Omit(params, []any{"price", "until"})
-	if !IsEqual(since, nil) && (until != nil) && IsEqual(limit, nil) {
+	if (since != nil) && (until != nil) && (limit == nil) {
 		limit = maxLimit
 	}
 	limit = func() any {
-		if IsEqual(limit, nil) {
+		if limit == nil {
 			return defaultLimit
 		}
 		return mathMin(limit, maxLimit)
@@ -6960,7 +6960,7 @@ func (this *Binance) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		request["symbol"] = marketId
 	}
 	// const duration = this.parseTimeframe (timeframe);
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = since
 		//
 		// It didn't work before without the endTime
@@ -7437,7 +7437,7 @@ func (this *Binance) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		"symbol": GetValue(market, "id"),
 	}
 	if GetValue(market, "option") != true {
-		if !IsEqual(since, nil) {
+		if since != nil {
 			request["startTime"] = since
 			// https://github.com/ccxt/ccxt/issues/6400
 			// https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
@@ -7450,7 +7450,7 @@ func (this *Binance) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	}
 	var method any = DerefScalar(this.SafeString(this.Options, "fetchTradesMethod"))
 	method = DerefScalar(this.SafeString2(params, "fetchTradesMethod", "method", method))
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		var isFutureOrSwap bool = (GetValue(market, "swap") == true) || (GetValue(market, "future") == true)
 		var isHistoricalEndpoint bool = (!IsEqual(method, nil)) && (GetIndexOf(method, "GetHistoricalTrades") >= 0)
 		var maxLimitForContractHistorical int = func() int {
@@ -7767,7 +7767,7 @@ func (this *Binance) EditSpotOrderRequest(id any, symbol any, typeVar any, side 
 			var precision any = GetValue(GetValue(market, "precision"), "price")
 			if !IsEqual(quoteOrderQtyNew, nil) {
 				request["quoteOrderQty"] = this.DecimalToPrecision(quoteOrderQtyNew, TRUNCATE, precision, this.PrecisionMode)
-			} else if !IsEqual(price, nil) {
+			} else if price != nil {
 				var amountString *string = this.NumberToString(amount)
 				var priceString *string = this.NumberToString(price)
 				var quoteOrderQuantity *string = Precise.StringMul(amountString, priceString)
@@ -7798,7 +7798,7 @@ func (this *Binance) EditSpotOrderRequest(id any, symbol any, typeVar any, side 
 		request["quantity"] = this.AmountToPrecision(symbol, amount)
 	}
 	if priceIsRequired {
-		if IsEqual(price, nil) {
+		if price == nil {
 			panic(InvalidOrder(Add(Add(this.Id+" editOrder() requires a price argument for a ", typeVar), " order")))
 		}
 		request["price"] = this.PriceToPrecision(symbol, price)
@@ -7836,7 +7836,7 @@ func (this *Binance) EditContractOrderRequest(id any, symbol any, typeVar any, s
 	if side == nil {
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
-	if (IsEqual(price, nil)) && !(InOp(params, "priceMatch")) {
+	if (price == nil) && !(InOp(params, "priceMatch")) {
 		panic(ArgumentsRequired(this.Id + " editOrder() and editOrderWs() require a price argument for swap orders"))
 	}
 	var market any = this.Market(symbol)
@@ -7853,7 +7853,7 @@ func (this *Binance) EditContractOrderRequest(id any, symbol any, typeVar any, s
 		"quantity": this.AmountToPrecision(symbol, amount),
 	}
 	var clientOrderId *string = this.SafeStringN(params, []any{"newClientOrderId", "clientOrderId", "origClientOrderId"})
-	if !IsEqual(price, nil) {
+	if price != nil {
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
 	if clientOrderId != nil {
@@ -9391,7 +9391,7 @@ func (this *Binance) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 				var notional any = nil
 				if quoteOrderQtyNew != nil {
 					notional = quoteOrderQtyNew
-				} else if !IsEqual(price, nil) {
+				} else if price != nil {
 					var amountString *string = this.NumberToString(amount)
 					var priceString *string = this.NumberToString(price)
 					notional = Precise.StringMul(amountString, priceString)
@@ -9421,7 +9421,7 @@ func (this *Binance) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 				var precision *float64 = this.SafeNumber(GetValue(market, "precision"), "price")
 				if quoteOrderQtyNew != nil {
 					request["quoteOrderQty"] = this.DecimalToPrecision(quoteOrderQtyNew, TRUNCATE, precision, this.PrecisionMode)
-				} else if !IsEqual(price, nil) {
+				} else if price != nil {
 					var amountString *string = this.NumberToString(amount)
 					var priceString *string = this.NumberToString(price)
 					var quoteOrderQuantity *string = Precise.StringMul(amountString, priceString)
@@ -9484,7 +9484,7 @@ func (this *Binance) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 		}
 	}
 	if priceIsRequired && !isPriceMatch {
-		if IsEqual(price, nil) {
+		if price == nil {
 			panic(InvalidOrder(Add(Add(this.Id+" createOrder() requires a price argument for a ", typeVar), " order")))
 		}
 		var pricePrecision *string = this.SafeString(GetValue(market, "precision"), "price")
@@ -9926,10 +9926,10 @@ func (this *Binance) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var isInverseType bool = this.IsInverse(typeVar, subType)
 	var until any = DerefScalar(this.SafeIntegerN(params, []any{"until", "till", "endTime"}))
 	params = this.Omit(params, []any{"stop", "trigger", "conditional", "until", "till", "endTime"})
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		if IsEqual(stock, true) {
 			limit = mathMin(limit, 100) // max 100
 			request["size"] = limit
@@ -9945,7 +9945,7 @@ func (this *Binance) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 			until = this.Milliseconds()
 			request["endTime"] = until
 		}
-		if IsEqual(since, nil) {
+		if since == nil {
 			var oneWeek int64 = Multiply(Multiply(Multiply(Multiply(7, 24), 60), 60), 1000).(int64)
 			request["startTime"] = Subtract(until, oneWeek)
 		}
@@ -10318,10 +10318,10 @@ func (this *Binance) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	params = this.Omit(params, []any{"stop", "trigger", "conditional"})
 	var response any = nil
 	if IsEqual(typeVar, "option") {
-		if !IsEqual(since, nil) {
+		if since != nil {
 			request["startTime"] = since
 		}
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			request["limit"] = limit
 		}
 
@@ -11411,7 +11411,7 @@ func (this *Binance) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		panic(ArgumentsRequired(this.Id + " fetchMyTrades() requires a symbol argument"))
 	}
 	var endTime any = DerefScalar(this.SafeInteger2(params, "until", "endTime"))
-	if !IsEqual(since, nil) {
+	if since != nil {
 		var startTime any = since
 		request["startTime"] = startTime
 		// If startTime and endTime are both not sent, then the last 7 days' data will be returned.
@@ -11436,7 +11436,7 @@ func (this *Binance) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["endTime"] = endTime
 		params = this.Omit(params, []any{"endTime", "until"})
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		if (IsEqual(typeVar, "option")) || (IsEqual(this.SafeBool(market, "contract"), true)) {
 			limit = mathMin(limit, 1000) // above 1000, returns error
 		}
@@ -11465,7 +11465,7 @@ func (this *Binance) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 				endTime = this.Milliseconds()
 				request["endTime"] = endTime
 			}
-			if IsEqual(since, nil) {
+			if since == nil {
 				var oneWeek int64 = Multiply(Multiply(Multiply(Multiply(7, 24), 60), 60), 1000).(int64)
 				request["startTime"] = Subtract(endTime, oneWeek)
 			}
@@ -11716,7 +11716,7 @@ func (this *Binance) fetchMyDustTradesBody(ch chan any, optionalArgs ...any) any
 		PanicOnError(retRes917112)
 	}
 	var request map[string]any = map[string]any{}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = since
 		request["endTime"] = this.Sum(since, 7776000000)
 	}
@@ -11906,7 +11906,7 @@ func (this *Binance) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 			currency = this.Currency(code)
 		}
 		request["transactionType"] = 0
-		if !IsEqual(since, nil) {
+		if since != nil {
 			request["beginTime"] = since
 		}
 		if until != nil {
@@ -11921,7 +11921,7 @@ func (this *Binance) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 			currency = this.Currency(code)
 			request["coin"] = GetValue(currency, "id")
 		}
-		if !IsEqual(since, nil) {
+		if since != nil {
 			request["startTime"] = since
 			// max 3 months range https://github.com/ccxt/ccxt/issues/6495
 			var endTime any = this.Sum(since, 7776000000)
@@ -11930,7 +11930,7 @@ func (this *Binance) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 			}
 			request["endTime"] = endTime
 		}
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			request["limit"] = limit
 		}
 
@@ -12015,7 +12015,7 @@ func (this *Binance) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 			currency = this.Currency(code)
 		}
 		request["transactionType"] = 1
-		if !IsEqual(since, nil) {
+		if since != nil {
 			request["beginTime"] = since
 		}
 
@@ -12027,12 +12027,12 @@ func (this *Binance) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 			currency = this.Currency(code)
 			request["coin"] = GetValue(currency, "id")
 		}
-		if !IsEqual(since, nil) {
+		if since != nil {
 			request["startTime"] = since
 			// max 3 months range https://github.com/ccxt/ccxt/issues/6495
 			request["endTime"] = this.Sum(since, 7776000000)
 		}
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			request["limit"] = limit
 		}
 
@@ -12580,10 +12580,10 @@ func (this *Binance) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		request["type"] = typeVar
 		limitKey = "size"
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request[limitKey] = limit
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = since
 	}
 	var until *int64 = this.SafeInteger(params, "until")
@@ -13571,7 +13571,7 @@ func (this *Binance) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 	subType = GetValue(subTypeparamsVariable, 0)
 	params = GetValue(subTypeparamsVariable, 1)
 	params = this.Omit(params, "type")
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = since
 	}
 	var until *int64 = this.SafeInteger(params, "until")            // unified in milliseconds
@@ -13580,7 +13580,7 @@ func (this *Binance) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 	if endTime != nil {
 		request["endTime"] = endTime
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 	var response any = nil
@@ -15150,10 +15150,10 @@ func (this *Binance) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) a
 	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "startTime", since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", limit)
 	}
 	var defaultType *string = this.SafeString2(this.Options, "fetchFundingHistory", "defaultType", "future")
@@ -15637,10 +15637,10 @@ func (this *Binance) fetchSettlementHistoryBody(ch chan any, optionalArgs ...any
 		symbol = DerefScalar(this.SafeString(market, "symbol"))
 		request["underlying"] = Add(this.SafeString(market, "baseId", ""), this.SafeString(market, "quoteId", ""))
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -15714,10 +15714,10 @@ func (this *Binance) fetchMySettlementHistoryBody(ch chan any, optionalArgs ...a
 		request["symbol"] = this.SafeString(market, "id")
 		symbol = DerefScalar(this.SafeString(market, "symbol"))
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -15956,10 +15956,10 @@ func (this *Binance) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	subTypeparamsVariable := this.HandleSubTypeAndParams("fetchLedger", nil, params)
 	subType = GetValue(subTypeparamsVariable, 0)
 	params = GetValue(subTypeparamsVariable, 1)
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 	var until *int64 = this.SafeInteger(params, "until")
@@ -16848,7 +16848,7 @@ func (this *Binance) fetchBorrowRateHistoryBody(ch chan any, code any, optionalA
 		retRes1358612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes1358612)
 	}
-	if IsEqual(limit, nil) {
+	if limit == nil {
 		limit = 93
 	} else if IsGreaterThan(limit, 93) {
 		panic(BadRequest(this.Id + " fetchBorrowRateHistory() limit parameter cannot exceed 92"))
@@ -16858,7 +16858,7 @@ func (this *Binance) fetchBorrowRateHistoryBody(ch chan any, code any, optionalA
 		"asset": currency["id"],
 		"limit": limit,
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = since
 		var endTime any = Subtract(this.Sum(since, Multiply(limit, 86400000)), 1) // required when startTime is further than 93 days in the past
 		var now int64 = this.Milliseconds()
@@ -17125,10 +17125,10 @@ func (this *Binance) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) a
 		var currency map[string]any = this.Currency(code).(map[string]any)
 		AddElementToObject(request, "asset", currency["id"])
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "startTime", since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "size", limit)
 	}
 	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
@@ -17522,7 +17522,7 @@ func (this *Binance) fetchOpenInterestHistoryBody(ch chan any, symbol any, optio
 	var request map[string]any = map[string]any{
 		"period": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 	var symbolKey string = func() string {
@@ -17535,7 +17535,7 @@ func (this *Binance) fetchOpenInterestHistoryBody(ch chan any, symbol any, optio
 	if GetValue(market, "inverse") == true {
 		request["contractType"] = this.SafeString(params, "contractType", "CURRENT_QUARTER")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = since
 	}
 	var until *int64 = this.SafeInteger(params, "until")            // unified in milliseconds
@@ -17543,8 +17543,8 @@ func (this *Binance) fetchOpenInterestHistoryBody(ch chan any, symbol any, optio
 	params = this.Omit(params, []any{"endTime", "until"})
 	if (endTime != nil) && (endTime == nil || *endTime != 0) {
 		request["endTime"] = endTime
-	} else if (!IsEqual(since, nil)) && (!IsEqual(since, 0)) {
-		if IsEqual(limit, nil) {
+	} else if (since != nil) && (!IsEqual(since, 0)) {
+		if limit == nil {
 			limit = 30 // Exchange default
 		}
 		var duration any = this.ParseTimeframe(timeframe)
@@ -17786,10 +17786,10 @@ func (this *Binance) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) a
 			AddElementToObject(request, symbolKey, GetValue(market, "id"))
 		}
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "startTime", since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		if IsEqual(typeVar, "spot") {
 			AddElementToObject(request, "size", limit)
 		} else {
@@ -18565,10 +18565,10 @@ func (this *Binance) fetchMarginAdjustmentHistoryBody(ch chan any, optionalArgs 
 			return 2
 		}()
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 	if until != nil {
@@ -18710,7 +18710,7 @@ func (this *Binance) fetchConvertQuoteBody(ch chan any, fromCode any, toCode any
 	_ = amount
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(amount, nil) {
+	if amount == nil {
 		panic(ArgumentsRequired(this.Id + " fetchConvertQuote() requires an amount argument"))
 	}
 	if this.Markets == nil {
@@ -18778,7 +18778,7 @@ func (this *Binance) createConvertTradeBody(ch chan any, id any, fromCode any, t
 	var request map[string]any = map[string]any{}
 	var response any = nil
 	if (IsEqual(fromCode, "BUSD")) || (IsEqual(toCode, "BUSD")) {
-		if IsEqual(amount, nil) {
+		if amount == nil {
 			panic(ArgumentsRequired(this.Id + " createConvertTrade() requires an amount argument"))
 		}
 		request["clientTranId"] = id
@@ -18911,7 +18911,7 @@ func (this *Binance) fetchConvertTradeHistoryBody(ch chan any, optionalArgs ...a
 	var request map[string]any = map[string]any{}
 	var msInThirtyDays int = 2592000000
 	var now int64 = this.Milliseconds()
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = since
 	} else {
 		request["startTime"] = Subtract(now, msInThirtyDays)
@@ -18930,7 +18930,7 @@ func (this *Binance) fetchConvertTradeHistoryBody(ch chan any, optionalArgs ...a
 	if IsEqual(code, "BUSD") {
 		var currency map[string]any = this.Currency(code).(map[string]any)
 		request["asset"] = currency["id"]
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			request["size"] = limit
 		}
 		fromCurrencyKey = "deductedAsset"
@@ -18943,7 +18943,7 @@ func (this *Binance) fetchConvertTradeHistoryBody(ch chan any, optionalArgs ...a
 		if IsGreaterThan((Subtract(request["endTime"], request["startTime"])), msInThirtyDays) {
 			panic(BadRequest(this.Id + " fetchConvertTradeHistory () the max interval between startTime and endTime is 30 days."))
 		}
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			request["limit"] = limit
 		}
 		fromCurrencyKey = "fromAsset"
@@ -19165,10 +19165,10 @@ func (this *Binance) fetchLongShortRatioHistoryBody(ch chan any, optionalArgs ..
 	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "startTime", since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "limit", limit)
 	}
 	var subType any = nil

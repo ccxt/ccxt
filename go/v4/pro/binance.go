@@ -1106,7 +1106,7 @@ func (this *Binance) fetchOrderBookWsBody(ch chan any, symbol any, optionalArgs 
 	var payload map[string]any = map[string]any{
 		"symbol": ccxt.GetValue(market, "id"),
 	}
-	if !ccxt.IsEqual(limit, nil) {
+	if limit != nil {
 		payload["limit"] = limit
 	}
 	var marketType any = this.GetMarketType("fetchOrderBookWs", market, params)
@@ -2505,10 +2505,10 @@ func (this *Binance) fetchOHLCVWsBody(ch chan any, symbol any, optionalArgs ...a
 	}
 	var until *int64 = this.SafeInteger(params, "until")
 	params = this.Omit(params, "until")
-	if !ccxt.IsEqual(since, nil) {
+	if since != nil {
 		payload["startTime"] = since
 	}
-	if !ccxt.IsEqual(limit, nil) {
+	if limit != nil {
 		payload["limit"] = limit
 	}
 	if until != nil {
@@ -6572,14 +6572,14 @@ func (this *Binance) fetchMyTradesWsBody(ch chan any, optionalArgs ...any) any {
 		"symbol":           this.MarketId(symbol),
 		"returnRateLimits": returnRateLimits,
 	}
-	if !ccxt.IsEqual(since, nil) {
+	if since != nil {
 		payload["startTime"] = since
 	}
-	if !ccxt.IsEqual(limit, nil) {
+	if limit != nil {
 		payload["limit"] = limit
 	}
 	var fromId *int64 = this.SafeInteger(params, "fromId")
-	if (fromId != nil) && !ccxt.IsEqual(since, nil) {
+	if (fromId != nil) && (since != nil) {
 		panic(ccxt.BadRequest(this.Id + " fetchMyTradesWs does not support fetching by both fromId and since parameters at the same time"))
 	}
 	var message map[string]any = map[string]any{
@@ -6647,7 +6647,7 @@ func (this *Binance) fetchTradesWsBody(ch chan any, symbol any, optionalArgs ...
 		"symbol":           this.MarketId(symbol),
 		"returnRateLimits": returnRateLimits,
 	}
-	if !ccxt.IsEqual(limit, nil) {
+	if limit != nil {
 		payload["limit"] = limit
 	}
 	var message map[string]any = map[string]any{
