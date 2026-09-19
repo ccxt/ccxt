@@ -372,7 +372,7 @@ impl ExtendedCore {
             { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), limit]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
+}), limit]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
         if (type_var.as_deref() == Some("SNAPSHOT")) {
@@ -573,7 +573,7 @@ impl ExtendedCore {
                 let mut account: Value = self.account();
                 add_element_to_object(&mut account, &Value::Str("free".into()), self.safe_string_k(balance.clone(), "availableForWithdrawal", &[]));
                 add_element_to_object(&mut account, &Value::Str("total".into()), self.safe_string_k(balance.clone(), "balance", &[]));
-                add_element_to_object(&mut result, &code, account.clone());
+                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account.clone()); }
             }
         }
         let mut spotBalances: Value = self.safe_list_k(data, "spotBalances", &[Value::from(vec![])]);
@@ -591,13 +591,13 @@ impl ExtendedCore {
                 let mut account: Value = self.account();
                 add_element_to_object(&mut account, &Value::Str("free".into()), self.safe_string_k(spotBalance.clone(), "availableToWithdraw", &[]));
                 add_element_to_object(&mut account, &Value::Str("total".into()), self.safe_string_k(spotBalance, "balance", &[]));
-                add_element_to_object(&mut result, &code, account);
+                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account); }
             }
         }
         }
         let mut timestamp: Value = self.safe_integer_k(message, "ts", &[]);
-        add_element_to_object(&mut result, &Value::Str("timestamp".into()), timestamp.clone());
-        add_element_to_object(&mut result, &Value::Str("datetime".into()), self.iso8601(timestamp));
+        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("timestamp".into(), timestamp.clone()); }
+        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("datetime".into(), self.iso8601(timestamp)); }
         { let __t = self.safe_balance(self.deep_extend(self.balance.clone(), &[result])); self.balance = __t; }
         client.resolve(&[self.balance.clone(), Value::Str("balance".into())]);
 }
@@ -695,7 +695,7 @@ impl ExtendedCore {
             while { if !__for_first_327 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_327 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawTrades.len() as i64) as f64) } {
             let mut trade: Value = self.parse_trade(rawTrades.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[]);
             let mut symbol: Value = self.safe_string_k(trade.clone(), "symbol", &[]);
-            add_element_to_object(&mut symbols, &symbol, Value::Bool(true));
+            if let Value::Dict(__d) = &mut symbols { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Bool(true)); }
             stored.append(trade);
         }
         }
@@ -888,7 +888,7 @@ impl ExtendedCore {
             while { if !__for_first_332 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_332 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawOrders.len() as i64) as f64) } {
             let mut order: Value = self.parse_order(rawOrders.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[]);
             let mut symbol: Value = self.safe_string_k(order.clone(), "symbol", &[]);
-            add_element_to_object(&mut symbols, &symbol, Value::Bool(true));
+            if let Value::Dict(__d) = &mut symbols { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Bool(true)); }
             orders.append(order);
         }
         }
@@ -968,7 +968,7 @@ impl ExtendedCore {
         })]);
         let mut fundingRate: Value = self.parse_ws_funding_rate(data, &[Value::Null, message]);
         let mut symbol: Value = self.safe_string_k(fundingRate.clone(), "symbol", &[]);
-        add_element_to_object(&mut self.fundingRates, &symbol, fundingRate.clone());
+        if let Value::Dict(__d) = &mut self.fundingRates { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), fundingRate.clone()); }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("fundingRate:".into()), symbol).into());
         client.resolve(&[fundingRate, messageHash.clone()]);
 }
@@ -1075,7 +1075,7 @@ impl ExtendedCore {
                 m.insert("info".to_string(), message.clone());
             m
         }), &[market]);
-        add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
+        if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("markPrice:".into()), symbol).into());
         client.resolve(&[ticker, messageHash.clone()]);
 }
@@ -1159,7 +1159,7 @@ impl ExtendedCore {
             let mut defaultLimit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             let mut limit: Value = self.safe_integer_k(subscription.clone(), "limit", &[defaultLimit]);
             stored = ArrayCache::new(limit);
-            add_element_to_object(&mut self.trades, &symbol, stored.clone());
+            if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored.clone()); }
         }
         let mut previousNonce: Value = self.safe_integer_k(subscription.clone(), "nonce", &[]);
         let mut nonce: Value = self.safe_integer_k(message.clone(), "seq", &[]);
@@ -1273,7 +1273,7 @@ impl ExtendedCore {
         { let __be_tmp = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]); add_element_to_object(&mut self.ohlcvs, &symbol, __be_tmp); };
+})]); if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         let mut stored: Value = self.safe_value(get_value(&self.ohlcvs, &symbol), cacheKey.clone(), &[]);
         if (stored == Value::Null) {
             let mut defaultLimit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);

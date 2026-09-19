@@ -685,7 +685,7 @@ impl BitstampCore {
         if (tradesArray == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             tradesArray = ArrayCache::new(limit);
-            add_element_to_object(&mut self.trades, &symbol, tradesArray.clone());
+            if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), tradesArray.clone()); }
         }
         tradesArray.append(trade);
         client.resolve(&[tradesArray, messageHash]);
@@ -757,7 +757,7 @@ impl BitstampCore {
             m
         })]);
         let mut fundingRate: Value = self.parse_funding_rate(data, &[market]);
-        add_element_to_object(&mut self.fundingRates, &symbol, fundingRate.clone());
+        if let Value::Dict(__d) = &mut self.fundingRates { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), fundingRate.clone()); }
         client.resolve(&[fundingRate, Value::Str(format!("{}{}", Value::Str("fundingRate:".into()), symbol).into())]);
 }
 
@@ -1047,7 +1047,7 @@ impl BitstampCore {
         }
         let mut stored: Value = self.orders.clone();
         let mut market: Value = self.market(symbol);
-        add_element_to_object(&mut order, &Value::Str("event".into()), self.safe_string_k(message, "event", &[]));
+        if let Value::Dict(__d) = &mut order { std::sync::Arc::make_mut(__d).insert("event".into(), self.safe_string_k(message, "event", &[])); }
         let mut parsed: Value = self.parse_ws_order(order, &[market]);
         stored.append(parsed);
         client.resolve(&[self.orders.clone(), channel]);
@@ -1158,7 +1158,7 @@ impl BitstampCore {
         let mut parts: Value = split(&channel, &Value::Str("_".into()));
         let mut marketId: Value = self.safe_string(parts, Value::Int(3), &[]);
         let mut symbol: Value = self.safe_symbol(marketId, &[]);
-        { let __be_tmp = self.order_book(&[]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
+        { let __be_tmp = self.order_book(&[]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
 }
 
     pub fn handle_subscription_status(&mut self, mut client: Value, mut message: Value) {
@@ -1424,9 +1424,9 @@ impl BitstampCore {
                 }
                 let mut userId: Value = self.safe_string_k(response.clone(), "user_id", &[]);
                 let mut validity: Value = self.safe_integer_product(response.clone(), Value::Str("valid_sec".into()), Value::Int(1000), &[]);
-                { let __be_tmp = self.sum(&[time.clone(), validity.clone()]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("expiresIn".to_string(), __be_tmp); } }
-                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("userId".to_string(), userId.clone()); }
-                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsSessionToken".to_string(), sessionToken.clone()); }
+                { let __be_tmp = self.sum(&[time.clone(), validity.clone()]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("expiresIn".into(), __be_tmp); } }
+                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("userId".into(), userId.clone()); }
+                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsSessionToken".into(), sessionToken.clone()); }
                 // settle the flight: client.resolve deletes the future from
                 // client.futures and wakes every waiter parked on it
                 client.resolve(&[sessionToken.clone(), messageHash.clone()]);
@@ -1463,7 +1463,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
             m
         });
-        add_element_to_object(&mut subscription, &Value::Str("messageHash".into()), messageHash.clone());
+        if let Value::Dict(__d) = &mut subscription { std::sync::Arc::make_mut(__d).insert("messageHash".into(), messageHash.clone()); }
         let __ws_arg_1 = self.extend(request, &[params.clone()]);
         return self.watch(url, messageHash.clone(), &[__ws_arg_1, messageHash.clone(), subscription]).await;
 

@@ -1159,7 +1159,7 @@ impl GeminiCore {
         //        ]
         //    }
         //
-        { let __be_tmp = self.safe_list_k(data.clone(), "tradingPairs", &[]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("tradingPairs".to_string(), __be_tmp); } }
+        { let __be_tmp = self.safe_list_k(data.clone(), "tradingPairs", &[]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("tradingPairs".into(), __be_tmp); } }
         let mut currenciesArray: Value = self.safe_list_k(data, "currencies", &[Value::from(vec![])]);
         return self.parse_currencies(currenciesArray);
 
@@ -1182,7 +1182,7 @@ impl GeminiCore {
         if (networkId != Value::Null) {
             networkCode = self.network_id_to_code(&[networkId.clone(), code.clone()]);
             if (networkCode != Value::Null) {
-                add_element_to_object(&mut networks, &networkCode, Value::Map({
+                if let Value::Dict(__d) = &mut networks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&networkCode), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), rawCurrency.clone());
         m.insert("id".to_string(), networkId);
@@ -1209,7 +1209,7 @@ impl GeminiCore {
     m
 }));
     m
-}));
+})); }
             }
         }
         return self.safe_currency_structure(Value::Map({
@@ -1745,8 +1745,8 @@ impl GeminiCore {
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit_bids".to_string(), limit.clone()); }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit_asks".to_string(), limit); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit_bids".into(), limit.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit_asks".into(), limit); }
         }
         let __ws_arg_2 = self.extend(request, &[params]);
         let mut response: Value = self.public_get_v1_book_symbol(&[__ws_arg_2]).await;
@@ -2091,10 +2091,10 @@ impl GeminiCore {
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit_trades".to_string(), crate::runtime::Math::min(&limit, &Value::Int(500))); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit_trades".into(), crate::runtime::Math::min(&limit, &Value::Int(500))); }
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("timestamp".to_string(), since.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("timestamp".into(), since.clone()); }
         }
         let __ws_arg_5 = self.extend(request, &[params]);
         let mut response: Value = self.public_get_v1_trades_symbol(&[__ws_arg_5]).await;
@@ -2118,10 +2118,10 @@ impl GeminiCore {
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
             let mut account: Value = self.account();
-            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string_k(balance.clone(), "available", &[])); }
-            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string_k(balance, "amount", &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string_k(balance.clone(), "available", &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(balance, "amount", &[])); }
             if (code != Value::Null) {
-                add_element_to_object(&mut result, &code, account);
+                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account); }
             }
         }
         }
@@ -2191,7 +2191,7 @@ impl GeminiCore {
             let mut __for_first_717: bool = true;
             while { if !__for_first_717 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_717 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
             let mut symbol: Value = symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            add_element_to_object(&mut result, &symbol, Value::Map({
+            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
         m.insert("symbol".to_string(), symbol.clone());
@@ -2200,7 +2200,7 @@ impl GeminiCore {
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(true));
     m
-}));
+})); }
         }
         }
         return result;
@@ -2539,30 +2539,30 @@ impl GeminiCore {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a triggerPrice parameter or a stop_price parameter for ".into())).into()), type_var).into()), Value::Str(" orders".into()))));
         }
         if (triggerPrice != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("stop_price".to_string(), self.price_to_precision(symbol, triggerPrice)); }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".to_string(), Value::Str("exchange stop limit".into())); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("stop_price".into(), self.price_to_precision(symbol, triggerPrice)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("exchange stop limit".into())); }
         }  else {
             // No options can be applied to stop-limit orders at this time.
             let mut timeInForce: Option<String> = self.safe_string_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
             params = self.omit(params.clone(), Value::Str("timeInForce".into()), &[]);
             if (timeInForce.is_some()) {
                 if (timeInForce.as_deref() == Some("IOC")) || (timeInForce.as_deref() == Some("immediate-or-cancel")) {
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("options".to_string(), Value::from(vec![Value::Str("immediate-or-cancel".into())])); }
+                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("options".into(), Value::from(vec![Value::Str("immediate-or-cancel".into())])); }
                 }  else if (timeInForce.as_deref() == Some("FOK")) || (timeInForce.as_deref() == Some("fill-or-kill")) {
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("options".to_string(), Value::from(vec![Value::Str("fill-or-kill".into())])); }
+                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("options".into(), Value::from(vec![Value::Str("fill-or-kill".into())])); }
                 }  else if (timeInForce.as_deref() == Some("PO")) {
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("options".to_string(), Value::from(vec![Value::Str("maker-or-cancel".into())])); }
+                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("options".into(), Value::from(vec![Value::Str("maker-or-cancel".into())])); }
                 }
             }
             let mut postOnly: Value = self.safe_bool_k(params.clone(), "postOnly", &[Value::Bool(false)]);
             params = self.omit(params.clone(), Value::Str("postOnly".into()), &[]);
             if (postOnly.as_bool() == Some(true)) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("options".to_string(), Value::from(vec![Value::Str("maker-or-cancel".into())])); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("options".into(), Value::from(vec![Value::Str("maker-or-cancel".into())])); }
             }
             // allowing override for auction-only and indication-of-interest order options
             let mut options: Value = self.safe_string_k(params.clone(), "options", &[]);
             if (options != Value::Null) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("options".to_string(), Value::from(vec![options])); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("options".into(), Value::from(vec![options])); }
             }
         }
         let __ws_arg_7 = self.extend(request.clone(), &[params]);
@@ -2635,10 +2635,10 @@ impl GeminiCore {
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit_trades".to_string(), limit.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit_trades".into(), limit.clone()); }
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("timestamp".to_string(), self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("timestamp".into(), self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))); }
         }
         let __ws_arg_9 = self.extend(request, &[params]);
         let mut response: Value = self.private_post_v1_mytrades(&[__ws_arg_9]).await;
@@ -2749,10 +2749,10 @@ impl GeminiCore {
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit_transfers".to_string(), limit); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit_transfers".into(), limit); }
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("timestamp".to_string(), since); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("timestamp".into(), since); }
         }
         let __ws_arg_11 = self.extend(request, &[params]);
         let mut response: Value = self.private_post_v1_transfers(&[__ws_arg_11]).await;

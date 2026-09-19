@@ -403,7 +403,7 @@ impl NadoCore {
 
     pub fn request_id(&mut self) -> Value {
         let mut requestId: Value = self.sum(&[self.safe_integer_k(self.options.clone(), "requestId", &[Value::Int(0)]), Value::Int(1)]);
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("requestId".to_string(), requestId.clone()); }
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("requestId".into(), requestId.clone()); }
         return requestId;
 
     Value::Null
@@ -1673,7 +1673,7 @@ impl NadoCore {
             m
         });
         if (market != Value::Null) {
-            if let Value::Dict(__d) = &mut stream { std::sync::Arc::make_mut(__d).insert("product_id".to_string(), self.parse_to_int(market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))); }
+            if let Value::Dict(__d) = &mut stream { std::sync::Arc::make_mut(__d).insert("product_id".into(), self.parse_to_int(market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))); }
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1870,7 +1870,7 @@ impl NadoCore {
             m
         });
         if (market != Value::Null) {
-            if let Value::Dict(__d) = &mut stream { std::sync::Arc::make_mut(__d).insert("product_id".to_string(), self.parse_to_int(market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))); }
+            if let Value::Dict(__d) = &mut stream { std::sync::Arc::make_mut(__d).insert("product_id".into(), self.parse_to_int(market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))); }
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2123,7 +2123,7 @@ impl NadoCore {
         if (trades == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             trades = ArrayCache::new(limit.clone());
-            add_element_to_object(&mut self.trades, &symbol, trades.clone());
+            if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), trades.clone()); }
         }
         let mut trade: Value = self.parse_ws_trade(message, &[market.clone()]);
         trades.append(trade);
@@ -2166,10 +2166,10 @@ impl NadoCore {
             return;
         }
         if !(in_op(&self.ohlcvs, &symbol)) {
-            add_element_to_object(&mut self.ohlcvs, &symbol, Value::Map({
+            if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}));
+})); }
         }
         let mut stored: Value = self.safe_value(get_value(&self.ohlcvs, &symbol), timeframe.clone(), &[]);
         if (stored == Value::Null) {
@@ -2402,13 +2402,13 @@ impl NadoCore {
         if (symbol == Value::Null) {
             return;
         }
-        add_element_to_object(&mut self.bidsasks, &symbol, ticker.clone());
-        add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
+        if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
+        if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
         let mut tickers: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        add_element_to_object(&mut tickers, &symbol, ticker.clone());
+        if let Value::Dict(__d) = &mut tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
         client.resolve(&[ticker.clone(), Value::Str(format!("{}{}", Value::Str("bidask:".into()), symbol).into())]);
         client.resolve(&[ticker, Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol).into())]);
         client.resolve(&[tickers.clone(), Value::Str("bidask".into())]);
@@ -2460,7 +2460,7 @@ impl NadoCore {
                     m
                 }), &[market.clone()]);
                 let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-                add_element_to_object(&mut result, &symbol, ticker);
+                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker); }
             }
         }
         }
@@ -2479,8 +2479,8 @@ impl NadoCore {
             let mut symbol: Value = symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut ticker: Value = get_value(&tickers, &symbol);
             let mut ticker: Value = get_value(&tickers, &symbol);
-            add_element_to_object(&mut self.bidsasks, &symbol, ticker.clone());
-            add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
+            if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
+            if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
             client.resolve(&[ticker.clone(), Value::Str(format!("{}{}", Value::Str("bidask:".into()), symbol).into())]);
             client.resolve(&[ticker, Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol).into())]);
         }

@@ -760,7 +760,7 @@ impl BitbnsCore {
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit); }; // default 100, max 5000, see https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#order-book
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit); }; // default 100, max 5000, see https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#order-book
         }
         let __ws_arg_0 = self.extend(request, &[params]);
         let mut response: Value = self.www_get_order_fetch_orderbook(&[__ws_arg_0]).await;
@@ -899,14 +899,14 @@ impl BitbnsCore {
                 let mut currencyId: Value = self.safe_string(parts, Value::Int(1), &[]);
                 // note that "Money" stands for INR - the only fiat in bitbns
                 let mut account: Value = self.account();
-                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string(data.clone(), key, &[])); }
-                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string(data.clone(), Value::Str(format!("{}{}", Value::Str("inorder".into()), currencyId).into()), &[])); }
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string(data.clone(), key, &[])); }
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string(data.clone(), Value::Str(format!("{}{}", Value::Str("inorder".into()), currencyId).into()), &[])); }
                 if (currencyId.as_str() == Some("Money")) {
                     currencyId = Value::Str("INR".into());
                 }
                 let mut code: Value = self.safe_currency_code(currencyId, &[]);
                 if (code != Value::Null) {
-                    add_element_to_object(&mut result, &code, account);
+                    if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account); }
                 }
             }
         }
@@ -1080,18 +1080,18 @@ impl BitbnsCore {
             m
         });
         if (type_var.as_str() == Some("limit")) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("rate".to_string(), self.price_to_precision(symbol.clone(), price)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("rate".into(), self.price_to_precision(symbol.clone(), price)); }
         }  else {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("market".to_string(), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("market".into(), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null)); }
         }
         if (triggerPrice != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("t_rate".to_string(), self.price_to_precision(symbol.clone(), triggerPrice)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("t_rate".into(), self.price_to_precision(symbol.clone(), triggerPrice)); }
         }
         if (targetRate != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("target_rate".to_string(), self.price_to_precision(symbol.clone(), targetRate)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("target_rate".into(), self.price_to_precision(symbol.clone(), targetRate)); }
         }
         if (trailRate != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("trail_rate".to_string(), self.price_to_precision(symbol, trailRate)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("trail_rate".into(), self.price_to_precision(symbol, trailRate)); }
         }
         let mut response: Value = Value::Null;
         if (type_var.as_str() == Some("limit")) {
@@ -1156,7 +1156,7 @@ impl BitbnsCore {
         let mut tail: Value = (if (isTrigger.as_bool() == Some(true)) { Value::Str("StopLossOrder".into()) } else { Value::Str("Order".into()) });
         let mut quoteSide: Value = (if (market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null).as_str() == Some("USDT")) { Value::Str("usdtcancel".into()) } else { Value::Str("cancel".into()) });
         quoteSide = Value::Str(format!("{}{}", quoteSide, tail).into());
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("side".to_string(), quoteSide); }
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("side".into(), quoteSide); }
         let __ws_arg_3 = self.extend(request, &[params]);
         response = self.v2_post_cancel(&[__ws_arg_3]).await;
         let mut parsed: Value = (if (response == Value::Null) { Value::Map({
@@ -1424,7 +1424,7 @@ impl BitbnsCore {
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("since".to_string(), self.iso8601(since.clone())); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("since".into(), self.iso8601(since.clone())); }
         }
         let __ws_arg_6 = self.extend(request, &[params]);
         let mut response: Value = self.v1_post_list_executed_orders_symbol(&[__ws_arg_6]).await;
@@ -1833,9 +1833,9 @@ impl BitbnsCore {
     let mut m = indexmap::IndexMap::new();
     m
 }) } else { headers.clone() });
-            add_element_to_object(&mut headers, &Value::Str("X-BITBNS-PAYLOAD".into()), payload);
-            add_element_to_object(&mut headers, &Value::Str("X-BITBNS-SIGNATURE".into()), signature);
-            add_element_to_object(&mut headers, &Value::Str("Content-Type".into()), Value::Str("application/x-www-form-urlencoded".into()));
+            if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("X-BITBNS-PAYLOAD".into(), payload); }
+            if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("X-BITBNS-SIGNATURE".into(), signature); }
+            if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("Content-Type".into(), Value::Str("application/x-www-form-urlencoded".into())); }
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

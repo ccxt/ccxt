@@ -671,7 +671,7 @@ impl BitsoCore {
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
         }
         let __ws_arg_0 = self.extend(request, &[params]);
         let mut response: Value = self.private_get_ledger(&[__ws_arg_0]).await;
@@ -932,8 +932,8 @@ impl BitsoCore {
                 append_to_array(&mut takerFees, Value::from(vec![volume.clone(), takerFee.clone()]));
                 append_to_array(&mut makerFees, Value::from(vec![volume, makerFee.clone()]));
                 if (j.as_f64() == Some(0.0)) {
-                    if let Value::Dict(__d) = &mut fee { std::sync::Arc::make_mut(__d).insert("taker".to_string(), takerFee); }
-                    if let Value::Dict(__d) = &mut fee { std::sync::Arc::make_mut(__d).insert("maker".to_string(), makerFee); }
+                    if let Value::Dict(__d) = &mut fee { std::sync::Arc::make_mut(__d).insert("taker".into(), takerFee); }
+                    if let Value::Dict(__d) = &mut fee { std::sync::Arc::make_mut(__d).insert("maker".into(), makerFee); }
                 }
             }
             }
@@ -943,7 +943,7 @@ impl BitsoCore {
                     m.insert("maker".to_string(), makerFees);
                 m
             });
-            if let Value::Dict(__d) = &mut fee { std::sync::Arc::make_mut(__d).insert("tiers".to_string(), tiers); }
+            if let Value::Dict(__d) = &mut fee { std::sync::Arc::make_mut(__d).insert("tiers".into(), tiers); }
             let mut baseCurrency: Value = self.safe_dict(currencies.clone(), base.clone(), &[]);
             let __ws_arg_1 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1128,11 +1128,11 @@ impl BitsoCore {
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
             let mut account: Value = self.account();
-            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string_k(balance.clone(), "available", &[])); }
-            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string_k(balance.clone(), "locked", &[])); }
-            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string_k(balance, "total", &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string_k(balance.clone(), "available", &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string_k(balance.clone(), "locked", &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(balance, "total", &[])); }
             if (code != Value::Null) {
-                add_element_to_object(&mut result, &code, account);
+                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account); }
             }
         }
         }
@@ -1308,15 +1308,15 @@ impl BitsoCore {
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start".to_string(), since.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start".into(), since.clone()); }
             if (limit != Value::Null) {
                 let mut duration: Value = self.parse_timeframe(timeframe.clone());
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end".to_string(), self.sum(&[since.clone(), (match (&((match (&(duration), &(limit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })])); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end".into(), self.sum(&[since.clone(), (match (&((match (&(duration), &(limit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })])); }
             }
         }  else if (limit != Value::Null) {
             let mut now: Value = self.milliseconds();
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end".to_string(), now.clone()); }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start".to_string(), (match (&(now), &((match (&((match (&(self.parse_timeframe(timeframe.clone())), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(limit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end".into(), now.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start".into(), (match (&(now), &((match (&((match (&(self.parse_timeframe(timeframe.clone())), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(limit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })); }
         }
         let __ws_arg_4 = self.extend(request, &[params]);
         let mut response: Value = self.public_get_ohlc(&[__ws_arg_4]).await;
@@ -1576,7 +1576,7 @@ impl BitsoCore {
             let mut fee: Value = fees.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string_k(fee.clone(), "book", &[]);
             let mut symbol: Value = self.safe_symbol(marketId, &[Value::Null, Value::Str("_".into())]);
-            add_element_to_object(&mut result, &symbol, Value::Map({
+            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), fee.clone());
         m.insert("symbol".to_string(), symbol.clone());
@@ -1585,7 +1585,7 @@ impl BitsoCore {
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(true));
     m
-}));
+})); }
         }
         }
         return result;
@@ -1680,7 +1680,7 @@ impl BitsoCore {
             m
         });
         if (type_var.as_str() == Some("limit")) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".to_string(), self.price_to_precision(market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), price)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".into(), self.price_to_precision(market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), price)); }
         }
         let __ws_arg_7 = self.extend(request, &[params]);
         let mut response: Value = self.private_post_orders(&[__ws_arg_7]).await;
@@ -2277,7 +2277,7 @@ impl BitsoCore {
                 continue;
             }
             if (code != Value::Null) {
-                add_element_to_object(&mut result, &code, Value::Map({
+                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("deposit".to_string(), self.safe_number_k(depositFee.clone(), "fee", &[]));
         m.insert("withdraw".to_string(), Value::Null);
@@ -2288,7 +2288,7 @@ impl BitsoCore {
     m
 }));
     m
-}));
+})); }
             }
         }
         }
@@ -2315,7 +2315,7 @@ impl BitsoCore {
     m
 }));
     m
-}); add_element_to_object(&mut result, &code, __be_tmp); };
+}); if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), __be_tmp); } }
             }
         }
         }
@@ -2450,7 +2450,7 @@ impl BitsoCore {
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             if (codes == Value::Null) || ((code != Value::Null) && (in_op(&codes, &code))) {
                 if (code != Value::Null) {
-                    add_element_to_object(&mut result, &code, Value::Map({
+                    if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("deposit".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2470,7 +2470,7 @@ impl BitsoCore {
 }));
         m.insert("info".to_string(), entry.clone());
     m
-}));
+})); }
                 }
             }
         }
@@ -2486,10 +2486,10 @@ impl BitsoCore {
                 let mut withdrawFee: Value = self.parse_number(get_value(&withdrawalResponse, &currencyId), &[]);
                 let mut resultValue: Value = self.safe_dict(result.clone(), code.clone(), &[]);
                 if (resultValue == Value::Null) {
-                    add_element_to_object(&mut result, &code, self.deposit_withdraw_fee(Value::Map({
+                    if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), self.deposit_withdraw_fee(Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})));
+}))); }
                 }
                 add_element_to_object(get_value_mut(get_value_mut(&mut result, &code), &Value::Str("withdraw".into())), &Value::Str("fee".into()), withdrawFee.clone());
                 add_element_to_object(get_value_mut(get_value_mut(&mut result, &code), &Value::Str("info".into())), &code, withdrawFee.clone());

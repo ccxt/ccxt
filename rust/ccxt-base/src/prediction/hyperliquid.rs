@@ -330,7 +330,7 @@ impl HyperliquidCore {
 
     pub fn set_sandbox_mode(&mut self, mut enabled: Value) {
         self.super_set_sandbox_mode(enabled.clone());
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("sandboxMode".to_string(), enabled); }
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("sandboxMode".into(), enabled); }
 }
 
 /*
@@ -419,7 +419,7 @@ impl HyperliquidCore {
             if colonIndex.as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
                 let mut key: Value = slice(&part, &Value::Int(0), &colonIndex);
                 let mut value: Value = slice(&part, &(match (&(colonIndex), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }), &Value::Null);
-                add_element_to_object(&mut result, &key, value);
+                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&key), value); }
             }
         }
         }
@@ -642,7 +642,7 @@ impl HyperliquidCore {
             let mut fallbackOutcome: Value = self.safe_integer_k(question.clone(), "fallbackOutcome", &[]);
             if (fallbackOutcome != Value::Null) {
                 let mut fallbackKey: Value = to_string_val(&fallbackOutcome);
-                add_element_to_object(&mut outcomesToQuestions, &fallbackKey, question.clone());
+                if let Value::Dict(__d) = &mut outcomesToQuestions { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&fallbackKey), question.clone()); }
             }
             let mut namedOutcomes: Value = self.safe_list_k(question.clone(), "namedOutcomes", &[Value::from(vec![])]);
             {
@@ -652,7 +652,7 @@ impl HyperliquidCore {
                 let mut namedOutcomeId: Value = self.safe_integer(namedOutcomes.clone(), ni.clone(), &[]);
                 if (namedOutcomeId != Value::Null) {
                     let mut namedKey: Value = to_string_val(&namedOutcomeId);
-                    add_element_to_object(&mut outcomesToQuestions, &namedKey, question.clone());
+                    if let Value::Dict(__d) = &mut outcomesToQuestions { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&namedKey), question.clone()); }
                 }
             }
             }
@@ -699,10 +699,10 @@ impl HyperliquidCore {
                 let mut outcomeSymbol: Value = self.safe_string2(outcome.clone(), Value::Str("outcome".into()), Value::Str("symbol".into()), &[]);
                 let mut outcomeId_: Value = self.safe_string2(outcome.clone(), Value::Str("outcomeId".into()), Value::Str("id".into()), &[]);
                 if (outcomeSymbol != Value::Null) {
-                    add_element_to_object(&mut self.exchange.outcomes, &outcomeSymbol, outcome.clone());
+                    if let Value::Dict(__d) = &mut self.exchange.outcomes { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&outcomeSymbol), outcome.clone()); }
                 }
                 if (outcomeId_ != Value::Null) {
-                    add_element_to_object(&mut self.exchange.outcomes_by_id, &outcomeId_, outcome);
+                    if let Value::Dict(__d) = &mut self.exchange.outcomes_by_id { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&outcomeId_), outcome); }
                 }
             }
             }
@@ -1013,7 +1013,7 @@ impl HyperliquidCore {
                 let mut requested: Value = outcomes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut requestedOutcomeObj: Value = self.safe_outcome(requested.clone(), &[]);
                 let mut requestedOutcome: Value = self.safe_string_k(requestedOutcomeObj, "outcome", &[requested]);
-                add_element_to_object(&mut requestedOutcomeSymbols, &requestedOutcome, Value::Bool(true));
+                if let Value::Dict(__d) = &mut requestedOutcomeSymbols { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&requestedOutcome), Value::Bool(true)); }
             }
             }
         }  else {
@@ -1075,7 +1075,7 @@ impl HyperliquidCore {
         m.insert("time".to_string(), self.milliseconds());
     m
 }), &[outcomeObj]);
-            add_element_to_object(&mut tickers, &outcomeHandle, ticker);
+            if let Value::Dict(__d) = &mut tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&outcomeHandle), ticker); }
         }
         }
         return tickers;
@@ -1389,10 +1389,10 @@ impl HyperliquidCore {
             let mut total: Value = self.safe_string_k(balance.clone(), "total", &[]);
             let mut used: Value = self.safe_string_k(balance, "hold", &[]);
             let mut account: Value = self.account();
-            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), total); }
-            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), used); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), total); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), used); }
             if (coin != Value::Null) {
-                add_element_to_object(&mut result, &coin, account);
+                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&coin), account); }
             }
         }
         }
@@ -1432,7 +1432,7 @@ impl HyperliquidCore {
                 let mut requested: Value = outcomes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut requestedOutcomeObj: Value = self.safe_outcome(requested.clone(), &[]);
                 let mut requestedOutcome: Value = self.safe_string_k(requestedOutcomeObj, "outcome", &[requested]);
-                add_element_to_object(&mut requestedOutcomeSymbols, &requestedOutcome, Value::Bool(true));
+                if let Value::Dict(__d) = &mut requestedOutcomeSymbols { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&requestedOutcome), Value::Bool(true)); }
             }
             }
         }  else {
@@ -1799,7 +1799,7 @@ impl HyperliquidCore {
             m
         });
         if (clientOrderId != Value::Null) {
-            if let Value::Dict(__d) = &mut orderObj { std::sync::Arc::make_mut(__d).insert("c".to_string(), clientOrderId.clone()); }
+            if let Value::Dict(__d) = &mut orderObj { std::sync::Arc::make_mut(__d).insert("c".into(), clientOrderId.clone()); }
         }
         let mut vaultAddress: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".into()), Value::Str("vaultAddress".into()), &[]); vaultAddress = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
@@ -1819,7 +1819,7 @@ impl HyperliquidCore {
             if !matches!(self.safe_bool_k(self.options.clone(), "builderFee", &[Value::Bool(true)]), Value::Bool(true)) {
                 feeInt = Value::Int(0);
             }
-            if let Value::Dict(__d) = &mut orderAction { std::sync::Arc::make_mut(__d).insert("builder".to_string(), Value::Map({
+            if let Value::Dict(__d) = &mut orderAction { std::sync::Arc::make_mut(__d).insert("builder".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("b".to_string(), wallet);
         m.insert("f".to_string(), feeInt);
@@ -1835,7 +1835,7 @@ impl HyperliquidCore {
             m
         });
         if (vaultAddress != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("vaultAddress".to_string(), vaultAddress); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("vaultAddress".into(), vaultAddress); }
         }
         let mut response: Value = self.private_post_exchange(&[request]).await;
         //
@@ -1965,7 +1965,7 @@ impl HyperliquidCore {
         });
         if (clientOrderId != Value::Null) {
             let mut cloids: Value = (if (matches!(&clientOrderId, Value::Arr(_))) { clientOrderId.clone() } else { Value::from(vec![clientOrderId.clone()]) });
-            if let Value::Dict(__d) = &mut cancelAction { std::sync::Arc::make_mut(__d).insert("type".to_string(), Value::Str("cancelByCloid".into())); }
+            if let Value::Dict(__d) = &mut cancelAction { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("cancelByCloid".into())); }
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1206: bool = true;
@@ -1979,7 +1979,7 @@ impl HyperliquidCore {
             }
             }
         }  else {
-            if let Value::Dict(__d) = &mut cancelAction { std::sync::Arc::make_mut(__d).insert("type".to_string(), Value::Str("cancel".into())); }
+            if let Value::Dict(__d) = &mut cancelAction { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("cancel".into())); }
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1207: bool = true;
@@ -1993,7 +1993,7 @@ impl HyperliquidCore {
             }
             }
         }
-        if let Value::Dict(__d) = &mut cancelAction { std::sync::Arc::make_mut(__d).insert("cancels".to_string(), cancelReq); }
+        if let Value::Dict(__d) = &mut cancelAction { std::sync::Arc::make_mut(__d).insert("cancels".into(), cancelReq); }
         let mut vaultAddress: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("cancelOrders".into()), Value::Str("vaultAddress".into()), &[]); vaultAddress = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         vaultAddress = self.format_vault_address(&[vaultAddress.clone()]);
@@ -2006,7 +2006,7 @@ impl HyperliquidCore {
             m
         });
         if (vaultAddress != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("vaultAddress".to_string(), vaultAddress); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("vaultAddress".into(), vaultAddress); }
         }
         let mut response: Value = self.private_post_exchange(&[request]).await;
         let mut innerResponse: Value = self.safe_dict_k(response, "response", &[]);
@@ -2171,12 +2171,12 @@ impl HyperliquidCore {
             let mut oid: Value = self.safe_string_k(entry, "oid", &[]);
             if (oid != Value::Null) {
                 if !(in_op(&deduped, &oid)) {
-                    add_element_to_object(&mut deduped, &oid, raw.clone());
+                    if let Value::Dict(__d) = &mut deduped { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&oid), raw.clone()); }
                 }  else {
                     let mut existingTs: Value = self.safe_integer_k(get_value(&deduped, &oid), "statusTimestamp", &[]);
                     let mut currentTs: Value = self.safe_integer_k(raw.clone(), "statusTimestamp", &[]);
                     if (currentTs != Value::Null) && ((existingTs == Value::Null) || currentTs.as_f64().unwrap_or(f64::NAN) > existingTs.as_f64().unwrap_or(f64::NAN)) {
-                        add_element_to_object(&mut deduped, &oid, raw.clone());
+                        if let Value::Dict(__d) = &mut deduped { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&oid), raw.clone()); }
                     }
                 }
             }
@@ -2224,10 +2224,10 @@ impl HyperliquidCore {
         });
         if (clientOrderId != Value::Null) {
             params = self.omit(params.clone(), Value::Str("clientOrderId".into()), &[]);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("oid".to_string(), clientOrderId); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("oid".into(), clientOrderId); }
         }  else {
             let mut isCloid: bool = ((id.len() as i64) as f64) >= ((34i64) as f64);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("oid".to_string(), (if isCloid { id.clone() } else { self.parse_to_numeric(id.clone()) })); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("oid".into(), (if isCloid { id.clone() } else { self.parse_to_numeric(id.clone()) })); }
         }
         let __ws_arg_10 = self.extend(request, &[params]);
         let mut response: Value = self.public_post_info(&[__ws_arg_10]).await;
@@ -2471,15 +2471,15 @@ impl HyperliquidCore {
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".to_string(), Value::Str("userFillsByTime".into())); }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".to_string(), since.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("userFillsByTime".into())); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".into(), since.clone()); }
         }  else {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".to_string(), Value::Str("userFills".into())); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("userFills".into())); }
         }
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         params = self.omit(params.clone(), Value::Str("until".into()), &[]);
         if (until != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("endTime".to_string(), until); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("endTime".into(), until); }
         }
         let __ws_arg_12 = self.extend(request, &[params]);
         let mut response: Value = self.public_post_info(&[__ws_arg_12]).await;
@@ -2674,7 +2674,7 @@ impl HyperliquidCore {
             }
             if !(in_op(&groupMap, &parentSymbol)) {
                 if (parentSymbol != Value::Null) {
-                    add_element_to_object(&mut groupMap, &parentSymbol, Value::from(vec![]));
+                    if let Value::Dict(__d) = &mut groupMap { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&parentSymbol), Value::from(vec![])); }
                 }
             }
             // push through a local and write the slice back — the go transpiler's
@@ -2683,7 +2683,7 @@ impl HyperliquidCore {
             let mut parentMarkets: Value = self.safe_value(groupMap.clone(), parentSymbol.clone(), &[]);
             append_to_array(&mut parentMarkets, mkt);
             if (parentSymbol != Value::Null) {
-                add_element_to_object(&mut groupMap, &parentSymbol, parentMarkets);
+                if let Value::Dict(__d) = &mut groupMap { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&parentSymbol), parentMarkets); }
             }
         }
         }
@@ -3038,10 +3038,10 @@ impl HyperliquidCore {
             // purposes only and the user is not charged; set options.feeRate/feeInt to charge a fee
             let mut maxFeeRate: Value = self.safe_string_k(self.options.clone(), "feeRate", &[Value::Str("0%".into())]);
             self.approve_builder_fee(builder, maxFeeRate).await;
-            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("approvedBuilderFee".to_string(), Value::Bool(true)); }
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("approvedBuilderFee".into(), Value::Bool(true)); }
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("builderFee".to_string(), Value::Bool(false)); }; // disable builder fee if an error occurs
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("builderFee".into(), Value::Bool(false)); }; // disable builder fee if an error occurs
         }
         return Value::Null;
 

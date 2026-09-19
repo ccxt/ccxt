@@ -1099,7 +1099,7 @@ impl NdaxCore {
         //
         let mut sessionToken: Value = self.safe_string_k(response.clone(), "SessionToken", &[]);
         if (sessionToken != Value::Null) {
-            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("sessionToken".to_string(), sessionToken.clone()); }
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("sessionToken".into(), sessionToken.clone()); }
             return response;
         }
         let mut pending2faToken: Value = self.safe_string_k(response.clone(), "Pending2FaToken", &[]);
@@ -1107,7 +1107,7 @@ impl NdaxCore {
             if (self.twofa.clone() == Value::Null) {
                 panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" signIn() requires exchange.twofa credentials".into()))));
             }
-            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("pending2faToken".to_string(), pending2faToken); }
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("pending2faToken".into(), pending2faToken); }
             request = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Code".to_string(), totp(self.twofa.clone()));
@@ -1123,7 +1123,7 @@ impl NdaxCore {
             //     }
             //
             sessionToken = self.safe_string_k(responseInner.clone(), "SessionToken", &[]);
-            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("sessionToken".to_string(), sessionToken); }
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("sessionToken".into(), sessionToken); }
             return responseInner;
         }
         return response;
@@ -1354,11 +1354,11 @@ impl NdaxCore {
             crate::runtime::append_to_object_array(&mut result, &side, bidask);
         }
         }
-        { let __be_tmp = self.sort_by(crate::value::get_value_k(&result, "bids"), Value::Int(0), &[Value::Bool(true)]); if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("bids".to_string(), __be_tmp); } }
-        { let __be_tmp = self.sort_by(crate::value::get_value_k(&result, "asks"), Value::Int(0), &[]); if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("asks".to_string(), __be_tmp); } }
-        add_element_to_object(&mut result, &Value::Str("timestamp".into()), timestamp.clone());
-        add_element_to_object(&mut result, &Value::Str("datetime".into()), self.iso8601(timestamp));
-        add_element_to_object(&mut result, &Value::Str("nonce".into()), nonce);
+        { let __be_tmp = self.sort_by(crate::value::get_value_k(&result, "bids"), Value::Int(0), &[Value::Bool(true)]); if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("bids".into(), __be_tmp); } }
+        { let __be_tmp = self.sort_by(crate::value::get_value_k(&result, "asks"), Value::Int(0), &[]); if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("asks".into(), __be_tmp); } }
+        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("timestamp".into(), timestamp.clone()); }
+        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("datetime".into(), self.iso8601(timestamp)); }
+        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("nonce".into(), nonce); }
         return result;
 
     Value::Null
@@ -1605,15 +1605,15 @@ impl NdaxCore {
         let mut now: Value = self.milliseconds();
         if (since == Value::Null) {
             if (limit != Value::Null) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("FromDate".to_string(), self.ymdhms((match (&(now), &((match (&((match (&(duration), &(limit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[])); }
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ToDate".to_string(), self.ymdhms(now.clone(), &[])); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("FromDate".into(), self.ymdhms((match (&(now), &((match (&((match (&(duration), &(limit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[])); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ToDate".into(), self.ymdhms(now.clone(), &[])); }
             }
         }  else {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("FromDate".to_string(), self.ymdhms(since.clone(), &[])); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("FromDate".into(), self.ymdhms(since.clone(), &[])); }
             if (limit == Value::Null) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ToDate".to_string(), self.ymdhms(now, &[])); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ToDate".into(), self.ymdhms(now, &[])); }
             }  else {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ToDate".to_string(), self.ymdhms(self.sum(&[since.clone(), (match (&((match (&(duration), &(limit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]), &[])); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ToDate".into(), self.ymdhms(self.sum(&[since.clone(), (match (&((match (&(duration), &(limit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]), &[])); }
             }
         }
         let __ws_arg_6 = self.extend(request, &[params]);
@@ -1845,7 +1845,7 @@ impl NdaxCore {
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("Count".to_string(), limit.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("Count".into(), limit.clone()); }
         }
         let __ws_arg_7 = self.extend(request, &[params]);
         let mut response: Value = self.public_get_get_last_trades(&[__ws_arg_7]).await;
@@ -1923,10 +1923,10 @@ impl NdaxCore {
             if (currencyId != Value::Null) && (self.currencies_by_id.clone() != Value::Null) && (in_op(&self.currencies_by_id, &currencyId)) {
                 let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
                 let mut account: Value = self.account();
-                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string_k(balance.clone(), "Amount", &[])); }
-                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string_k(balance, "Hold", &[])); }
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(balance.clone(), "Amount", &[])); }
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string_k(balance, "Hold", &[])); }
                 if (code != Value::Null) {
-                    add_element_to_object(&mut result, &code, account);
+                    if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account); }
                 }
             }
         }
@@ -2092,7 +2092,7 @@ impl NdaxCore {
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("Depth".to_string(), limit.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("Depth".into(), limit.clone()); }
         }
         let __ws_arg_10 = self.extend(request, &[params]);
         let mut response: Value = self.private_get_get_account_transactions(&[__ws_arg_10]).await;
@@ -2301,13 +2301,13 @@ impl NdaxCore {
             if (limitPriceString == Value::Null) {
                 limitPriceString = Value::Str("0".into());
             }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("LimitPrice".to_string(), (match &limitPriceString { Value::Str(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), Value::Float(__parse_f) => Value::Float(*__parse_f), Value::Int(__parse_n) => Value::Float(*__parse_n as f64), _ => Value::Null })); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("LimitPrice".into(), (match &limitPriceString { Value::Str(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), Value::Float(__parse_f) => Value::Float(*__parse_f), Value::Int(__parse_n) => Value::Float(*__parse_n as f64), _ => Value::Null })); }
         }
         if (clientOrderId != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ClientOrderId".to_string(), clientOrderId); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ClientOrderId".into(), clientOrderId); }
         }
         if (triggerPrice != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("StopPrice".to_string(), triggerPrice); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("StopPrice".into(), triggerPrice); }
         }
         let __ws_arg_11 = self.extend(request, &[params]);
         let mut response: Value = self.private_post_send_order(&[__ws_arg_11]).await;
@@ -2367,10 +2367,10 @@ impl NdaxCore {
             if (limitPriceString == Value::Null) {
                 limitPriceString = Value::Str("0".into());
             }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("LimitPrice".to_string(), (match &limitPriceString { Value::Str(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), Value::Float(__parse_f) => Value::Float(*__parse_f), Value::Int(__parse_n) => Value::Float(*__parse_n as f64), _ => Value::Null })); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("LimitPrice".into(), (match &limitPriceString { Value::Str(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), Value::Float(__parse_f) => Value::Float(*__parse_f), Value::Int(__parse_n) => Value::Float(*__parse_n as f64), _ => Value::Null })); }
         }
         if (clientOrderId != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ClientOrderId".to_string(), clientOrderId); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ClientOrderId".into(), clientOrderId); }
         }
         let __ws_arg_12 = self.extend(request, &[params]);
         let mut response: Value = self.private_post_cancel_replace_order(&[__ws_arg_12]).await;
@@ -2415,13 +2415,13 @@ impl NdaxCore {
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("InstrumentId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("InstrumentId".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("StartTimeStamp".to_string(), self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("StartTimeStamp".into(), self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))); }
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("Depth".to_string(), limit.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("Depth".into(), limit.clone()); }
         }
         let __ws_arg_13 = self.extend(request, &[params]);
         let mut response: Value = self.private_get_get_trades_history(&[__ws_arg_13]).await;
@@ -2461,7 +2461,7 @@ impl NdaxCore {
         });
         if (symbol != Value::Null) {
             let mut market: Value = self.market(symbol);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("IntrumentId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("IntrumentId".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         let __ws_arg_14 = self.extend(request, &[params]);
         let mut response: Value = self.private_post_cancel_all_orders(&[__ws_arg_14]).await;
@@ -2510,9 +2510,9 @@ impl NdaxCore {
         });
         let mut clientOrderId: Value = self.safe_integer2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("ClOrderId".into()), &[]);
         if (clientOrderId != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ClOrderId".to_string(), clientOrderId.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ClOrderId".into(), clientOrderId.clone()); }
         }  else {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("OrderId".to_string(), (match &id { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null })); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("OrderId".into(), (match &id { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null })); }
         }
         params = self.omit(params.clone(), Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("ClOrderId".into())]), &[]);
         let __ws_arg_15 = self.extend(request, &[params]);
@@ -2608,13 +2608,13 @@ impl NdaxCore {
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("InstrumentId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("InstrumentId".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("StartTimeStamp".to_string(), self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("StartTimeStamp".into(), self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))); }
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("Depth".to_string(), limit.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("Depth".into(), limit.clone()); }
         }
         let __ws_arg_17 = self.extend(request, &[params]);
         let mut response: Value = self.private_get_get_orders_history(&[__ws_arg_17]).await;
@@ -3339,7 +3339,7 @@ impl NdaxCore {
                 });
             }
             if (method.as_str() == Some("POST")) {
-                add_element_to_object(&mut headers, &Value::Str("Content-Type".into()), Value::Str("application/json".into()));
+                if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("Content-Type".into(), Value::Str("application/json".into())); }
                 body = json_stringify(&query);
             }  else {
                 if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {

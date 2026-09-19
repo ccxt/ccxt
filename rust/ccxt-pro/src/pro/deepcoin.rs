@@ -393,7 +393,7 @@ impl DeepcoinCore {
         self.lock_id(&[]);
         let mut previousValue: Value = self.safe_integer_k(self.options.clone(), "lastRequestId", &[Value::Int(0)]);
         let mut newValue: Value = self.sum(&[previousValue, Value::Int(1)]);
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("lastRequestId".to_string(), newValue.clone()); }
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("lastRequestId".into(), newValue.clone()); }
         self.unlock_id(&[]);
         return newValue;
 
@@ -550,8 +550,8 @@ impl DeepcoinCore {
                     panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" authenticate() received an empty listenKey".into()))));
                 }
                 listenKeyExpiryTimestamp = self.safe_timestamp(data, Value::Str("expire_time".into()), &[]);
-                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("listenKey".to_string(), listenKey.clone()); }
-                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("listenKeyExpiryTimestamp".to_string(), listenKeyExpiryTimestamp); }
+                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("listenKey".into(), listenKey.clone()); }
+                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("listenKeyExpiryTimestamp".into(), listenKeyExpiryTimestamp); }
             }
             // settle the flight: client.resolve wakes every waiter and drops
             // the future from the registry under the client's own lock, so the
@@ -669,7 +669,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut symbol: Value = self.safe_symbol(marketId, &[market.clone()]);
         let mut parsedTicker: Value = self.parse_ws_ticker(data, &[market]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ticker".into()), Value::Str("::".into())).into()), symbol).into());
-        add_element_to_object(&mut self.tickers, &symbol, parsedTicker.clone());
+        if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), parsedTicker.clone()); }
         client.resolve(&[parsedTicker, messageHash]);
 }
 
@@ -835,7 +835,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut symbol: Value = self.safe_symbol(marketId, &[market.clone()]);
         if !(in_op(&self.trades, &symbol)) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
-            add_element_to_object(&mut self.trades, &symbol, ArrayCache::new(limit));
+            if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ArrayCache::new(limit)); }
         }
         let mut strored: Value = get_value(&self.trades, &symbol);
         if (data != Value::Null) {
@@ -1058,10 +1058,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut interval: Value = self.safe_string_k(data.clone(), "P", &[]);
         let mut timeframe: Value = self.find_timeframe(interval, &[]);
         if !(in_op(&self.ohlcvs, &symbol)) {
-            add_element_to_object(&mut self.ohlcvs, &symbol, Value::Map({
+            if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}));
+})); }
         }
         if !(in_op(&get_value(&self.ohlcvs, &symbol), &timeframe)) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
@@ -1210,7 +1210,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Str("/".into())]);
         let mut symbol: Value = self.safe_symbol(marketId, &[market]);
         if !(in_op(&self.orderbooks, &symbol)) {
-            { let __be_tmp = self.order_book(&[]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
+            { let __be_tmp = self.order_book(&[]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
         let mut type_var: Option<String> = self.safe_string_k(message.clone(), "t", &[]).as_str().map(str::to_owned);

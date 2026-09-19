@@ -943,7 +943,7 @@ impl BitoproCore {
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit); }
         }
         let __ws_arg_1 = self.extend(request, &[params]);
         let mut response: Value = self.public_get_order_book_pair(&[__ws_arg_1]).await;
@@ -1176,7 +1176,7 @@ impl BitoproCore {
             let mut __for_first_391: bool = true;
             while { if !__for_first_391 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_391 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
             let mut symbol: Value = symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            add_element_to_object(&mut result, &symbol, Value::Map({
+            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), first.clone());
         m.insert("symbol".to_string(), symbol.clone());
@@ -1185,7 +1185,7 @@ impl BitoproCore {
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(true));
     m
-}));
+})); }
         }
         }
         return result;
@@ -1240,13 +1240,13 @@ impl BitoproCore {
         let mut timeframeInSeconds: Value = self.parse_timeframe(timeframe.clone());
         let mut alignedSince: Value = Value::Null;
         if (since == Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("to".to_string(), self.seconds()); }
-            { let __be_tmp = subtract(&crate::value::get_value_k(&request, "to"), &((match (&(limit), &(timeframeInSeconds)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))); if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("from".to_string(), __be_tmp); } }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("to".into(), self.seconds()); }
+            { let __be_tmp = subtract(&crate::value::get_value_k(&request, "to"), &((match (&(limit), &(timeframeInSeconds)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))); if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("from".into(), __be_tmp); } }
         }  else {
             let mut timeframeInMilliseconds: Value = (match (&(timeframeInSeconds), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
             alignedSince = (match (&(math_floor(&(match ((since).as_f64(), (timeframeInMilliseconds).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))), &(timeframeInMilliseconds)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("from".to_string(), math_floor(&(match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))); }
-            { let __be_tmp = self.sum(&[crate::value::get_value_k(&request, "from"), (match (&(limit), &(timeframeInSeconds)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]); if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("to".to_string(), __be_tmp); } }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("from".into(), math_floor(&(match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))); }
+            { let __be_tmp = self.sum(&[crate::value::get_value_k(&request, "from"), (match (&(limit), &(timeframeInSeconds)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]); if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("to".into(), __be_tmp); } }
         }
         let __ws_arg_3 = self.extend(request, &[params]);
         let mut response: Value = self.public_get_trading_history_pair(&[__ws_arg_3]).await;
@@ -1346,7 +1346,7 @@ impl BitoproCore {
                 m
             });
             if (code != Value::Null) {
-                add_element_to_object(&mut result, &code, account);
+                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account); }
             }
         }
         }
@@ -1529,27 +1529,27 @@ impl BitoproCore {
         });
         let mut orderType: Value = to_upper(&type_var);
         if (orderType.as_str() == Some("LIMIT")) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".into(), self.price_to_precision(symbol.clone(), price.clone())); }
         }
         if (orderType.as_str() == Some("STOP_LIMIT")) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".to_string(), self.price_to_precision(symbol.clone(), price)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".into(), self.price_to_precision(symbol.clone(), price)); }
             let mut triggerPrice: Value = self.safe_string2(params.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
             params = self.omit(params.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into())]), &[]);
             if (triggerPrice == Value::Null) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a triggerPrice parameter for ".into())).into()), orderType).into()), Value::Str(" orders".into()))));
             }  else {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("stopPrice".to_string(), self.price_to_precision(symbol, triggerPrice)); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("stopPrice".into(), self.price_to_precision(symbol, triggerPrice)); }
             }
             let mut condition: Value = self.safe_string_k(params.clone(), "condition", &[]);
             if (condition == Value::Null) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a condition parameter for ".into())).into()), orderType).into()), Value::Str(" orders".into()))));
             }  else {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("condition".to_string(), condition); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("condition".into(), condition); }
             }
         }
         let mut postOnly: Value = self.is_post_only(Value::Bool(orderType.as_str() == Some("MARKET")), Value::Null, &[params.clone()]);
         if is_true(&postOnly) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("timeInForce".to_string(), Value::Str("POST_ONLY".into())); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("timeInForce".into(), Value::Str("POST_ONLY".into())); }
         }
         let __ws_arg_4 = self.extend(request, &[params]);
         let mut response: Value = self.private_post_orders_pair(&[__ws_arg_4]).await;
@@ -1653,7 +1653,7 @@ impl BitoproCore {
             m
         });
         if (id != Value::Null) {
-            add_element_to_object(&mut request, &id, ids);
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&id), ids); }
         }
         let __ws_arg_6 = self.extend(request, &[params]);
         let mut response: Value = self.private_put_orders(&[__ws_arg_6]).await;
@@ -1698,7 +1698,7 @@ impl BitoproCore {
         let mut response: Value = Value::Null;
         if (symbol != Value::Null) {
             let mut market: Value = self.market(symbol);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("pair".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("pair".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
             let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_delete_orders_pair(&[__ws_arg_7]).await;
         }  else {
@@ -1782,10 +1782,10 @@ impl BitoproCore {
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTimestamp".to_string(), since.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTimestamp".into(), since.clone()); }
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
         }
         let __ws_arg_10 = self.extend(request, &[params]);
         let mut response: Value = self.private_get_orders_all_pair(&[__ws_arg_10]).await;
@@ -1827,7 +1827,7 @@ impl BitoproCore {
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("pair".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("pair".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         let __ws_arg_11 = self.extend(request, &[params]);
         let mut response: Value = self.private_get_orders_open(&[__ws_arg_11]).await;
@@ -2047,10 +2047,10 @@ impl BitoproCore {
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTimestamp".to_string(), since.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTimestamp".into(), since.clone()); }
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
         }
         let __ws_arg_14 = self.extend(request, &[params]);
         let mut response: Value = self.private_get_wallet_deposit_history_currency(&[__ws_arg_14]).await;
@@ -2096,10 +2096,10 @@ impl BitoproCore {
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTimestamp".to_string(), since.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTimestamp".into(), since.clone()); }
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
         }
         let __ws_arg_15 = self.extend(request, &[params]);
         let mut response: Value = self.private_get_wallet_withdraw_history_currency(&[__ws_arg_15]).await;
@@ -2195,10 +2195,10 @@ impl BitoproCore {
             if (networkId == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" invalid network ".into())).into()), requestedNetwork)));
             }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("protocol".to_string(), networkId); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("protocol".into(), networkId); }
         }
         if (tag != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("message".to_string(), tag); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("message".into(), tag); }
         }
         let __ws_arg_17 = self.extend(request, &[params]);
         let mut response: Value = self.private_post_wallet_withdraw_currency(&[__ws_arg_17]).await;
@@ -2296,16 +2296,16 @@ impl BitoproCore {
                 m
             });
         }
-        add_element_to_object(&mut headers, &Value::Str("X-BITOPRO-API".into()), Value::Str("ccxt".into()));
+        if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("X-BITOPRO-API".into(), Value::Str("ccxt".into())); }
         if (api.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
             if (method.as_str() == Some("POST")) || (method.as_str() == Some("PUT")) {
                 body = json_stringify(&params);
                 let mut payload: Value = self.string_to_base64(body.clone(), &[]);
                 let mut signature: Value = self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha384".into()), &[]);
-                add_element_to_object(&mut headers, &Value::Str("X-BITOPRO-APIKEY".into()), self.apiKey.clone());
-                add_element_to_object(&mut headers, &Value::Str("X-BITOPRO-PAYLOAD".into()), payload.clone());
-                add_element_to_object(&mut headers, &Value::Str("X-BITOPRO-SIGNATURE".into()), signature.clone());
+                if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("X-BITOPRO-APIKEY".into(), self.apiKey.clone()); }
+                if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("X-BITOPRO-PAYLOAD".into(), payload.clone()); }
+                if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("X-BITOPRO-SIGNATURE".into(), signature.clone()); }
             }  else if (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) {
                 if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
                     url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])).into())).into());
@@ -2319,9 +2319,9 @@ impl BitoproCore {
                 let mut data: Value = json_stringify(&rawData);
                 let mut payload: Value = self.string_to_base64(data.clone(), &[]);
                 let mut signature: Value = self.hmac(self.encode(payload.clone()), self.encode(self.secret.clone()), Value::Str("sha384".into()), &[]);
-                add_element_to_object(&mut headers, &Value::Str("X-BITOPRO-APIKEY".into()), self.apiKey.clone());
-                add_element_to_object(&mut headers, &Value::Str("X-BITOPRO-PAYLOAD".into()), payload.clone());
-                add_element_to_object(&mut headers, &Value::Str("X-BITOPRO-SIGNATURE".into()), signature.clone());
+                if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("X-BITOPRO-APIKEY".into(), self.apiKey.clone()); }
+                if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("X-BITOPRO-PAYLOAD".into(), payload.clone()); }
+                if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("X-BITOPRO-SIGNATURE".into(), signature.clone()); }
             }
         }  else if (api.as_str() == Some("public")) && (method.as_str() == Some("GET")) {
             if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {

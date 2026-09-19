@@ -643,7 +643,7 @@ impl LimitlessCore {
                     let mut raw: Value = found.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                     let mut slug: Value = self.safe_string_k(raw.clone(), "slug", &[]);
                     if ((slug != Value::Null) && (slug.as_str() != Some(""))) && !(in_op(&seen, &slug)) {
-                        add_element_to_object(&mut seen, &slug, Value::Bool(true));
+                        if let Value::Dict(__d) = &mut seen { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&slug), Value::Bool(true)); }
                         append_to_array(&mut allRaw, raw.clone());
                     }
                 }
@@ -674,7 +674,7 @@ impl LimitlessCore {
                 let mut __for_first_1261: bool = true;
                 while { if !__for_first_1261 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1261 = false; i.as_f64().unwrap_or(f64::NAN) <= totalPages.as_f64().unwrap_or(f64::NAN) } {
                 page = i.clone();
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page".to_string(), page.clone()); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page".into(), page.clone()); }
                 let __ws_arg_2 = self.extend(request.clone(), &[rest.clone()]);
                 append_to_array(&mut promises, self.limitless_public_get_markets_active(&[__ws_arg_2]).await);
             }
@@ -697,7 +697,7 @@ impl LimitlessCore {
             if lastPageLength >= pageSize.as_f64().unwrap_or(f64::NAN) && allRawLength < maxMarkets.as_f64().unwrap_or(f64::NAN) {
                 while (true) {
                     page = self.sum(&[page.clone(), Value::Int(1)]);
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page".to_string(), page.clone()); }
+                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page".into(), page.clone()); }
                     let __ws_arg_3 = self.extend(request.clone(), &[rest.clone()]);
                     let mut response: Value = self.limitless_public_get_markets_active(&[__ws_arg_3]).await;
                     let mut responseRows: Value = Value::from(vec![]);
@@ -744,14 +744,14 @@ impl LimitlessCore {
             append_to_array(&mut markets, m.clone());
             if (eventKey != Value::Null) && (eventKey.as_str() != Some("")) {
                 if !(in_op(&eventGroups, &eventKey)) {
-                    add_element_to_object(&mut eventGroups, &eventKey, Value::Map({
+                    if let Value::Dict(__d) = &mut eventGroups { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&eventKey), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("groupId".to_string(), groupId.clone());
         m.insert("title".to_string(), self.safe_string2(raw.clone(), Value::Str("groupTitle".into()), Value::Str("title".into()), &[groupId]));
         m.insert("raw".to_string(), raw);
         m.insert("markets".to_string(), Value::from(vec![]));
     m
-}));
+})); }
                 }
                 let mut eventGroup: Value = get_value(&eventGroups, &eventKey);
                 let mut eventGroup: Value = get_value(&eventGroups, &eventKey);
@@ -776,7 +776,7 @@ impl LimitlessCore {
             let mut eventKey: Value = eventKeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut g: Value = get_value(&eventGroups, &eventKey);
             let mut g: Value = get_value(&eventGroups, &eventKey);
-            add_element_to_object(&mut eventsDict, &eventKey, self.parse_event(g));
+            if let Value::Dict(__d) = &mut eventsDict { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&eventKey), self.parse_event(g)); }
         }
         }
         self.exchange.events = eventsDict.clone();
@@ -1755,7 +1755,7 @@ impl LimitlessCore {
             }
             if !(in_op(&outcomesBySlug, &slug)) {
                 if (slug != Value::Null) {
-                    add_element_to_object(&mut outcomesBySlug, &slug, Value::from(vec![]));
+                    if let Value::Dict(__d) = &mut outcomesBySlug { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&slug), Value::from(vec![])); }
                 }
                 append_to_array(&mut slugs, slug.clone());
             }
@@ -1763,7 +1763,7 @@ impl LimitlessCore {
             let mut grouped: Value = self.safe_value(outcomesBySlug.clone(), slug.clone(), &[]);
             append_to_array(&mut grouped, outcomeObj);
             if (slug != Value::Null) {
-                add_element_to_object(&mut outcomesBySlug, &slug, grouped.clone());
+                if let Value::Dict(__d) = &mut outcomesBySlug { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&slug), grouped.clone()); }
             }
         }
         }
@@ -1811,7 +1811,7 @@ impl LimitlessCore {
                 let mut ticker: Value = self.parse_prediction_ticker(tickerInput.clone(), &[get_value(&grouped, &j)]);
                 let mut symbolKey: Value = self.safe_string_k(ticker.clone(), "outcome", &[]);
                 if (symbolKey != Value::Null) {
-                    add_element_to_object(&mut result, &symbolKey, ticker);
+                    if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbolKey), ticker); }
                 }
             }
             }
@@ -1850,7 +1850,7 @@ impl LimitlessCore {
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), crate::runtime::Math::min(&limit, &Value::Int(100))); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(100))); }
         }
         let __ws_arg_19 = self.extend(request, &[params]);
         let mut response: Value = self.limitless_public_get_markets_slug_events(&[__ws_arg_19]).await;
@@ -2152,7 +2152,7 @@ impl LimitlessCore {
             let mut bucket: Value = (match (&(self.parse_to_int((match ((pTs).as_f64(), (ms).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))), &(ms)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
             let mut key: Value = to_string_val(&bucket);
             if !(in_op(&candles, &key)) {
-                add_element_to_object(&mut candles, &key, Value::from(vec![bucket, pPrice.clone(), pPrice.clone(), pPrice.clone(), pPrice.clone(), Value::Int(0)]));
+                if let Value::Dict(__d) = &mut candles { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&key), Value::from(vec![bucket, pPrice.clone(), pPrice.clone(), pPrice.clone(), pPrice.clone(), Value::Int(0)])); }
                 append_to_array(&mut bucketOrder, key.clone());
             }  else {
                 let mut candle: Value = get_value(&candles, &key);
@@ -2163,7 +2163,7 @@ impl LimitlessCore {
                 let mut pPriceOrCandleLow: Value = (if (pPrice == Value::Null) { get_value(&candle, &Value::Int(3)) } else { pPrice.clone() });
                 add_element_to_object(&mut candle, &Value::Int(3), crate::runtime::Math::min(&candleLow, &pPriceOrCandleLow));
                 add_element_to_object(&mut candle, &Value::Int(4), pPrice);
-                add_element_to_object(&mut candles, &key, candle); // php arrays are value types - write the mutation back
+                if let Value::Dict(__d) = &mut candles { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&key), candle); }; // php arrays are value types - write the mutation back
             }
         }
         }
@@ -2212,7 +2212,7 @@ impl LimitlessCore {
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
         }
         let __ws_arg_22 = self.extend(request, &[params]);
         let mut response: Value = self.limitless_private_get_markets_slug_user_orders(&[__ws_arg_22]).await;
@@ -2885,9 +2885,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut expirationInt: Value = self.safe_integer_k(params.clone(), "expiration", &[]);
         if (expirationInt != Value::Null) {
             params = self.omit(params.clone(), Value::Str("expiration".into()), &[]);
-            if let Value::Dict(__d) = &mut signRequest { std::sync::Arc::make_mut(__d).insert("expiration".to_string(), self.number_to_string(expirationInt)); }
+            if let Value::Dict(__d) = &mut signRequest { std::sync::Arc::make_mut(__d).insert("expiration".into(), self.number_to_string(expirationInt)); }
         }  else {
-            if let Value::Dict(__d) = &mut signRequest { std::sync::Arc::make_mut(__d).insert("expiration".to_string(), Value::Str("0".into())); }
+            if let Value::Dict(__d) = &mut signRequest { std::sync::Arc::make_mut(__d).insert("expiration".into(), Value::Str("0".into())); }
         }
         let mut amountString: Value = self.number_to_string(amount.clone());
         let mut priceString: Value = self.number_to_string(price.clone());
@@ -2931,13 +2931,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
         }
         // amounts must be integers (uint256): parseNumber yields a float that the Python EIP-712 encoder rejects
-        if let Value::Dict(__d) = &mut signRequest { std::sync::Arc::make_mut(__d).insert("makerAmount".to_string(), self.parse_to_int(self.apply_scale(makerAmount, &[Value::Bool(true)]))); }
-        if let Value::Dict(__d) = &mut signRequest { std::sync::Arc::make_mut(__d).insert("takerAmount".to_string(), (if matches!(&isMarket, Value::Bool(true)) { Value::Int(1) } else { self.parse_to_int(self.apply_scale(takerAmount, &[Value::Bool(true)])) })); }
+        if let Value::Dict(__d) = &mut signRequest { std::sync::Arc::make_mut(__d).insert("makerAmount".into(), self.parse_to_int(self.apply_scale(makerAmount, &[Value::Bool(true)]))); }
+        if let Value::Dict(__d) = &mut signRequest { std::sync::Arc::make_mut(__d).insert("takerAmount".into(), (if matches!(&isMarket, Value::Bool(true)) { Value::Int(1) } else { self.parse_to_int(self.apply_scale(takerAmount, &[Value::Bool(true)])) })); }
         let mut signature: Value = self.sign_order_request(signRequest.clone(), marketSymbol);
-        if let Value::Dict(__d) = &mut signRequest { std::sync::Arc::make_mut(__d).insert("signature".to_string(), signature); }
+        if let Value::Dict(__d) = &mut signRequest { std::sync::Arc::make_mut(__d).insert("signature".into(), signature); }
         // price is an unsigned hint required by the API for GTC/FAK orders (not part of the EIP-712 struct)
         if !(matches!(&isMarket, Value::Bool(true))) && (price != Value::Null) {
-            if let Value::Dict(__d) = &mut signRequest { std::sync::Arc::make_mut(__d).insert("price".to_string(), self.parse_number(priceString, &[])); }
+            if let Value::Dict(__d) = &mut signRequest { std::sync::Arc::make_mut(__d).insert("price".into(), self.parse_number(priceString, &[])); }
         }
         let mut slug: Value = self.safe_string_k(crate::value::get_value_k(&outcomeObj, "info"), "slug", &[]);
         let mut request: Value = Value::Map({
@@ -2949,7 +2949,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if is_true(&postOnly) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("postOnly".to_string(), postOnly.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("postOnly".into(), postOnly.clone()); }
         }
         let __ws_arg_24 = self.extend(request, &[params]);
         let mut response: Value = self.limitless_private_post_orders(&[__ws_arg_24]).await;
@@ -3312,7 +3312,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut slug: Option<String> = self.safe_string_k(params.clone(), "slug", &[]).as_str().map(str::to_owned);
         if (outcome != Value::Null) {
             let mut outcomeObj: Value = self.load_outcome(outcome, &[]).await;
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("slug".to_string(), self.safe_string_k(crate::value::get_value_k(&outcomeObj, "info"), "slug", &[])); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("slug".into(), self.safe_string_k(crate::value::get_value_k(&outcomeObj, "info"), "slug", &[])); }
         }  else if (slug.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrders requires either an outcome argument or a slug parameter".into()))));
         }
@@ -3364,7 +3364,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), crate::runtime::Math::min(&limit, &maxLimit)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), crate::runtime::Math::min(&limit, &maxLimit)); }
         }
         let __ws_arg_29 = self.extend(request, &[params]);
         let mut response: Value = self.limitless_private_get_portfolio_history(&[__ws_arg_29]).await;
@@ -3900,7 +3900,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     let mut raw: Value = found.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                     let mut rawSlug: Value = self.safe_string_k(raw.clone(), "slug", &[]);
                     if ((rawSlug != Value::Null) && (rawSlug.as_str() != Some(""))) && !(in_op(&seen, &rawSlug)) {
-                        add_element_to_object(&mut seen, &rawSlug, Value::Bool(true));
+                        if let Value::Dict(__d) = &mut seen { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&rawSlug), Value::Bool(true)); }
                         append_to_array(&mut rawMarkets, raw.clone());
                     }
                 }
@@ -3960,14 +3960,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             add_element_to_object(&mut self.markets, &m.as_map().and_then(|__m| __m.get("market")).cloned().unwrap_or(Value::Null), m.clone());
             if (eventKey != Value::Null) && (eventKey.as_str() != Some("")) {
                 if !(in_op(&eventGroups, &eventKey)) {
-                    add_element_to_object(&mut eventGroups, &eventKey, Value::Map({
+                    if let Value::Dict(__d) = &mut eventGroups { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&eventKey), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("groupId".to_string(), groupId.clone());
         m.insert("title".to_string(), self.safe_string2(raw.clone(), Value::Str("groupTitle".into()), Value::Str("title".into()), &[groupId]));
         m.insert("raw".to_string(), raw);
         m.insert("markets".to_string(), Value::from(vec![]));
     m
-}));
+})); }
                 }
                 let mut eventGroup: Value = get_value(&eventGroups, &eventKey);
                 let mut eventGroup: Value = get_value(&eventGroups, &eventKey);
@@ -4043,7 +4043,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             });
             let mut response: Value = Value::Null;
             if (categoryId != Value::Null) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("categoryId".to_string(), categoryId.clone()); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("categoryId".into(), categoryId.clone()); }
                 let __ws_arg_32 = self.extend(request.clone(), &[rest.clone()]);
                 response = self.limitless_public_get_markets_active_category_id(&[__ws_arg_32]).await;
             }  else {
@@ -4153,7 +4153,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut raw: Value = categoryMarkets.as_array().and_then(|__arr| match &mi { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut slug: Value = self.safe_string_k(raw.clone(), "slug", &[]);
                 if (slug != Value::Null) && !(in_op(&seen, &slug)) {
-                    add_element_to_object(&mut seen, &slug, Value::Bool(true));
+                    if let Value::Dict(__d) = &mut seen { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&slug), Value::Bool(true)); }
                     append_to_array(&mut allRaw, raw);
                 }
             }
@@ -4235,7 +4235,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            add_element_to_object(&mut headersKey, &headerKey, self.apiKey.clone());
+            if let Value::Dict(__d) = &mut headersKey { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&headerKey), self.apiKey.clone()); }
             headers = self.extend(headers.clone(), &[headersKey]);
         }
         url = Value::Str(format!("{}{}", baseUrl, url).into());

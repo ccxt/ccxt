@@ -418,7 +418,7 @@ impl DeriveCore {
             { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), limit]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
+}), limit]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
         let mut timestamp: Value = self.safe_integer_k(data.clone(), "timestamp", &[]);
@@ -575,7 +575,7 @@ impl DeriveCore {
         }
         let mut tickerSymbol: Value = ticker.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         if (tickerSymbol != Value::Null) {
-            add_element_to_object(&mut self.tickers, &tickerSymbol, ticker.clone());
+            if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&tickerSymbol), ticker.clone()); }
         }
         client.resolve(&[ticker, topic]);
         return message;
@@ -824,7 +824,7 @@ impl DeriveCore {
             tradesArray.append(trade);
         }
         }
-        add_element_to_object(&mut self.trades, &symbol, tradesArray.clone());
+        if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), tradesArray.clone()); }
         client.resolve(&[tradesArray, topic.clone()]);
 }
 

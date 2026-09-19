@@ -626,14 +626,14 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut isSpot: Value = get_value(&market, &Value::Str("spot".into()));
         if !is_true(&self.wsTests) {
             if is_equal(&isSpot, &Value::Bool(true)) {
-                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("fetchCurrencies".to_string(), Value::from(vec![])); }
+                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("fetchCurrencies".into(), Value::from(vec![])); }
             }  else {
-                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("fetchFundingRates".to_string(), Value::from(vec![primarySymbol.clone()])); }
-                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("fetchFundingRate".to_string(), Value::from(vec![primarySymbol.clone()])); }
-                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("fetchFundingRateHistory".to_string(), Value::from(vec![primarySymbol.clone()])); }
-                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("fetchIndexOHLCV".to_string(), Value::from(vec![primarySymbol.clone()])); }
-                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("fetchMarkOHLCV".to_string(), Value::from(vec![primarySymbol.clone()])); }
-                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("fetchPremiumIndexOHLCV".to_string(), Value::from(vec![primarySymbol.clone()])); }
+                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("fetchFundingRates".into(), Value::from(vec![primarySymbol.clone()])); }
+                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("fetchFundingRate".into(), Value::from(vec![primarySymbol.clone()])); }
+                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("fetchFundingRateHistory".into(), Value::from(vec![primarySymbol.clone()])); }
+                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("fetchIndexOHLCV".into(), Value::from(vec![primarySymbol.clone()])); }
+                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("fetchMarkOHLCV".into(), Value::from(vec![primarySymbol.clone()])); }
+                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("fetchPremiumIndexOHLCV".into(), Value::from(vec![primarySymbol.clone()])); }
             }
         }
         self.publicTests = tests.clone();
@@ -914,8 +914,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                             let mut m = indexmap::IndexMap::new();
                             m
                         });
-                        add_element_to_object(&mut entry, &Value::Str("symbol".into()), tickerSymbol.clone());
-                        if let Value::Dict(__d) = &mut entry { std::sync::Arc::make_mut(__d).insert("volume".to_string(), volume.clone()); }
+                        if let Value::Dict(__d) = &mut entry { std::sync::Arc::make_mut(__d).insert("symbol".into(), tickerSymbol.clone()); }
+                        if let Value::Dict(__d) = &mut entry { std::sync::Arc::make_mut(__d).insert("volume".into(), volume.clone()); }
                         append_to_array(&mut candidates, entry.clone());
                     }
                 }
@@ -1131,7 +1131,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m
                 });
                 if (eventQuery != Value::Null) {
-                    if let Value::Dict(__d) = &mut eventParams { std::sync::Arc::make_mut(__d).insert("query".to_string(), eventQuery.clone()); }
+                    if let Value::Dict(__d) = &mut eventParams { std::sync::Arc::make_mut(__d).insert("query".into(), eventQuery.clone()); }
                 }
                 let mut events: Value = callExchangeMethodDynamically(&mut exchange, Value::Str("fetchEvents".into()), Value::from(vec![eventParams.clone()])).await;
                 assert((events != Value::Null), &[add(&get_value(&exchange, &Value::Str("id".into())), &Value::Str(" fetchEvents returned undefined".into()))]);
@@ -1481,7 +1481,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if is_true(&getCliArgValue(Value::Str("--fundedTests".into()))) {
-            if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("createOrder".to_string(), Value::from(vec![symbol.clone()])); }
+            if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("createOrder".into(), Value::from(vec![symbol.clone()])); }
         }
         if is_true(&self.wsTests) {
             tests = Value::Map({
@@ -1498,17 +1498,17 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut isSpot: Value = get_value(&market, &Value::Str("spot".into()));
         if !is_true(&self.wsTests) {
             if is_equal(&isSpot, &Value::Bool(true)) {
-                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("fetchCurrencies".to_string(), Value::from(vec![])); }
+                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("fetchCurrencies".into(), Value::from(vec![])); }
             }  else {
                 // derivatives only
-                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("fetchPositions".to_string(), Value::from(vec![symbol.clone()])); }; // this test fetches all positions for 1 symbol
-                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("fetchPosition".to_string(), Value::from(vec![symbol.clone()])); }
-                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("fetchPositionRisk".to_string(), Value::from(vec![symbol.clone()])); }
-                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("setPositionMode".to_string(), Value::from(vec![symbol.clone()])); }
-                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("setMarginMode".to_string(), Value::from(vec![symbol.clone()])); }
-                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("fetchOpenInterestHistory".to_string(), Value::from(vec![symbol.clone()])); }
-                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("fetchFundingRateHistory".to_string(), Value::from(vec![symbol.clone()])); }
-                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("fetchFundingHistory".to_string(), Value::from(vec![symbol.clone()])); }
+                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("fetchPositions".into(), Value::from(vec![symbol.clone()])); }; // this test fetches all positions for 1 symbol
+                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("fetchPosition".into(), Value::from(vec![symbol.clone()])); }
+                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("fetchPositionRisk".into(), Value::from(vec![symbol.clone()])); }
+                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("setPositionMode".into(), Value::from(vec![symbol.clone()])); }
+                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("setMarginMode".into(), Value::from(vec![symbol.clone()])); }
+                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("fetchOpenInterestHistory".into(), Value::from(vec![symbol.clone()])); }
+                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("fetchFundingRateHistory".into(), Value::from(vec![symbol.clone()])); }
+                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("fetchFundingHistory".into(), Value::from(vec![symbol.clone()])); }
             }
         }
         // const combinedTests = exchange.deepExtend (this.publicTests, privateTests);
@@ -1705,7 +1705,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 dump(&[Value::Str(format!("{}{}", Value::Str("[WARN] tests not found: ".into()), path).into())]);
                 return Value::Null;
             }
-            add_element_to_object(&mut result, &targetExchange, ioFileRead(path.clone(), &[]));
+            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(ccxt::runtime::stringify_param(&targetExchange), ioFileRead(path.clone(), &[])); }
             return result;
         }
         let mut files: Value = ioDirRead(folder.clone());
@@ -1723,7 +1723,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
             let mut exchangeName: Value = replace_str(&file, &Value::Str(".json".into()), &Value::Str("".into()));
             let mut content: Value = ioFileRead(Value::Str(format!("{}{}", folder, file).into()), &[]);
-            add_element_to_object(&mut result, &exchangeName, content.clone());
+            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(ccxt::runtime::stringify_param(&exchangeName), content.clone()); }
         }
         }
         return result;
@@ -1782,7 +1782,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 // some exchanges might return something like this: timestamp=1699382693405&batchOrders=[{\"symbol\":\"LTCUSDT\",\"side\":\"BUY\",\"newClientOrderI
                 value = jsonParse(value.clone());
             }
-            add_element_to_object(&mut result, &key, value.clone());
+            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(ccxt::runtime::stringify_param(&key), value.clone()); }
         }
         }
         return result;
@@ -2566,8 +2566,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if (exchangeName.as_str() == Some("grvt")) {
-            if let Value::Dict(__d) = &mut options { std::sync::Arc::make_mut(__d).insert("apiKey".to_string(), Value::Str("".into())); }
-            if let Value::Dict(__d) = &mut options { std::sync::Arc::make_mut(__d).insert("secret".to_string(), Value::Str("".into())); }
+            if let Value::Dict(__d) = &mut options { std::sync::Arc::make_mut(__d).insert("apiKey".into(), Value::Str("".into())); }
+            if let Value::Dict(__d) = &mut options { std::sync::Arc::make_mut(__d).insert("secret".into(), Value::Str("".into())); }
         }
         let mut exchange: Value = initExchange(exchangeName.clone(), &[options.clone(), isWs.clone()]);
         if (currencies != Value::Null) {

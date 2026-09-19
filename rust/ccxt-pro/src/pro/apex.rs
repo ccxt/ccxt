@@ -435,7 +435,7 @@ impl ApexCore {
         if (stored == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             stored = ArrayCache::new(limit);
-            add_element_to_object(&mut self.trades, &symbol, stored.clone());
+            if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored.clone()); }
         }
         let mut length: Value = Value::Int(trades.len() as i64);
         {
@@ -611,7 +611,7 @@ impl ApexCore {
         if (url == Value::Null) {
             let mut timeStamp: Value = to_string_val(&self.milliseconds());
             url = Value::Str(format!("{}{}", add(&crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public"), &Value::Str("&timestamp=".into())), timeStamp).into());
-            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsPublicUrl".to_string(), url.clone()); }
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsPublicUrl".into(), url.clone()); }
         }
         return url;
 
@@ -623,7 +623,7 @@ impl ApexCore {
         if (url == Value::Null) {
             let mut timeStamp: Value = to_string_val(&self.milliseconds());
             url = Value::Str(format!("{}{}", add(&crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private"), &Value::Str("&timestamp=".into())), timeStamp).into());
-            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsPrivateUrl".to_string(), url.clone()); }
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsPrivateUrl".into(), url.clone()); }
         }
         return url;
 
@@ -675,7 +675,7 @@ impl ApexCore {
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut timestamp: Value = self.safe_integer_product(message, Value::Str("ts".into()), Value::Float(0.001), &[]);
         if !(in_op(&self.orderbooks, &symbol)) {
-            { let __be_tmp = self.order_book(&[]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
+            { let __be_tmp = self.order_book(&[]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
         if isSnapshot {
@@ -690,7 +690,7 @@ impl ApexCore {
             add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), self.iso8601(timestamp));
         }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook".into()), Value::Str(":".into())).into()), symbol).into());
-        add_element_to_object(&mut self.orderbooks, &symbol, orderbook.clone());
+        if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), orderbook.clone()); }
         client.resolve(&[orderbook, messageHash]);
 }
 
@@ -838,7 +838,7 @@ impl ApexCore {
         let mut timestamp: Value = self.safe_integer_product(message, Value::Str("ts".into()), Value::Float(0.001), &[]);
         add_element_to_object(&mut parsed, &Value::Str("timestamp".into()), timestamp.clone());
         add_element_to_object(&mut parsed, &Value::Str("datetime".into()), self.iso8601(timestamp));
-        add_element_to_object(&mut self.tickers, &symbol, parsed);
+        if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), parsed); }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol).into());
         client.resolve(&[get_value(&self.tickers, &symbol), messageHash]);
 }
@@ -863,7 +863,7 @@ impl ApexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("callerMethodName".to_string(), Value::Str("watchOHLCV".into())); }
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("callerMethodName".into(), Value::Str("watchOHLCV".into())); }
         let mut result: Value = self.watch_ohlcv_for_symbols(Value::from(vec![Value::from(vec![symbol.clone(), timeframe.clone()])]), &[since, limit, params]).await;
         return get_value(&get_value(&result, &symbol), &timeframe);
 
@@ -956,10 +956,10 @@ impl ApexCore {
         let mut market: Value = self.safe_market(&[marketId, Value::Null, Value::Null, marketType]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         if !(in_op(&self.ohlcvs, &symbol)) {
-            add_element_to_object(&mut self.ohlcvs, &symbol, Value::Map({
+            if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}));
+})); }
         }
         if !(in_op(&get_value(&self.ohlcvs, &symbol), &timeframe)) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
@@ -1145,7 +1145,7 @@ impl ApexCore {
             let mut rawTrade: Value = lists.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut parsed: Value = self.parse_ws_trade(rawTrade, &[]);
             let mut symbol: Value = parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            add_element_to_object(&mut symbols, &symbol, Value::Bool(true));
+            if let Value::Dict(__d) = &mut symbols { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Bool(true)); }
             trades.append(parsed);
         }
         }
@@ -1208,7 +1208,7 @@ impl ApexCore {
             while { if !__for_first_12 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_12 = false; i.as_f64().unwrap_or(f64::NAN) < ((lists.len() as i64) as f64) } {
             let mut parsed: Value = self.parse_order(lists.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[]);
             let mut symbol: Value = parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            add_element_to_object(&mut symbols, &symbol, Value::Bool(true));
+            if let Value::Dict(__d) = &mut symbols { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Bool(true)); }
             orders.append(parsed);
         }
         }

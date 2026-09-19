@@ -636,7 +636,7 @@ impl BackpackCore {
         let mut symbol: Value = self.safe_symbol(marketId, &[market.clone()]);
         let mut parsedTicker: Value = self.parse_ws_ticker(ticker, &[market]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ticker".into()), Value::Str(":".into())).into()), symbol).into());
-        add_element_to_object(&mut self.tickers, &symbol, parsedTicker.clone());
+        if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), parsedTicker.clone()); }
         client.resolve(&[parsedTicker, messageHash.clone()]);
 }
 
@@ -788,7 +788,7 @@ impl BackpackCore {
         let mut symbol: Value = self.safe_symbol(marketId, &[market.clone()]);
         let mut parsedBidAsk: Value = self.parse_ws_bid_ask(data, &[market]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("bidask".into()), Value::Str(":".into())).into()), symbol).into());
-        add_element_to_object(&mut self.bidsasks, &symbol, parsedBidAsk.clone());
+        if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), parsedBidAsk.clone()); }
         client.resolve(&[parsedBidAsk, messageHash.clone()]);
 }
 
@@ -1004,10 +1004,10 @@ impl BackpackCore {
         let mut parts: Value = split(&stream, &Value::Str(".".into()));
         let mut timeframe: Value = self.safe_string(parts, Value::Int(1), &[Value::Str("".into())]);
         if !(in_op(&self.ohlcvs, &symbol)) {
-            add_element_to_object(&mut self.ohlcvs, &symbol, Value::Map({
+            if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}));
+})); }
         }
         if !(in_op(&get_value(&self.ohlcvs, &symbol), &timeframe)) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
@@ -1187,7 +1187,7 @@ impl BackpackCore {
         if !(in_op(&self.trades, &symbol)) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             let mut stored = ArrayCache::new(limit);
-            add_element_to_object(&mut self.trades, &symbol, stored);
+            if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored); }
         }
         let mut cache: Value = get_value(&self.trades, &symbol);
         let mut trade: Value = self.parse_ws_trade(data, &[market]);
@@ -1406,7 +1406,7 @@ impl BackpackCore {
         let mut marketId: Value = self.safe_string_k(data.clone(), "s", &[]);
         let mut symbol: Value = self.safe_symbol(marketId, &[]);
         if !(in_op(&self.orderbooks, &symbol)) {
-            { let __be_tmp = self.order_book(&[]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
+            { let __be_tmp = self.order_book(&[]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         }
         let mut storedOrderBook: Value = get_value(&self.orderbooks, &symbol);
         let mut nonce: Value = self.safe_integer_k(storedOrderBook.clone(), "nonce", &[]);

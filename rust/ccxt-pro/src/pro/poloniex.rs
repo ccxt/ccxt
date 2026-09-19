@@ -455,7 +455,7 @@ impl PoloniexCore {
             marketIds = (if (ids == Value::Null) { Value::from(vec![]) } else { ids });
         }
         if (name.as_str() != Some("balances")) {
-            if let Value::Dict(__d) = &mut subscribe { std::sync::Arc::make_mut(__d).insert("symbols".to_string(), marketIds); }
+            if let Value::Dict(__d) = &mut subscribe { std::sync::Arc::make_mut(__d).insert("symbols".into(), marketIds); }
         }
         let mut request: Value = self.extend(subscribe, &[params]);
         return self.watch(url, messageHash.clone(), &[request, messageHash.clone()]).await;
@@ -559,11 +559,11 @@ impl PoloniexCore {
             }  else {
                 quoteAmount = self.cost_to_precision(symbol.clone(), amount.clone());
             }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("amount".to_string(), quoteAmount); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("amount".into(), quoteAmount); }
         }  else {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("quantity".to_string(), self.amount_to_precision(market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), amount)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("quantity".into(), self.amount_to_precision(market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), amount)); }
             if (price != Value::Null) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".to_string(), self.price_to_precision(symbol, price)); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".into(), self.price_to_precision(symbol, price)); }
             }
         }
         let __ws_arg_0 = self.extend(request, &[params]);
@@ -594,7 +594,7 @@ impl PoloniexCore {
         let mut clientOrderId: Value = self.safe_string_k(params.clone(), "clientOrderId", &[]);
         if (clientOrderId != Value::Null) {
             let mut clientOrderIds: Value = self.safe_value_k(params.clone(), "clientOrderId", &[Value::from(vec![])]);
-            if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("clientOrderIds".to_string(), self.array_concat(clientOrderIds, Value::from(vec![clientOrderId]))); }
+            if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("clientOrderIds".into(), self.array_concat(clientOrderIds, Value::from(vec![clientOrderId]))); }
         }
         let mut orders: Value = self.cancel_orders_ws(Value::from(vec![id]), &[symbol, params]).await;
         let mut order: Value = self.safe_dict(orders, Value::Int(0), &[]);
@@ -1026,7 +1026,7 @@ impl PoloniexCore {
         { let __be_tmp = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]); add_element_to_object(&mut self.ohlcvs, &symbol, __be_tmp); };
+})]); if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         let mut stored: Value = (if (timeframe == Value::Null) { Value::Null } else { self.safe_value(self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[]), timeframe.clone(), &[]) });
         if (symbol != Value::Null) {
             if (stored == Value::Null) {
@@ -1079,7 +1079,7 @@ impl PoloniexCore {
                     let mut tradesLimit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
                     tradesArray = ArrayCache::new(tradesLimit);
                     if (symbol != Value::Null) {
-                        add_element_to_object(&mut self.trades, &symbol, tradesArray.clone());
+                        if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), tradesArray.clone()); }
                     }
                 }
                 tradesArray.append(trade);
@@ -1506,10 +1506,10 @@ impl PoloniexCore {
                 let mut ticker: Value = self.parse_ticker(item, &[]);
                 let mut symbol: Value = ticker.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
                 if (symbol != Value::Null) {
-                    add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
+                    if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
                 }
                 if (symbol != Value::Null) {
-                    add_element_to_object(&mut newTickers, &symbol, ticker);
+                    if let Value::Dict(__d) = &mut newTickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker); }
                 }
             }
         }
@@ -1610,7 +1610,7 @@ impl PoloniexCore {
                     { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), limit.clone()]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
+}), limit.clone()]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
                 }
                 let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
                 if (bids != Value::Null) {
@@ -1714,7 +1714,7 @@ impl PoloniexCore {
             add_element_to_object(&mut newAccount, &Value::Str("free".into()), self.safe_string_k(balance.clone(), "available", &[]));
             add_element_to_object(&mut newAccount, &Value::Str("used".into()), self.safe_string_k(balance, "hold", &[]));
             if (code != Value::Null) {
-                add_element_to_object(&mut result, &code, newAccount);
+                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), newAccount); }
             }
         }
         }

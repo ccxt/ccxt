@@ -500,7 +500,7 @@ impl MexcCore {
         }  else {
             return;
         }
-        add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
+        if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol).into());
         client.resolve(&[ticker.clone(), messageHash.clone()]);
 }
@@ -541,8 +541,8 @@ impl MexcCore {
         if isSpot {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchTickers does not support spot markets".into()))));
         }  else {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("method".to_string(), Value::Str("sub.tickers".into())); }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("params".to_string(), Value::Map({
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("method".into(), Value::Str("sub.tickers".into())); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("params".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })); }
@@ -648,7 +648,7 @@ impl MexcCore {
             }
             let mut symbol: Value = ticker.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if (symbol != Value::Null) {
-                add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
+                if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
             }
             append_to_array(&mut result, ticker.clone());
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol).into());
@@ -806,7 +806,7 @@ impl MexcCore {
         if (symbol == Value::Null) {
             return;
         }
-        add_element_to_object(&mut self.bidsasks, &symbol, parsedTicker.clone());
+        if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), parsedTicker.clone()); }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("bidask:".into()), symbol).into());
         client.resolve(&[parsedTicker, messageHash.clone()]);
 }
@@ -1076,13 +1076,13 @@ impl MexcCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        add_element_to_object(&mut self.ohlcvs, &symbol, symbolOhlcvs.clone());
+        if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), symbolOhlcvs.clone()); }
         let mut stored: Value = self.safe_value(symbolOhlcvs.clone(), timeframe.clone(), &[]);
         if (stored == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
             stored = ArrayCacheByTimestamp::new(limit);
             if (timeframe != Value::Null) {
-                add_element_to_object(&mut symbolOhlcvs, &timeframe, stored.clone());
+                if let Value::Dict(__d) = &mut symbolOhlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&timeframe), stored.clone()); }
             }
         }
         stored.append(parsed);
@@ -1201,7 +1201,7 @@ impl MexcCore {
         { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
+})]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
 }
 
     pub fn get_cache_index(&self, mut orderbook: Value, mut cache: Value) -> Value {
@@ -1309,7 +1309,7 @@ impl MexcCore {
         let mut subscription: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), messageHash.clone(), &[]);
         let mut limit: Value = self.safe_integer_k(subscription, "limit", &[]);
         if !(in_op(&self.orderbooks, &symbol)) {
-            { let __be_tmp = self.order_book(&[]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
+            { let __be_tmp = self.order_book(&[]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         }
         let mut storedOrderBook: Value = get_value(&self.orderbooks, &symbol);
         let mut nonce: Option<i64> = self.safe_integer_k(storedOrderBook.clone(), "nonce", &[]).as_i64();
@@ -1483,7 +1483,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (stored == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             stored = ArrayCache::new(limit);
-            add_element_to_object(&mut self.trades, &symbol, stored.clone());
+            if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored.clone()); }
         }
         let mut d: Value = self.safe_dict_n(message.clone(), Value::from(vec![Value::Str("d".into()), Value::Str("publicAggreDeals".into())]), &[]);
         let mut trades: Value = self.safe_list2(d.clone(), Value::Str("deals".into()), Value::Str("dealsList".into()), &[Value::from(vec![d.clone()])]);
@@ -2099,10 +2099,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut futuresTimestamp: Value = self.safe_integer2(message.clone(), Value::Str("ts".into()), Value::Str("createTime".into()), &[]);
         let mut timestamp: Value = self.safe_integer2(data.clone(), Value::Str("time".into()), futuresTimestamp, &[]);
         if !(in_op(&self.balance, &type_var)) {
-            add_element_to_object(&mut self.balance, &type_var, Value::Map({
+            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&type_var), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}));
+})); }
         }
         add_element_to_object(get_value_mut(&mut self.balance, &type_var), &Value::Str("info".into()), data.clone());
         add_element_to_object(get_value_mut(&mut self.balance, &type_var), &Value::Str("timestamp".into()), timestamp.clone());
@@ -2110,12 +2110,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut currencyId: Value = self.safe_string2(data.clone(), Value::Str("currency".into()), Value::Str("vcoinName".into()), &[]);
         let mut code: Value = self.safe_currency_code(currencyId, &[]);
         let mut account: Value = self.account();
-        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string2(data.clone(), Value::Str("balanceAmount".into()), Value::Str("availableBalance".into()), &[])); }
-        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string2(data.clone(), Value::Str("frozenBalance".into()), Value::Str("frozenAmount".into()), &[])); }
+        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string2(data.clone(), Value::Str("balanceAmount".into()), Value::Str("availableBalance".into()), &[])); }
+        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string2(data.clone(), Value::Str("frozenBalance".into()), Value::Str("frozenAmount".into()), &[])); }
         if (code != Value::Null) {
             add_element_to_object(get_value_mut(&mut self.balance, &type_var), &code, account);
         }
-        { let __be_tmp = self.safe_balance(get_value(&self.balance, &type_var)); add_element_to_object(&mut self.balance, &type_var, __be_tmp); };
+        { let __be_tmp = self.safe_balance(get_value(&self.balance, &type_var)); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&type_var), __be_tmp); } }
         client.resolve(&[get_value(&self.balance, &type_var), messageHash.clone()]);
 }
 
@@ -2204,7 +2204,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut fundingRate: Value = self.parse_funding_rate(data.clone(), &[]);
         let mut symbol: Value = fundingRate.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         if (symbol != Value::Null) {
-            add_element_to_object(&mut self.fundingRates, &symbol, fundingRate.clone());
+            if let Value::Dict(__d) = &mut self.fundingRates { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), fundingRate.clone()); }
         }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("fundingRate:".into()), symbol).into());
         client.resolve(&[fundingRate, messageHash.clone()]);
@@ -2233,7 +2233,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             channel = Value::Str(format!("{}{}", Value::Str("spot@public.aggre.bookTicker.v3.api.pb@100ms@".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into());
             url = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "spot");
-            if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("unsubscribed".to_string(), Value::Bool(true)); }
+            if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("unsubscribed".into(), Value::Bool(true)); }
             self.spawn(&[Value::Str("watch_spot_public".into()).clone(), channel.clone(), messageHash.clone(), params.clone()]);
         }  else {
             channel = Value::Str("unsub.ticker".into());
@@ -2287,8 +2287,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if isSpot {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchTickers does not support spot markets".into()))));
         }  else {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("method".to_string(), Value::Str("unsub.tickers".into())); }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("params".to_string(), Value::Map({
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("method".into(), Value::Str("unsub.tickers".into())); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("params".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })); }
@@ -2391,7 +2391,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             url = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "spot");
             let mut channel: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("spot@public.kline.v3.api.pb@".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into()), Value::Str("@".into())).into()), timeframeId).into());
-            if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("unsubscribed".to_string(), Value::Bool(true)); }
+            if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("unsubscribed".into(), Value::Bool(true)); }
             self.spawn(&[Value::Str("watch_spot_public".into()).clone(), channel.clone(), messageHash.clone(), params.clone()]);
         }  else {
             url = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "swap");
@@ -2437,7 +2437,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut frequency: Value = Value::Null;
             { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchOrderBook".into()), Value::Str("frequency".into()), &[Value::Str("100ms".into())]); frequency = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
             let mut channel: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("spot@public.aggre.depth.v3.api.pb@".into()), frequency).into()), Value::Str("@".into())).into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into());
-            if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("unsubscribed".to_string(), Value::Bool(true)); }
+            if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("unsubscribed".into(), Value::Bool(true)); }
             self.spawn(&[Value::Str("watch_spot_public".into()).clone(), channel.clone(), messageHash.clone(), params.clone()]);
         }  else {
             url = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "swap");
@@ -2480,7 +2480,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             url = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "spot");
             let mut channel: Value = Value::Str(format!("{}{}", Value::Str("spot@public.aggre.deals.v3.api.pb@100ms@".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into());
-            if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("unsubscribed".to_string(), Value::Bool(true)); }
+            if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("unsubscribed".into(), Value::Bool(true)); }
             self.spawn(&[Value::Str("watch_spot_public".into()).clone(), channel.clone(), messageHash.clone(), params.clone()]);
         }  else {
             url = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "swap");
@@ -2579,25 +2579,25 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             crate::exchange_stubs::ws_await_flight(&client.future(&[messageHash.clone()])).await;
             return self.safe_string_k(self.options.clone(), "listenKey", &[]);
         }
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("listenKeyFetching".to_string(), Value::Bool(true)); }
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("listenKeyFetching".into(), Value::Bool(true)); }
         client.future(&[messageHash.clone()]); // created ahead of the request below, so concurrent callers can find it
         let mut response: Value = Value::Null;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             response = self.parent.spot_private_post_user_data_stream(&[params.clone()]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("listenKeyFetching".to_string(), Value::Bool(false)); }
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("listenKeyFetching".into(), Value::Bool(false)); }
             client.reject(&[e.clone(), messageHash.clone()]);
             panic!("{}", e);
         }
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("listenKeyFetching".to_string(), Value::Bool(false)); }
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("listenKeyFetching".into(), Value::Bool(false)); }
         //
         //    {
         //        "listenKey": "pqia91ma19a5s61cv6a81va65sdf19v8a65a1a5s61cv6a81va65sdf19v8a65a1"
         //    }
         //
         listenKey = self.safe_string_k(response, "listenKey", &[]);
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("listenKey".to_string(), listenKey.clone()); }
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("listenKey".into(), listenKey.clone()); }
         client.resolve(&[listenKey.clone(), messageHash.clone()]);
         let mut listenKeyRefreshRate: Value = self.safe_integer_k(self.options.clone(), "listenKeyRefreshRate", &[Value::Int(1200000)]);
         self.delay(listenKeyRefreshRate, &[Value::Str("keep_alive_listen_key".into()).clone(), listenKey.clone(), params.clone()]).await;
@@ -2628,7 +2628,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err);
             let mut url: Value = Value::Str(format!("{}{}", add(&crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "spot"), &Value::Str("?listenKey=".into())), listenKey).into());
             let mut client: Value = self.client(&[url.clone()]);
-            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("listenKey".to_string(), Value::Null); }
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("listenKey".into(), Value::Null); }
             client.reject(&[Value::from(error)]);
             remove(&mut self.clients, &url);
         }

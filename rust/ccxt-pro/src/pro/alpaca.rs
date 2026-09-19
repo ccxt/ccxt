@@ -373,7 +373,7 @@ impl AlpacaCore {
         let mut symbol: Value = ticker.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol).into());
         if (symbol != Value::Null) {
-            add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
+            if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
         }
         client.resolve(&[ticker, messageHash]);
 }
@@ -486,7 +486,7 @@ impl AlpacaCore {
         if (stored == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
             stored = ArrayCacheByTimestamp::new(limit);
-            add_element_to_object(&mut self.ohlcvs, &symbol, stored.clone());
+            if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored.clone()); }
         }
         let mut parsed: Value = self.parse_ohlcv(message, &[]);
         stored.append(parsed);
@@ -559,7 +559,7 @@ impl AlpacaCore {
         let mut timestamp: Value = self.parse8601(datetime.clone());
         let mut isSnapshot: Value = self.safe_bool_k(message.clone(), "r", &[Value::Bool(false)]);
         if !(in_op(&self.orderbooks, &symbol)) {
-            { let __be_tmp = self.order_book(&[]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
+            { let __be_tmp = self.order_book(&[]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
         if (isSnapshot.as_bool() == Some(true)) {
@@ -574,7 +574,7 @@ impl AlpacaCore {
             add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), datetime);
         }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook".into()), Value::Str(":".into())).into()), symbol).into());
-        add_element_to_object(&mut self.orderbooks, &symbol, orderbook.clone());
+        if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), orderbook.clone()); }
         client.resolve(&[orderbook, messageHash]);
 }
 
@@ -653,7 +653,7 @@ impl AlpacaCore {
         if (stored == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             stored = ArrayCache::new(limit);
-            add_element_to_object(&mut self.trades, &symbol, stored.clone());
+            if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored.clone()); }
         }
         let mut parsed: Value = self.parse_trade(message, &[]);
         stored.append(parsed);

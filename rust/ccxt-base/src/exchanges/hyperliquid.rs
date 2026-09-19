@@ -687,7 +687,7 @@ impl HyperliquidCore {
 
     pub fn set_sandbox_mode(&mut self, mut enabled: Value) {
         self.super_set_sandbox_mode(enabled.clone());
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("sandboxMode".to_string(), enabled); }
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("sandboxMode".into(), enabled); }
 }
 
     pub fn market(&self, mut symbol: Value) -> Value {
@@ -820,7 +820,7 @@ impl HyperliquidCore {
         // const spotMeta = await this.publicPostInfo ({ 'type': 'spotMeta' });
         let mut tokens: Value = self.safe_list_k(response, "tokens", &[Value::from(vec![])]);
         // const meta = this.safeList (response, 'universe', []);
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("cachedCurrenciesById".to_string(), Value::Map({
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("cachedCurrenciesById".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })); }; // used to map hip3 markets
@@ -1053,7 +1053,7 @@ impl HyperliquidCore {
         }
         }
         let mut promises: Value = promise_all(&rawPromises).await;
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("hip3TokensByName".to_string(), Value::Map({
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("hip3TokensByName".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })); }
@@ -1699,10 +1699,10 @@ impl HyperliquidCore {
                 let mut account: Value = self.account();
                 let mut total: Value = self.safe_string_k(balance.clone(), "total", &[]);
                 let mut used: Value = self.safe_string_k(balance, "hold", &[]);
-                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), total); }
-                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), used); }
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), total); }
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), used); }
                 if (code != Value::Null) {
-                    add_element_to_object(&mut spotBalances, &code, account);
+                    if let Value::Dict(__d) = &mut spotBalances { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account); }
                 }
             }
             }
@@ -1718,9 +1718,9 @@ impl HyperliquidCore {
             m
         });
         if (marginMode != Value::Null) && (marginMode.as_str() == Some("isolated")) {
-            if let Value::Dict(__d) = &mut usdcBalance { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_number_k(response.clone(), "withdrawable", &[])); }
+            if let Value::Dict(__d) = &mut usdcBalance { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_number_k(response.clone(), "withdrawable", &[])); }
         }  else {
-            if let Value::Dict(__d) = &mut usdcBalance { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_number_k(data, "totalMarginUsed", &[])); }
+            if let Value::Dict(__d) = &mut usdcBalance { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_number_k(data, "totalMarginUsed", &[])); }
         }
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1729,8 +1729,8 @@ impl HyperliquidCore {
             m
         });
         let mut timestamp: Value = self.safe_integer_k(response, "time", &[]);
-        add_element_to_object(&mut result, &Value::Str("timestamp".into()), timestamp.clone());
-        add_element_to_object(&mut result, &Value::Str("datetime".into()), self.iso8601(timestamp));
+        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("timestamp".into(), timestamp.clone()); }
+        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("datetime".into(), self.iso8601(timestamp)); }
         return self.safe_balance(result);
 
     Value::Null
@@ -1860,7 +1860,7 @@ impl HyperliquidCore {
             let mut info: Value = crate::value::get_value_k(&market, "info");
             let mut ticker: Value = self.parse_ticker(info, &[market.clone()]);
             let mut symbol: Value = self.safe_string_k(ticker.clone(), "symbol", &[]);
-            add_element_to_object(&mut result, &symbol, ticker);
+            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker); }
         }
         }
         return self.filter_by_array_tickers(result, Value::Str("symbol".into()), &[symbols]);
@@ -2196,15 +2196,15 @@ impl HyperliquidCore {
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".to_string(), Value::Str("userFillsByTime".into())); }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".to_string(), since.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("userFillsByTime".into())); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".into(), since.clone()); }
         }  else {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".to_string(), Value::Str("userFills".into())); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("userFills".into())); }
         }
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         params = self.omit(params.clone(), Value::Str("until".into()), &[]);
         if (until != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("endTime".to_string(), until); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("endTime".into(), until); }
         }
         let __ws_arg_16 = self.extend(request, &[params]);
         let mut response: Value = self.public_post_info(&[__ws_arg_16]).await;
@@ -2591,7 +2591,7 @@ impl HyperliquidCore {
         if matches!(self.safe_bool_k(self.options.clone(), "refSet", &[Value::Bool(false)]), Value::Bool(true)) {
             return Value::Bool(true);
         }
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("refSet".to_string(), Value::Bool(true)); }
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("refSet".into(), Value::Bool(true)); }
         let mut action: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("setReferrer".into()));
@@ -2685,10 +2685,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 maxFeeRate = Value::Str("0%".into());
             }
             self.approve_builder_fee(builder, maxFeeRate).await;
-            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("approvedBuilderFee".to_string(), Value::Bool(true)); }
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("approvedBuilderFee".into(), Value::Bool(true)); }
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("builderFee".to_string(), Value::Bool(false)); }; // disable builder fee if an error occurs
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("builderFee".into(), Value::Bool(false)); }; // disable builder fee if an error occurs
         }
         return Value::Bool(true);
 
@@ -2751,7 +2751,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 enableUnifiedMargin = Value::Bool(response.as_str() == Some("unifiedAccount"));
             }
             // don't cache this result if this is a different addresss
-            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("enableUnifiedMargin".to_string(), enableUnifiedMargin.clone()); }; // cache this for future calls
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("enableUnifiedMargin".into(), enableUnifiedMargin.clone()); }; // cache this for future calls
         }
         return Value::from(vec![enableUnifiedMargin.clone(), params.clone()]);
 
@@ -2889,8 +2889,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let mut signature: Value = self.sign_l1_action(action.clone(), nonce, &[]);
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("action".to_string(), action); }
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("signature".to_string(), signature); }
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("action".into(), action); }
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("signature".into(), signature); }
         let __ws_arg_18 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_exchange(&[__ws_arg_18]).await;
         return response;
@@ -2996,11 +2996,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         if (vaultAddress != Value::Null) {
             params = self.omit(params.clone(), Value::Str("vaultAddress".into()), &[]);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("vaultAddress".to_string(), vaultAddress); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("vaultAddress".into(), vaultAddress); }
         }
         let mut expiresAfter: Value = self.safe_integer_k(params.clone(), "expiresAfter", &[]);
         if (expiresAfter != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("expiresAfter".to_string(), expiresAfter); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("expiresAfter".into(), expiresAfter); }
             params = self.omit(params, Value::Str("expiresAfter".into()), &[]);
         }
         let mut response: Value = self.private_post_exchange(&[request.clone()]).await;
@@ -3167,7 +3167,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 triggerPrice = self.price_to_precision(symbol, stopLossPrice);
             }
             let mut tpSlType: Value = (if (isTp) { Value::Str("tp".into()) } else { Value::Str("sl".into()) });
-            if let Value::Dict(__d) = &mut orderType { std::sync::Arc::make_mut(__d).insert("trigger".to_string(), Value::Map({
+            if let Value::Dict(__d) = &mut orderType { std::sync::Arc::make_mut(__d).insert("trigger".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("isMarket".to_string(), isMarket);
         m.insert("triggerPx".to_string(), triggerPrice);
@@ -3175,7 +3175,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })); }
         }  else {
-            if let Value::Dict(__d) = &mut orderType { std::sync::Arc::make_mut(__d).insert("limit".to_string(), Value::Map({
+            if let Value::Dict(__d) = &mut orderType { std::sync::Arc::make_mut(__d).insert("limit".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("tif".to_string(), timeInForce);
     m
@@ -3193,7 +3193,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if (clientOrderId != Value::Null) {
-            if let Value::Dict(__d) = &mut orderObj { std::sync::Arc::make_mut(__d).insert("c".to_string(), clientOrderId); }
+            if let Value::Dict(__d) = &mut orderObj { std::sync::Arc::make_mut(__d).insert("c".into(), clientOrderId); }
         }
         return orderObj;
 
@@ -3344,7 +3344,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if !matches!(self.safe_bool_k(self.options.clone(), "builderFee", &[Value::Bool(true)]), Value::Bool(true)) {
                 feeInt = Value::Int(0);
             }
-            if let Value::Dict(__d) = &mut orderAction { std::sync::Arc::make_mut(__d).insert("builder".to_string(), Value::Map({
+            if let Value::Dict(__d) = &mut orderAction { std::sync::Arc::make_mut(__d).insert("builder".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("b".to_string(), wallet);
         m.insert("f".to_string(), feeInt);
@@ -3361,7 +3361,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         if (vaultAddress != Value::Null) {
             params = self.omit(params.clone(), Value::Str("vaultAddress".into()), &[]);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("vaultAddress".to_string(), vaultAddress); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("vaultAddress".into(), vaultAddress); }
         }
         return request;
 
@@ -3510,11 +3510,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         if (vaultAddress != Value::Null) {
             params = self.omit(params.clone(), Value::Str("vaultAddress".into()), &[]);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("vaultAddress".to_string(), vaultAddress); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("vaultAddress".into(), vaultAddress); }
         }
         let mut expiresAfter: Value = self.safe_integer_k(params.clone(), "expiresAfter", &[]);
         if (expiresAfter != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("expiresAfter".to_string(), expiresAfter); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("expiresAfter".into(), expiresAfter); }
             params = self.omit(params, Value::Str("expiresAfter".into()), &[]);
         }
         let mut response: Value = self.private_post_exchange(&[request.clone()]).await;
@@ -3586,7 +3586,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if !(matches!(&clientOrderId, Value::Arr(_))) {
                 clientOrderId = Value::from(vec![clientOrderId.clone()]);
             }
-            if let Value::Dict(__d) = &mut cancelAction { std::sync::Arc::make_mut(__d).insert("type".to_string(), Value::Str("cancelByCloid".into())); }
+            if let Value::Dict(__d) = &mut cancelAction { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("cancelByCloid".into())); }
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_810: bool = true;
@@ -3600,7 +3600,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             }
         }  else {
-            if let Value::Dict(__d) = &mut cancelAction { std::sync::Arc::make_mut(__d).insert("type".to_string(), Value::Str("cancel".into())); }
+            if let Value::Dict(__d) = &mut cancelAction { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("cancel".into())); }
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_811: bool = true;
@@ -3615,16 +3615,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             }
         }
-        if let Value::Dict(__d) = &mut cancelAction { std::sync::Arc::make_mut(__d).insert("cancels".to_string(), cancelReq); }
+        if let Value::Dict(__d) = &mut cancelAction { std::sync::Arc::make_mut(__d).insert("cancels".into(), cancelReq); }
         let mut vaultAddress: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params2(params.clone(), Value::Str("cancelOrders".into()), Value::Str("vaultAddress".into()), Value::Str("subAccountAddress".into()), &[]); vaultAddress = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         vaultAddress = self.format_vault_address(&[vaultAddress.clone()]);
         let mut signature: Value = self.sign_l1_action(cancelAction.clone(), nonce, &[vaultAddress.clone()]);
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("action".to_string(), cancelAction); }
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("signature".to_string(), signature); }
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("action".into(), cancelAction); }
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("signature".into(), signature); }
         if (vaultAddress != Value::Null) {
             params = self.omit(params.clone(), Value::Str("vaultAddress".into()), &[]);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("vaultAddress".to_string(), vaultAddress); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("vaultAddress".into(), vaultAddress); }
         }
         return request;
 
@@ -3691,22 +3691,22 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            add_element_to_object(&mut cancelObj, &assetKey, self.parse_to_numeric(market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null)));
-            add_element_to_object(&mut cancelObj, &idKey, (if cancelByCloid { clientOrderId } else { self.parse_to_numeric(id.clone()) }));
+            if let Value::Dict(__d) = &mut cancelObj { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&assetKey), self.parse_to_numeric(market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null))); }
+            if let Value::Dict(__d) = &mut cancelObj { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&idKey), (if cancelByCloid { clientOrderId } else { self.parse_to_numeric(id.clone()) })); }
             append_to_array(&mut cancelReq, cancelObj);
         }
         }
-        if let Value::Dict(__d) = &mut cancelAction { std::sync::Arc::make_mut(__d).insert("type".to_string(), (if cancelByCloid { Value::Str("cancelByCloid".into()) } else { Value::Str("cancel".into()) })); }
-        if let Value::Dict(__d) = &mut cancelAction { std::sync::Arc::make_mut(__d).insert("cancels".to_string(), cancelReq); }
+        if let Value::Dict(__d) = &mut cancelAction { std::sync::Arc::make_mut(__d).insert("type".into(), (if cancelByCloid { Value::Str("cancelByCloid".into()) } else { Value::Str("cancel".into()) })); }
+        if let Value::Dict(__d) = &mut cancelAction { std::sync::Arc::make_mut(__d).insert("cancels".into(), cancelReq); }
         let mut vaultAddress: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params2(params.clone(), Value::Str("cancelOrdersForSymbols".into()), Value::Str("vaultAddress".into()), Value::Str("subAccountAddress".into()), &[]); vaultAddress = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         vaultAddress = self.format_vault_address(&[vaultAddress.clone()]);
         let mut signature: Value = self.sign_l1_action(cancelAction.clone(), nonce, &[vaultAddress.clone()]);
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("action".to_string(), cancelAction); }
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("signature".to_string(), signature); }
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("action".into(), cancelAction); }
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("signature".into(), signature); }
         if (vaultAddress != Value::Null) {
             params = self.omit(params.clone(), Value::Str("vaultAddress".into()), &[]);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("vaultAddress".to_string(), vaultAddress); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("vaultAddress".into(), vaultAddress); }
         }
         let mut response: Value = self.private_post_exchange(&[request.clone()]).await;
         return Value::from(vec![self.safe_order(Value::Map({
@@ -3755,11 +3755,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         { let __destr_tmp = self.handle_option_and_params2(params.clone(), Value::Str("cancelAllOrdersAfter".into()), Value::Str("vaultAddress".into()), Value::Str("subAccountAddress".into()), &[]); vaultAddress = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         vaultAddress = self.format_vault_address(&[vaultAddress.clone()]);
         let mut signature: Value = self.sign_l1_action(cancelAction.clone(), nonce, &[vaultAddress.clone()]);
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("action".to_string(), cancelAction); }
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("signature".to_string(), signature); }
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("action".into(), cancelAction); }
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("signature".into(), signature); }
         if (vaultAddress != Value::Null) {
             params = self.omit(params, Value::Str("vaultAddress".into()), &[]);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("vaultAddress".to_string(), vaultAddress); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("vaultAddress".into(), vaultAddress); }
         }
         let mut response: Value = self.private_post_exchange(&[request.clone()]).await;
         return response;
@@ -3864,7 +3864,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     triggerPrice = self.price_to_precision(symbol.clone(), stopLossPrice);
                 }
                 let mut tpSlType: Value = (if (isTp) { Value::Str("tp".into()) } else { Value::Str("sl".into()) });
-                if let Value::Dict(__d) = &mut orderType { std::sync::Arc::make_mut(__d).insert("trigger".to_string(), Value::Map({
+                if let Value::Dict(__d) = &mut orderType { std::sync::Arc::make_mut(__d).insert("trigger".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("isMarket".to_string(), isMarket);
         m.insert("triggerPx".to_string(), triggerPrice.clone());
@@ -3872,7 +3872,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })); }
             }  else {
-                if let Value::Dict(__d) = &mut orderType { std::sync::Arc::make_mut(__d).insert("limit".to_string(), Value::Map({
+                if let Value::Dict(__d) = &mut orderType { std::sync::Arc::make_mut(__d).insert("limit".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("tif".to_string(), timeInForce);
     m
@@ -3892,7 +3892,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m
             });
             if (clientOrderId != Value::Null) {
-                if let Value::Dict(__d) = &mut orderReq { std::sync::Arc::make_mut(__d).insert("c".to_string(), clientOrderId); }
+                if let Value::Dict(__d) = &mut orderReq { std::sync::Arc::make_mut(__d).insert("c".into(), clientOrderId); }
             }
             let mut modifyReq: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -3922,7 +3922,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if (vaultAddress != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("vaultAddress".to_string(), vaultAddress); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("vaultAddress".into(), vaultAddress); }
         }
         return request;
 
@@ -4077,8 +4077,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let mut signature: Value = self.sign_l1_action(action.clone(), nonce, &[]);
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("action".to_string(), action); }
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("signature".to_string(), signature); }
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("action".into(), action); }
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("signature".into(), signature); }
         let __ws_arg_21 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_exchange(&[__ws_arg_21]).await;
         return response;
@@ -4120,15 +4120,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".to_string(), since.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".into(), since.clone()); }
         }  else {
             let mut maxLimit: Value = (if (limit == Value::Null) { Value::Int(500) } else { limit.clone() });
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".to_string(), (match (&(self.milliseconds()), &((match (&((match (&((match (&(maxLimit), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".into(), (match (&(self.milliseconds()), &((match (&((match (&((match (&(maxLimit), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })); }
         }
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         params = self.omit(params.clone(), Value::Str("until".into()), &[]);
         if (until != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("endTime".to_string(), until); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("endTime".into(), until); }
         }
         let __ws_arg_22 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_post_info(&[__ws_arg_22]).await;
@@ -4224,7 +4224,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // check if is hip3 symbol
             let mut dexName: Value = self.get_dex_from_hip3_symbol(market.clone());
             if (dexName != Value::Null) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("dex".to_string(), dexName); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("dex".into(), dexName); }
             }
         }
         let __ws_arg_23 = self.extend(request, &[params.clone()]);
@@ -4257,7 +4257,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m
             });
             if (self.safe_string_k(order.clone(), "status", &[]) == Value::Null) {
-                if let Value::Dict(__d) = &mut extendOrder { std::sync::Arc::make_mut(__d).insert("ccxtStatus".to_string(), Value::Str("open".into())); }
+                if let Value::Dict(__d) = &mut extendOrder { std::sync::Arc::make_mut(__d).insert("ccxtStatus".into(), Value::Str("open".into())); }
             }
             append_to_array(&mut orderWithStatus, self.extend(order, &[extendOrder]));
         }
@@ -4392,7 +4392,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // check if is hip3 symbol
             let mut dexName: Value = self.get_dex_from_hip3_symbol(market.clone());
             if (dexName != Value::Null) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("dex".to_string(), dexName); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("dex".into(), dexName); }
             }
         }
         let __ws_arg_24 = self.extend(request, &[params.clone()]);
@@ -4437,12 +4437,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut oid: Value = self.safe_string_k(entry, "oid", &[]);
             if (oid != Value::Null) {
                 if !(in_op(&deduplicatedByOid, &oid)) {
-                    add_element_to_object(&mut deduplicatedByOid, &oid, rawOrder.clone());
+                    if let Value::Dict(__d) = &mut deduplicatedByOid { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&oid), rawOrder.clone()); }
                 }  else {
                     let mut existingTimestamp: Value = self.safe_integer_k(get_value(&deduplicatedByOid, &oid), "statusTimestamp", &[]);
                     let mut currentTimestamp: Value = self.safe_integer_k(rawOrder.clone(), "statusTimestamp", &[]);
                     if (currentTimestamp != Value::Null) && ((existingTimestamp == Value::Null) || currentTimestamp.as_f64().unwrap_or(f64::NAN) > existingTimestamp.as_f64().unwrap_or(f64::NAN)) {
-                        add_element_to_object(&mut deduplicatedByOid, &oid, rawOrder.clone());
+                        if let Value::Dict(__d) = &mut deduplicatedByOid { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&oid), rawOrder.clone()); }
                     }
                 }
             }
@@ -4491,10 +4491,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         if (clientOrderId != Value::Null) {
             params = self.omit(params.clone(), Value::Str("clientOrderId".into()), &[]);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("oid".to_string(), clientOrderId); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("oid".into(), clientOrderId); }
         }  else {
             let mut isClientOrderId: bool = ((id.len() as i64) as f64) >= ((34i64) as f64);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("oid".to_string(), (if isClientOrderId { id.clone() } else { self.parse_to_numeric(id.clone()) })); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("oid".into(), (if isClientOrderId { id.clone() } else { self.parse_to_numeric(id.clone()) })); }
         }
         let __ws_arg_25 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_post_info(&[__ws_arg_25]).await;
@@ -4792,15 +4792,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".to_string(), Value::Str("userFillsByTime".into())); }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".to_string(), since.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("userFillsByTime".into())); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".into(), since.clone()); }
         }  else {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".to_string(), Value::Str("userFills".into())); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("userFills".into())); }
         }
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         params = self.omit(params.clone(), Value::Str("until".into()), &[]);
         if (until != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("endTime".to_string(), until); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("endTime".into(), until); }
         }
         let __ws_arg_26 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_post_info(&[__ws_arg_26]).await;
@@ -4990,7 +4990,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         let mut dexName: Value = self.get_dex_from_symbols(Value::Str("fetchPositions".into()), &[symbols.clone()]);
         if (dexName != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("dex".to_string(), dexName); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("dex".into(), dexName); }
         }
         let __ws_arg_27 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_post_info(&[__ws_arg_27]).await;
@@ -5200,7 +5200,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if (vaultAddress != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("vaultAddress".to_string(), vaultAddress); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("vaultAddress".into(), vaultAddress); }
         }
         let mut response: Value = self.private_post_exchange(&[request.clone()]).await;
         return response;
@@ -5257,7 +5257,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         if (vaultAddress != Value::Null) {
             params = self.omit(params, Value::Str("vaultAddress".into()), &[]);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("vaultAddress".to_string(), vaultAddress); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("vaultAddress".into(), vaultAddress); }
         }
         let mut response: Value = self.private_post_exchange(&[request.clone()]).await;
         return response;
@@ -5344,7 +5344,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if (vaultAddress != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("vaultAddress".to_string(), vaultAddress); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("vaultAddress".into(), vaultAddress); }
         }
         let mut response: Value = self.private_post_exchange(&[request.clone()]).await;
         let __ws_arg_28 = self.parse_margin_modification(response.clone(), &[market.clone()]);
@@ -5854,11 +5854,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".to_string(), since.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".into(), since.clone()); }
         }
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         if (until != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("endTime".to_string(), until); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("endTime".into(), until); }
             params = self.omit(params.clone(), Value::from(vec![Value::Str("until".into())]), &[]);
         }
         let __ws_arg_31 = self.extend(request, &[params.clone()]);
@@ -5966,14 +5966,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".to_string(), since.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".into(), since.clone()); }
         }
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         if (until != Value::Null) {
             if (since == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchDeposits requires since while until is set".into()))));
             }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("endTime".to_string(), until); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("endTime".into(), until); }
             params = self.omit(params.clone(), Value::from(vec![Value::Str("until".into())]), &[]);
         }
         let __ws_arg_32 = self.extend(request.clone(), &[params.clone()]);
@@ -6058,11 +6058,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".to_string(), since.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".into(), since.clone()); }
         }
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         if (until != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("endTime".to_string(), until); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("endTime".into(), until); }
             params = self.omit(params.clone(), Value::from(vec![Value::Str("until".into())]), &[]);
         }
         let __ws_arg_33 = self.extend(request, &[params.clone()]);
@@ -6239,12 +6239,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".to_string(), since.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".into(), since.clone()); }
         }
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         params = self.omit(params.clone(), Value::Str("until".into()), &[]);
         if (until != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("endTime".to_string(), until); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("endTime".into(), until); }
         }
         let __ws_arg_34 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_post_info(&[__ws_arg_34]).await;
@@ -6323,8 +6323,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let mut signature: Value = self.sign_l1_action(action.clone(), nonce, &[]);
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("action".to_string(), action); }
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("signature".to_string(), signature); }
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("action".into(), action); }
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("signature".into(), signature); }
         let __ws_arg_35 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_exchange(&[__ws_arg_35]).await;
         return response;
@@ -6361,11 +6361,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut expiresAfter: Value = self.safe_integer_k(params.clone(), "expiresAfter", &[]);
         if (expiresAfter != Value::Null) {
             params = self.omit(params.clone(), Value::Str("expiresAfter".into()), &[]);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("expiresAfter".to_string(), expiresAfter.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("expiresAfter".into(), expiresAfter.clone()); }
         }
         let mut signature: Value = self.sign_l1_action(action.clone(), nonce, &[Value::Null, expiresAfter]);
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("action".to_string(), action); }
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("signature".to_string(), signature); }
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("action".into(), action); }
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("signature".into(), signature); }
         let __ws_arg_36 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_exchange(&[__ws_arg_36]).await;
         return response;
@@ -6587,10 +6587,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if (vaultAddress != Value::Null) {
-            if let Value::Dict(__d) = &mut globalParams { std::sync::Arc::make_mut(__d).insert("vaultAddress".to_string(), vaultAddress.clone()); }
+            if let Value::Dict(__d) = &mut globalParams { std::sync::Arc::make_mut(__d).insert("vaultAddress".into(), vaultAddress.clone()); }
         }
         if (id != Value::Null) {
-            if let Value::Dict(__d) = &mut order { std::sync::Arc::make_mut(__d).insert("id".to_string(), id.clone()); }
+            if let Value::Dict(__d) = &mut order { std::sync::Arc::make_mut(__d).insert("id".into(), id.clone()); }
         }
         return Value::from(vec![order, globalParams]);
 

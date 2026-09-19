@@ -407,7 +407,7 @@ impl WeexCore {
     pub fn request_id(&mut self) -> Value {
         self.lock_id(&[]);
         let mut requestId: Value = self.sum(&[self.safe_integer_k(self.options.clone(), "requestId", &[Value::Int(0)]), Value::Int(1)]);
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("requestId".to_string(), requestId.clone()); }
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("requestId".into(), requestId.clone()); }
         self.unlock_id(&[]);
         return self.number_to_string(requestId);
 
@@ -731,7 +731,7 @@ impl WeexCore {
         let mut ticker: Value = self.parse_ws_ticker(data, &[market.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker::".into()), symbol).into());
-        add_element_to_object(&mut self.tickers, &symbol, ticker);
+        if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker); }
         client.resolve(&[get_value(&self.tickers, &symbol), messageHash]);
 }
 
@@ -962,7 +962,7 @@ impl WeexCore {
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trade::".into()), symbol).into());
         if !(in_op(&self.trades, &symbol)) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
-            add_element_to_object(&mut self.trades, &symbol, ArrayCache::new(limit));
+            if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ArrayCache::new(limit)); }
         }
         let mut tradesArray: Value = get_value(&self.trades, &symbol);
         let mut data: Value = self.safe_list_k(message, "d", &[Value::from(vec![])]);
@@ -988,7 +988,7 @@ impl WeexCore {
             tradesArray.append(sortedTrade);
         }
         }
-        add_element_to_object(&mut self.trades, &symbol, tradesArray.clone());
+        if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), tradesArray.clone()); }
         client.resolve(&[tradesArray, messageHash]);
 }
 
@@ -1149,7 +1149,7 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("callerMethodName".to_string(), Value::Str("unWatchOHLCV".into())); }
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("callerMethodName".into(), Value::Str("unWatchOHLCV".into())); }
         return self.un_watch_ohlcv_for_symbols(Value::from(vec![Value::from(vec![symbol, timeframe])]), &[params]).await;
 
     Value::Null
@@ -1253,10 +1253,10 @@ impl WeexCore {
         }
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         if !(in_op(&self.ohlcvs, &symbol)) {
-            add_element_to_object(&mut self.ohlcvs, &symbol, Value::Map({
+            if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}));
+})); }
         }
         let mut data: Value = self.safe_list_k(message, "d", &[Value::from(vec![])]);
         let mut firstEntry: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
@@ -1487,12 +1487,12 @@ impl WeexCore {
                 { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), limit]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
+}), limit]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
             }  else {
                 { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
+})]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
             }
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
@@ -1645,7 +1645,7 @@ impl WeexCore {
         let mut ticker: Value = self.parse_ws_bid_ask(message, &[market]);
         let mut symbol: Value = ticker.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         if (symbol != Value::Null) {
-            add_element_to_object(&mut self.bidsasks, &symbol, ticker.clone());
+            if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
         }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("bidask::".into()), symbol).into());
         client.resolve(&[ticker, messageHash]);
@@ -1826,7 +1826,7 @@ impl WeexCore {
             let mut parsed: Value = self.parse_ws_my_trade(trade, &[]);
             let mut symbol: Value = parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if (symbol != Value::Null) {
-                add_element_to_object(&mut symbols, &symbol, Value::Bool(true));
+                if let Value::Dict(__d) = &mut symbols { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Bool(true)); }
             }
             trades.append(parsed);
         }
@@ -2074,7 +2074,7 @@ impl WeexCore {
             orders.append(parsed.clone());
             let mut symbol: Value = parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if (symbol != Value::Null) {
-                add_element_to_object(&mut symbols, &symbol, Value::Bool(true));
+                if let Value::Dict(__d) = &mut symbols { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Bool(true)); }
             }
         }
         }
@@ -2306,10 +2306,10 @@ impl WeexCore {
                 self.spawn(&[Value::Str("load_balance_snapshot".into()).clone(), client.clone(), messageHash.clone(), type_var.clone()]);
             }
         }  else {
-            add_element_to_object(&mut self.balance, &type_var, Value::Map({
+            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&type_var), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}));
+})); }
         }
 }
 
@@ -2324,7 +2324,7 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        { let __be_tmp = self.extend(response, &[__ws_arg_2]); add_element_to_object(&mut self.balance, &type_var, __be_tmp); };
+        { let __be_tmp = self.extend(response, &[__ws_arg_2]); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&type_var), __be_tmp); } }
         // don't remove the future from the .futures cache
         if (in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
             let mut future: Value = get_value(&get_value(&client, &Value::Str("futures".into())), &messageHash);
@@ -2400,10 +2400,10 @@ impl WeexCore {
         }
         let mut messageHash: Value = Value::Str(format!("{}{}", accountType, Value::Str(":balance".into())).into());
         if (get_value(&self.balance, &accountType) == Value::Null) {
-            add_element_to_object(&mut self.balance, &accountType, Value::Map({
+            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&accountType), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}));
+})); }
         }
         add_element_to_object(get_value_mut(&mut self.balance, &accountType), &Value::Str("info".into()), message.clone());
         let mut balanceUpdates: Value = self.safe_list_k(message.clone(), "d", &[Value::from(vec![])]);
@@ -2415,9 +2415,9 @@ impl WeexCore {
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "coin", &[]);
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
             let mut account: Value = self.account();
-            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string2(entry.clone(), Value::Str("available".into()), Value::Str("amount".into()), &[])); }
-            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string_k(entry.clone(), "frozen", &[])); }
-            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string2(entry, Value::Str("equity".into()), Value::Str("legacyAmount".into()), &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string2(entry.clone(), Value::Str("available".into()), Value::Str("amount".into()), &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string_k(entry.clone(), "frozen", &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string2(entry, Value::Str("equity".into()), Value::Str("legacyAmount".into()), &[])); }
             if (accountType != Value::Null) && (code != Value::Null) {
                 add_element_to_object(get_value_mut(&mut self.balance, &accountType), &code, account);
             }
@@ -2426,7 +2426,7 @@ impl WeexCore {
         let mut timestamp: Value = self.safe_integer_k(message, "E", &[]);
         add_element_to_object(get_value_mut(&mut self.balance, &accountType), &Value::Str("timestamp".into()), timestamp.clone());
         { let __be_tmp = self.iso8601(timestamp); add_element_to_object(get_value_mut(&mut self.balance, &accountType), &Value::Str("datetime".into()), __be_tmp); };
-        { let __be_tmp = self.safe_balance(get_value(&self.balance, &accountType)); add_element_to_object(&mut self.balance, &accountType, __be_tmp); };
+        { let __be_tmp = self.safe_balance(get_value(&self.balance, &accountType)); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&accountType), __be_tmp); } }
         client.resolve(&[get_value(&self.balance, &accountType), messageHash.clone()]);
 }
 

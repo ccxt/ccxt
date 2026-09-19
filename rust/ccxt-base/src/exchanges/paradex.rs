@@ -1663,7 +1663,7 @@ impl ParadexCore {
             while { if !__for_first_1043 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1043 = false; i.as_f64().unwrap_or(f64::NAN) < ((fees.len() as i64) as f64) } {
             let mut fee: Value = self.parse_trading_fee(fees.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[]);
             let mut symbol: Value = fee.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            add_element_to_object(&mut result, &symbol, fee);
+            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), fee); }
         }
         }
         return result;
@@ -1708,22 +1708,22 @@ impl ParadexCore {
         let mut until: Value = self.safe_integer2(params.clone(), Value::Str("until".into()), Value::Str("till".into()), &[now]);
         let mut price: Value = self.safe_string_k(params.clone(), "price", &[]);
         if (price != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price_kind".to_string(), price); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price_kind".into(), price); }
         }
         params = self.omit(params.clone(), Value::from(vec![Value::Str("until".into()), Value::Str("till".into()), Value::Str("price".into())]), &[]);
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_at".to_string(), since.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_at".into(), since.clone()); }
             if (limit != Value::Null) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end_at".to_string(), subtract(&self.sum(&[since.clone(), (match (&((match (&(duration), &(((match (&(limit), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]), &Value::Int(1))); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end_at".into(), subtract(&self.sum(&[since.clone(), (match (&((match (&(duration), &(((match (&(limit), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]), &Value::Int(1))); }
             }  else {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end_at".to_string(), until.clone()); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end_at".into(), until.clone()); }
             }
         }  else {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end_at".to_string(), until.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end_at".into(), until.clone()); }
             if (limit != Value::Null) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_at".to_string(), (match (&((match (&(until), &((match (&((match (&(duration), &(((match (&(limit), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_at".into(), (match (&((match (&(until), &((match (&((match (&(duration), &(((match (&(limit), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })); }
             }  else {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_at".to_string(), (match (&((match (&(until), &((match (&((match (&(duration), &(Value::Int(101))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_at".into(), (match (&((match (&(until), &((match (&((match (&(duration), &(Value::Int(101))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })); }
             }
         }
         let __ws_arg_1 = self.extend(request, &[params]);
@@ -2103,7 +2103,7 @@ impl ParadexCore {
         //     }
         //
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("depth".to_string(), limit); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("depth".into(), limit); }
         }
         let mut timestamp: Value = self.safe_integer_k(response.clone(), "last_updated_at", &[]);
         let mut orderbook: Value = self.parse_order_book(response.clone(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[timestamp]);
@@ -2148,10 +2148,10 @@ impl ParadexCore {
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".to_string(), crate::runtime::Math::min(&limit, &Value::Int(1000))); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".into(), crate::runtime::Math::min(&limit, &Value::Int(1000))); }
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_at".to_string(), since.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_at".into(), since.clone()); }
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("end_at".into()), request.clone(), params.clone(), &[]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let __ws_arg_6 = self.extend(request, &[params]);
@@ -2410,7 +2410,7 @@ impl ParadexCore {
         //     "liquidation_fee": "0.2"
         // }
         //
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("systemConfig".to_string(), response); }
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("systemConfig".into(), response); }
         return self.safe_dict_k(self.options.clone(), "systemConfig", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2470,7 +2470,7 @@ impl ParadexCore {
         let mut msg: Value = self.eth_encode_structured_data(domain, messageTypes, message);
         let mut signature: Value = self.sign_message(msg, self.privateKey.clone());
         let mut account: Value = self.retrieve_stark_account(signature, systemConfig.as_map().and_then(|__m| __m.get("paraclear_account_hash")).cloned().unwrap_or(Value::Null), systemConfig.as_map().and_then(|__m| __m.get("paraclear_account_proxy_hash")).cloned().unwrap_or(Value::Null));
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("paradexAccount".to_string(), account.clone()); }
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("paradexAccount".into(), account.clone()); }
         return account;
 
     Value::Null
@@ -2500,9 +2500,9 @@ impl ParadexCore {
         });
         let mut msg: Value = self.starknet_encode_structured_data(domain, messageTypes, req, crate::value::get_value_k(&account, "address"));
         let mut signature: Value = self.starknet_sign(msg, crate::value::get_value_k(&account, "privateKey"));
-        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("signature".to_string(), signature); }
-        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("account".to_string(), crate::value::get_value_k(&account, "address")); }
-        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("public_key".to_string(), crate::value::get_value_k(&account, "publicKey")); }
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("signature".into(), signature); }
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("account".into(), crate::value::get_value_k(&account, "address")); }
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("public_key".into(), crate::value::get_value_k(&account, "publicKey")); }
         let mut response: Value = self.private_post_onboarding(&[params]).await;
         return response;
 
@@ -2570,10 +2570,10 @@ impl ParadexCore {
         });
         let mut msg: Value = self.starknet_encode_structured_data(domain, messageTypes, req.clone(), crate::value::get_value_k(&account, "address"));
         let mut signature: Value = self.starknet_sign(msg, crate::value::get_value_k(&account, "privateKey"));
-        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("signature".to_string(), signature); }
-        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("account".to_string(), crate::value::get_value_k(&account, "address")); }
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("signature".into(), signature); }
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("account".into(), crate::value::get_value_k(&account, "address")); }
         add_element_to_object(&mut params, &Value::Str("timestamp".into()), match &req { Value::Dict(__m15) => __m15.get("timestamp").cloned().unwrap_or(Value::Null), _ => Value::Null });
-        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("expiration".to_string(), match &req { Value::Dict(__m15) => __m15.get("expiration").cloned().unwrap_or(Value::Null), _ => Value::Null }); }
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("expiration".into(), match &req { Value::Dict(__m15) => __m15.get("expiration").cloned().unwrap_or(Value::Null), _ => Value::Null }); }
         let mut response: Value = self.private_post_auth(&[params]).await;
         //
         // {
@@ -2581,8 +2581,8 @@ impl ParadexCore {
         // }
         //
         let mut token: Value = self.safe_string_k(response, "jwt_token", &[]);
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("authToken".to_string(), token.clone()); }
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("expires".to_string(), expires); }
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("authToken".into(), token.clone()); }
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("expires".into(), expires); }
         return token;
 
     Value::Null
@@ -2769,17 +2769,17 @@ impl ParadexCore {
         let mut postOnly: Value = self.is_post_only(isMarket.clone(), Value::Null, &[params.clone()]);
         if !(matches!(&isMarket, Value::Bool(true))) {
             if is_true(&postOnly) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("instruction".to_string(), Value::Str("POST_ONLY".into())); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("instruction".into(), Value::Str("POST_ONLY".into())); }
             }  else if (timeInForce.as_deref() == Some("IOC")) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("instruction".to_string(), Value::Str("IOC".into())); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("instruction".into(), Value::Str("IOC".into())); }
             }
         }
         if (price != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".to_string(), self.price_to_precision(symbol.clone(), price)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".into(), self.price_to_precision(symbol.clone(), price)); }
         }
         let mut clientOrderId: Value = self.safe_string_n(params.clone(), Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]);
         if (clientOrderId != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("client_id".to_string(), clientOrderId); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("client_id".into(), clientOrderId); }
         }
         let mut sizeString: Value = Value::Str("0".into());
         let mut stopPrice: Value = Value::Null;
@@ -2789,40 +2789,40 @@ impl ParadexCore {
                 if isStopLossOrder {
                     stopPrice = self.price_to_precision(symbol.clone(), stopLossPrice.clone());
                     reduceOnly = Value::Bool(true);
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".to_string(), Value::Str("STOP_LOSS_MARKET".into())); }
+                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("STOP_LOSS_MARKET".into())); }
                 }  else if isTakeProfitOrder {
                     stopPrice = self.price_to_precision(symbol.clone(), takeProfitPrice.clone());
                     reduceOnly = Value::Bool(true);
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".to_string(), Value::Str("TAKE_PROFIT_MARKET".into())); }
+                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("TAKE_PROFIT_MARKET".into())); }
                 }  else {
                     stopPrice = self.price_to_precision(symbol.clone(), triggerPrice.clone());
                     sizeString = self.amount_to_precision(symbol.clone(), amount.clone());
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".to_string(), Value::Str("STOP_MARKET".into())); }
+                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("STOP_MARKET".into())); }
                 }
             }  else {
                 if isStopLossOrder {
                     stopPrice = self.price_to_precision(symbol.clone(), stopLossPrice);
                     reduceOnly = Value::Bool(true);
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".to_string(), Value::Str("STOP_LOSS_LIMIT".into())); }
+                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("STOP_LOSS_LIMIT".into())); }
                 }  else if isTakeProfitOrder {
                     stopPrice = self.price_to_precision(symbol.clone(), takeProfitPrice);
                     reduceOnly = Value::Bool(true);
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".to_string(), Value::Str("TAKE_PROFIT_LIMIT".into())); }
+                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("TAKE_PROFIT_LIMIT".into())); }
                 }  else {
                     stopPrice = self.price_to_precision(symbol.clone(), triggerPrice);
                     sizeString = self.amount_to_precision(symbol.clone(), amount.clone());
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".to_string(), Value::Str("STOP_LIMIT".into())); }
+                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("STOP_LIMIT".into())); }
                 }
             }
         }  else {
             sizeString = self.amount_to_precision(symbol, amount);
         }
         if (stopPrice != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("trigger_price".to_string(), stopPrice); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("trigger_price".into(), stopPrice); }
         }
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("size".to_string(), sizeString); }
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("size".into(), sizeString); }
         if (reduceOnly.as_bool() == Some(true)) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("flags".to_string(), Value::from(vec![Value::Str("REDUCE_ONLY".into())])); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("flags".into(), Value::from(vec![Value::Str("REDUCE_ONLY".into())])); }
         }
         params = self.omit(params.clone(), Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), Value::Str("postOnly".into()), Value::Str("timeInForce".into()), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into())]), &[]);
         return self.extend(request, &[params]);
@@ -2885,7 +2885,7 @@ impl ParadexCore {
             m
         });
         if is_true(&modify) {
-            if let Value::Dict(__d) = &mut orderReq { std::sync::Arc::make_mut(__d).insert("id".to_string(), request.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            if let Value::Dict(__d) = &mut orderReq { std::sync::Arc::make_mut(__d).insert("id".into(), request.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
             append_to_array(&mut orderFields, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("name".to_string(), Value::Str("id".into()));
@@ -2907,8 +2907,8 @@ impl ParadexCore {
         let mut domain: Value = self.prepare_paradex_domain(&[]).await;
         let mut msg: Value = self.starknet_encode_structured_data(domain, messageTypes, orderReq.clone(), crate::value::get_value_k(&account, "address"));
         let mut signature: Value = self.starknet_sign(msg, crate::value::get_value_k(&account, "privateKey"));
-        add_element_to_object(&mut request, &Value::Str("signature".into()), signature);
-        add_element_to_object(&mut request, &Value::Str("signature_timestamp".into()), match &orderReq { Value::Dict(__m15) => __m15.get("timestamp").cloned().unwrap_or(Value::Null), _ => Value::Null });
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("signature".into(), signature); }
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("signature_timestamp".into(), match &orderReq { Value::Dict(__m15) => __m15.get("timestamp").cloned().unwrap_or(Value::Null), _ => Value::Null }); }
         return request;
 
     Value::Null
@@ -3139,11 +3139,11 @@ impl ParadexCore {
         let mut clientOrderId: Value = self.safe_string_n(params.clone(), Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]);
         let mut response: Value = Value::Null;
         if (clientOrderId != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("client_id".to_string(), clientOrderId); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("client_id".into(), clientOrderId); }
             let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_delete_orders_by_client_id_client_id(&[__ws_arg_8]).await;
         }  else {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_id".to_string(), id.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_id".into(), id.clone()); }
             let __ws_arg_9 = self.extend(request, &[params]);
             response = self.private_delete_orders_order_id(&[__ws_arg_9]).await;
         }
@@ -3185,10 +3185,10 @@ impl ParadexCore {
             m
         });
         if hasOrderIds {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_ids".to_string(), ids); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_ids".into(), ids); }
         }
         if hasClientOrderIds {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("client_order_ids".to_string(), clientOrderIds); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("client_order_ids".into(), clientOrderIds); }
         }
         let __ws_arg_10 = self.extend(request, &[params]);
         let mut response: Value = self.private_delete_orders_batch(&[__ws_arg_10]).await;
@@ -3319,11 +3319,11 @@ impl ParadexCore {
         params = self.omit(params.clone(), Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]);
         let mut response: Value = Value::Null;
         if (clientOrderId != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("client_id".to_string(), clientOrderId); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("client_id".into(), clientOrderId); }
             let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_get_orders_by_client_id_client_id(&[__ws_arg_12]).await;
         }  else {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_id".to_string(), id.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_id".into(), id.clone()); }
             let __ws_arg_13 = self.extend(request, &[params]);
             response = self.private_get_orders_order_id(&[__ws_arg_13]).await;
         }
@@ -3370,13 +3370,13 @@ impl ParadexCore {
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("market".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("market".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_at".to_string(), since.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_at".into(), since.clone()); }
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".to_string(), limit.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".into(), limit.clone()); }
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("end_at".into()), request.clone(), params.clone(), &[]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let __ws_arg_14 = self.extend(request, &[params]);
@@ -3458,7 +3458,7 @@ impl ParadexCore {
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("market".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("market".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         let __ws_arg_15 = self.extend(request, &[params]);
         let mut response: Value = self.private_get_orders(&[__ws_arg_15]).await;
@@ -3552,9 +3552,9 @@ impl ParadexCore {
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "token", &[]);
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
             let mut account: Value = self.account();
-            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string_k(balance, "size", &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(balance, "size", &[])); }
             if (code != Value::Null) {
-                add_element_to_object(&mut result, &code, account);
+                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account); }
             }
         }
         }
@@ -3600,13 +3600,13 @@ impl ParadexCore {
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("market".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("market".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".to_string(), limit.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".into(), limit.clone()); }
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_at".to_string(), since.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_at".into(), since.clone()); }
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("end_at".into()), request.clone(), params.clone(), &[]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let __ws_arg_16 = self.extend(request, &[params]);
@@ -3820,9 +3820,9 @@ impl ParadexCore {
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("from".to_string(), since.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("from".into(), since.clone()); }
         }  else {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("from".to_string(), Value::Int(1)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("from".into(), Value::Int(1)); }
         }
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
@@ -3909,10 +3909,10 @@ impl ParadexCore {
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".to_string(), limit.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".into(), limit.clone()); }
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_at".to_string(), since.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_at".into(), since.clone()); }
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("end_at".into()), request.clone(), params.clone(), &[]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let __ws_arg_18 = self.extend(request, &[params]);
@@ -3990,10 +3990,10 @@ impl ParadexCore {
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".to_string(), limit.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".into(), limit.clone()); }
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_at".to_string(), since.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_at".into(), since.clone()); }
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("end_at".into()), request.clone(), params.clone(), &[]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let __ws_arg_19 = self.extend(request, &[params]);
@@ -4075,10 +4075,10 @@ impl ParadexCore {
             currency = self.safe_currency(code, &[]);
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".to_string(), limit.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".into(), limit.clone()); }
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_at".to_string(), since.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_at".into(), since.clone()); }
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("end_at".into()), request.clone(), params.clone(), &[]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let __ws_arg_20 = self.extend(request, &[params]);
@@ -4684,12 +4684,12 @@ impl ParadexCore {
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".to_string(), crate::runtime::Math::min(&limit, &Value::Int(5000))); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".into(), crate::runtime::Math::min(&limit, &Value::Int(5000))); }
         }  else {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".to_string(), Value::Int(100)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".into(), Value::Int(100)); }
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_at".to_string(), since.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_at".into(), since.clone()); }
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("end_at".into()), request.clone(), params.clone(), &[]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let __ws_arg_27 = self.extend(request, &[params]);
@@ -4781,17 +4781,17 @@ impl ParadexCore {
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".to_string(), crate::runtime::Math::min(&limit, &Value::Int(5000))); }; // api maximum 5000
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".into(), crate::runtime::Math::min(&limit, &Value::Int(5000))); }; // api maximum 5000
         }  else {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".to_string(), Value::Int(1000)); }; // max is 5000
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".into(), Value::Int(1000)); }; // max is 5000
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_at".to_string(), since.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_at".into(), since.clone()); }
         }
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         if (until != Value::Null) {
             params = self.omit(params.clone(), Value::Str("until".into()), &[]);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end_at".to_string(), until); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end_at".into(), until); }
         }
         let __ws_arg_28 = self.extend(request, &[params]);
         let mut response: Value = self.public_get_funding_data(&[__ws_arg_28]).await;
@@ -4870,16 +4870,16 @@ impl ParadexCore {
             });
             // TODO: optimize
             if (path.as_str() == Some("auth")) {
-                add_element_to_object(&mut headers, &Value::Str("PARADEX-STARKNET-ACCOUNT".into()), query.as_map().and_then(|__m| __m.get("account")).cloned().unwrap_or(Value::Null));
-                add_element_to_object(&mut headers, &Value::Str("PARADEX-STARKNET-SIGNATURE".into()), query.as_map().and_then(|__m| __m.get("signature")).cloned().unwrap_or(Value::Null));
-                add_element_to_object(&mut headers, &Value::Str("PARADEX-TIMESTAMP".into()), to_string_val(&get_value(&query, &Value::Str("timestamp".into()))));
-                add_element_to_object(&mut headers, &Value::Str("PARADEX-SIGNATURE-EXPIRATION".into()), to_string_val(&get_value(&query, &Value::Str("expiration".into()))));
+                if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("PARADEX-STARKNET-ACCOUNT".into(), query.as_map().and_then(|__m| __m.get("account")).cloned().unwrap_or(Value::Null)); }
+                if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("PARADEX-STARKNET-SIGNATURE".into(), query.as_map().and_then(|__m| __m.get("signature")).cloned().unwrap_or(Value::Null)); }
+                if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("PARADEX-TIMESTAMP".into(), to_string_val(&get_value(&query, &Value::Str("timestamp".into())))); }
+                if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("PARADEX-SIGNATURE-EXPIRATION".into(), to_string_val(&get_value(&query, &Value::Str("expiration".into())))); }
             }  else if (path.as_str() == Some("onboarding")) {
-                add_element_to_object(&mut headers, &Value::Str("PARADEX-ETHEREUM-ACCOUNT".into()), self.walletAddress.clone());
-                add_element_to_object(&mut headers, &Value::Str("PARADEX-STARKNET-ACCOUNT".into()), query.as_map().and_then(|__m| __m.get("account")).cloned().unwrap_or(Value::Null));
-                add_element_to_object(&mut headers, &Value::Str("PARADEX-STARKNET-SIGNATURE".into()), query.as_map().and_then(|__m| __m.get("signature")).cloned().unwrap_or(Value::Null));
-                add_element_to_object(&mut headers, &Value::Str("PARADEX-TIMESTAMP".into()), to_string_val(&self.nonce()));
-                add_element_to_object(&mut headers, &Value::Str("Content-Type".into()), Value::Str("application/json".into()));
+                if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("PARADEX-ETHEREUM-ACCOUNT".into(), self.walletAddress.clone()); }
+                if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("PARADEX-STARKNET-ACCOUNT".into(), query.as_map().and_then(|__m| __m.get("account")).cloned().unwrap_or(Value::Null)); }
+                if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("PARADEX-STARKNET-SIGNATURE".into(), query.as_map().and_then(|__m| __m.get("signature")).cloned().unwrap_or(Value::Null)); }
+                if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("PARADEX-TIMESTAMP".into(), to_string_val(&self.nonce())); }
+                if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("Content-Type".into(), Value::Str("application/json".into())); }
                 body = json_stringify(&Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("public_key".to_string(), query.as_map().and_then(|__m| __m.get("public_key")).cloned().unwrap_or(Value::Null));
@@ -4887,9 +4887,9 @@ impl ParadexCore {
 }));
             }  else {
                 let mut token: Value = self.options.as_map().and_then(|__m| __m.get("authToken")).cloned().unwrap_or(Value::Null);
-                add_element_to_object(&mut headers, &Value::Str("Authorization".into()), add(&Value::Str("Bearer ".into()), &token));
+                if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("Authorization".into(), add(&Value::Str("Bearer ".into()), &token)); }
                 if (method.as_str() == Some("POST")) || (method.as_str() == Some("PUT")) || ((method.as_str() == Some("DELETE")) && (path.as_str() == Some("orders/batch"))) {
-                    add_element_to_object(&mut headers, &Value::Str("Content-Type".into()), Value::Str("application/json".into()));
+                    if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("Content-Type".into(), Value::Str("application/json".into())); }
                     body = json_stringify(&query);
                 }  else {
                     url = Value::Str(format!("{}{}", Value::Str(format!("{}{}", url, Value::Str("?".into())).into()), self.urlencode(query.clone(), &[])).into());

@@ -531,7 +531,7 @@ impl BybitCore {
     pub fn request_id(&mut self) -> Value {
         self.lock_id(&[]);
         let mut requestId: Value = self.sum(&[self.safe_integer_k(self.options.clone(), "requestId", &[Value::Int(0)]), Value::Int(1)]);
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("requestId".to_string(), requestId.clone()); }
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("requestId".into(), requestId.clone()); }
         self.unlock_id(&[]);
         return requestId;
 
@@ -1078,7 +1078,7 @@ impl BybitCore {
         let mut timestamp: Value = self.safe_integer_k(message, "ts", &[]);
         add_element_to_object(&mut parsed, &Value::Str("timestamp".into()), timestamp.clone());
         add_element_to_object(&mut parsed, &Value::Str("datetime".into()), self.iso8601(timestamp));
-        add_element_to_object(&mut self.tickers, &symbol, parsed);
+        if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), parsed); }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol).into());
         client.resolve(&[get_value(&self.tickers, &symbol), messageHash]);
 }
@@ -1170,7 +1170,7 @@ impl BybitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("callerMethodName".to_string(), Value::Str("watchOHLCV".into())); }
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("callerMethodName".into(), Value::Str("watchOHLCV".into())); }
         let mut result: Value = self.watch_ohlcv_for_symbols(Value::from(vec![Value::from(vec![symbol.clone(), timeframe.clone()])]), &[since, limit, params.clone()]).await;
         return get_value(&get_value(&result, &symbol), &timeframe);
 
@@ -1297,7 +1297,7 @@ impl BybitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("callerMethodName".to_string(), Value::Str("watchOHLCV".into())); }
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("callerMethodName".into(), Value::Str("watchOHLCV".into())); }
         return self.un_watch_ohlcv_for_symbols(Value::from(vec![Value::from(vec![symbol, timeframe])]), &[params.clone()]).await;
 
     Value::Null
@@ -1345,10 +1345,10 @@ impl BybitCore {
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut ohlcvsByTimeframe: Value = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[]);
         if (ohlcvsByTimeframe == Value::Null) {
-            add_element_to_object(&mut self.ohlcvs, &symbol, Value::Map({
+            if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}));
+})); }
         }
         if (self.safe_value(ohlcvsByTimeframe, timeframe.clone(), &[]) == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
@@ -1597,7 +1597,7 @@ impl BybitCore {
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut timestamp: Value = self.safe_integer_k(message, "ts", &[]);
         if !(in_op(&self.orderbooks, &symbol)) {
-            { let __be_tmp = self.order_book(&[]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
+            { let __be_tmp = self.order_book(&[]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
         add_element_to_object(&mut orderbook, &Value::Str("symbol".into()), symbol.clone());
@@ -1613,7 +1613,7 @@ impl BybitCore {
             add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), self.iso8601(timestamp));
         }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook".into()), Value::Str(":".into())).into()), symbol).into());
-        add_element_to_object(&mut self.orderbooks, &symbol, orderbook.clone());
+        if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), orderbook.clone()); }
         client.resolve(&[orderbook, messageHash]);
         if (limit.as_str() == Some("1")) {
             let mut bidask: Value = self.parse_ws_bid_ask(get_value(&self.orderbooks, &symbol), &[market.clone()]);
@@ -1621,8 +1621,8 @@ impl BybitCore {
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            add_element_to_object(&mut newBidsAsks, &symbol, bidask.clone());
-            add_element_to_object(&mut self.bidsasks, &symbol, bidask);
+            if let Value::Dict(__d) = &mut newBidsAsks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), bidask.clone()); }
+            if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), bidask); }
             client.resolve(&[newBidsAsks, Value::Str(format!("{}{}", Value::Str("bidask:".into()), symbol).into())]);
         }
 }
@@ -1813,7 +1813,7 @@ impl BybitCore {
         if (stored == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             stored = ArrayCache::new(limit.clone());
-            add_element_to_object(&mut self.trades, &symbol, stored.clone());
+            if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored.clone()); }
         }
         {
                         let mut j: Value = Value::Int(0);
@@ -2157,7 +2157,7 @@ impl BybitCore {
             if (symbol == Value::Null) {
                 continue;
             }
-            add_element_to_object(&mut symbols, &symbol, Value::Bool(true));
+            if let Value::Dict(__d) = &mut symbols { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Bool(true)); }
             trades.append(parsed);
         }
         }
@@ -2788,7 +2788,7 @@ impl BybitCore {
             if (symbol == Value::Null) {
                 continue;
             }
-            add_element_to_object(&mut symbols, &symbol, Value::Bool(true));
+            if let Value::Dict(__d) = &mut symbols { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Bool(true)); }
             orders.append(parsed);
         }
         }
@@ -3067,23 +3067,23 @@ impl BybitCore {
         }
         if (account != Value::Null) {
             if (self.safe_dict(self.balance.clone(), account.clone(), &[]) == Value::Null) {
-                add_element_to_object(&mut self.balance, &account, Value::Map({
+                if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&account), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}));
+})); }
             }
             add_element_to_object(get_value_mut(&mut self.balance, &account), &Value::Str("info".into()), info.clone());
             let mut timestamp: Value = self.safe_integer_k(message.clone(), "ts", &[]);
             add_element_to_object(get_value_mut(&mut self.balance, &account), &Value::Str("timestamp".into()), timestamp.clone());
             { let __be_tmp = self.iso8601(timestamp.clone()); add_element_to_object(get_value_mut(&mut self.balance, &account), &Value::Str("datetime".into()), __be_tmp); };
-            { let __be_tmp = self.safe_balance(get_value(&self.balance, &account)); add_element_to_object(&mut self.balance, &account, __be_tmp); };
+            { let __be_tmp = self.safe_balance(get_value(&self.balance, &account)); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&account), __be_tmp); } }
             messageHash = Value::Str(format!("{}{}", Value::Str("balances:".into()), account).into());
             client.resolve(&[get_value(&self.balance, &account), messageHash.clone()]);
         }  else {
-            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".to_string(), info); }
+            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), info); }
             let mut timestamp: Value = self.safe_integer_k(message.clone(), "ts", &[]);
-            add_element_to_object(&mut self.balance, &Value::Str("timestamp".into()), timestamp.clone());
-            { let __be_tmp = self.iso8601(timestamp); add_element_to_object(&mut self.balance, &Value::Str("datetime".into()), __be_tmp); };
+            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("timestamp".into(), timestamp.clone()); }
+            { let __be_tmp = self.iso8601(timestamp); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("datetime".into(), __be_tmp); } }
             { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
             messageHash = Value::Str("balances".into());
             client.resolve(&[self.balance.clone(), messageHash]);
@@ -3120,35 +3120,35 @@ impl BybitCore {
         let mut account: Value = self.account();
         let mut currencyId: Value = self.safe_string2(balance.clone(), Value::Str("a".into()), Value::Str("coin".into()), &[]);
         let mut code: Value = self.safe_currency_code(currencyId, &[]);
-        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string_n(balance.clone(), Value::from(vec![Value::Str("availableToWithdraw".into()), Value::Str("f".into()), Value::Str("free".into())]), &[])); }
+        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string_n(balance.clone(), Value::from(vec![Value::Str("availableToWithdraw".into()), Value::Str("f".into()), Value::Str("free".into())]), &[])); }
         let mut used: Value = self.safe_string2(balance.clone(), Value::Str("l".into()), Value::Str("locked".into()), &[]);
         if (used != Value::Null) {
-            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), used); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), used); }
         }  else {
             // the unified account wallet stream has no locked field, the margin
             // lives in the per coin initial margin fields, so the used amount
             // is derived from those, see https://github.com/ccxt/ccxt/issues/24365
             let mut totalPositionIm: Value = self.safe_string_k(balance.clone(), "totalPositionIM", &[Value::Str("0".into())]);
             let mut totalOrderIm: Value = self.safe_string_k(balance.clone(), "totalOrderIM", &[Value::Str("0".into())]);
-            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), crate::precise::Precise::stringAdd(&totalPositionIm, &totalOrderIm)); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), crate::precise::Precise::stringAdd(&totalPositionIm, &totalOrderIm)); }
         }
         // on the unified rows the free amount and the margin are both measured
         // against the equity, which includes the unrealized pnl, so the equity
         // is the consistent total, the spot rows fall back to the wallet balance
-        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string2(balance.clone(), Value::Str("equity".into()), Value::Str("walletBalance".into()), &[])); }
+        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string2(balance.clone(), Value::Str("equity".into()), Value::Str("walletBalance".into()), &[])); }
         if (accountType != Value::Null) {
             if (self.safe_dict(self.balance.clone(), accountType.clone(), &[]) == Value::Null) {
-                add_element_to_object(&mut self.balance, &accountType, Value::Map({
+                if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&accountType), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}));
+})); }
             }
             if (accountType != Value::Null) && (code != Value::Null) {
                 add_element_to_object(get_value_mut(&mut self.balance, &accountType), &code, account.clone());
             }
         }  else {
             if (code != Value::Null) {
-                add_element_to_object(&mut self.balance, &code, account);
+                if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account); }
             }
         }
 }

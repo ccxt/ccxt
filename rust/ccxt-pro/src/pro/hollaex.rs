@@ -361,7 +361,7 @@ impl HollaexCore {
         let mut orderbook: Value = Value::Null;
         if !(in_op(&self.orderbooks, &symbol)) {
             orderbook = self.order_book(&[snapshot.clone()]);
-            add_element_to_object(&mut self.orderbooks, &symbol, orderbook.clone());
+            if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), orderbook.clone()); }
         }  else {
             orderbook = get_value(&self.orderbooks, &symbol);
             if (orderbook == Value::Null) {
@@ -430,7 +430,7 @@ impl HollaexCore {
         if (stored == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             stored = ArrayCache::new(limit);
-            add_element_to_object(&mut self.trades, &symbol, stored.clone());
+            if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored.clone()); }
         }
         let mut data: Value = self.safe_list_k(message, "data", &[Value::from(vec![])]);
         let mut parsedTrades: Value = self.parse_trades(data, &[market]);
@@ -537,7 +537,7 @@ impl HollaexCore {
             let mut market: Value = self.market(symbol);
             let mut marketId: Value = market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
             if (marketId != Value::Null) {
-                add_element_to_object(&mut marketIds, &marketId, Value::Bool(true));
+                if let Value::Dict(__d) = &mut marketIds { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&marketId), Value::Bool(true)); }
             }
         }
         }
@@ -688,7 +688,7 @@ impl HollaexCore {
             let mut market: Value = self.market(symbol);
             let mut marketId: Value = market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
             if (marketId != Value::Null) {
-                add_element_to_object(&mut marketIds, &marketId, Value::Bool(true));
+                if let Value::Dict(__d) = &mut marketIds { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&marketId), Value::Bool(true)); }
             }
         }
         }
@@ -746,9 +746,9 @@ impl HollaexCore {
         let mut data: Value = self.safe_value_k(message.clone(), "data", &[]);
         let mut keys: Value = object_keys(&data);
         let mut timestamp: Value = self.safe_timestamp(message, Value::Str("time".into()), &[]);
-        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".to_string(), data.clone()); }
-        add_element_to_object(&mut self.balance, &Value::Str("timestamp".into()), timestamp.clone());
-        { let __be_tmp = self.iso8601(timestamp); add_element_to_object(&mut self.balance, &Value::Str("datetime".into()), __be_tmp); };
+        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), data.clone()); }
+        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("timestamp".into(), timestamp.clone()); }
+        { let __be_tmp = self.iso8601(timestamp); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("datetime".into(), __be_tmp); } }
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_396: bool = true;
@@ -765,7 +765,7 @@ impl HollaexCore {
             let mut freeOrTotal: Value = (if (second.as_deref() == Some("available")) { Value::Str("free".into()) } else { Value::Str("total".into()) });
             add_element_to_object(&mut account, &freeOrTotal, self.safe_string(data.clone(), key, &[]));
             if (code != Value::Null) {
-                add_element_to_object(&mut self.balance, &code, account);
+                if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account); }
             }
         }
         }
@@ -807,7 +807,7 @@ impl HollaexCore {
             expires = to_string_val(&expires);
             // we need to memoize these values to avoid generating a new url on each method execution
             // that would trigger a new connection on each received message
-            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("ws-expires".to_string(), expires.clone()); }
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("ws-expires".into(), expires.clone()); }
         }
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut auth: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("CONNECT".into()), Value::Str("/stream".into())).into()), expires).into());
@@ -982,12 +982,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn on_error(&mut self, mut client: Value, mut error: Value) {
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("ws-expires".to_string(), Value::Null); }
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("ws-expires".into(), Value::Null); }
         self.parent.on_error(&[client, error.clone()]);
 }
 
     pub fn on_close(&mut self, mut client: Value, mut error: Value) {
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("ws-expires".to_string(), Value::Null); }
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("ws-expires".into(), Value::Null); }
         self.parent.on_close(&[client, error.clone()]);
 }
 }

@@ -763,7 +763,7 @@ impl KalshiCore {
                 m
             });
             if (cursor != Value::Null) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("cursor".to_string(), cursor.clone()); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("cursor".into(), cursor.clone()); }
             }
             let __ws_arg_0 = self.extend(request, &[rest.clone()]);
             let mut response: Value = self.kalshi_public_get_markets(&[__ws_arg_0]).await;
@@ -786,7 +786,7 @@ impl KalshiCore {
                     append_to_array(&mut flatMarkets, m.clone());
                     if (eventKey != Value::Null) && (eventKey.as_str() != Some("")) {
                         if !(in_op(&eventsDict, &eventKey)) {
-                            add_element_to_object(&mut eventsDict, &eventKey, Value::Map({
+                            if let Value::Dict(__d) = &mut eventsDict { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&eventKey), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), eventTicker.clone());
         m.insert("slug".to_string(), eventTicker.clone());
@@ -794,7 +794,7 @@ impl KalshiCore {
         m.insert("title".to_string(), eventTitle.clone());
         m.insert("markets".to_string(), Value::from(vec![]));
     m
-}));
+})); }
                         }
                         let mut eventEntry: Value = get_value(&eventsDict, &eventKey);
                         let mut eventEntry: Value = get_value(&eventsDict, &eventKey);
@@ -949,7 +949,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut suffix: Value = slice(&outcomeSymbol, &(match (&(symbolLength), &(Value::Int(3))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &Value::Null);
             let mut baseTicker: Value = (if (suffix.as_str() == Some("-NO")) { slice(&outcomeSymbol, &Value::Int(0), &(match (&(symbolLength), &(Value::Int(3))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })) } else { outcomeSymbol.clone() });
             if !(in_op(&seen, &baseTicker)) {
-                add_element_to_object(&mut seen, &baseTicker, Value::Bool(true));
+                if let Value::Dict(__d) = &mut seen { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&baseTicker), Value::Bool(true)); }
                 append_to_array(&mut tickers, baseTicker.clone());
             }
         }
@@ -1648,14 +1648,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 continue;
             }
             if !(in_op(&outcomesByTicker, &ticker)) {
-                add_element_to_object(&mut outcomesByTicker, &ticker, Value::from(vec![]));
+                if let Value::Dict(__d) = &mut outcomesByTicker { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&ticker), Value::from(vec![])); }
                 append_to_array(&mut tickers, ticker.clone());
             }
             // reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
             let mut grouped: Value = get_value(&outcomesByTicker, &ticker);
             append_to_array(&mut grouped, outcomeObj);
             crate::set_value(&mut outcomesByTicker, &ticker, grouped.clone());
-            add_element_to_object(&mut outcomesByTicker, &ticker, grouped.clone());
+            if let Value::Dict(__d) = &mut outcomesByTicker { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&ticker), grouped.clone()); }
         }
         }
         let mut chunkSize: Value = self.safe_integer_k(self.options.clone(), "fetchTickersBatchSize", &[Value::Int(100)]);
@@ -1705,7 +1705,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     let mut ticker: Value = self.parse_prediction_ticker(raw.clone(), &[get_value(&grouped, &j)]);
                     let mut symbolKey: Value = self.safe_string_k(ticker.clone(), "outcome", &[]);
                     if (symbolKey != Value::Null) {
-                        add_element_to_object(&mut result, &symbolKey, ticker);
+                        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbolKey), ticker); }
                     }
                 }
                 }
@@ -1879,19 +1879,19 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut tf: Value = self.parse_timeframe(timeframe.clone());
         if (since != Value::Null) {
             let mut sinceS: Value = self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_ts".to_string(), sinceS.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_ts".into(), sinceS.clone()); }
             if (limit != Value::Null) {
                 let mut end: Value = self.sum(&[sinceS, (match (&(limit), &(tf)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]);
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end_ts".to_string(), (if (end.as_f64().unwrap_or(f64::NAN) < now.as_f64().unwrap_or(f64::NAN)) { end } else { now.clone() })); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end_ts".into(), (if (end.as_f64().unwrap_or(f64::NAN) < now.as_f64().unwrap_or(f64::NAN)) { end } else { now.clone() })); }
             }  else {
                 // the candlesticks endpoint requires end_ts - default to now
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end_ts".to_string(), now.clone()); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end_ts".into(), now.clone()); }
             }
         }  else {
             let mut defaultLimit: Value = self.safe_integer_k(self.options.clone(), "defaultFetchOHLCVLimit", &[Value::Int(200)]);
             let mut candlesCount: Value = (if (limit != Value::Null) { limit.clone() } else { defaultLimit });
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end_ts".to_string(), now.clone()); }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_ts".to_string(), (match (&(now), &(((match (&(candlesCount), &(tf)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end_ts".into(), now.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_ts".into(), (match (&(now), &(((match (&(candlesCount), &(tf)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })); }
         }
         let __ws_arg_5 = self.extend(request, &[params]);
         let mut response: Value = self.kalshi_public_get_series_series_ticker_markets_ticker_candlesticks(&[__ws_arg_5]).await;
@@ -1949,7 +1949,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         // kalshi candles carry only the period-END timestamp; thread the candle duration through so
         // parseOHLCV can stamp each candle at its OPEN (the CCXT convention)
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("ohlcvCandleDurationSeconds".to_string(), tf); }
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("ohlcvCandleDurationSeconds".into(), tf); }
         return self.parse_ohlc_vs(usableCandles.clone(), &[outcomeObj, timeframe, since, limit]);
 
     Value::Null
@@ -2041,7 +2041,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), crate::runtime::Math::min(&limit, &Value::Int(1000))); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000))); }
         }
         let __ws_arg_6 = self.extend(request, &[params]);
         let mut response: Value = self.kalshi_public_get_markets_trades(&[__ws_arg_6]).await;
@@ -2166,10 +2166,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (outcomeObj == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a valid outcome".into()))));
             }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ticker".to_string(), self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("ticker".into()), &[])); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ticker".into(), self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("ticker".into()), &[])); }
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
         }
         let __ws_arg_7 = self.extend(request, &[params]);
         let mut response: Value = self.kalshi_private_get_portfolio_fills(&[__ws_arg_7]).await;
@@ -2327,7 +2327,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (balanceCents != Value::Null) {
             total = (match ((balanceCents).as_f64(), (Value::Int(100)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null });
         }
-        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("USD".to_string(), Value::Map({
+        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("USD".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("free".to_string(), total.clone());
         m.insert("used".to_string(), Value::Int(0));
@@ -2389,7 +2389,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 })]);
             let mut marketTicker: Value = self.safe_string_k(outcomeInfo, "ticker", &[]);
             if (marketTicker != Value::Null) {
-                add_element_to_object(&mut wantedTickers, &marketTicker, Value::Bool(true));
+                if let Value::Dict(__d) = &mut wantedTickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&marketTicker), Value::Bool(true)); }
             }
         }
         }
@@ -2441,7 +2441,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
         }
         let __ws_arg_8 = self.extend(request, &[params]);
         let mut response: Value = self.kalshi_private_get_portfolio_settlements(&[__ws_arg_8]).await;
@@ -2633,7 +2633,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (outcomeObj == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a valid outcome".into()))));
             }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ticker".to_string(), self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("ticker".into()), &[])); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ticker".into(), self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("ticker".into()), &[])); }
         }
         let __ws_arg_9 = self.extend(request, &[params]);
         let mut response: Value = self.kalshi_private_get_portfolio_orders(&[__ws_arg_9]).await;
@@ -2676,7 +2676,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (outcomeObj == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a valid outcome".into()))));
             }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ticker".to_string(), self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("ticker".into()), &[])); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ticker".into(), self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("ticker".into()), &[])); }
         }
         let __ws_arg_10 = self.extend(request, &[params]);
         let mut response: Value = self.kalshi_private_get_portfolio_orders(&[__ws_arg_10]).await;
@@ -2931,7 +2931,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if (yesPrice != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".to_string(), self.number_to_string(yesPrice)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".into(), self.number_to_string(yesPrice)); }
         }
         let __ws_arg_12 = self.extend(request, &[params]);
         let mut response: Value = self.kalshi_private_post_portfolio_events_orders(&[__ws_arg_12]).await;
@@ -3074,7 +3074,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         if (outcome != Value::Null) {
             let mut outcomeObj: Value = self.outcome(outcome.clone());
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ticker".to_string(), self.safe_string_k(crate::value::get_value_k(&outcomeObj, "info"), "ticker", &[])); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("ticker".into(), self.safe_string_k(crate::value::get_value_k(&outcomeObj, "info"), "ticker", &[])); }
         }
         let mut restingResponse: Value = self.kalshi_private_get_portfolio_orders(&[request]).await;
         let mut restingOrders: Value = self.safe_list_k(restingResponse, "orders", &[Value::from(vec![])]);
@@ -3251,7 +3251,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if (et != Value::Null) {
                     let mut already: Option<String> = self.safe_string(seen.clone(), et.clone(), &[]).as_str().map(str::to_owned);
                     if (already.is_none()) {
-                        add_element_to_object(&mut seen, &et, et.clone());
+                        if let Value::Dict(__d) = &mut seen { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&et), et.clone()); }
                         append_to_array(&mut eventTickers, et);
                     }
                 }
@@ -3404,7 +3404,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut st: Value = collected.as_array().and_then(|__arr| match &ci { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut already: Option<String> = self.safe_string(seen.clone(), st.clone(), &[]).as_str().map(str::to_owned);
             if (st != Value::Null) && (st.as_str() != Some("")) && (already.is_none()) {
-                add_element_to_object(&mut seen, &st, st.clone());
+                if let Value::Dict(__d) = &mut seen { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&st), st.clone()); }
                 append_to_array(&mut ordered, st);
             }
         }
@@ -3466,7 +3466,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m
                 });
                 if (cursor != Value::Null) {
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("cursor".to_string(), cursor.clone()); }
+                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("cursor".into(), cursor.clone()); }
                 }
                 let __ws_arg_16 = self.extend(request, &[rest.clone()]);
                 let mut response: Value = self.kalshi_public_get_events(&[__ws_arg_16]).await;

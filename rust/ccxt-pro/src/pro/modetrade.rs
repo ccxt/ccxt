@@ -459,7 +459,7 @@ impl ModetradeCore {
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut topic: Value = self.safe_string_k(message.clone(), "topic", &[]);
         if !(in_op(&self.orderbooks, &symbol)) {
-            { let __be_tmp = self.order_book(&[]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
+            { let __be_tmp = self.order_book(&[]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
         let mut timestamp: Value = self.safe_integer_k(message, "ts", &[]);
@@ -556,7 +556,7 @@ impl ModetradeCore {
         let mut marketId: Value = self.safe_string_k(data.clone(), "symbol", &[]);
         let mut market: Value = self.safe_market(&[marketId]);
         let mut timestamp: Value = self.safe_integer_k(message.clone(), "ts", &[]);
-        add_element_to_object(&mut data, &Value::Str("date".into()), timestamp);
+        if let Value::Dict(__d) = &mut data { std::sync::Arc::make_mut(__d).insert("date".into(), timestamp); }
         let mut ticker: Value = self.parse_ws_ticker(data, &[market.clone()]);
         add_element_to_object(&mut ticker, &Value::Str("symbol".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         add_element_to_object(&mut self.tickers, &market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), ticker.clone());
@@ -709,7 +709,7 @@ impl ModetradeCore {
             let mut ticker: Value = self.parse_ws_bid_ask(__ws_arg_1, &[]);
             let mut symbol: Value = ticker.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if (symbol != Value::Null) {
-                add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
+                if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
             }
             append_to_array(&mut result, ticker);
         }
@@ -821,7 +821,7 @@ impl ModetradeCore {
         { let __be_tmp = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]); add_element_to_object(&mut self.ohlcvs, &symbol, __be_tmp); };
+})]); if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         let mut stored: Value = self.safe_value(self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[]), timeframe.clone(), &[]);
         if (stored == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
@@ -904,11 +904,11 @@ impl ModetradeCore {
         if !(in_op(&self.trades, &symbol)) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             let mut stored = ArrayCache::new(limit);
-            add_element_to_object(&mut self.trades, &symbol, stored);
+            if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored); }
         }
         let mut trades: Value = get_value(&self.trades, &symbol);
         trades.append(trade);
-        add_element_to_object(&mut self.trades, &symbol, trades.clone());
+        if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), trades.clone()); }
         client.resolve(&[trades, topic]);
 }
 
@@ -1768,9 +1768,9 @@ impl ModetradeCore {
         })]);
         let mut keys: Value = object_keys(&balances);
         let mut ts: Value = self.safe_integer_k(message, "ts", &[]);
-        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".to_string(), data); }
-        add_element_to_object(&mut self.balance, &Value::Str("timestamp".into()), ts.clone());
-        { let __be_tmp = self.iso8601(ts); add_element_to_object(&mut self.balance, &Value::Str("datetime".into()), __be_tmp); };
+        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), data); }
+        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("timestamp".into(), ts.clone()); }
+        { let __be_tmp = self.iso8601(ts); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("datetime".into(), __be_tmp); } }
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_504: bool = true;
@@ -1789,7 +1789,7 @@ impl ModetradeCore {
             add_element_to_object(&mut account, &Value::Str("used".into()), used.clone());
             add_element_to_object(&mut account, &Value::Str("free".into()), crate::precise::Precise::stringSub(&total, &used));
             if (code != Value::Null) {
-                add_element_to_object(&mut self.balance, &code, account);
+                if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account); }
             }
         }
         }

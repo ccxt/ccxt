@@ -807,7 +807,7 @@ impl CoinbaseexchangeCore {
                 let mut tradesLimit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
                 tradesArray = ArrayCache::new(tradesLimit);
                 if (symbol != Value::Null) {
-                    add_element_to_object(&mut self.trades, &symbol, tradesArray.clone());
+                    if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), tradesArray.clone()); }
                 }
             }
             tradesArray.append(trade);
@@ -1217,7 +1217,7 @@ impl CoinbaseexchangeCore {
             let mut ticker: Value = self.parse_ticker(message.clone(), &[]);
             let mut symbol: Value = ticker.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if (symbol != Value::Null) {
-                add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
+                if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
             }
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol).into());
             let mut idMessageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".into()), marketId).into());
@@ -1345,7 +1345,7 @@ impl CoinbaseexchangeCore {
             { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), limit]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
+}), limit]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
             let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
             self.handle_deltas(get_value(&orderbook, &Value::Str("asks".into())), self.safe_list_k(message.clone(), "asks", &[Value::from(vec![])]));
             self.handle_deltas(get_value(&orderbook, &Value::Str("bids".into())), self.safe_list_k(message.clone(), "bids", &[Value::from(vec![])]));

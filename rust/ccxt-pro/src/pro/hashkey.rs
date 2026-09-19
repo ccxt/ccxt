@@ -414,10 +414,10 @@ impl HashkeyCore {
         let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut symbol: Value = self.safe_symbol(marketId, &[market.clone()]);
         if !(in_op(&self.ohlcvs, &symbol)) {
-            add_element_to_object(&mut self.ohlcvs, &symbol, Value::Map({
+            if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}));
+})); }
         }
         let mut params: Value = self.safe_dict_k(message.clone(), "params", &[]);
         let mut klineType: Value = self.safe_string_k(params, "klineType", &[]);
@@ -511,7 +511,7 @@ impl HashkeyCore {
         let mut ticker: Value = self.parse_ticker(self.safe_dict(data, Value::Int(0), &[]), &[]);
         let mut symbol: Value = ticker.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol).into());
-        add_element_to_object(&mut self.tickers, &symbol, ticker);
+        if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker); }
         client.resolve(&[get_value(&self.tickers, &symbol), messageHash]);
 }
 
@@ -580,7 +580,7 @@ impl HashkeyCore {
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         if !(in_op(&self.trades, &symbol)) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
-            add_element_to_object(&mut self.trades, &symbol, ArrayCache::new(limit));
+            if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ArrayCache::new(limit)); }
         }
         let mut stored: Value = get_value(&self.trades, &symbol);
         let mut data: Value = self.safe_list_k(message, "data", &[]);
@@ -666,7 +666,7 @@ impl HashkeyCore {
             { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
+})]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
         let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::from(vec![])]);
@@ -675,7 +675,7 @@ impl HashkeyCore {
         let mut snapshot: Value = self.parse_order_book(dataEntry, symbol.clone(), &[timestamp, Value::Str("b".into()), Value::Str("a".into())]);
         orderbook.reset(snapshot);
         add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), self.safe_integer_k(message, "id", &[]));
-        add_element_to_object(&mut self.orderbooks, &symbol, orderbook.clone());
+        if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), orderbook.clone()); }
         client.resolve(&[orderbook, messageHash]);
 }
 
@@ -1128,10 +1128,10 @@ impl HashkeyCore {
                 self.spawn(&[Value::Str("load_balance_snapshot".into()).clone(), client.clone(), messageHash.clone(), type_var.clone()]);
             }
         }
-        add_element_to_object(&mut self.balance, &type_var, Value::Map({
+        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&type_var), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}));
+})); }
 }
 
     pub async fn load_balance_snapshot(&mut self, mut client: Value, mut messageHash: Value, mut type_var: Value) -> Value {
@@ -1144,7 +1144,7 @@ impl HashkeyCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        { let __be_tmp = self.extend(response, &[__ws_arg_1]); add_element_to_object(&mut self.balance, &type_var, __be_tmp); };
+        { let __be_tmp = self.extend(response, &[__ws_arg_1]); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&type_var), __be_tmp); } }
         // don't remove the future from the .futures cache
         if (in_op(&get_value(&client, &Value::Str("futures".into())), &messageHash)) {
             let mut future: Value = get_value(&get_value(&client, &Value::Str("futures".into())), &messageHash);
@@ -1180,21 +1180,21 @@ impl HashkeyCore {
         let mut isSpot: bool = event.as_deref() == Some("outboundAccountInfo");
         let mut type_var: Value = (if isSpot { Value::Str("spot".into()) } else { Value::Str("swap".into()) });
         if !(in_op(&self.balance, &type_var)) {
-            add_element_to_object(&mut self.balance, &type_var, Value::Map({
+            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&type_var), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}));
+})); }
         }
         add_element_to_object(get_value_mut(&mut self.balance, &type_var), &Value::Str("info".into()), message);
         let mut currencyId: Value = self.safe_string_k(balanceUpdate.clone(), "a", &[]);
         let mut code: Value = self.safe_currency_code(currencyId, &[]);
         let mut account: Value = self.account();
-        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string_k(balanceUpdate.clone(), "f", &[])); }
-        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string_k(balanceUpdate, "l", &[])); }
+        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string_k(balanceUpdate.clone(), "f", &[])); }
+        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string_k(balanceUpdate, "l", &[])); }
         if (type_var != Value::Null) && (code != Value::Null) {
             add_element_to_object(get_value_mut(&mut self.balance, &type_var), &code, account);
         }
-        { let __be_tmp = self.safe_balance(get_value(&self.balance, &type_var)); add_element_to_object(&mut self.balance, &type_var, __be_tmp); };
+        { let __be_tmp = self.safe_balance(get_value(&self.balance, &type_var)); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&type_var), __be_tmp); } }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("balance:".into()), type_var).into());
         client.resolve(&[get_value(&self.balance, &type_var), messageHash]);
 }
@@ -1239,7 +1239,7 @@ impl HashkeyCore {
             if (listenKey == Value::Null) {
                 panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" authenticate() received an empty listenKey".into()))));
             }
-            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("listenKey".to_string(), listenKey.clone()); }
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("listenKey".into(), listenKey.clone()); }
             let mut listenKeyRefreshRate: Value = self.safe_integer_k(self.options.clone(), "listenKeyRefreshRate", &[Value::Int(3600000)]);
             self.delay(listenKeyRefreshRate, &[Value::Str("keep_alive_listen_key".into()).clone(), listenKey.clone(), params]).await;
             // settle the flight: client.resolve () wakes every waiter and
@@ -1281,7 +1281,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err);
             let mut url: Value = self.get_private_url(listenKey);
             let mut client: Value = self.client(&[url.clone()]);
-            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("listenKey".to_string(), Value::Null); }
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("listenKey".into(), Value::Null); }
             client.reject(&[Value::from(error)]);
             remove(&mut self.clients, &url);
         }

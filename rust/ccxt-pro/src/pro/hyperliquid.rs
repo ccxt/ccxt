@@ -729,7 +729,7 @@ impl HyperliquidCore {
         let mut snapshot: Value = self.parse_order_book(data, symbol.clone(), &[timestamp, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("px".into()), Value::Str("sz".into())]);
         if !(in_op(&self.orderbooks, &symbol)) {
             let mut ob: Value = self.order_book(&[snapshot.clone()]);
-            add_element_to_object(&mut self.orderbooks, &symbol, ob);
+            if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ob); }
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
         orderbook.reset(snapshot);
@@ -1058,7 +1058,7 @@ impl HyperliquidCore {
         m.insert("price".to_string(), self.safe_number(mids.clone(), name, &[]));
     m
 }), &[market.clone()]);
-                add_element_to_object(&mut self.tickers, &symbol, ticker);
+                if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker); }
             }
             }
             let mut messageHash: Value = Value::Str("tickers".into());
@@ -1109,7 +1109,7 @@ impl HyperliquidCore {
             m
         })]);
         let mut ticker: Value = self.parse_ws_ticker(ctx, &[market.clone()]);
-        add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
+        if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol).into());
         client.resolve(&[ticker, messageHash]);
         return Value::Bool(true);
@@ -1178,7 +1178,7 @@ impl HyperliquidCore {
             let mut rawTrade: Value = data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut parsed: Value = self.parse_ws_trade(rawTrade, &[]);
             let mut symbol: Value = parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            add_element_to_object(&mut symbols, &symbol, Value::Bool(true));
+            if let Value::Dict(__d) = &mut symbols { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Bool(true)); }
             trades.append(parsed);
         }
         }
@@ -1314,7 +1314,7 @@ impl HyperliquidCore {
         if !(in_op(&self.trades, &symbol)) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             let mut stored = ArrayCache::new(limit);
-            add_element_to_object(&mut self.trades, &symbol, stored);
+            if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored); }
         }
         let mut trades: Value = get_value(&self.trades, &symbol);
         {
@@ -1525,10 +1525,10 @@ impl HyperliquidCore {
         let mut symbol: Value = self.safe_symbol(marketId, &[]);
         let mut timeframe: Value = self.safe_string_k(data.clone(), "i", &[]);
         if !(in_op(&self.ohlcvs, &symbol)) {
-            add_element_to_object(&mut self.ohlcvs, &symbol, Value::Map({
+            if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}));
+})); }
         }
         if !(in_op(&get_value(&self.ohlcvs, &symbol), &timeframe)) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
@@ -1599,11 +1599,11 @@ impl HyperliquidCore {
         });
         if (isSpot) {
             if (isUnifiedEnabled.as_bool() == Some(true)) {
-                if let Value::Dict(__d) = &mut subscription { std::sync::Arc::make_mut(__d).insert("isPortfolioMargin".to_string(), Value::Bool(true)); }
+                if let Value::Dict(__d) = &mut subscription { std::sync::Arc::make_mut(__d).insert("isPortfolioMargin".into(), Value::Bool(true)); }
             }
         }  else {
             if (dex != Value::Null) {
-                if let Value::Dict(__d) = &mut subscription { std::sync::Arc::make_mut(__d).insert("dex".to_string(), dex); }
+                if let Value::Dict(__d) = &mut subscription { std::sync::Arc::make_mut(__d).insert("dex".into(), dex); }
             }
         }
         let mut request: Value = Value::Map({
@@ -1754,15 +1754,15 @@ impl HyperliquidCore {
         }
         }
         if (self.safe_value(self.balance.clone(), account.clone(), &[]) == Value::Null) {
-            add_element_to_object(&mut self.balance, &account, Value::Map({
+            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&account), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}));
+})); }
         }
         add_element_to_object(get_value_mut(&mut self.balance, &account), &Value::Str("info".into()), info);
         add_element_to_object(get_value_mut(&mut self.balance, &account), &Value::Str("timestamp".into()), timestamp.clone());
         { let __be_tmp = self.iso8601(timestamp); add_element_to_object(get_value_mut(&mut self.balance, &account), &Value::Str("datetime".into()), __be_tmp); };
-        { let __be_tmp = self.safe_balance(get_value(&self.balance, &account)); add_element_to_object(&mut self.balance, &account, __be_tmp); };
+        { let __be_tmp = self.safe_balance(get_value(&self.balance, &account)); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&account), __be_tmp); } }
         client.resolve(&[get_value(&self.balance, &account), messageHash]);
 }
 
@@ -1806,27 +1806,27 @@ impl HyperliquidCore {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string_k(balance.clone(), "withdrawable", &[])); }
-            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string_k(marginSummary.clone(), "totalMarginUsed", &[])); }
-            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string_k(marginSummary, "accountValue", &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string_k(balance.clone(), "withdrawable", &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string_k(marginSummary.clone(), "totalMarginUsed", &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(marginSummary, "accountValue", &[])); }
         }  else {
             code = self.safe_currency_code(currencyId, &[]);
-            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string_k(balance.clone(), "hold", &[])); }
-            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string_k(balance.clone(), "total", &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string_k(balance.clone(), "hold", &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(balance.clone(), "total", &[])); }
         }
         if (accountType != Value::Null) {
             if (self.safe_value(self.balance.clone(), accountType.clone(), &[]) == Value::Null) {
-                add_element_to_object(&mut self.balance, &accountType, Value::Map({
+                if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&accountType), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}));
+})); }
             }
             if (accountType != Value::Null) && (code != Value::Null) {
                 add_element_to_object(get_value_mut(&mut self.balance, &accountType), &code, account.clone());
             }
         }  else {
             if (code != Value::Null) {
-                add_element_to_object(&mut self.balance, &code, account);
+                if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account); }
             }
         }
 }
@@ -1873,7 +1873,7 @@ impl HyperliquidCore {
         });
         let mut dexName: Value = self.parent.get_dex_from_symbols(Value::Str("watchPositions".into()), &[symbols.clone()]);
         if (dexName != Value::Null) {
-            if let Value::Dict(__d) = &mut subscription { std::sync::Arc::make_mut(__d).insert("dex".to_string(), dexName); }
+            if let Value::Dict(__d) = &mut subscription { std::sync::Arc::make_mut(__d).insert("dex".into(), dexName); }
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2148,7 +2148,7 @@ impl HyperliquidCore {
             let mut order: Value = self.parse_order(rawOrder, &[]);
             stored.append(order.clone());
             let mut symbol: Value = self.safe_string_k(order, "symbol", &[]);
-            add_element_to_object(&mut marketSymbols, &symbol, Value::Bool(true));
+            if let Value::Dict(__d) = &mut marketSymbols { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Bool(true)); }
         }
         }
         let mut keys: Value = object_keys(&marketSymbols);
@@ -2537,7 +2537,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub fn request_id(&mut self) -> Value {
         let mut requestId: Value = self.sum(&[self.safe_integer_k(self.options.clone(), "requestId", &[Value::Int(0)]), Value::Int(1)]);
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("requestId".to_string(), requestId.clone()); }
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("requestId".into(), requestId.clone()); }
         return requestId;
 
     Value::Null

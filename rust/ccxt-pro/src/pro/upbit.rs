@@ -538,7 +538,7 @@ impl UpbitCore {
         let mut ticker: Value = self.parse_ticker(message, &[]);
         let mut symbol: Value = ticker.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         if (symbol != Value::Null) {
-            add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
+            if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
         }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol).into());
         client.resolve(&[ticker, messageHash]);
@@ -576,7 +576,7 @@ impl UpbitCore {
             { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), limit]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
+}), limit]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
         // upbit always returns a snapshot of 15 topmost entries
@@ -636,7 +636,7 @@ impl UpbitCore {
         if (stored == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             stored = ArrayCache::new(limit);
-            add_element_to_object(&mut self.trades, &symbol, stored.clone());
+            if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored.clone()); }
         }
         stored.append(trade);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trade:".into()), symbol).into());
@@ -684,8 +684,8 @@ impl UpbitCore {
                 m
             });
             let mut token: Value = jwt(auth, self.encode(self.secret.clone()), Value::Str("sha256".into()), Value::Bool(false), Value::Null);
-            add_element_to_object(&mut wsOptions, &Value::Str("token".into()), token.clone());
-            add_element_to_object(&mut wsOptions, &Value::Str("options".into()), Value::Map({
+            if let Value::Dict(__d) = &mut wsOptions { std::sync::Arc::make_mut(__d).insert("token".into(), token.clone()); }
+            if let Value::Dict(__d) = &mut wsOptions { std::sync::Arc::make_mut(__d).insert("options".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("headers".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -693,8 +693,8 @@ impl UpbitCore {
     m
 }));
     m
-}));
-            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("ws".to_string(), wsOptions); }
+})); }
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("ws".into(), wsOptions); }
         }
         let mut url: Value = add(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &Value::Str("/private".into()));
         let mut client: Value = self.client(&[url]);
@@ -720,7 +720,7 @@ impl UpbitCore {
             symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let mut symbols: Value = Value::from(vec![symbol.clone()]);
             let mut marketIds: Value = self.market_ids(&[symbols]);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("codes".to_string(), marketIds); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("codes".into(), marketIds); }
             messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbol).into());
         }
         let mut url: Value = self.implode_params(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Map({
@@ -1082,8 +1082,8 @@ impl UpbitCore {
         //
         let mut data: Value = self.safe_list_k(message.clone(), "assets", &[Value::from(vec![])]);
         let mut timestamp: Value = self.safe_integer_k(message.clone(), "timestamp", &[]);
-        add_element_to_object(&mut self.balance, &Value::Str("timestamp".into()), timestamp.clone());
-        { let __be_tmp = self.iso8601(timestamp); add_element_to_object(&mut self.balance, &Value::Str("datetime".into()), __be_tmp); };
+        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("timestamp".into(), timestamp.clone()); }
+        { let __be_tmp = self.iso8601(timestamp); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("datetime".into(), __be_tmp); } }
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_632: bool = true;
@@ -1094,10 +1094,10 @@ impl UpbitCore {
             let mut available: Value = self.safe_string_k(balance.clone(), "balance", &[]);
             let mut frozen: Value = self.safe_string_k(balance.clone(), "locked", &[]);
             let mut account: Value = self.account();
-            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), available); }
-            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), frozen); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), available); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), frozen); }
             if (code != Value::Null) {
-                add_element_to_object(&mut self.balance, &code, account);
+                if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account); }
             }
             { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
         }

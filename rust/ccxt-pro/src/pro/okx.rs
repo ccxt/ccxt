@@ -528,7 +528,7 @@ impl OkxCore {
         if (symbol != Value::Null) {
             let mut market: Value = self.market(symbol);
             messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into())).into());
-            if let Value::Dict(__d) = &mut firstArgument { std::sync::Arc::make_mut(__d).insert("instId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            if let Value::Dict(__d) = &mut firstArgument { std::sync::Arc::make_mut(__d).insert("instId".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -768,7 +768,7 @@ impl OkxCore {
             let mut stored: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
             if (stored == Value::Null) {
                 stored = ArrayCache::new(tradesLimit.clone());
-                add_element_to_object(&mut self.trades, &symbol, stored.clone());
+                if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored.clone()); }
             }
             stored.append(trade);
             client.resolve(&[stored, messageHash]);
@@ -853,7 +853,7 @@ impl OkxCore {
                 m
             });
             if (symbol != Value::Null) {
-                add_element_to_object(&mut result, &symbol, fundingRate);
+                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), fundingRate); }
             }
             return result;
         }
@@ -891,7 +891,7 @@ impl OkxCore {
             let mut fundingRate: Value = self.parse_funding_rate(rawfr, &[]);
             let mut symbol: Value = fundingRate.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if (symbol != Value::Null) {
-                add_element_to_object(&mut self.fundingRates, &symbol, fundingRate.clone());
+                if let Value::Dict(__d) = &mut self.fundingRates { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), fundingRate.clone()); }
             }
             client.resolve(&[fundingRate.clone(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("funding-rate".into()), Value::Str(":".into())).into()), fundingRate.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into())]);
         }
@@ -915,7 +915,7 @@ impl OkxCore {
 }));
         let mut channel: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchTicker".into()), Value::Str("channel".into()), &[Value::Str("tickers".into())]); channel = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("channel".to_string(), channel); }
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("channel".into(), channel); }
         let mut market: Value = self.market(symbol.clone());
         symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut ticker: Value = self.watch_tickers(&[Value::from(vec![symbol.clone()]), params]).await;
@@ -992,7 +992,7 @@ impl OkxCore {
 }));
         let mut channel: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchMarkPrice".into()), Value::Str("channel".into()), &[Value::Str("mark-price".into())]); channel = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("channel".to_string(), channel); }
+        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("channel".into(), channel); }
         let mut market: Value = self.market(symbol.clone());
         symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut ticker: Value = self.watch_mark_prices(&[Value::from(vec![symbol.clone()]), params]).await;
@@ -1129,8 +1129,8 @@ impl OkxCore {
             let mut __for_first_537: bool = true;
             while { if !__for_first_537 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_537 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut ticker: Value = self.parse_ticker(data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[]);
-            add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
-            add_element_to_object(&mut newTickers, &symbol, ticker);
+            if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
+            if let Value::Dict(__d) = &mut newTickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker); }
         }
         }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str("::".into())).into()), symbol).into());
@@ -1253,7 +1253,7 @@ impl OkxCore {
         let mut parsedTicker: Value = self.parse_ws_bid_ask(ticker, &[market]);
         let mut symbol: Value = parsedTicker.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         if (symbol != Value::Null) {
-            add_element_to_object(&mut self.bidsasks, &symbol, parsedTicker.clone());
+            if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), parsedTicker.clone()); }
         }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("bidask::".into()), symbol).into());
         client.resolve(&[parsedTicker, messageHash]);
@@ -1861,7 +1861,7 @@ impl OkxCore {
             { let __be_tmp = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]); add_element_to_object(&mut self.ohlcvs, &symbol, __be_tmp); };
+})]); if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
             let mut stored: Value = self.safe_value(self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[]), timeframe.clone(), &[]);
             if (stored == Value::Null) {
                 let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
@@ -2261,7 +2261,7 @@ impl OkxCore {
                     let mut m = indexmap::IndexMap::new();
                     m
                 }), limit.clone()]);
-                add_element_to_object(&mut self.orderbooks, &symbol, orderbook.clone());
+                if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), orderbook.clone()); }
                 add_element_to_object(&mut orderbook, &Value::Str("symbol".into()), symbol.clone());
                 self.handle_order_book_message(client.clone(), update.clone(), orderbook.clone(), messageHash.clone(), &[market.clone()]);
                 if !(in_op(&get_value(&client, &Value::Str("subscriptions".into())), &messageHash)) {
@@ -2295,7 +2295,7 @@ impl OkxCore {
                     { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), limit.clone()]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
+}), limit.clone()]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
                 }
                 let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
                 {
@@ -2354,7 +2354,7 @@ impl OkxCore {
             });
             // Only add params['access'] to prevent sending custom parameters, such as extraParams.
             if (matches!(&params, Value::Dict(__d) if __d.contains_key("access"))) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("access".to_string(), params.as_map().and_then(|__m| __m.get("access")).cloned().unwrap_or(Value::Null)); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("access".into(), params.as_map().and_then(|__m| __m.get("access")).cloned().unwrap_or(Value::Null)); }
             }
             self.watch(url.clone(), messageHash.clone(), &[request, messageHash.clone()]).await;
         }
@@ -3026,7 +3026,7 @@ impl OkxCore {
             myTrades.append(trade.clone());
             let mut symbol: Value = trade.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if (symbol != Value::Null) {
-                add_element_to_object(&mut symbols, &symbol, Value::Bool(true));
+                if let Value::Dict(__d) = &mut symbols { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Bool(true)); }
             }
         }
         }
@@ -3238,9 +3238,9 @@ impl OkxCore {
             m
         });
         if (clientOrderId != Value::Null) {
-            if let Value::Dict(__d) = &mut arg { std::sync::Arc::make_mut(__d).insert("clOrdId".to_string(), clientOrderId); }
+            if let Value::Dict(__d) = &mut arg { std::sync::Arc::make_mut(__d).insert("clOrdId".into(), clientOrderId); }
         }  else {
-            if let Value::Dict(__d) = &mut arg { std::sync::Arc::make_mut(__d).insert("ordId".to_string(), id.clone()); }
+            if let Value::Dict(__d) = &mut arg { std::sync::Arc::make_mut(__d).insert("ordId".into(), id.clone()); }
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();

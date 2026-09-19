@@ -644,8 +644,8 @@ impl MudrexCore {
         }  else if endTime.as_f64().unwrap_or(f64::NAN) > now.as_f64().unwrap_or(f64::NAN) {
             endTime = now;
         }
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_time".to_string(), startTime); }
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end_time".to_string(), endTime); }
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_time".into(), startTime); }
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end_time".into(), endTime); }
         let mut response: Value = Value::Null;
         if (priceType.as_deref() == Some("mark")) {
             let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
@@ -787,7 +787,7 @@ impl MudrexCore {
             if (symbols != Value::Null) && !is_true(&self.in_array(symbol.clone(), symbols.clone())) {
                 continue;
             }
-            add_element_to_object(&mut resultTickers, &symbol, self.parse_ticker(t, &[m.clone()]));
+            if let Value::Dict(__d) = &mut resultTickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), self.parse_ticker(t, &[m.clone()])); }
         }
         }
         return self.filter_by_array_tickers(resultTickers, Value::Str("symbol".into()), &[symbols]);
@@ -1009,13 +1009,13 @@ impl MudrexCore {
         let mut response: Value = Value::Null;
         if (type_var.as_str() == Some("spot")) {
             if (requested != Value::Null) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("currency".to_string(), requested.clone()); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("currency".into(), requested.clone()); }
             }
             let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_get_wallet_funds(&[__ws_arg_5]).await;
         }  else {
             if (requested != Value::Null) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("trade_currency".to_string(), requested.clone()); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("trade_currency".into(), requested.clone()); }
             }
             let __ws_arg_6 = self.extend(request, &[params]);
             response = self.private_get_futures_funds(&[__ws_arg_6]).await;
@@ -1048,14 +1048,14 @@ impl MudrexCore {
         let mut futuresBalance: Value = self.safe_string_k(data.clone(), "balance", &[]);
         if (futuresBalance != Value::Null) {
             // futures wallet: balance is the free/available margin, locked_amount is used, safeBalance derives total
-            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), futuresBalance); }
-            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string_k(data.clone(), "locked_amount", &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), futuresBalance); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string_k(data.clone(), "locked_amount", &[])); }
         }  else {
             // spot wallet: total is the total, withdrawable is free, safeBalance derives used
-            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string_k(data.clone(), "total", &[])); }
-            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string_k(data.clone(), "withdrawable", &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(data.clone(), "total", &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string_k(data.clone(), "withdrawable", &[])); }
         }
-        add_element_to_object(&mut result, &currency, account);
+        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&currency), account); }
         return self.safe_balance(result);
 
     Value::Null
@@ -1194,12 +1194,12 @@ impl MudrexCore {
                 m
             });
             if (takeProfitPrice != Value::Null) {
-                if let Value::Dict(__d) = &mut riskRequest { std::sync::Arc::make_mut(__d).insert("is_takeprofit".to_string(), Value::Bool(true)); }
-                if let Value::Dict(__d) = &mut riskRequest { std::sync::Arc::make_mut(__d).insert("takeprofit_price".to_string(), self.price_to_precision(symbol.clone(), takeProfitPrice.clone())); }
+                if let Value::Dict(__d) = &mut riskRequest { std::sync::Arc::make_mut(__d).insert("is_takeprofit".into(), Value::Bool(true)); }
+                if let Value::Dict(__d) = &mut riskRequest { std::sync::Arc::make_mut(__d).insert("takeprofit_price".into(), self.price_to_precision(symbol.clone(), takeProfitPrice.clone())); }
             }
             if (stopLossPrice != Value::Null) {
-                if let Value::Dict(__d) = &mut riskRequest { std::sync::Arc::make_mut(__d).insert("is_stoploss".to_string(), Value::Bool(true)); }
-                if let Value::Dict(__d) = &mut riskRequest { std::sync::Arc::make_mut(__d).insert("stoploss_price".to_string(), self.price_to_precision(symbol.clone(), stopLossPrice.clone())); }
+                if let Value::Dict(__d) = &mut riskRequest { std::sync::Arc::make_mut(__d).insert("is_stoploss".into(), Value::Bool(true)); }
+                if let Value::Dict(__d) = &mut riskRequest { std::sync::Arc::make_mut(__d).insert("stoploss_price".into(), self.price_to_precision(symbol.clone(), stopLossPrice.clone())); }
             }
             let __ws_arg_9 = self.extend(riskRequest, &[params.clone()]);
             let mut riskResponse: Value = self.private_post_futures_positions_position_id_riskorder(&[__ws_arg_9]).await;
@@ -1226,12 +1226,12 @@ impl MudrexCore {
         let mut takeProfit: Value = self.safe_dict_k(params.clone(), "takeProfit", &[]);
         let mut stopLoss: Value = self.safe_dict_k(params.clone(), "stopLoss", &[]);
         if (takeProfit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("is_takeprofit".to_string(), Value::Bool(true)); }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("takeprofit_price".to_string(), self.price_to_precision(symbol.clone(), self.safe_string_n(takeProfit, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("price".into())]), &[]))); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("is_takeprofit".into(), Value::Bool(true)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("takeprofit_price".into(), self.price_to_precision(symbol.clone(), self.safe_string_n(takeProfit, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("price".into())]), &[]))); }
         }
         if (stopLoss != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("is_stoploss".to_string(), Value::Bool(true)); }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("stoploss_price".to_string(), self.price_to_precision(symbol.clone(), self.safe_string_n(stopLoss, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("price".into())]), &[]))); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("is_stoploss".into(), Value::Bool(true)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("stoploss_price".into(), self.price_to_precision(symbol.clone(), self.safe_string_n(stopLoss, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("price".into())]), &[]))); }
         }
         params = self.omit(params.clone(), Value::from(vec![Value::Str("leverage".into()), Value::Str("reduceOnly".into()), Value::Str("takeProfit".into()), Value::Str("stopLoss".into())]), &[]);
         let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
@@ -1285,10 +1285,10 @@ impl MudrexCore {
             m
         });
         if (amount != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("quantity".to_string(), self.amount_to_precision(symbol.clone(), amount)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("quantity".into(), self.amount_to_precision(symbol.clone(), amount)); }
         }
         if (price != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_price".to_string(), self.price_to_precision(symbol.clone(), price)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_price".into(), self.price_to_precision(symbol.clone(), price)); }
         }
         let __ws_arg_11 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_patch_futures_orders_order_id(&[__ws_arg_11]).await;
@@ -1491,7 +1491,7 @@ impl MudrexCore {
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut q { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }
+            if let Value::Dict(__d) = &mut q { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
         }
         let mut request: Value = self.extend(q, &[params.clone()]);
         let mut response: Value = Value::Null;
@@ -1667,7 +1667,7 @@ impl MudrexCore {
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
         }
         let __ws_arg_15 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_futures_positions_history(&[__ws_arg_15]).await;
@@ -1808,11 +1808,11 @@ impl MudrexCore {
         });
         if (amount != Value::Null) {
             let mut orderType: Value = self.safe_string_upper(params.clone(), Value::Str("order_type".into()), &[Value::Str("LIMIT".into())]);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_type".to_string(), orderType.clone()); }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("quantity".to_string(), self.amount_to_precision(symbol.clone(), amount)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_type".into(), orderType.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("quantity".into(), self.amount_to_precision(symbol.clone(), amount)); }
             let mut lp: Value = self.safe_string_k(params.clone(), "limit_price", &[]);
             if (orderType.as_str() == Some("LIMIT")) && (lp != Value::Null) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit_price".to_string(), lp); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit_price".into(), lp); }
             }
             params = self.omit(params.clone(), Value::from(vec![Value::Str("order_type".into()), Value::Str("limit_price".into()), Value::Str("amount".into()), Value::Str("position_id".into())]), &[]);
             let __ws_arg_16 = self.extend(request.clone(), &[params.clone()]);
@@ -1944,8 +1944,8 @@ impl MudrexCore {
                 m
             });
             if pageSize.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), pageSize.clone()); }
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("offset".to_string(), offset.clone()); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), pageSize.clone()); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("offset".into(), offset.clone()); }
             }
             let __ws_arg_19 = self.extend(request, &[params.clone()]);
             let mut response: Value = self.private_get_futures_fee_history(&[__ws_arg_19]).await;

@@ -254,7 +254,7 @@ impl NdaxCore {
 
     pub fn request_id(&mut self) -> Value {
         let mut requestId: Value = self.sum(&[self.safe_integer_k(self.options.clone(), "requestId", &[Value::Int(0)]), Value::Int(1)]);
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("requestId".to_string(), requestId.clone()); }
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("requestId".into(), requestId.clone()); }
         return requestId;
 
     Value::Null
@@ -337,7 +337,7 @@ impl NdaxCore {
         let mut symbol: Value = ticker.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut market: Value = self.market(symbol.clone());
         if (symbol != Value::Null) {
-            add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
+            if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
         }
         let mut name: Value = Value::Str("SubscribeLevel1".into());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)).into());
@@ -436,10 +436,10 @@ impl NdaxCore {
             }
             tradesArray.append(trade);
             if (symbol != Value::Null) {
-                add_element_to_object(&mut self.trades, &symbol, tradesArray.clone());
+                if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), tradesArray.clone()); }
             }
             if (symbol != Value::Null) {
-                add_element_to_object(&mut updates, &symbol, Value::Bool(true));
+                if let Value::Dict(__d) = &mut updates { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Bool(true)); }
             }
         }
         }
@@ -552,15 +552,15 @@ impl NdaxCore {
             let mut market: Value = self.safe_market(&[marketId.clone()]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if (marketId != Value::Null) {
-                add_element_to_object(&mut updates, &marketId, Value::Map({
+                if let Value::Dict(__d) = &mut updates { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&marketId), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}));
+})); }
             }
             { let __be_tmp = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]); add_element_to_object(&mut self.ohlcvs, &symbol, __be_tmp); };
+})]); if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
             let mut keys: Value = object_keys(&self.timeframes);
             {
                                 let mut j: Value = Value::Int(0);
@@ -778,7 +778,7 @@ impl NdaxCore {
         add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), self.iso8601(timestamp));
         let mut name: Value = Value::Str("SubscribeLevel2".into());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), marketId).into());
-        add_element_to_object(&mut self.orderbooks, &symbol, orderbook.clone());
+        if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), orderbook.clone()); }
         client.resolve(&[orderbook, messageHash]);
 }
 
@@ -813,7 +813,7 @@ impl NdaxCore {
         let mut limit: Value = self.safe_integer_k(subscription.clone(), "limit", &[]);
         let mut orderbook: Value = self.order_book(&[snapshot, limit]);
         if (symbol != Value::Null) {
-            add_element_to_object(&mut self.orderbooks, &symbol, orderbook.clone());
+            if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), orderbook.clone()); }
         }
         let mut messageHash: Value = self.safe_string_k(subscription, "messageHash", &[]);
         client.resolve(&[orderbook, messageHash]);
@@ -866,7 +866,7 @@ impl NdaxCore {
         if (payload == Value::Null) {
             return;
         }
-        add_element_to_object(&mut message, &Value::Str("o".into()), json_parse(&payload));
+        if let Value::Dict(__d) = &mut message { std::sync::Arc::make_mut(__d).insert("o".into(), json_parse(&payload)); }
         let mut methods: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("SubscribeLevel2".to_string(), Value::Str("handle_subscription_status".into()).clone());

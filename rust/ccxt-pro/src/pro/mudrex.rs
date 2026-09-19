@@ -267,7 +267,7 @@ impl MudrexCore {
 
     pub fn request_id(&mut self) -> Value {
         let mut reqid: Value = self.sum(&[self.safe_integer_k(self.options.clone(), "correlationId", &[Value::Int(0)]), Value::Int(1)]);
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("correlationId".to_string(), reqid.clone()); }
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("correlationId".into(), reqid.clone()); }
         return reqid;
 
     Value::Null
@@ -295,10 +295,10 @@ impl MudrexCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        add_element_to_object(&mut headers, &Value::Str("Partner-Id".into()), brokerId);
-        add_element_to_object(&mut innerOptions, &Value::Str("headers".into()), headers);
-        add_element_to_object(&mut wsOptions, &Value::Str("options".into()), innerOptions);
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("ws".to_string(), wsOptions); }
+        if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("Partner-Id".into(), brokerId); }
+        if let Value::Dict(__d) = &mut innerOptions { std::sync::Arc::make_mut(__d).insert("headers".into(), headers); }
+        if let Value::Dict(__d) = &mut wsOptions { std::sync::Arc::make_mut(__d).insert("options".into(), innerOptions); }
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("ws".into(), wsOptions); }
 }
 
     pub async fn watch_ticker(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
@@ -482,7 +482,7 @@ impl MudrexCore {
         { let __be_tmp = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]); add_element_to_object(&mut self.ohlcvs, &symbol, __be_tmp); };
+})]); if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         let mut stored: Value = self.safe_value(self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[]), tf.clone(), &[]);
         if (stored == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
@@ -521,7 +521,7 @@ impl MudrexCore {
                     m.insert("info".to_string(), t);
                 m
             }), &[]);
-            add_element_to_object(&mut self.tickers, &symbol, result.clone());
+            if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), result.clone()); }
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol).into());
             client.resolve(&[result.clone(), messageHash]);
             client.resolve(&[result, Value::Str("tickers".into())]);

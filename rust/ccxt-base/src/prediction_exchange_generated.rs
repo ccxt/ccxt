@@ -456,13 +456,13 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             let mut slug: Value = self.safe_string_k(event.clone(), "slug", &[]);
             let mut handle: Value = self.safe_string_k(event.clone(), "event", &[]);
             if (id != Value::Null) {
-                add_element_to_object(&mut self.pred_mut().events, &id, event.clone());
+                if let Value::Dict(__d) = &mut self.pred_mut().events { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&id), event.clone()); }
             }
             if (handle != Value::Null) {
-                add_element_to_object(&mut self.pred_mut().events, &handle, event.clone());
+                if let Value::Dict(__d) = &mut self.pred_mut().events { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&handle), event.clone()); }
             }
             if (slug != Value::Null) {
-                add_element_to_object(&mut self.pred_mut().events_by_slug, &slug, event.clone());
+                if let Value::Dict(__d) = &mut self.pred_mut().events_by_slug { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&slug), event.clone()); }
             }
         }
         }
@@ -490,7 +490,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             let mut event: Value = get_value(&self.pred().events, &keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
             let mut identity: Value = self.safe_string2(event.clone(), Value::Str("id".into()), Value::Str("event".into()), &[keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)]);
             if !(in_op(&seen, &identity)) {
-                add_element_to_object(&mut seen, &identity, Value::Bool(true));
+                if let Value::Dict(__d) = &mut seen { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&identity), Value::Bool(true)); }
                 append_to_array(&mut result, event.clone());
             }
         }
@@ -846,12 +846,12 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                     }
                 }
                 add_element_to_object(&mut oc, &Value::Str("outcome".into()), ocSymbol.clone());
-                add_element_to_object(&mut self.pred_mut().outcomes, &ocSymbol, oc.clone());
+                if let Value::Dict(__d) = &mut self.pred_mut().outcomes { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&ocSymbol), oc.clone()); }
             }  else {
                 add_element_to_object(&mut oc, &Value::Str("outcome".into()), ocSymbol);
             }
             if (ocId != Value::Null) {
-                add_element_to_object(&mut self.pred_mut().outcomes_by_id, &ocId, oc);
+                if let Value::Dict(__d) = &mut self.pred_mut().outcomes_by_id { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&ocId), oc); }
             }
         }
         }
@@ -901,7 +901,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             let mut m: Value = markets.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut marketHandle: Value = self.safe_string2(m.clone(), Value::Str("market".into()), Value::Str("symbol".into()), &[]);
             if (marketHandle != Value::Null) {
-                add_element_to_object(&mut self.markets, &marketHandle, m);
+                if let Value::Dict(__d) = &mut self.markets { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&marketHandle), m); }
             }
         }
         }
@@ -2100,9 +2100,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // `symbol` with the `outcome` handle and attach the outcome identity fields
         // outcomeId and market - so books match the PredictionOrderBook structure.
         let mut fallback: Value = self.safe_string2(orderbook.clone(), Value::Str("outcome".into()), Value::Str("symbol".into()), &[]);
-        add_element_to_object(&mut orderbook, &Value::Str("outcome".into()), (if (outcomeObj == Value::Null) { fallback.clone() } else { self.safe_string_k(outcomeObj.clone(), "outcome", &[fallback]) }));
-        { let __be_tmp = (if (outcomeObj == Value::Null) { self.safe_string_k(orderbook.clone(), "outcomeId", &[]) } else { self.safe_string_k(outcomeObj.clone(), "outcomeId", &[]) }); add_element_to_object(&mut orderbook, &Value::Str("outcomeId".into()), __be_tmp.clone()); };
-        { let __be_tmp = (if (outcomeObj == Value::Null) { self.safe_string_k(orderbook.clone(), "market", &[]) } else { self.safe_string_k(outcomeObj, "market", &[]) }); add_element_to_object(&mut orderbook, &Value::Str("market".into()), __be_tmp); };
+        if let Value::Dict(__d) = &mut orderbook { std::sync::Arc::make_mut(__d).insert("outcome".into(), (if (outcomeObj == Value::Null) { fallback.clone() } else { self.safe_string_k(outcomeObj.clone(), "outcome", &[fallback]) })); }
+        { let __be_tmp = (if (outcomeObj == Value::Null) { self.safe_string_k(orderbook.clone(), "outcomeId", &[]) } else { self.safe_string_k(outcomeObj.clone(), "outcomeId", &[]) }); if let Value::Dict(__d) = &mut orderbook { std::sync::Arc::make_mut(__d).insert("outcomeId".into(), __be_tmp); } }
+        { let __be_tmp = (if (outcomeObj == Value::Null) { self.safe_string_k(orderbook.clone(), "market", &[]) } else { self.safe_string_k(outcomeObj, "market", &[]) }); if let Value::Dict(__d) = &mut orderbook { std::sync::Arc::make_mut(__d).insert("market".into(), __be_tmp); } }
         return self.omit(orderbook, Value::Str("symbol".into()), &[]);
 
     Value::Null

@@ -517,15 +517,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         if privateAccess {
             if !(matches!(&isContract, Value::Bool(true))) {
-                if let Value::Dict(__d) = &mut subscribe { std::sync::Arc::make_mut(__d).insert("params".to_string(), Value::from(vec![name.clone()])); }
-                if let Value::Dict(__d) = &mut subscribe { std::sync::Arc::make_mut(__d).insert("listenKey".to_string(), self.get_listen_key(isContract.clone()).await); }
+                if let Value::Dict(__d) = &mut subscribe { std::sync::Arc::make_mut(__d).insert("params".into(), Value::from(vec![name.clone()])); }
+                if let Value::Dict(__d) = &mut subscribe { std::sync::Arc::make_mut(__d).insert("listenKey".into(), self.get_listen_key(isContract.clone()).await); }
             }  else {
                 let mut listenKey: Value = self.get_listen_key(isContract.clone()).await;
                 let mut param: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("@".into())).into()), listenKey).into());
-                if let Value::Dict(__d) = &mut subscribe { std::sync::Arc::make_mut(__d).insert("params".to_string(), Value::from(vec![param])); }
+                if let Value::Dict(__d) = &mut subscribe { std::sync::Arc::make_mut(__d).insert("params".into(), Value::from(vec![param])); }
             }
         }  else {
-            if let Value::Dict(__d) = &mut subscribe { std::sync::Arc::make_mut(__d).insert("params".to_string(), Value::from(vec![name.clone()])); }
+            if let Value::Dict(__d) = &mut subscribe { std::sync::Arc::make_mut(__d).insert("params".into(), Value::from(vec![name.clone()])); }
         }
         let mut tradeType: Value = (if matches!(&isContract, Value::Bool(true)) { Value::Str("contract".into()) } else { Value::Str("spot".into()) });
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("::".into())).into()), tradeType).into());
@@ -589,15 +589,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         if privateAccess {
             if !(matches!(&isContract, Value::Bool(true))) {
-                if let Value::Dict(__d) = &mut unsubscribe { std::sync::Arc::make_mut(__d).insert("params".to_string(), Value::from(vec![name.clone()])); }
-                if let Value::Dict(__d) = &mut unsubscribe { std::sync::Arc::make_mut(__d).insert("listenKey".to_string(), self.get_listen_key(isContract.clone()).await); }
+                if let Value::Dict(__d) = &mut unsubscribe { std::sync::Arc::make_mut(__d).insert("params".into(), Value::from(vec![name.clone()])); }
+                if let Value::Dict(__d) = &mut unsubscribe { std::sync::Arc::make_mut(__d).insert("listenKey".into(), self.get_listen_key(isContract.clone()).await); }
             }  else {
                 let mut listenKey: Value = self.get_listen_key(isContract.clone()).await;
                 let mut param: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("@".into())).into()), listenKey).into());
-                if let Value::Dict(__d) = &mut unsubscribe { std::sync::Arc::make_mut(__d).insert("params".to_string(), Value::from(vec![param])); }
+                if let Value::Dict(__d) = &mut unsubscribe { std::sync::Arc::make_mut(__d).insert("params".into(), Value::from(vec![param])); }
             }
         }  else {
-            if let Value::Dict(__d) = &mut unsubscribe { std::sync::Arc::make_mut(__d).insert("params".to_string(), Value::from(vec![name.clone()])); }
+            if let Value::Dict(__d) = &mut unsubscribe { std::sync::Arc::make_mut(__d).insert("params".into(), Value::from(vec![name.clone()])); }
         }
         let mut tradeType: Value = (if matches!(&isContract, Value::Bool(true)) { Value::Str("contract".into()) } else { Value::Str("spot".into()) });
         let mut subMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str("::".into())).into()), tradeType).into());
@@ -619,7 +619,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         let mut symbolsAndTimeframes: Value = self.safe_list_k(subscriptionParams.clone(), "symbolsAndTimeframes", &[]);
         if (symbolsAndTimeframes != Value::Null) {
-            if let Value::Dict(__d) = &mut subscription { std::sync::Arc::make_mut(__d).insert("symbolsAndTimeframes".to_string(), symbolsAndTimeframes); }
+            if let Value::Dict(__d) = &mut subscription { std::sync::Arc::make_mut(__d).insert("symbolsAndTimeframes".into(), symbolsAndTimeframes); }
             subscriptionParams = self.omit(subscriptionParams.clone(), Value::Str("symbolsAndTimeframes".into()), &[]);
         }
         let __ws_arg_0 = self.extend(request, &[params]);
@@ -1177,7 +1177,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             add_element_to_object(&mut fundingRate, &Value::Str("timestamp".into()), timestamp.clone());
             add_element_to_object(&mut fundingRate, &Value::Str("datetime".into()), self.iso8601(timestamp));
             let mut symbol: Value = fundingRate.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            add_element_to_object(&mut self.fundingRates, &symbol, fundingRate.clone());
+            if let Value::Dict(__d) = &mut self.fundingRates { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), fundingRate.clone()); }
             let mut event: Value = self.safe_string_k(message.clone(), "event", &[]);
             let mut messageHash: Value = Value::Str(format!("{}{}", event, Value::Str("::contract".into())).into());
             client.resolve(&[fundingRate, messageHash]);
@@ -1354,7 +1354,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut ticker: Value = self.parse_ticker(data, &[]);
             let mut symbol: Value = ticker.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if (symbol != Value::Null) {
-                add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
+                if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
             }
             let mut event: Value = self.safe_string_k(message.clone(), "event", &[]);
             let mut messageHashTail: Value = (if isSpot { Value::Str("spot".into()) } else { Value::Str("contract".into()) });
@@ -1447,7 +1447,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut ticker: Value = self.parse_ticker(tickerData, &[]);
             let mut symbol: Value = ticker.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if (symbol != Value::Null) {
-                add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
+                if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
             }
             append_to_array(&mut newTickers, ticker);
         }
@@ -1528,7 +1528,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             { let __be_tmp = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]); add_element_to_object(&mut self.ohlcvs, &symbol, __be_tmp); };
+})]); if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
             let mut stored: Value = self.safe_value(get_value(&self.ohlcvs, &symbol), timeframe.clone(), &[]);
             if (stored == Value::Null) {
                 let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
@@ -1589,7 +1589,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (tradesArray == Value::Null) {
                 let mut tradesLimit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
                 tradesArray = ArrayCache::new(tradesLimit);
-                add_element_to_object(&mut self.trades, &symbol, tradesArray.clone());
+                if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), tradesArray.clone()); }
             }
             tradesArray.append(trade);
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", event, Value::Str("::".into())).into()), tradeType).into());
@@ -1684,7 +1684,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), limit]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
+}), limit]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
             }
             let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
             let mut nonce: Option<i64> = self.safe_integer_k(orderbook.clone(), "nonce", &[]).as_i64();
@@ -1989,11 +1989,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut currencyId: Value = self.safe_string2(data.clone(), Value::Str("c".into()), Value::Str("coin".into()), &[]);
         let mut code: Value = self.safe_currency_code(currencyId, &[]);
         let mut account: Value = self.account();
-        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string_k(data.clone(), "availableBalance", &[])); }
-        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string_k(data.clone(), "f", &[])); }
-        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string2(data.clone(), Value::Str("b".into()), Value::Str("walletBalance".into()), &[])); }
+        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string_k(data.clone(), "availableBalance", &[])); }
+        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string_k(data.clone(), "f", &[])); }
+        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string2(data.clone(), Value::Str("b".into()), Value::Str("walletBalance".into()), &[])); }
         if (code != Value::Null) {
-            add_element_to_object(&mut self.balance, &code, account);
+            if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account); }
         }
         { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
         let mut tradeType: Value = (if (matches!(&data, Value::Dict(__d) if __d.contains_key("coin"))) { Value::Str("contract".into()) } else { Value::Str("spot".into()) });

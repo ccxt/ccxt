@@ -451,7 +451,7 @@ impl BitrueCore {
         //         "t": 1657799510000
         //     }]
         //
-        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".to_string(), balances.clone()); }
+        if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), balances.clone()); }
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_154: bool = true;
@@ -468,13 +468,13 @@ impl BitrueCore {
             let mut updateUsed: bool = lockBalanceUpdateTime != Some(0);
             if updateFree || updateUsed {
                 if updateFree {
-                    if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), free.clone()); }
+                    if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), free.clone()); }
                 }
                 if updateUsed {
-                    if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), used.clone()); }
+                    if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), used.clone()); }
                 }
                 if (code != Value::Null) {
-                    add_element_to_object(&mut self.balance, &code, account.clone());
+                    if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account.clone()); }
                 }
             }
         }
@@ -740,7 +740,7 @@ impl BitrueCore {
             });
         }
         if !(in_op(&self.orderbooks, &symbol)) {
-            { let __be_tmp = self.order_book(&[]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
+            { let __be_tmp = self.order_book(&[]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
         let mut snapshot: Value = self.parse_order_book(parseable, symbol.clone(), &[timestamp, Value::Str("buys".into()), Value::Str("asks".into())]);
@@ -903,7 +903,7 @@ impl BitrueCore {
             if (stored == Value::Null) {
                 let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
                 stored = ArrayCache::new(limit);
-                add_element_to_object(&mut self.trades, &symbol, stored.clone());
+                if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored.clone()); }
             }
             let mut trade: Value = self.parse_ws_trade(data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[market.clone()]);
             stored.append(trade);
@@ -1047,10 +1047,10 @@ impl BitrueCore {
         }
         let mut parsed: Value = self.parse_ws_ohlcv(tick, &[market.clone()]);
         if !(in_op(&self.ohlcvs, &symbol)) {
-            add_element_to_object(&mut self.ohlcvs, &symbol, Value::Map({
+            if let Value::Dict(__d) = &mut self.ohlcvs { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}));
+})); }
         }
         if !(in_op(&get_value(&self.ohlcvs, &symbol), &timeframe)) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
@@ -1154,7 +1154,7 @@ impl BitrueCore {
         }
         let mut timestamp: Value = self.safe_integer_k(message, "ts", &[]);
         let mut parsed: Value = self.parse_ws_ticker(tick, market.clone(), &[timestamp]);
-        add_element_to_object(&mut self.tickers, &symbol, parsed.clone());
+        if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), parsed.clone()); }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol).into());
         client.resolve(&[parsed, messageHash]);
 }
@@ -1321,8 +1321,8 @@ impl BitrueCore {
                 if (key == Value::Null) {
                     panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" authenticate() received an empty listenKey".into()))));
                 }
-                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("listenKey".to_string(), key.clone()); }
-                { let __be_tmp = Value::Str(format!("{}{}", add(&crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private"), &Value::Str("/stream?listenKey=".into())), key).into()); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("listenKeyUrl".to_string(), __be_tmp); } }
+                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("listenKey".into(), key.clone()); }
+                { let __be_tmp = Value::Str(format!("{}{}", add(&crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private"), &Value::Str("/stream?listenKey=".into())), key).into()); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("listenKeyUrl".into(), __be_tmp); } }
                 client.resolve(&[key, messageHash.clone()]);
              #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
@@ -1365,8 +1365,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.parent.open_v1_private_put_poseidon_api_v1_listen_key_listen_key(&[__ws_arg_0]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err);
-            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("listenKey".to_string(), Value::Null); }
-            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("listenKeyUrl".to_string(), Value::Null); }
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("listenKey".into(), Value::Null); }
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("listenKeyUrl".into(), Value::Null); }
             return Value::Null;
         }
         let mut refreshTimeout: Value = self.safe_integer_k(self.options.clone(), "listenKeyRefreshRate", &[Value::Int(1800000)]);

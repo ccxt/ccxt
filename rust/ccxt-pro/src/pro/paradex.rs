@@ -286,7 +286,7 @@ impl ParadexCore {
 
     pub fn request_id(&mut self) -> Value {
         let mut requestId: Value = self.sum(&[self.safe_integer_k(self.options.clone(), "requestId", &[Value::Int(0)]), Value::Int(1)]);
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("requestId".to_string(), requestId.clone()); }
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("requestId".into(), requestId.clone()); }
         return requestId;
 
     Value::Null
@@ -425,7 +425,7 @@ impl ParadexCore {
         let mut stored: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
         if (stored == Value::Null) {
             stored = ArrayCache::new(self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]));
-            add_element_to_object(&mut self.trades, &symbol, stored.clone());
+            if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored.clone()); }
         }
         stored.append(parsedTrade);
         client.resolve(&[stored, messageHash]);
@@ -517,7 +517,7 @@ impl ParadexCore {
         let mut timestamp: Value = self.safe_integer_k(data.clone(), "last_updated_at", &[]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         if !(in_op(&self.orderbooks, &symbol)) {
-            { let __be_tmp = self.order_book(&[]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
+            { let __be_tmp = self.order_book(&[]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         }
         let mut orderbookData: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -792,7 +792,7 @@ impl ParadexCore {
         let mut channel: Value = self.safe_string_k(params, "channel", &[]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(".".into())).into()), symbol).into());
         let mut ticker: Value = self.parse_ticker(data, &[market]);
-        add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
+        if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
         client.resolve(&[ticker.clone(), channel]);
         client.resolve(&[ticker, messageHash]);
         return message;
@@ -932,7 +932,7 @@ impl ParadexCore {
         })]);
         let mut fundingRate: Value = self.parse_funding_rate_ws(data, &[]);
         let mut symbol: Value = fundingRate.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        add_element_to_object(&mut self.fundingRates, &symbol, fundingRate.clone());
+        if let Value::Dict(__d) = &mut self.fundingRates { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), fundingRate.clone()); }
         let mut channel: Value = self.safe_string_k(params, "channel", &[]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(".".into())).into()), symbol).into());
         client.resolve(&[fundingRate, messageHash]);

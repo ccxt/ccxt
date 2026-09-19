@@ -82,7 +82,7 @@ fn detectCurrencyConflicts(mut exchange: Value, mut currencyValues: Value) -> Va
         let mut currency: Value = get_value(&currencyValues, &key);
         let mut code: Value = get_value(&currency, &Value::Str("code".into()));
         if !(in_op(&ids, &code)) {
-            add_element_to_object(&mut ids, &code, get_value(&currency, &Value::Str("id".into())));
+            if let Value::Dict(__d) = &mut ids { std::sync::Arc::make_mut(__d).insert(ccxt::runtime::stringify_param(&code), get_value(&currency, &Value::Str("id".into()))); }
         }  else {
             let mut isDifferent: Value = Value::Bool(!is_equal(&get_value(&ids, &code), &get_value(&currency, &Value::Str("id".into()))));
             assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&isDifferent)))));

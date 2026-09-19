@@ -760,7 +760,7 @@ impl CryptomusCore {
             let mut networkId: Value = self.safe_string_k(networkEntry.clone(), "network_code", &[]);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
             if (networkCode != Value::Null) {
-                add_element_to_object(&mut networks, &networkCode, Value::Map({
+                if let Value::Dict(__d) = &mut networks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&networkCode), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), networkId);
         m.insert("network".to_string(), networkCode.clone());
@@ -787,7 +787,7 @@ impl CryptomusCore {
         m.insert("precision".to_string(), Value::Null);
         m.insert("info".to_string(), networkEntry);
     m
-}));
+})); }
             }
         }
         }
@@ -911,7 +911,7 @@ impl CryptomusCore {
         });
         let mut level: Value = Value::Int(0);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOrderBook".into()), Value::Str("level".into()), &[level.clone()]); level = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("level".to_string(), level); }
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("level".into(), level); }
         let __ws_arg_0 = self.extend(request, &[params]);
         let mut response: Value = self.public_get_v1_exchange_market_order_book_currency_pair(&[__ws_arg_0]).await;
         //
@@ -1095,10 +1095,10 @@ impl CryptomusCore {
             let mut currencyId: Value = self.safe_string_k(balanceEntry.clone(), "ticker", &[]);
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
             let mut account: Value = self.account();
-            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string_k(balanceEntry.clone(), "available", &[])); }
-            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string_k(balanceEntry, "held", &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string_k(balanceEntry.clone(), "available", &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string_k(balanceEntry, "held", &[])); }
             if (code != Value::Null) {
-                add_element_to_object(&mut result, &code, account);
+                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account); }
             }
         }
         }
@@ -1143,7 +1143,7 @@ impl CryptomusCore {
         let mut clientOrderId: Value = self.safe_string_k(params.clone(), "clientOrderId", &[]);
         if (clientOrderId != Value::Null) {
             params = self.omit(params.clone(), Value::Str("clientOrderId".into()), &[]);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("client_order_id".to_string(), clientOrderId); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("client_order_id".into(), clientOrderId); }
         }
         let mut sideBuy: bool = side.as_str() == Some("buy");
         let mut amountToString: Value = self.number_to_string(amount);
@@ -1164,9 +1164,9 @@ impl CryptomusCore {
                 }  else {
                     cost = (if ((cost != Value::Null) && (cost.as_str() != Some(""))) { cost.clone() } else { amountToString.clone() });
                 }
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("value".to_string(), cost); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("value".into(), cost); }
             }  else {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("quantity".to_string(), amountToString.clone()); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("quantity".into(), amountToString.clone()); }
             }
             let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_post_v2_user_api_exchange_orders_market(&[__ws_arg_3]).await;
@@ -1174,8 +1174,8 @@ impl CryptomusCore {
             if (price == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price parameter for a ".into())).into()), type_var).into()), Value::Str(" order".into()))));
             }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("quantity".to_string(), amountToString); }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".to_string(), price); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("quantity".into(), amountToString); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".into(), price); }
             let __ws_arg_4 = self.extend(request, &[params]);
             response = self.private_post_v2_user_api_exchange_orders(&[__ws_arg_4]).await;
         }  else {
@@ -1209,7 +1209,7 @@ impl CryptomusCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("orderId".to_string(), id); }
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("orderId".into(), id); }
         let __ws_arg_5 = self.extend(request, &[params]);
         let mut response: Value = self.private_delete_v2_user_api_exchange_orders_order_id(&[__ws_arg_5]).await;
         return self.safe_order(Value::Map({
@@ -1255,10 +1255,10 @@ impl CryptomusCore {
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("market".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("market".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit); }
         }
         let __ws_arg_6 = self.extend(request, &[params]);
         let mut response: Value = self.private_get_v2_user_api_exchange_orders_history(&[__ws_arg_6]).await;
@@ -1352,7 +1352,7 @@ impl CryptomusCore {
             m
         });
         if (market != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("market".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("market".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         let __ws_arg_7 = self.extend(request, &[params]);
         let mut response: Value = self.private_get_v2_user_api_exchange_orders(&[__ws_arg_7]).await;
@@ -1607,7 +1607,7 @@ impl CryptomusCore {
             let mut __for_first_611: bool = true;
             while { if !__for_first_611 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_611 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
             let mut symbol: Value = symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            add_element_to_object(&mut result, &symbol, Value::Map({
+            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
         m.insert("symbol".to_string(), symbol.clone());
@@ -1617,7 +1617,7 @@ impl CryptomusCore {
         m.insert("tierBased".to_string(), Value::Bool(true));
         m.insert("tiers".to_string(), tiers.clone());
     m
-}));
+})); }
         }
         }
         return result;
@@ -1676,7 +1676,7 @@ impl CryptomusCore {
             if (method.as_str() != Some("GET")) {
                 body = json_stringify(&params);
                 jsonParams = body.clone();
-                add_element_to_object(&mut headers, &Value::Str("Content-Type".into()), Value::Str("application/json".into()));
+                if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("Content-Type".into(), Value::Str("application/json".into())); }
             }  else {
                 let mut query: Value = self.urlencode(params.clone(), &[]);
                 if (Value::Int(query.len() as i64).as_f64() != Some(0.0)) {
@@ -1686,7 +1686,7 @@ impl CryptomusCore {
             let mut jsonParamsBase64: Value = self.string_to_base64(jsonParams, &[]);
             let mut stringToSign: Value = Value::Str(format!("{}{}", jsonParamsBase64, self.secret.clone()).into());
             let mut signature: Value = self.hash(self.encode(stringToSign), Value::Str("md5".into()), &[]);
-            add_element_to_object(&mut headers, &Value::Str("sign".into()), signature);
+            if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("sign".into(), signature); }
         }  else {
             let mut query: Value = self.urlencode(params, &[]);
             if (Value::Int(query.len() as i64).as_f64() != Some(0.0)) {

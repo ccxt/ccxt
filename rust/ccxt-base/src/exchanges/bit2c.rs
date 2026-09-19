@@ -586,10 +586,10 @@ impl Bit2cCore {
             let mut currency: Value = self.currency(code.clone());
             let mut uppercase: Value = to_upper(&get_value(&currency, &Value::Str("id".into())));
             if (in_op(&response, &uppercase)) {
-                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string(response.clone(), Value::Str(format!("{}{}", Value::Str("AVAILABLE_".into()), uppercase).into()), &[])); }
-                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string(response.clone(), uppercase.clone(), &[])); }
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string(response.clone(), Value::Str(format!("{}{}", Value::Str("AVAILABLE_".into()), uppercase).into()), &[])); }
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string(response.clone(), uppercase.clone(), &[])); }
             }
-            add_element_to_object(&mut result, &code, account);
+            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account); }
         }
         }
         return self.safe_balance(result);
@@ -785,10 +785,10 @@ impl Bit2cCore {
             m
         });
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("date".to_string(), self.parse_to_int(since.clone())); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("date".into(), self.parse_to_int(since.clone())); }
         }
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".to_string(), limit.clone()); }; // max 100000
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }; // max 100000
         }
         let mut responseList: Value = Value::from(vec![]);
         if (method.as_str() == Some("public_get_exchanges_pair_trades")) {
@@ -871,7 +871,7 @@ impl Bit2cCore {
             let mut takerString: Value = self.safe_string_k(fee.clone(), "FeeTaker", &[]);
             let mut maker: Value = self.parse_number(crate::precise::Precise::stringDiv(&makerString, &Value::Str("100".into())), &[]);
             let mut taker: Value = self.parse_number(crate::precise::Precise::stringDiv(&takerString, &Value::Str("100".into())), &[]);
-            add_element_to_object(&mut result, &symbol, Value::Map({
+            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), fee);
         m.insert("symbol".to_string(), symbol.clone());
@@ -880,7 +880,7 @@ impl Bit2cCore {
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(true));
     m
-}));
+})); }
         }
         }
         return result;
@@ -927,11 +927,11 @@ impl Bit2cCore {
                 response = self.private_post_order_add_order_market_price_sell(&[__ws_arg_5]).await;
             }
         }  else {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("Price".to_string(), price.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("Price".into(), price.clone()); }
             let mut amountString: Value = self.number_to_string(amount);
             let mut priceString: Value = self.number_to_string(price);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("Total".to_string(), self.parse_to_numeric(crate::precise::Precise::stringMul(&amountString, &priceString))); }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("IsBid".to_string(), (Value::Bool(side.as_str() == Some("buy")))); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("Total".into(), self.parse_to_numeric(crate::precise::Precise::stringMul(&amountString, &priceString))); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("IsBid".into(), (Value::Bool(side.as_str() == Some("buy")))); }
             let __ws_arg_6 = self.extend(request, &[params]);
             response = self.private_post_order_add_order(&[__ws_arg_6]).await;
         }
@@ -1191,16 +1191,16 @@ impl Bit2cCore {
             m
         });
         if (limit != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("take".to_string(), limit.clone()); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("take".into(), limit.clone()); }
         }
-        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("take".to_string(), limit.clone()); }
+        if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("take".into(), limit.clone()); }
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("toTime".to_string(), self.yyyymmdd(self.milliseconds(), &[Value::Str(".".into())])); }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("fromTime".to_string(), self.yyyymmdd(since.clone(), &[Value::Str(".".into())])); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("toTime".into(), self.yyyymmdd(self.milliseconds(), &[Value::Str(".".into())])); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("fromTime".into(), self.yyyymmdd(since.clone(), &[Value::Str(".".into())])); }
         }
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("pair".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("pair".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         let __ws_arg_10 = self.extend(request, &[params]);
         let mut response: Value = self.private_get_order_order_history(&[__ws_arg_10]).await;

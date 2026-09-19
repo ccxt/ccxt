@@ -929,7 +929,7 @@ impl CoinspotCore {
                     let mut account: Value = self.account();
                     add_element_to_object(&mut account, &Value::Str("total".into()), self.safe_string_k(balance, "balance", &[]));
                     if (code != Value::Null) {
-                        add_element_to_object(&mut result, &code, account.clone());
+                        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account.clone()); }
                     }
                 }
                 }
@@ -946,7 +946,7 @@ impl CoinspotCore {
                 let mut account: Value = self.account();
                 add_element_to_object(&mut account, &Value::Str("total".into()), self.safe_string(balances.clone(), currencyId, &[]));
                 if (code != Value::Null) {
-                    add_element_to_object(&mut result, &code, account);
+                    if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account); }
                 }
             }
             }
@@ -1158,7 +1158,7 @@ impl CoinspotCore {
                 let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
                 let mut ticker: Value = get_value(&prices, &id);
                 let mut ticker: Value = get_value(&prices, &id);
-                add_element_to_object(&mut result, &symbol, self.parse_ticker(ticker.clone(), &[market.clone()]));
+                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), self.parse_ticker(ticker.clone(), &[market.clone()])); }
             }
         }
         }
@@ -1241,7 +1241,7 @@ impl CoinspotCore {
             market = self.market(symbol);
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startdate".to_string(), self.yyyymmdd(since.clone(), &[])); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startdate".into(), self.yyyymmdd(since.clone(), &[])); }
         }
         let __ws_arg_2 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_ro_my_transactions(&[__ws_arg_2]).await;

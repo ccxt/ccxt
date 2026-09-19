@@ -749,10 +749,10 @@ impl IndodaxCore {
             let mut currencyId: Value = currencyIds.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut account: Value = self.account();
-            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string(free.clone(), currencyId.clone(), &[])); }
-            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string(used.clone(), currencyId, &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string(free.clone(), currencyId.clone(), &[])); }
+            if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string(used.clone(), currencyId, &[])); }
             if (code != Value::Null) {
-                add_element_to_object(&mut result, &code, account);
+                if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account); }
             }
         }
         }
@@ -964,7 +964,7 @@ impl IndodaxCore {
             let mut marketId: Value = replace_str(&key, &Value::Str("_".into()), &Value::Str("".into()));
             let mut market: Value = self.safe_market(&[marketId.clone()]);
             let mut parsed: Value = self.parse_ticker(rawTicker, &[market]);
-            add_element_to_object(&mut parsedTickers, &marketId, parsed);
+            if let Value::Dict(__d) = &mut parsedTickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&marketId), parsed); }
         }
         }
         return self.filter_by_array(parsedTickers, Value::Str("symbol".into()), &[symbols]);
@@ -1076,10 +1076,10 @@ impl IndodaxCore {
             limit = Value::Int(1000);
         }
         if (since != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("from".to_string(), math_floor(&(match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("from".into(), math_floor(&(match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))); }
         }  else {
             let mut duration: Value = self.parse_timeframe(timeframe.clone());
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("from".to_string(), (match (&((match (&(now), &((match (&(limit), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("from".into(), (match (&((match (&(now), &((match (&(limit), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })); }
         }
         let __ws_arg_3 = self.extend(request, &[params]);
         let mut response: Value = self.public_get_tradingview_history_v2(&[__ws_arg_3]).await;
@@ -1282,7 +1282,7 @@ impl IndodaxCore {
         });
         if (symbol != Value::Null) {
             market = self.market(symbol.clone());
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("pair".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("pair".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         let __ws_arg_6 = self.extend(request, &[params]);
         let mut response: Value = self.private_post_open_orders(&[__ws_arg_6]).await;
@@ -1426,7 +1426,7 @@ impl IndodaxCore {
             if (price == Value::Null) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument for a ".into())).into()), type_var).into()), Value::Str(" order".into()))));
             }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".to_string(), price); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".into(), price); }
         }
         if quantityIsRequired {
             add_element_to_object(&mut request, &market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null), self.amount_to_precision(symbol, amount));
@@ -1635,8 +1635,8 @@ impl IndodaxCore {
         });
         if (since != Value::Null) {
             let mut startTime: Value = self.yyyymmdd(since.clone(), &[]);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start".to_string(), startTime); }
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end".to_string(), self.yyyymmdd(self.milliseconds(), &[])); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start".into(), startTime); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end".into(), self.yyyymmdd(self.milliseconds(), &[])); }
         }
         let __ws_arg_12 = self.extend(request, &[params]);
         let mut response: Value = self.private_post_trans_history(&[__ws_arg_12]).await;
@@ -1781,7 +1781,7 @@ impl IndodaxCore {
             m
         });
         if (tag != Value::Null) && (tag.as_str() != Some("")) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("withdraw_memo".to_string(), tag); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("withdraw_memo".into(), tag); }
         }
         let __ws_arg_13 = self.extend(request, &[params]);
         let mut response: Value = self.private_post_withdraw_coin(&[__ws_arg_13]).await;
@@ -1995,7 +1995,7 @@ impl IndodaxCore {
                 }
                 let mut finalNetwork: Value = network.clone(); // java req
                 if (code != Value::Null) {
-                    add_element_to_object(&mut result, &code, Value::Map({
+                    if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2006,7 +2006,7 @@ impl IndodaxCore {
         m.insert("address".to_string(), address.clone());
         m.insert("tag".to_string(), Value::Null);
     m
-}));
+})); }
                 }
             }
         }
