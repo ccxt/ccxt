@@ -9166,7 +9166,7 @@ public partial class bitget : Exchange
         int dataListLength = dataList.Count;
         if ((dataListLength == 0))
         {
-            throw new OrderNotFound ((string)((((this.id + " fetchOrder() could not find order id ") + (id)) + " in ") + this.json(response))) ;
+            throw new OrderNotFound ((string)((((this.id + " fetchOrder() could not find order id ") + id) + " in ") + this.json(response))) ;
         }
         IDictionary<string, object> first = this.safeDict(dataList, 0, new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToOrder(this.parseOrder(first, market));

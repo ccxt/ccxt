@@ -3640,8 +3640,9 @@ function isProvablyStringOperand (csharp, node) {
     case ts.SyntaxKind.Identifier:
         // `add(<local>, ...)`: the read's C# static type IS the declared type of the single
         // binding localIdentifierType() proves, so the enclosing add() resolves to
-        // add(string, *) exactly as it does for the arm of a `c ? local : ...`
-        return isStringLocalRead (csharp, node);
+        // add(string, *) exactly as it does for the arm of a `c ? local : ...`; a parameter
+        // the emitted signature narrows to `string` reads the same way
+        return isStringLocalRead (csharp, node) || (parameterArithmeticType (csharp, node) === 'string');
     case ts.SyntaxKind.CallExpression: {
         // `<receiver>.toString ()` prints `((object)<receiver>).ToString ()` whatever the
         // receiver is (ast-transpiler printToStringCall keys on the method name alone), and
@@ -6986,6 +6987,27 @@ function nativeArithmeticIsNullableKind (kind) {
     return (kind !== undefined) && kind.endsWith ('?');
 }
 
+// the concrete C# type a PARAMETER read carries in the emitted file, or undefined when the
+// read prints `object`: the narrowed core arguments (coreArgParamType) and the parameter
+// declarations a typed-parameter family recorded in the build layer's resolver hook.
+// Parameters only — a local's declared type is localIdentifierType()'s decision.
+function parameterArithmeticType (csharp, node) {
+    const core = coreArgParamType (csharp, node);
+    if (core !== undefined) {
+        return core;
+    }
+    if (typeof csharp.csharpDeclaredLocalResolverType !== 'function') {
+        return undefined;
+    }
+    let declaration;
+    try {
+        declaration = csharp.getChecker().getSymbolAtLocation (node)?.valueDeclaration;
+    } catch (e) {
+        return undefined;
+    }
+    return (declaration?.kind === ts.SyntaxKind.Parameter) ? csharp.csharpDeclaredLocalResolverType (node) : undefined;
+}
+
 // C# static kind of one operand: literals by their literal type, `this.id` / `.length`
 // member reads, identifiers and calls by the type their printed form carries, nested
 // arithmetic recursively. undefined = not provable (the helper call stays).
@@ -7033,8 +7055,9 @@ function nativeArithmeticOperandKind (csharp, node) {
         return (node.name?.escapedText === 'length') ? 'int' : undefined;
     case ts.SyntaxKind.Identifier:
         // the `<type> x = ` prefix the declaration prints (this module's decision first,
-        // then the printer's own getCSharpLocalType); a local with no proven type has none
-        return nativeArithmeticKindOfType (identifierType (csharp, node) ?? localIdentifierType (csharp, node));
+        // then the printer's own getCSharpLocalType); a local with no proven type has none,
+        // and a parameter read is the type the emitted signature carries for it
+        return nativeArithmeticKindOfType (identifierType (csharp, node) ?? localIdentifierType (csharp, node) ?? parameterArithmeticType (csharp, node));
     case ts.SyntaxKind.CallExpression:
         if (isProvablyStringOperand (csharp, node)) {
             return 'string'; // `<recv>.toString ()` prints `((object)recv).ToString ()`

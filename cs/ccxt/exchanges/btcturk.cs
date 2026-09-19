@@ -784,7 +784,7 @@ public partial class btcturk : Exchange
         ((IDictionary<string,object>)request)["to"] = this.parseToInt(((until / 1000)));
         if ((since != null))
         {
-            ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(since, 1000));
+            ((IDictionary<string,object>)request)["from"] = this.parseToInt((since / 1000));
         } else if ((limitVar == null))
         {
             limitVar = 100; // default value
@@ -800,7 +800,7 @@ public partial class btcturk : Exchange
             object limitSeconds = multiply(seconds, (subtract(limitVar, 1)));
             if ((since != null))
             {
-                object to = add(this.parseToInt(divide(since, 1000)), limitSeconds);
+                object to = add(this.parseToInt((since / 1000)), limitSeconds);
                 ((IDictionary<string,object>)request)["to"] = mathMin((request != null && ((IDictionary<string, object>)request).ContainsKey("to") ? ((IDictionary<string, object>)request)["to"] : null), to);
             } else
             {
@@ -1005,7 +1005,7 @@ public partial class btcturk : Exchange
         }
         if ((since != null))
         {
-            ((IDictionary<string,object>)request)["startTime"] = (Math.Floor(Double.Parse((divide(since, 1000)).ToString())));
+            ((IDictionary<string,object>)request)["startTime"] = (Math.Floor(Double.Parse(((since / 1000)).ToString())));
         }
         Dictionary<string, object> response = await this.privateGetAllOrders(this.extend(request, parameters));
         // {

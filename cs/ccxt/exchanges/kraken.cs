@@ -1365,7 +1365,7 @@ public partial class kraken : Exchange
         }
         if ((since != null))
         {
-            Int64? scaledSince = this.parseToInt(divide(since, 1000));
+            Int64? scaledSince = this.parseToInt((since / 1000));
             if (isEqual(parsedTimeframe, null))
             {
                 throw new ExchangeError ((string)(this.id + " fetchOHLCV() missing parsedTimeframe")) ;
@@ -1492,7 +1492,7 @@ public partial class kraken : Exchange
         }
         if ((since != null))
         {
-            ((IDictionary<string,object>)request)["start"] = this.parseToInt(divide(since, 1000));
+            ((IDictionary<string,object>)request)["start"] = this.parseToInt((since / 1000));
         }
         string? until = this.safeString2(parameters, "until", "till");
         if ((until != null))
@@ -1759,7 +1759,7 @@ public partial class kraken : Exchange
         // https://github.com/ccxt/ccxt/issues/5677
         if ((since != null))
         {
-            ((IDictionary<string,object>)request)["since"] = this.numberToString(this.parseToInt(divide(since, 1000))); // expected to be in seconds
+            ((IDictionary<string,object>)request)["since"] = this.numberToString(this.parseToInt((since / 1000))); // expected to be in seconds
         }
         if ((limit != null))
         {
@@ -2727,7 +2727,7 @@ public partial class kraken : Exchange
         IDictionary<string, object> result = this.safeDict(response, "result", new List<object>() {});
         if (!((result != null && result.ContainsKey(id))))
         {
-            throw new OrderNotFound ((string)((this.id + " fetchOrder() could not find order id ") + (id))) ;
+            throw new OrderNotFound ((string)((this.id + " fetchOrder() could not find order id ") + id)) ;
         }
         return ccxt.BaseExchange.ToOrder(this.parseOrder(this.extend(new Dictionary<string, object>() {             { "id", id },         }, getValue(result, id))));
     }
@@ -2889,7 +2889,7 @@ public partial class kraken : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((since != null))
         {
-            ((IDictionary<string,object>)request)["start"] = this.parseToInt(divide(since, 1000));
+            ((IDictionary<string,object>)request)["start"] = this.parseToInt((since / 1000));
         }
         string? until = this.safeString2(parameters, "until", "till");
         if ((until != null))
@@ -3115,7 +3115,7 @@ public partial class kraken : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((since != null))
         {
-            ((IDictionary<string,object>)request)["start"] = this.parseToInt(divide(since, 1000));
+            ((IDictionary<string,object>)request)["start"] = this.parseToInt((since / 1000));
         }
         Int64? userref = this.safeInteger(parameters, "userref");
         if (!isEqual(userref, null))
@@ -3211,7 +3211,7 @@ public partial class kraken : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((since != null))
         {
-            ((IDictionary<string,object>)request)["start"] = this.parseToInt(divide(since, 1000));
+            ((IDictionary<string,object>)request)["start"] = this.parseToInt((since / 1000));
         }
         Int64? userref = this.safeInteger(parameters, "userref");
         if (!isEqual(userref, null))

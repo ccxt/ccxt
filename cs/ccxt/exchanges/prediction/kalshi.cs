@@ -1405,11 +1405,11 @@ public partial class kalshi : PredictionExchange
         int tf = this.parseTimeframe(timeframeVar);
         if ((since != null))
         {
-            Int64? sinceS = this.parseToInt(divide(since, 1000));
+            Int64? sinceS = this.parseToInt((since / 1000));
             ((IDictionary<string,object>)request)["start_ts"] = sinceS;
             if ((limit != null))
             {
-                object end = this.sum(sinceS, multiply(limit, tf));
+                object end = this.sum(sinceS, (limit * tf));
                 ((IDictionary<string,object>)request)["end_ts"] = ((bool) (isLessThan(end, now))) ? end : now;
             } else
             {
@@ -2823,7 +2823,7 @@ public partial class kalshi : PredictionExchange
                 object reqLimit = pageLimit;
                 if (!isEqual(limit, null))
                 {
-                    object remaining = subtract(limit, (rawEvents?.Count ?? 0));
+                    object remaining = (limit - (rawEvents?.Count ?? 0));
                     if (isLessThan(remaining, reqLimit))
                     {
                         reqLimit = remaining;

@@ -1879,23 +1879,23 @@ public partial class lbank : Exchange
             ((IDictionary<string,object>)request)["amount"] = this.amountToPrecision(symbol, amount);
             if (ioc)
             {
-                ((IDictionary<string,object>)request)["type"] = add(add(side, "_"), "ioc");
+                ((IDictionary<string,object>)request)["type"] = ((side + "_") + "ioc");
             } else if (fok)
             {
-                ((IDictionary<string,object>)request)["type"] = add(add(side, "_"), "fok");
+                ((IDictionary<string,object>)request)["type"] = ((side + "_") + "fok");
             } else if (maker)
             {
-                ((IDictionary<string,object>)request)["type"] = add(add(side, "_"), "maker");
+                ((IDictionary<string,object>)request)["type"] = ((side + "_") + "maker");
             }
         } else if ((type == "market"))
         {
             if ((side == "sell"))
             {
-                ((IDictionary<string,object>)request)["type"] = add(add(side, "_"), "market");
+                ((IDictionary<string,object>)request)["type"] = ((side + "_") + "market");
                 ((IDictionary<string,object>)request)["amount"] = this.amountToPrecision(symbol, amount);
             } else if ((side == "buy"))
             {
-                ((IDictionary<string,object>)request)["type"] = add(add(side, "_"), "market");
+                ((IDictionary<string,object>)request)["type"] = ((side + "_") + "market");
                 string? quoteAmount = null;
                 bool createMarketBuyOrderRequiresPrice = true;
                 IList<object> createMarketBuyOrderRequiresPriceparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);

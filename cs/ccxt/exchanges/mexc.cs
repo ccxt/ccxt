@@ -2247,7 +2247,7 @@ public partial class mexc : Exchange
         {
             if ((since != null))
             {
-                ((IDictionary<string,object>)request)["start"] = this.parseToInt(divide(since, 1000));
+                ((IDictionary<string,object>)request)["start"] = this.parseToInt((since / 1000));
             }
             if (!isEqual(until, null))
             {
@@ -3736,7 +3736,7 @@ public partial class mexc : Exchange
             string? errorMsg = this.safeString(order, "errorMsg", "");
             if ((errorMsg != "success"))
             {
-                throw new InvalidOrder ((string)((((this.id + " cancelOrder() the order with id ") + (id)) + " cannot be cancelled: ") + errorMsg)) ;
+                throw new InvalidOrder ((string)((((this.id + " cancelOrder() the order with id ") + id) + " cannot be cancelled: ") + errorMsg)) ;
             }
         }
         return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
@@ -5429,7 +5429,7 @@ public partial class mexc : Exchange
         }
         if ((result == null))
         {
-            throw new InvalidAddress ((string)(((((this.id + " fetchDepositAddress() cannot find a deposit address for ") + (code)) + ", and network") + network) + "consider creating one using .createDepositAddress() method or in MEXC website")) ;
+            throw new InvalidAddress ((string)(((((this.id + " fetchDepositAddress() cannot find a deposit address for ") + code) + ", and network") + network) + "consider creating one using .createDepositAddress() method or in MEXC website")) ;
         }
         return ccxt.BaseExchange.ToDepositAddress(result);
     }

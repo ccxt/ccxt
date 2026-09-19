@@ -2157,7 +2157,7 @@ public partial class coinbaseexchange : Exchange
         IDictionary<string, object> account = this.safeDict(accountsByCurrencyCode, code);
         if ((account == null))
         {
-            throw new ExchangeError ((string)((this.id + " fetchLedger() could not find account id for ") + (code))) ;
+            throw new ExchangeError ((string)((this.id + " fetchLedger() could not find account id for ") + code)) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", getValue(account, "id") },
@@ -2217,7 +2217,7 @@ public partial class coinbaseexchange : Exchange
                 IDictionary<string, object> account = this.safeDict(accountsByCurrencyCode, code);
                 if ((account == null))
                 {
-                    throw new ExchangeError ((string)((this.id + " fetchDepositsWithdrawals() could not find account id for ") + (code))) ;
+                    throw new ExchangeError ((string)((this.id + " fetchDepositsWithdrawals() could not find account id for ") + code)) ;
                 }
                 id = getValue(account, "id");
             }
@@ -2483,7 +2483,7 @@ public partial class coinbaseexchange : Exchange
         IDictionary<string, object> account = this.safeDict((this.options.ContainsKey("coinbaseAccountsByCurrencyId") ? this.options["coinbaseAccountsByCurrencyId"] : null), currencyId);
         if ((account == null))
         {
-            throw new InvalidAddress ((string)(((((this.id + " createDepositAddress() could not find currency code ") + (code)) + " with id = ") + currencyId) + " in this.options['coinbaseAccountsByCurrencyId']")) ;
+            throw new InvalidAddress ((string)(((((this.id + " createDepositAddress() could not find currency code ") + code) + " with id = ") + currencyId) + " in this.options['coinbaseAccountsByCurrencyId']")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", getValue(account, "id") },

@@ -1851,7 +1851,7 @@ public partial class whitebit : Exchange
                 }
             }
         }
-        throw new OrderNotFound ((string)((this.id + " fetchOrder() order not found: ") + (id))) ;
+        throw new OrderNotFound ((string)((this.id + " fetchOrder() order not found: ") + id)) ;
     }
 
     /**
@@ -2279,7 +2279,7 @@ public partial class whitebit : Exchange
                 limitVar = maxLimit;
             }
             limitVar = mathMin(limitVar, maxLimit);
-            Int64? start = this.parseToInt(divide(since, 1000));
+            Int64? start = this.parseToInt((since / 1000));
             ((IDictionary<string,object>)request)["start"] = start;
         }
         if ((limitVar != null))
@@ -3260,7 +3260,7 @@ public partial class whitebit : Exchange
         }
         if ((since != null))
         {
-            ((IDictionary<string,object>)request)["startDate"] = this.parseToInt(divide(since, 1000));
+            ((IDictionary<string,object>)request)["startDate"] = this.parseToInt((since / 1000));
         }
         if ((limitVar == null) || isGreaterThan(limitVar, 100))
         {
@@ -3323,7 +3323,7 @@ public partial class whitebit : Exchange
         }
         if ((since != null))
         {
-            ((IDictionary<string,object>)request)["startDate"] = this.parseToInt(divide(since, 1000));
+            ((IDictionary<string,object>)request)["startDate"] = this.parseToInt((since / 1000));
         }
         if ((limitVar == null) || isGreaterThan(limitVar, 100))
         {
@@ -4467,7 +4467,7 @@ public partial class whitebit : Exchange
         }
         if ((since != null))
         {
-            Int64? start = this.parseToInt(divide(since, 1000));
+            Int64? start = this.parseToInt((since / 1000));
             ((IDictionary<string,object>)request)["from"] = this.numberToString(start);
         }
         if ((limit != null))
@@ -4842,7 +4842,7 @@ public partial class whitebit : Exchange
         };
         if ((since != null))
         {
-            ((IDictionary<string,object>)request)["startDate"] = Math.Round(Convert.ToDouble(divide(since, 1000)));
+            ((IDictionary<string,object>)request)["startDate"] = Math.Round(Convert.ToDouble((since / 1000)));
         }
         IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("until_timestamp", request, parameters, 0.001);
         request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];

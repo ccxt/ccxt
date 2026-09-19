@@ -1910,7 +1910,7 @@ public partial class bittrade : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "account-id", getValue(getValue(this.accounts, 0), "id") },
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
-            { "type", add(add(side, "-"), type) },
+            { "type", ((side + "-") + type) },
         };
         string? clientOrderId = this.safeString2(parameters, "clientOrderId", "client-order-id"); // must be 64 chars max and unique within 24 hours
         if ((clientOrderId == null))

@@ -4942,7 +4942,7 @@ public partial class BaseExchange
         object rate = this.safeValue(borrowRates, code);
         if ((rate == null))
         {
-            throw new ExchangeError ((string)((this.id + " fetchCrossBorrowRate() could not find the borrow rate for currency code ") + (code))) ;
+            throw new ExchangeError ((string)((this.id + " fetchCrossBorrowRate() could not find the borrow rate for currency code ") + code)) ;
         }
         return ccxt.BaseExchange.ToCrossBorrowRate(rate);
     }
@@ -4959,7 +4959,7 @@ public partial class BaseExchange
         IDictionary<string, object> rate = this.safeDict(borrowRates, symbol);
         if ((rate == null))
         {
-            throw new ExchangeError ((string)((this.id + " fetchIsolatedBorrowRate() could not find the borrow rate for market symbol ") + (symbol))) ;
+            throw new ExchangeError ((string)((this.id + " fetchIsolatedBorrowRate() could not find the borrow rate for market symbol ") + symbol)) ;
         }
         return ccxt.BaseExchange.ToIsolatedBorrowRate(rate);
     }
@@ -5496,7 +5496,7 @@ public partial class BaseExchange
             object depositAddress = this.safeValue(depositAddresses, code);
             if ((depositAddress == null))
             {
-                throw new InvalidAddress ((string)(((this.id + " fetchDepositAddress() could not find a deposit address for ") + (code)) + ", make sure you have created a corresponding deposit address in your wallet on the exchange website")) ;
+                throw new InvalidAddress ((string)(((this.id + " fetchDepositAddress() could not find a deposit address for ") + code) + ", make sure you have created a corresponding deposit address in your wallet on the exchange website")) ;
             } else
             {
                 return ccxt.BaseExchange.ToDepositAddress(depositAddress);
@@ -5602,7 +5602,7 @@ public partial class BaseExchange
                 return ccxt.BaseExchange.ToDict(getValue(currenciesById, code));
             }
         }
-        throw new ExchangeError ((string)((this.id + " does not have currency code ") + (code))) ;
+        throw new ExchangeError ((string)((this.id + " does not have currency code ") + code)) ;
     }
 
     public virtual Dictionary<string, object> market(object symbol)

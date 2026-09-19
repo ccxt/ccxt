@@ -12088,14 +12088,14 @@ public partial class binance : Exchange
             {
                 if ((symbol == null))
                 {
-                    throw new ArgumentsRequired ((string)((this.id + " transfer () requires params[\"symbol\"] when fromAccount is ") + (fromAccount))) ;
+                    throw new ArgumentsRequired ((string)((this.id + " transfer () requires params[\"symbol\"] when fromAccount is ") + fromAccount)) ;
                 }
             }
             if ((toId == "ISOLATED"))
             {
                 if ((symbol == null))
                 {
-                    throw new ArgumentsRequired ((string)((this.id + " transfer () requires params[\"symbol\"] when toAccount is ") + (toAccount))) ;
+                    throw new ArgumentsRequired ((string)((this.id + " transfer () requires params[\"symbol\"] when toAccount is ") + toAccount)) ;
                 }
             }
             IDictionary<string, object> accountsById = this.safeDict(this.options, "accountsById", new Dictionary<string, object>() {});
@@ -12120,7 +12120,7 @@ public partial class binance : Exchange
                 bool prohibitedWithIsolated = fromFuture || toFuture || funding || option;
                 if ((fromIsolated || toIsolated) && prohibitedWithIsolated)
                 {
-                    throw new BadRequest ((string)((((this.id + " transfer () does not allow transfers between ") + (fromAccount)) + " and ") + (toAccount))) ;
+                    throw new BadRequest ((string)((((this.id + " transfer () does not allow transfers between ") + fromAccount) + " and ") + toAccount)) ;
                 } else if (toSpot && fromIsolated)
                 {
                     fromId = "ISOLATED_MARGIN";

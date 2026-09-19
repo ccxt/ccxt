@@ -277,5 +277,80 @@ check ('(x as any) + literal keeps add()',
     'function f (o) { const x = (o as any) + "-"; return x; }',
     'add(((object)o), "-")');
 
+// ---- D-22: parameters narrowed to a scalar by the emitted signature ------------------------
+// The ccxt-side typeCoreArgs pass narrows the CORE_STRING_ARGS / CORE_NUMERIC_ARGS positions on
+// every generated declaration of the method, so a read of such a parameter IS that C# type at
+// the call site. The proof is answered by method name + position, so the snippets below use the
+// real method names (fetchOHLCV: symbol/timeframe string, since/limit Int64?).
+
+check ('string param + literal',
+    'class Ex { async fetchOHLCV (symbol, timeframe, since, limit, parameters = {}) { const y = symbol + ":"; return y; } }',
+    '(symbol + ":")');
+check ('string param + string param',
+    'class Ex { async fetchOHLCV (symbol, timeframe, since, limit, parameters = {}) { const y = symbol + timeframe; return y; } }',
+    '(symbol + timeframe)');
+// the string-left rule reaches the whole chain: the outer pair is over the native sub-chain
+check ('string param chain over a literal',
+    'class Ex { async fetchOHLCV (symbol, timeframe, since, limit, parameters = {}) { const y = symbol + "-" + timeframe; return y; } }',
+    '((symbol + "-") + timeframe)');
+check ('string param of fetchDeposits (position 0)',
+    'class Ex { async fetchDeposits (code, since, limit, parameters = {}) { const y = code + "-"; return y; } }',
+    '(code + "-")');
+// Int64? / double?: the helper's own null branch IS the lifted operator's for / and *
+check ('Int64? param / int literal',
+    'class Ex { async fetchOHLCV (symbol, timeframe, since, limit, parameters = {}) { const y = since / 1000; return y; } }',
+    '(since / 1000)');
+check ('Int64? param * literal',
+    'class Ex { async fetchOHLCV (symbol, timeframe, since, limit, parameters = {}) { const y = limit * 2; return y; } }',
+    '(limit * 2)');
+// add(object, object) answers null for a null left, the lifted `Int64? + int` too
+check ('Int64? param + int literal',
+    'class Ex { async fetchOHLCV (symbol, timeframe, since, limit, parameters = {}) { const y = since + 10000; return y; } }',
+    '(since + 10000)');
+check ('double? param + double literal',
+    'class Ex { async createOrder (symbol, type, side, amount, price = undefined, parameters = {}) { const y = price + 1.5; return y; } }',
+    '(price + 1.5)');
+
+// ---- D-22: parameters the proof refuses keep the helper call ---------------------------------
+// a params bag is in no table
+check ('params-bag param keeps add()',
+    'class Ex { async fetchOHLCV (symbol, timeframe, since, limit, parameters = {}) { const y = parameters + "x"; return y; } }',
+    'add(parameters, "x")');
+// a method not in the tables: every parameter stays `object`
+check ('non-core method param keeps add()',
+    'class Ex { async doThing (a, b) { const y = a + "-"; return y; } }',
+    'add(a, "-")');
+// subtract() has no null branch where the lifted `Int64? - int` answers null
+check ('Int64? param - literal keeps subtract()',
+    'class Ex { async fetchOHLCV (symbol, timeframe, since, limit, parameters = {}) { const y = since - 1; return y; } }',
+    'subtract(since, 1)');
+// a nullable RIGHT operand: the helper throws on a null right box, the operator answers null
+check ('Int64? param + Int64? param keeps add()',
+    'class Ex { async fetchOHLCV (symbol, timeframe, since, limit, parameters = {}) { const y = since + limit; return y; } }',
+    'add(since, limit)');
+// a body write shadows the parameter in the emitted file (`object sinceVar = since`), so the
+// narrowed type is not what the read carries
+check ('written param keeps add()',
+    'class Ex { async fetchTrades (symbol, since, limit, parameters = {}) { since = since + 1; const y = since + 1; return y; } }',
+    'add(since, 1)');
+// a literal default inserts the `??=` prologue, which the narrowing pass reads as a write
+check ('literal-default param keeps add()',
+    'class Ex { async fetchOHLCV (symbol, timeframe, since = 1000, limit = 10, parameters = {}) { const y = since + 5; return y; } }',
+    'add(since, 5)');
+
+// ---- D-22: the composition point for typed-parameter families -------------------------------
+// A family that retypes parameters publishes them through the build layer's declared-type
+// resolver (the printer's csharpDeclaredLocalResolverType); parameter reads answer that type.
+// Installed here by hand — no such family is in this tree yet.
+const csharpPrinter: any = (transpiler as any).csharpTranspiler;
+csharpPrinter.csharpDeclaredLocalTypeResolver = (declaration: any) => (declaration?.name?.escapedText === 'a2' ? 'string' : undefined);
+check ('param typed by the declared-type resolver + literal',
+    'class Ex { async doThing (a1, a2) { const y = a2 + "-"; return y; } }',
+    '(a2 + "-")');
+check ('other param stays unproven under the resolver',
+    'class Ex { async doThing (a1, a2) { const y = a1 + "-"; return y; } }',
+    'add(a1, "-")');
+csharpPrinter.csharpDeclaredLocalTypeResolver = undefined;
+
 console.log (failures === 0 ? 'all checks passed' : failures + ' check(s) failed');
 process.exit (failures === 0 ? 0 : 1);
