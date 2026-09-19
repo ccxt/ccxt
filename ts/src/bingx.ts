@@ -2271,7 +2271,7 @@ export default class bingx extends Exchange {
         const market = this.market (symbol);
         let subType: Str = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchMarkPrice', market, params, 'linear');
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         let response: Dict;
@@ -3144,7 +3144,7 @@ export default class bingx extends Exchange {
         return await this.createOrder (symbol, 'market', 'sell', cost, undefined, params);
     }
 
-    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): Dict {
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a type argument');
         }
@@ -3657,7 +3657,7 @@ export default class bingx extends Exchange {
         return this.parseOrders (result, market);
     }
 
-    parseOrderSide (side: any) {
+    parseOrderSide (side: Str): Str {
         const sides: Dict = {
             'BUY': 'buy',
             'SELL': 'sell',
@@ -3669,7 +3669,7 @@ export default class bingx extends Exchange {
         return this.safeString (sides, side, side);
     }
 
-    parseOrderType (type: Str) {
+    parseOrderType (type: Str): Str {
         const types: Dict = {
             'trigger_market': 'market',
             'trigger_limit': 'limit',
@@ -4062,7 +4062,7 @@ export default class bingx extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'NEW': 'open',
             'PENDING': 'open',
@@ -4435,7 +4435,7 @@ export default class bingx extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        const clientOrderIds = this.safeValue (params, 'clientOrderIds');
+        const clientOrderIds = this.safeList (params, 'clientOrderIds');
         params = this.omit (params, 'clientOrderIds');
         let idsToParse = ids;
         const areClientOrderIds = (clientOrderIds !== undefined);
@@ -5714,7 +5714,7 @@ export default class bingx extends Exchange {
         //
         // parse withdraw-type output first...
         //
-        const data = this.safeValue (transaction, 'data');
+        const data = this.safeDict (transaction, 'data');
         const dataId = (data === undefined) ? undefined : this.safeString (data, 'id');
         const id = this.safeString (transaction, 'id', dataId);
         const address = this.safeString (transaction, 'address');
@@ -5763,7 +5763,7 @@ export default class bingx extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             '0': 'pending',
             '1': 'ok',
@@ -6331,7 +6331,7 @@ export default class bingx extends Exchange {
         return this.parseTransaction (data);
     }
 
-    parseParams (params: any) {
+    parseParams (params: Dict): Dict {
         // const sortedParams = this.keysort (params);
         const copied = this.clone (params);
         const rawKeys = Object.keys (params);
@@ -7016,7 +7016,7 @@ export default class bingx extends Exchange {
         };
     }
 
-    customEncode (params: any) {
+    customEncode (params: Dict): Str {
         // const sortedParams = this.keysort (params);
         const rawKeys = Object.keys (params);
         const keys = this.sort (rawKeys);

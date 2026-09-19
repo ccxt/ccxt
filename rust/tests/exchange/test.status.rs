@@ -10,5 +10,5 @@ use crate::test_helpers::*;
 use super::*;
 
 pub fn testStatus(mut exchange: Value, mut skippedProperties: Value, mut method: Value, mut entry: Value, mut now: Value) {
-    assert!(ccxt::runtime::is_true(&(Value::Bool(true))));
+    assert!(ccxt::runtime::is_true(&((true))));
 }

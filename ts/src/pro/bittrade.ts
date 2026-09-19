@@ -43,7 +43,7 @@ export default class bittrade extends bittradeRest {
         });
     }
 
-    requestId () {
+    requestId (): string {
         this.lockId ();
         const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
@@ -84,7 +84,7 @@ export default class bittrade extends bittradeRest {
         return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
     }
 
-    handleTicker (client: Client, message: any) {
+    handleTicker (client: Client, message: Dict): Dict {
         //
         //     {
         //         "ch": "market.btcusdt.detail",
@@ -102,7 +102,7 @@ export default class bittrade extends bittradeRest {
         //         }
         //     }
         //
-        const tick = this.safeValue (message, 'tick', {});
+        const tick = this.safeDict (message, 'tick', {});
         const ch = this.safeString (message, 'ch');
         if (ch === undefined) {
             return message;
@@ -111,7 +111,7 @@ export default class bittrade extends bittradeRest {
         const marketId = this.safeString (parts, 1);
         const market = this.safeMarket (marketId);
         const ticker = this.parseTicker (tick, market);
-        const timestamp = this.safeValue (message, 'ts');
+        const timestamp = this.safeInteger (message, 'ts');
         ticker['timestamp'] = timestamp;
         ticker['datetime'] = this.iso8601 (timestamp);
         const symbol = ticker['symbol'];
@@ -159,7 +159,7 @@ export default class bittrade extends bittradeRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client: Client, message: any) {
+    handleTrades (client: Client, message: Dict): Dict {
         //
         //     {
         //         "ch": "market.btcusdt.trade.detail",
@@ -180,8 +180,8 @@ export default class bittrade extends bittradeRest {
         //         }
         //     }
         //
-        const tick = this.safeValue (message, 'tick', {});
-        const data = this.safeValue (tick, 'data', {});
+        const tick = this.safeDict (message, 'tick', {});
+        const data = this.safeList (tick, 'data', []);
         const ch = this.safeString (message, 'ch');
         if (ch === undefined) {
             return message;
@@ -245,7 +245,7 @@ export default class bittrade extends bittradeRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client: Client, message: any) {
+    handleOHLCV (client: Client, message: Dict): void {
         //
         //     {
         //         "ch": "market.btcusdt.kline.1min",
@@ -272,7 +272,7 @@ export default class bittrade extends bittradeRest {
         const symbol = market['symbol'];
         const interval = this.safeString (parts, 3);
         const timeframe = this.findTimeframe (interval);
-        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
@@ -326,7 +326,7 @@ export default class bittrade extends bittradeRest {
         return orderbook.limit ();
     }
 
-    handleOrderBookSnapshot (client: Client, message: any, subscription: any) {
+    handleOrderBookSnapshot (client: Client, message: Dict, subscription: Dict): void {
         //
         //     {
         //         "id": 1583473663565,
@@ -352,7 +352,7 @@ export default class bittrade extends bittradeRest {
         const messageHash = this.safeString (subscription, 'messageHash');
         const timestamp = this.safeInteger (message, 'ts');
         const orderbook = this.orderbooks[(symbol as string)];
-        const data = this.safeValue (message, 'data');
+        const data = this.safeDict (message, 'data');
         const snapshot = this.parseOrderBook (data, symbol);
         snapshot['nonce'] = this.safeInteger (data, 'seqNum');
         snapshot['timestamp'] = timestamp;
@@ -367,7 +367,7 @@ export default class bittrade extends bittradeRest {
         client.resolve (orderbook, messageHash);
     }
 
-    async watchOrderBookSnapshot (client: any, message: any, subscription: any) {
+    async watchOrderBookSnapshot (client: Client, message: Dict, subscription: Dict): Promise<any> {
         const messageHash = this.safeString (subscription, 'messageHash');
         try {
             const symbol = this.safeString (subscription, 'symbol');
@@ -412,7 +412,7 @@ export default class bittrade extends bittradeRest {
         }
     }
 
-    handleOrderBookMessage (client: Client, message: any, orderbook: any) {
+    handleOrderBookMessage (client: Client, message: Dict, orderbook: any) {
         //
         //     {
         //         "ch": "market.btcusdt.mbp.150",
@@ -433,15 +433,15 @@ export default class bittrade extends bittradeRest {
         //         }
         //     }
         //
-        const tick = this.safeValue (message, 'tick', {});
+        const tick = this.safeDict (message, 'tick', {});
         const seqNum = this.safeInteger (tick, 'seqNum');
         const prevSeqNum = this.safeInteger (tick, 'prevSeqNum');
         if ((prevSeqNum === undefined) || (seqNum === undefined)) {
             return orderbook;
         }
         if ((prevSeqNum <= orderbook['nonce']) && (seqNum > orderbook['nonce'])) {
-            const asks = this.safeValue (tick, 'asks', []);
-            const bids = this.safeValue (tick, 'bids', []);
+            const asks = this.safeList (tick, 'asks', []);
+            const bids = this.safeList (tick, 'bids', []);
             this.handleDeltas (orderbook['asks'], asks);
             this.handleDeltas (orderbook['bids'], bids);
             orderbook['nonce'] = seqNum;
@@ -452,7 +452,7 @@ export default class bittrade extends bittradeRest {
         return orderbook;
     }
 
-    handleOrderBook (client: Client, message: any) {
+    handleOrderBook (client: Client, message: Dict): void {
         //
         // deltas
         //
@@ -489,7 +489,7 @@ export default class bittrade extends bittradeRest {
         }
     }
 
-    handleOrderBookSubscription (client: Client, message: any, subscription: any) {
+    handleOrderBookSubscription (client: Client, message: Dict, subscription: Dict): void {
         const symbol = this.safeString (subscription, 'symbol');
         if (symbol === undefined) {
             return;
@@ -503,7 +503,7 @@ export default class bittrade extends bittradeRest {
         this.spawn (this.watchOrderBookSnapshot, client, message, subscription);
     }
 
-    handleSubscriptionStatus (client: Client, message: any) {
+    handleSubscriptionStatus (client: Client, message: Dict) {
         //
         //     {
         //         "id": 1583414227,
@@ -517,7 +517,7 @@ export default class bittrade extends bittradeRest {
             return message;
         }
         const subscriptionsById = this.indexBy (client.subscriptions, 'id');
-        const subscription = this.safeValue (subscriptionsById, id);
+        const subscription = this.safeDict (subscriptionsById, id);
         if (subscription !== undefined) {
             const method = this.safeValue (subscription, 'method');
             if (method !== undefined) {
@@ -531,7 +531,7 @@ export default class bittrade extends bittradeRest {
         return message;
     }
 
-    handleSystemStatus (client: Client, message: any) {
+    handleSystemStatus (client: Client, message: Dict): Dict {
         //
         // todo: answer the question whether handleSystemStatus should be renamed
         // and unified as handleStatus for any usage pattern that
@@ -545,7 +545,7 @@ export default class bittrade extends bittradeRest {
         return message;
     }
 
-    handleSubject (client: Client, message: any) {
+    handleSubject (client: Client, message: Dict): void {
         //
         //     {
         //         "ch": "market.btcusdt.mbp.150",
@@ -585,18 +585,18 @@ export default class bittrade extends bittradeRest {
         }
     }
 
-    async pong (client: Client, message: any) {
+    async pong (client: Client, message: Dict): Promise<void> {
         //
         //     { ping: 1583491673714 }
         //
         await client.send ({ 'pong': this.safeInteger (message, 'ping') });
     }
 
-    handlePing (client: Client, message: any) {
+    handlePing (client: Client, message: Dict): void {
         this.spawn (this.pong, client, message);
     }
 
-    handleErrorMessage (client: Client, message: any): Bool {
+    handleErrorMessage (client: Client, message: Dict): Bool {
         //
         //     {
         //         "ts": 1586323747018,
@@ -613,7 +613,7 @@ export default class bittrade extends bittradeRest {
                 return false;
             }
             const subscriptionsById = this.indexBy (client.subscriptions, 'id');
-            const subscription = this.safeValue (subscriptionsById, id);
+            const subscription = this.safeDict (subscriptionsById, id);
             if (subscription !== undefined) {
                 const errorCode = this.safeString (message, 'err-code');
                 try {

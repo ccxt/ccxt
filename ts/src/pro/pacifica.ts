@@ -68,7 +68,7 @@ export default class pacifica extends pacificaRest {
         });
     }
 
-    setupApiKeyHeaders (key: Str = undefined) {  // Implemented in watchTickers; use it to set up or change a rate-limited API key.
+    setupApiKeyHeaders (key: Str = undefined): void {  // Implemented in watchTickers; use it to set up or change a rate-limited API key.
         const headers: Dict = {};
         if (key !== undefined) {
             headers['PF-API-KEY'] = key;
@@ -477,7 +477,7 @@ export default class pacifica extends pacificaRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    handleOrderBook (client: any, message: any) {
+    handleOrderBook (client: Client, message: Dict): void {
         //
         // {
         //   "channel": "book",
@@ -685,7 +685,7 @@ export default class pacifica extends pacificaRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    handleWsTickers (client: Client, message: any): boolean {
+    handleWsTickers (client: Client, message: Dict): boolean {
         //
         // {
         //     "channel": "prices",
@@ -722,11 +722,11 @@ export default class pacifica extends pacificaRest {
         return true;
     }
 
-    parseWsTicker (rawTicker: any, market: Market = undefined): Ticker {
+    parseWsTicker (rawTicker: Dict, market: Market = undefined): Ticker {
         return this.parseTicker (rawTicker, market);
     }
 
-    handleMyTrades (client: Client, message: any) {
+    handleMyTrades (client: Client, message: Dict): void {
         //
         // {
         //   "channel": "account_trades",
@@ -848,7 +848,7 @@ export default class pacifica extends pacificaRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    handleTrades (client: Client, message: any) {
+    handleTrades (client: Client, message: Dict): void {
         //
         // {
         //   "channel": "trades",
@@ -1038,7 +1038,7 @@ export default class pacifica extends pacificaRest {
         return await this.watch (url, messagehash, message, messagehash);
     }
 
-    handleOHLCV (client: Client, message: any) {
+    handleOHLCV (client: Client, message: Dict): void {
         //
         // {
         //   "channel": "candle",
@@ -1067,7 +1067,7 @@ export default class pacifica extends pacificaRest {
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
-        const symbolOhlcvs = this.safeValue (this.ohlcvs, symbol, {});
+        const symbolOhlcvs = this.safeDict (this.ohlcvs, symbol, {});
         let ohlcv = this.safeValue (symbolOhlcvs, timeframe);
         if (ohlcv === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
@@ -1157,7 +1157,7 @@ export default class pacifica extends pacificaRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    handleOrder (client: Client, message: any) {
+    handleOrder (client: Client, message: Dict): void {
         // not snapshot, only updates
         // {
         //   "channel": "account_order_updates",
@@ -1215,7 +1215,7 @@ export default class pacifica extends pacificaRest {
         client.resolve (stored, messageHash);
     }
 
-    handleErrorMessage (client: Client, message: any): Bool {
+    handleErrorMessage (client: Client, message: Dict): Bool {
         //
         // 'rl' key is present only when a rate-limited API key is used
         // {"id":"64107e37-a999-4b90-a3cf-b4322ae110d9","type":"cancel_order","code":420,"err":"Failed to cancel order","t":1769474703073,"rl":{"r":1245,"q":1250,"t":56}}
@@ -1236,7 +1236,7 @@ export default class pacifica extends pacificaRest {
         return false;
     }
 
-    handleOrderBookUnsubscription (client: Client, subscription: Dict) {
+    handleOrderBookUnsubscription (client: Client, subscription: Dict): void {
         const marketId = this.safeString2 (subscription, 'symbol', 's');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
@@ -1248,7 +1248,7 @@ export default class pacifica extends pacificaRest {
         }
     }
 
-    handleTradesUnsubscription (client: Client, subscription: Dict) {
+    handleTradesUnsubscription (client: Client, subscription: Dict): void {
         const marketId = this.safeString2 (subscription, 'symbol', 's');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
@@ -1260,7 +1260,7 @@ export default class pacifica extends pacificaRest {
         }
     }
 
-    handleTickersUnsubscription (client: Client, subscription: Dict) {
+    handleTickersUnsubscription (client: Client, subscription: Dict): void {
         const subMessageHash = 'tickers';
         const messageHash = 'unsubscribe:' + subMessageHash;
         this.cleanUnsubscription (client, subMessageHash, messageHash);
@@ -1270,7 +1270,7 @@ export default class pacifica extends pacificaRest {
         }
     }
 
-    handleOHLCVUnsubscription (client: Client, subscription: Dict) {
+    handleOHLCVUnsubscription (client: Client, subscription: Dict): void {
         const marketId = this.safeString2 (subscription, 'symbol', 's');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
@@ -1289,27 +1289,27 @@ export default class pacifica extends pacificaRest {
         }
     }
 
-    handleOrderUnsubscription (client: Client, subscription: Dict) {
+    handleOrderUnsubscription (client: Client, subscription: Dict): void {
         const subHash = 'order';
         const unSubHash = 'unsubscribe:' + subHash;
         this.cleanUnsubscription (client, subHash, unSubHash, true);
-        const topicStructure = {
+        const topicStructure: Dict = {
             'topic': 'orders',
         };
         this.cleanCache (topicStructure);
     }
 
-    handleMyTradesUnsubscription (client: Client, subscription: Dict) {
+    handleMyTradesUnsubscription (client: Client, subscription: Dict): void {
         const subHash = 'myTrades';
         const unSubHash = 'unsubscribe:' + subHash;
         this.cleanUnsubscription (client, subHash, unSubHash, true);
-        const topicStructure = {
+        const topicStructure: Dict = {
             'topic': 'myTrades',
         };
         this.cleanCache (topicStructure);
     }
 
-    handleSubscriptionResponse (client: Client, message: any) {
+    handleSubscriptionResponse (client: Client, message: Dict): void {
         //  {
         //      "channel": "subscribe",
         //      "data": {
@@ -1406,7 +1406,7 @@ export default class pacifica extends pacificaRest {
         };
     }
 
-    handlePong (client: Client, message: any) {
+    handlePong (client: Client, message: Dict): Dict {
         //
         //   {
         //       "channel": "pong"
@@ -1433,7 +1433,7 @@ export default class pacifica extends pacificaRest {
         return payload;
     }
 
-    handleWsPost (client: Client, message: Dict) {
+    handleWsPost (client: Client, message: Dict): void {
         //
         // market order
         // {

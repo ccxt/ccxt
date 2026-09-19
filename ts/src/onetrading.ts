@@ -619,7 +619,7 @@ export default class onetrading extends Exchange {
         let method = this.safeString (params, 'method');
         params = this.omit (params, 'method');
         if (method === undefined) {
-            const options = this.safeValue (this.options, 'fetchTradingFees', {});
+            const options = this.safeDict (this.options, 'fetchTradingFees', {});
             method = this.safeString (options, 'method', 'fetchPrivateTradingFees');
         }
         if (method === 'fetchPrivateTradingFees') {
@@ -631,7 +631,7 @@ export default class onetrading extends Exchange {
         }
     }
 
-    async fetchPublicTradingFees (params = {}) {
+    async fetchPublicTradingFees (params: Dict = {}): Promise<Dict> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -705,7 +705,7 @@ export default class onetrading extends Exchange {
         return result;
     }
 
-    async fetchPrivateTradingFees (params = {}) {
+    async fetchPrivateTradingFees (params: Dict = {}): Promise<Dict> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -774,7 +774,7 @@ export default class onetrading extends Exchange {
         return result;
     }
 
-    parseFeeTiers (feeTiers: any, market: Market = undefined) {
+    parseFeeTiers (feeTiers: any[], market: Market = undefined): Dict {
         const takerFees: List = [];
         const makerFees: List = [];
         for (let i = 0; i < feeTiers.length; i++) {
@@ -1034,7 +1034,7 @@ export default class onetrading extends Exchange {
         //         "last_sequence":461123
         //     }
         //
-        const granularity = this.safeValue (ohlcv, 'granularity');
+        const granularity = this.safeDict (ohlcv, 'granularity');
         const unit = this.safeString (granularity, 'unit');
         const period = this.safeString (granularity, 'period');
         const units: Dict = {
@@ -1056,7 +1056,7 @@ export default class onetrading extends Exchange {
             throw new ExchangeError (this.id + ' parseOHLCV() missing timestamp');
         }
         const alignedTimestamp = duration * this.parseToInt (timestamp / duration);
-        const options = this.safeValue (this.options, 'fetchOHLCV', {});
+        const options = this.safeDict (this.options, 'fetchOHLCV', {});
         const volumeField = this.safeString (options, 'volume', 'total_amount');
         return [
             alignedTimestamp,
@@ -1161,7 +1161,7 @@ export default class onetrading extends Exchange {
         //         }
         //     }
         //
-        const feeInfo = this.safeValue (trade, 'fee', {});
+        const feeInfo = this.safeDict (trade, 'fee', {});
         trade = this.safeValue (trade, 'trade', trade);
         let timestamp = this.safeInteger (trade, 'trade_timestamp');
         if (timestamp === undefined) {
@@ -1253,7 +1253,7 @@ export default class onetrading extends Exchange {
         return this.parseBalance (response);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'OPEN': 'open',
             'BOOKED': 'open',
@@ -1350,8 +1350,8 @@ export default class onetrading extends Exchange {
         const side = this.safeStringLower (rawOrder, 'side');
         const type = this.safeStringLower (rawOrder, 'type');
         const timeInForce = this.parseTimeInForce (this.safeString (rawOrder, 'time_in_force'));
-        const postOnly = this.safeValue (rawOrder, 'is_post_only');
-        const rawTrades = this.safeValue (order, 'trades', []);
+        const postOnly = this.safeBool (rawOrder, 'is_post_only');
+        const rawTrades = this.safeList (order, 'trades', []);
         return this.safeOrder ({
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1377,7 +1377,7 @@ export default class onetrading extends Exchange {
         }, market);
     }
 
-    parseTimeInForce (timeInForce: Str) {
+    parseTimeInForce (timeInForce: Str): Str {
         const timeInForces: Dict = {
             'GOOD_TILL_CANCELLED': 'GTC',
             'GOOD_TILL_TIME': 'GTT',
@@ -1821,7 +1821,7 @@ export default class onetrading extends Exchange {
         //         "cursor": "string"
         //     }
         //
-        const tradeHistory = this.safeValue (response, 'trade_history', []);
+        const tradeHistory = this.safeList (response, 'trade_history', []);
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1903,7 +1903,7 @@ export default class onetrading extends Exchange {
         return this.parseTrades (tradeHistory, market, since, limit);
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let url = this.urls['api'][api] + '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {

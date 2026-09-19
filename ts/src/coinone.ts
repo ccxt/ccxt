@@ -414,7 +414,7 @@ export default class coinone extends Exchange {
         const tickers = this.safeList (response, 'tickers', []);
         const result: List = [];
         for (let i = 0; i < tickers.length; i++) {
-            const entry = this.safeValue (tickers, i);
+            const entry = this.safeDict (tickers, i);
             const id = this.safeString (entry, 'id');
             const baseId = this.safeStringUpper (entry, 'target_currency');
             const quoteId = this.safeStringUpper (entry, 'quote_currency');
@@ -948,7 +948,7 @@ export default class coinone extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'live': 'open',
             'partially_filled': 'open',
@@ -1248,10 +1248,10 @@ export default class coinone extends Exchange {
                 continue;
             }
             const parts = key.split ('_');
-            const currencyId = this.safeValue (parts, 0);
-            const secondPart = this.safeValue (parts, 1);
+            const currencyId = this.safeString (parts, 0);
+            const secondPart = this.safeString (parts, 1);
             const code = this.safeCurrencyCode (currencyId);
-            let depositAddress = this.safeValue (result, code);
+            let depositAddress = this.safeDict (result, code);
             if (depositAddress === undefined) {
                 depositAddress = {
                     'info': value,
@@ -1276,7 +1276,7 @@ export default class coinone extends Exchange {
         return result as DepositAddress[];
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         const request = this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         let url = this.urls['api']['rest'] + '/';

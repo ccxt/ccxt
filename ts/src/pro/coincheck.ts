@@ -56,7 +56,7 @@ export default class coincheck extends coincheckRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -72,7 +72,7 @@ export default class coincheck extends coincheckRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: any, message: any) {
+    handleOrderBook (client: Client, message: any[]): void {
         //
         //     [
         //         "btc_jpy",
@@ -94,7 +94,7 @@ export default class coincheck extends coincheckRest {
         //     ]
         //
         const symbol = this.symbol (this.safeString (message, 0));
-        const data = this.safeValue (message, 1, {});
+        const data = this.safeDict (message, 1, {});
         const timestamp = this.safeTimestamp (data, 'last_update_at');
         const snapshot = this.parseOrderBook (data, symbol, timestamp);
         let orderbook = this.safeValue (this.orderbooks, symbol);
@@ -120,7 +120,7 @@ export default class coincheck extends coincheckRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -140,7 +140,7 @@ export default class coincheck extends coincheckRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client: Client, message: any) {
+    handleTrades (client: Client, message: any[]): void {
         //
         //     [
         //         [
@@ -155,7 +155,7 @@ export default class coincheck extends coincheckRest {
         //         ]
         //     ]
         //
-        const first = this.safeValue (message, 0, []);
+        const first = this.safeList (message, 0, []);
         const symbol = this.symbol (this.safeString (first, 2));
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
@@ -207,7 +207,7 @@ export default class coincheck extends coincheckRest {
         }, market);
     }
 
-    override handleMessage (client: Client, message: any) {
+    override handleMessage (client: Client, message: any[]): void {
         const data = this.safeValue (message, 0);
         if (!Array.isArray (data)) {
             this.handleOrderBook (client, message);

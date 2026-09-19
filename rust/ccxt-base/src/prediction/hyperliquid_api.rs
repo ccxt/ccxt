@@ -14,12 +14,12 @@ use crate::exchange::ExchangeRuntime;
 impl HyperliquidCore {
     /// Auto-generated wrapper for the `publicPostInfo` implicit endpoint.
     pub async fn public_post_info(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_post_info".to_string()), optional_args).await
+        self.call_method(Value::Str("public_post_info".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostExchange` implicit endpoint.
     pub async fn private_post_exchange(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_exchange".to_string()), optional_args).await
+        self.call_method(Value::Str("private_post_exchange".into()), optional_args).await
     }
 
 }

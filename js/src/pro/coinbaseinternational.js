@@ -497,8 +497,8 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
         const timeframe = this.findTimeframe(messageHash);
-        this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
-        if (this.safeValue(this.ohlcvs[symbol], timeframe) === undefined) {
+        this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
+        if (this.safeDict(this.ohlcvs[symbol], timeframe) === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
             this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp(limit);
         }

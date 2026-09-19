@@ -11,25 +11,25 @@ use ccxt::exchange_generated::ExchangeBase;
 pub async fn testFetchHistoryBase() -> Value {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
+            m.insert("id".to_string(), Value::Str("sampleexchange".into()));
             m.insert("fetchHistoryCacheSize".to_string(), Value::Int(2));
         m
     }));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("fetchHistoryCacheSize".to_string())), &Value::Int(2))))));
-    let mut trueAssertion: Value = Value::Bool(is_equal(&exchange.parse_number(Value::Null, &[]), &Value::Null));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("fetchHistoryCacheSize".into())), &Value::Int(2))))));
+    let mut trueAssertion: Value = Value::Bool(exchange.parse_number(Value::Null, &[]) == Value::Null);
     {
-        exchange.fetch2(Value::Str("sample1".to_string()), &[]).await;
+        exchange.fetch2(Value::Str("sample1".into()), &[]).await;
     }
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_array_length(&(exchange.get_fetch_cache())), &Value::Int(1))))));
+    assert!(ccxt::runtime::is_true(&((Value::Int((exchange.get_fetch_cache()).len() as i64).as_f64() == Some(1.0)))));
     {
-        exchange.fetch2(Value::Str("sample2".to_string()), &[]).await;
+        exchange.fetch2(Value::Str("sample2".into()), &[]).await;
     }
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_array_length(&(exchange.get_fetch_cache())), &Value::Int(2))))));
+    assert!(ccxt::runtime::is_true(&((Value::Int((exchange.get_fetch_cache()).len() as i64).as_f64() == Some(2.0)))));
     {
-        exchange.fetch2(Value::Str("sample3".to_string()), &[]).await;
+        exchange.fetch2(Value::Str("sample3".into()), &[]).await;
     }
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_array_length(&(exchange.get_fetch_cache())), &Value::Int(2))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_less_than(&add(&Value::Int(1), &Value::Int(1)), &Value::Int(3))))));
+    assert!(ccxt::runtime::is_true(&((Value::Int((exchange.get_fetch_cache()).len() as i64).as_f64() == Some(2.0)))));
+    assert!(ccxt::runtime::is_true(&(((match (&(Value::Int(1)), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }).as_f64().unwrap_or(f64::NAN) < Value::Int(3).as_f64().unwrap_or(f64::NAN)))));
 
     Value::Null
 }

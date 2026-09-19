@@ -224,31 +224,31 @@ func (this *Revolutx) Sign(path any, optionalArgs ...any) any {
 	var implodedPath any = this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var queryKeys []string = ObjectKeys(query)
-	var queryLength int = GetArrayLength(queryKeys)
+	var queryLength int = len(queryKeys)
 	var url any = Add(Add(GetValue(GetValue(this.Urls, "api"), api), "/"), implodedPath)
 	var queryString string = ""
 	if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()
 		var timestamp string = ToString(this.Milliseconds())
 		if IsEqual(method, "GET") {
-			if IsGreaterThan(queryLength, 0) {
+			if queryLength > 0 {
 				queryString = this.Urlencode(query)
-				url = Add(url, Add("?", queryString))
+				url = Add(url, "?"+queryString)
 			}
 		} else if IsEqual(method, "DELETE") {
-			if IsGreaterThan(queryLength, 0) {
+			if queryLength > 0 {
 				queryString = this.Urlencode(query)
-				url = Add(url, Add("?", queryString))
+				url = Add(url, "?"+queryString)
 			}
 		} else {
 			body = this.Json(query)
 		}
 		var requestPath any = Add("/api/", implodedPath)
 		var bodyString any = ""
-		if !IsEqual(body, nil) {
+		if body != nil {
 			bodyString = body
 		}
-		var message any = Add(Add(Add(Add(timestamp, ToUpper(method)), requestPath), queryString), bodyString)
+		var message any = Add(Add(Add(timestamp+ToUpper(method), requestPath), queryString), bodyString)
 		var signature string = Eddsa(this.Encode(message), this.PrivateKey, ed25519)
 		headers = map[string]any{
 			"X-Revx-API-Key":   this.ApiKey,
@@ -260,9 +260,9 @@ func (this *Revolutx) Sign(path any, optionalArgs ...any) any {
 		}
 	} else {
 		if IsEqual(method, "GET") {
-			if IsGreaterThan(queryLength, 0) {
+			if queryLength > 0 {
 				queryString = this.Urlencode(query)
-				url = Add(url, Add("?", queryString))
+				url = Add(url, "?"+queryString)
 			}
 		} else {
 			body = this.Json(query)
@@ -300,7 +300,7 @@ func (this *Revolutx) ParseMarket(market any) any {
 	var minOrderSizeQuote *string = this.SafeString(market, "min_order_size_quote")
 	var status *string = this.SafeString(market, "status")
 	var active bool = (status != nil && *status == "active")
-	var symbol any = Add(Add(base, "/"), quote)
+	var symbol any = *base + "/" + *quote
 	return map[string]any{
 		"id":             id,
 		"symbol":         symbol,
@@ -380,7 +380,7 @@ func (this *Revolutx) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	var region *string = this.SafeString2(params, "region", "region", GetValue(this.Options, "region"))
 	if region != nil {
-		AddElementToObject(request, "region", region)
+		request["region"] = region
 	}
 
 	response := (<-this.PublicGet10PublicConfigurationPairs(this.Extend(request, params)))
@@ -397,8 +397,8 @@ func (this *Revolutx) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//
 	var markets any = this.SafeDict(response, "data", response)
 	var keys []string = ObjectKeys(markets)
-	var result any = []any{}
-	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
+	var result []any = []any{}
+	for i := 0; i < len(keys); i++ {
 		var key string = GetValue(keys, i).(string)
 		var market any = this.SafeDict(markets, key, map[string]any{})
 		var base *string = this.SafeString(market, "base")
@@ -407,7 +407,7 @@ func (this *Revolutx) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var marketData map[string]any = this.Extend(market, map[string]any{
 			"id": marketId,
 		})
-		AppendToArray(&result, this.ParseMarket(marketData))
+		result = append(result, this.ParseMarket(marketData))
 	}
 
 	ch <- result
@@ -430,8 +430,18 @@ func (this *Revolutx) ParseCurrency(currency any) any {
 	var status *string = this.SafeString(currency, "status")
 	var active bool = (status != nil && *status == "active")
 	var assetType *string = this.SafeString(currency, "asset_type")
-	var typeVar string = Ternary((assetType != nil && *assetType == "crypto"), "crypto", "fiat").(string)
-	var precision any = Ternary((scale != nil), MathPow(10, OpNeg(scale)), nil)
+	var typeVar string = func() string {
+		if assetType != nil && *assetType == "crypto" {
+			return "crypto"
+		}
+		return "fiat"
+	}()
+	var precision any = func() any {
+		if scale != nil {
+			return MathPow(10, OpNeg(scale))
+		}
+		return nil
+	}()
 	return map[string]any{
 		"info":      currency,
 		"id":        id,
@@ -483,7 +493,7 @@ func (this *Revolutx) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any 
 	var request map[string]any = map[string]any{}
 	var region *string = this.SafeString2(params, "region", "region", GetValue(this.Options, "region"))
 	if region != nil {
-		AddElementToObject(request, "region", region)
+		request["region"] = region
 	}
 
 	response := (<-this.PublicGet10PublicConfigurationCurrencies(this.Extend(request, params)))
@@ -497,7 +507,7 @@ func (this *Revolutx) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any 
 	var currencies any = this.SafeDict(response, "data", response)
 	var keys []string = ObjectKeys(currencies)
 	var result map[string]any = map[string]any{}
-	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
+	for i := 0; i < len(keys); i++ {
 		var key string = GetValue(keys, i).(string)
 		var currency any = this.SafeDict(currencies, key, map[string]any{})
 		var currencyData map[string]any = this.Extend(currency, map[string]any{
@@ -542,7 +552,7 @@ func (this *Revolutx) ParseTicker(ticker any, optionalArgs ...any) any {
 		open = Precise.StringSub(last, priceChange)
 	}
 	var percentage any = nil
-	if !IsEqual(open, nil) && (priceChange != nil) {
+	if (open != nil) && (priceChange != nil) {
 		var percentageString *string = Precise.StringDiv(priceChange, open, 8)
 		percentage = this.ParseNumber(Precise.StringMul(percentageString, "100"))
 	}
@@ -592,24 +602,24 @@ func (this *Revolutx) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = symbols
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes53712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes53712)
 	}
 	var request map[string]any = map[string]any{}
-	if !IsEqual(symbols, nil) {
-		var marketIds any = []any{}
-		for i := 0; IsLessThan(i, GetArrayLength(symbols)); i++ {
+	if symbols != nil {
+		var marketIds []any = []any{}
+		for i := 0; i < GetArrayLength(symbols); i++ {
 			var symbol any = GetValue(symbols, i)
-			var market any = this.Market(symbol)
-			AppendToArray(&marketIds, GetValue(market, "id"))
+			var market map[string]any = MapTyped(this.Market(symbol))
+			marketIds = append(marketIds, market["id"])
 		}
-		AddElementToObject(request, "symbols", Join(marketIds, ","))
+		request["symbols"] = Join(marketIds, ",")
 	}
 	var region *string = this.SafeString2(params, "region", "region", GetValue(this.Options, "region"))
 	if region != nil {
-		AddElementToObject(request, "region", region)
+		request["region"] = region
 	}
 
 	response := (<-this.PublicGet10PublicTickers(this.Extend(request, params)))
@@ -625,10 +635,10 @@ func (this *Revolutx) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var data any = this.SafeList(response, "data", []any{})
-	var metadata any = this.SafeDict(response, "metadata", map[string]any{})
+	var metadata map[string]any = SafeMapTyped(response, "metadata")
 	var timestamp *int64 = this.SafeInteger(metadata, "timestamp")
 	var result map[string]any = map[string]any{}
-	for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
+	for i := 0; i < GetArrayLength(data); i++ {
 		var tickerData any = this.SafeDict(data, i, map[string]any{})
 		AddElementToObject(tickerData, "timestamp", timestamp)
 		var ticker any = this.ParseTicker(tickerData)
@@ -638,9 +648,9 @@ func (this *Revolutx) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		}
 		AddElementToObject(result, symbol, ticker)
 	}
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var filtered map[string]any = map[string]any{}
-		for i := 0; IsLessThan(i, GetArrayLength(symbols)); i++ {
+		for i := 0; i < GetArrayLength(symbols); i++ {
 			var s any = GetValue(symbols, i)
 			if InOp(result, s) {
 				AddElementToObject(filtered, s, GetValue(result, s))
@@ -675,7 +685,7 @@ func (this *Revolutx) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes60312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes60312)
@@ -685,7 +695,7 @@ func (this *Revolutx) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
 	PanicOnError(tickers)
 	var ticker any = this.SafeDict(tickers, symbol)
 	if IsEqual(ticker, nil) {
-		panic(ExchangeError(Add(Add(this.Id, " fetchTicker() could not find ticker for symbol "), symbol)))
+		panic(ExchangeError(Add(this.Id+" fetchTicker() could not find ticker for symbol ", symbol)))
 	}
 
 	ch <- ticker
@@ -715,21 +725,21 @@ func (this *Revolutx) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	_ = limit
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes62612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes62612)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
-	if !IsEqual(limit, nil) {
-		AddElementToObject(request, "limit", limit)
+	if limit != nil {
+		request["limit"] = limit
 	}
 	var region *string = this.SafeString2(params, "region", "region", GetValue(this.Options, "region"))
 	if region != nil {
-		AddElementToObject(request, "region", region)
+		request["region"] = region
 	}
 
 	response := (<-this.PublicGet20PublicOrderBookSymbol(this.Extend(request, params)))
@@ -744,7 +754,7 @@ func (this *Revolutx) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	//     }
 	//
 	var data any = this.SafeDict(response, "data", map[string]any{})
-	var metadata any = this.SafeDict(response, "metadata", map[string]any{})
+	var metadata map[string]any = SafeMapTyped(response, "metadata")
 	var timestamp *int64 = this.SafeInteger(metadata, "timestamp")
 
 	ch <- this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity")
@@ -802,28 +812,28 @@ func (this *Revolutx) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes69012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes69012)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol":   GetValue(market, "id"),
+		"symbol":   market["id"],
 		"interval": this.SafeInteger(this.Timeframes, timeframe, 5),
 	}
-	if !IsEqual(since, nil) {
-		AddElementToObject(request, "since", since)
+	if since != nil {
+		request["since"] = since
 	}
 	var until *int64 = this.SafeInteger2(params, "until", "until")
 	if until != nil {
-		AddElementToObject(request, "until", until)
+		request["until"] = until
 	} else {
-		AddElementToObject(request, "until", this.Milliseconds())
+		request["until"] = this.Milliseconds()
 	}
 	var region *string = this.SafeString2(params, "region", "region", GetValue(this.Options, "region"))
 	if region != nil {
-		AddElementToObject(request, "region", region)
+		request["region"] = region
 	}
 
 	response := (<-this.PublicGet10PublicCandlesSymbol(this.Extend(request, params)))
@@ -911,34 +921,34 @@ func (this *Revolutx) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	_ = limit
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes77812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes77812)
 	}
 	var market any = nil
-	if !IsEqual(symbol, nil) {
+	if symbol != nil {
 		market = this.Market(symbol)
 	}
 	var request map[string]any = map[string]any{}
 	if !IsEqual(market, nil) {
-		AddElementToObject(request, "symbol", GetValue(market, "id"))
+		request["symbol"] = GetValue(market, "id")
 	}
-	if !IsEqual(since, nil) {
-		AddElementToObject(request, "start_date", since)
+	if since != nil {
+		request["start_date"] = since
 	}
 	var until *int64 = this.SafeInteger2(params, "until", "until")
 	if until != nil {
-		AddElementToObject(request, "end_date", until)
-	} else if !IsEqual(since, nil) {
-		AddElementToObject(request, "end_date", this.Milliseconds())
+		request["end_date"] = until
+	} else if since != nil {
+		request["end_date"] = this.Milliseconds()
 	}
-	if !IsEqual(limit, nil) {
-		AddElementToObject(request, "limit", mathMin(limit, 1900))
+	if limit != nil {
+		request["limit"] = mathMin(limit, 1900)
 	}
 	var cursor *string = this.SafeString(params, "cursor")
 	if cursor != nil {
-		AddElementToObject(request, "cursor", cursor)
+		request["cursor"] = cursor
 	}
 
 	response := (<-this.PublicGet10PublicTradesAll(this.Extend(request, params)))
@@ -953,10 +963,10 @@ func (this *Revolutx) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	//     }
 	//
 	var data any = this.SafeList(response, "data", []any{})
-	var result any = []any{}
-	for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
+	var result []any = []any{}
+	for i := 0; i < GetArrayLength(data); i++ {
 		var trade any = this.SafeDict(data, i, map[string]any{})
-		AppendToArray(&result, this.ParseTrade(trade, market))
+		result = append(result, this.ParseTrade(trade, market))
 	}
 
 	ch <- this.FilterBySymbolSinceLimit(this.SortBy(result, "timestamp"), symbol, since, limit)
@@ -981,7 +991,7 @@ func (this *Revolutx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes83312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes83312)
@@ -995,12 +1005,17 @@ func (this *Revolutx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	//         { "currency": "USD", "available": "50000.00", "reserved": "1000.00", "total": "51000.00", "staked": "32.00000000" }
 	//     ]
 	//
-	var data any = Ternary(IsArray(response), response, this.SafeList(response, "data", []any{}))
+	var data any = func() any {
+		if IsArray(response) {
+			return response
+		}
+		return this.SafeList(response, "data", []any{})
+	}()
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
-		var balance any = this.SafeDict(data, i, map[string]any{})
+	for i := 0; i < GetArrayLength(data); i++ {
+		var balance map[string]any = SafeMapTyped(data, i)
 		var currency *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currency)
 		if code == nil {
@@ -1012,7 +1027,12 @@ func (this *Revolutx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		var staked *string = this.SafeString(balance, "staked")
 		var used any = reserved
 		if staked != nil {
-			used = Ternary((reserved == nil), staked, Precise.StringAdd(reserved, staked))
+			used = func() any {
+				if reserved == nil {
+					return staked
+				}
+				return Precise.StringAdd(reserved, staked)
+			}()
 		}
 		AddElementToObject(account, "used", used)
 		AddElementToObject(account, "total", this.SafeString(balance, "total"))
@@ -1031,7 +1051,7 @@ func (this *Revolutx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
  * @param {string} status the exchange-specific order status
  * @returns {string|undefined} the unified order status
  */
-func (this *Revolutx) ParseOrderStatus(status any) *string {
+func (this *Revolutx) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"pending_new":      "open",
 		"new":              "open",
@@ -1149,12 +1169,12 @@ func (this *Revolutx) createOrderBody(ch chan any, symbol any, typeVar any, side
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes98012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes98012)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "client_order_id", this.Uuid())
 	var cost *string = this.SafeString2(params, "cost", "quote_size")
 	var timeInForce *string = this.SafeStringLower2(params, "timeInForce", "time_in_force")
@@ -1163,38 +1183,38 @@ func (this *Revolutx) createOrderBody(ch chan any, symbol any, typeVar any, side
 	if IsEqual(typeVar, "limit") {
 		var limitConfig map[string]any = map[string]any{}
 		if cost != nil {
-			AddElementToObject(limitConfig, "quote_size", this.CostToPrecision(symbol, cost))
+			limitConfig["quote_size"] = this.CostToPrecision(symbol, cost)
 		} else {
-			AddElementToObject(limitConfig, "base_size", this.AmountToPrecision(symbol, amount))
+			limitConfig["base_size"] = this.AmountToPrecision(symbol, amount)
 		}
-		AddElementToObject(limitConfig, "price", this.PriceToPrecision(symbol, price))
+		limitConfig["price"] = this.PriceToPrecision(symbol, price)
 		if timeInForce != nil {
-			AddElementToObject(limitConfig, "time_in_force", timeInForce)
+			limitConfig["time_in_force"] = timeInForce
 		}
 		if !IsEqual(executionInstructions, nil) {
-			AddElementToObject(limitConfig, "execution_instructions", executionInstructions)
+			limitConfig["execution_instructions"] = executionInstructions
 		}
-		AddElementToObject(orderConfiguration, "limit", limitConfig)
+		orderConfiguration["limit"] = limitConfig
 	} else if IsEqual(typeVar, "market") {
 		if timeInForce != nil {
-			panic(InvalidOrder(Add(this.Id, " createOrder() timeInForce is only supported for limit orders")))
+			panic(InvalidOrder(this.Id + " createOrder() timeInForce is only supported for limit orders"))
 		}
 		if !IsEqual(executionInstructions, nil) {
-			panic(InvalidOrder(Add(this.Id, " createOrder() executionInstructions are only supported for limit orders")))
+			panic(InvalidOrder(this.Id + " createOrder() executionInstructions are only supported for limit orders"))
 		}
 		var marketConfig map[string]any = map[string]any{}
 		if cost != nil {
-			AddElementToObject(marketConfig, "quote_size", this.CostToPrecision(symbol, cost))
+			marketConfig["quote_size"] = this.CostToPrecision(symbol, cost)
 		} else {
-			AddElementToObject(marketConfig, "base_size", this.AmountToPrecision(symbol, amount))
+			marketConfig["base_size"] = this.AmountToPrecision(symbol, amount)
 		}
-		AddElementToObject(orderConfiguration, "market", marketConfig)
+		orderConfiguration["market"] = marketConfig
 	} else {
-		panic(InvalidOrder(Add(Add(this.Id, " createOrder() does not support order type "), typeVar)))
+		panic(InvalidOrder(Add(this.Id+" createOrder() does not support order type ", typeVar)))
 	}
 	var request map[string]any = map[string]any{
 		"client_order_id":     clientOrderId,
-		"symbol":              GetValue(market, "id"),
+		"symbol":              market["id"],
 		"side":                side,
 		"order_configuration": orderConfiguration,
 	}
@@ -1209,12 +1229,17 @@ func (this *Revolutx) createOrderBody(ch chan any, symbol any, typeVar any, side
 	//     }
 	//
 	var data any = this.SafeValue(response, "data", map[string]any{})
-	var orderData any = Ternary(IsArray(data), this.SafeDict(data, 0, map[string]any{}), this.SafeDict(response, "data", map[string]any{}))
+	var orderData any = func() any {
+		if IsArray(data) {
+			return this.SafeDict(data, 0, map[string]any{})
+		}
+		return this.SafeDict(response, "data", map[string]any{})
+	}()
 	var venueOrderId *string = this.SafeString(orderData, "venue_order_id")
 	var state *string = this.SafeString(orderData, "state")
 	var order any = this.ParseOrder(this.Extend(orderData, map[string]any{
 		"id":     venueOrderId,
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 		"status": state,
 		"side":   side,
 		"type":   typeVar,
@@ -1246,7 +1271,7 @@ func (this *Revolutx) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes106012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes106012)
@@ -1287,7 +1312,7 @@ func (this *Revolutx) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes108412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes108412)
@@ -1322,7 +1347,7 @@ func (this *Revolutx) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes110212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes110212)
@@ -1348,7 +1373,7 @@ func (this *Revolutx) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 	//
 	var data any = this.SafeDict(response, "data", map[string]any{})
 	var market any = nil
-	if !IsEqual(symbol, nil) {
+	if symbol != nil {
 		market = this.Market(symbol)
 	}
 
@@ -1387,34 +1412,34 @@ func (this *Revolutx) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes114612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes114612)
 	}
 	var request map[string]any = map[string]any{}
-	if !IsEqual(symbol, nil) {
-		var market any = this.Market(symbol)
-		AddElementToObject(request, "symbols", GetValue(market, "id"))
+	if symbol != nil {
+		var market map[string]any = MapTyped(this.Market(symbol))
+		request["symbols"] = market["id"]
 	}
-	if !IsEqual(limit, nil) {
-		AddElementToObject(request, "limit", limit)
+	if limit != nil {
+		request["limit"] = limit
 	}
 	var cursor *string = this.SafeString(params, "cursor")
 	if cursor != nil {
-		AddElementToObject(request, "cursor", cursor)
+		request["cursor"] = cursor
 	}
 	var orderStates any = this.SafeList2(params, "orderStates", "order_states")
 	if !IsEqual(orderStates, nil) {
-		AddElementToObject(request, "order_states", Join(orderStates, ","))
+		request["order_states"] = Join(orderStates, ",")
 	}
 	var orderTypes any = this.SafeList2(params, "orderTypes", "order_types")
 	if !IsEqual(orderTypes, nil) {
-		AddElementToObject(request, "order_types", Join(orderTypes, ","))
+		request["order_types"] = Join(orderTypes, ",")
 	}
 	var side *string = this.SafeString(params, "side")
 	if side != nil {
-		AddElementToObject(request, "side", side)
+		request["side"] = side
 	}
 
 	response := (<-this.PrivateGet10OrdersActive(this.Extend(request, this.Omit(params, []any{"cursor", "orderStates", "order_states", "orderTypes", "order_types", "side"}))))
@@ -1426,10 +1451,10 @@ func (this *Revolutx) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 	//     }
 	//
 	var data any = this.SafeList(response, "data", []any{})
-	var result any = []any{}
-	for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
+	var result []any = []any{}
+	for i := 0; i < GetArrayLength(data); i++ {
 		var order any = this.SafeDict(data, i, map[string]any{})
-		AppendToArray(&result, this.ParseOrder(order))
+		result = append(result, this.ParseOrder(order))
 	}
 
 	ch <- this.FilterBySymbolSinceLimit(result, symbol, since, limit)
@@ -1467,53 +1492,58 @@ func (this *Revolutx) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes120512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes120512)
 	}
 	var request map[string]any = map[string]any{}
-	if !IsEqual(symbol, nil) {
-		var market any = this.Market(symbol)
-		AddElementToObject(request, "symbols", GetValue(market, "id"))
+	if symbol != nil {
+		var market map[string]any = MapTyped(this.Market(symbol))
+		request["symbols"] = market["id"]
 	}
 	var thirtyDays int = 2592000000
 	var until *int64 = this.SafeInteger2(params, "until", "until")
-	if !IsEqual(since, nil) {
-		AddElementToObject(request, "start_date", since)
+	if since != nil {
+		request["start_date"] = since
 	} else if until != nil {
-		AddElementToObject(request, "start_date", Subtract(until, thirtyDays))
+		request["start_date"] = Subtract(until, thirtyDays)
 	}
 	if until != nil {
-		AddElementToObject(request, "end_date", until)
-	} else if !IsEqual(since, nil) {
+		request["end_date"] = until
+	} else if since != nil {
 		var now int64 = this.Milliseconds()
 		var defaultEnd any = Add(since, thirtyDays)
-		AddElementToObject(request, "end_date", Ternary((IsLessThan(defaultEnd, now)), defaultEnd, now))
+		request["end_date"] = func() any {
+			if IsLessThan(defaultEnd, now) {
+				return defaultEnd
+			}
+			return now
+		}()
 	}
-	if !IsEqual(limit, nil) {
-		AddElementToObject(request, "limit", limit)
+	if limit != nil {
+		request["limit"] = limit
 	}
 	var cursor *string = this.SafeString(params, "cursor")
 	if cursor != nil {
-		AddElementToObject(request, "cursor", cursor)
+		request["cursor"] = cursor
 	}
 	var orderStates any = this.SafeList2(params, "orderStates", "order_states")
 	if !IsEqual(orderStates, nil) {
-		AddElementToObject(request, "order_states", Join(orderStates, ","))
+		request["order_states"] = Join(orderStates, ",")
 	}
 	var orderTypes any = this.SafeList2(params, "orderTypes", "order_types")
 	if !IsEqual(orderTypes, nil) {
-		AddElementToObject(request, "order_types", Join(orderTypes, ","))
+		request["order_types"] = Join(orderTypes, ",")
 	}
 
 	response := (<-this.PrivateGet10OrdersHistorical(this.Extend(request, this.Omit(params, []any{"until", "cursor", "orderStates", "order_states", "orderTypes", "order_types"}))))
 	PanicOnError(response)
 	var data any = this.SafeList(response, "data", []any{})
-	var result any = []any{}
-	for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
+	var result []any = []any{}
+	for i := 0; i < GetArrayLength(data); i++ {
 		var order any = this.SafeDict(data, i, map[string]any{})
-		AppendToArray(&result, this.ParseOrder(order))
+		result = append(result, this.ParseOrder(order))
 	}
 
 	ch <- this.FilterBySymbolSinceLimit(result, symbol, since, limit)
@@ -1577,7 +1607,12 @@ func (this *Revolutx) ParseMyTrade(trade any, optionalArgs ...any) any {
 	var side *string = this.SafeStringLower(trade, "s")
 	var timestamp *int64 = this.SafeInteger2(trade, "tdt", "pdt")
 	var isMaker *bool = this.SafeBool(trade, "im", false)
-	var takerOrMaker string = Ternary(EvalTruthy((isMaker)), "maker", "taker").(string)
+	var takerOrMaker string = func() string {
+		if isMaker != nil && *isMaker {
+			return "maker"
+		}
+		return "taker"
+	}()
 	var cost any = nil
 	if (price != nil) && (amount != nil) {
 		cost = Multiply(price, amount)
@@ -1630,38 +1665,43 @@ func (this *Revolutx) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes132612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes132612)
 	}
-	if IsEqual(symbol, nil) {
-		panic(ArgumentsRequired(Add(this.Id, " fetchMyTrades() requires a symbol parameter")))
+	if symbol == nil {
+		panic(ArgumentsRequired(this.Id + " fetchMyTrades() requires a symbol parameter"))
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	var thirtyDays int = 2592000000
 	var until *int64 = this.SafeInteger2(params, "until", "until")
-	if !IsEqual(since, nil) {
-		AddElementToObject(request, "start_date", since)
+	if since != nil {
+		request["start_date"] = since
 	} else if until != nil {
-		AddElementToObject(request, "start_date", Subtract(until, thirtyDays))
+		request["start_date"] = Subtract(until, thirtyDays)
 	}
 	if until != nil {
-		AddElementToObject(request, "end_date", until)
-	} else if !IsEqual(since, nil) {
+		request["end_date"] = until
+	} else if since != nil {
 		var now int64 = this.Milliseconds()
 		var defaultEnd any = Add(since, thirtyDays)
-		AddElementToObject(request, "end_date", Ternary((IsLessThan(defaultEnd, now)), defaultEnd, now))
+		request["end_date"] = func() any {
+			if IsLessThan(defaultEnd, now) {
+				return defaultEnd
+			}
+			return now
+		}()
 	}
-	if !IsEqual(limit, nil) {
-		AddElementToObject(request, "limit", limit)
+	if limit != nil {
+		request["limit"] = limit
 	}
 	var cursor *string = this.SafeString(params, "cursor")
 	if cursor != nil {
-		AddElementToObject(request, "cursor", cursor)
+		request["cursor"] = cursor
 	}
 
 	response := (<-this.PrivateGet10TradesPrivateSymbol(this.Extend(request, this.Omit(params, []any{"until"}))))
@@ -1677,10 +1717,10 @@ func (this *Revolutx) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var data any = this.SafeList(response, "data", []any{})
-	var result any = []any{}
-	for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
+	var result []any = []any{}
+	for i := 0; i < GetArrayLength(data); i++ {
 		var trade any = this.SafeDict(data, i, map[string]any{})
-		AppendToArray(&result, this.ParseMyTrade(trade, market))
+		result = append(result, this.ParseMyTrade(trade, market))
 	}
 
 	ch <- result
@@ -1720,12 +1760,12 @@ func (this *Revolutx) editOrderBody(ch chan any, id any, symbol any, typeVar any
 	_ = price
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes139712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes139712)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "client_order_id", this.Uuid())
 	var cost *string = this.SafeString2(params, "cost", "quote_size")
 	var timeInForce *string = this.SafeStringLower2(params, "timeInForce", "time_in_force")
@@ -1735,18 +1775,18 @@ func (this *Revolutx) editOrderBody(ch chan any, id any, symbol any, typeVar any
 		"venue_order_id":  id,
 	}
 	if cost != nil {
-		AddElementToObject(request, "quote_size", this.CostToPrecision(symbol, cost))
-	} else if !IsEqual(amount, nil) {
-		AddElementToObject(request, "base_size", this.AmountToPrecision(symbol, amount))
+		request["quote_size"] = this.CostToPrecision(symbol, cost)
+	} else if amount != nil {
+		request["base_size"] = this.AmountToPrecision(symbol, amount)
 	}
-	if !IsEqual(price, nil) {
-		AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
+	if price != nil {
+		request["price"] = this.PriceToPrecision(symbol, price)
 	}
 	if timeInForce != nil {
-		AddElementToObject(request, "time_in_force", timeInForce)
+		request["time_in_force"] = timeInForce
 	}
 	if !IsEqual(executionInstructions, nil) {
-		AddElementToObject(request, "execution_instructions", executionInstructions)
+		request["execution_instructions"] = executionInstructions
 	}
 
 	response := (<-this.PrivatePut10OrdersVenueOrderId(this.Extend(request, this.Omit(params, []any{"clientOrderId", "client_order_id", "cost", "quote_size", "timeInForce", "time_in_force", "executionInstructions", "execution_instructions"}))))
@@ -1759,12 +1799,17 @@ func (this *Revolutx) editOrderBody(ch chan any, id any, symbol any, typeVar any
 	//     }
 	//
 	var data any = this.SafeValue(response, "data", map[string]any{})
-	var orderData any = Ternary(IsArray(data), this.SafeDict(data, 0, map[string]any{}), this.SafeDict(response, "data", map[string]any{}))
+	var orderData any = func() any {
+		if IsArray(data) {
+			return this.SafeDict(data, 0, map[string]any{})
+		}
+		return this.SafeDict(response, "data", map[string]any{})
+	}()
 	var newVenueOrderId *string = this.SafeString(orderData, "venue_order_id")
 	var state *string = this.SafeString(orderData, "state")
 	var order any = this.ParseOrder(this.Extend(orderData, map[string]any{
 		"id":     newVenueOrderId,
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 		"status": state,
 		"side":   side,
 		"type":   typeVar,
@@ -1778,13 +1823,13 @@ func (this *Revolutx) HandleErrors(code any, reason any, url any, method any, he
 		if IsEqual(response, nil) {
 			return nil
 		}
-		var feedback any = Add(Add(this.Id, " "), body)
+		var feedback any = Add(this.Id+" ", body)
 		var errorMessage any = nil
 		if IsObject(response) {
 			errorMessage = DerefScalar(this.SafeString2(response, "message", "error"))
 		}
 		if !IsEqual(errorMessage, nil) {
-			this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), errorMessage, feedback)
+			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], errorMessage, feedback)
 		}
 		return nil
 	}

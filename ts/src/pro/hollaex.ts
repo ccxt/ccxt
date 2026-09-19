@@ -76,7 +76,7 @@ export default class hollaex extends hollaexRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message: any) {
+    handleOrderBook (client: Client, message: Dict): void {
         //
         //     {
         //         "topic":"orderbook",
@@ -105,7 +105,7 @@ export default class hollaex extends hollaexRest {
         if (symbol === undefined) {
             return;
         }
-        const data = this.safeValue (message, 'data');
+        const data = this.safeDict (message, 'data');
         const timestamp = this.safeString (data, 'timestamp');
         const timestampMs = this.parse8601 (timestamp);
         const snapshot = this.parseOrderBook (data, symbol, timestampMs);
@@ -149,7 +149,7 @@ export default class hollaex extends hollaexRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client: Client, message: any) {
+    handleTrades (client: Client, message: Dict): void {
         //
         //     {
         //         "topic": "trade",
@@ -175,7 +175,7 @@ export default class hollaex extends hollaexRest {
             stored = new ArrayCache (limit);
             this.trades[symbol] = stored;
         }
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeList (message, 'data', []);
         const parsedTrades = this.parseTrades (data, market);
         for (let j = 0; j < parsedTrades.length; j++) {
             stored.append (parsedTrades[j]);
@@ -214,7 +214,7 @@ export default class hollaex extends hollaexRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleMyTrades (client: Client, message: any, subscription: Dict | undefined = undefined) {
+    handleMyTrades (client: Client, message: Dict, subscription: Dict | undefined = undefined): void {
         //
         // {
         //     "topic":"usertrade",
@@ -301,7 +301,7 @@ export default class hollaex extends hollaexRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrder (client: Client, message: any, subscription: Dict | undefined = undefined) {
+    handleOrder (client: Client, message: Dict, subscription: Dict | undefined = undefined): void {
         //
         //     {
         //         "topic": "order",
@@ -412,7 +412,7 @@ export default class hollaex extends hollaexRest {
         return await this.watchPrivate (messageHash, params);
     }
 
-    handleBalance (client: Client, message: any) {
+    handleBalance (client: Client, message: Dict): void {
         //
         //     {
         //         "topic": "wallet",
@@ -456,7 +456,7 @@ export default class hollaex extends hollaexRest {
         client.resolve (this.balance, messageHash);
     }
 
-    async watchPublic (messageHash: any, params = {}) {
+    async watchPublic (messageHash: string, params: Dict = {}): Promise<any> {
         const url = this.urls['api']['ws'];
         const request: Dict = {
             'op': 'subscribe',
@@ -466,7 +466,7 @@ export default class hollaex extends hollaexRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    async watchPrivate (messageHash: any, params = {}) {
+    async watchPrivate (messageHash: string, params: Dict = {}): Promise<any> {
         this.checkRequiredCredentials ();
         let expires = this.safeString (this.options, 'ws-expires');
         if (expires === undefined) {
@@ -516,7 +516,7 @@ export default class hollaex extends hollaexRest {
         return true;
     }
 
-    override handleMessage (client: Client, message: any) {
+    override handleMessage (client: Client, message: Dict): void {
         //
         // pong
         //
@@ -617,29 +617,29 @@ export default class hollaex extends hollaexRest {
             'wallet': this.handleBalance,
             'usertrade': this.handleMyTrades,
         };
-        const topic = this.safeValue (message, 'topic');
+        const topic = this.safeString (message, 'topic');
         const method = this.safeValue (methods, topic);
         if (method !== undefined) {
             method.call (this, client, message);
         }
     }
 
-    override ping (client: Client) {
+    override ping (client: Client): Dict {
         // hollaex does not support built-in ws protocol-level ping-pong
         return { 'op': 'ping' };
     }
 
-    handlePong (client: Client, message: any) {
+    handlePong (client: Client, message: Dict): Dict {
         client.lastPong = this.milliseconds ();
         return message;
     }
 
-    override onError (client: Client, error: any) {
+    override onError (client: Client, error: any): void {
         this.options['ws-expires'] = undefined;
         super.onError (client, error);
     }
 
-    override onClose (client: Client, error: any) {
+    override onClose (client: Client, error: any): void {
         this.options['ws-expires'] = undefined;
         super.onClose (client, error);
     }

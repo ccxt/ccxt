@@ -290,7 +290,7 @@ export default class upbit extends Exchange {
         });
     }
 
-    async fetchCurrency (code: string, params = {}) {
+    async fetchCurrency (code: string, params: Dict = {}): Promise<Dict> {
         // this method is for retrieving funding fees and limits per currency
         // it requires private access and API keys properly set up
         if (this.markets === undefined) {
@@ -300,7 +300,7 @@ export default class upbit extends Exchange {
         return await this.fetchCurrencyById (currency['id'], params);
     }
 
-    async fetchCurrencyById (id: string, params = {}) {
+    async fetchCurrencyById (id: string, params: Dict = {}): Promise<Dict> {
         // this method is for retrieving funding fees and limits per currency
         // it requires private access and API keys properly set up
         const request: Dict = {
@@ -345,13 +345,13 @@ export default class upbit extends Exchange {
         //         }
         //     }
         //
-        const memberInfo = this.safeValue (response, 'member_level', {});
-        const currencyInfo = this.safeValue (response, 'currency', {});
-        const withdrawLimits = this.safeValue (response, 'withdraw_limit', {});
-        const canWithdraw = this.safeValue (withdrawLimits, 'can_withdraw');
+        const memberInfo = this.safeDict (response, 'member_level', {});
+        const currencyInfo = this.safeDict (response, 'currency', {});
+        const withdrawLimits = this.safeDict (response, 'withdraw_limit', {});
+        const canWithdraw = this.safeBool (withdrawLimits, 'can_withdraw');
         const walletState = this.safeString (currencyInfo, 'wallet_state');
-        const walletLocked = this.safeValue (memberInfo, 'wallet_locked');
-        const locked = this.safeValue (memberInfo, 'locked');
+        const walletLocked = this.safeBool (memberInfo, 'wallet_locked');
+        const locked = this.safeBool (memberInfo, 'locked');
         let active = true;
         if ((canWithdraw !== undefined) && (canWithdraw !== true)) {
             active = false;
@@ -390,7 +390,7 @@ export default class upbit extends Exchange {
         };
     }
 
-    async fetchMarket (symbol: string, params = {}) {
+    async fetchMarket (symbol: string, params: Dict = {}): Promise<Market> {
         // this method is for retrieving trading fees and limits per market
         // it requires private access and API keys properly set up
         if (this.markets === undefined) {
@@ -400,7 +400,7 @@ export default class upbit extends Exchange {
         return await this.fetchMarketById (market['id'], params);
     }
 
-    async fetchMarketById (id: Str, params = {}) {
+    async fetchMarketById (id: Str, params: Dict = {}): Promise<Market> {
         // this method is for retrieving trading fees and limits per market
         // it requires private access and API keys properly set up
         const request: Dict = {
@@ -439,9 +439,9 @@ export default class upbit extends Exchange {
         //         }
         //     }
         //
-        const marketInfo = this.safeValue (response, 'market');
-        const bid = this.safeValue (marketInfo, 'bid');
-        const ask = this.safeValue (marketInfo, 'ask');
+        const marketInfo = this.safeDict (response, 'market');
+        const bid = this.safeDict (marketInfo, 'bid');
+        const ask = this.safeDict (marketInfo, 'ask');
         const marketId = this.safeString (marketInfo, 'id');
         const baseId = this.safeString (ask, 'currency');
         const quoteId = this.safeString (bid, 'currency');
@@ -875,7 +875,7 @@ export default class upbit extends Exchange {
         return this.parseTickers (tickers, symbols);
     }
 
-    idsQueryStrings (ids: Strings, maxQueryLength: number) {
+    idsQueryStrings (ids: Strings, maxQueryLength: number): List {
         if (ids === undefined) {
             return [];
         }
@@ -1235,7 +1235,7 @@ export default class upbit extends Exchange {
 
     calcOrderPrice (symbol: string, amount: Num, price: Num = undefined, params = {}): Str {
         let quoteAmount: Str = undefined;
-        const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice');
+        const createMarketBuyOrderRequiresPrice = this.safeBool (this.options, 'createMarketBuyOrderRequiresPrice');
         const cost = this.safeString (params, 'cost');
         if (cost !== undefined) {
             quoteAmount = this.costToPrecision (symbol, cost);
@@ -1741,7 +1741,7 @@ export default class upbit extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             'submitting': 'pending', // 처리 중
             'submitted': 'pending', // 처리 완료
@@ -1823,7 +1823,7 @@ export default class upbit extends Exchange {
         } as Transaction;
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'wait': 'open',
             'done': 'closed',
@@ -1952,7 +1952,7 @@ export default class upbit extends Exchange {
                 const trade = trades[i];
                 cost = Precise.stringAdd (cost, this.safeString (trade, 'cost'));
                 if (getFeesFromTrades) {
-                    const tradeFee = this.safeValue (trades[i], 'fee', {});
+                    const tradeFee = this.safeDict (trades[i], 'fee', {});
                     const tradeFeeCost = this.safeString (tradeFee, 'cost');
                     if (tradeFeeCost !== undefined) {
                         feeCost = Precise.stringAdd (feeCost, tradeFeeCost);
@@ -2425,11 +2425,11 @@ export default class upbit extends Exchange {
         return this.parseTransaction (response);
     }
 
-    override nonce () {
+    override nonce (): number {
         return this.milliseconds ();
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined): Dict {
         let url: Str = this.implodeParams (this.urls['api'][api], {
             'hostname': this.hostname,
         });
@@ -2483,7 +2483,7 @@ export default class upbit extends Exchange {
         //   { 'error': { 'message': "잘못된 엑세스 키입니다.", 'name': "invalid_access_key" } },
         //   { 'error': { 'message': "Jwt 토큰 검증에 실패했습니다.", 'name': "jwt_verification" } }
         //
-        const error = this.safeValue (response, 'error');
+        const error = this.safeDict (response, 'error');
         if (error !== undefined) {
             const message = this.safeString (error, 'message');
             const name = this.safeString (error, 'name');

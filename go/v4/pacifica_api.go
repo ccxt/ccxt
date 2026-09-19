@@ -9,252 +9,252 @@ package ccxt
 
 // PublicGetInfo returns a channel that yields a JSON object.
 func (this *Pacifica) PublicGetInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetInfo", args...)
+	return this.Fetch2Async("info", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetInfoFees returns a channel that yields a JSON object.
 func (this *Pacifica) PublicGetInfoFees(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetInfoFees", args...)
+	return this.Fetch2Async("info/fees", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetInfoPrices returns a channel that yields a JSON object.
 func (this *Pacifica) PublicGetInfoPrices(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetInfoPrices", args...)
+	return this.Fetch2Async("info/prices", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetKline returns a channel that yields a JSON object.
 func (this *Pacifica) PublicGetKline(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetKline", args...)
+	return this.Fetch2Async("kline", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(12)})
 }
 
 // PublicGetKlineMark returns a channel that yields a JSON object.
 func (this *Pacifica) PublicGetKlineMark(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetKlineMark", args...)
+	return this.Fetch2Async("kline/mark", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(12)})
 }
 
 // PublicGetBook returns a channel that yields a JSON object.
 func (this *Pacifica) PublicGetBook(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetBook", args...)
+	return this.Fetch2Async("book", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetTrades returns a channel that yields a JSON object.
 func (this *Pacifica) PublicGetTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTrades", args...)
+	return this.Fetch2Async("trades", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetFundingRateHistory returns a channel that yields a JSON object.
 func (this *Pacifica) PublicGetFundingRateHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetFundingRateHistory", args...)
+	return this.Fetch2Async("funding_rate/history", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetLoanPool returns a channel that yields a JSON object.
 func (this *Pacifica) PublicGetLoanPool(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetLoanPool", args...)
+	return this.Fetch2Async("loan_pool", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetAccount returns a channel that yields a JSON object.
 func (this *Pacifica) PublicGetAccount(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetAccount", args...)
+	return this.Fetch2Async("account", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetAccountLoan returns a channel that yields a JSON object.
 func (this *Pacifica) PublicGetAccountLoan(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetAccountLoan", args...)
+	return this.Fetch2Async("account/loan", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetAccountSettings returns a channel that yields a JSON object.
 func (this *Pacifica) PublicGetAccountSettings(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetAccountSettings", args...)
+	return this.Fetch2Async("account/settings", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetPositions returns a channel that yields a JSON object.
 func (this *Pacifica) PublicGetPositions(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPositions", args...)
+	return this.Fetch2Async("positions", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetTradesHistory returns a channel that yields a JSON object.
 func (this *Pacifica) PublicGetTradesHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTradesHistory", args...)
+	return this.Fetch2Async("trades/history", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(12)})
 }
 
 // PublicGetFundingHistory returns a channel that yields a JSON object.
 func (this *Pacifica) PublicGetFundingHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetFundingHistory", args...)
+	return this.Fetch2Async("funding/history", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetPortfolio returns a channel that yields a JSON object.
 func (this *Pacifica) PublicGetPortfolio(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPortfolio", args...)
+	return this.Fetch2Async("portfolio", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetAccountBalanceHistory returns a channel that yields a JSON object.
 func (this *Pacifica) PublicGetAccountBalanceHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetAccountBalanceHistory", args...)
+	return this.Fetch2Async("account/balance/history", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(12)})
 }
 
 // PublicGetAccountSpotBalanceHistory returns a channel that yields a JSON object.
 func (this *Pacifica) PublicGetAccountSpotBalanceHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetAccountSpotBalanceHistory", args...)
+	return this.Fetch2Async("account/spot_balance/history", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetAccountSpotAssetDepositHistory returns a channel that yields a JSON object.
 func (this *Pacifica) PublicGetAccountSpotAssetDepositHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetAccountSpotAssetDepositHistory", args...)
+	return this.Fetch2Async("account/spot_asset/deposit/history", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetAccountSpotAssetWithdrawHistory returns a channel that yields a JSON object.
 func (this *Pacifica) PublicGetAccountSpotAssetWithdrawHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetAccountSpotAssetWithdrawHistory", args...)
+	return this.Fetch2Async("account/spot_asset/withdraw/history", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetAccountSpotAssetWithdrawPending returns a channel that yields a JSON object.
 func (this *Pacifica) PublicGetAccountSpotAssetWithdrawPending(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetAccountSpotAssetWithdrawPending", args...)
+	return this.Fetch2Async("account/spot_asset/withdraw/pending", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetOrders returns a channel that yields a JSON object.
 func (this *Pacifica) PublicGetOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetOrders", args...)
+	return this.Fetch2Async("orders", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetOrdersHistory returns a channel that yields a JSON object.
 func (this *Pacifica) PublicGetOrdersHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetOrdersHistory", args...)
+	return this.Fetch2Async("orders/history", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(12)})
 }
 
 // PublicGetOrdersHistoryById returns a channel that yields a JSON object.
 func (this *Pacifica) PublicGetOrdersHistoryById(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetOrdersHistoryById", args...)
+	return this.Fetch2Async("orders/history_by_id", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetOrdersTwap returns a channel that yields a JSON object.
 func (this *Pacifica) PublicGetOrdersTwap(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetOrdersTwap", args...)
+	return this.Fetch2Async("orders/twap", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetOrdersTwapHistory returns a channel that yields a JSON object.
 func (this *Pacifica) PublicGetOrdersTwapHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetOrdersTwapHistory", args...)
+	return this.Fetch2Async("orders/twap/history", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(12)})
 }
 
 // PublicGetOrdersTwapHistoryById returns a channel that yields a JSON object.
 func (this *Pacifica) PublicGetOrdersTwapHistoryById(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetOrdersTwapHistoryById", args...)
+	return this.Fetch2Async("orders/twap/history_by_id", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetSpotAssets returns a channel that yields a JSON object.
 func (this *Pacifica) PublicGetSpotAssets(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSpotAssets", args...)
+	return this.Fetch2Async("spot_assets", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetSpotAssetsBridgeInfo returns a channel that yields a JSON object.
 func (this *Pacifica) PublicGetSpotAssetsBridgeInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSpotAssetsBridgeInfo", args...)
+	return this.Fetch2Async("spot_assets/bridge/info", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetSpotAssetsBridgeParametersSymbol returns a channel that yields a JSON object.
 func (this *Pacifica) PublicGetSpotAssetsBridgeParametersSymbol(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSpotAssetsBridgeParametersSymbol", args...)
+	return this.Fetch2Async("spot_assets/bridge/parameters/{symbol}", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetLakeList returns a channel that yields a JSON object.
 func (this *Pacifica) PublicGetLakeList(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetLakeList", args...)
+	return this.Fetch2Async("lake/list", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetAccountBuilderCodesApprovals returns a channel that yields a JSON array.
 func (this *Pacifica) PublicGetAccountBuilderCodesApprovals(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetAccountBuilderCodesApprovals", args...)
+	return this.Fetch2Async("account/builder_codes/approvals", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetBuilderOverview returns a channel that yields a JSON array.
 func (this *Pacifica) PublicGetBuilderOverview(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetBuilderOverview", args...)
+	return this.Fetch2Async("builder/overview", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetBuilderTrades returns a channel that yields a JSON object.
 func (this *Pacifica) PublicGetBuilderTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetBuilderTrades", args...)
+	return this.Fetch2Async("builder/trades", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetLeaderboardBuilderCode returns a channel that yields a JSON object.
 func (this *Pacifica) PublicGetLeaderboardBuilderCode(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetLeaderboardBuilderCode", args...)
+	return this.Fetch2Async("leaderboard/builder_code", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostAccountLeverage returns a channel that yields a JSON object.
 func (this *Pacifica) PrivatePostAccountLeverage(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountLeverage", args...)
+	return this.Fetch2Async("account/leverage", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostAccountMargin returns a channel that yields a JSON object.
 func (this *Pacifica) PrivatePostAccountMargin(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountMargin", args...)
+	return this.Fetch2Async("account/margin", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostAccountWithdraw returns a channel that yields a JSON object.
 func (this *Pacifica) PrivatePostAccountWithdraw(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountWithdraw", args...)
+	return this.Fetch2Async("account/withdraw", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostAccountSettingsAutoLendDisabled returns a channel that yields a JSON object.
 func (this *Pacifica) PrivatePostAccountSettingsAutoLendDisabled(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountSettingsAutoLendDisabled", args...)
+	return this.Fetch2Async("account/settings/auto_lend_disabled", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostAccountSettingsSpot returns a channel that yields a JSON object.
 func (this *Pacifica) PrivatePostAccountSettingsSpot(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountSettingsSpot", args...)
+	return this.Fetch2Async("account/settings/spot", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostAccountSpotAssetWithdraw returns a channel that yields a JSON object.
 func (this *Pacifica) PrivatePostAccountSpotAssetWithdraw(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountSpotAssetWithdraw", args...)
+	return this.Fetch2Async("account/spot_asset/withdraw", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostAccountSubaccountCreate returns a channel that yields a JSON object.
 func (this *Pacifica) PrivatePostAccountSubaccountCreate(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountSubaccountCreate", args...)
+	return this.Fetch2Async("account/subaccount/create", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostAccountSubaccountList returns a channel that yields a JSON object.
 func (this *Pacifica) PrivatePostAccountSubaccountList(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountSubaccountList", args...)
+	return this.Fetch2Async("account/subaccount/list", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostAccountSubaccountTransfer returns a channel that yields a JSON object.
 func (this *Pacifica) PrivatePostAccountSubaccountTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountSubaccountTransfer", args...)
+	return this.Fetch2Async("account/subaccount/transfer", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostAccountSubaccountSpotAssetTransfer returns a channel that yields a JSON object.
 func (this *Pacifica) PrivatePostAccountSubaccountSpotAssetTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountSubaccountSpotAssetTransfer", args...)
+	return this.Fetch2Async("account/subaccount/spot_asset/transfer", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostPositionsAddIsolatedMargin returns a channel that yields a JSON object.
 func (this *Pacifica) PrivatePostPositionsAddIsolatedMargin(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostPositionsAddIsolatedMargin", args...)
+	return this.Fetch2Async("positions/add_isolated_margin", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostOrdersCreate returns a channel that yields a JSON object.
 func (this *Pacifica) PrivatePostOrdersCreate(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOrdersCreate", args...)
+	return this.Fetch2Async("orders/create", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostOrdersCreateMarket returns a channel that yields a JSON object.
 func (this *Pacifica) PrivatePostOrdersCreateMarket(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOrdersCreateMarket", args...)
+	return this.Fetch2Async("orders/create_market", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostOrdersStopCreate returns a channel that yields a JSON object.
 func (this *Pacifica) PrivatePostOrdersStopCreate(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOrdersStopCreate", args...)
+	return this.Fetch2Async("orders/stop/create", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostPositionsTpsl returns a channel that yields a JSON object.
 func (this *Pacifica) PrivatePostPositionsTpsl(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostPositionsTpsl", args...)
+	return this.Fetch2Async("positions/tpsl", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostOrdersCancel returns a channel that yields a JSON object.
@@ -274,17 +274,17 @@ func (this *Pacifica) PrivatePostOrdersStopCancel(args ...any) <-chan any {
 
 // PrivatePostOrdersEdit returns a channel that yields a JSON object.
 func (this *Pacifica) PrivatePostOrdersEdit(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOrdersEdit", args...)
+	return this.Fetch2Async("orders/edit", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostOrdersBatch returns a channel that yields a JSON object.
 func (this *Pacifica) PrivatePostOrdersBatch(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOrdersBatch", args...)
+	return this.Fetch2Async("orders/batch", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostOrdersTwapCreate returns a channel that yields a JSON object.
 func (this *Pacifica) PrivatePostOrdersTwapCreate(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOrdersTwapCreate", args...)
+	return this.Fetch2Async("orders/twap/create", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostOrdersTwapCancel returns a channel that yields a JSON object.
@@ -294,135 +294,135 @@ func (this *Pacifica) PrivatePostOrdersTwapCancel(args ...any) <-chan any {
 
 // PrivatePostAccountBuilderCodesApprove returns a channel that yields a JSON object.
 func (this *Pacifica) PrivatePostAccountBuilderCodesApprove(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountBuilderCodesApprove", args...)
+	return this.Fetch2Async("account/builder_codes/approve", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostAccountBuilderCodesRevoke returns a channel that yields a JSON object.
 func (this *Pacifica) PrivatePostAccountBuilderCodesRevoke(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountBuilderCodesRevoke", args...)
+	return this.Fetch2Async("account/builder_codes/revoke", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostBuilderUpdateFeeRate returns a channel that yields a JSON object.
 func (this *Pacifica) PrivatePostBuilderUpdateFeeRate(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostBuilderUpdateFeeRate", args...)
+	return this.Fetch2Async("builder/update_fee_rate", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostReferralUserCodeClaim returns a channel that yields a JSON object.
 func (this *Pacifica) PrivatePostReferralUserCodeClaim(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostReferralUserCodeClaim", args...)
+	return this.Fetch2Async("referral/user/code/claim", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostAgentBind returns a channel that yields a JSON object.
 func (this *Pacifica) PrivatePostAgentBind(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAgentBind", args...)
+	return this.Fetch2Async("agent/bind", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostAgentList returns a channel that yields a JSON object.
 func (this *Pacifica) PrivatePostAgentList(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAgentList", args...)
+	return this.Fetch2Async("agent/list", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostAgentRevoke returns a channel that yields a JSON object.
 func (this *Pacifica) PrivatePostAgentRevoke(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAgentRevoke", args...)
+	return this.Fetch2Async("agent/revoke", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostAgentRevokeAll returns a channel that yields a JSON object.
 func (this *Pacifica) PrivatePostAgentRevokeAll(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAgentRevokeAll", args...)
+	return this.Fetch2Async("agent/revoke_all", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostAgentIpWhitelistList returns a channel that yields a JSON object.
 func (this *Pacifica) PrivatePostAgentIpWhitelistList(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAgentIpWhitelistList", args...)
+	return this.Fetch2Async("agent/ip_whitelist/list", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostAgentIpWhitelistAdd returns a channel that yields a JSON object.
 func (this *Pacifica) PrivatePostAgentIpWhitelistAdd(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAgentIpWhitelistAdd", args...)
+	return this.Fetch2Async("agent/ip_whitelist/add", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostAgentIpWhitelistRemove returns a channel that yields a JSON object.
 func (this *Pacifica) PrivatePostAgentIpWhitelistRemove(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAgentIpWhitelistRemove", args...)
+	return this.Fetch2Async("agent/ip_whitelist/remove", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostAgentIpWhitelistToggle returns a channel that yields a JSON object.
 func (this *Pacifica) PrivatePostAgentIpWhitelistToggle(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAgentIpWhitelistToggle", args...)
+	return this.Fetch2Async("agent/ip_whitelist/toggle", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostAccountApiKeysCreate returns a channel that yields a JSON object.
 func (this *Pacifica) PrivatePostAccountApiKeysCreate(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountApiKeysCreate", args...)
+	return this.Fetch2Async("account/api_keys/create", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostAccountApiKeysRevoke returns a channel that yields a JSON object.
 func (this *Pacifica) PrivatePostAccountApiKeysRevoke(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountApiKeysRevoke", args...)
+	return this.Fetch2Async("account/api_keys/revoke", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostAccountApiKeys returns a channel that yields a JSON object.
 func (this *Pacifica) PrivatePostAccountApiKeys(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountApiKeys", args...)
+	return this.Fetch2Async("account/api_keys", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostLakeAddBlacklist returns a channel that yields a JSON object.
 func (this *Pacifica) PrivatePostLakeAddBlacklist(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostLakeAddBlacklist", args...)
+	return this.Fetch2Async("lake/add_blacklist", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostLakeAddMaxLeverage returns a channel that yields a JSON object.
 func (this *Pacifica) PrivatePostLakeAddMaxLeverage(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostLakeAddMaxLeverage", args...)
+	return this.Fetch2Async("lake/add_max_leverage", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostLakeAddWhitelist returns a channel that yields a JSON object.
 func (this *Pacifica) PrivatePostLakeAddWhitelist(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostLakeAddWhitelist", args...)
+	return this.Fetch2Async("lake/add_whitelist", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostLakeClaimManager returns a channel that yields a JSON object.
 func (this *Pacifica) PrivatePostLakeClaimManager(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostLakeClaimManager", args...)
+	return this.Fetch2Async("lake/claim_manager", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostLakeClaimReferralCode returns a channel that yields a JSON object.
 func (this *Pacifica) PrivatePostLakeClaimReferralCode(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostLakeClaimReferralCode", args...)
+	return this.Fetch2Async("lake/claim_referral_code", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostLakeCreate returns a channel that yields a JSON object.
 func (this *Pacifica) PrivatePostLakeCreate(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostLakeCreate", args...)
+	return this.Fetch2Async("lake/create", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostLakeDeposit returns a channel that yields a JSON object.
 func (this *Pacifica) PrivatePostLakeDeposit(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostLakeDeposit", args...)
+	return this.Fetch2Async("lake/deposit", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostLakeRemoveBlacklist returns a channel that yields a JSON object.
 func (this *Pacifica) PrivatePostLakeRemoveBlacklist(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostLakeRemoveBlacklist", args...)
+	return this.Fetch2Async("lake/remove_blacklist", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostLakeRemoveMaxLeverage returns a channel that yields a JSON object.
 func (this *Pacifica) PrivatePostLakeRemoveMaxLeverage(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostLakeRemoveMaxLeverage", args...)
+	return this.Fetch2Async("lake/remove_max_leverage", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostLakeRemoveWhitelist returns a channel that yields a JSON object.
 func (this *Pacifica) PrivatePostLakeRemoveWhitelist(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostLakeRemoveWhitelist", args...)
+	return this.Fetch2Async("lake/remove_whitelist", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostLakeUpdateDepositCap returns a channel that yields a JSON object.
 func (this *Pacifica) PrivatePostLakeUpdateDepositCap(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostLakeUpdateDepositCap", args...)
+	return this.Fetch2Async("lake/update_deposit_cap", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostLakeWithdraw returns a channel that yields a JSON object.
 func (this *Pacifica) PrivatePostLakeWithdraw(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostLakeWithdraw", args...)
+	return this.Fetch2Async("lake/withdraw", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }

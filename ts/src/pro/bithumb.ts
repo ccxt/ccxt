@@ -43,7 +43,7 @@ export default class bithumb extends bithumbRest {
         });
     }
 
-    async pong (client: Client, message: any) {
+    async pong (client: Client, message: any): Promise<void> {
         const ping = this.safeInteger (message, 'ping');
         if (ping !== undefined) {
             await client.send ({ 'pong': ping });
@@ -52,11 +52,11 @@ export default class bithumb extends bithumbRest {
         }
     }
 
-    handlePing (client: Client, message: any) {
+    handlePing (client: Client, message: any): void {
         this.spawn (this.pong, client, message);
     }
 
-    handlePong (client: Client, message: any) {
+    handlePong (client: Client, message: any): void {
         client.lastPong = this.milliseconds ();
     }
 
@@ -72,7 +72,7 @@ export default class bithumb extends bithumbRest {
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
      */
-    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -115,7 +115,7 @@ export default class bithumb extends bithumbRest {
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure} indexed by market symbols
      */
-    override async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -137,7 +137,7 @@ export default class bithumb extends bithumbRest {
         for (let i = 0; i < symbolsLengthDefined; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
-            let streamMarketId = undefined;
+            let streamMarketId: Str = undefined;
             if (isGenerationTwo) {
                 streamMarketId = this.getGen2MarketId (market);
             } else {
@@ -173,7 +173,7 @@ export default class bithumb extends bithumbRest {
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
-    handleTicker (client: Client, message: any) {
+    handleTicker (client: Client, message: Dict): void {
         //
         // generation 1
         //
@@ -249,7 +249,7 @@ export default class bithumb extends bithumbRest {
         if (marketId === undefined) {
             return;
         }
-        let symbol = undefined;
+        let symbol: Str = undefined;
         if (isGenerationTwo) {
             symbol = this.safeSymbol (marketId, undefined, '-');
         } else {
@@ -264,7 +264,7 @@ export default class bithumb extends bithumbRest {
         client.resolve (this.tickers[symbol], messageHash);
     }
 
-    parseWsTicker (ticker: Dict, market: Market = undefined) {
+    parseWsTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //    {
         //        "symbol" : "BTC_KRW",           // 통화코드
@@ -373,7 +373,7 @@ export default class bithumb extends bithumbRest {
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -404,7 +404,7 @@ export default class bithumb extends bithumbRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message: any) {
+    handleOrderBook (client: Client, message: Dict): void {
         //
         // generation 1
         //
@@ -483,7 +483,7 @@ export default class bithumb extends bithumbRest {
             return;
         }
         const streamType = this.safeString (message, 'stream_type');
-        const options = this.safeValue (this.options, 'watchOrderBook', {});
+        const options = this.safeDict (this.options, 'watchOrderBook', {});
         const obLimit = this.safeInteger (options, 'limit', 1000);
         if (!(symbol in this.orderbooks) || (streamType === 'SNAPSHOT')) {
             this.orderbooks[symbol] = this.orderBook ({}, obLimit);
@@ -508,7 +508,7 @@ export default class bithumb extends bithumbRest {
             }
         }
         const gen2TimestampStr = this.safeString2 (message, 'timestamp', 'datetime') as string;
-        let timestamp = undefined;
+        let timestamp: Int = undefined;
         if (gen2TimestampStr !== undefined) {
             timestamp = this.parseToInt (gen2TimestampStr.slice (0, 13));
         }
@@ -557,7 +557,7 @@ export default class bithumb extends bithumbRest {
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
      * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
      */
-    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -591,7 +591,7 @@ export default class bithumb extends bithumbRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client: any, message: any) {
+    handleTrades (client: Client, message: Dict): void {
         //
         // generation 1
         //
@@ -644,7 +644,7 @@ export default class bithumb extends bithumbRest {
             }
             const code = this.safeString (rawTrade, 'code');
             const isGenerationTwo = (code !== undefined);
-            let fallbackSymbol = undefined;
+            let fallbackSymbol: Str = undefined;
             if (isGenerationTwo) {
                 fallbackSymbol = this.safeSymbol (marketId, undefined, '-');
             } else {
@@ -728,7 +728,7 @@ export default class bithumb extends bithumbRest {
         }, market);
     }
 
-    handleErrorMessage (client: Client, message: any): Bool {
+    handleErrorMessage (client: Client, message: Dict): Bool {
         //
         //    {
         //        "status" : "5100",
@@ -776,7 +776,7 @@ export default class bithumb extends bithumbRest {
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async watchBalance (params = {}): Promise<Balances> {
+    override async watchBalance (params: Dict = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -793,7 +793,7 @@ export default class bithumb extends bithumbRest {
         return balance;
     }
 
-    handleBalance (client: Client, message: any) {
+    handleBalance (client: Client, message: Dict): void {
         //
         //    {
         //        "type": "myAsset",
@@ -861,7 +861,7 @@ export default class bithumb extends bithumbRest {
         return request;
     }
 
-    async authenticate (params = {}) {
+    async authenticate (params: Dict = {}): Promise<Client> {
         this.checkRequiredCredentials ();
         const wsOptions = this.safeDict (this.options, 'ws', {});
         const authenticated = this.safeString (wsOptions, 'token');
@@ -898,7 +898,7 @@ export default class bithumb extends bithumbRest {
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -924,7 +924,7 @@ export default class bithumb extends bithumbRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrders (client: Client, message: any) {
+    handleOrders (client: Client, message: Dict): void {
         //
         //    {
         //        "type": "myOrder",

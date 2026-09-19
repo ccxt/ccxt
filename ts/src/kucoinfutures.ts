@@ -3,7 +3,7 @@
 
 import kucoin from './kucoin.js';
 import { BadRequest } from './base/errors.js';
-import type { Dict, Strings, TransferEntry } from './base/types.js';
+import type { Dict, Str, Strings, TransferEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -50,8 +50,8 @@ export default class kucoinfutures extends kucoin {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchBidsAsks (symbols: Strings = undefined, params = {}) {
-        const request = {
+    override async fetchBidsAsks (symbols: Strings = undefined, params: Dict = {}) {
+        const request: Dict = {
             'method': 'futuresPublicGetAllTickers',
         };
         const extendedRequest = this.extend (request, params);
@@ -69,7 +69,7 @@ export default class kucoinfutures extends kucoin {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    override async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
+    override async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params: Dict = {}): Promise<TransferEntry> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -130,7 +130,7 @@ export default class kucoinfutures extends kucoin {
         });
     }
 
-    parseTransferType (transferType: any) {
+    parseTransferType (transferType: Str): Str {
         const transferTypes: Dict = {
             'spot': 'TRADE',
             'funding': 'MAIN',

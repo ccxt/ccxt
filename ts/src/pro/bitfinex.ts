@@ -6,7 +6,7 @@ import bitfinexRest from '../bitfinex.js';
 import { Precise } from '../base/Precise.js';
 import { ExchangeError, AuthenticationError, ChecksumError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, Market, FeeString } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, Market, FeeString, BalanceAccount } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -49,7 +49,7 @@ export default class bitfinex extends bitfinexRest {
         });
     }
 
-    async subscribe (channel: any, symbol: any, params = {}) {
+    async subscribe (channel: any, symbol: any, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -78,7 +78,7 @@ export default class bitfinex extends bitfinexRest {
         return result;
     }
 
-    async unSubscribe (channel: any, topic: any, symbol: any, params = {}) {
+    async unSubscribe (channel: any, topic: any, symbol: any, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -96,7 +96,7 @@ export default class bitfinex extends bitfinexRest {
         };
         const unSubChanMsg = 'unsubscribe:' + channelId;
         client.subscriptions[unSubChanMsg] = subMessageHash;
-        const subscription = {
+        const subscription: Dict = {
             'messageHashes': [ messageHash ],
             'subMessageHashes': [ subMessageHash ],
             'topic': topic,
@@ -106,7 +106,7 @@ export default class bitfinex extends bitfinexRest {
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash, subscription);
     }
 
-    async subscribePrivate (messageHash: any) {
+    async subscribePrivate (messageHash: any): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -126,7 +126,7 @@ export default class bitfinex extends bitfinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -159,7 +159,7 @@ export default class bitfinex extends bitfinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {bool} true if successfully unsubscribed, false otherwise
      */
-    override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}) {
+    override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -179,7 +179,7 @@ export default class bitfinex extends bitfinexRest {
         };
         const unSubChanMsg = 'unsubscribe:' + channelId;
         client.subscriptions[unSubChanMsg] = subMessageHash;
-        const subscription = {
+        const subscription: Dict = {
             'messageHashes': [ messageHash ],
             'subMessageHashes': [ subMessageHash ],
             'topic': 'ohlcv',
@@ -189,7 +189,7 @@ export default class bitfinex extends bitfinexRest {
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash, subscription);
     }
 
-    handleOHLCV (client: Client, message: any, subscription: any) {
+    handleOHLCV (client: Client, message: any[], subscription: Dict): void {
         //
         // initial snapshot
         //   [
@@ -235,9 +235,9 @@ export default class bitfinex extends bitfinexRest {
         //       ]
         //   ]
         //
-        const data = this.safeValue (message, 1, []);
+        const data = this.safeList (message, 1, []);
         let ohlcvs: any[] = [];
-        const first = this.safeValue (data, 0);
+        const first = this.safeList (data, 0);
         if (Array.isArray (first)) {
             // snapshot
             ohlcvs = data;
@@ -245,7 +245,7 @@ export default class bitfinex extends bitfinexRest {
             // update
             ohlcvs = [ data ];
         }
-        const channel = this.safeValue (subscription, 'channel');
+        const channel = this.safeString (subscription, 'channel');
         const key = this.safeString (subscription, 'key', '');
         const keyParts = key.split (':');
         const interval = this.safeString (keyParts, 1);
@@ -256,7 +256,7 @@ export default class bitfinex extends bitfinexRest {
         const timeframe = this.findTimeframe (interval);
         const symbol = market['symbol'];
         const messageHash = channel + ':' + interval + ':' + marketId;
-        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
@@ -282,7 +282,7 @@ export default class bitfinex extends bitfinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         const trades = await this.subscribe ('trades', symbol, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
@@ -298,7 +298,7 @@ export default class bitfinex extends bitfinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override unWatchTrades (symbol: string, params = {}): Promise<any> {
+    override unWatchTrades (symbol: string, params: Dict = {}): Promise<any> {
         return this.unSubscribe ('trades', 'trades', symbol, params);
     }
 
@@ -312,7 +312,7 @@ export default class bitfinex extends bitfinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -336,7 +336,7 @@ export default class bitfinex extends bitfinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override watchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         return this.subscribe ('ticker', symbol, params);
     }
 
@@ -348,11 +348,11 @@ export default class bitfinex extends bitfinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override unWatchTicker (symbol: string, params = {}): Promise<any> {
+    override unWatchTicker (symbol: string, params: Dict = {}): Promise<any> {
         return this.unSubscribe ('ticker', 'ticker', symbol, params);
     }
 
-    handleMyTrade (client: Client, message: any, subscription = {}) {
+    handleMyTrade (client: Client, message: any[], subscription: Dict = {}): void {
         //
         // trade execution
         // [
@@ -393,7 +393,7 @@ export default class bitfinex extends bitfinexRest {
         client.resolve (tradesArray, messageHash);
     }
 
-    handleTrades (client: Client, message: any, subscription: any) {
+    handleTrades (client: Client, message: any[], subscription: Dict): void {
         //
         // initial snapshot
         //
@@ -424,7 +424,7 @@ export default class bitfinex extends bitfinexRest {
         //    ]
         //
         //
-        const channel = this.safeValue (subscription, 'channel');
+        const channel = this.safeString (subscription, 'channel');
         const marketId = this.safeString (subscription, 'symbol');
         const market = this.safeMarket (marketId);
         const messageHash = channel + ':' + marketId;
@@ -454,14 +454,14 @@ export default class bitfinex extends bitfinexRest {
                 // since te and tu updates are duplicated on the public stream
                 return;
             }
-            const trade = this.safeValue (message, 2, []);
+            const trade = this.safeList (message, 2, []);
             const parsed = this.parseWsTrade (trade, market);
             stored.append (parsed);
         }
         client.resolve (stored, messageHash);
     }
 
-    override parseWsTrade (trade: any, market: Market = undefined) {
+    override parseWsTrade (trade: any[], market: Market = undefined): Trade {
         //
         //    [
         //        1128060969, // id
@@ -563,7 +563,7 @@ export default class bitfinex extends bitfinexRest {
         }, market);
     }
 
-    handleTicker (client: Client, message: any, subscription: any) {
+    handleTicker (client: Client, message: any[], subscription: Dict): void {
         //
         // [
         //    340432, // channel ID
@@ -592,7 +592,7 @@ export default class bitfinex extends bitfinexRest {
         client.resolve (parsed, messageHash);
     }
 
-    parseWsTicker (ticker: Dict, market: Market = undefined) {
+    parseWsTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //     [
         //         236.62,        // 1 BID float Price of last highest bid
@@ -644,13 +644,13 @@ export default class bitfinex extends bitfinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (limit !== undefined) {
             if ((limit !== 25) && (limit !== 100)) {
                 throw new ExchangeError (this.id + ' watchOrderBook limit argument must be undefined, 25 or 100');
             }
         }
-        const options = this.safeValue (this.options, 'watchOrderBook', {});
+        const options = this.safeDict (this.options, 'watchOrderBook', {});
         const prec = this.safeString (options, 'prec', 'P0');
         const freq = this.safeString (options, 'freq', 'F0');
         const request: Dict = {
@@ -664,7 +664,7 @@ export default class bitfinex extends bitfinexRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message: any, subscription: any) {
+    handleOrderBook (client: Client, message: any[], subscription: Dict): void {
         //
         // first message (snapshot)
         //
@@ -765,7 +765,7 @@ export default class bitfinex extends bitfinexRest {
         }
     }
 
-    handleChecksum (client: Client, message: any, subscription: any) {
+    handleChecksum (client: Client, message: any[], subscription: Dict): void {
         //
         // [ 173904, "cs", -890884919 ]
         //
@@ -773,7 +773,7 @@ export default class bitfinex extends bitfinexRest {
         const symbol = this.safeSymbol (marketId);
         const channel = 'book';
         const messageHash = channel + ':' + marketId;
-        const book = this.safeValue (this.orderbooks, symbol);
+        const book = this.safeDict (this.orderbooks, symbol);
         if (book === undefined) {
             return;
         }
@@ -786,8 +786,8 @@ export default class bitfinex extends bitfinexRest {
         const idToCheck = isRaw ? 2 : 0;
         // pepperoni pizza from bitfinex
         for (let i = 0; i < depth; i++) {
-            const bid = this.safeValue (bids, i);
-            const ask = this.safeValue (asks, i);
+            const bid = this.safeList (bids, i);
+            const ask = this.safeList (asks, i);
             if (bid !== undefined) {
                 stringArray.push (this.numberToString (bids[i][idToCheck]) as string);
                 stringArray.push (this.numberToString (bids[i][1]) as string);
@@ -820,7 +820,7 @@ export default class bitfinex extends bitfinexRest {
      * @param {str} [params.type] spot or contract if not provided this.options['defaultType'] is used
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async watchBalance (params = {}): Promise<Balances> {
+    override async watchBalance (params: Dict = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -830,7 +830,7 @@ export default class bitfinex extends bitfinexRest {
         return await this.subscribePrivate (messageHash);
     }
 
-    handleBalance (client: Client, message: any, subscription: any) {
+    handleBalance (client: Client, message: any[], subscription: Dict): void {
         //
         // snapshot (exchange + margin together)
         //   [
@@ -923,7 +923,7 @@ export default class bitfinex extends bitfinexRest {
         }
     }
 
-    parseWsBalance (balance: any) {
+    parseWsBalance (balance: any): BalanceAccount {
         //
         //     [
         //         "exchange",
@@ -945,7 +945,7 @@ export default class bitfinex extends bitfinexRest {
         return account;
     }
 
-    handleSystemStatus (client: Client, message: any) {
+    handleSystemStatus (client: Client, message: Dict): Dict {
         //
         //     {
         //         "event": "info",
@@ -957,7 +957,7 @@ export default class bitfinex extends bitfinexRest {
         return message;
     }
 
-    handleUnsubscriptionStatus (client: Client, message: any): boolean {
+    handleUnsubscriptionStatus (client: Client, message: Dict): boolean {
         //
         // {
         //     "event": "unsubscribed",
@@ -981,7 +981,7 @@ export default class bitfinex extends bitfinexRest {
         return true;
     }
 
-    handleSubscriptionStatus (client: Client, message: any) {
+    handleSubscriptionStatus (client: Client, message: Dict): Dict {
         //
         //     {
         //         "event": "subscribed",
@@ -1027,7 +1027,7 @@ export default class bitfinex extends bitfinexRest {
         return message;
     }
 
-    async authenticate (params = {}) {
+    async authenticate (params: Dict = {}): Promise<any> {
         const url = this.urls['api']['ws']['private'];
         const client = this.client (url);
         const messageHash = 'authenticated';
@@ -1051,7 +1051,7 @@ export default class bitfinex extends bitfinexRest {
         return await future;
     }
 
-    handleAuthenticationMessage (client: Client, message: any) {
+    handleAuthenticationMessage (client: Client, message: Dict): void {
         const messageHash = 'authenticated';
         const status = this.safeString (message, 'status');
         if (status === 'OK') {
@@ -1078,7 +1078,7 @@ export default class bitfinex extends bitfinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1094,7 +1094,7 @@ export default class bitfinex extends bitfinexRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrders (client: Client, message: any, subscription: any) {
+    handleOrders (client: Client, message: any[], subscription: Dict): void {
         //
         // limit order
         //    [
@@ -1172,7 +1172,7 @@ export default class bitfinex extends bitfinexRest {
         }
     }
 
-    parseWsOrderStatus (status: any) {
+    parseWsOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'ACTIVE': 'open',
             'CANCELED': 'canceled',
@@ -1182,7 +1182,7 @@ export default class bitfinex extends bitfinexRest {
         return this.safeString (statuses, status, status);
     }
 
-    override parseWsOrder (order: any, market: Market = undefined) {
+    override parseWsOrder (order: any[], market: Market = undefined): Order {
         //
         //   [
         //       97084883506, // order id
@@ -1269,7 +1269,7 @@ export default class bitfinex extends bitfinexRest {
         }, market);
     }
 
-    override handleMessage (client: Client, message: any) {
+    override handleMessage (client: Client, message: any): void {
         const channelId = this.safeString (message, 0);
         //
         //     [
@@ -1300,7 +1300,7 @@ export default class bitfinex extends bitfinexRest {
             if (message[1] === 'hb') {
                 return; // skip heartbeats within subscription channels for now
             }
-            const subscription = this.safeValue (client.subscriptions, channelId, {});
+            const subscription = this.safeDict (client.subscriptions, channelId, {});
             const channel = this.safeString (subscription, 'channel');
             const name = this.safeString (message, 1);
             const publicMethods: Dict = {

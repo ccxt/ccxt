@@ -50,13 +50,13 @@ export default class bullish extends bullishRest {
         });
     }
 
-    requestId () {
+    requestId (): number {
         const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
         return requestId;
     }
 
-    override ping (client: Client) {
+    override ping (client: Client): Dict {
         // bullish does not support built-in ws protocol-level ping-pong
         // https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#overview--keep-websocket-open
         const id = this.requestId ().toString ();
@@ -69,7 +69,7 @@ export default class bullish extends bullishRest {
         };
     }
 
-    handlePong (client: Client, message: any) {
+    handlePong (client: Client, message: Dict): Dict {
         //
         //     {
         //         "id": "7",
@@ -85,9 +85,9 @@ export default class bullish extends bullishRest {
         return message; // current line is for transpilation compatibility
     }
 
-    async watchPublic (url: string, messageHash: string, request = {}, params = {}): Promise<any> {
+    async watchPublic (url: string, messageHash: string, request: Dict = {}, params: Dict = {}): Promise<any> {
         const id = this.requestId ().toString ();
-        const message = {
+        const message: Dict = {
             'jsonrpc': '2.0',
             'type': 'command',
             'method': 'subscribe',
@@ -98,15 +98,15 @@ export default class bullish extends bullishRest {
         return await this.watch (fullUrl, messageHash, this.deepExtend (message, params), messageHash);
     }
 
-    async watchPrivate (messageHash: string, subscribeHash: string, request = {}, params = {}): Promise<any> {
+    async watchPrivate (messageHash: string, subscribeHash: string, request: Dict = {}, params: Dict = {}): Promise<any> {
         const url = this.urls['api']['ws']['private'];
         const token = await this.handleToken ();
-        const cookies = {
+        const cookies: Dict = {
             'JWT_COOKIE': token,
         };
         this.options['ws']['cookies'] = cookies;
         const id = this.requestId ().toString ();
-        const message = {
+        const message: Dict = {
             'jsonrpc': '2.0',
             'type': 'command',
             'method': 'subscribe',
@@ -146,7 +146,7 @@ export default class bullish extends bullishRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client: Client, message: any) {
+    handleTrades (client: Client, message: Dict): void {
         //
         //     {
         //         "type": "snapshot",
@@ -211,7 +211,7 @@ export default class bullish extends bullishRest {
         return await this.watch (url, messageHash, params, messageHash); // no need to send a subscribe message, the server sends a ticker update on connect
     }
 
-    handleTicker (client: Client, message: any) {
+    handleTicker (client: Client, message: Dict): void {
         //
         //     {
         //         "type": "update",
@@ -298,7 +298,7 @@ export default class bullish extends bullishRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message: any) {
+    handleOrderBook (client: Client, message: Dict): void {
         //
         //     {
         //         "type": "snapshot",
@@ -332,7 +332,7 @@ export default class bullish extends bullishRest {
         const orderbook = this.orderbooks[symbol];
         const bids = this.separateBidsOrAsks (this.safeList (data, 'bids', []));
         const asks = this.separateBidsOrAsks (this.safeList (data, 'asks', []));
-        const snapshot = {
+        const snapshot: Dict = {
             'bids': bids,
             'asks': asks,
         };
@@ -347,7 +347,7 @@ export default class bullish extends bullishRest {
         client.resolve (orderbook, messageHash);
     }
 
-    separateBidsOrAsks (entry: any) {
+    separateBidsOrAsks (entry: any[]): List {
         const result: List = [];
         // 300 = '54885.0000000'
         // 301 = '0.06141566'
@@ -400,7 +400,7 @@ export default class bullish extends bullishRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrders (client: Client, message: any) {
+    handleOrders (client: Client, message: Dict): void {
         // snapshot
         //     {
         //         "type": "snapshot",
@@ -518,7 +518,7 @@ export default class bullish extends bullishRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleMyTrades (client: Client, message: any) {
+    handleMyTrades (client: Client, message: Dict): void {
         //
         // snapshot
         //     {
@@ -618,7 +618,7 @@ export default class bullish extends bullishRest {
         return await this.watchPrivate (messageHash, messageHash, request, params);
     }
 
-    handleBalance (client: Client, message: any) {
+    handleBalance (client: Client, message: Dict): void {
         //
         // snapshot
         //     {
@@ -721,7 +721,7 @@ export default class bullish extends bullishRest {
         return this.filterBySymbolsSinceLimit (positions, symbols, since, limit, true);
     }
 
-    handlePositions (client: Client, message: any) {
+    handlePositions (client: Client, message: Dict): void {
         // exchange does not return messages for sandbox mode
         // current method is implemented blindly
         // todo: check if this works with not-sandbox mode
@@ -758,7 +758,7 @@ export default class bullish extends bullishRest {
         client.resolve (positions, 'positions');
     }
 
-    handleErrorMessage (client: Client, message: any) {
+    handleErrorMessage (client: Client, message: Dict): void {
         //
         //     {
         //         "data": {
@@ -783,7 +783,7 @@ export default class bullish extends bullishRest {
         }
     }
 
-    override handleMessage (client: Client, message: any) {
+    override handleMessage (client: Client, message: any): void {
         const dataType = this.safeString (message, 'dataType');
         const result = this.safeDict (message, 'result');
         if (result !== undefined) {

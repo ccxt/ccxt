@@ -19,17 +19,7 @@ import io.github.ccxt.base.JsonHelper;
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class Helpers {
 
-
     private static final ObjectMapper mapper = new ObjectMapper();
-
-    /**
-     * Converts a raw List<Object> into a typed List<T>; used by the generated
-     * TypedSurface / PredictionTypedSurface default methods.
-     */
-    @SuppressWarnings("unchecked")
-    public static <T> List<T> toTypedList(Object raw, java.util.function.Function<Object, T> ctor) {
-        return ((List<Object>) raw).stream().map(ctor).collect(java.util.stream.Collectors.toList());
-    }
 
     /**
      * Block on a CompletableFuture and rethrow any wrapped ccxt error directly.
@@ -182,27 +172,6 @@ public class Helpers {
      */
     public static boolean isArray(Object a) {
         return isArrayJs(a);
-    }
-
-    /**
-     * JS-style truthy `typeof o === 'object'` check. The TS source uses this
-     * to assert "I got back something object-shaped" without caring whether
-     * it's a Map, an array, or a typed wrapper. The ast-transpiler maps it
-     * to Java `instanceof java.util.Map` which is too strict — typed return
-     * types like WsOrderBook and Trade aren't Maps but ARE objects in the
-     * JS sense. Match the loose JS semantics: anything non-null and not a
-     * primitive boxed type or string.
-     *
-     * Used as a post-transpile rewrite target so the 150+ test assertion
-     * sites become permissive in one place.
-     */
-    public static boolean isObject(Object o) {
-        if (o == null) return false;
-        if (o instanceof String) return false;
-        if (o instanceof Number) return false;
-        if (o instanceof Boolean) return false;
-        if (o instanceof Character) return false;
-        return true;
     }
 
     public static boolean isEqual(Object a, Object b) {
@@ -407,15 +376,6 @@ public class Helpers {
         double first = toDouble(a);
         double second = toDouble(b);
         return (first < second) ? a : b;
-    }
-
-    public static double mathPow(Object base, Object exp) {
-        if (base instanceof Number && exp instanceof Number) {
-            double baseFloat = ((Number) base).doubleValue();
-            double expFloat = ((Number) exp).doubleValue();
-            return Math.pow(baseFloat, expFloat);
-        }
-        return 0;
     }
 
     public static Object mathMax(Object a, Object b) {

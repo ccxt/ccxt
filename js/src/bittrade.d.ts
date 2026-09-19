@@ -1,5 +1,5 @@
 import Exchange from './abstract/bittrade.js';
-import type { Account, Balances, Currencies, Currency, CurrencyInterface, Dict, NullableDict, List, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int } from './base/types.js';
+import type { Account, Balances, Currencies, Currency, CurrencyInterface, Dict, NullableDict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int } from './base/types.js';
 /**
  * @class bittrade
  * @augments Exchange
@@ -15,8 +15,8 @@ export default class bittrade extends Exchange {
      */
     fetchTime(params?: {}): Promise<Int>;
     fetchTradingLimits(symbols?: Strings, params?: {}): Promise<Dict>;
-    fetchTradingLimitsById(id: Str, params?: {}): Promise<{
-        info: any;
+    fetchTradingLimitsById(id: Str, params?: Dict): Promise<{
+        info: Dict;
         limits: {
             amount: {
                 min: Num;
@@ -24,8 +24,8 @@ export default class bittrade extends Exchange {
             };
         };
     }>;
-    parseTradingLimits(limits: any, symbol?: Str, params?: {}): {
-        info: any;
+    parseTradingLimits(limits: Dict, symbol?: Str, params?: Dict): {
+        info: Dict;
         limits: {
             amount: {
                 min: Num;
@@ -145,7 +145,7 @@ export default class bittrade extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     fetchBalance(params?: {}): Promise<Balances>;
-    fetchOrdersByStates(states: any, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOrdersByStates(states: string, symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name bittrade#fetchOrder
@@ -178,7 +178,7 @@ export default class bittrade extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    fetchOpenOrdersV1(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOpenOrdersV1(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name bittrade#fetchClosedOrders
@@ -236,7 +236,7 @@ export default class bittrade extends Exchange {
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     cancelOrders(ids: string[], symbol?: Str, params?: {}): Promise<Order[]>;
-    parseCancelOrders(orders: any): List;
+    parseCancelOrders(orders: Dict): Order[];
     /**
      * @method
      * @name bittrade#cancelAllOrders
@@ -289,10 +289,10 @@ export default class bittrade extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
-    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: Dict, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: any;
+        body: Str;
         headers: NullableDict;
     };
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;

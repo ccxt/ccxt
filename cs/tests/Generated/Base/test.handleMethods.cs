@@ -31,8 +31,8 @@ public partial class BaseTest
             var marketType1params1Variable = exchange.handleMarketTypeAndParams("fetchX", market, initialParams, "valueDefault");
             var marketType1 = ((IList<object>) marketType1params1Variable)[0];
             var params1 = ((IList<object>) marketType1params1Variable)[1];
-            Assert(inOp(initialParams, "defaultType"));
-            Assert(!isTrue((inOp(params1, "defaultType"))));
+            Assert(initialParams.ContainsKey("defaultType"));
+            Assert(!(inOp(params1, "defaultType")));
             Assert(isEqual(marketType1, "valueFromParam"));
             //
             // case #2, should prevail: market.type
@@ -71,7 +71,7 @@ public partial class BaseTest
             var params6 = ((IList<object>) marketType6params6Variable)[1];
             Assert(isEqual(marketType6, "spot"));
             // fake Assertion to avoid unused vars
-            Assert(isTrue(isTrue(isTrue(isTrue(isTrue(!isEqual(params1, null)) || isTrue(!isEqual(params2, null))) || isTrue(!isEqual(params3, null))) || isTrue(!isEqual(params4, null))) || isTrue(!isEqual(params5, null))) || isTrue(!isEqual(params6, null)));
+            Assert((params1 != null) || (params2 != null) || (params3 != null) || (params4 != null) || (params5 != null) || (params6 != null));
         }
         public void helperTestHandleNetworkRequest()
         {
@@ -91,7 +91,7 @@ public partial class BaseTest
         }, new Dictionary<string, object>() {}, "chain_id", currencyCode, false);
             var request1 = ((IList<object>) request1params1Variable)[0];
             var params1 = ((IList<object>) request1params1Variable)[1];
-            Assert(!isTrue((inOp(params1, "network"))));
+            Assert(!(inOp(params1, "network")));
             Assert(inOp(request1, "chain_id"));
             Assert(isEqual(getValue(request1, "chain_id"), "Xyz"));
         }
