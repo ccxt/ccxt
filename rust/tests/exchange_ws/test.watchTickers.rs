@@ -63,8 +63,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), values.clone(), checkedSymbol.clone()]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_76: bool = true;
-                while { if !__for_first_76 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_76 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(values.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                let mut __for_first_1490: bool = true;
+                while { if !__for_first_1490 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1490 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(values.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                 let mut ticker: Value = get_value(&values, &i);
                 let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                     testTicker(exchange.clone(), skippedProperties.clone(), method.clone(), ticker.clone(), checkedSymbol.clone());

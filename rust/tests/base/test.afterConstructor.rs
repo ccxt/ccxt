@@ -122,8 +122,8 @@ fn helperTestProperties() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("userAgents".into())) != Value::Null))));
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_0: bool = true;
-        while { if !__for_first_0 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_0 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(keys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_1414: bool = true;
+        while { if !__for_first_1414 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1414 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(keys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
         let mut key: Value = get_value(&keys, &i);
         let mut userAgent: Value = get_value(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("userAgents".into())), &key);
         assert!(ccxt::runtime::is_true(&(Value::Bool(userAgent != Value::Null))));

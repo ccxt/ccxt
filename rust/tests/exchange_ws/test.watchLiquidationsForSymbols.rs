@@ -36,8 +36,8 @@ pub async fn testWatchLiquidationsForSymbols(mut exchange: Value, mut skippedPro
             println_val(&m3);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_69: bool = true;
-                while { if !__for_first_69 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_69 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(response.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                let mut __for_first_1483: bool = true;
+                while { if !__for_first_1483 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1483 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(response.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                 testLiquidation(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&response, &i), symbol.clone());
             }
             }

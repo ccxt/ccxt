@@ -15,8 +15,8 @@ pub async fn testFetchBorrowInterest(mut exchange: Value, mut skippedProperties:
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), borrowInterest.clone(), code.clone()]);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_34: bool = true;
-        while { if !__for_first_34 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_34 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(borrowInterest.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_1448: bool = true;
+        while { if !__for_first_1448 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1448 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(borrowInterest.len() as i64).as_f64().unwrap_or(f64::NAN) } {
         testBorrowInterest(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&borrowInterest, &i), code.clone(), symbol.clone());
     }
     }

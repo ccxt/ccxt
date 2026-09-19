@@ -16,8 +16,8 @@ pub async fn testFetchOpenOrders(mut exchange: Value, mut skippedProperties: Val
     let mut now: Value = exchange.milliseconds();
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_54: bool = true;
-        while { if !__for_first_54 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_54 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(orders.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_1468: bool = true;
+        while { if !__for_first_1468 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1468 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(orders.len() as i64).as_f64().unwrap_or(f64::NAN) } {
         let mut order: Value = get_value(&orders, &i);
         testOrder(exchange.clone(), skippedProperties.clone(), method.clone(), order.clone(), symbol.clone(), now.clone());
         crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), order.clone(), Value::Str("status".into()).clone(), Value::from(vec![Value::Str("open".into())]).clone()]);

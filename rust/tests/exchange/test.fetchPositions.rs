@@ -17,8 +17,8 @@ pub async fn testFetchPositions(mut exchange: Value, mut skippedProperties: Valu
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), positions.clone(), symbol.clone()]);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_57: bool = true;
-        while { if !__for_first_57 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_57 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(positions.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_1471: bool = true;
+        while { if !__for_first_1471 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1471 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(positions.len() as i64).as_f64().unwrap_or(f64::NAN) } {
         testPosition(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&positions, &i), Value::Null, now.clone());
     }
     }
@@ -30,8 +30,8 @@ pub async fn testFetchPositions(mut exchange: Value, mut skippedProperties: Valu
     assert!(ccxt::runtime::is_true(&((positionsForSymbolLength.as_f64().unwrap_or(f64::NAN) <= Value::Int(4).as_f64().unwrap_or(f64::NAN)))));
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_58: bool = true;
-        while { if !__for_first_58 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_58 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(positionsForSymbol.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_1472: bool = true;
+        while { if !__for_first_1472 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1472 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(positionsForSymbol.len() as i64).as_f64().unwrap_or(f64::NAN) } {
         testPosition(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&positionsForSymbol, &i), symbol.clone(), now.clone());
     }
     }
