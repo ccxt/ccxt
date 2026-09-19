@@ -777,7 +777,7 @@ public class Kraken extends KrakenApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
-                Object id = Helpers.GetValue(keys, i);
+                Object id = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 Boolean isSynthetic = false;
                 if (((String)id).indexOf(":BTNL") >= 0)
                 {
@@ -1351,7 +1351,7 @@ public class Kraken extends KrakenApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
-                Object id = Helpers.GetValue(ids, i);
+                Object id = (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i));
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(id);
                 Object symbol = ((Map<String, Object>)market).get("symbol");
                 Object ticker = Helpers.GetValue(tickers, id);
@@ -1622,7 +1622,7 @@ public class Kraken extends KrakenApi
             List<Object> items = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
-                Object key = Helpers.GetValue(keys, i);
+                Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 Object value = Helpers.GetValue(ledger, key);
                 Helpers.addElementToObject(value, "id", key);
                 ((List<Object>)items).add(value);
@@ -1664,7 +1664,7 @@ public class Kraken extends KrakenApi
             List<Object> items = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
-                Object key = Helpers.GetValue(keys, i);
+                Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 Object value = Helpers.GetValue(result, key);
                 Helpers.addElementToObject(value, "id", key);
                 ((List<Object>)items).add(value);
@@ -1943,7 +1943,7 @@ public class Kraken extends KrakenApi
         List<Object> currencyIds = new ArrayList<Object>(balances.keySet());
         for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
         {
-            Object currencyId = Helpers.GetValue(currencyIds, i);
+            Object currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
             String code = this.safeCurrencyCode(currencyId);
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, currencyId, new HashMap<String, Object>() {{}});
             Object account = this.account();
@@ -3068,7 +3068,7 @@ final Object finalId = id;
             List<Object> orderIds = new ArrayList<Object>(result.keySet());
             for (var i = 0; i < ((List<?>)orderIds).size(); i++)
             {
-                Object id = Helpers.GetValue(orderIds, i);
+                Object id = (orderIds == null || i < 0 || i >= orderIds.size() ? null : orderIds.get(i));
                 Object item = Helpers.GetValue(result, id);
                 Map<String, Object> order = (Map<String, Object>) this.parseOrder(this.extend(new HashMap<String, Object>() {{
                     put( "id", id );
@@ -3152,7 +3152,7 @@ final Object finalId = id;
             List<Object> ids = new ArrayList<Object>(trades.keySet());
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
-                Helpers.addElementToObject(Helpers.GetValue(trades, Helpers.GetValue(ids, i)), "id", Helpers.GetValue(ids, i));
+                Helpers.addElementToObject(Helpers.GetValue(trades, (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i))), "id", (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i)));
             }
             Object market = null;
             if (!java.util.Objects.equals(symbol, null))
@@ -3437,7 +3437,7 @@ final Object finalId = id;
             List<Object> orderIds = new ArrayList<Object>(open.keySet());
             for (var i = 0; i < ((List<?>)orderIds).size(); i++)
             {
-                Object id = Helpers.GetValue(orderIds, i);
+                Object id = (orderIds == null || i < 0 || i >= orderIds.size() ? null : orderIds.get(i));
                 Object item = Helpers.GetValue(open, id);
                 ((List<Object>)orders).add(this.extend(new HashMap<String, Object>() {{
                     put( "id", id );
@@ -3546,7 +3546,7 @@ final Object finalId = id;
             List<Object> orderIds = new ArrayList<Object>(closed.keySet());
             for (var i = 0; i < ((List<?>)orderIds).size(); i++)
             {
-                Object id = Helpers.GetValue(orderIds, i);
+                Object id = (orderIds == null || i < 0 || i >= orderIds.size() ? null : orderIds.get(i));
                 Object item = Helpers.GetValue(closed, id);
                 ((List<Object>)orders).add(this.extend(new HashMap<String, Object>() {{
                     put( "id", id );

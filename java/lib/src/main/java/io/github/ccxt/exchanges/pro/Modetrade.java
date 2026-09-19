@@ -193,7 +193,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         Long timestamp = this.safeInteger(message, "ts");
-        Object snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks");
+        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "bids", "asks");
         Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         client.resolve(orderbook, topic);
     }
@@ -231,7 +231,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
 
     }
 
-    public Object parseWsTicker(Object ticker, Object... optionalArgs)
+    public Object parseWsTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         //
         //     {
@@ -294,7 +294,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Long timestamp = this.safeInteger(message, "ts");
         ((Map<String, Object>)data).put("date", timestamp);
-        Object ticker = this.parseWsTicker(data, market);
+        Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker((Map<String, Object>) (data), market);
         Helpers.addElementToObject(ticker, "symbol", ((Map<String, Object>)market).get("symbol"));
         Helpers.addElementToObject(this.tickers, ((Map<String, Object>)market).get("symbol"), ticker);
         client.resolve(ticker, topic);
@@ -364,9 +364,9 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         {
             String marketId = this.safeString((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "symbol");
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-            Object ticker = this.parseWsTicker(this.extend((data == null || i < 0 || i >= data.size() ? null : data.get(i)), new HashMap<String, Object>() {{
+            Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker((Map<String, Object>) (this.extend((data == null || i < 0 || i >= data.size() ? null : data.get(i)), new HashMap<String, Object>() {{
                 put( "date", timestamp );
-            }}), market);
+            }})), market);
             Helpers.addElementToObject(this.tickers, ((Map<String, Object>)market).get("symbol"), ticker);
             ((List<Object>)result).add(ticker);
         }
@@ -1014,7 +1014,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             remaining = Precise.stringSub(remaining, totalExecQuantity);
         }
         String rawStatus = this.safeString(order, "status");
-        String status = this.parseOrderStatus(rawStatus);
+        String status = this.parseOrderStatus((String) (rawStatus));
         Object trades = null;
         String clientOrderId = this.safeString(order, "clientOrderId");
         Double triggerPrice = this.safeNumber(order, "triggerPrice");
@@ -1346,7 +1346,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             Object rawPosition = (rawPositions == null || i < 0 || i >= rawPositions.size() ? null : rawPositions.get(i));
             String marketId = this.safeString(rawPosition, "symbol");
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-            Object position = this.parseWsPosition(rawPosition, market);
+            Map<String, Object> position = (Map<String, Object>) this.parseWsPosition(rawPosition, market);
             ((List<Object>)newPositions).add(position);
             Helpers.callDynamically(cache, "append", new Object[]{position});
             String messageHash = ("positions::" + ((Map<String, Object>)market).get("symbol"));
@@ -1503,7 +1503,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         Helpers.addElementToObject(this.balance, "datetime", this.iso8601(ts));
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object key = Helpers.GetValue(keys, i);
+            Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Object value = Helpers.GetValue(balances, key);
             String code = this.safeCurrencyCode(key);
             Object account = this.account();

@@ -1584,7 +1584,7 @@ public class Woo extends WooApi
             List<Object> currencyIds = new ArrayList<Object>(tokensById.keySet());
             for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
             {
-                Object id = Helpers.GetValue(currencyIds, i);
+                Object id = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
                 Map<String, Object> customCurrency = new HashMap<String, Object>() {{
                     put( "_coin_id", id );
                     put( "_tokens_by_id", Helpers.GetValue(tokensById, id) );
@@ -1612,7 +1612,7 @@ public class Woo extends WooApi
         Map<String, Object> resultingNetworks = new HashMap<String, Object>() {{}};
         for (var j = 0; j < ((List<?>)keys).size(); j++)
         {
-            Object networkId = Helpers.GetValue(keys, j);
+            Object networkId = (keys == null || j < 0 || j >= keys.size() ? null : keys.get(j));
             Map<String, Object> tokenEntry = (Map<String, Object>) this.safeDict(tokensByNetworkId, networkId, new HashMap<String, Object>() {{}});
             Map<String, Object> networkEntry = (Map<String, Object>) this.safeDict(chainsByNetworkId, networkId, new HashMap<String, Object>() {{}});
             Object networkCode = this.networkIdToCode(networkId, code);
@@ -5684,7 +5684,7 @@ public class Woo extends WooApi
         List<Object> networkKeys = new ArrayList<Object>(((Map<String, Object>)networks).keySet());
         for (var i = 0; i < ((List<?>)networkKeys).size(); i++)
         {
-            Object network = Helpers.GetValue(networkKeys, i);
+            Object network = (networkKeys == null || i < 0 || i >= networkKeys.size() ? null : networkKeys.get(i));
             if (java.util.Objects.equals(network, "ETH"))
             {
                 return network;

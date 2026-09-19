@@ -5435,10 +5435,10 @@ public class Aster extends AsterApi
     public String encodeValuesWithJson(Map<String, Object> values)
     {
         Object encodedString = "";
-        List<Object> keys = new ArrayList<Object>(((Map<String, Object>)values).keySet());
+        List<Object> keys = new ArrayList<Object>(values.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object key = Helpers.GetValue(keys, i);
+            Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Object value = Helpers.GetValue(values, key);
             Boolean isObj = (value instanceof List) || Boolean.TRUE.equals(this.isDictionary(value));
             Object valueJsonified = ((Boolean.TRUE.equals(isObj))) ? this.json(value) : String.valueOf(value);
@@ -5451,10 +5451,10 @@ public class Aster extends AsterApi
     public Object capitalizeKeys(Map<String, Object> dict)
     {
         Map<String, Object> capitalized = new HashMap<String, Object>() {{}};
-        List<Object> keys = new ArrayList<Object>(((Map<String, Object>)dict).keySet());
+        List<Object> keys = new ArrayList<Object>(dict.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object key = Helpers.GetValue(keys, i);
+            Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Object value = Helpers.GetValue(dict, key);
             Object capitalizedKey = this.capitalize(key);
             ((Map<String, Object>)capitalized).put((String)capitalizedKey, value);

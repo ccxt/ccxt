@@ -1751,7 +1751,7 @@ public class Coinbase extends CoinbaseApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)baseIds).size(); i++)
             {
-                Object baseId = Helpers.GetValue(baseIds, i);
+                Object baseId = (baseIds == null || i < 0 || i >= baseIds.size() ? null : baseIds.get(i));
                 String base = this.safeCurrencyCode(baseId);
                 String type = (((dataById.containsKey(baseId)))) ? "fiat" : "crypto";
                 // https://github.com/ccxt/ccxt/issues/6066
@@ -2465,7 +2465,7 @@ public class Coinbase extends CoinbaseApi
             // we have to add other currencies here ( https://discord.com/channels/1220414409550336183/1220464770239430761/1372215891940479098 )
             for (var i = 0; i < ((List<?>)ratesIds).size(); i++)
             {
-                Object currencyId = Helpers.GetValue(ratesIds, i);
+                Object currencyId = (ratesIds == null || i < 0 || i >= ratesIds.size() ? null : ratesIds.get(i));
                 String code = this.safeCurrencyCode(currencyId);
                 if ((java.util.Objects.equals(code, null)) || !(result.containsKey(code)))
                 {
@@ -2552,7 +2552,7 @@ public class Coinbase extends CoinbaseApi
             String delimiter = "-";
             for (var i = 0; i < ((List<?>)baseIds).size(); i++)
             {
-                Object baseId = Helpers.GetValue(baseIds, i);
+                Object baseId = (baseIds == null || i < 0 || i >= baseIds.size() ? null : baseIds.get(i));
                 Object marketId = ((baseId + delimiter) + quoteId);
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, delimiter);
                 Object symbol = ((Map<String, Object>)market).get("symbol");

@@ -403,14 +403,14 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         }
         List<Object> tickers = (List<Object>) this.safeList(message, "d", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> data = (Map<String, Object>) this.safeDict(tickers, 0, new HashMap<String, Object>() {{}});
-        Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(data, market);
+        Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker((Map<String, Object>) (data), market);
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String messageHash = ("ticker::" + symbol);
         Helpers.addElementToObject(this.tickers, symbol, ticker);
         client.resolve(Helpers.GetValue(this.tickers, symbol), messageHash);
     }
 
-    public Object parseWsTicker(Object ticker, Object... optionalArgs)
+    public Object parseWsTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         //
         //     {
@@ -1516,7 +1516,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         }
         for (var j = 0; j < ((List<?>)symbolKeys).size(); j++)
         {
-            Object symbol = Helpers.GetValue(symbolKeys, j);
+            Object symbol = (symbolKeys == null || j < 0 || j >= symbolKeys.size() ? null : symbolKeys.get(j));
             String symbolMessageHash = ((messageHash + "::") + symbol);
             client.resolve(trades, symbolMessageHash);
         }
@@ -1768,7 +1768,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         }
         for (var i = 0; i < ((List<?>)symbolKeys).size(); i++)
         {
-            Object symbol = Helpers.GetValue(symbolKeys, i);
+            Object symbol = (symbolKeys == null || i < 0 || i >= symbolKeys.size() ? null : symbolKeys.get(i));
             String symbolMessageHash = ((messageHash + "::") + symbol);
             client.resolve(orders, symbolMessageHash);
         }
@@ -1918,7 +1918,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             put( "id", Weex.this.safeString(order, "id") );
             put( "clientOrderId", Weex.this.safeString(order, "clientOrderId") );
             put( "symbol", ((Map<String, Object>)marketResolved).get("symbol") );
-            put( "type", Weex.this.parseOrderType(finalRawType) );
+            put( "type", Weex.this.parseOrderType((String) (finalRawType)) );
             put( "timeInForce", Weex.this.safeString(order, "timeInForce") );
             put( "postOnly", null );
             put( "reduceOnly", Weex.this.safeBool(order, "reduceOnly") );
@@ -1932,7 +1932,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             put( "timestamp", timestamp );
             put( "datetime", Weex.this.iso8601(timestamp) );
             put( "fee", finalFee );
-            put( "status", Weex.this.parseOrderStatus(rawStatus) );
+            put( "status", Weex.this.parseOrderStatus((String) (rawStatus)) );
             put( "lastTradeTimestamp", null );
             put( "lastUpdateTimestamp", Weex.this.safeInteger(order, "updatedTime") );
             put( "average", null );

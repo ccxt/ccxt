@@ -1476,7 +1476,7 @@ public class Independentreserve extends IndependentreserveApi
             List<Object> keys = new ArrayList<Object>(((Map<String, Object>)parameters).keySet());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
-                Object key = Helpers.GetValue(keys, i);
+                Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 Object value = String.valueOf(Helpers.GetValue(parameters, key));
                 ((List<Object>)auth).add(Helpers.add((key + "="), value));
             }
@@ -1488,7 +1488,7 @@ public class Independentreserve extends IndependentreserveApi
             ((Map<String, Object>)query).put("signature", ((String)signature).toUpperCase());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
-                Object key = Helpers.GetValue(keys, i);
+                Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 ((Map<String, Object>)query).put((String)key, Helpers.GetValue(parameters, key));
             }
             body = this.json(query);

@@ -1046,7 +1046,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                 List<Object> keys = new ArrayList<Object>(balanceDict.keySet());
                 for (var j = 0; j < ((List<?>)keys).size(); j++)
                 {
-                    Object currencyId = Helpers.GetValue(keys, j);
+                    Object currencyId = (keys == null || j < 0 || j >= keys.size() ? null : keys.get(j));
                     Map<String, Object> rawBalance = (Map<String, Object>) this.safeDict(balanceDict, currencyId, new HashMap<String, Object>() {{}});
                     String code = this.safeCurrencyCode(currencyId);
                     Object account = this.account();

@@ -1063,7 +1063,7 @@ public class Onetrading extends OnetradingApi
             List<Object> rawTickers = this.toArray(response);
             for (var i = 0; i < ((List<?>)rawTickers).size(); i++)
             {
-                Object ticker = this.parseTicker((rawTickers == null || i < 0 || i >= rawTickers.size() ? null : rawTickers.get(i)));
+                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((rawTickers == null || i < 0 || i >= rawTickers.size() ? null : rawTickers.get(i)));
                 Object symbol = ((Map<String, Object>)ticker).get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
@@ -1434,7 +1434,7 @@ public class Onetrading extends OnetradingApi
 
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "OPEN", "open" );
@@ -1560,7 +1560,7 @@ public class Onetrading extends OnetradingApi
         }}, market);
     }
 
-    public String parseTimeInForce(Object timeInForce)
+    public String parseTimeInForce(String timeInForce)
     {
         Map<String, Object> timeInForces = new HashMap<String, Object>() {{
             put( "GOOD_TILL_CANCELLED", "GTC" );

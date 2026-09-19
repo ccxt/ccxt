@@ -1672,7 +1672,7 @@ public class Bitstamp extends BitstampApi
 
     }
 
-    public Object getCurrencyIdFromTransaction(Object transaction)
+    public Object getCurrencyIdFromTransaction(Map<String, Object> transaction)
     {
         //
         //     {
@@ -1692,11 +1692,11 @@ public class Bitstamp extends BitstampApi
         {
             return currencyId;
         }
-        transaction = this.omit(transaction, new ArrayList<Object>(Arrays.asList("fee", "price", "datetime", "type", "status", "id")));
-        List<Object> ids = new ArrayList<Object>(((Map<String, Object>)transaction).keySet());
+        transaction = (Map<String, Object>) (this.omit(transaction, new ArrayList<Object>(Arrays.asList("fee", "price", "datetime", "type", "status", "id"))));
+        List<Object> ids = new ArrayList<Object>(transaction.keySet());
         for (var i = 0; i < ((List<?>)ids).size(); i++)
         {
-            Object id = Helpers.GetValue(ids, i);
+            Object id = (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i));
             if (((String)id).indexOf("_") < 0)
             {
                 Long value = this.safeInteger(transaction, id);
@@ -1709,10 +1709,10 @@ public class Bitstamp extends BitstampApi
         return null;
     }
 
-    public Object getMarketFromTrade(Object trade)
+    public Object getMarketFromTrade(Map<String, Object> trade)
     {
-        trade = this.omit(trade, new ArrayList<Object>(Arrays.asList("fee", "price", "datetime", "tid", "type", "order_id", "side")));
-        List<Object> currencyIds = new ArrayList<Object>(((Map<String, Object>)trade).keySet());
+        trade = (Map<String, Object>) (this.omit(trade, new ArrayList<Object>(Arrays.asList("fee", "price", "datetime", "tid", "type", "order_id", "side"))));
+        List<Object> currencyIds = new ArrayList<Object>(trade.keySet());
         Object numCurrencyIds = ((List<?>)currencyIds).size();
         if (Helpers.isGreaterThan(numCurrencyIds, 2))
         {
@@ -1790,7 +1790,7 @@ public class Bitstamp extends BitstampApi
             List<Object> keys = new ArrayList<Object>(((Map<String, Object>)trade).keySet());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
-                Object currentKey = Helpers.GetValue(keys, i);
+                Object currentKey = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 if (!java.util.Objects.equals(currentKey, "order_id") && ((String)currentKey).indexOf("_") >= 0)
                 {
                     rawMarketId = currentKey;
@@ -1802,7 +1802,7 @@ public class Bitstamp extends BitstampApi
         // try to deduce it from used keys
         if (java.util.Objects.equals(market, null))
         {
-            market = this.getMarketFromTrade(trade);
+            market = this.getMarketFromTrade((Map<String, Object>) (trade));
         }
         String feeCostString = this.safeString(trade, "fee");
         String feeCurrency = this.safeString(market, "quote");
@@ -2158,12 +2158,12 @@ public class Bitstamp extends BitstampApi
             {
                 tradingFee = new HashMap<String, Object>() {{}};
             }
-            return this.parseTradingFee(tradingFee, market);
+            return this.parseTradingFee((Map<String, Object>) (tradingFee), market);
         }).thenApply(TradingFeeInterface::new);
 
     }
 
-    public Object parseTradingFee(Object fee, Object... optionalArgs)
+    public Object parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(fee, "market");
@@ -2185,7 +2185,7 @@ public class Bitstamp extends BitstampApi
         }};
         for (var i = 0; i < Helpers.getArrayLength(fees); i++)
         {
-            Map<String, Object> fee = (Map<String, Object>) this.parseTradingFee(Helpers.GetValue(fees, i));
+            Map<String, Object> fee = (Map<String, Object>) this.parseTradingFee((Map<String, Object>) (Helpers.GetValue(fees, i)));
             Object symbol = ((Map<String, Object>)fee).get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -2279,7 +2279,7 @@ public class Bitstamp extends BitstampApi
         List<Object> ids = new ArrayList<Object>(currencies.keySet());
         for (var i = 0; i < ((List<?>)ids).size(); i++)
         {
-            Object id = Helpers.GetValue(ids, i);
+            Object id = (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i));
             Map<String, Object> fees = (Map<String, Object>) this.safeDict(response, i, new HashMap<String, Object>() {{}});
             String code = this.safeCurrencyCode(id);
             if ((!java.util.Objects.equals(codes, null)) && !this.inArray(code, codes))
@@ -2590,7 +2590,7 @@ public class Bitstamp extends BitstampApi
 
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "In Queue", "open" );
@@ -3001,7 +3001,7 @@ public class Bitstamp extends BitstampApi
         //
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = this.parse8601(this.safeString(transaction, "datetime"));
-        Object currencyId = this.getCurrencyIdFromTransaction(transaction);
+        Object currencyId = this.getCurrencyIdFromTransaction((Map<String, Object>) (transaction));
         String code = this.safeCurrencyCode(currencyId, currency);
         String feeCost = this.safeString(transaction, "fee");
         Object feeCurrency = null;
@@ -3104,7 +3104,7 @@ public class Bitstamp extends BitstampApi
         }};
     }
 
-    public String parseTransactionStatus(Object status)
+    public String parseTransactionStatus(String status)
     {
         //
         //   withdrawals:
@@ -3275,9 +3275,9 @@ public class Bitstamp extends BitstampApi
             List<Object> keys = new ArrayList<Object>(((Map<String, Object>)item).keySet());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
-                if (((String)Helpers.GetValue(keys, i)).indexOf("_") >= 0)
+                if (((String)(keys == null || i < 0 || i >= keys.size() ? null : keys.get(i))).indexOf("_") >= 0)
                 {
-                    Object marketId = Helpers.replace(((String)Helpers.GetValue(keys, i)), "_", "");
+                    Object marketId = Helpers.replace(((String)(keys == null || i < 0 || i >= keys.size() ? null : keys.get(i))), "_", "");
                     market = this.safeMarket(marketId, market);
                 }
             }
@@ -3285,7 +3285,7 @@ public class Bitstamp extends BitstampApi
             // try to deduce it from used keys
             if (java.util.Objects.equals(market, null))
             {
-                market = this.getMarketFromTrade(item);
+                market = this.getMarketFromTrade((Map<String, Object>) (item));
             }
             Object direction = (((java.util.Objects.equals(((Map<String, Object>)parsedTrade).get("side"), "buy")))) ? "in" : "out";
             final Object finalType = type;
@@ -3712,7 +3712,7 @@ public class Bitstamp extends BitstampApi
         return result;
     }
 
-    public String parseTransferStatus(Object status)
+    public String parseTransferStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "ok", "ok" );

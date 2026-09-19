@@ -4495,7 +4495,7 @@ public Object describe()
         List<Object> keys = new ArrayList<Object>(((Map<String, Object>)timeframes).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object key = Helpers.GetValue(keys, i);
+            Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             if (Helpers.isEqual(Helpers.GetValue(timeframes, key), timeframe))
             {
                 return key;
@@ -6419,12 +6419,12 @@ public Object describe()
             List<Object> resultingCurrencies = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)codes).size(); i++)
             {
-                Object code = Helpers.GetValue(codes, i);
+                Object code = (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
                 List<Object> groupedCurrenciesCode = (List<Object>) this.safeList(groupedCurrencies, code, new ArrayList<Object>(Arrays.asList()));
                 Object highestPrecisionCurrency = this.safeValue(groupedCurrenciesCode, 0);
                 for (var j = 1; j < (groupedCurrenciesCode == null ? 0 : ((List<?>)groupedCurrenciesCode).size()); j++)
                 {
-                    Object currentCurrency = Helpers.GetValue(groupedCurrenciesCode, j);
+                    Object currentCurrency = (groupedCurrenciesCode == null || j < 0 || j >= groupedCurrenciesCode.size() ? null : groupedCurrenciesCode.get(j));
                     if (Helpers.isEqual(this.precisionMode, TICK_SIZE))
                     {
                         highestPrecisionCurrency = (((Helpers.isLessThan(Helpers.GetValue(currentCurrency, "precision"), Helpers.GetValue(highestPrecisionCurrency, "precision"))))) ? currentCurrency : highestPrecisionCurrency;
@@ -6474,7 +6474,7 @@ public Object describe()
         List<Object> sourceExchangeHelpers = (List<Object>) this.safeList(sourceExchange.options, "marketHelperProps", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < (sourceExchangeHelpers == null ? 0 : ((List<?>)sourceExchangeHelpers).size()); i++)
         {
-            Object helper = Helpers.GetValue(sourceExchangeHelpers, i);
+            Object helper = (sourceExchangeHelpers == null || i < 0 || i >= sourceExchangeHelpers.size() ? null : sourceExchangeHelpers.get(i));
             if (!java.util.Objects.equals(Helpers.GetValue(sourceExchange.options, helper), null))
             {
                 Helpers.addElementToObject(this.options, helper, Helpers.GetValue(sourceExchange.options, helper));
@@ -6814,7 +6814,7 @@ public Object describe()
             List<Object> entryFees = (List<Object>) this.safeList(entry, "fees", new ArrayList<Object>(Arrays.asList()));
             for (var j = 0; j < (entryFees == null ? 0 : ((List<?>)entryFees).size()); j++)
             {
-                Helpers.addElementToObject(Helpers.GetValue(entryFees, j), "cost", this.safeNumber(Helpers.GetValue(entryFees, j), "cost"));
+                Helpers.addElementToObject(Helpers.GetValue(entryFees, j), "cost", this.safeNumber((entryFees == null || j < 0 || j >= entryFees.size() ? null : entryFees.get(j)), "cost"));
             }
             Helpers.addElementToObject(entry, "fees", entryFees);
             Helpers.addElementToObject(entry, "fee", tradeFee);
@@ -6937,7 +6937,7 @@ public Object describe()
             List<Object> ids = new ArrayList<Object>(((Map<String, Object>)orders).keySet());
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
-                Object id = Helpers.GetValue(ids, i);
+                Object id = (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i));
                 Map<String, Object> idExtended = this.extend(new HashMap<String, Object>() {{
                     put( "id", id );
                 }}, Helpers.GetValue(orders, id));
@@ -12238,7 +12238,7 @@ public Object describe()
         Map<String, Object> newDict = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object key = Helpers.GetValue(keys, i);
+            Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             if (!this.inArray(key, removeKeys))
             {
                 ((Map<String, Object>)newDict).put((String)key, Helpers.GetValue(dict, key));
@@ -12780,7 +12780,7 @@ public Object describe()
             List<Object> symbolsAndTimeframes = (List<Object>) this.safeList(subscription, "symbolsAndTimeframes", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < (symbolsAndTimeframes == null ? 0 : ((List<?>)symbolsAndTimeframes).size()); i++)
             {
-                Object symbolAndTimeFrame = Helpers.GetValue(symbolsAndTimeframes, i);
+                Object symbolAndTimeFrame = (symbolsAndTimeframes == null || i < 0 || i >= symbolsAndTimeframes.size() ? null : symbolsAndTimeframes.get(i));
                 String symbol = this.safeString(symbolAndTimeFrame, 0);
                 String timeframe = this.safeString(symbolAndTimeFrame, 1);
                 if (java.util.Objects.equals(symbol, null))
@@ -12803,7 +12803,7 @@ public Object describe()
         {
             for (var i = 0; i < (symbols == null ? 0 : ((List<?>)symbols).size()); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 if (java.util.Objects.equals(topic, "trades"))
                 {
                     if ((symbol != null && ((Map<?, ?>)this.trades).containsKey(symbol)))

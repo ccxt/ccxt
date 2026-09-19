@@ -479,7 +479,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             List<Object> topics = new ArrayList<Object>(status.keySet());
             for (var i = 0; i < ((List<?>)topics).size(); i++)
             {
-                Object topic = Helpers.GetValue(topics, i);
+                Object topic = (topics == null || i < 0 || i >= topics.size() ? null : topics.get(i));
                 if (((String)topic).indexOf("orderbook") >= 0)
                 {
                     this.handleOrderBookUnSubscription(client, topic);

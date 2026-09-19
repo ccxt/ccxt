@@ -889,7 +889,7 @@ public class Tokocrypto extends TokocryptoApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)list).size(); i++)
             {
-                Object market = Helpers.GetValue(list, i);
+                Object market = (list == null || i < 0 || i >= list.size() ? null : list.get(i));
                 String baseId = this.safeString(market, "baseAsset");
                 String quoteId = this.safeString(market, "quoteAsset");
                 String id = this.safeString(market, "symbol");
@@ -898,7 +898,7 @@ public class Tokocrypto extends TokocryptoApi
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
                 String settle = this.safeCurrencyCode(settleId);
-                Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
+                Object symbol = ((base + "/") + quote);
                 List<Object> filters = (List<Object>) this.safeList(market, "filters", new ArrayList<Object>(Arrays.asList()));
                 Map<String, Object> filtersByType = this.indexBy(filters, "filterType");
                 String status = this.safeString(market, "spotTradingEnable");
@@ -906,7 +906,7 @@ public class Tokocrypto extends TokocryptoApi
                 List<Object> permissions = (List<Object>) this.safeList(market, "permissions", new ArrayList<Object>(Arrays.asList()));
                 for (var j = 0; j < ((List<?>)permissions).size(); j++)
                 {
-                    if (java.util.Objects.equals(Helpers.GetValue(permissions, j), "TRD_GRP_003"))
+                    if (java.util.Objects.equals((permissions == null || j < 0 || j >= permissions.size() ? null : permissions.get(j)), "TRD_GRP_003"))
                     {
                         active = false;
                         break;
@@ -1034,14 +1034,14 @@ public class Tokocrypto extends TokocryptoApi
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", Tokocrypto.this.getMarketIdByType(market) );
+                put( "symbol", Tokocrypto.this.getMarketIdByType((Map<String, Object>) (market)) );
             }};
             if (!java.util.Objects.equals(limit, null))
             {
                 ((Map<String, Object>)request).put("limit", limit); // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
             }
             Object response = null;
-            if (Boolean.TRUE.equals(this.isNativeMarket(market)))
+            if (Boolean.TRUE.equals(this.isNativeMarket((Map<String, Object>) (market))))
             {
                 response = (this.publicGetOpenV1MarketDepth(this.extend(request, parameters))).join();
             } else
@@ -1079,7 +1079,7 @@ public class Tokocrypto extends TokocryptoApi
             //     }
             Object data = this.safeDict(response, "data", response);
             Long timestamp = (Long) this.safeInteger2(response, "T", "timestamp");
-            Object orderbook = this.parseOrderBook(data, symbol, timestamp);
+            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp);
             ((Map<String, Object>)orderbook).put("nonce", this.safeInteger(data, "lastUpdateId"));
             return orderbook;
         }).thenApply(OrderBook::new);
@@ -1274,8 +1274,8 @@ public class Tokocrypto extends TokocryptoApi
             // the venue routes market data by the symbol type reported by fetchMarkets,
             // not by the quote currency: type 1 markets are served by the binance host
             // with the underscore-less id, every other type by open/v1 with the raw id
-            ((Map<String, Object>)request).put("symbol", this.getMarketIdByType(market));
-            if (Boolean.TRUE.equals(this.isNativeMarket(market)))
+            ((Map<String, Object>)request).put("symbol", this.getMarketIdByType((Map<String, Object>) (market)));
+            if (Boolean.TRUE.equals(this.isNativeMarket((Map<String, Object>) (market))))
             {
                 if (!java.util.Objects.equals(limit, null))
                 {
@@ -1505,7 +1505,7 @@ public class Tokocrypto extends TokocryptoApi
      * @param {object} market a unified market structure
      * @returns {boolean} true when the symbol type of the market is known and is not 1
      */
-    public Object isNativeMarket(Object market)
+    public Object isNativeMarket(Map<String, Object> market)
     {
         Map<String, Object> marketInfo = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
         String symbolType = this.safeString(marketInfo, "type");
@@ -1524,9 +1524,9 @@ public class Tokocrypto extends TokocryptoApi
      * @param {object} market a unified market structure
      * @returns {string} the raw market id for native markets, the id without the underscore separator otherwise
      */
-    public String getMarketIdByType(Object market)
+    public String getMarketIdByType(Map<String, Object> market)
     {
-        if (Boolean.TRUE.equals(this.isNativeMarket(market)))
+        if (Boolean.TRUE.equals(this.isNativeMarket((Map<String, Object>) (market))))
         {
             return this.safeString(market, "id");
         }
@@ -1553,12 +1553,12 @@ public class Tokocrypto extends TokocryptoApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            if (Boolean.TRUE.equals(this.isNativeMarket(market)))
+            if (Boolean.TRUE.equals(this.isNativeMarket((Map<String, Object>) (market))))
             {
                 throw new NotSupported((((this.id + " fetchTicker() does not support ") + symbol) + " yet, the venue serves 24hr ticker statistics only for its binance backed markets")) ;
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", Tokocrypto.this.getMarketIdByType(market) );
+                put( "symbol", Tokocrypto.this.getMarketIdByType((Map<String, Object>) (market)) );
             }};
             Object response = (this.binanceGetTicker24hr(this.extend(request, parameters))).join();
             if ((response instanceof List))
@@ -1683,7 +1683,7 @@ public class Tokocrypto extends TokocryptoApi
                 ((Map<String, Object>)request).put("pair", ((Map<String, Object>)market).get("id")); // Index price takes this argument instead of symbol
             } else
             {
-                ((Map<String, Object>)request).put("symbol", this.getMarketIdByType(market));
+                ((Map<String, Object>)request).put("symbol", this.getMarketIdByType((Map<String, Object>) (market)));
             }
             // const duration = this.parseTimeframe (timeframe);
             if (!java.util.Objects.equals(since, null))
@@ -1695,7 +1695,7 @@ public class Tokocrypto extends TokocryptoApi
                 ((Map<String, Object>)request).put("endTime", until);
             }
             Object response = null;
-            if (Boolean.TRUE.equals(this.isNativeMarket(market)))
+            if (Boolean.TRUE.equals(this.isNativeMarket((Map<String, Object>) (market))))
             {
                 response = (this.publicGetOpenV1MarketKlines(this.extend(request, parameters))).join();
             } else
@@ -1826,7 +1826,7 @@ public class Tokocrypto extends TokocryptoApi
         List<Object> balances = (List<Object>) this.safeList(data, "accountAssets", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)balances).size(); i++)
         {
-            Object balance = Helpers.GetValue(balances, i);
+            Object balance = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
             String currencyId = this.safeString(balance, "asset");
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
@@ -1840,7 +1840,7 @@ public class Tokocrypto extends TokocryptoApi
         return this.safeBalance(result);
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "-2", "open" );
@@ -2106,7 +2106,7 @@ public class Tokocrypto extends TokocryptoApi
             }};
             final Object finalUppercaseType = uppercaseType;
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", Helpers.add(Helpers.add(((Map<String, Object>)market).get("baseId"), "_"), ((Map<String, Object>)market).get("quoteId")) );
+                put( "symbol", Helpers.add((((Map<String, Object>)market).get("baseId") + "_"), ((Map<String, Object>)market).get("quoteId")) );
                 put( "type", Tokocrypto.this.safeString(reverseOrderTypeMapping, finalUppercaseType) );
             }};
             if (java.util.Objects.equals(side, "buy"))
@@ -3228,7 +3228,7 @@ public class Tokocrypto extends TokocryptoApi
             List<Object> byLimit = (List<Object>) this.safeList(config, "byLimit", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)byLimit).size(); i++)
             {
-                Object entry = Helpers.GetValue(byLimit, i);
+                Object entry = (byLimit == null || i < 0 || i >= byLimit.size() ? null : byLimit.get(i));
                 if (Helpers.isLessThanOrEqual(limit, Helpers.GetValue(entry, 0)))
                 {
                     return Helpers.GetValue(entry, 1);

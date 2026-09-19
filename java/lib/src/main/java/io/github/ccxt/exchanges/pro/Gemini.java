@@ -321,7 +321,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             List<Object> symbols = new ArrayList<Object>(storesForSymbols.keySet());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 Object stored = Helpers.GetValue(storesForSymbols, symbol);
                 String messageHash = ("trades:" + symbol);
                 client.resolve(stored, messageHash);

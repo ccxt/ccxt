@@ -139,7 +139,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         for (var i = 0; i < ((List<?>)rawTrades).size(); i++)
         {
             Object rawTrade = (rawTrades == null || i < 0 || i >= rawTrades.size() ? null : rawTrades.get(i));
-            Object trade = this.parseTrade(rawTrade, market);
+            Map<String, Object> trade = (Map<String, Object>) this.parseTrade(rawTrade, market);
             Helpers.callDynamically(stored, "append", new Object[]{trade});
         }
         Helpers.addElementToObject(this.trades, symbol, stored);
@@ -265,7 +265,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         Object asks = this.safeValue(message, "asks");
         if (!java.util.Objects.equals(asks, null))
         {
-            Object snapshot = this.customParseOrderBook(message, symbol, timestamp, "bids", "asks", "price", "volume", "id");
+            Object snapshot = this.customParseOrderBook((Map<String, Object>) (message), (String) (symbol), timestamp, "bids", "asks", "price", "volume", "id");
             Helpers.addElementToObject(this.orderbooks, symbol, this.indexedOrderBook(snapshot));
         } else
         {
@@ -280,7 +280,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         client.resolve(orderbook, messageHash);
     }
 
-    public Object customParseOrderBook(Object orderbook, Object symbol, Object... optionalArgs)
+    public Object customParseOrderBook(Map<String, Object> orderbook, String symbol, Object... optionalArgs)
     {
         Object timestamp = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object bidsKey = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "bids";
@@ -288,8 +288,8 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         Object priceKey = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : "price";
         Object amountKey = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : "volume";
         Object countOrIdKey = optionalArgs != null && optionalArgs.length > 5 ? optionalArgs[5] : 2;
-        Object bids = this.parseOrderBookBidsAsks(this.safeList(orderbook, bidsKey, new ArrayList<Object>(Arrays.asList())), priceKey, amountKey, countOrIdKey);
-        Object asks = this.parseOrderBookBidsAsks(this.safeList(orderbook, asksKey, new ArrayList<Object>(Arrays.asList())), priceKey, amountKey, countOrIdKey);
+        List<Object> bids = (List<Object>) this.parseOrderBookBidsAsks(this.safeList(orderbook, bidsKey, new ArrayList<Object>(Arrays.asList())), priceKey, amountKey, countOrIdKey);
+        List<Object> asks = (List<Object>) this.parseOrderBookBidsAsks(this.safeList(orderbook, asksKey, new ArrayList<Object>(Arrays.asList())), priceKey, amountKey, countOrIdKey);
         return new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "bids", Luno.this.sortBy(bids, 0, true) );

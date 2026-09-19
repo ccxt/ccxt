@@ -299,7 +299,7 @@ public class Btcbox extends BtcboxApi
             List<Object> markets = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
-                Object marketId = Helpers.GetValue(marketIds, i);
+                Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
                 Object symbolParts = new ArrayList<Object>(Arrays.asList(((String)marketId).split(java.util.regex.Pattern.quote("_"))));
                 String baseCurr = this.safeString(symbolParts, 0, "");
                 String quote = this.safeString(symbolParts, 1, "");

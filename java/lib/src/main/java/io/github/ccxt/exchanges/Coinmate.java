@@ -603,7 +603,7 @@ public class Coinmate extends CoinmateApi
         List<Object> currencyIds = new ArrayList<Object>(balances.keySet());
         for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
         {
-            Object currencyId = Helpers.GetValue(currencyIds, i);
+            Object currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
             Object code = this.safeCurrencyCode(currencyId);
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, currencyId);
             Object account = this.account();
@@ -766,8 +766,8 @@ public class Coinmate extends CoinmateApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
-                Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(keys, i));
-                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(this.safeDict(data, Helpers.GetValue(keys, i)), market);
+                Map<String, Object> market = (Map<String, Object>) this.market((keys == null || i < 0 || i >= keys.size() ? null : keys.get(i)));
+                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(this.safeDict(data, (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i))), market);
                 ((Map<String, Object>)result).put((String)((Map<String, Object>)market).get("symbol"), ticker);
             }
             return this.filterByArrayTickers(result, "symbol", symbols);

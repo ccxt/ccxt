@@ -1097,7 +1097,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         List<Object> keys = new ArrayList<Object>(methods.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object key = Helpers.GetValue(keys, i);
+            Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             if (Helpers.isGreaterThan(((String)channel).indexOf(((String)key)), -1))
             {
                 Object method = Helpers.GetValue(methods, key);

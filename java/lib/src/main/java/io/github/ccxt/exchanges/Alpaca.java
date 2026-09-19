@@ -1316,7 +1316,7 @@ public class Alpaca extends AlpacaApi
             List<Object> marketIds = new ArrayList<Object>(snapshots.keySet());
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
-                Object marketId = Helpers.GetValue(marketIds, i);
+                Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
                 Map<String, Object> entry = (Map<String, Object>) this.safeDict(snapshots, marketId);
                 Map<String, Object> dailyBar = (Map<String, Object>) this.safeDict(entry, "dailyBar", new HashMap<String, Object>() {{}});

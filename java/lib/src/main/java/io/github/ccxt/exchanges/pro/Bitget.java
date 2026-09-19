@@ -2136,7 +2136,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         List<Object> keys = new ArrayList<Object>(marketSymbols.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object symbol = Helpers.GetValue(keys, i);
+            Object symbol = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Object innerMessageHash = Helpers.add((messageHash + ":"), symbol);
             if (java.util.Objects.equals(channel, "orders-crossed"))
             {

@@ -88,7 +88,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         return newValue;
     }
 
-    public void checkContractMarket(Object market, Object methodName)
+    public void checkContractMarket(Map<String, Object> market, Object methodName)
     {
         // the spot ws rejects futures ids and lbank's contract ws protocol is not published,
         // see https://github.com/ccxt/ccxt/issues/26864
@@ -124,7 +124,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            this.checkContractMarket(market, "fetchOHLCVWs");
+            this.checkContractMarket((Map<String, Object>) (market), "fetchOHLCVWs");
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Map<String, Object> watchOHLCVOptions = (Map<String, Object>) this.safeDict(this.options, "watchOHLCV", new HashMap<String, Object>() {{}});
             Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(watchOHLCVOptions, "timeframes", new HashMap<String, Object>() {{}});
@@ -177,7 +177,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            this.checkContractMarket(market, "watchOHLCV");
+            this.checkContractMarket((Map<String, Object>) (market), "watchOHLCV");
             Map<String, Object> watchOHLCVOptions = (Map<String, Object>) this.safeDict(this.options, "watchOHLCV", new HashMap<String, Object>() {{}});
             Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(watchOHLCVOptions, "timeframes", new HashMap<String, Object>() {{}});
             String timeframeId = this.safeString(timeframes, timeframe, timeframe);
@@ -316,7 +316,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            this.checkContractMarket(market, "fetchTickerWs");
+            this.checkContractMarket((Map<String, Object>) (market), "fetchTickerWs");
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             String messageHash = ("fetchTicker:" + ((Map<String, Object>)market).get("symbol"));
             Map<String, Object> message = new HashMap<String, Object>() {{
@@ -351,7 +351,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            this.checkContractMarket(market, "watchTicker");
+            this.checkContractMarket((Map<String, Object>) (market), "watchTicker");
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             String messageHash = ("ticker:" + ((Map<String, Object>)market).get("symbol"));
             Map<String, Object> message = new HashMap<String, Object>() {{
@@ -391,7 +391,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         String marketId = this.safeString(message, "pair");
         String symbol = this.safeSymbol(marketId);
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-        Object parsedTicker = this.parseWsTicker(message, market);
+        Map<String, Object> parsedTicker = (Map<String, Object>) this.parseWsTicker((Map<String, Object>) (message), market);
         Helpers.addElementToObject(this.tickers, symbol, parsedTicker);
         String messageHash = ("ticker:" + symbol);
         client.resolve(parsedTicker, messageHash);
@@ -399,7 +399,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         client.resolve(parsedTicker, messageHash);
     }
 
-    public Object parseWsTicker(Object ticker, Object... optionalArgs)
+    public Object parseWsTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         //
         //     {
@@ -475,7 +475,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            this.checkContractMarket(market, "fetchTradesWs");
+            this.checkContractMarket((Map<String, Object>) (market), "fetchTradesWs");
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             String messageHash = ("fetchTrades:" + ((Map<String, Object>)market).get("symbol"));
             if (java.util.Objects.equals(limit, null))
@@ -520,7 +520,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            this.checkContractMarket(market, "watchTrades");
+            this.checkContractMarket((Map<String, Object>) (market), "watchTrades");
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             String messageHash = ("trades:" + ((Map<String, Object>)market).get("symbol"));
             Map<String, Object> message = new HashMap<String, Object>() {{
@@ -578,7 +578,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         List<Object> rawTrades = (List<Object>) this.safeList(message, "trades", new ArrayList<Object>(Arrays.asList(rawTrade)));
         for (var i = 0; i < ((List<?>)rawTrades).size(); i++)
         {
-            Object trade = this.parseWsTrade(Helpers.GetValue(rawTrades, i), market);
+            Object trade = this.parseWsTrade((rawTrades == null || i < 0 || i >= rawTrades.size() ? null : rawTrades.get(i)), market);
             Helpers.addElementToObject(trade, "symbol", symbol);
             Helpers.callDynamically(stored, "append", new Object[]{trade});
         }
@@ -719,7 +719,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             myOrders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object order = this.parseWsOrder(message);
+        Map<String, Object> order = (Map<String, Object>) this.parseWsOrder(message);
         if (java.util.Objects.equals(myOrders, null))
         {
             return;
@@ -925,7 +925,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            this.checkContractMarket(market, "fetchOrderBookWs");
+            this.checkContractMarket((Map<String, Object>) (market), "fetchOrderBookWs");
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             String messageHash = ("fetchOrderbook:" + ((Map<String, Object>)market).get("symbol"));
             if (java.util.Objects.equals(limit, null))
@@ -968,7 +968,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            this.checkContractMarket(market, "watchOrderBook");
+            this.checkContractMarket((Map<String, Object>) (market), "watchOrderBook");
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             String messageHash = ("orderbook:" + ((Map<String, Object>)market).get("symbol"));
             parameters = this.omit(parameters, "aggregation");
@@ -1059,7 +1059,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}));
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
-        Object snapshot = this.parseOrderBook(orderBook, symbol, timestamp, "bids", "asks");
+        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(orderBook, symbol, timestamp, "bids", "asks");
         Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         String messageHash = ("orderbook:" + symbol);
         client.resolve(orderbook, messageHash);

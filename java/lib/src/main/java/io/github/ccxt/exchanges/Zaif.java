@@ -435,7 +435,7 @@ public class Zaif extends ZaifApi
         List<Object> currencyIds = new ArrayList<Object>(funds.keySet());
         for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
         {
-            Object currencyId = Helpers.GetValue(currencyIds, i);
+            Object currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
             String code = this.safeCurrencyCode(currencyId);
             String balance = this.safeString(funds, currencyId);
             Object account = this.account();

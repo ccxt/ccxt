@@ -1566,7 +1566,7 @@ public class Bitso extends BitsoApi
             List<Object> canceledOrders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)payload).size(); i++)
             {
-                Object order = this.parseOrder((payload == null || i < 0 || i >= payload.size() ? null : payload.get(i)));
+                Map<String, Object> order = (Map<String, Object>) this.parseOrder((payload == null || i < 0 || i >= payload.size() ? null : payload.get(i)));
                 ((List<Object>)canceledOrders).add(order);
             }
             return canceledOrders;
@@ -1574,7 +1574,7 @@ public class Bitso extends BitsoApi
 
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "partial-fill", "open" );
@@ -2355,7 +2355,7 @@ public class Bitso extends BitsoApi
         }};
     }
 
-    public String parseTransactionStatus(Object status)
+    public String parseTransactionStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "pending", "pending" );

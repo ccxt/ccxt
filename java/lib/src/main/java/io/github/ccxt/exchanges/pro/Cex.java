@@ -142,7 +142,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         List<Object> currencyIds = new ArrayList<Object>(freeBalance.keySet());
         for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
         {
-            Object currencyId = Helpers.GetValue(currencyIds, i);
+            Object currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
             Object account = this.account();
             ((Map<String, Object>)account).put("free", this.safeString(freeBalance, currencyId));
             ((Map<String, Object>)account).put("used", this.safeString(usedBalance, currencyId));
@@ -452,7 +452,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         //     }
         //
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(data);
+        Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker((Map<String, Object>) (data));
         Object symbol = ((Map<String, Object>)ticker).get("symbol");
         if (java.util.Objects.equals(symbol, null))
         {
@@ -469,7 +469,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         }
     }
 
-    public Object parseWsTicker(Object ticker, Object... optionalArgs)
+    public Object parseWsTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         //
         //  public

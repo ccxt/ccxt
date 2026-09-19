@@ -780,7 +780,7 @@ public class Bitteam extends BitteamApi
         String typeRaw = this.safeString(currency, "type");
         for (var j = 0; j < ((List<?>)networkIds).size(); j++)
         {
-            Object networkId = Helpers.GetValue(networkIds, j);
+            Object networkId = (networkIds == null || j < 0 || j >= networkIds.size() ? null : networkIds.get(j));
             Object networkCode = this.networkIdToCode(networkId, code);
             Double networkFee = this.safeNumber(feesByNetworkId, networkId);
             if (!java.util.Objects.equals(networkCode, null))
@@ -978,7 +978,7 @@ public class Bitteam extends BitteamApi
             //     }
             //
             Long timestamp = this.safeInteger(response, "timestamp");
-            Object orderbook = this.parseOrderBook(response, symbol, timestamp);
+            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(response, symbol, timestamp);
             return orderbook;
         }).thenApply(OrderBook::new);
 
@@ -1589,7 +1589,7 @@ public class Bitteam extends BitteamApi
         }}, market);
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "accepted", "open" );
@@ -1686,7 +1686,7 @@ public class Bitteam extends BitteamApi
             for (var i = 0; i < ((List<?>)rawTickers).size(); i++)
             {
                 Object rawTicker = (rawTickers == null || i < 0 || i >= rawTickers.size() ? null : rawTickers.get(i));
-                Object ticker = this.parseTicker(rawTicker);
+                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(rawTicker);
                 ((List<Object>)tickers).add(ticker);
             }
             return this.filterByArrayTickers(tickers, "symbol", symbols);
@@ -2723,7 +2723,7 @@ public class Bitteam extends BitteamApi
         return this.safeString(types, ((String)type), type);
     }
 
-    public String parseTransactionStatus(Object status)
+    public String parseTransactionStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "approving", "pending" );

@@ -577,7 +577,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             List<Object> keys = new ArrayList<Object>(symbols.keySet());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
-                Object hashSymbol = Helpers.GetValue(keys, i);
+                Object hashSymbol = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 String symbolMessageHash = ((messageHash + "::") + hashSymbol);
                 client.resolve(this.orders, symbolMessageHash);
             }
@@ -710,7 +710,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             List<Object> keys = new ArrayList<Object>(symbols.keySet());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
-                Object hashSymbol = Helpers.GetValue(keys, i);
+                Object hashSymbol = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 String symbolMessageHash = ((messageHash + "::") + hashSymbol);
                 client.resolve(this.myTrades, symbolMessageHash);
             }

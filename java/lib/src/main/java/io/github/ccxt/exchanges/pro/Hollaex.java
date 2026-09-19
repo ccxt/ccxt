@@ -329,7 +329,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         List<Object> keys = new ArrayList<Object>(marketIds.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object marketId = Helpers.GetValue(keys, i);
+            Object marketId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Object messageHash = Helpers.add((channel + ":"), marketId);
             client.resolve(this.myTrades, messageHash);
         }
@@ -478,7 +478,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         List<Object> keys = new ArrayList<Object>(marketIds.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object marketId = Helpers.GetValue(keys, i);
+            Object marketId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Object messageHash = Helpers.add((channel + ":"), marketId);
             client.resolve(this.orders, messageHash);
         }

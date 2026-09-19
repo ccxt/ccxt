@@ -358,7 +358,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         List<Object> keys = new ArrayList<Object>(((Map<String, Object>)subscriptions).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object key = Helpers.GetValue(keys, i);
+            Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             if ((((String)key).indexOf("ticker::") == 0))
             {
                 ((List<Object>)messageHashes).add(key);
@@ -381,7 +381,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         //         "o": 0.04657
         //     }
         //
-        Object ticker = this.parseTicker(message);
+        Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(message);
         Object symbol = ((Map<String, Object>)ticker).get("symbol");
         String messageHash = ("ticker::" + symbol);
         Helpers.addElementToObject(this.tickers, ((String)symbol), ticker);
@@ -741,7 +741,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
-        Object parsed = this.parseOrderBook(message, symbol, timestamp, "b", "a");
+        Map<String, Object> parsed = (Map<String, Object>) this.parseOrderBook(message, symbol, timestamp, "b", "a");
         Helpers.callDynamically(orderbook, "reset", new Object[]{parsed});
         String messageHash = ("orderbook::" + symbol);
         Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
@@ -868,7 +868,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object orders = this.orders;
-        Object order = this.parseWsOrder(rawOrder, market);
+        Map<String, Object> order = (Map<String, Object>) this.parseWsOrder(rawOrder, market);
         Long lastUpdateTimestamp = this.safeInteger(message, "T");
         Helpers.addElementToObject(order, "lastUpdateTimestamp", lastUpdateTimestamp);
         Helpers.callDynamically(orders, "append", new Object[]{order});
@@ -927,9 +927,9 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             put( "datetime", null );
             put( "lastTradeTimestamp", null );
             put( "lastUpdateTimestamp", null );
-            put( "status", Bydfi.this.parseOrderStatus(rawStatus) );
+            put( "status", Bydfi.this.parseOrderStatus((String) (rawStatus)) );
             put( "symbol", ((Map<String, Object>)finalMarket_2).get("symbol") );
-            put( "type", Bydfi.this.parseOrderType(rawType) );
+            put( "type", Bydfi.this.parseOrderType((String) (rawType)) );
             put( "timeInForce", null );
             put( "postOnly", null );
             put( "reduceOnly", Bydfi.this.safeBool(order, "ro") );
@@ -1051,7 +1051,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
         Object cache = this.positions;
-        Object parsedPosition = this.parseWsPosition(rawPosition, market);
+        Map<String, Object> parsedPosition = (Map<String, Object>) this.parseWsPosition(rawPosition, market);
         Long timestamp = this.safeInteger(message, "T");
         Helpers.addElementToObject(parsedPosition, "timestamp", timestamp);
         Helpers.addElementToObject(parsedPosition, "datetime", this.iso8601(timestamp));
@@ -1100,7 +1100,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             put( "collateral", null );
             put( "unrealizedPnl", null );
             put( "realizedPnl", Bydfi.this.parseNumber(Bydfi.this.safeString(position, "rp")) );
-            put( "side", Bydfi.this.parseWsPositionSide(rawPositionSide) );
+            put( "side", Bydfi.this.parseWsPositionSide((String) (rawPositionSide)) );
             put( "contracts", Bydfi.this.parseNumber(Bydfi.this.safeString(position, "v")) );
             put( "contractSize", Bydfi.this.parseNumber(Bydfi.this.safeString(position, "uq")) );
             put( "timestamp", null );
@@ -1119,7 +1119,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         }});
     }
 
-    public String parseWsPositionSide(Object rawPositionSide)
+    public String parseWsPositionSide(String rawPositionSide)
     {
         Map<String, Object> sides = new HashMap<String, Object>() {{
             put( "1", "long" );
@@ -1251,7 +1251,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             }};
             for (var i = 0; i < ((List<?>)balances).size(); i++)
             {
-                Object balance = Helpers.GetValue(balances, i);
+                Object balance = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
                 String currencyId = this.safeString(balance, "a");
                 String code = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
@@ -1282,18 +1282,18 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         Boolean isUnSubMessage = (Boolean) this.safeBool(subscription, "unsubscribe", false);
         if (java.util.Objects.equals(isUnSubMessage, true))
         {
-            this.handleUnSubscription(client, subscription);
+            this.handleUnSubscription(client, (Map<String, Object>) (subscription));
         }
         return message;
     }
 
-    public void handleUnSubscription(Client client, Object subscription)
+    public void handleUnSubscription(Client client, Map<String, Object> subscription)
     {
         List<Object> messageHashes = (List<Object>) this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
         Boolean subHashIsPrefix = (Boolean) this.safeBool(subscription, "subHashIsPrefix", false);
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
-            Object unsubHash = Helpers.GetValue(messageHashes, i);
+            Object unsubHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
             Object subHash = Helpers.replace(((String)unsubHash), "unsubscribe::", "");
             this.cleanUnsubscription(client, subHash, unsubHash, subHashIsPrefix);
         }

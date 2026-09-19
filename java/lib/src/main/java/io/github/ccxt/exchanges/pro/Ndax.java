@@ -129,7 +129,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         //         "TimeStamp": "1534862990358"
         //     }
         //
-        Object ticker = this.parseTicker(payload);
+        Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(payload);
         Object symbol = ((Map<String, Object>)ticker).get("symbol");
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         if (!java.util.Objects.equals(symbol, null))
@@ -220,7 +220,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         Map<String, Object> updates = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)payload).size(); i++)
         {
-            Object trade = this.parseTrade((payload == null || i < 0 || i >= payload.size() ? null : payload.get(i)));
+            Map<String, Object> trade = (Map<String, Object>) this.parseTrade((payload == null || i < 0 || i >= payload.size() ? null : payload.get(i)));
             Object symbol = ((Map<String, Object>)trade).get("symbol");
             Object tradesArray = (((java.util.Objects.equals(symbol, null)))) ? null : this.safeValue(this.trades, symbol);
             if (java.util.Objects.equals(tradesArray, null))
@@ -241,7 +241,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         List<Object> symbols = new ArrayList<Object>(updates.keySet());
         for (var i = 0; i < ((List<?>)symbols).size(); i++)
         {
-            Object symbol = Helpers.GetValue(symbols, i);
+            Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object messageHash = ((name + ":") + ((Map<String, Object>)market).get("id"));
             Object tradesArray = this.safeValue(this.trades, symbol);
@@ -408,7 +408,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         List<Object> marketIds = new ArrayList<Object>(updates.keySet());
         for (var i = 0; i < ((List<?>)marketIds).size(); i++)
         {
-            Object marketId = Helpers.GetValue(marketIds, i);
+            Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
             List<Object> timeframes = Helpers.objectKeys(Helpers.GetValue(updates, marketId));
             for (var j = 0; j < ((List<?>)timeframes).size(); j++)
             {
@@ -601,7 +601,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         //     ]
         //
         String symbol = this.safeString(subscription, "symbol");
-        Object snapshot = this.parseOrderBook(payload, symbol);
+        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(payload, symbol);
         Long limit = this.safeInteger(subscription, "limit");
         io.github.ccxt.ws.WsOrderBook orderbook = this.orderBook(snapshot, limit);
         if (!java.util.Objects.equals(symbol, null))

@@ -699,14 +699,14 @@ public class Bittrade extends BittradeApi
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
-                ((Map<String, Object>)result).put((String)symbol, (this.fetchTradingLimitsById(this.marketId(symbol), parameters)).join());
+                ((Map<String, Object>)result).put((String)symbol, (this.fetchTradingLimitsById((String) (this.marketId(symbol)), parameters)).join());
             }
             return result;
         });
 
     }
 
-    public CompletableFuture<Object> fetchTradingLimitsById(Object id, Object... optionalArgs)
+    public CompletableFuture<Object> fetchTradingLimitsById(String id, Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1069,7 +1069,7 @@ public class Bittrade extends BittradeApi
                 }
                 Map<String, Object> tick = (Map<String, Object>) this.safeDict(response, "tick");
                 Long timestamp = this.safeInteger(tick, "ts", this.safeInteger(response, "ts"));
-                Object result = this.parseOrderBook(tick, symbol, timestamp);
+                Map<String, Object> result = (Map<String, Object>) this.parseOrderBook(tick, symbol, timestamp);
                 ((Map<String, Object>)result).put("nonce", this.safeInteger(tick, "version"));
                 return result;
             }
@@ -1122,7 +1122,7 @@ public class Bittrade extends BittradeApi
             //     }
             //
             Map<String, Object> tick = (Map<String, Object>) this.safeDict(response, "tick", new HashMap<String, Object>() {{}});
-            Object ticker = this.parseTicker(tick, market);
+            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(tick, market);
             Long timestamp = this.safeInteger(response, "ts");
             Helpers.addElementToObject(ticker, "timestamp", timestamp);
             Helpers.addElementToObject(ticker, "datetime", this.iso8601(timestamp));
@@ -1160,7 +1160,7 @@ public class Bittrade extends BittradeApi
                 String marketId = this.safeString((tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i)), "symbol");
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
                 Object symbol = ((Map<String, Object>)market).get("symbol");
-                Object ticker = this.parseTicker((tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i)), market);
+                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i)), market);
                 Helpers.addElementToObject(ticker, "timestamp", timestamp);
                 Helpers.addElementToObject(ticker, "datetime", this.iso8601(timestamp));
                 ((Map<String, Object>)result).put((String)symbol, ticker);
@@ -1405,7 +1405,7 @@ public class Bittrade extends BittradeApi
                 List<Object> trades = (List<Object>) this.safeList((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "data", new ArrayList<Object>(Arrays.asList()));
                 for (var j = 0; j < ((List<?>)trades).size(); j++)
                 {
-                    Object trade = this.parseTrade((trades == null || j < 0 || j >= trades.size() ? null : trades.get(j)), market);
+                    Map<String, Object> trade = (Map<String, Object>) this.parseTrade((trades == null || j < 0 || j >= trades.size() ? null : trades.get(j)), market);
                     ((List<Object>)result).add(trade);
                 }
             }
@@ -1942,7 +1942,7 @@ public class Bittrade extends BittradeApi
 
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "partial-filled", "open" );
@@ -2632,7 +2632,7 @@ public class Bittrade extends BittradeApi
         }};
     }
 
-    public String parseTransactionStatus(Object status)
+    public String parseTransactionStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "unknown", "failed" );

@@ -847,10 +847,10 @@ public class Blofin extends BlofinApi
         String settle = this.safeCurrencyCode(settleId);
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
-        Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
+        Object symbol = ((base + "/") + quote);
         if (Boolean.TRUE.equals(swap))
         {
-            symbol = Helpers.add((symbol + ":"), settle);
+            symbol = ((symbol + ":") + settle);
         }
         Object expiry = null;
         Object strikePrice = null;
@@ -1453,7 +1453,7 @@ public class Blofin extends BlofinApi
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Object rate = Helpers.GetValue(data, i);
+                Object rate = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 Long timestamp = this.safeInteger(rate, "fundingTime");
                 ((List<Object>)rates).add(new HashMap<String, Object>() {{
                     put( "info", rate );
@@ -1605,7 +1605,7 @@ public class Blofin extends BlofinApi
         List<Object> details = (List<Object>) this.safeList(data, "details", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)details).size(); i++)
         {
-            Object balance = Helpers.GetValue(details, i);
+            Object balance = (details == null || i < 0 || i >= details.size() ? null : details.get(i));
             String currencyId = this.safeString(balance, "currency");
             Object code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
@@ -1651,7 +1651,7 @@ public class Blofin extends BlofinApi
         List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object balance = Helpers.GetValue(data, i);
+            Object balance = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             String currencyId = this.safeString(balance, "currency");
             Object code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
@@ -1664,7 +1664,7 @@ public class Blofin extends BlofinApi
         return this.safeBalance(result);
     }
 
-    public Object parseTradingFee(Object fee, Object... optionalArgs)
+    public Object parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         return new HashMap<String, Object>() {{
@@ -1718,7 +1718,7 @@ public class Blofin extends BlofinApi
 
     }
 
-    public Object createOrderRequest(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
@@ -1811,7 +1811,7 @@ public class Blofin extends BlofinApi
         return this.extend(request, parameters);
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "canceled", "canceled" );
@@ -2021,15 +2021,15 @@ public class Blofin extends BlofinApi
             }
             if (Boolean.TRUE.equals(isCombinedSlTp))
             {
-                Object tpslRequest = this.createTpslOrderRequest(symbol, type, side, amount, price, parameters);
+                Object tpslRequest = this.createTpslOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
                 response = (this.privatePostTradeOrderTpsl(tpslRequest)).join();
             } else if (Boolean.TRUE.equals(isTriggerOrder) || Boolean.TRUE.equals(isSlOrTp))
             {
-                Object triggerRequest = this.createOrderRequest(symbol, type, side, amount, price, parameters);
+                Object triggerRequest = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
                 response = (this.privatePostTradeOrderAlgo(triggerRequest)).join();
             } else
             {
-                Object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
+                Object request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
                 response = (this.privatePostTradeOrder(request)).join();
             }
             if (Boolean.TRUE.equals(isCombinedSlTp) || Boolean.TRUE.equals(isSlOrTp) || Boolean.TRUE.equals(isTriggerOrder))
@@ -2039,7 +2039,7 @@ public class Blofin extends BlofinApi
             }
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0);
-            Object order = this.parseOrder(first, market);
+            Map<String, Object> order = (Map<String, Object>) this.parseOrder(first, market);
             Helpers.addElementToObject(order, "type", type);
             Helpers.addElementToObject(order, "side", side);
             return order;
@@ -2047,7 +2047,7 @@ public class Blofin extends BlofinApi
 
     }
 
-    public Object createTpslOrderRequest(Object symbol, Object type, Object side, Object... optionalArgs)
+    public Object createTpslOrderRequest(String symbol, String type, String side, Object... optionalArgs)
     {
         Object amount = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object price = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
@@ -2532,7 +2532,7 @@ public class Blofin extends BlofinApi
         return networkCode;
     }
 
-    public Object chainIdToNetworkCode(Object chainId)
+    public Object chainIdToNetworkCode(String chainId)
     {
         // live history rows and the currencies registry carry display-name
         // chain ids like Tron with a parenthesized TRC20 suffix (verified
@@ -2820,7 +2820,7 @@ public class Blofin extends BlofinApi
         }};
     }
 
-    public String parseTransactionWithdrawalStatus(Object status)
+    public String parseTransactionWithdrawalStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "0", "pending" );
@@ -2833,7 +2833,7 @@ public class Blofin extends BlofinApi
         return this.safeString(statuses, status, status);
     }
 
-    public String parseTransactionDepositStatus(Object status)
+    public String parseTransactionDepositStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "0", "pending" );
@@ -3413,7 +3413,7 @@ public class Blofin extends BlofinApi
                 Map<String, Object> entryMarket = (Map<String, Object>) this.market(entry);
                 if (Helpers.isGreaterThan(i, 0))
                 {
-                    instIds = Helpers.add((instIds + ","), ((Map<String, Object>)entryMarket).get("id"));
+                    instIds = ((instIds + ",") + ((Map<String, Object>)entryMarket).get("id"));
                 } else
                 {
                     instIds = Helpers.add(instIds, ((Map<String, Object>)entryMarket).get("id"));
@@ -3997,7 +3997,7 @@ public class Blofin extends BlofinApi
         Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
         Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
-        Object request = ((Helpers.add("/api/", this.version) + "/") + this.implodeParams(path, parameters));
+        Object request = ((("/api/" + this.version) + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         Object url = Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("rest"), request);
         // const type = this.getPathAuthenticationType (path);

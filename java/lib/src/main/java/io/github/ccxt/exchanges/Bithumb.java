@@ -698,13 +698,13 @@ public class Bithumb extends BithumbApi
                 List<Object> promises = new ArrayList<Object>(Arrays.asList());
                 for (var i = 0; i < ((List<?>)quotes).size(); i++)
                 {
-                    ((Map<String, Object>)request).put("quoteId", Helpers.GetValue(quotes, i));
+                    ((Map<String, Object>)request).put("quoteId", (quotes == null || i < 0 || i >= quotes.size() ? null : quotes.get(i)));
                     ((List<Object>)promises).add(this.publicGetPublicTickerALLQuoteId(this.extend(request, parameters)));
                 }
                 Object results = (Helpers.promiseAll(promises)).join();
                 for (var i = 0; i < ((List<?>)quotes).size(); i++)
                 {
-                    Object quote = Helpers.GetValue(quotes, i);
+                    Object quote = (quotes == null || i < 0 || i >= quotes.size() ? null : quotes.get(i));
                     Object quoteId = quote;
                     Object response = Helpers.GetValue(results, i);
                     Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
@@ -712,7 +712,7 @@ public class Bithumb extends BithumbApi
                     List<Object> currencyIds = new ArrayList<Object>(data.keySet());
                     for (var j = 0; j < ((List<?>)currencyIds).size(); j++)
                     {
-                        Object currencyId = Helpers.GetValue(currencyIds, j);
+                        Object currencyId = (currencyIds == null || j < 0 || j >= currencyIds.size() ? null : currencyIds.get(j));
                         if (java.util.Objects.equals(currencyId, "date"))
                         {
                             continue;
@@ -3908,11 +3908,11 @@ public class Bithumb extends BithumbApi
 
     public Object urlencodeWithArrayBrackets(Map<String, Object> query)
     {
-        List<Object> keys = new ArrayList<Object>(((Map<String, Object>)query).keySet());
+        List<Object> keys = new ArrayList<Object>(query.keySet());
         Object result = "";
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object key = Helpers.GetValue(keys, i);
+            Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Object value = Helpers.GetValue(query, key);
             if ((value instanceof List))
             {

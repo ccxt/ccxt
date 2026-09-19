@@ -33,7 +33,7 @@ public class TestFetchLeverageTiers extends BaseTest {
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, tierKeys, symbol);
         for (var i = 0; i < ((List<?>)tierKeys).size(); i++)
         {
-            Object tiersForSymbol = Helpers.GetValue(tiers, Helpers.GetValue(tierKeys, i));
+            Object tiersForSymbol = Helpers.GetValue(tiers, (tierKeys == null || i < 0 || i >= tierKeys.size() ? null : tierKeys.get(i)));
             TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, tiersForSymbol, symbol);
             for (var j = 0; j < ((List<?>)tiersForSymbol).size(); j++)
             {

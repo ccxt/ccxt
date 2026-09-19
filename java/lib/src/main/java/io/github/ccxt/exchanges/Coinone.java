@@ -1561,7 +1561,7 @@ public class Coinone extends CoinoneApi
             Object result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
-                Object key = Helpers.GetValue(keys, i);
+                Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 Object value = Helpers.GetValue(walletAddress, key);
                 if ((java.util.Objects.equals(value, null)) || (java.util.Objects.equals(value, null)) || (java.util.Objects.equals(value, "")) || (java.util.Objects.equals(value, "-1")))
                 {

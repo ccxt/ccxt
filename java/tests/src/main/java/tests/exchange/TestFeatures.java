@@ -29,7 +29,7 @@ public class TestFeatures extends BaseTest {
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             TestSharedMethods.AssertInArray(exchange, skippedProperties, "features", keys, i, marketTypes);
-            Object marketType = Helpers.GetValue(keys, i);
+            Object marketType = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Object value = Helpers.GetValue(features, marketType);
             // Assert (value !== undefined, 'exchange.features["' + marketType + '"] is undefined, that key should be either absent or have a value');
             if (java.util.Objects.equals(value, null))
@@ -44,7 +44,7 @@ public class TestFeatures extends BaseTest {
                 List<Object> subKeys = new ArrayList<Object>(((Map<String, Object>)value).keySet());
                 for (var j = 0; j < ((List<?>)subKeys).size(); j++)
                 {
-                    Object subKey = Helpers.GetValue(subKeys, j);
+                    Object subKey = (subKeys == null || j < 0 || j >= subKeys.size() ? null : subKeys.get(j));
                     TestSharedMethods.AssertInArray(exchange, skippedProperties, "features", subKeys, j, subTypes);
                     Object subValue = Helpers.GetValue(value, subKey);
                     // sometimes it might not be available for exchange, eg. future>inverse)

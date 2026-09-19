@@ -197,7 +197,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         //
         Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
         Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
-        Object parsedTrade = this.parseTrade(data);
+        Map<String, Object> parsedTrade = (Map<String, Object>) this.parseTrade(data);
         Object symbol = ((Map<String, Object>)parsedTrade).get("symbol");
         String messageHash = this.safeString(parameters, "channel");
         Object stored = this.safeValue(this.trades, symbol);
@@ -309,7 +309,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             }
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
-        Object snapshot = this.parseOrderBook(orderbookData, symbol, timestamp, "bids", "asks");
+        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(orderbookData, symbol, timestamp, "bids", "asks");
         ((Map<String, Object>)snapshot).put("nonce", this.safeInteger(data, "seq_no"));
         Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         String messageHash = this.safeString(parameters, "channel");
@@ -494,7 +494,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         //
         Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
         Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
-        Object parsed = this.parseOrder(data);
+        Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(data);
         String symbol = this.safeString(parsed, "symbol");
         if (java.util.Objects.equals(this.orders, null))
         {
@@ -544,7 +544,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String channel = this.safeString(parameters, "channel");
         Object messageHash = Helpers.add((channel + "."), symbol);
-        Object ticker = this.parseTicker(data, market);
+        Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(data, market);
         Helpers.addElementToObject(this.tickers, symbol, ticker);
         client.resolve(ticker, channel);
         client.resolve(ticker, messageHash);

@@ -795,7 +795,7 @@ public class Deepcoin extends DeepcoinApi
         List<Object> symbols = new ArrayList<Object>(((Map<String, Object>)result).keySet());
         for (var i = 0; i < ((List<?>)symbols).size(); i++)
         {
-            Object symbol = Helpers.GetValue(symbols, i);
+            Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
             Object market = Helpers.GetValue(result, symbol);
             if ((!java.util.Objects.equals(market, null)) && (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)))
             {

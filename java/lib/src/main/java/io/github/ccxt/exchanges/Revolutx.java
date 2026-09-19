@@ -430,7 +430,7 @@ public class Revolutx extends RevolutxApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
-                Object key = Helpers.GetValue(keys, i);
+                Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 Map<String, Object> market = (Map<String, Object>) this.safeDict(markets, key, new HashMap<String, Object>() {{}});
                 String base = this.safeString(market, "base");
                 String quote = this.safeString(market, "quote");
@@ -526,7 +526,7 @@ public class Revolutx extends RevolutxApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
-                Object key = Helpers.GetValue(keys, i);
+                Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 Map<String, Object> currency = (Map<String, Object>) this.safeDict(currencies, key, new HashMap<String, Object>() {{}});
                 Map<String, Object> currencyData = this.extend(currency, new HashMap<String, Object>() {{
                     put( "id", key );

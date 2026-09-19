@@ -914,7 +914,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         List<Object> keys = new ArrayList<Object>(symbols.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            String currentMessageHash = ("myTrades:" + Helpers.GetValue(keys, i));
+            String currentMessageHash = ("myTrades:" + (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i)));
             client.resolve(trades, currentMessageHash);
         }
         // non-symbol specific
@@ -970,7 +970,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         List<Object> symbolsArray = new ArrayList<Object>(symbols.keySet());
         for (var i = 0; i < ((List<?>)symbolsArray).size(); i++)
         {
-            String currentMessageHash = ("orders:" + Helpers.GetValue(symbolsArray, i));
+            String currentMessageHash = ("orders:" + (symbolsArray == null || i < 0 || i >= symbolsArray.size() ? null : symbolsArray.get(i)));
             client.resolve(orders, currentMessageHash);
         }
         String messageHash = "orders";
@@ -1270,8 +1270,8 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         List<Object> keys = new ArrayList<Object>(methods.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object key = Helpers.GetValue(keys, i);
-            if (Helpers.getIndexOf(topic, Helpers.GetValue(keys, i)) >= 0)
+            Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+            if (Helpers.getIndexOf(topic, (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i))) >= 0)
             {
                 Object method = Helpers.GetValue(methods, key);
                 Helpers.callDynamically(this, method, new Object[] {client, message});

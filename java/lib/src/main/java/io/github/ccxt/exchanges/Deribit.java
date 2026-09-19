@@ -1924,7 +1924,7 @@ public class Deribit extends DeribitApi
             Map<String, Object> tickers = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)result).size(); i++)
             {
-                Object ticker = this.parseTicker((result == null || i < 0 || i >= result.size() ? null : result.get(i)));
+                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((result == null || i < 0 || i >= result.size() ? null : result.get(i)));
                 Object symbol = ((Map<String, Object>)ticker).get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
@@ -2423,14 +2423,14 @@ public class Deribit extends DeribitApi
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(result, "timestamp");
             Long nonce = this.safeInteger(result, "change_id");
-            Object orderbook = this.parseOrderBook(result, ((Map<String, Object>)market).get("symbol"), timestamp);
+            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(result, ((Map<String, Object>)market).get("symbol"), timestamp);
             ((Map<String, Object>)orderbook).put("nonce", nonce);
             return orderbook;
         }).thenApply(OrderBook::new);
 
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "open", "open" );
@@ -2442,7 +2442,7 @@ public class Deribit extends DeribitApi
         return this.safeString(statuses, status, status);
     }
 
-    public String parseTimeInForce(Object timeInForce)
+    public String parseTimeInForce(String timeInForce)
     {
         Map<String, Object> timeInForces = new HashMap<String, Object>() {{
             put( "good_til_cancelled", "GTC" );
@@ -3374,7 +3374,7 @@ public class Deribit extends DeribitApi
 
     }
 
-    public String parseTransactionStatus(Object status)
+    public String parseTransactionStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "completed", "ok" );
@@ -3692,12 +3692,12 @@ public class Deribit extends DeribitApi
             //         "testnet": false
             //     }
             //
-            return this.parseVolatilityHistory(response);
+            return this.parseVolatilityHistory((Map<String, Object>) (response));
         });
 
     }
 
-    public Object parseVolatilityHistory(Object volatility)
+    public Object parseVolatilityHistory(Map<String, Object> volatility)
     {
         //
         //     {
@@ -3908,7 +3908,7 @@ public class Deribit extends DeribitApi
         }};
     }
 
-    public String parseTransferStatus(Object status)
+    public String parseTransferStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "prepared", "pending" );
@@ -4181,7 +4181,7 @@ public class Deribit extends DeribitApi
             for (var i = 0; i < ((List<?>)result).size(); i++)
             {
                 Object fr = (result == null || i < 0 || i >= result.size() ? null : result.get(i));
-                Object rate = this.parseFundingRate(fr, market);
+                Map<String, Object> rate = (Map<String, Object>) this.parseFundingRate(fr, market);
                 ((List<Object>)rates).add(rate);
             }
             return this.filterBySymbolSinceLimit(rates, symbol, since, limit);

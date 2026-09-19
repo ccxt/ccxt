@@ -1338,7 +1338,7 @@ public class Btse extends BtseApi
         List<Object> codes = new ArrayList<Object>(totals.keySet());
         for (var i = 0; i < ((List<?>)codes).size(); i++)
         {
-            Object code = Helpers.GetValue(codes, i);
+            Object code = (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
             Object account = this.account();
             ((Map<String, Object>)account).put("total", this.safeString(totals, code));
             ((Map<String, Object>)account).put("free", this.safeString(frees, code));
@@ -1439,7 +1439,7 @@ public class Btse extends BtseApi
             List<Object> symbolKeys = new ArrayList<Object>(result.keySet());
             for (var i = 0; i < ((List<?>)symbolKeys).size(); i++)
             {
-                Object symbolKey = Helpers.GetValue(symbolKeys, i);
+                Object symbolKey = (symbolKeys == null || i < 0 || i >= symbolKeys.size() ? null : symbolKeys.get(i));
                 Object tiersList = Helpers.GetValue(result, symbolKey);
                 for (var j = 0; j < Helpers.getArrayLength(tiersList); j++)
                 {

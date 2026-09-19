@@ -31,7 +31,7 @@ public class TestFetchOrderBooks extends BaseTest {
         Assert(((List<?>)orderBookKeys).size() > 0, (((exchange.id + " ") + method) + " returned 0 length data"));
         for (var i = 0; i < ((List<?>)orderBookKeys).size(); i++)
         {
-            Object symbolInner = Helpers.GetValue(orderBookKeys, i);
+            Object symbolInner = (orderBookKeys == null || i < 0 || i >= orderBookKeys.size() ? null : orderBookKeys.get(i));
             TestOrderBook.testOrderBook(exchange, skippedProperties, method, Helpers.GetValue(orderBooks, symbolInner), symbolInner);
         }
         return true;

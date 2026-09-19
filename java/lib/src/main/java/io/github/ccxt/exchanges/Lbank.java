@@ -1605,7 +1605,7 @@ public class Lbank extends LbankApi
             List<Object> currencies = new ArrayList<Object>(free.keySet());
             for (var i = 0; i < ((List<?>)currencies).size(); i++)
             {
-                Object currencyId = Helpers.GetValue(currencies, i);
+                Object currencyId = (currencies == null || i < 0 || i >= currencies.size() ? null : currencies.get(i));
                 String code = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
                 ((Map<String, Object>)account).put("used", this.safeString(used, currencyId));
@@ -1855,7 +1855,7 @@ public class Lbank extends LbankApi
             //    }
             //
             Object balanceResponse = (((java.util.Objects.equals(response, null)))) ? new HashMap<String, Object>() {{}} : response;
-            Object balanceResult = this.parseBalance(balanceResponse);
+            Map<String, Object> balanceResult = (Map<String, Object>) this.parseBalance(balanceResponse);
             if (java.util.Objects.equals(balanceResult, null))
             {
                 throw new NullResponse((this.id + " fetchBalance() returned empty response")) ;
@@ -1865,7 +1865,7 @@ public class Lbank extends LbankApi
 
     }
 
-    public Object parseTradingFee(Object fee, Object... optionalArgs)
+    public Object parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
     {
         //
         //      {
@@ -1935,7 +1935,7 @@ public class Lbank extends LbankApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)fees).size(); i++)
             {
-                Object fee = this.parseTradingFee((fees == null || i < 0 || i >= fees.size() ? null : fees.get(i)));
+                Map<String, Object> fee = (Map<String, Object>) this.parseTradingFee((Map<String, Object>) ((fees == null || i < 0 || i >= fees.size() ? null : fees.get(i))));
                 Object symbol = ((Map<String, Object>)fee).get("symbol");
                 ((Map<String, Object>)result).put((String)((String)symbol), fee);
             }
@@ -2108,7 +2108,7 @@ public class Lbank extends LbankApi
 
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "-1", "canceled" );
@@ -2963,7 +2963,7 @@ public class Lbank extends LbankApi
 
     }
 
-    public String parseTransactionStatus(Object status, Object type)
+    public String parseTransactionStatus(String status, Object type)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "deposit", new HashMap<String, Object>() {{

@@ -1034,14 +1034,14 @@ public class Krakenfutures extends KrakenfuturesApi
                     continue;
                 }
                 String volume = this.safeString(volumes, uid, "0");
-                ((Map<String, Object>)result).put((String)symbol, this.parseTradingFee(schedule, market, volume));
+                ((Map<String, Object>)result).put((String)symbol, this.parseTradingFee((Map<String, Object>) (schedule), market, volume));
             }
             return result;
         }).thenApply(TradingFees::new);
 
     }
 
-    public Object parseTradingFee(Object fee, Object... optionalArgs)
+    public Object parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
     {
         //
         //    {
@@ -1531,7 +1531,7 @@ public class Krakenfutures extends KrakenfuturesApi
         }});
     }
 
-    public Object createOrderRequest(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
@@ -1544,7 +1544,7 @@ public class Krakenfutures extends KrakenfuturesApi
             throw new ArgumentsRequired((this.id + " requires a side argument")) ;
         }
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-        symbol = ((Map<String, Object>)market).get("symbol");
+        symbol = (String) (((Map<String, Object>)market).get("symbol"));
         type = this.safeString(parameters, "orderType", type);
         String timeInForce = this.safeString(parameters, "timeInForce");
         Boolean postOnly = false;
@@ -1659,7 +1659,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, parameters);
+            Object orderRequest = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             Map<String, Object> response = (this.privatePostSendorder(orderRequest)).join();
             //
             //    {
@@ -1840,7 +1840,7 @@ public class Krakenfutures extends KrakenfuturesApi
             Map<String, Object> editStatus = (Map<String, Object>) this.safeDict(response, "editStatus", new HashMap<String, Object>() {{}});
             String status = this.safeString(editStatus, "status");
             this.verifyOrderActionSuccess(status, "editOrder", new ArrayList<Object>(Arrays.asList("filled")));
-            Object order = this.parseOrder(editStatus);
+            Map<String, Object> order = (Map<String, Object>) this.parseOrder(editStatus);
             Helpers.addElementToObject(order, "info", response);
             return order;
         }).thenApply(Order::new);
@@ -2396,7 +2396,7 @@ public class Krakenfutures extends KrakenfuturesApi
         }
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "placed", "open" );
@@ -3482,7 +3482,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 symbol = (((java.util.Objects.equals(symbol, null)))) ? "" : symbol;
                 throw new BadRequest(((this.id + " fetchBalance has no account for ") + type)) ;
             }
-            Object balance = this.parseBalance(account);
+            Map<String, Object> balance = (Map<String, Object>) this.parseBalance(account);
             ((Map<String, Object>)balance).put("info", response);
             ((Map<String, Object>)balance).put("timestamp", this.parse8601(datetime));
             ((Map<String, Object>)balance).put("datetime", datetime);
@@ -3563,7 +3563,7 @@ public class Krakenfutures extends KrakenfuturesApi
         List<Object> currencyIds = new ArrayList<Object>(((Map<String, Object>)balances).keySet());
         for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
         {
-            Object currencyId = Helpers.GetValue(currencyIds, i);
+            Object currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
             Object balance = Helpers.GetValue(balances, currencyId);
             String code = this.safeCurrencyCode(currencyId);
             if (java.util.Objects.equals(code, null))
@@ -3635,7 +3635,7 @@ public class Krakenfutures extends KrakenfuturesApi
                     }
                 }
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(entry_symbol);
-                Object parsed = this.parseFundingRate(entry, market);
+                Map<String, Object> parsed = (Map<String, Object>) this.parseFundingRate(entry, market);
                 ((List<Object>)fundingRates).add(parsed);
             }
             return this.indexBy(fundingRates, "symbol");
@@ -3850,7 +3850,7 @@ public class Krakenfutures extends KrakenfuturesApi
         }
         for (var i = 0; i < ((List<?>)positions).size(); i++)
         {
-            Object position = this.parsePosition((positions == null || i < 0 || i >= positions.size() ? null : positions.get(i)));
+            Map<String, Object> position = (Map<String, Object>) this.parsePosition((positions == null || i < 0 || i >= positions.size() ? null : positions.get(i)));
             ((List<Object>)result).add(position);
         }
         return result;

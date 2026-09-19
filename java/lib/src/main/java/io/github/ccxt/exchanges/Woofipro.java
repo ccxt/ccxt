@@ -1102,7 +1102,7 @@ public class Woofipro extends WoofiproApi
             for (var i = 0; i < ((List<?>)tokenRows).size(); i++)
             {
                 Object token = (tokenRows == null || i < 0 || i >= tokenRows.size() ? null : tokenRows.get(i));
-                Object parsed = this.parseCurrency(new HashMap<String, Object>() {{
+                Map<String, Object> parsed = (Map<String, Object>) this.parseCurrency(new HashMap<String, Object>() {{
                     put( "_token", token );
                     put( "_indexedChains", indexedChains );
                 }});
@@ -2305,7 +2305,7 @@ public class Woofipro extends WoofiproApi
             put( "datetime", Woofipro.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
             put( "lastUpdateTimestamp", lastUpdateTimestamp );
-            put( "status", Woofipro.this.parseOrderStatus(finalStatus) );
+            put( "status", Woofipro.this.parseOrderStatus((String) (finalStatus)) );
             put( "symbol", symbol );
             put( "type", Woofipro.this.parseOrderType(orderType) );
             put( "timeInForce", Woofipro.this.parseTimeInForce(orderType) );
@@ -2330,7 +2330,7 @@ public class Woofipro extends WoofiproApi
         }}, market);
     }
 
-    public String parseTimeInForce(Object timeInForce)
+    public String parseTimeInForce(String timeInForce)
     {
         Map<String, Object> timeInForces = new HashMap<String, Object>() {{
             put( "ioc", "IOC" );
@@ -2340,7 +2340,7 @@ public class Woofipro extends WoofiproApi
         return this.safeString(timeInForces, timeInForce);
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         if (!java.util.Objects.equals(status, null))
         {
@@ -2360,7 +2360,7 @@ public class Woofipro extends WoofiproApi
         return null;
     }
 
-    public String parseOrderType(Object type)
+    public String parseOrderType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "LIMIT", "limit" );
@@ -2370,7 +2370,7 @@ public class Woofipro extends WoofiproApi
         return this.safeStringLower(types, type, type);
     }
 
-    public Object createOrderRequest(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
@@ -2534,7 +2534,7 @@ public class Woofipro extends WoofiproApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
+            Object request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
             Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(parameters, "stopLoss");
             Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(parameters, "takeProfit");
@@ -2549,7 +2549,7 @@ public class Woofipro extends WoofiproApi
             }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             ((Map<String, Object>)data).put("timestamp", this.safeInteger(response, "timestamp"));
-            Object order = this.parseOrder(data, market);
+            Map<String, Object> order = (Map<String, Object>) this.parseOrder(data, market);
             Helpers.addElementToObject(order, "type", type);
             return order;
         }).thenApply(Order::new);
@@ -3619,7 +3619,7 @@ public class Woofipro extends WoofiproApi
         }};
     }
 
-    public String parseTransactionStatus(Object status)
+    public String parseTransactionStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "NEW", "pending" );

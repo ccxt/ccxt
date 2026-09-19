@@ -236,14 +236,14 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         //     }
         //
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(data);
+        Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker((Map<String, Object>) (data));
         Object symbol = ((Map<String, Object>)ticker).get("symbol");
         Helpers.addElementToObject(this.tickers, ((String)symbol), ticker);
         String messageHash = ("ticker:" + symbol);
         client.resolve(Helpers.GetValue(this.tickers, ((String)symbol)), messageHash);
     }
 
-    public Object parseWsTicker(Object ticker, Object... optionalArgs)
+    public Object parseWsTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         //
         //     {
@@ -473,8 +473,8 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
             List<Object> keys = new ArrayList<Object>(methods.keySet());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
-                Object key = Helpers.GetValue(keys, i);
-                if (Helpers.getIndexOf(topic, Helpers.GetValue(keys, i)) >= 0)
+                Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+                if (Helpers.getIndexOf(topic, (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i))) >= 0)
                 {
                     Object method = Helpers.GetValue(methods, key);
                     Helpers.callDynamically(this, method, new Object[] {client, message});

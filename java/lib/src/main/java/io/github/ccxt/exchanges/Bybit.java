@@ -2604,7 +2604,7 @@ public class Bybit extends BybitApi
         return new ArrayList<Object>(Arrays.asList(subType, parameters));
     }
 
-    public Object getAmount(Object symbol, Object amount)
+    public Object getAmount(String symbol, Object amount)
     {
         // some markets like options might not have the precision available
         // and we shouldn't crash in those cases
@@ -2618,7 +2618,7 @@ public class Bybit extends BybitApi
         return amountString;
     }
 
-    public Object getPrice(Object symbol, Object price)
+    public Object getPrice(String symbol, String price)
     {
         if (java.util.Objects.equals(price, null))
         {
@@ -2633,7 +2633,7 @@ public class Bybit extends BybitApi
         return price;
     }
 
-    public Object getCost(Object symbol, Object cost)
+    public Object getCost(String symbol, String cost)
     {
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         Boolean emptyPrecisionPrice = (java.util.Objects.equals(((Map<String, Object>)((Map<String, Object>)market).get("precision")).get("price"), null));
@@ -5101,7 +5101,7 @@ public class Bybit extends BybitApi
 
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "NEW", "open" );
@@ -5128,7 +5128,7 @@ public class Bybit extends BybitApi
         return this.safeString(statuses, status, status);
     }
 
-    public String parseTimeInForce(Object timeInForce)
+    public String parseTimeInForce(String timeInForce)
     {
         Map<String, Object> timeInForces = new HashMap<String, Object>() {{
             put( "GoodTillCancel", "GTC" );
@@ -5514,7 +5514,7 @@ public class Bybit extends BybitApi
             Boolean isTrailingOrder = !java.util.Objects.equals(this.safeString2(parameters, "trailingAmount", "trailingStop"), null);
             Boolean isStopLossOrder = !java.util.Objects.equals(this.safeString(parameters, "stopLossPrice"), null);
             Boolean isTakeProfitOrder = !java.util.Objects.equals(this.safeString(parameters, "takeProfitPrice"), null);
-            Object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, parameters, enableUnifiedAccount);
+            Object orderRequest = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters, enableUnifiedAccount);
             Boolean switchToOco = (Boolean.TRUE.equals(isStopLossOrder) && Boolean.TRUE.equals(isTakeProfitOrder)) || Boolean.TRUE.equals(this.safeBool(parameters, "tradingStopEndpoint", false));
             String defaultMethod = null;
             if ((Boolean.TRUE.equals(isTrailingOrder) || (java.util.Objects.equals(switchToOco, true))) && (!java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)))
@@ -5554,7 +5554,7 @@ public class Bybit extends BybitApi
 
     }
 
-    public Object createOrderRequest(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
     {
         Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
@@ -5568,7 +5568,7 @@ public class Bybit extends BybitApi
             throw new ArgumentsRequired((this.id + " requires a side argument")) ;
         }
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-        symbol = ((Map<String, Object>)market).get("symbol");
+        symbol = (String) (((Map<String, Object>)market).get("symbol"));
         Object lowerCaseType = ((String)type).toLowerCase();
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "symbol", ((Map<String, Object>)market).get("id") );
@@ -5614,8 +5614,8 @@ public class Bybit extends BybitApi
         {
             amount = null;
         }
-        Object amountString = (((!java.util.Objects.equals(amount, null)))) ? this.getAmount(symbol, amount) : null;
-        Object priceString = (((!java.util.Objects.equals(price, null)))) ? this.getPrice(symbol, this.numberToString(price)) : null;
+        Object amountString = (((!java.util.Objects.equals(amount, null)))) ? this.getAmount((String) (symbol), amount) : null;
+        Object priceString = (((!java.util.Objects.equals(price, null)))) ? this.getPrice((String) (symbol), this.numberToString(price)) : null;
         if (Boolean.TRUE.equals(endpointIsTradingStop))
         {
             if (Boolean.TRUE.equals(hasStopLoss) || Boolean.TRUE.equals(hasTakeProfit) || Boolean.TRUE.equals(isTriggerOrder) || (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)))
@@ -5628,7 +5628,7 @@ public class Bybit extends BybitApi
                 String tpslModeTp = null;
                 if (Boolean.TRUE.equals(isStopLossOrder))
                 {
-                    ((Map<String, Object>)request).put("stopLoss", this.getPrice(symbol, stopLossTriggerPrice));
+                    ((Map<String, Object>)request).put("stopLoss", this.getPrice((String) (symbol), (String) (stopLossTriggerPrice)));
                     String stopLossLimitPrice = this.safeString2(parameters, "stopLossLimitPrice", "slLimitPrice");
                     if (!java.util.Objects.equals(stopLossLimitPrice, null))
                     {
@@ -5651,7 +5651,7 @@ public class Bybit extends BybitApi
                 }
                 if (Boolean.TRUE.equals(isTakeProfitOrder))
                 {
-                    ((Map<String, Object>)request).put("takeProfit", this.getPrice(symbol, takeProfitTriggerPrice));
+                    ((Map<String, Object>)request).put("takeProfit", this.getPrice((String) (symbol), (String) (takeProfitTriggerPrice)));
                     String takeProfitLimitPrice = this.safeString2(parameters, "takeProfitLimitPrice", "tpLimitPrice");
                     if (!java.util.Objects.equals(takeProfitLimitPrice, null))
                     {
@@ -5757,7 +5757,7 @@ public class Bybit extends BybitApi
                     Object quoteAmount = Precise.stringMul(amountString, priceString);
                     orderCost = quoteAmount;
                 }
-                ((Map<String, Object>)request).put("qty", this.getCost(symbol, orderCost));
+                ((Map<String, Object>)request).put("qty", this.getCost((String) (symbol), (String) (orderCost)));
             } else
             {
                 ((Map<String, Object>)request).put("marketUnit", "baseCoin");
@@ -5780,16 +5780,16 @@ public class Bybit extends BybitApi
                 {
                     Object quoteAmount = Precise.stringMul(this.numberToString(amount), priceString);
                     Object costRequest = (((!java.util.Objects.equals(cost, null)))) ? cost : quoteAmount;
-                    ((Map<String, Object>)request).put("qty", this.getCost(symbol, costRequest));
+                    ((Map<String, Object>)request).put("qty", this.getCost((String) (symbol), (String) (costRequest)));
                 }
             } else
             {
                 if (!java.util.Objects.equals(cost, null))
                 {
-                    ((Map<String, Object>)request).put("qty", this.getCost(symbol, this.numberToString(cost)));
+                    ((Map<String, Object>)request).put("qty", this.getCost((String) (symbol), this.numberToString(cost)));
                 } else if (!java.util.Objects.equals(price, null))
                 {
-                    ((Map<String, Object>)request).put("qty", this.getCost(symbol, Precise.stringMul(amountString, priceString)));
+                    ((Map<String, Object>)request).put("qty", this.getCost((String) (symbol), Precise.stringMul(amountString, priceString)));
                 } else
                 {
                     ((Map<String, Object>)request).put("qty", amountString);
@@ -5806,7 +5806,7 @@ public class Bybit extends BybitApi
         {
             if (!java.util.Objects.equals(trailingTriggerPrice, null))
             {
-                ((Map<String, Object>)request).put("activePrice", this.getPrice(symbol, trailingTriggerPrice));
+                ((Map<String, Object>)request).put("activePrice", this.getPrice((String) (symbol), trailingTriggerPrice));
             }
             ((Map<String, Object>)request).put("trailingStop", trailingAmount);
         } else if (Boolean.TRUE.equals(isTriggerOrder) && !Boolean.TRUE.equals(endpointIsTradingStop))
@@ -5828,7 +5828,7 @@ public class Bybit extends BybitApi
                 Boolean isAsending = ((java.util.Objects.equals(triggerDirection, "ascending")) || (java.util.Objects.equals(triggerDirection, "above")) || (java.util.Objects.equals(triggerDirection, "1")));
                 ((Map<String, Object>)request).put("triggerDirection", ((Boolean.TRUE.equals(isAsending))) ? 1 : 2);
             }
-            ((Map<String, Object>)request).put("triggerPrice", this.getPrice(symbol, triggerPrice));
+            ((Map<String, Object>)request).put("triggerPrice", this.getPrice((String) (symbol), (String) (triggerPrice)));
         } else if ((Boolean.TRUE.equals(isStopLossOrder) || Boolean.TRUE.equals(isTakeProfitOrder)) && !Boolean.TRUE.equals(endpointIsTradingStop))
         {
             if (Boolean.TRUE.equals(isBuy))
@@ -5839,7 +5839,7 @@ public class Bybit extends BybitApi
                 ((Map<String, Object>)request).put("triggerDirection", ((Boolean.TRUE.equals(isStopLossOrder))) ? 2 : 1);
             }
             triggerPrice = ((Boolean.TRUE.equals(isStopLossOrder))) ? stopLossTriggerPrice : takeProfitTriggerPrice;
-            ((Map<String, Object>)request).put("triggerPrice", this.getPrice(symbol, triggerPrice));
+            ((Map<String, Object>)request).put("triggerPrice", this.getPrice((String) (symbol), (String) (triggerPrice)));
             ((Map<String, Object>)request).put("reduceOnly", true);
         }
         if ((Boolean.TRUE.equals(hasStopLoss) || Boolean.TRUE.equals(hasTakeProfit)) && !Boolean.TRUE.equals(endpointIsTradingStop))
@@ -5847,13 +5847,13 @@ public class Bybit extends BybitApi
             if (Boolean.TRUE.equals(hasStopLoss))
             {
                 Object slTriggerPrice = this.safeValue2(stopLoss, "triggerPrice", "stopPrice", stopLoss);
-                ((Map<String, Object>)request).put("stopLoss", this.getPrice(symbol, slTriggerPrice));
+                ((Map<String, Object>)request).put("stopLoss", this.getPrice((String) (symbol), (String) (slTriggerPrice)));
                 Object slLimitPrice = this.safeValue(stopLoss, "price");
                 if (!java.util.Objects.equals(slLimitPrice, null))
                 {
                     ((Map<String, Object>)request).put("tpslMode", "Partial");
                     ((Map<String, Object>)request).put("slOrderType", "Limit");
-                    ((Map<String, Object>)request).put("slLimitPrice", this.getPrice(symbol, slLimitPrice));
+                    ((Map<String, Object>)request).put("slLimitPrice", this.getPrice((String) (symbol), (String) (slLimitPrice)));
                 } else
                 {
                     // for spot market, we need to add this
@@ -5871,13 +5871,13 @@ public class Bybit extends BybitApi
             if (Boolean.TRUE.equals(hasTakeProfit))
             {
                 Object tpTriggerPrice = this.safeValue2(takeProfit, "triggerPrice", "stopPrice", takeProfit);
-                ((Map<String, Object>)request).put("takeProfit", this.getPrice(symbol, tpTriggerPrice));
+                ((Map<String, Object>)request).put("takeProfit", this.getPrice((String) (symbol), (String) (tpTriggerPrice)));
                 Object tpLimitPrice = this.safeValue(takeProfit, "price");
                 if (!java.util.Objects.equals(tpLimitPrice, null))
                 {
                     ((Map<String, Object>)request).put("tpslMode", "Partial");
                     ((Map<String, Object>)request).put("tpOrderType", "Limit");
-                    ((Map<String, Object>)request).put("tpLimitPrice", this.getPrice(symbol, tpLimitPrice));
+                    ((Map<String, Object>)request).put("tpLimitPrice", this.getPrice((String) (symbol), (String) (tpLimitPrice)));
                 } else
                 {
                     // for spot market, we need to add this
@@ -5898,7 +5898,7 @@ public class Bybit extends BybitApi
             if (java.util.Objects.equals(reduceOnly, true))
             {
                 parameters = this.omit(parameters, "reduceOnly");
-                side = (((java.util.Objects.equals(side, "buy")))) ? "sell" : "buy";
+                side = (String) ((((java.util.Objects.equals(side, "buy")))) ? "sell" : "buy");
             }
             ((Map<String, Object>)request).put("positionIdx", (((java.util.Objects.equals(side, "buy")))) ? 1 : 2);
         }
@@ -6016,7 +6016,7 @@ public class Bybit extends BybitApi
 
     }
 
-    public Object editOrderRequest(Object id, Object symbol, Object type, Object side, Object... optionalArgs)
+    public Object editOrderRequest(String id, String symbol, String type, String side, Object... optionalArgs)
     {
         Object amount = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object price = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
@@ -6048,11 +6048,11 @@ public class Bybit extends BybitApi
         ((Map<String, Object>)request).put("category", category);
         if (!java.util.Objects.equals(amount, null))
         {
-            ((Map<String, Object>)request).put("qty", this.getAmount(symbol, amount));
+            ((Map<String, Object>)request).put("qty", this.getAmount((String) (symbol), amount));
         }
         if (!java.util.Objects.equals(price, null))
         {
-            ((Map<String, Object>)request).put("price", this.getPrice(symbol, this.numberToString(price)));
+            ((Map<String, Object>)request).put("price", this.getPrice((String) (symbol), this.numberToString(price)));
         }
         String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         String stopLossTriggerPrice = this.safeString(parameters, "stopLossPrice");
@@ -6069,7 +6069,7 @@ public class Bybit extends BybitApi
         }
         if (!java.util.Objects.equals(triggerPrice, null))
         {
-            Object triggerPriceRequest = (((java.util.Objects.equals(triggerPrice, "0")))) ? triggerPrice : this.getPrice(symbol, triggerPrice);
+            Object triggerPriceRequest = (((java.util.Objects.equals(triggerPrice, "0")))) ? triggerPrice : this.getPrice((String) (symbol), triggerPrice);
             ((Map<String, Object>)request).put("triggerPrice", triggerPriceRequest);
             String triggerBy = this.safeString(parameters, "triggerBy", "LastPrice");
             ((Map<String, Object>)request).put("triggerBy", triggerBy);
@@ -6079,7 +6079,7 @@ public class Bybit extends BybitApi
             if (Boolean.TRUE.equals(hasStopLoss))
             {
                 String slTriggerPrice = this.safeString2(stopLoss, "triggerPrice", "stopPrice", stopLoss);
-                Object stopLossRequest = (((java.util.Objects.equals(slTriggerPrice, "0")))) ? slTriggerPrice : this.getPrice(symbol, slTriggerPrice);
+                Object stopLossRequest = (((java.util.Objects.equals(slTriggerPrice, "0")))) ? slTriggerPrice : this.getPrice((String) (symbol), slTriggerPrice);
                 ((Map<String, Object>)request).put("stopLoss", stopLossRequest);
                 String slTriggerBy = this.safeString(parameters, "slTriggerBy", "LastPrice");
                 ((Map<String, Object>)request).put("slTriggerBy", slTriggerBy);
@@ -6087,7 +6087,7 @@ public class Bybit extends BybitApi
             if (Boolean.TRUE.equals(hasTakeProfit))
             {
                 String tpTriggerPrice = this.safeString2(takeProfit, "triggerPrice", "stopPrice", takeProfit);
-                Object takeProfitRequest = (((java.util.Objects.equals(tpTriggerPrice, "0")))) ? tpTriggerPrice : this.getPrice(symbol, tpTriggerPrice);
+                Object takeProfitRequest = (((java.util.Objects.equals(tpTriggerPrice, "0")))) ? tpTriggerPrice : this.getPrice((String) (symbol), tpTriggerPrice);
                 ((Map<String, Object>)request).put("takeProfit", takeProfitRequest);
                 String tpTriggerBy = this.safeString(parameters, "tpTriggerBy", "LastPrice");
                 ((Map<String, Object>)request).put("tpTriggerBy", tpTriggerBy);
@@ -6141,7 +6141,7 @@ public class Bybit extends BybitApi
                 throw new ArgumentsRequired((this.id + " editOrder() requires a symbol argument")) ;
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object request = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
+            Object request = this.editOrderRequest((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             Map<String, Object> response = (this.privatePostV5OrderAmend(this.extend(request, parameters))).join();
             //
             //     {
@@ -7928,7 +7928,7 @@ public class Bybit extends BybitApi
 
     }
 
-    public String parseTransactionStatus(Object status)
+    public String parseTransactionStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "0", "unknown" );
@@ -9976,7 +9976,7 @@ public class Bybit extends BybitApi
         }};
     }
 
-    public String parseTransferStatus(Object status)
+    public String parseTransferStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "0", "ok" );
@@ -10112,7 +10112,7 @@ public class Bybit extends BybitApi
 
     }
 
-    public Object parseTradingFee(Object fee, Object... optionalArgs)
+    public Object parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
     {
         //
         //     {
@@ -10184,7 +10184,7 @@ public class Bybit extends BybitApi
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> fees = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> first = (Map<String, Object>) this.safeDict(fees, 0, new HashMap<String, Object>() {{}});
-            return this.parseTradingFee(first, market);
+            return this.parseTradingFee((Map<String, Object>) (first), market);
         }).thenApply(TradingFeeInterface::new);
 
     }
@@ -10239,7 +10239,7 @@ public class Bybit extends BybitApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)fees).size(); i++)
             {
-                Map<String, Object> fee = (Map<String, Object>) this.parseTradingFee(Helpers.GetValue(fees, i));
+                Map<String, Object> fee = (Map<String, Object>) this.parseTradingFee((Map<String, Object>) (Helpers.GetValue(fees, i)));
                 Object symbol = ((Map<String, Object>)fee).get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
@@ -11167,7 +11167,7 @@ public class Bybit extends BybitApi
         List<Object> keys = new ArrayList<Object>(grouped.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object marketId = Helpers.GetValue(keys, i);
+            Object marketId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Object entry = Helpers.GetValue(grouped, marketId);
             for (var j = 0; j < Helpers.getArrayLength(entry); j++)
             {
@@ -12414,7 +12414,7 @@ final Object finalMarket = market;
         }};
     }
 
-    public String parseMarginModeType(Object marginMode)
+    public String parseMarginModeType(String marginMode)
     {
         Map<String, Object> marginModes = new HashMap<String, Object>() {{
             put( "ISOLATED_MARGIN", "isolated" );

@@ -324,7 +324,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             {
                 (this.loadMarkets()).join();
             }
-            Object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, parameters, true);
+            Object orderRequest = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters, true);
             Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private"), "trade");
             (this.authenticate(url)).join();
             Object requestId = String.valueOf(this.requestId());
@@ -379,7 +379,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             {
                 (this.loadMarkets()).join();
             }
-            Object orderRequest = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
+            Object orderRequest = this.editOrderRequest((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private"), "trade");
             (this.authenticate(url)).join();
             Object requestId = String.valueOf(this.requestId());
@@ -1261,7 +1261,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         Helpers.addElementToObject(orderbook, "symbol", symbol);
         if (Boolean.TRUE.equals(isSnapshot))
         {
-            Object snapshot = this.parseOrderBook(data, symbol, timestamp, "b", "a");
+            Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "b", "a");
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         } else
         {
@@ -1287,7 +1287,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
 
     public void handleDelta(Object bookside, Object delta)
     {
-        Object bidAsk = this.parseOrderBookBidAsk(delta, 0, 1);
+        List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk(delta, 0, 1);
         Helpers.callDynamically(bookside, "storeArray", new Object[]{bidAsk});
     }
 
@@ -1837,7 +1837,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         List<Object> keys = new ArrayList<Object>(symbols.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            String currentMessageHash = ("myTrades:" + Helpers.GetValue(keys, i));
+            String currentMessageHash = ("myTrades:" + (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i)));
             client.resolve(trades, currentMessageHash);
         }
         // non-symbol specific
@@ -2011,7 +2011,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         for (var i = 0; i < ((List<?>)rawPositions).size(); i++)
         {
             Object rawPosition = (rawPositions == null || i < 0 || i >= rawPositions.size() ? null : rawPositions.get(i));
-            Object position = this.parsePosition(rawPosition);
+            Map<String, Object> position = (Map<String, Object>) this.parsePosition(rawPosition);
             String side = this.safeString(position, "side");
             // hacky solution to handle closing positions
             // without crashing, we should handle this properly later
@@ -2348,7 +2348,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         //
         String messageHash = this.safeString(message, "reqId");
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Object order = this.parseOrder(data);
+        Map<String, Object> order = (Map<String, Object>) this.parseOrder(data);
         client.resolve(order, messageHash);
     }
 
@@ -2454,7 +2454,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         Map<String, Object> symbols = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)rawOrders).size(); i++)
         {
-            Object parsed = this.parseOrder(Helpers.GetValue(rawOrders, i));
+            Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(Helpers.GetValue(rawOrders, i));
             // if (isSpot) {
             //     parsed = this.parseWsSpotOrder (rawOrders[i]);
             // } else {
@@ -2471,7 +2471,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         List<Object> symbolsArray = new ArrayList<Object>(symbols.keySet());
         for (var i = 0; i < ((List<?>)symbolsArray).size(); i++)
         {
-            String currentMessageHash = ("orders:" + Helpers.GetValue(symbolsArray, i));
+            String currentMessageHash = ("orders:" + (symbolsArray == null || i < 0 || i >= symbolsArray.size() ? null : symbolsArray.get(i)));
             client.resolve(orders, currentMessageHash);
         }
         String messageHash = "orders";
@@ -3156,7 +3156,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         List<Object> keys = new ArrayList<Object>(methods.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object key = Helpers.GetValue(keys, i);
+            Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             if (((String)topic).indexOf(((String)key)) >= 0)
             {
                 Object method = Helpers.GetValue(methods, key);

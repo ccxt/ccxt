@@ -243,7 +243,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         String type = this.safeString(message, "type", "");
         if (java.util.Objects.equals(type, "subscribed/order_book"))
         {
-            Object parsed = this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "size");
+            Map<String, Object> parsed = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "size");
             ((Map<String, Object>)parsed).put("nonce", this.safeInteger(data, "offset"));
             Helpers.callDynamically(orderbook, "reset", new Object[]{parsed});
         } else if (java.util.Objects.equals(type, "update/order_book"))
@@ -378,10 +378,10 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             List<Object> marketIds = new ArrayList<Object>(data.keySet());
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
-                Object marketId = Helpers.GetValue(marketIds, i);
+                Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
                 Object symbol = ((Map<String, Object>)market).get("symbol");
-                Object ticker = this.parseTicker(Helpers.GetValue(data, marketId), market);
+                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(Helpers.GetValue(data, marketId), market);
                 Helpers.addElementToObject(this.tickers, symbol, ticker);
                 client.resolve(ticker, this.getMessageHash("ticker", symbol));
                 client.resolve(ticker, this.getMessageHash("ticker"));
@@ -391,7 +391,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             String marketId = this.safeString(data, "market_id");
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
             Object symbol = ((Map<String, Object>)market).get("symbol");
-            Object ticker = this.parseTicker(data, market);
+            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(data, market);
             Helpers.addElementToObject(this.tickers, symbol, ticker);
             client.resolve(ticker, this.getMessageHash("ticker", symbol));
         }
@@ -961,7 +961,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         Object messageHash = this.getMessageHash("myTrades");
         for (var i = 0; i < ((List<?>)marketIds).size(); i++)
         {
-            Object marketId = Helpers.GetValue(marketIds, i);
+            Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
             List<Object> trades = (List<Object>) this.safeList(data, marketId, new ArrayList<Object>(Arrays.asList()));
             Object tradesLength = ((List<?>)trades).size();
@@ -1334,7 +1334,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             List<Object> assetIds = new ArrayList<Object>(assets.keySet());
             for (var i = 0; i < ((List<?>)assetIds).size(); i++)
             {
-                Object assetId = Helpers.GetValue(assetIds, i);
+                Object assetId = (assetIds == null || i < 0 || i >= assetIds.size() ? null : assetIds.get(i));
                 Object asset = Helpers.GetValue(assets, assetId);
                 String codeId = this.safeString(asset, "symbol");
                 String code = this.safeCurrencyCode(codeId);
@@ -1495,7 +1495,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Object requestId = this.requestId(url);
             String messageHash = ("jsonapi/sendtx:" + requestId);
-            var txTypetxInfoordermarketVariable = (this.signAndCreateOrder("createOrderWs", symbol, type, side, amount, price, parameters)).join();
+            var txTypetxInfoordermarketVariable = (this.signAndCreateOrder("createOrderWs", (String) (symbol), (String) (type), (String) (side), amount, price, parameters)).join();
             var txType = ((List<Object>) txTypetxInfoordermarketVariable).get(0);
             var txInfo = ((List<Object>) txTypetxInfoordermarketVariable).get(1);
             var order = ((List<Object>) txTypetxInfoordermarketVariable).get(2);
@@ -1650,12 +1650,12 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         Object messageHash = this.getMessageHash("orders");
         for (var i = 0; i < ((List<?>)marketIds).size(); i++)
         {
-            Object marketId = Helpers.GetValue(marketIds, i);
+            Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
             List<Object> orders = (List<Object>) this.safeList(data, marketId, new ArrayList<Object>(Arrays.asList()));
             for (var j = 0; j < ((List<?>)orders).size(); j++)
             {
-                Object order = this.parseOrder((orders == null || j < 0 || j >= orders.size() ? null : orders.get(j)), market);
+                Map<String, Object> order = (Map<String, Object>) this.parseOrder((orders == null || j < 0 || j >= orders.size() ? null : orders.get(j)), market);
                 Helpers.callDynamically(stored, "append", new Object[]{order});
                 Object symbol = ((Map<String, Object>)order).get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
@@ -1820,26 +1820,26 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         String channelId = this.safeString(parts, 1);
         if (java.util.Objects.equals(name, "order_book"))
         {
-            this.handleOrderBookUnSubscription(client, channelId);
+            this.handleOrderBookUnSubscription(client, (String) (channelId));
         } else if (java.util.Objects.equals(name, "market_stats"))
         {
-            this.handleTickerUnSubscription(client, channelId);
+            this.handleTickerUnSubscription(client, (String) (channelId));
         } else if (java.util.Objects.equals(name, "trade"))
         {
-            this.handleTradesUnSubscription(client, channelId);
+            this.handleTradesUnSubscription(client, (String) (channelId));
         } else if (java.util.Objects.equals(name, "account_all_trades"))
         {
             this.handleMyTradesUnSubscription(client);
         } else if (java.util.Objects.equals(name, "account_orders"))
         {
-            this.handleOrdersUnSubscription(client, channelId);
+            this.handleOrdersUnSubscription(client, (String) (channelId));
         } else if (java.util.Objects.equals(name, "account_all_orders"))
         {
             this.handleAllOrdersUnSubscription(client);
         }
     }
 
-    public void handleOrderBookUnSubscription(Client client, Object marketId)
+    public void handleOrderBookUnSubscription(Client client, String marketId)
     {
         String symbol = this.safeSymbol(marketId);
         Object subMessageHash = this.getMessageHash("orderbook", symbol);
@@ -1851,7 +1851,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         }
     }
 
-    public void handleTickerUnSubscription(Client client, Object marketId)
+    public void handleTickerUnSubscription(Client client, String marketId)
     {
         if (java.util.Objects.equals(marketId, "all"))
         {
@@ -1903,7 +1903,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         }
     }
 
-    public void handleTradesUnSubscription(Client client, Object marketId)
+    public void handleTradesUnSubscription(Client client, String marketId)
     {
         String symbol = this.safeSymbol(marketId);
         Object subMessageHash = this.getMessageHash("trade", symbol);
@@ -1926,7 +1926,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         this.cleanCache(myTradesStructure);
     }
 
-    public void handleOrdersUnSubscription(Client client, Object marketId)
+    public void handleOrdersUnSubscription(Client client, String marketId)
     {
         String symbol = this.safeSymbol(marketId);
         Object subMessageHash = this.getMessageHash("orders", symbol);

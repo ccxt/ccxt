@@ -26,7 +26,7 @@ public class TestFetchTradingFees extends BaseTest {
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, symbols);
         for (var i = 0; i < ((List<?>)symbols).size(); i++)
         {
-            Object symbol = Helpers.GetValue(symbols, i);
+            Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
             TestTradingFee.testTradingFee(exchange, skippedProperties, method, symbol, Helpers.GetValue(fees, symbol));
         }
         return true;

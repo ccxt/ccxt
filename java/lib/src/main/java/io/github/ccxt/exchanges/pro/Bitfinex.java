@@ -343,7 +343,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         for (var i = 0; Helpers.isLessThan(i, ohlcvsLength); i++)
         {
             Object ohlcv = Helpers.GetValue(ohlcvs, Helpers.subtract(Helpers.subtract(ohlcvsLength, i), 1));
-            Object parsed = this.parseOHLCV(ohlcv, market);
+            List<Object> parsed = (List<Object>) this.parseOHLCV(ohlcv, market);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
         }
         client.resolve(stored, messageHash);
@@ -730,14 +730,14 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         String marketId = this.safeString(subscription, "symbol");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         String symbol = this.safeSymbol(marketId);
-        Object parsed = this.parseWsTicker(ticker, market);
+        Map<String, Object> parsed = (Map<String, Object>) this.parseWsTicker((Map<String, Object>) (ticker), market);
         String channel = "ticker";
         Object messageHash = ((channel + ":") + marketId);
         Helpers.addElementToObject(this.tickers, symbol, parsed);
         client.resolve(parsed, messageHash);
     }
 
-    public Object parseWsTicker(Object ticker, Object... optionalArgs)
+    public Object parseWsTicker(Map<String, Object> ticker, Object... optionalArgs)
     {
         //
         //     [
@@ -1108,7 +1108,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         List<Object> updatesKeys = new ArrayList<Object>(updatedTypes.keySet());
         for (var i = 0; i < ((List<?>)updatesKeys).size(); i++)
         {
-            Object type = Helpers.GetValue(updatesKeys, i);
+            Object type = (updatesKeys == null || i < 0 || i >= updatesKeys.size() ? null : updatesKeys.get(i));
             String messageHash = ("balance:" + type);
             client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), messageHash);
         }
@@ -1380,14 +1380,14 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
                 Object value = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
-                Object parsed = this.parseWsOrder(value);
+                Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(value);
                 Object symbol = ((Map<String, Object>)parsed).get("symbol");
                 ((Map<String, Object>)symbolIds).put((String)((String)symbol), true);
                 Helpers.callDynamically(orders, "append", new Object[]{parsed});
             }
         } else
         {
-            Object parsed = this.parseWsOrder(data);
+            Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(data);
             Helpers.callDynamically(orders, "append", new Object[]{parsed});
             Object symbol = ((Map<String, Object>)parsed).get("symbol");
             ((Map<String, Object>)symbolIds).put((String)((String)symbol), true);
@@ -1397,7 +1397,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         List<Object> keys = new ArrayList<Object>(symbolIds.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object symbol = Helpers.GetValue(keys, i);
+            Object symbol = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object messageHash = ((name + ":") + ((Map<String, Object>)market).get("id"));
             client.resolve(this.orders, messageHash);

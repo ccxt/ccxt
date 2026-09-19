@@ -1464,7 +1464,7 @@ public class P2b extends P2bApi
             List<Object> keys = new ArrayList<Object>(result.keySet());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
-                Object marketId = Helpers.GetValue(keys, i);
+                Object marketId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 Object marketOrders = Helpers.GetValue(result, marketId);
                 List<Object> parsedOrders = this.parseOrders(marketOrders, market, since, limit);
                 orders = this.arrayConcat(orders, parsedOrders);

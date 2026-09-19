@@ -3623,7 +3623,7 @@ public class Gate extends GateApi
                     List<Object> networkIds = new ArrayList<Object>(withdrawFixOnChains.keySet());
                     for (var j = 0; j < ((List<?>)networkIds).size(); j++)
                     {
-                        Object networkId = Helpers.GetValue(networkIds, j);
+                        Object networkId = (networkIds == null || j < 0 || j >= networkIds.size() ? null : networkIds.get(j));
                         Object networkCode = this.networkIdToCode(networkId, code);
                         if (!java.util.Objects.equals(networkCode, null))
                         {
@@ -3726,7 +3726,7 @@ public class Gate extends GateApi
             List<Object> chainKeys = new ArrayList<Object>(withdrawFixOnChains.keySet());
             for (var i = 0; i < ((List<?>)chainKeys).size(); i++)
             {
-                Object chainKey = Helpers.GetValue(chainKeys, i);
+                Object chainKey = (chainKeys == null || i < 0 || i >= chainKeys.size() ? null : chainKeys.get(i));
                 String currencyId = this.safeString(fee, "currency");
                 String code = this.safeCurrencyCode(currencyId, currency);
                 Object networkCode = this.networkIdToCode(chainKey, code);

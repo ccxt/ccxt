@@ -398,13 +398,13 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         //        "channel":"INSTRUMENTS",
         //        "type":"SNAPSHOT"
         //    }
-        Object ticker = this.parseWsInstrument(message);
+        Object ticker = this.parseWsInstrument((Map<String, Object>) (message));
         String channel = this.safeString(message, "channel");
         client.resolve(ticker, channel);
         client.resolve(ticker, Helpers.add((channel + "::"), ((Map<String, Object>)ticker).get("symbol")));
     }
 
-    public Object parseWsInstrument(Object ticker, Object... optionalArgs)
+    public Object parseWsInstrument(Map<String, Object> ticker, Object... optionalArgs)
     {
         //
         //    {
@@ -512,7 +512,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         //       "type": "UPDATE"
         //    }
         //
-        Object ticker = this.parseWsTicker(message);
+        Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(message);
         String channel = this.safeString(message, "channel");
         client.resolve(ticker, channel);
         client.resolve(ticker, Helpers.add((channel + "::"), ((Map<String, Object>)ticker).get("symbol")));
@@ -635,7 +635,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Object tick = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
-            Object parsed = this.parseOHLCV(tick, market);
+            List<Object> parsed = (List<Object>) this.parseOHLCV(tick, market);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
         }
         client.resolve(stored, Helpers.add((messageHash + "::"), symbol));
@@ -860,7 +860,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         if (java.util.Objects.equals(type, "SNAPSHOT"))
         {
-            Object parsedSnapshot = this.parseOrderBook(message, symbol, null, "bids", "asks");
+            Map<String, Object> parsedSnapshot = (Map<String, Object>) this.parseOrderBook(message, symbol, null, "bids", "asks");
             Helpers.callDynamically(orderbook, "reset", new Object[]{parsedSnapshot});
             Helpers.addElementToObject(orderbook, "symbol", symbol);
         } else
@@ -947,9 +947,9 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         //    }
         //
         String channel = this.safeString(message, "channel");
-        Object fundingRate = this.parseFundingRate(message);
-        Helpers.addElementToObject(this.fundingRates, Helpers.GetValue(fundingRate, "symbol"), fundingRate);
-        client.resolve(fundingRate, Helpers.add((channel + "::"), Helpers.GetValue(fundingRate, "symbol")));
+        Map<String, Object> fundingRate = (Map<String, Object>) this.parseFundingRate(message);
+        Helpers.addElementToObject(this.fundingRates, fundingRate.get("symbol"), fundingRate);
+        client.resolve(fundingRate, Helpers.add((channel + "::"), fundingRate.get("symbol")));
     }
 
     public Object handleErrorMessage(Client client, Object message)

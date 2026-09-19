@@ -716,7 +716,7 @@ public class Zebpay extends ZebpayApi
                 List<Object> responseData = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
                 data = this.safeDict(responseData, 0, new HashMap<String, Object>() {{}});
             }
-            return this.parseTradingFee(data, market);
+            return this.parseTradingFee((Map<String, Object>) (data), market);
         }).thenApply(TradingFeeInterface::new);
 
     }
@@ -765,7 +765,7 @@ public class Zebpay extends ZebpayApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)fees).size(); i++)
             {
-                Object fee = this.parseTradingFee((fees == null || i < 0 || i >= fees.size() ? null : fees.get(i)));
+                Map<String, Object> fee = (Map<String, Object>) this.parseTradingFee((Map<String, Object>) ((fees == null || i < 0 || i >= fees.size() ? null : fees.get(i))));
                 Object symbol = ((Map<String, Object>)fee).get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
@@ -828,7 +828,7 @@ public class Zebpay extends ZebpayApi
                 response = (this.publicSwapGetV1MarketOrderBook(this.extend(request, parameters))).join();
             }
             Map<String, Object> bookData = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object orderbook = this.parseOrderBook(bookData, ((Map<String, Object>)market).get("symbol"), null, "bids", "asks", 0, 1);
+            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(bookData, ((Map<String, Object>)market).get("symbol"), null, "bids", "asks", 0, 1);
             ((Map<String, Object>)orderbook).put("nonce", this.safeInteger(bookData, "nonce"));
             return orderbook;
         }).thenApply(OrderBook::new);
@@ -1370,7 +1370,7 @@ public class Zebpay extends ZebpayApi
             Object response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
-                var requestparametersVariable = this.orderRequest(symbol, type, amount, request, price, parameters);
+                var requestparametersVariable = this.orderRequest(symbol, type, amount, (Map<String, Object>) (request), price, parameters);
                 request = ((List<Object>) requestparametersVariable).get(0);
                 parameters = ((List<Object>) requestparametersVariable).get(1);
                 response = (this.privateSpotPostV2ExOrders(this.extend(request, parameters))).join();
@@ -1421,7 +1421,7 @@ public class Zebpay extends ZebpayApi
 
     }
 
-    public Object orderRequest(Object symbol, Object type, Object amount, Object request, Object... optionalArgs)
+    public Object orderRequest(Object symbol, Object type, Object amount, Map<String, Object> request, Object... optionalArgs)
     {
         Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
@@ -1546,7 +1546,7 @@ public class Zebpay extends ZebpayApi
             //    }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object parsedOrder = this.parseOrder(data);
+            Map<String, Object> parsedOrder = (Map<String, Object>) this.parseOrder(data);
             return new ArrayList<Object>(Arrays.asList(parsedOrder));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -2314,7 +2314,7 @@ public class Zebpay extends ZebpayApi
         }};
     }
 
-    public Object parseTradingFee(Object fee, Object... optionalArgs)
+    public Object parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(fee, "symbol");

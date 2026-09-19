@@ -460,7 +460,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         }
         if (java.util.Objects.equals(type, "ORDER_BOOK_SNAPSHOT"))
         {
-            Object snapshot = this.parseOrderBook(message, symbol, timestamp, "bids", "asks");
+            Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(message, symbol, timestamp, "bids", "asks");
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         } else if (java.util.Objects.equals(type, "ORDER_BOOK_UPDATE"))
         {
@@ -482,7 +482,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         //
         //   [ 'BUY', "0.053595", "0" ]
         //
-        Object bidAsk = this.parseOrderBookBidAsk(delta, 1, 2);
+        List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk(delta, 1, 2);
         String type = this.safeString(delta, 0);
         if (java.util.Objects.equals(type, "BUY"))
         {
@@ -835,14 +835,14 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         Object orders = this.orders;
         for (var i = 0; i < ((List<?>)rawOrders).size(); i++)
         {
-            Object order = this.parseOrder((rawOrders == null || i < 0 || i >= rawOrders.size() ? null : rawOrders.get(i)));
+            Map<String, Object> order = (Map<String, Object>) this.parseOrder((rawOrders == null || i < 0 || i >= rawOrders.size() ? null : rawOrders.get(i)));
             String symbol = this.safeString(order, "symbol", "");
             Helpers.callDynamically(orders, "append", new Object[]{order});
             client.resolve(this.orders, ("orders:" + symbol));
             List<Object> rawTrades = (List<Object>) this.safeList((rawOrders == null || i < 0 || i >= rawOrders.size() ? null : rawOrders.get(i)), "trades", new ArrayList<Object>(Arrays.asList()));
             for (var ii = 0; ii < ((List<?>)rawTrades).size(); ii++)
             {
-                Object trade = this.parseTrade((rawTrades == null || ii < 0 || ii >= rawTrades.size() ? null : rawTrades.get(ii)));
+                Map<String, Object> trade = (Map<String, Object>) this.parseTrade((rawTrades == null || ii < 0 || ii >= rawTrades.size() ? null : rawTrades.get(ii)));
                 symbol = this.safeString(trade, "symbol", symbol);
                 Helpers.callDynamically(this.myTrades, "append", new Object[]{trade});
                 client.resolve(this.myTrades, ("myTrades:" + symbol));
@@ -1114,7 +1114,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             Helpers.callDynamically(orders, "append", new Object[]{orderObject});
         } else
         {
-            Object parsed = this.parseOrder(update);
+            Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(update);
             symbol = this.safeString(parsed, "symbol", "");
             Helpers.callDynamically(orders, "append", new Object[]{parsed});
         }
@@ -1134,7 +1134,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         // update trades
         if (java.util.Objects.equals(updateType, "TRADE_SETTLED"))
         {
-            Object parsed = this.parseTrade(update);
+            Map<String, Object> parsed = (Map<String, Object>) this.parseTrade(update);
             symbol = this.safeString(parsed, "symbol", "");
             Object myTrades = this.myTrades;
             Helpers.callDynamically(myTrades, "append", new Object[]{parsed});
@@ -1248,7 +1248,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             List<Object> marketIds = new ArrayList<Object>(((Map<String, Object>)subscription).keySet());
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
-                List<Object> marketIdtimeframes = Helpers.objectKeys(Helpers.GetValue(subscription, Helpers.GetValue(marketIds, i)));
+                List<Object> marketIdtimeframes = Helpers.objectKeys(Helpers.GetValue(subscription, (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i))));
                 for (var ii = 0; ii < ((List<?>)marketIdtimeframes).size(); ii++)
                 {
                     Map<String, Object> marketTimeframeId = (Map<String, Object>) this.safeDict(timeframes, timeframe);

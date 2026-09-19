@@ -2315,7 +2315,7 @@ public class Extended extends ExtendedApi
             Object account = (this.fetchExtendedAccount()).join();
             Object amountString = this.currencyToPrecision(code, amount);
             String accountId = this.safeString(account, "accountId");
-            Object settlement = this.createWithdrawalSettlementData(address, ((String)amountString), currency, account, parameters);
+            Object settlement = this.createWithdrawalSettlementData(address, ((String)amountString), (Map<String, Object>) (currency), (Map<String, Object>) (account), parameters);
             final Object finalChainId = chainId;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "accountId", accountId );
@@ -2466,7 +2466,7 @@ public class Extended extends ExtendedApi
                 throw new ArgumentsRequired((this.id + " transfer() requires a toAccount argument and params[\"toVault\"] and params[\"toL2Key\"]")) ;
             }
             Object amountString = this.currencyToPrecision(code, amount);
-            Object settlement = this.createTransferSettlementData(((String)amountString), currency, account, toVault, toL2Key, parameters);
+            Object settlement = this.createTransferSettlementData(((String)amountString), (Map<String, Object>) (currency), (Map<String, Object>) (account), toVault, toL2Key, parameters);
             final Object finalFromAccount = fromAccount;
             final Object finalToAccount = toAccount;
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2553,7 +2553,7 @@ public class Extended extends ExtendedApi
         }};
     }
 
-    public String getExtendedCurrencyCodeById(Object assetId, Object... optionalArgs)
+    public String getExtendedCurrencyCodeById(String assetId, Object... optionalArgs)
     {
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         if (java.util.Objects.equals(assetId, null))
@@ -2578,7 +2578,7 @@ public class Extended extends ExtendedApi
         return code;
     }
 
-    public String parseTransactionStatus(Object status)
+    public String parseTransactionStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "CREATED", "pending" );
@@ -2589,7 +2589,7 @@ public class Extended extends ExtendedApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public String parseTransactionType(Object type)
+    public String parseTransactionType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "DEPOSIT", "deposit" );
@@ -2696,7 +2696,7 @@ public class Extended extends ExtendedApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            return this.parseTradingFee(first, market);
+            return this.parseTradingFee((Map<String, Object>) (first), market);
         }).thenApply(TradingFeeInterface::new);
 
     }
@@ -2737,7 +2737,7 @@ public class Extended extends ExtendedApi
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
                 Map<String, Object> fee = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
-                Map<String, Object> parsed = (Map<String, Object>) this.parseTradingFee(fee);
+                Map<String, Object> parsed = (Map<String, Object>) this.parseTradingFee((Map<String, Object>) (fee));
                 String symbol = this.safeString(parsed, "symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
@@ -2749,7 +2749,7 @@ public class Extended extends ExtendedApi
 
     }
 
-    public Object parseTradingFee(Object fee, Object... optionalArgs)
+    public Object parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
     {
         //
         //     {
@@ -3184,7 +3184,7 @@ public class Extended extends ExtendedApi
             put( "expiration", Extended.this.numberToString(settlementExpiration) );
             put( "salt", nonce );
         }};
-        Object msgHash = this.getExtendedOrderMsgHash(settlement);
+        Object msgHash = this.getExtendedOrderMsgHash((Map<String, Object>) (settlement));
         Object sig = Helpers.parseJson(this.extendedStarknetSign(msgHash, this.privateKey));
         Object r = this.getExtendedSignatureHex(Helpers.GetValue(sig, 0));
         Object s = this.getExtendedSignatureHex(Helpers.GetValue(sig, 1));
@@ -3193,7 +3193,7 @@ public class Extended extends ExtendedApi
         return settlement;
     }
 
-    public Object createWithdrawalSettlementData(Object address, Object amountString, Object currency, Object account, Object... optionalArgs)
+    public Object createWithdrawalSettlementData(Object address, Object amountString, Map<String, Object> currency, Map<String, Object> account, Object... optionalArgs)
     {
         Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
         Long now = this.milliseconds();
@@ -3222,7 +3222,7 @@ public class Extended extends ExtendedApi
             }} );
             put( "salt", nonce );
         }};
-        Object msgHash = this.getExtendedWithdrawalMsgHash(settlement, starkKey);
+        Object msgHash = this.getExtendedWithdrawalMsgHash((Map<String, Object>) (settlement), starkKey);
         Object sig = Helpers.parseJson(this.extendedStarknetSign(msgHash, this.privateKey));
         ((Map<String, Object>)settlement).put("signature", new HashMap<String, Object>() {{
     put( "r", Extended.this.getExtendedSignatureHex(Helpers.GetValue(sig, 0)) );
@@ -3231,7 +3231,7 @@ public class Extended extends ExtendedApi
         return settlement;
     }
 
-    public Object createTransferSettlementData(Object amountString, Object currency, Object account, Object toVault, Object toL2Key, Object... optionalArgs)
+    public Object createTransferSettlementData(Object amountString, Map<String, Object> currency, Map<String, Object> account, Object toVault, Object toL2Key, Object... optionalArgs)
     {
         Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
         Long now = this.milliseconds();
@@ -3260,7 +3260,7 @@ public class Extended extends ExtendedApi
             put( "senderPositionId", finalFromVault );
             put( "senderPublicKey", finalFromL2Key );
         }};
-        Object msgHash = this.getExtendedTransferMsgHash(settlement);
+        Object msgHash = this.getExtendedTransferMsgHash((Map<String, Object>) (settlement));
         Object sig = Helpers.parseJson(this.extendedStarknetSign(msgHash, this.privateKey));
         ((Map<String, Object>)settlement).put("signature", new HashMap<String, Object>() {{
     put( "r", Extended.this.getExtendedSignatureHex(Helpers.GetValue(sig, 0)) );
@@ -3269,7 +3269,7 @@ public class Extended extends ExtendedApi
         return settlement;
     }
 
-    public CompletableFuture<Object> createExtendedOrderRequest(Object symbol, Object type2, Object side2, Object amount, Object... optionalArgs)
+    public CompletableFuture<Object> createExtendedOrderRequest(String symbol, String type2, String side2, Object amount, Object... optionalArgs)
     {
         final Object type3 = type2;
         final Object side3 = side2;
@@ -3567,7 +3567,7 @@ public class Extended extends ExtendedApi
             Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             this.checkRequiredCredentials();
-            Object extendedOrderRequest = (this.createExtendedOrderRequest(symbol, type, side, amount, price, parameters)).join();
+            Object extendedOrderRequest = (this.createExtendedOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters)).join();
             Map<String, Object> request = (Map<String, Object>) this.safeDict(extendedOrderRequest, "request", new HashMap<String, Object>() {{}});
             Map<String, Object> response = (this.v1PrivatePostUserOrder(request)).join();
             //
@@ -3671,7 +3671,7 @@ public class Extended extends ExtendedApi
                 put( "cancelId", finalCancelId );
                 put( "expiryEpochMillis", finalExpiryEpochMillis );
             }});
-            Object extendedOrderRequest = (this.createExtendedOrderRequest(symbol, type, side, amount, price, requestParams)).join();
+            Object extendedOrderRequest = (this.createExtendedOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, requestParams)).join();
             Map<String, Object> request = (Map<String, Object>) this.safeDict(extendedOrderRequest, "request", new HashMap<String, Object>() {{}});
             Map<String, Object> editResponse = (this.v1PrivatePostUserOrder(request)).join();
             //
@@ -4163,7 +4163,7 @@ public class Extended extends ExtendedApi
 
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "NEW", "open" );
@@ -4337,7 +4337,7 @@ public class Extended extends ExtendedApi
         return this.convertToBigInt(this.extendedStarknetComputePoseidonHashOnElements(new ArrayList<Object>(Arrays.asList(domainTypeHash, this.getExtendedStringToFelt("Perpetuals"), this.getExtendedStringToFelt("v0"), this.getExtendedStringToFelt(chainId), this.convertToBigInt("1")))));
     }
 
-    public Object getExtendedOrderMsgHash(Object settlement)
+    public Object getExtendedOrderMsgHash(Map<String, Object> settlement)
     {
         Object orderTypeHash = this.convertToBigInt(this.extendedStarknetGetSelectorFromName("\"Order\"(\"position_id\":\"felt\",\"base_asset_id\":\"AssetId\",\"base_amount\":\"i64\",\"quote_asset_id\":\"AssetId\",\"quote_amount\":\"i64\",\"fee_asset_id\":\"AssetId\",\"fee_amount\":\"u64\",\"expiration\":\"Timestamp\",\"salt\":\"felt\")\"PositionId\"(\"value\":\"u32\")\"AssetId\"(\"value\":\"felt\")\"Timestamp\"(\"seconds\":\"u64\")"));
         Object domainHash = this.getExtendedDomainHash();
@@ -4358,7 +4358,7 @@ public class Extended extends ExtendedApi
         return this.extendedStarknetComputePoseidonHashOnElements(new ArrayList<Object>(Arrays.asList(this.getExtendedStringToFelt("StarkNet Message"), domainHash, starkKey, orderHash)));
     }
 
-    public Object getExtendedWithdrawalMsgHash(Object settlement, Object starkKey)
+    public Object getExtendedWithdrawalMsgHash(Map<String, Object> settlement, Object starkKey)
     {
         Object withdrawalTypeHash = this.convertToBigInt(this.extendedStarknetGetSelectorFromName("\"Withdrawal\"(\"recipient\":\"felt\",\"position_id\":\"PositionId\",\"collateral_id\":\"AssetId\",\"amount\":\"u64\",\"expiration\":\"Timestamp\",\"salt\":\"felt\")\"PositionId\"(\"value\":\"u32\")\"AssetId\"(\"value\":\"felt\")\"Timestamp\"(\"seconds\":\"u64\")"));
         Object domainHash = this.getExtendedDomainHash();
@@ -4367,7 +4367,7 @@ public class Extended extends ExtendedApi
         return this.extendedStarknetComputePoseidonHashOnElements(new ArrayList<Object>(Arrays.asList(this.getExtendedStringToFelt("StarkNet Message"), domainHash, this.convertToBigInt(starkKey), withdrawalHash)));
     }
 
-    public Object getExtendedTransferMsgHash(Object settlement)
+    public Object getExtendedTransferMsgHash(Map<String, Object> settlement)
     {
         Object transferTypeHash = this.convertToBigInt(this.extendedStarknetGetSelectorFromName("\"Transfer\"(\"sender_position_id\":\"PositionId\",\"receiver_position_id\":\"PositionId\",\"asset_id\":\"AssetId\",\"amount\":\"u64\",\"expiration\":\"Timestamp\",\"salt\":\"felt\")\"PositionId\"(\"value\":\"u32\")\"AssetId\"(\"value\":\"felt\")\"Timestamp\"(\"seconds\":\"u64\")"));
         Object domainHash = this.getExtendedDomainHash();

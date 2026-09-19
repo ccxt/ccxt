@@ -1135,7 +1135,7 @@ public class Whitebit extends WhitebitApi
             Map<String, Object> depositFees = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)currenciesIds).size(); i++)
             {
-                Object currency = Helpers.GetValue(currenciesIds, i);
+                Object currency = (currenciesIds == null || i < 0 || i >= currenciesIds.size() ? null : currenciesIds.get(i));
                 Map<String, Object> data = (Map<String, Object>) this.safeDict(response, currency, new HashMap<String, Object>() {{}});
                 String code = this.safeCurrencyCode(currency);
                 Map<String, Object> withdraw = (Map<String, Object>) this.safeDict(data, "withdraw", new HashMap<String, Object>() {{}});
@@ -1327,7 +1327,7 @@ public class Whitebit extends WhitebitApi
         List<Object> depositWithdrawCodes = new ArrayList<Object>(depositWithdrawFees.keySet());
         for (var i = 0; i < ((List<?>)depositWithdrawCodes).size(); i++)
         {
-            Object code = Helpers.GetValue(depositWithdrawCodes, i);
+            Object code = (depositWithdrawCodes == null || i < 0 || i >= depositWithdrawCodes.size() ? null : depositWithdrawCodes.get(i));
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             ((Map<String, Object>)depositWithdrawFees).put((String)code, this.assignDefaultDepositWithdrawFees(Helpers.GetValue(depositWithdrawFees, code), currency));
         }
@@ -1471,7 +1471,7 @@ public class Whitebit extends WhitebitApi
             List<Object> marketIds = new ArrayList<Object>(((Map<String, Object>)markets).keySet());
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
-                Object marketId = Helpers.GetValue(marketIds, i);
+                Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
                 Object market = Helpers.GetValue(markets, marketId);
                 String marketSymbol = this.safeString(market, "symbol");
                 if ((java.util.Objects.equals(market, null)) || (java.util.Objects.equals(market, null)) || (java.util.Objects.equals(marketSymbol, null)) || (java.util.Objects.equals(marketSymbol, "")))
@@ -1620,7 +1620,7 @@ public class Whitebit extends WhitebitApi
             List<Object> currencyKeys = new ArrayList<Object>(((Map<String, Object>)currenciesData).keySet());
             for (var i = 0; i < ((List<?>)currencyKeys).size(); i++)
             {
-                Object code = Helpers.GetValue(currencyKeys, i);
+                Object code = (currencyKeys == null || i < 0 || i >= currencyKeys.size() ? null : currencyKeys.get(i));
                 Object currency = Helpers.GetValue(currenciesData, code);
                 if (java.util.Objects.equals(currency, null))
                 {
@@ -1635,7 +1635,7 @@ public class Whitebit extends WhitebitApi
                 List<Object> feeKeys = new ArrayList<Object>(((Map<String, Object>)feesData).keySet());
                 for (var j = 0; j < ((List<?>)feeKeys).size(); j++)
                 {
-                    Object feeKey = Helpers.GetValue(feeKeys, j);
+                    Object feeKey = (feeKeys == null || j < 0 || j >= feeKeys.size() ? null : feeKeys.get(j));
                     Map<String, Object> fee = (Map<String, Object>) this.safeDict(feesData, feeKey);
                     if ((!java.util.Objects.equals(fee, null) && !java.util.Objects.equals(fee, null)) && java.util.Objects.equals(((Map<String, Object>)fee).get("ticker"), code))
                     {
@@ -1949,7 +1949,7 @@ public class Whitebit extends WhitebitApi
                     List<Object> marketIds = new ArrayList<Object>(response.keySet());
                     for (var i = 0; i < ((List<?>)marketIds).size(); i++)
                     {
-                        Object marketId = Helpers.GetValue(marketIds, i);
+                        Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
                         Map<String, Object> marketNew = (Map<String, Object>) this.safeMarket(marketId, null, "_");
                         List<Object> marketOrders = (List<Object>) this.safeList(response, marketId, new ArrayList<Object>(Arrays.asList()));
                         for (var j = 0; j < ((List<?>)marketOrders).size(); j++)
@@ -2104,9 +2104,9 @@ public class Whitebit extends WhitebitApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
-                Object marketId = Helpers.GetValue(marketIds, i);
+                Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-                Object ticker = this.parseTicker(Helpers.GetValue(response, marketId), market);
+                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(Helpers.GetValue(response, marketId), market);
                 Object symbol = ((Map<String, Object>)ticker).get("symbol");
                 ((Map<String, Object>)result).put((String)((String)symbol), ticker);
             }
@@ -2293,7 +2293,7 @@ public class Whitebit extends WhitebitApi
                 List<Object> keys = new ArrayList<Object>(((Map<String, Object>)response).keySet());
                 for (var i = 0; i < ((List<?>)keys).size(); i++)
                 {
-                    Object marketId = Helpers.GetValue(keys, i);
+                    Object marketId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                     Map<String, Object> marketNew = (Map<String, Object>) this.safeMarket(marketId, null, "_");
                     List<Object> rawTrades = (List<Object>) this.safeList(response, marketId, new ArrayList<Object>(Arrays.asList()));
                     List<Object> parsed = this.parseTrades(rawTrades, marketNew, since, limit);
@@ -3269,12 +3269,12 @@ public class Whitebit extends WhitebitApi
             Object results = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
-                Object marketId = Helpers.GetValue(marketIds, i);
+                Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
                 Map<String, Object> marketNew = (Map<String, Object>) this.safeMarket(marketId, null, "_");
                 List<Object> orders = (List<Object>) this.safeList(response, marketId, new ArrayList<Object>(Arrays.asList()));
                 for (var j = 0; j < ((List<?>)orders).size(); j++)
                 {
-                    Object order = this.parseOrder((orders == null || j < 0 || j >= orders.size() ? null : orders.get(j)), marketNew);
+                    Map<String, Object> order = (Map<String, Object>) this.parseOrder((orders == null || j < 0 || j >= orders.size() ? null : orders.get(j)), marketNew);
                     ((List<Object>)results).add(this.extend(order, new HashMap<String, Object>() {{
                         put( "status", "closed" );
                     }}));
@@ -3287,7 +3287,7 @@ public class Whitebit extends WhitebitApi
 
     }
 
-    public String parseOrderType(Object type)
+    public String parseOrderType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "limit", "limit" );
@@ -3425,7 +3425,7 @@ public class Whitebit extends WhitebitApi
         }}, market);
     }
 
-    public String parseOrderStatus(Object status)
+    public String parseOrderStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "CANCELED", "canceled" );
@@ -4097,7 +4097,7 @@ public class Whitebit extends WhitebitApi
         }};
     }
 
-    public String parseTransactionStatus(Object status)
+    public String parseTransactionStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "1", "pending" );

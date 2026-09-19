@@ -123,7 +123,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         }});
     }
 
-    public CompletableFuture<Object> unWatch(Object messageHash, Object subMessageHash, Object subscribeHash, Object dataType, Object topic, Object market2, Object methodName, Object... optionalArgs)
+    public CompletableFuture<Object> unWatch(Object messageHash, Object subMessageHash, Object subscribeHash, Object dataType, Object topic, Map<String, Object> market2, Object methodName, Object... optionalArgs)
     {
         final Object market3 = market2;
         return BaseExchange.supplyAsync(() -> {
@@ -260,7 +260,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             String messageHash = ("unsubscribe::" + subMessageHash);
             Object topic = "ticker";
             Object methodName = "unWatchTicker";
-            return (this.unWatch(messageHash, subMessageHash, messageHash, dataType, topic, market, methodName, parameters)).join();
+            return (this.unWatch(messageHash, subMessageHash, messageHash, dataType, topic, (Map<String, Object>) (market), methodName, parameters)).join();
         });
 
     }
@@ -332,7 +332,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         // ticker even when the market id could not be resolved
         String inverseUrl = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "inverse");
         Boolean isInverse = (!java.util.Objects.equals(inverseUrl, null)) && ((((String)client.url).indexOf(((String)inverseUrl)) == 0));
-        Object ticker = this.parseWsTicker(data, market, isInverse);
+        Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(data, market, isInverse);
         Helpers.addElementToObject(this.tickers, symbol, ticker);
         client.resolve(ticker, this.getMessageHash("ticker", symbol));
         if (java.util.Objects.equals(this.safeString(message, "dataType"), "all@ticker"))
@@ -542,7 +542,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             String messageHash = ("unsubscribe::" + subMessageHash);
             Object topic = "trades";
             Object methodName = "unWatchTrades";
-            return (this.unWatch(messageHash, subMessageHash, messageHash, dataType, topic, market, methodName, parameters)).join();
+            return (this.unWatch(messageHash, subMessageHash, messageHash, dataType, topic, (Map<String, Object>) (market), methodName, parameters)).join();
         });
 
     }
@@ -767,7 +767,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             String messageHash = ("unsubscribe::" + subMessageHash);
             Object topic = "orderbook";
             Object methodName = "unWatchOrderBook";
-            return (this.unWatch(messageHash, subMessageHash, messageHash, subMessageHash, topic, market, methodName, parameters)).join();
+            return (this.unWatch(messageHash, subMessageHash, messageHash, subMessageHash, topic, (Map<String, Object>) (market), methodName, parameters)).join();
         });
 
     }
@@ -869,7 +869,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             Long limit = this.safeInteger(subscription, "limit", 100);
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
         }
-        orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
+        orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         Object snapshot = null;
         Long timestamp = (Long) this.safeInteger2(message, "timestamp", "ts");
         timestamp = (Long) this.safeInteger2(data, "timestamp", "ts", timestamp);
@@ -1014,7 +1014,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         Map<String, Object> marketOptions = (Map<String, Object>) this.safeDict(this.options, marketType);
         Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(marketOptions, "timeframes", new HashMap<String, Object>() {{}});
         Object unifiedTimeframe = this.findTimeframe(rawTimeframe, timeframes);
-        if (java.util.Objects.equals(this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), rawTimeframe), null))
+        if (java.util.Objects.equals(this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), rawTimeframe), null))
         {
             String subscriptionHash = dataType;
             Object subscription = Helpers.GetValue(client.subscriptions, subscriptionHash);
@@ -1022,9 +1022,9 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             // when handleMessage routes a non-OHLCV-originated subscription here (or the
             // subscription dict was reset on reconnect), fall back to the OHLCVLimit option.
             Long limit = this.safeInteger(subscription, "limit", this.safeInteger(this.options, "OHLCVLimit", 1000));
-            Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), ((String)unifiedTimeframe), new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
+            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)unifiedTimeframe), new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
         }
-        Object stored = Helpers.GetValue(Helpers.GetValue(this.ohlcvs, symbol), ((String)unifiedTimeframe));
+        Object stored = Helpers.GetValue(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)unifiedTimeframe));
         for (var i = 0; i < ((List<?>)candles).size(); i++)
         {
             Object candle = Helpers.GetValue(candles, i);
@@ -1155,7 +1155,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             Object methodName = "unWatchOHLCV";
             List<Object> symbolsAndTimeframes = new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("symbol"), timeframe))));
             ((Map<String, Object>)parameters).put("symbolsAndTimeframes", symbolsAndTimeframes);
-            return (this.unWatch(messageHash, subMessageHash, messageHash, subMessageHash, topic, market, methodName, parameters)).join();
+            return (this.unWatch(messageHash, subMessageHash, messageHash, subMessageHash, topic, (Map<String, Object>) (market), methodName, parameters)).join();
         });
 
     }
@@ -1454,7 +1454,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             {
                 io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, messageHash);
                 future.resolve();
-                client.resolve(Helpers.GetValue(this.balance, type), Helpers.add(type, ":balance"));
+                client.resolve((type == null ? null : this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), Helpers.add(type, ":balance"));
             }
             return null;
         });
@@ -1700,8 +1700,8 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)rawPositions).size(); i++)
         {
-            Object rawPosition = Helpers.GetValue(rawPositions, i);
-            Object position = this.parseWsPosition(rawPosition);
+            Object rawPosition = (rawPositions == null || i < 0 || i >= rawPositions.size() ? null : rawPositions.get(i));
+            Map<String, Object> position = (Map<String, Object>) this.parseWsPosition(rawPosition);
             String symbol = this.safeString(position, "symbol");
             if (java.util.Objects.equals(symbol, null))
             {
@@ -1788,7 +1788,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
                     List<Object> messageHashes = Helpers.objectKeys(client.futures);
                     for (var j = 0; j < ((List<?>)messageHashes).size(); j++)
                     {
-                        Object messageHash = Helpers.GetValue(messageHashes, j);
+                        Object messageHash = (messageHashes == null || j < 0 || j >= messageHashes.size() ? null : messageHashes.get(j));
                         client.reject(error, messageHash);
                     }
                 }
@@ -1985,7 +1985,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object stored = this.orders;
-        Object parsedOrder = this.parseOrder(data);
+        Map<String, Object> parsedOrder = (Map<String, Object>) this.parseOrder(data);
         Helpers.callDynamically(stored, "append", new Object[]{parsedOrder});
         Object symbol = ((Map<String, Object>)parsedOrder).get("symbol");
         String spotHash = "spot:order";
@@ -2065,7 +2065,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         String type = ((Boolean.TRUE.equals(isSpot))) ? "spot" : "swap";
         String marketId = this.safeString(result, "s");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, "-", type);
-        Object parsed = this.parseTrade(result, market);
+        Map<String, Object> parsed = (Map<String, Object>) this.parseTrade(result, market);
         Object symbol = ((Map<String, Object>)parsed).get("symbol");
         String spotHash = "spot:mytrades";
         String swapHash = "swap:mytrades";
@@ -2123,12 +2123,12 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         {
             Helpers.addElementToObject(this.balance, type, new HashMap<String, Object>() {{}});
         }
-        Helpers.addElementToObject(Helpers.GetValue(this.balance, type), "info", data);
-        Helpers.addElementToObject(Helpers.GetValue(this.balance, type), "timestamp", timestamp);
-        Helpers.addElementToObject(Helpers.GetValue(this.balance, type), "datetime", this.iso8601(timestamp));
+        Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), "info", data);
+        Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), "timestamp", timestamp);
+        Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), "datetime", this.iso8601(timestamp));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object balance = Helpers.GetValue(data, i);
+            Object balance = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             String currencyId = this.safeString(balance, "a");
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
@@ -2137,11 +2137,11 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             ((Map<String, Object>)account).put("free", this.safeString(balance, "wb"));
             if ((!java.util.Objects.equals(type, null)) && (!java.util.Objects.equals(code, null)))
             {
-                Helpers.addElementToObject(Helpers.GetValue(this.balance, type), code, account);
+                Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), code, account);
             }
         }
-        Helpers.addElementToObject(this.balance, type, this.safeBalance(Helpers.GetValue(this.balance, type)));
-        client.resolve(Helpers.GetValue(this.balance, type), (type + ":balance"));
+        Helpers.addElementToObject(this.balance, type, this.safeBalance((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type))));
+        client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), (type + ":balance"));
     }
 
     public void handleMessage(Client client, Object message)
@@ -2233,19 +2233,19 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         Boolean isUnSubMessage = (Boolean) this.safeBool(subscription, "unsubscribe", false);
         if (java.util.Objects.equals(isUnSubMessage, true))
         {
-            this.handleUnSubscription(client, subscription);
+            this.handleUnSubscription(client, (Map<String, Object>) (subscription));
         }
         return message;
     }
 
-    public void handleUnSubscription(Client client, Object subscription)
+    public void handleUnSubscription(Client client, Map<String, Object> subscription)
     {
         List<Object> messageHashes = (List<Object>) this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
         List<Object> subMessageHashes = (List<Object>) this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
-            Object unsubHash = Helpers.GetValue(messageHashes, i);
-            Object subHash = Helpers.GetValue(subMessageHashes, i);
+            Object unsubHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
+            Object subHash = (subMessageHashes == null || i < 0 || i >= subMessageHashes.size() ? null : subMessageHashes.get(i));
             this.cleanUnsubscription(client, subHash, unsubHash);
         }
         this.cleanCache(subscription);
