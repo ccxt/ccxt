@@ -1302,7 +1302,7 @@ public class Btcmarkets extends BtcmarketsApi
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
                 // numericIds[i] = parseInt (ids[i]);
-                ((List<Object>)numericIds).add(Helpers.parseInt(Helpers.GetValue(ids, i)));
+                ((List<Object>)numericIds).add(Helpers.parseInt((ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i))));
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "ids", numericIds );

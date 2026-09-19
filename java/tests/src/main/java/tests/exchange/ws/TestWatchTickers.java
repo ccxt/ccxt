@@ -85,7 +85,7 @@ public class TestWatchTickers extends BaseTest {
                 TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol);
                 for (var i = 0; i < ((List<?>)values).size(); i++)
                 {
-                    Object ticker = Helpers.GetValue(values, i);
+                    Object ticker = (values == null || i < 0 || i >= ((List<?>)values).size() ? null : ((List<?>)values).get(i));
                     try
                     {
                         TestTicker.testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);

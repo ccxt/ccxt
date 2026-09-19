@@ -1642,7 +1642,7 @@ public class Lbank extends LbankApi
         {
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Object item = Helpers.GetValue(data, i);
+                Object item = (data == null || i < 0 || i >= ((List<?>)data).size() ? null : ((List<?>)data).get(i));
                 String currencyId = this.safeString(item, "coin");
                 String codeInner = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
@@ -3581,7 +3581,7 @@ public class Lbank extends LbankApi
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)response).size(); i++)
         {
-            Object fee = Helpers.GetValue(response, i);
+            Object fee = (response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i));
             Boolean canWithdraw = (Boolean) this.safeBool(fee, "canWithDraw");
             if (java.util.Objects.equals(canWithdraw, true))
             {

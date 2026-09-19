@@ -3367,7 +3367,7 @@ public class Aster extends AsterApi
             }
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object rawOrder = Helpers.GetValue(orders, i);
+                Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
                 String marketId = this.safeString(rawOrder, "symbol");
                 Map<String, Object> currentMarket = (Map<String, Object>) this.market(marketId);
                 ((List<Object>)orderSymbols).add(((Map<String, Object>)currentMarket).get("symbol"));

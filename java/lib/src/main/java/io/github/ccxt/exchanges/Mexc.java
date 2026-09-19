@@ -3221,7 +3221,7 @@ public class Mexc extends MexcApi
             String symbol = null;
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object rawOrder = Helpers.GetValue(orders, i);
+                Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
                 String marketId = this.safeString(rawOrder, "symbol");
                 Map<String, Object> market = (Map<String, Object>) this.market(marketId);
                 if (!java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
@@ -4661,7 +4661,7 @@ public class Mexc extends MexcApi
         {
             for (var i = 0; i < ((List<?>)wallet).size(); i++)
             {
-                Object entry = Helpers.GetValue(wallet, i);
+                Object entry = (wallet == null || i < 0 || i >= ((List<?>)wallet).size() ? null : ((List<?>)wallet).get(i));
                 Map<String, Object> base = (Map<String, Object>) this.safeDict(entry, "baseAsset", new HashMap<String, Object>() {{}});
                 Map<String, Object> quote = (Map<String, Object>) this.safeDict(entry, "quoteAsset", new HashMap<String, Object>() {{}});
                 String baseCode = this.safeCurrencyCode(this.safeString(base, "asset"));
@@ -4680,7 +4680,7 @@ public class Mexc extends MexcApi
         {
             for (var i = 0; i < ((List<?>)wallet).size(); i++)
             {
-                Object entry = Helpers.GetValue(wallet, i);
+                Object entry = (wallet == null || i < 0 || i >= ((List<?>)wallet).size() ? null : ((List<?>)wallet).get(i));
                 String currencyId = this.safeString(entry, "currency");
                 String code = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
@@ -4696,7 +4696,7 @@ public class Mexc extends MexcApi
         {
             for (var i = 0; i < ((List<?>)wallet).size(); i++)
             {
-                Object entry = Helpers.GetValue(wallet, i);
+                Object entry = (wallet == null || i < 0 || i >= ((List<?>)wallet).size() ? null : ((List<?>)wallet).get(i));
                 String currencyId = this.safeString(entry, "asset");
                 String code = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
@@ -6911,7 +6911,7 @@ final Object finalRiskIncrVol = riskIncrVol;
         Map<String, Object> withdrawFees = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)response).size(); i++)
         {
-            Object entry = Helpers.GetValue(response, i);
+            Object entry = (response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i));
             String currencyId = this.safeString(entry, "coin");
             Map<String, Object> currency = (Map<String, Object>) this.safeCurrency(currencyId);
             String code = this.safeString(currency, "code");

@@ -136,7 +136,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             Object messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 String topic = Helpers.add("recentlyTrade.H.", ((Map<String, Object>)market).get("id2"));
                 ((List<Object>)topics).add(topic);
@@ -195,14 +195,14 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         for (var j = 0; Helpers.isLessThan(j, length); j++)
         {
             Object index = Helpers.subtract(Helpers.subtract(length, j), 1);
-            Object parsed = this.parseWsTrade((Map<String, Object>) (Helpers.GetValue(trades, index)), market);
+            Object parsed = this.parseWsTrade(Helpers.GetValue(trades, index), market);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
         }
         String messageHash = (("trade" + ":") + symbol);
         client.resolve(stored, messageHash);
     }
 
-    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Object parseWsTrade(Object trade, Object... optionalArgs)
     {
         //
         // public
@@ -226,7 +226,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         String side = this.safeStringLower2(trade, "S", "side");
         String price = this.safeString2(trade, "p", "price");
         String amount = this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("q", "v", "size")));
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "id", id );
             put( "info", trade );
             put( "timestamp", timestamp );
@@ -240,7 +240,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             put( "amount", amount );
             put( "cost", null );
             put( "fee", null );
-        }}), market);
+        }}, market);
     }
 
     /**
@@ -297,7 +297,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             Object messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 if (java.util.Objects.equals(limit, null))
                 {
@@ -330,9 +330,9 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             Object newTopicsCount = 0;
             for (var i = 0; i < ((List<?>)topics).size(); i++)
             {
-                if (!(((Map<?, ?>)client.subscriptions).containsKey(Helpers.GetValue(messageHashes, i))))
+                if (!(((Map<?, ?>)client.subscriptions).containsKey((messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i)))))
                 {
-                    ((List<Object>)newTopics).add(Helpers.GetValue(topics, i));
+                    ((List<Object>)newTopics).add((topics == null || i < 0 || i >= ((List<?>)topics).size() ? null : ((List<?>)topics).get(i)));
                     newTopicsCount = Helpers.add(newTopicsCount, 1);
                 }
             }
@@ -345,7 +345,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
                 }};
                 message = this.extend(request, parameters);
             }
-            return (this.watchMultiple((String) (url), messageHashes, message, messageHashes, null)).join();
+            return (this.watchMultiple(url, messageHashes, message, messageHashes, null)).join();
         });
 
     }
@@ -559,10 +559,10 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         String updateType = this.safeString(message, "type", "");
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Object symbol = null;
-        Object parsed = this.parseTicker((Map<String, Object>) (data));
+        Object parsed = this.parseTicker(data);
         if ((java.util.Objects.equals(updateType, "snapshot")))
         {
-            parsed = this.parseTicker((Map<String, Object>) (data));
+            parsed = this.parseTicker(data);
             symbol = ((Map<String, Object>)parsed).get("symbol");
         } else if (java.util.Objects.equals(updateType, "delta"))
         {
@@ -574,7 +574,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             Map<String, Object> ticker = (Map<String, Object>) this.safeDict(this.tickers, symbol, new HashMap<String, Object>() {{}});
             Map<String, Object> rawTicker = (Map<String, Object>) this.safeDict(ticker, "info", new HashMap<String, Object>() {{}});
             Map<String, Object> merged = this.extend(rawTicker, data);
-            parsed = this.parseTicker((Map<String, Object>) (merged));
+            parsed = this.parseTicker(merged);
         }
         Long timestamp = this.safeIntegerProduct(message, "ts", 0.001);
         Helpers.addElementToObject(parsed, "timestamp", timestamp);
@@ -640,7 +640,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             Object messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
             {
-                Object data = Helpers.GetValue(symbolsAndTimeframes, i);
+                Object data = (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
                 Object symbolString = this.safeString(data, 0);
                 Map<String, Object> market = (Map<String, Object>) this.market(symbolString);
                 symbolString = ((Map<String, Object>)market).get("id2");
@@ -905,8 +905,8 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         Map<String, Object> symbols = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)lists).size(); i++)
         {
-            Object rawTrade = Helpers.GetValue(lists, i);
-            Object parsed = this.parseWsTrade((Map<String, Object>) (rawTrade));
+            Object rawTrade = (lists == null || i < 0 || i >= ((List<?>)lists).size() ? null : ((List<?>)lists).get(i));
+            Object parsed = this.parseWsTrade(rawTrade);
             Object symbol = ((Map<String, Object>)parsed).get("symbol");
             ((Map<String, Object>)symbols).put((String)((String)symbol), true);
             Helpers.callDynamically(trades, "append", new Object[]{parsed});
@@ -962,7 +962,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         Map<String, Object> symbols = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)lists).size(); i++)
         {
-            Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(Helpers.GetValue(lists, i));
+            Map<String, Object> parsed = (Map<String, Object>) this.parseOrder((lists == null || i < 0 || i >= ((List<?>)lists).size() ? null : ((List<?>)lists).get(i)));
             Object symbol = ((Map<String, Object>)parsed).get("symbol");
             ((Map<String, Object>)symbols).put((String)((String)symbol), true);
             Helpers.callDynamically(orders, "append", new Object[]{parsed});
@@ -1004,10 +1004,10 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             Object cache = this.positions;
             for (var i = 0; i < ((List<?>)promises).size(); i++)
             {
-                Object positions = Helpers.GetValue(promises, i);
+                Object positions = (promises == null || i < 0 || i >= ((List<?>)promises).size() ? null : ((List<?>)promises).get(i));
                 for (var ii = 0; ii < ((List<?>)positions).size(); ii++)
                 {
-                    Object position = Helpers.GetValue(positions, ii);
+                    Object position = (positions == null || ii < 0 || ii >= ((List<?>)positions).size() ? null : ((List<?>)positions).get(ii));
                     Helpers.callDynamically(cache, "append", new Object[]{position});
                 }
             }
@@ -1055,8 +1055,8 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)lists).size(); i++)
         {
-            Object rawPosition = Helpers.GetValue(lists, i);
-            Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) (rawPosition));
+            Object rawPosition = (lists == null || i < 0 || i >= ((List<?>)lists).size() ? null : ((List<?>)lists).get(i));
+            Map<String, Object> position = (Map<String, Object>) this.parsePosition(rawPosition);
             String side = this.safeString(position, "side");
             // hacky solution to handle closing positions
             // without crashing, we should handle this properly later
@@ -1079,7 +1079,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         Object messageHashes = this.findMessageHashes(client, "positions::");
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
-            Object messageHash = Helpers.GetValue(messageHashes, i);
+            Object messageHash = (messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i));
             Object parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
             String symbolsString = (String) Helpers.GetValue(parts, 1);
             Object symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));
@@ -1133,7 +1133,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
 
     }
 
-    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
+    public Object handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //   {
@@ -1273,7 +1273,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             if (Helpers.getIndexOf(topic, (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i))) >= 0)
             {
-                Object method = (methods == null || key == null ? null : methods.get(key));
+                Object method = Helpers.GetValue(methods, key);
                 Helpers.callDynamically(this, method, new Object[] {client, message});
                 return;
             }
@@ -1321,7 +1321,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
 
     }
 
-    public Map<String, Object> handlePong(Client client, Map<String, Object> message)
+    public Object handlePong(Client client, Map<String, Object> message)
     {
         //
         //   {
@@ -1340,7 +1340,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
     public void handlePing(Client client, Map<String, Object> message)
     {
         client.lastPong = ((Number)this.milliseconds()).longValue();
-        this.spawn(() -> { try { this.pong(client, (Map<String, Object>) (message)); } catch(Exception _e) { throw new RuntimeException(_e); } });
+        this.spawn(() -> { try { this.pong(client, message); } catch(Exception _e) { throw new RuntimeException(_e); } });
     }
 
     public void handleAccount(Client client, Map<String, Object> message)
@@ -1363,7 +1363,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         }
     }
 
-    public Map<String, Object> handleAuthenticate(Client client, Map<String, Object> message)
+    public Object handleAuthenticate(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -1392,7 +1392,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         return message;
     }
 
-    public Map<String, Object> handleSubscriptionStatus(Client client, Map<String, Object> message)
+    public Object handleSubscriptionStatus(Client client, Map<String, Object> message)
     {
         //
         //    {

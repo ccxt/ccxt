@@ -353,7 +353,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
     {
         for (var i = 0; i < ((List<?>)deltas).size(); i++)
         {
-            this.handleDelta(bookside, Helpers.GetValue(deltas, i));
+            this.handleDelta(bookside, (deltas == null || i < 0 || i >= ((List<?>)deltas).size() ? null : ((List<?>)deltas).get(i)));
         }
     }
 
@@ -800,7 +800,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
     {
         for (var i = 0; i < ((List<?>)message).size(); i++)
         {
-            Object data = Helpers.GetValue(message, i);
+            Object data = (message == null || i < 0 || i >= ((List<?>)message).size() ? null : ((List<?>)message).get(i));
             String T = this.safeString(data, "T");
             String msg = this.safeString(data, "msg");
             if (java.util.Objects.equals(T, "subscription"))

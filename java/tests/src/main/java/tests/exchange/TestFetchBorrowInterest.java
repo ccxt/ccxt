@@ -23,7 +23,7 @@ public class TestFetchBorrowInterest extends BaseTest {
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, borrowInterest, code);
         for (var i = 0; i < ((List<?>)borrowInterest).size(); i++)
         {
-            TestBorrowInterest.testBorrowInterest(exchange, skippedProperties, method, Helpers.GetValue(borrowInterest, i), code, symbol);
+            TestBorrowInterest.testBorrowInterest(exchange, skippedProperties, method, (borrowInterest == null || i < 0 || i >= ((List<?>)borrowInterest).size() ? null : ((List<?>)borrowInterest).get(i)), code, symbol);
         }
         return true;
         });

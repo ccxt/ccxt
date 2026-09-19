@@ -1485,7 +1485,7 @@ public class Whitebit extends WhitebitApi
                     Boolean symbolFound = false;
                     for (var j = 0; j < ((List<?>)symbols).size(); j++)
                     {
-                        if (java.util.Objects.equals(Helpers.GetValue(symbols, j), symbol))
+                        if (java.util.Objects.equals((symbols == null || j < 0 || j >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(j)), symbol))
                         {
                             symbolFound = true;
                             break;
@@ -2003,7 +2003,7 @@ public class Whitebit extends WhitebitApi
             {
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Object symbol = Helpers.GetValue(symbols, i);
+                    Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                     Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                     if (!java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))
                     {

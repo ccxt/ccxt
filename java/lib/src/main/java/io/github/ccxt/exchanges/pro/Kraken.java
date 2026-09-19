@@ -1243,7 +1243,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         // const sortOrder = (key === 'bids') ? true : false;
         for (var j = 0; j < ((List<?>)deltas).size(); j++)
         {
-            Object delta = Helpers.GetValue(deltas, j);
+            Object delta = (deltas == null || j < 0 || j >= ((List<?>)deltas).size() ? null : ((List<?>)deltas).get(j));
             Double price = this.safeNumber(delta, "price");
             Double amount = this.safeNumber(delta, "qty");
             Helpers.callDynamically(bookside, "store", new Object[]{price, amount});
@@ -1655,7 +1655,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 Object length = ((List<?>)stored).size();
                 if (Helpers.isEqual(length, limit) && (java.util.Objects.equals(previousOrder, null)))
                 {
-                    Object first = Helpers.GetValue(stored, 0);
+                    Object first = (stored == null || 0 >= ((List<?>)stored).size() ? null : ((List<?>)stored).get(0));
                     Object symbolsByOrderId = this.safeDict(this.options, "symbolsByOrderId", new HashMap<String, Object>() {{}});
                     if (Helpers.inOp(symbolsByOrderId, Helpers.GetValue(first, "id")))
                     {
@@ -1774,10 +1774,10 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 String eventTrigger = this.safeString(parameters, "event_trigger");
                 if (!java.util.Objects.equals(eventTrigger, null))
                 {
-                    ((List<Object>)messageHashes).add(this.getMessageHash(channelName, null, this.symbol(Helpers.GetValue(symbols, i))));
+                    ((List<Object>)messageHashes).add(this.getMessageHash(channelName, null, this.symbol((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)))));
                 } else
                 {
-                    ((List<Object>)messageHashes).add(this.getMessageHash(unifiedName, null, this.symbol(Helpers.GetValue(symbols, i))));
+                    ((List<Object>)messageHashes).add(this.getMessageHash(unifiedName, null, this.symbol((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)))));
                 }
             }
             final Object finalSymbols = symbols;

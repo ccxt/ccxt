@@ -2760,7 +2760,7 @@ public class Okx extends OkxApi
             promises = (Helpers.promiseAll(promises)).join();
             for (var i = 0; i < ((List<?>)promises).size(); i++)
             {
-                result = this.arrayConcat(result, Helpers.GetValue(promises, i));
+                result = this.arrayConcat(result, (promises == null || i < 0 || i >= ((List<?>)promises).size() ? null : ((List<?>)promises).get(i)));
             }
             return result;
         });
@@ -4909,7 +4909,7 @@ public class Okx extends OkxApi
             List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object rawOrder = Helpers.GetValue(orders, i);
+                Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
                 String marketId = this.safeString(rawOrder, "symbol");
                 if (java.util.Objects.equals(marketId, null))
                 {
@@ -5413,7 +5413,7 @@ public class Okx extends OkxApi
             }
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object order = Helpers.GetValue(orders, i);
+                Object order = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
                 String id = this.safeString(order, "id");
                 String clientOrderId = this.safeString2(order, "clOrdId", "clientOrderId");
                 String symbol = this.safeString(order, "symbol");
@@ -7916,7 +7916,7 @@ public class Okx extends OkxApi
                 Object marketIds = new ArrayList<Object>(Arrays.asList());
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Object entry = Helpers.GetValue(symbols, i);
+                    Object entry = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                     Map<String, Object> market = (Map<String, Object>) this.market(entry);
                     ((List<Object>)marketIds).add(((Map<String, Object>)market).get("id"));
                 }
@@ -8540,7 +8540,7 @@ public class Okx extends OkxApi
                 {
                     for (var i = 0; i < ((List<?>)parameters).size(); i++)
                     {
-                        Object entry = Helpers.GetValue(parameters, i);
+                        Object entry = (parameters == null || i < 0 || i >= ((List<?>)parameters).size() ? null : ((List<?>)parameters).get(i));
                         String clientOrderId = this.safeString(entry, "clOrdId");
                         if (java.util.Objects.equals(clientOrderId, null))
                         {
@@ -8774,13 +8774,13 @@ public class Okx extends OkxApi
             {
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbols, i));
+                    Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)));
                     Map<String, Object> marketInfo = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
                     String ruleType = this.safeString(marketInfo, "ruleType");
                     Boolean isExtendedPerpetual = (java.util.Objects.equals(ruleType, "xperp")); // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
                     if ((!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)) && !Boolean.TRUE.equals(isExtendedPerpetual))
                     {
-                        throw new BadRequest((((this.id + " fetchFundingRates() symbols must be swap markets or XPERP futures, ") + Helpers.GetValue(symbols, i)) + " is not")) ;
+                        throw new BadRequest((((this.id + " fetchFundingRates() symbols must be swap markets or XPERP futures, ") + (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i))) + " is not")) ;
                     }
                 }
             }
@@ -9302,7 +9302,7 @@ public class Okx extends OkxApi
         Map<String, Object> borrowRateHistories = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)response).size(); i++)
         {
-            Object item = Helpers.GetValue(response, i);
+            Object item = (response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i));
             String code = this.safeCurrencyCode(this.safeString(item, "ccy"));
             if ((!java.util.Objects.equals(code, null)) && (java.util.Objects.equals(codes, null) || this.inArray(code, codes)))
             {
@@ -10545,7 +10545,7 @@ public class Okx extends OkxApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)settlements).size(); i++)
         {
-            Object entry = Helpers.GetValue(settlements, i);
+            Object entry = (settlements == null || i < 0 || i >= ((List<?>)settlements).size() ? null : ((List<?>)settlements).get(i));
             Long timestamp = this.safeInteger(entry, "ts");
             List<Object> details = (List<Object>) this.safeList(entry, "details", new ArrayList<Object>(Arrays.asList()));
             for (var j = 0; j < ((List<?>)details).size(); j++)

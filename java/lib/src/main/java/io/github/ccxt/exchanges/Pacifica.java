@@ -1282,10 +1282,10 @@ public class Pacifica extends PacificaApi
         Map<String, Object> settingsBySymbol = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)settings).size(); i++)
         {
-            Object marketId = Helpers.GetValue(Helpers.GetValue(settings, i), "symbol");
+            Object marketId = Helpers.GetValue((settings == null || i < 0 || i >= ((List<?>)settings).size() ? null : ((List<?>)settings).get(i)), "symbol");
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
             Object symbol = ((Map<String, Object>)market).get("symbol");
-            ((Map<String, Object>)settingsBySymbol).put((String)symbol, Helpers.GetValue(settings, i));
+            ((Map<String, Object>)settingsBySymbol).put((String)symbol, (settings == null || i < 0 || i >= ((List<?>)settings).size() ? null : ((List<?>)settings).get(i)));
         }
         return settingsBySymbol;
     }
@@ -2176,7 +2176,7 @@ public class Pacifica extends PacificaApi
         Long timestamp = this.milliseconds(); // unified sequence
         for (var i = 0; i < ((List<?>)orders).size(); i++)
         {
-            Object order = Helpers.GetValue(orders, i);
+            Object order = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
             String symbol = this.safeString(order, "symbol");
             String side = this.safeString(order, "side");
             String price = this.safeString(order, "price");
@@ -2355,7 +2355,7 @@ public class Pacifica extends PacificaApi
         List<Object> actions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)ids).size(); i++)
         {
-            Object id = Helpers.GetValue(ids, i);
+            Object id = (ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i));
             Object request = this.cancelOrderRequest((String) (id), symbol, parameters);
             Map<String, Object> action = new HashMap<String, Object>() {{
                 put( "type", "Cancel" );
@@ -2695,7 +2695,7 @@ public class Pacifica extends PacificaApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Object entry = Helpers.GetValue(data, i);
+                Object entry = (data == null || i < 0 || i >= ((List<?>)data).size() ? null : ((List<?>)data).get(i));
                 Long timestamp = this.safeInteger(entry, "created_at");
                 ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "info", entry );
@@ -4474,7 +4474,7 @@ public class Pacifica extends PacificaApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)value).size(); i++)
             {
-                ((List<Object>)result).add(this.sortJsonKeys(Helpers.GetValue(value, i)));
+                ((List<Object>)result).add(this.sortJsonKeys((value == null || i < 0 || i >= ((List<?>)value).size() ? null : ((List<?>)value).get(i))));
             }
             return result;
         } else

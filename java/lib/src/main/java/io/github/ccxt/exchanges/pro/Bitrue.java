@@ -201,7 +201,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         Helpers.addElementToObject(this.balance, "info", balances);
         for (var i = 0; i < ((List<?>)balances).size(); i++)
         {
-            Object balance = Helpers.GetValue(balances, i);
+            Object balance = (balances == null || i < 0 || i >= ((List<?>)balances).size() ? null : ((List<?>)balances).get(i));
             String currencyId = this.safeString(balance, "a");
             String code = this.safeCurrencyCode((String) (currencyId));
             Object account = this.account();
@@ -527,7 +527,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)bidsAsks).size(); i++)
         {
-            Object level = Helpers.GetValue(bidsAsks, i);
+            Object level = (bidsAsks == null || i < 0 || i >= ((List<?>)bidsAsks).size() ? null : ((List<?>)bidsAsks).get(i));
             Double price = this.safeNumber(level, 0);
             Double rawAmount = this.safeNumber(level, 1);
             Object amount = this.convertFromRawQuantity(symbol, rawAmount);

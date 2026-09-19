@@ -655,7 +655,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         }
         for (var j = 0; j < ((List<?>)trades).size(); j++)
         {
-            Helpers.callDynamically(stored, "append", new Object[]{Helpers.GetValue(trades, j)});
+            Helpers.callDynamically(stored, "append", new Object[]{(trades == null || j < 0 || j >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(j))});
         }
         client.resolve(stored, messageHash);
     }
@@ -1027,7 +1027,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         Object stored = Helpers.GetValue(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)unifiedTimeframe));
         for (var i = 0; i < ((List<?>)candles).size(); i++)
         {
-            Object candle = Helpers.GetValue(candles, i);
+            Object candle = (candles == null || i < 0 || i >= ((List<?>)candles).size() ? null : ((List<?>)candles).get(i));
             Object parsed = this.parseWsOHLCV(candle, market);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
         }
@@ -1579,7 +1579,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             Object cache = this.positions;
             for (var i = 0; i < ((List<?>)positions).size(); i++)
             {
-                Object position = Helpers.GetValue(positions, i);
+                Object position = (positions == null || i < 0 || i >= ((List<?>)positions).size() ? null : ((List<?>)positions).get(i));
                 Object contracts = this.safeNumber(position, "contracts", 0);
                 if (Helpers.isGreaterThan(contracts, 0))
                 {
@@ -1716,7 +1716,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         Object messageHashes = this.findMessageHashes(client, "swap:positions::");
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
-            Object messageHash = Helpers.GetValue(messageHashes, i);
+            Object messageHash = (messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i));
             Object parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
             String symbolsString = (String) Helpers.GetValue(parts, 1);
             Object filteredSymbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));

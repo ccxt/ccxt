@@ -1103,7 +1103,7 @@ public class Bit2c extends Bit2cApi
     {
         Object newString = "";
         List<Object> strParts = (List<Object>) Helpers.split(str, ",");
-        for (var i = 0; i < Helpers.getArrayLength(strParts); i++)
+        for (var i = 0; i < (strParts == null ? 0 : strParts.size()); i++)
         {
             newString = Helpers.add(newString, Helpers.GetValue(strParts, i));
         }

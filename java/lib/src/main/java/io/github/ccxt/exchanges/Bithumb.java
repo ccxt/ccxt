@@ -706,7 +706,7 @@ public class Bithumb extends BithumbApi
                 {
                     Object quote = (quotes == null || i < 0 || i >= quotes.size() ? null : quotes.get(i));
                     Object quoteId = quote;
-                    Object response = Helpers.GetValue(results, i);
+                    Object response = (results == null || i < 0 || i >= ((List<?>)results).size() ? null : ((List<?>)results).get(i));
                     Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                     Map<String, Object> extension = (Map<String, Object>) this.safeDict(quoteCurrencies, quote, new HashMap<String, Object>() {{}});
                     List<Object> currencyIds = new ArrayList<Object>(data.keySet());
@@ -1190,7 +1190,7 @@ public class Bithumb extends BithumbApi
                 Object symbolsForMarketIdsLength = ((List<?>)symbolsForMarketIds).size();
                 for (var i = 0; Helpers.isLessThan(i, symbolsForMarketIdsLength); i++)
                 {
-                    Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbolsForMarketIds, i));
+                    Map<String, Object> market = (Map<String, Object>) this.market((symbolsForMarketIds == null || i < 0 || i >= ((List<?>)symbolsForMarketIds).size() ? null : ((List<?>)symbolsForMarketIds).get(i)));
                     ((List<Object>)marketIds).add(this.getGen2MarketId((Map<String, Object>) (market)));
                 }
                 Object marketIdsLength = ((List<?>)marketIds).size();
@@ -1215,7 +1215,7 @@ public class Bithumb extends BithumbApi
                     Object marketIdsChunk = new ArrayList<Object>(Arrays.asList());
                     for (var i = 0; Helpers.isLessThan(i, marketIdsLength); i++)
                     {
-                        ((List<Object>)marketIdsChunk).add(Helpers.GetValue(marketIds, i));
+                        ((List<Object>)marketIdsChunk).add((marketIds == null || i < 0 || i >= ((List<?>)marketIds).size() ? null : ((List<?>)marketIds).get(i)));
                         Object marketIdsChunkLength = ((List<?>)marketIdsChunk).size();
                         Boolean isLastMarketId = (Helpers.isEqual(i, (Helpers.subtract(marketIdsLength, 1))));
                         if ((Helpers.isGreaterThanOrEqual(marketIdsChunkLength, maxMarketIdsPerRequest)) || Boolean.TRUE.equals(isLastMarketId))
@@ -1263,7 +1263,7 @@ public class Bithumb extends BithumbApi
                 Object responsesLength = ((List<?>)responses).size();
                 for (var i = 0; Helpers.isLessThan(i, responsesLength); i++)
                 {
-                    Object response = Helpers.GetValue(responses, i);
+                    Object response = (responses == null || i < 0 || i >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(i));
                     if (Boolean.TRUE.equals(this.isDictionary(response)) && (Helpers.inOp(response, "data")) && (!java.util.Objects.equals(Helpers.GetValue(response, "data"), null)))
                     {
                         response = Helpers.GetValue(response, "data");
@@ -1301,7 +1301,7 @@ public class Bithumb extends BithumbApi
                     }
                     for (var j = 0; j < ((List<?>)tickers).size(); j++)
                     {
-                        Object entry = Helpers.GetValue(tickers, j);
+                        Object entry = (tickers == null || j < 0 || j >= ((List<?>)tickers).size() ? null : ((List<?>)tickers).get(j));
                         String marketId = this.safeString(entry, "market", expectedMarketId);
                         if (java.util.Objects.equals(marketId, null))
                         {
@@ -1325,7 +1325,7 @@ public class Bithumb extends BithumbApi
                     Map<String, Object> requiredQuotes = new HashMap<String, Object>() {{}};
                     for (var i = 0; i < ((List<?>)symbols).size(); i++)
                     {
-                        Object symbol = Helpers.GetValue(symbols, i);
+                        Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                         String quoteId = this.safeString(market, "quoteId");
                         if ((!java.util.Objects.equals(quoteId, null)) && (quoteCurrencies.containsKey(quoteId)))
@@ -1343,14 +1343,14 @@ public class Bithumb extends BithumbApi
                 List<Object> promises = new ArrayList<Object>(Arrays.asList());
                 for (var i = 0; i < ((List<?>)quotes).size(); i++)
                 {
-                    ((Map<String, Object>)request).put("quoteId", Helpers.GetValue(quotes, i));
+                    ((Map<String, Object>)request).put("quoteId", (quotes == null || i < 0 || i >= ((List<?>)quotes).size() ? null : ((List<?>)quotes).get(i)));
                     ((List<Object>)promises).add(this.publicGetPublicTickerALLQuoteId(this.extend(request, parameters)));
                 }
                 Object responses = (Helpers.promiseAll(promises)).join();
                 for (var i = 0; i < ((List<?>)quotes).size(); i++)
                 {
-                    Object quote = Helpers.GetValue(quotes, i);
-                    Object response = Helpers.GetValue(responses, i);
+                    Object quote = (quotes == null || i < 0 || i >= ((List<?>)quotes).size() ? null : ((List<?>)quotes).get(i));
+                    Object response = (responses == null || i < 0 || i >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(i));
                     Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                     Long timestamp = this.safeInteger(data, "date");
                     Object tickers = this.omit(data, "date");
@@ -1907,7 +1907,7 @@ public class Bithumb extends BithumbApi
             Object orderSymbols = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object rawOrder = Helpers.GetValue(orders, i);
+                Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
                 String symbol = this.safeString(rawOrder, "symbol");
                 if (java.util.Objects.equals(symbol, null))
                 {
@@ -3919,7 +3919,7 @@ public class Bithumb extends BithumbApi
                 String encodedKey = (this.encodeURIComponent(key) + "[]");
                 for (var j = 0; j < ((List<?>)value).size(); j++)
                 {
-                    Object item = Helpers.GetValue(value, j);
+                    Object item = (value == null || j < 0 || j >= ((List<?>)value).size() ? null : ((List<?>)value).get(j));
                     String valueString = this.safeString(value, j);
                     if (java.util.Objects.equals(valueString, null))
                     {

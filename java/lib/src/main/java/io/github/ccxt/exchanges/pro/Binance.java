@@ -463,9 +463,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbols, i));
+                    Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)));
                     ((List<Object>)subscriptionHashes).add((((Map<String, Object>)market).get("lowercaseId") + "@forceOrder"));
-                    ((List<Object>)messageHashes).add(("liquidations::" + Helpers.GetValue(symbols, i)));
+                    ((List<Object>)messageHashes).add(("liquidations::" + (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i))));
                 }
                 streamHash = (streamHash + ("::" + String.join(",", (List<String>)symbols)));
             }
@@ -718,7 +718,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Object symbol = Helpers.GetValue(symbols, i);
+                    Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                     ((List<Object>)messageHashes).add(("myLiquidations::" + symbol));
                 }
             }
@@ -917,7 +917,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 ((List<Object>)messageHashes).add(("orderbook::" + symbol));
                 String subscriptionHash = ((((Map<String, Object>)market).get("lowercaseId") + "@") + name);
@@ -1001,7 +1001,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 ((List<Object>)subMessageHashes).add(("orderbook::" + symbol));
                 ((List<Object>)messageHashes).add(("unsubscribe:orderbook:" + symbol));
@@ -1517,7 +1517,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 Map<String, Object> seenUnderlyings = new HashMap<String, Object>() {{}};
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Object symbol = Helpers.GetValue(symbols, i);
+                    Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                     Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                     ((List<Object>)messageHashes).add(("trade::" + symbol));
                     String baseIdLower = this.safeStringLower(market, "baseId", "");
@@ -1533,7 +1533,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Object symbol = Helpers.GetValue(symbols, i);
+                    Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                     Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                     ((List<Object>)messageHashes).add(("trade::" + symbol));
                     Object rawHash = Helpers.add((((Map<String, Object>)market).get("lowercaseId") + "@"), name);
@@ -1623,7 +1623,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 Map<String, Object> seenUnderlyings = new HashMap<String, Object>() {{}};
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Object symbol = Helpers.GetValue(symbols, i);
+                    Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                     Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                     ((List<Object>)subMessageHashes).add(("trade::" + symbol));
                     ((List<Object>)messageHashes).add(("unsubscribe:trade:" + symbol));
@@ -1640,7 +1640,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Object symbol = Helpers.GetValue(symbols, i);
+                    Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                     Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                     ((List<Object>)subMessageHashes).add(("trade::" + symbol));
                     ((List<Object>)messageHashes).add(("unsubscribe:trade:" + symbol));
@@ -2017,7 +2017,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 Object stockMessageHashes = new ArrayList<Object>(Arrays.asList());
                 for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
                 {
-                    Object stockSymAndTf = Helpers.GetValue(symbolsAndTimeframes, i);
+                    Object stockSymAndTf = (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
                     String stockSymbolString = this.symbol((stockSymAndTf == null || 0 >= ((List<?>)stockSymAndTf).size() ? null : ((List<?>)stockSymAndTf).get(0)));
                     Map<String, Object> stockMarket = (Map<String, Object>) this.market(stockSymbolString);
                     String stockTicker = this.safeString2(stockMarket, "base", "id");
@@ -2071,7 +2071,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
             {
-                Object symAndTf = Helpers.GetValue(symbolsAndTimeframes, i);
+                Object symAndTf = (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
                 Object symbolString = (symAndTf == null || 0 >= ((List<?>)symAndTf).size() ? null : ((List<?>)symAndTf).get(0));
                 Object timeframeString = (symAndTf == null || 1 >= ((List<?>)symAndTf).size() ? null : ((List<?>)symAndTf).get(1));
                 String interval = this.safeString(this.timeframes, timeframeString, timeframeString);
@@ -2169,7 +2169,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
             {
-                Object symAndTf = Helpers.GetValue(symbolsAndTimeframes, i);
+                Object symAndTf = (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
                 Object symbolString = (symAndTf == null || 0 >= ((List<?>)symAndTf).size() ? null : ((List<?>)symAndTf).get(0));
                 Object timeframeString = (symAndTf == null || 1 >= ((List<?>)symAndTf).size() ? null : ((List<?>)symAndTf).get(1));
                 String interval = this.safeString(this.timeframes, timeframeString, timeframeString);
@@ -2815,9 +2815,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 Object stockMessageHashes = new ArrayList<Object>(Arrays.asList());
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Object stockTicker = this.getStockTickerFromSymbol((String) (Helpers.GetValue(symbols, i)));
+                    Object stockTicker = this.getStockTickerFromSymbol((String) ((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i))));
                     ((List<Object>)stockStreams).add((stockTicker + "@quote"));
-                    ((List<Object>)stockMessageHashes).add(("stock:quote:" + Helpers.GetValue(symbols, i)));
+                    ((List<Object>)stockMessageHashes).add(("stock:quote:" + (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i))));
                 }
                 Object stockResult = (this.watchStockMarketStream(stockStreams, stockMessageHashes, parameters)).join();
                 if (this.newUpdates)
@@ -2921,7 +2921,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 Map<String, Object> seenUnderlyings = new HashMap<String, Object>() {{}};
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Object symbol = Helpers.GetValue(symbols, i);
+                    Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                     Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                     ((List<Object>)messageHashes).add(((((unifiedPrefix + ":") + channelName) + "@") + symbol));
                     if (Helpers.isTrue(isUnsubscribe))
@@ -3330,7 +3330,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         }
         for (var i = 0; i < ((List<?>)rawTickers).size(); i++)
         {
-            Object ticker = Helpers.GetValue(rawTickers, i);
+            Object ticker = (rawTickers == null || i < 0 || i >= ((List<?>)rawTickers).size() ? null : ((List<?>)rawTickers).get(i));
             String eventVar = this.safeString(ticker, "e");
             if (Boolean.TRUE.equals(isBidAsk))
             {
@@ -4488,7 +4488,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         Object accountType = "";
         for (var i = 0; i < ((List<?>)subscriptions).size(); i++)
         {
-            Object subscription = Helpers.GetValue(subscriptions, i);
+            Object subscription = (subscriptions == null || i < 0 || i >= ((List<?>)subscriptions).size() ? null : ((List<?>)subscriptions).get(i));
             if ((java.util.Objects.equals(subscription, "spot")) || (java.util.Objects.equals(subscription, "margin")) || (java.util.Objects.equals(subscription, "future")) || (java.util.Objects.equals(subscription, "delivery")) || (java.util.Objects.equals(subscription, "option")))
             {
                 accountType = subscription;
@@ -5224,7 +5224,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             List<Object> closedOrders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object order = Helpers.GetValue(orders, i);
+                Object order = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
                 if (java.util.Objects.equals(((Map<String, Object>)order).get("status"), "closed"))
                 {
                     ((List<Object>)closedOrders).add(order);
@@ -6171,7 +6171,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object cache = Helpers.GetValue(this.positions, type);
             for (var i = 0; i < ((List<?>)positions).size(); i++)
             {
-                Object position = Helpers.GetValue(positions, i);
+                Object position = (positions == null || i < 0 || i >= ((List<?>)positions).size() ? null : ((List<?>)positions).get(i));
                 Double contracts = this.safeNumber(position, "contracts", 0);
                 if ((!java.util.Objects.equals(contracts, null)) && (Helpers.isGreaterThan(contracts, 0)))
                 {
@@ -6249,7 +6249,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         Object messageHashes = this.findMessageHashes(client, (accountType + ":positions::"));
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
-            Object messageHash = Helpers.GetValue(messageHashes, i);
+            Object messageHash = (messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i));
             Object parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
             String symbolsString = (String) Helpers.GetValue(parts, 1);
             Object symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));
@@ -6891,7 +6891,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         Object messageHashes = this.findMessageHashes(client, (accountType + ":positions::"));
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
-            Object messageHash = Helpers.GetValue(messageHashes, i);
+            Object messageHash = (messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i));
             Object parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
             String symbolsString = (String) Helpers.GetValue(parts, 1);
             Object symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));

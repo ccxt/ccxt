@@ -2349,7 +2349,7 @@ public class Gate extends GateApi
             }
             for (var c = 0; c < ((List<?>)swapSettlementCurrencies).size(); c++)
             {
-                Object settleId = Helpers.GetValue(swapSettlementCurrencies, c);
+                Object settleId = (swapSettlementCurrencies == null || c < 0 || c >= ((List<?>)swapSettlementCurrencies).size() ? null : ((List<?>)swapSettlementCurrencies).get(c));
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "settle", settleId );
                 }};
@@ -2380,7 +2380,7 @@ public class Gate extends GateApi
             Object futureSettlementCurrencies = this.getSettlementCurrencies("future", "fetchMarkets");
             for (var c = 0; c < ((List<?>)futureSettlementCurrencies).size(); c++)
             {
-                Object settleId = Helpers.GetValue(futureSettlementCurrencies, c);
+                Object settleId = (futureSettlementCurrencies == null || c < 0 || c >= ((List<?>)futureSettlementCurrencies).size() ? null : ((List<?>)futureSettlementCurrencies).get(c));
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "settle", settleId );
                 }};
@@ -2604,7 +2604,7 @@ public class Gate extends GateApi
             Object underlyings = (this.fetchOptionUnderlyings()).join();
             for (var i = 0; i < ((List<?>)underlyings).size(); i++)
             {
-                Object underlying = Helpers.GetValue(underlyings, i);
+                Object underlying = (underlyings == null || i < 0 || i >= ((List<?>)underlyings).size() ? null : ((List<?>)underlyings).get(i));
                 Map<String, Object> query = this.extend(new HashMap<String, Object>() {{}}, parameters);
                 ((Map<String, Object>)query).put("underlying", underlying);
                 List<Object> response = (this.publicOptionsGetContracts(query)).join();
@@ -5923,7 +5923,7 @@ final Object finalPointFee = pointFee;
         }
         for (var i = 0; i < ((List<?>)orders).size(); i++)
         {
-            Object rawOrder = Helpers.GetValue(orders, i);
+            Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
             String marketId = this.safeString(rawOrder, "symbol");
             ((List<Object>)orderSymbols).add(marketId);
             String type = this.safeString(rawOrder, "type");
@@ -7620,7 +7620,7 @@ final Object finalRebate = rebate;
                 List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
                 for (var i = 0; i < ((List<?>)ids).size(); i++)
                 {
-                    Object id = Helpers.GetValue(ids, i);
+                    Object id = (ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i));
                     final Object finalSymbol = symbol;
                     Map<String, Object> orderItem = new HashMap<String, Object>() {{
                         put( "id", id );
@@ -7636,7 +7636,7 @@ final Object finalRebate = rebate;
             List<Object> finalList = new ArrayList<Object>(Arrays.asList(request)); // hacky but needs to be done here
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
-                ((List<Object>)finalList).add(Helpers.GetValue(ids, i));
+                ((List<Object>)finalList).add((ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i)));
             }
             List<Object> response = (this.privateFuturesPostSettleBatchCancelOrders(finalList)).join();
             return this.parseOrders(response);
@@ -7669,7 +7669,7 @@ final Object finalRebate = rebate;
             List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object order = Helpers.GetValue(orders, i);
+                Object order = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
                 String symbol = this.safeString(order, "symbol");
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 if (!java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
@@ -8660,7 +8660,7 @@ final Object finalFloor = floor;
         List<Object> tiers = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)info).size(); i++)
         {
-            Object item = Helpers.GetValue(info, i);
+            Object item = (info == null || i < 0 || i >= ((List<?>)info).size() ? null : ((List<?>)info).get(i));
             Object maxNotional = this.safeNumber(item, "risk_limit");
 final Object finalI = i;
             final Object finalMinNotional = minNotional;
@@ -9668,7 +9668,7 @@ final Object finalI = i;
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)settlements).size(); i++)
         {
-            ((List<Object>)result).add(this.parseSettlement((Map<String, Object>) (Helpers.GetValue(settlements, i)), market));
+            ((List<Object>)result).add(this.parseSettlement((Map<String, Object>) ((settlements == null || i < 0 || i >= ((List<?>)settlements).size() ? null : ((List<?>)settlements).get(i))), market));
         }
         return result;
     }

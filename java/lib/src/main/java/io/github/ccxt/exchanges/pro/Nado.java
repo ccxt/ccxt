@@ -188,7 +188,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             Object messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbols, i));
+                Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)));
                 ((List<Object>)markets).add(market);
                 ((List<Object>)messageHashes).add(("trade:" + ((Map<String, Object>)market).get("symbol")));
             }
@@ -230,7 +230,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             Object messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbols, i));
+                Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)));
                 ((List<Object>)markets).add(market);
                 ((List<Object>)messageHashes).add(("trade:" + ((Map<String, Object>)market).get("symbol")));
             }
@@ -319,7 +319,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             Object messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 String messageHash = ("orderbook:" + ((Map<String, Object>)market).get("symbol"));
                 ((List<Object>)markets).add(market);
@@ -362,7 +362,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             Object messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbols, i));
+                Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)));
                 ((List<Object>)markets).add(market);
                 ((List<Object>)messageHashes).add(("orderbook:" + ((Map<String, Object>)market).get("symbol")));
             }
@@ -439,7 +439,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             Object subscriptionParams = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
             {
-                Object symbolAndTimeframe = Helpers.GetValue(symbolsAndTimeframes, i);
+                Object symbolAndTimeframe = (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
                 String marketSymbol = this.safeString(symbolAndTimeframe, 0);
                 String timeframe = this.safeString(symbolAndTimeframe, 1, "1m");
                 Map<String, Object> market = (Map<String, Object>) this.market(marketSymbol);
@@ -512,7 +512,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             Object subscriptionParams = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
             {
-                Object symbolAndTimeframe = Helpers.GetValue(symbolsAndTimeframes, i);
+                Object symbolAndTimeframe = (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
                 String marketSymbol = this.safeString(symbolAndTimeframe, 0);
                 String timeframe = this.safeString(symbolAndTimeframe, 1, "1m");
                 Map<String, Object> market = (Map<String, Object>) this.market(marketSymbol);
@@ -1383,7 +1383,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 ((Map)client.subscriptions).put((String)("subscription:" + id), new HashMap<String, Object>() {{
         put( "subscribeHash", subscribeHash );
     }});
-                this.watchMultiple((String) (url), new ArrayList<Object>(Arrays.asList(subscribeHash)), request, new ArrayList<Object>(Arrays.asList(subscribeHash)), subscription);
+                this.watchMultiple(url, new ArrayList<Object>(Arrays.asList(subscribeHash)), request, new ArrayList<Object>(Arrays.asList(subscribeHash)), subscription);
             }
             return (this.watch(url, messageHash, null, null, null)).join();
         });
@@ -1416,7 +1416,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             ((Map)client.subscriptions).put((String)("subscription:" + this.numberToString(id)), new HashMap<String, Object>() {{
         put( "subscribeHash", subscribeHash );
     }});
-            this.watchMultiple((String) (url), new ArrayList<Object>(Arrays.asList(subscribeHash)), request, new ArrayList<Object>(Arrays.asList(messageHash)), subscription);
+            this.watchMultiple(url, new ArrayList<Object>(Arrays.asList(subscribeHash)), request, new ArrayList<Object>(Arrays.asList(messageHash)), subscription);
             return (this.watch(url, messageHash, null, null, null)).join();
         });
 
@@ -1527,7 +1527,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         return this.signHash(hash, (String) (this.privateKey));
     }
 
-    public Map<String, Object> createPublicSubscriptionRequest(Object method, String streamType, Object... optionalArgs)
+    public Object createPublicSubscriptionRequest(Object method, String streamType, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object id = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
@@ -1557,14 +1557,14 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             Client client = this.client(url);
             for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
             {
-                Object messageHash = Helpers.GetValue(messageHashes, i);
+                Object messageHash = (messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i));
                 Object clientSubscription = this.safeValue(client.subscriptions, messageHash);
                 if (java.util.Objects.equals(clientSubscription, null))
                 {
-                    Object market = Helpers.GetValue(markets, i);
+                    Object market = (markets == null || i < 0 || i >= ((List<?>)markets).size() ? null : ((List<?>)markets).get(i));
                     Object id = this.requestId();
-                    Object requestParams = (((java.util.Objects.equals(subscriptionParams, null)))) ? parameters : Helpers.GetValue(subscriptionParams, i);
-                    Map<String, Object> request = this.createPublicSubscriptionRequest("subscribe", (String) (streamType), market, id, requestParams);
+                    Object requestParams = (((java.util.Objects.equals(subscriptionParams, null)))) ? parameters : (subscriptionParams == null || i < 0 || i >= ((List<?>)subscriptionParams).size() ? null : ((List<?>)subscriptionParams).get(i));
+                    Object request = this.createPublicSubscriptionRequest("subscribe", (String) (streamType), market, id, requestParams);
                     String subscribeHash = ("subscribe:" + this.json(((Map<String, Object>)request).get("stream")));
                     Object streamSubscription = this.safeValue(client.subscriptions, subscribeHash);
                     if (java.util.Objects.equals(streamSubscription, null))
@@ -1576,11 +1576,11 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                         ((Map)client.subscriptions).put((String)("subscription:" + this.numberToString(id)), new HashMap<String, Object>() {{
         put( "subscribeHash", subscribeHash );
     }});
-                        this.watchMultiple((String) (url), new ArrayList<Object>(Arrays.asList(subscribeHash)), request, new ArrayList<Object>(Arrays.asList(subscribeHash)), subscription);
+                        this.watchMultiple(url, new ArrayList<Object>(Arrays.asList(subscribeHash)), request, new ArrayList<Object>(Arrays.asList(subscribeHash)), subscription);
                     }
                 }
             }
-            return (this.watchMultiple((String) (url), messageHashes, null, messageHashes, null)).join();
+            return (this.watchMultiple(url, messageHashes, null, messageHashes, null)).join();
         });
 
     }
@@ -1593,7 +1593,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "subscriptions");
             Object id = this.requestId();
-            Map<String, Object> request = this.createPublicSubscriptionRequest("unsubscribe", (String) (streamType), market, id, parameters);
+            Object request = this.createPublicSubscriptionRequest("unsubscribe", (String) (streamType), market, id, parameters);
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "id", id );
                 put( "messageHash", messageHash );
@@ -1621,11 +1621,11 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             List<Object> results = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
             {
-                Object messageHash = Helpers.GetValue(messageHashes, i);
+                Object messageHash = (messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i));
                 Object id = this.requestId();
                 String unsubscribeHash = ("unsubscribe:" + messageHash);
-                Object requestParams = (((java.util.Objects.equals(subscriptionParams, null)))) ? parameters : Helpers.GetValue(subscriptionParams, i);
-                Map<String, Object> request = this.createPublicSubscriptionRequest("unsubscribe", (String) (streamType), Helpers.GetValue(markets, i), id, requestParams);
+                Object requestParams = (((java.util.Objects.equals(subscriptionParams, null)))) ? parameters : (subscriptionParams == null || i < 0 || i >= ((List<?>)subscriptionParams).size() ? null : ((List<?>)subscriptionParams).get(i));
+                Object request = this.createPublicSubscriptionRequest("unsubscribe", (String) (streamType), (markets == null || i < 0 || i >= ((List<?>)markets).size() ? null : ((List<?>)markets).get(i)), id, requestParams);
                 Map<String, Object> subscription = new HashMap<String, Object>() {{
                     put( "id", id );
                     put( "messageHash", messageHash );
@@ -1634,7 +1634,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         put( "messageHash", messageHash );
         put( "unsubscribeHash", unsubscribeHash );
     }});
-                ((List<Object>)results).add((this.watchMultiple((String) (url), new ArrayList<Object>(Arrays.asList(unsubscribeHash)), request, new ArrayList<Object>(Arrays.asList(unsubscribeHash)), subscription)).join());
+                ((List<Object>)results).add((this.watchMultiple(url, new ArrayList<Object>(Arrays.asList(unsubscribeHash)), request, new ArrayList<Object>(Arrays.asList(unsubscribeHash)), subscription)).join());
             }
             return results;
         });
@@ -1658,7 +1658,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         return this.safeInteger(message, key);
     }
 
-    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Object parseWsTrade(Object trade, Object... optionalArgs)
     {
         //
         //     {
@@ -1683,7 +1683,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         }
         final Object finalMarket = market;
         final Object finalSide = side;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", null );
             put( "timestamp", timestamp );
@@ -1697,7 +1697,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             put( "amount", Nado.this.parseX18(Nado.this.safeString(trade, "taker_qty")) );
             put( "cost", null );
             put( "fee", null );
-        }}), market);
+        }}, market);
     }
 
     public Object parseWsMyTrade(Map<String, Object> trade, Object... optionalArgs)
@@ -1752,7 +1752,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         final Object finalSide = side;
         final Object finalTakerOrMaker = takerOrMaker;
         final Object finalFee = fee;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", Nado.this.safeString2(trade, "id", "submission_idx") );
             put( "timestamp", timestamp );
@@ -1766,7 +1766,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             put( "amount", Nado.this.parseX18(Nado.this.safeString(trade, "filled_qty")) );
             put( "cost", null );
             put( "fee", finalFee );
-        }}), market);
+        }}, market);
     }
 
     public void handleTrade(Client client, Map<String, Object> message)
@@ -1782,7 +1782,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             trades = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, trades);
         }
-        Object trade = this.parseWsTrade((Map<String, Object>) (message), market);
+        Object trade = this.parseWsTrade(message, market);
         Helpers.callDynamically(trades, "append", new Object[]{trade});
         client.resolve(trades, messageHash);
     }
@@ -1843,7 +1843,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         client.resolve(new ArrayList<Object>(Arrays.asList(symbol, timeframe, stored)), messageHash);
     }
 
-    public Object parseWsOrder(Map<String, Object> order, Object... optionalArgs)
+    public Object parseWsOrder(Object order, Object... optionalArgs)
     {
         //
         //     {
@@ -1891,7 +1891,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         final Object finalMarket = market;
         final Object finalRemaining = remaining;
         final Object finalStatus = status;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", id );
             put( "clientOrderId", null );
@@ -1915,12 +1915,12 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             put( "status", finalStatus );
             put( "fee", null );
             put( "trades", null );
-        }}), market);
+        }}, market);
     }
 
     public void handleOrder(Client client, Map<String, Object> message)
     {
-        Map<String, Object> order = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (message));
+        Map<String, Object> order = (Map<String, Object>) this.parseWsOrder(message);
         if (java.util.Objects.equals(this.orders, null))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -1976,7 +1976,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         final Object finalSide = side;
         final Object finalContracts = contracts;
         final Object finalEntryPrice = entryPrice;
-        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safePosition(new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
             put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
@@ -2001,7 +2001,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             put( "marginMode", null );
             put( "marginRatio", null );
             put( "percentage", null );
-        }}));
+        }});
     }
 
     public void handlePosition(Client client, Map<String, Object> message)
@@ -2269,7 +2269,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             ((Map<String,Object>)client.subscriptions).remove(("unsubscription:" + id));
             if (!java.util.Objects.equals(messageHash, null))
             {
-                this.cleanUnsubscription(client, (String) (messageHash), (String) (unsubscribeHash));
+                this.cleanUnsubscription(client, messageHash, unsubscribeHash);
                 this.handleUnsubscriptionCache((String) (messageHash));
             }
             client.resolve(message, unsubscribeHash);
@@ -2288,7 +2288,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             String messageHash = this.safeString(subscription, "messageHash");
             if (!java.util.Objects.equals(messageHash, null))
             {
-                this.cleanUnsubscription(client, (String) (messageHash), (String) (unsubscribeHash));
+                this.cleanUnsubscription(client, messageHash, unsubscribeHash);
                 this.handleUnsubscriptionCache((String) (messageHash));
             }
             client.resolve(message, unsubscribeHash);
@@ -2381,7 +2381,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         }};
     }
 
-    public Map<String, Object> handlePong(Client client, Map<String, Object> message)
+    public Object handlePong(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -2398,7 +2398,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         return message;
     }
 
-    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
+    public Object handleErrorMessage(Client client, Map<String, Object> message)
     {
         Object error = this.safeValue(message, "error");
         String status = this.safeString(message, "status");

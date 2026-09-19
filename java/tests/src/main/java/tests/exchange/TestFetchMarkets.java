@@ -27,7 +27,7 @@ public class TestFetchMarkets extends BaseTest {
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, marketValues);
         for (var i = 0; i < ((List<?>)marketValues).size(); i++)
         {
-            TestMarket.testMarket(exchange, skippedProperties, method, Helpers.GetValue(marketValues, i));
+            TestMarket.testMarket(exchange, skippedProperties, method, (marketValues == null || i < 0 || i >= ((List<?>)marketValues).size() ? null : ((List<?>)marketValues).get(i)));
         }
         detectMarketConflicts(exchange, markets);
         return true;
@@ -40,7 +40,7 @@ public class TestFetchMarkets extends BaseTest {
         Map<String, Object> ids = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)marketValues).size(); i++)
         {
-            Object market = Helpers.GetValue(marketValues, i);
+            Object market = (marketValues == null || i < 0 || i >= ((List<?>)marketValues).size() ? null : ((List<?>)marketValues).get(i));
             Object symbol = Helpers.GetValue(market, "symbol");
             if (!((symbol != null && ids.containsKey(symbol))))
             {

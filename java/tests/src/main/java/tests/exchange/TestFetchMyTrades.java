@@ -24,7 +24,7 @@ public class TestFetchMyTrades extends BaseTest {
         Object now = exchange.milliseconds();
         for (var i = 0; i < ((List<?>)trades).size(); i++)
         {
-            TestTrade.testTrade(exchange, skippedProperties, method, Helpers.GetValue(trades, i), symbol, now, false);
+            TestTrade.testTrade(exchange, skippedProperties, method, (trades == null || i < 0 || i >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(i)), symbol, now, false);
         }
         TestSharedMethods.AssertTimestampOrder(exchange, method, symbol, trades);
         return true;

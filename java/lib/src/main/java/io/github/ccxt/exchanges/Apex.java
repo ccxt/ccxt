@@ -1784,9 +1784,9 @@ public class Apex extends ApexApi
             }
             for (var i = 0; i < ((List<?>)assets).size(); i++)
             {
-                if (java.util.Objects.equals(this.safeString(Helpers.GetValue(assets, i), "token", ""), code))
+                if (java.util.Objects.equals(this.safeString((assets == null || i < 0 || i >= ((List<?>)assets).size() ? null : ((List<?>)assets).get(i)), "token", ""), code))
                 {
-                    currency = Helpers.GetValue(assets, i);
+                    currency = (assets == null || i < 0 || i >= ((List<?>)assets).size() ? null : ((List<?>)assets).get(i));
                 }
             }
             String tokenId = this.safeString(currency, "tokenId", "");

@@ -1481,7 +1481,7 @@ public class Deribit extends DeribitApi
         }
         for (var i = 0; i < ((List<?>)summaries).size(); i++)
         {
-            Object data = Helpers.GetValue(summaries, i);
+            Object data = (summaries == null || i < 0 || i >= ((List<?>)summaries).size() ? null : ((List<?>)summaries).get(i));
             String currencyId = this.safeString(data, "currency");
             String currencyCode = this.safeCurrencyCode(currencyId);
             Object account = this.account();
@@ -1851,7 +1851,7 @@ public class Deribit extends DeribitApi
             {
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbols, i));
+                    Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)));
                     if (!java.util.Objects.equals(code, null) && !java.util.Objects.equals(code, ((Map<String, Object>)market).get("base")))
                     {
                         throw new BadRequest((this.id + " fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://docs.deribit.com/#public-get_book_summary_by_currency")) ;

@@ -194,7 +194,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         Object messageHashes = this.findMessageHashes(client, "tickers::");
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
-            Object messageHash = Helpers.GetValue(messageHashes, i);
+            Object messageHash = (messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i));
             Object parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
             String symbolsString = (String) Helpers.GetValue(parts, 1);
             Object symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));
@@ -407,7 +407,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         }
         for (var i = 0; i < ((List<?>)rawBalances).size(); i++)
         {
-            Object entry = Helpers.GetValue(rawBalances, i);
+            Object entry = (rawBalances == null || i < 0 || i >= ((List<?>)rawBalances).size() ? null : ((List<?>)rawBalances).get(i));
             this.parseWsBalance((Map<String, Object>) (entry), account);
         }
         String messageHash = null;
@@ -785,7 +785,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             {
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Object symbol = Helpers.GetValue(symbols, i);
+                    Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                     market = this.market(symbol);
                     ((List<Object>)messageHashes).add(("tickers::" + ((Map<String, Object>)market).get("symbol")));
                 }
@@ -880,7 +880,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             {
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Object symbol = Helpers.GetValue(symbols, i);
+                    Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                     market = this.market(symbol);
                     ((List<Object>)subscribedSymbols).add(((Map<String, Object>)market).get("id"));
                     ((List<Object>)messageHashes).add(("trades:" + ((Map<String, Object>)market).get("symbol")));
@@ -967,7 +967,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             }
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 market = this.market(symbol);
                 ((List<Object>)messageHashes).add(("orderbook:" + ((Map<String, Object>)market).get("symbol")));
                 ((Map<String, Object>)watchOrderBookSubscriptions).put((String)symbol, new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("id"), limit, aggregation, true)));
@@ -1503,7 +1503,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             {
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Object symbol = Helpers.GetValue(symbols, i);
+                    Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                     market = this.market(symbol);
                     ((List<Object>)messageHashes).add(("bidsasks:" + ((Map<String, Object>)market).get("symbol")));
                 }

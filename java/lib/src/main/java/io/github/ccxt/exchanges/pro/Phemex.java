@@ -443,7 +443,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         Helpers.addElementToObject(this.balance, "info", message);
         for (var i = 0; i < ((List<?>)message).size(); i++)
         {
-            Object balance = Helpers.GetValue(message, i);
+            Object balance = (message == null || i < 0 || i >= ((List<?>)message).size() ? null : ((List<?>)message).get(i));
             String currencyId = this.safeString(balance, "currency");
             String code = this.safeCurrencyCode((String) (currencyId));
             Map<String, Object> currency = (Map<String, Object>) this.safeDict(this.currencies, code, new HashMap<String, Object>() {{}});
@@ -673,7 +673,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                ((List<Object>)messageHashes).add(("ticker:" + Helpers.GetValue(symbols, i)));
+                ((List<Object>)messageHashes).add(("ticker:" + (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i))));
             }
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "method", subscriptionHash );
@@ -855,7 +855,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         for (var i = 0; i < ((List<?>)deltas).size(); i++)
         {
-            this.customHandleDelta(bookside, Helpers.GetValue(deltas, i), market);
+            this.customHandleDelta(bookside, (deltas == null || i < 0 || i >= ((List<?>)deltas).size() ? null : ((List<?>)deltas).get(i)), market);
         }
     }
 
@@ -1106,7 +1106,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         Object type = null;
         for (var i = 0; i < ((List<?>)message).size(); i++)
         {
-            Object rawTrade = Helpers.GetValue(message, i);
+            Object rawTrade = (message == null || i < 0 || i >= ((List<?>)message).size() ? null : ((List<?>)message).get(i));
             String marketId = this.safeString(rawTrade, "symbol");
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
             Map<String, Object> parsed = (Map<String, Object>) this.parseTrade(rawTrade);

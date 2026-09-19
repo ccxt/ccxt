@@ -1081,7 +1081,7 @@ public class Upbit extends UpbitApi
                 Object queries = this.idsQueryStrings(ids, 4000); // the url is limited to about 8000 characters once the commas are percent-encoded
                 for (var i = 0; i < ((List<?>)queries).size(); i++)
                 {
-                    Object idsQuery = Helpers.GetValue(queries, i);
+                    Object idsQuery = (queries == null || i < 0 || i >= ((List<?>)queries).size() ? null : ((List<?>)queries).get(i));
                     ((List<Object>)promises).add(this.publicGetTicker(this.extend(new HashMap<String, Object>() {{
                         put( "markets", idsQuery );
                     }}, parameters)));
@@ -1132,7 +1132,7 @@ public class Upbit extends UpbitApi
         List<Object> queries = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)ids).size(); i++)
         {
-            Object id = Helpers.GetValue(ids, i);
+            Object id = (ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i));
             if (!java.util.Objects.equals(idsString, ""))
             {
                 idsString = (idsString + ",");
@@ -1418,13 +1418,13 @@ public class Upbit extends UpbitApi
             for (var i = 0; i < ((List<?>)fetchMarketResponse).size(); i++)
             {
                 Map<String, Object> element = new HashMap<String, Object>() {{}};
-                ((Map<String, Object>)element).put("maker", this.safeNumber(Helpers.GetValue(fetchMarketResponse, i), "maker"));
-                ((Map<String, Object>)element).put("taker", this.safeNumber(Helpers.GetValue(fetchMarketResponse, i), "taker"));
-                ((Map<String, Object>)element).put("symbol", this.safeString(Helpers.GetValue(fetchMarketResponse, i), "symbol"));
+                ((Map<String, Object>)element).put("maker", this.safeNumber((fetchMarketResponse == null || i < 0 || i >= ((List<?>)fetchMarketResponse).size() ? null : ((List<?>)fetchMarketResponse).get(i)), "maker"));
+                ((Map<String, Object>)element).put("taker", this.safeNumber((fetchMarketResponse == null || i < 0 || i >= ((List<?>)fetchMarketResponse).size() ? null : ((List<?>)fetchMarketResponse).get(i)), "taker"));
+                ((Map<String, Object>)element).put("symbol", this.safeString((fetchMarketResponse == null || i < 0 || i >= ((List<?>)fetchMarketResponse).size() ? null : ((List<?>)fetchMarketResponse).get(i)), "symbol"));
                 ((Map<String, Object>)element).put("percentage", true);
                 ((Map<String, Object>)element).put("tierBased", false);
-                ((Map<String, Object>)element).put("info", Helpers.GetValue(fetchMarketResponse, i));
-                String feeSymbol = this.safeString(Helpers.GetValue(fetchMarketResponse, i), "symbol");
+                ((Map<String, Object>)element).put("info", (fetchMarketResponse == null || i < 0 || i >= ((List<?>)fetchMarketResponse).size() ? null : ((List<?>)fetchMarketResponse).get(i)));
+                String feeSymbol = this.safeString((fetchMarketResponse == null || i < 0 || i >= ((List<?>)fetchMarketResponse).size() ? null : ((List<?>)fetchMarketResponse).get(i)), "symbol");
                 if (!java.util.Objects.equals(feeSymbol, null))
                 {
                     ((Map<String, Object>)response).put((String)feeSymbol, element);

@@ -496,7 +496,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             {
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Object symbol = Helpers.GetValue(symbols, i);
+                    Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                     ((List<Object>)messageHashes).add(this.getMessageHash("ticker", symbol));
                 }
             }

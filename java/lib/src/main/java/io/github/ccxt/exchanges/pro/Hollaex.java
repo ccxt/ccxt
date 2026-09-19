@@ -462,7 +462,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         Map<String, Object> marketIds = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)rawOrders).size(); i++)
         {
-            Object order = Helpers.GetValue(rawOrders, i);
+            Object order = (rawOrders == null || i < 0 || i >= ((List<?>)rawOrders).size() ? null : ((List<?>)rawOrders).get(i));
             Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(order);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
             Object symbol = Helpers.GetValue(order, "symbol");

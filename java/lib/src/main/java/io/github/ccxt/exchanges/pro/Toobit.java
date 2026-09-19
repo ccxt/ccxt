@@ -246,7 +246,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             List<Object> subParams = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 ((List<Object>)messageHashes).add(("trade::" + symbol));
                 Object rawHash = ((Map<String, Object>)market).get("id");
@@ -309,7 +309,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         Object parsed = this.parseWsTrades(data, market);
         for (var i = 0; i < ((List<?>)parsed).size(); i++)
         {
-            Object trade = Helpers.GetValue(parsed, i);
+            Object trade = (parsed == null || i < 0 || i >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(i));
             Helpers.addElementToObject(trade, "symbol", symbol);
             Helpers.callDynamically(stored, "append", new Object[]{trade});
         }
@@ -383,7 +383,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             String selectedTimeframe = null;
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
             {
-                Object data = Helpers.GetValue(symbolsAndTimeframes, i);
+                Object data = (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
                 String symbolStr = this.safeString(data, 0);
                 Map<String, Object> market = (Map<String, Object>) this.market(symbolStr);
                 Object marketId = ((Map<String, Object>)market).get("id");
@@ -550,7 +550,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             List<Object> subParams = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 ((List<Object>)messageHashes).add(("ticker::" + symbol));
                 Object rawHash = ((Map<String, Object>)market).get("id");
@@ -701,7 +701,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             List<Object> subParams = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 ((List<Object>)messageHashes).add(((("orderBook::" + symbol) + "::") + channel));
                 Object rawHash = ((Map<String, Object>)market).get("id");
@@ -1332,7 +1332,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             Object cache = Helpers.GetValue(this.positions, type);
             for (var i = 0; i < ((List<?>)positions).size(); i++)
             {
-                Object position = Helpers.GetValue(positions, i);
+                Object position = (positions == null || i < 0 || i >= ((List<?>)positions).size() ? null : ((List<?>)positions).get(i));
                 Helpers.callDynamically(cache, "append", new Object[]{position});
             }
             // don't remove the future from the .futures cache
@@ -1407,7 +1407,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         Object messageHashes = this.findMessageHashes(client, (accountType + ":positions::"));
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
-            Object messageHash = Helpers.GetValue(messageHashes, i);
+            Object messageHash = (messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i));
             Object parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
             String symbolsString = (String) Helpers.GetValue(parts, 1);
             Object symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));

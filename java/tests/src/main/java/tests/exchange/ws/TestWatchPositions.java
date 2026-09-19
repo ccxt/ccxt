@@ -85,7 +85,7 @@ public class TestWatchPositions extends BaseTest {
                 now = exchange.milliseconds();
                 for (var i = 0; i < ((List<?>)positionsForSymbols).size(); i++)
                 {
-                    TestPosition.testPosition(exchange, skippedProperties, method, Helpers.GetValue(positionsForSymbols, i), symbol, now);
+                    TestPosition.testPosition(exchange, skippedProperties, method, (positionsForSymbols == null || i < 0 || i >= ((List<?>)positionsForSymbols).size() ? null : ((List<?>)positionsForSymbols).get(i)), symbol, now);
                 }
                 TestSharedMethods.AssertTimestampOrder(exchange, method, symbol, positionsForSymbols);
             }

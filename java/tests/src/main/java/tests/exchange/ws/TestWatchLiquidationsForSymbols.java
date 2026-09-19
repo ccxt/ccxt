@@ -52,7 +52,7 @@ public class TestWatchLiquidationsForSymbols extends BaseTest {
                 // log.noLocate (asTable (response))
                 for (var i = 0; i < ((List<?>)response).size(); i++)
                 {
-                    TestLiquidation.testLiquidation(exchange, skippedProperties, method, Helpers.GetValue(response, i), symbol);
+                    TestLiquidation.testLiquidation(exchange, skippedProperties, method, (response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i)), symbol);
                 }
             } catch(Exception e)
             {

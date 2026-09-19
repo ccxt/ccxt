@@ -965,7 +965,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         Object cachedOrders = this.orders;
         for (var i = 0; i < ((List<?>)orders).size(); i++)
         {
-            Helpers.callDynamically(cachedOrders, "append", new Object[]{Helpers.GetValue(orders, i)});
+            Helpers.callDynamically(cachedOrders, "append", new Object[]{(orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i))});
         }
         client.resolve(this.orders, channel);
     }

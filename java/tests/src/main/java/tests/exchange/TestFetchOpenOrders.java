@@ -26,7 +26,7 @@ public class TestFetchOpenOrders extends BaseTest {
         Object now = exchange.milliseconds();
         for (var i = 0; i < ((List<?>)orders).size(); i++)
         {
-            Object order = Helpers.GetValue(orders, i);
+            Object order = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
             TestOrder.testOrder(exchange, skippedProperties, method, order, symbol, now);
             TestSharedMethods.AssertInArray(exchange, skippedProperties, method, order, "status", new ArrayList<Object>(Arrays.asList("open")));
         }

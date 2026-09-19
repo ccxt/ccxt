@@ -749,7 +749,7 @@ public class Digifinex extends DigifinexApi
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         for (var j = 0; j < ((List<?>)networkEntries).size(); j++)
         {
-            Object networkEntry = Helpers.GetValue(networkEntries, j);
+            Object networkEntry = (networkEntries == null || j < 0 || j >= ((List<?>)networkEntries).size() ? null : ((List<?>)networkEntries).get(j));
             String networkId = this.safeString2(networkEntry, "chain", "currency");
             Object networkCode = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(networkCode, null))
@@ -2173,7 +2173,7 @@ public class Digifinex extends DigifinexApi
             Object marginMode = null;
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object rawOrder = Helpers.GetValue(orders, i);
+                Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
                 String marketId = this.safeString(rawOrder, "symbol");
                 if (java.util.Objects.equals(symbol, null))
                 {
@@ -2253,9 +2253,9 @@ public class Digifinex extends DigifinexApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object rawOrder = Helpers.GetValue(orders, i);
+                Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
                 Map<String, Object> individualOrder = new HashMap<String, Object>() {{}};
-                ((Map<String, Object>)individualOrder).put("order_id", Helpers.GetValue(data, i));
+                ((Map<String, Object>)individualOrder).put("order_id", (data == null || i < 0 || i >= ((List<?>)data).size() ? null : ((List<?>)data).get(i)));
                 ((Map<String, Object>)individualOrder).put("instrument_id", ((Map<String, Object>)market).get("id"));
                 ((Map<String, Object>)individualOrder).put("amount", this.safeNumber(rawOrder, "amount"));
                 ((Map<String, Object>)individualOrder).put("price", this.safeNumber(rawOrder, "price"));
@@ -4171,7 +4171,7 @@ public class Digifinex extends DigifinexApi
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)info).size(); i++)
         {
-            Object item = Helpers.GetValue(info, i);
+            Object item = (info == null || i < 0 || i >= ((List<?>)info).size() ? null : ((List<?>)info).get(i));
             String currency = this.safeString(item, codeKey);
             String code = this.safeCurrencyCode(currency);
             Map<String, Object> borrowRate = (Map<String, Object>) this.parseBorrowRate(item);

@@ -1508,7 +1508,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
                 {
                     for (var i = 0; i < ((List<?>)marketIds).size(); i++)
                     {
-                        Object marketId = Helpers.GetValue(marketIds, i);
+                        Object marketId = (marketIds == null || i < 0 || i >= ((List<?>)marketIds).size() ? null : ((List<?>)marketIds).get(i));
                         Boolean marketSubscribed = (Boolean) this.safeBool(subscription, marketId, false);
                         if (!java.util.Objects.equals(marketSubscribed, true))
                         {
@@ -1523,7 +1523,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             }
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
-                Object marketId = Helpers.GetValue(marketIds, i);
+                Object marketId = (marketIds == null || i < 0 || i >= ((List<?>)marketIds).size() ? null : ((List<?>)marketIds).get(i));
                 ((Map<String, Object>)subscription).put((String)marketId, true);
             }
             ((Map<String, Object>)request).put("type", type);

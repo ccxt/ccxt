@@ -44,7 +44,7 @@ public class TestOrderBook extends BaseTest {
         Object bidsLength = ((List<?>)bids).size();
         for (var i = 0; Helpers.isLessThan(i, bidsLength); i++)
         {
-            String currentBidString = exchange.safeString(Helpers.GetValue(bids, i), 0);
+            String currentBidString = exchange.safeString((bids == null || i < 0 || i >= ((List<?>)bids).size() ? null : ((List<?>)bids).get(i)), 0);
             if (!(Helpers.inOp(skippedProperties, "compareToNextItem")))
             {
                 Object nextI = (((long) i) + 1L);
@@ -57,15 +57,15 @@ public class TestOrderBook extends BaseTest {
             if (!(Helpers.inOp(skippedProperties, "compareToZero")))
             {
                 // compare price & volume to zero
-                TestSharedMethods.AssertGreater(exchange, skippedProperties, method, Helpers.GetValue(bids, i), 0, "0");
-                TestSharedMethods.AssertGreater(exchange, skippedProperties, method, Helpers.GetValue(bids, i), 1, "0");
+                TestSharedMethods.AssertGreater(exchange, skippedProperties, method, (bids == null || i < 0 || i >= ((List<?>)bids).size() ? null : ((List<?>)bids).get(i)), 0, "0");
+                TestSharedMethods.AssertGreater(exchange, skippedProperties, method, (bids == null || i < 0 || i >= ((List<?>)bids).size() ? null : ((List<?>)bids).get(i)), 1, "0");
             }
         }
         Object asks = ((Map<String, Object>)orderbook).get("asks");
         Object asksLength = ((List<?>)asks).size();
         for (var i = 0; Helpers.isLessThan(i, asksLength); i++)
         {
-            String currentAskString = exchange.safeString(Helpers.GetValue(asks, i), 0);
+            String currentAskString = exchange.safeString((asks == null || i < 0 || i >= ((List<?>)asks).size() ? null : ((List<?>)asks).get(i)), 0);
             if (!(Helpers.inOp(skippedProperties, "compareToNextItem")))
             {
                 Object nextI = (((long) i) + 1L);
@@ -78,8 +78,8 @@ public class TestOrderBook extends BaseTest {
             if (!(Helpers.inOp(skippedProperties, "compareToZero")))
             {
                 // compare price & volume to zero
-                TestSharedMethods.AssertGreater(exchange, skippedProperties, method, Helpers.GetValue(asks, i), 0, "0");
-                TestSharedMethods.AssertGreater(exchange, skippedProperties, method, Helpers.GetValue(asks, i), 1, "0");
+                TestSharedMethods.AssertGreater(exchange, skippedProperties, method, (asks == null || i < 0 || i >= ((List<?>)asks).size() ? null : ((List<?>)asks).get(i)), 0, "0");
+                TestSharedMethods.AssertGreater(exchange, skippedProperties, method, (asks == null || i < 0 || i >= ((List<?>)asks).size() ? null : ((List<?>)asks).get(i)), 1, "0");
             }
         }
         if (!(Helpers.inOp(skippedProperties, "spread")))

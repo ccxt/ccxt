@@ -3789,7 +3789,7 @@ public class Bitget extends BitgetApi
             Boolean fetchMargins = false;
             for (var i = 0; i < ((List<?>)types).size(); i++)
             {
-                Object type = Helpers.GetValue(types, i);
+                Object type = (types == null || i < 0 || i >= ((List<?>)types).size() ? null : ((List<?>)types).get(i));
                 if ((java.util.Objects.equals(type, "swap")) || (java.util.Objects.equals(type, "future")))
                 {
                     List<Object> subTypes = new ArrayList<Object>(Arrays.asList("USDT-FUTURES", "COIN-FUTURES", "USDC-FUTURES", "SUSDT-FUTURES", "SCOIN-FUTURES", "SUSDC-FUTURES"));
@@ -3911,7 +3911,7 @@ public class Bitget extends BitgetApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)markets).size(); i++)
             {
-                Object market = Helpers.GetValue(markets, i);
+                Object market = (markets == null || i < 0 || i >= ((List<?>)markets).size() ? null : ((List<?>)markets).get(i));
                 String marketId = this.safeString(market, "symbol");
                 String quoteId = this.safeString(market, "quoteCoin");
                 String baseId = this.safeString(market, "baseCoin");
@@ -4207,7 +4207,7 @@ public class Bitget extends BitgetApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)markets).size(); i++)
             {
-                Object market = Helpers.GetValue(markets, i);
+                Object market = (markets == null || i < 0 || i >= ((List<?>)markets).size() ? null : ((List<?>)markets).get(i));
                 String category = this.safeString(market, "category");
                 String marketId = this.safeString(market, "symbol");
                 String quoteId = this.safeString(market, "quoteCoin");
@@ -4432,7 +4432,7 @@ public class Bitget extends BitgetApi
 
     }
 
-    public Object parseCurrency(Map<String, Object> rawCurrency)
+    public Object parseCurrency(Object rawCurrency)
     {
         Object fiatCurrencies = this.handleOption("fetchCurrencies", "fiatCurrencies", new ArrayList<Object>(Arrays.asList()));
         Object entry = rawCurrency;
@@ -4460,8 +4460,8 @@ public class Bitget extends BitgetApi
             network = ((String)network).toUpperCase();
             Object withdrawable = (java.util.Objects.equals(this.safeString(chain, "withdrawable"), "true"));
             Object rechargeable = (java.util.Objects.equals(this.safeString(chain, "rechargeable"), "true"));
-            withdraw = (((java.util.Objects.equals(withdraw, null)))) ? withdrawable : (Boolean.TRUE.equals(withdraw) || Boolean.TRUE.equals(withdrawable));
-            deposit = (((java.util.Objects.equals(deposit, null)))) ? rechargeable : (Boolean.TRUE.equals(deposit) || Boolean.TRUE.equals(rechargeable));
+            withdraw = (((java.util.Objects.equals(withdraw, null)))) ? withdrawable : (Helpers.isTrue(withdraw) || Boolean.TRUE.equals(withdrawable));
+            deposit = (((java.util.Objects.equals(deposit, null)))) ? rechargeable : (Helpers.isTrue(deposit) || Boolean.TRUE.equals(rechargeable));
             final Object finalNetwork = network;
             ((Map<String, Object>)networks).put((String)network, new HashMap<String, Object>() {{
     put( "info", chain );
@@ -4488,7 +4488,7 @@ public class Bitget extends BitgetApi
         boolean isFiat = this.inArray(code, fiatCurrencies);
         final Object finalDeposit = deposit;
         final Object finalWithdraw = withdraw;
-        return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
             put( "info", entry );
             put( "id", id );
             put( "code", code );
@@ -4515,7 +4515,7 @@ public class Bitget extends BitgetApi
                 }} );
             }} );
             put( "created", null );
-        }}));
+        }});
     }
 
     /**
@@ -4728,7 +4728,7 @@ public class Bitget extends BitgetApi
         Object minNotional = 0;
         for (var i = 0; i < ((List<?>)info).size(); i++)
         {
-            Object item = Helpers.GetValue(info, i);
+            Object item = (info == null || i < 0 || i >= ((List<?>)info).size() ? null : ((List<?>)info).get(i));
             Double minimumNotional = this.safeNumber2(item, "startUnit", "minTierValue");
             if (!java.util.Objects.equals(minimumNotional, null))
             {
@@ -4817,7 +4817,7 @@ final Object finalMinNotional = minNotional;
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency((String) (code));
+                currency = this.currency(code);
                 ((Map<String, Object>)request).put("coin", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
@@ -4928,14 +4928,14 @@ final Object finalMinNotional = minNotional;
             List<Object> utaparametersVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (parameters), "withdraw", false)).join();
             uta = ((List<Object>) utaparametersVariable).get(0);
             parameters = ((List<Object>) utaparametersVariable).get(1);
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Object networkId = this.networkCodeToId(networkCode, code);
             final Object finalNetworkCode = networkCode;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "coin", ((Map<String, Object>)currency).get("id") );
                 put( "address", address );
                 put( "chain", networkId );
-                put( "size", Bitget.this.currencyToPrecision((String) (code), amount, finalNetworkCode) );
+                put( "size", Bitget.this.currencyToPrecision(code, amount, finalNetworkCode) );
                 put( "transferType", "on_chain" );
             }};
             if (!java.util.Objects.equals(tag, null))
@@ -4962,7 +4962,7 @@ final Object finalMinNotional = minNotional;
             //      }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object result = this.parseTransaction((Map<String, Object>) (data), currency);
+            Object result = this.parseTransaction(data, currency);
             ((Map<String, Object>)result).put("type", "withdrawal");
             Map<String, Object> withdrawOptions = (Map<String, Object>) this.safeDict(this.options, "withdraw", new HashMap<String, Object>() {{}});
             Boolean fillResponseFromRequest = (Boolean) this.safeBool(withdrawOptions, "fillResponseFromRequest", true);
@@ -5028,7 +5028,7 @@ final Object finalMinNotional = minNotional;
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency((String) (code));
+                currency = this.currency(code);
             }
             if (java.util.Objects.equals(since, null))
             {
@@ -5123,7 +5123,7 @@ final Object finalMinNotional = minNotional;
 
     }
 
-    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
+    public Object parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         // fetchDeposits
@@ -5283,7 +5283,7 @@ final Object finalMinNotional = minNotional;
             List<Object> networkCodeparametersVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
             networkCode = (String) ((List<Object>) networkCodeparametersVariable).get(0);
             parameters = ((List<Object>) networkCodeparametersVariable).get(1);
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "coin", ((Map<String, Object>)currency).get("id") );
             }};
@@ -5436,7 +5436,7 @@ final Object finalMinNotional = minNotional;
 
     }
 
-    public Object parseTicker(Map<String, Object> ticker, Object... optionalArgs)
+    public Object parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         //   {
@@ -5756,7 +5756,7 @@ final Object finalMinNotional = minNotional;
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTicker((Map<String, Object>) ((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0))), market);
+            return this.parseTicker((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0)), market);
         }).thenApply(Ticker::new);
 
     }
@@ -5798,7 +5798,7 @@ final Object finalMinNotional = minNotional;
                 response = (this.publicMixGetV2MixMarketSymbolPrice(this.extend(request, parameters))).join();
             }
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTicker((Map<String, Object>) ((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0))), market);
+            return this.parseTicker((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0)), market);
         }).thenApply(Ticker::new);
 
     }
@@ -6129,7 +6129,7 @@ final Object finalMinNotional = minNotional;
             }};
             String feeCostString = this.safeString2(feeStructure, "totalFee", "fee");
             Object deduction = ((java.util.Objects.equals(this.safeString(feeStructure, "deduction"), "yes"))) ? true : false;
-            if (Boolean.TRUE.equals(deduction))
+            if (Helpers.isTrue(deduction))
             {
                 ((Map<String, Object>)fee).put("cost", feeCostString);
             } else
@@ -6138,7 +6138,7 @@ final Object finalMinNotional = minNotional;
             }
         }
         final Object finalFee = fee;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", Bitget.this.safeString2(trade, "tradeId", "execId") );
             put( "order", Bitget.this.safeString(trade, "orderId") );
@@ -6152,7 +6152,7 @@ final Object finalMinNotional = minNotional;
             put( "timestamp", timestamp );
             put( "datetime", Bitget.this.iso8601(timestamp) );
             put( "fee", finalFee );
-        }}), market);
+        }}, market);
     }
 
     /**
@@ -6623,7 +6623,7 @@ final Object finalMinNotional = minNotional;
                 String marketId = this.safeString(entry, "symbol");
                 String symbol = this.safeSymbol(marketId, null, null, marketType);
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                Map<String, Object> fee = this.parseTradingFee((Map<String, Object>) (entry), market);
+                Map<String, Object> fee = (Map<String, Object>) this.parseTradingFee((Map<String, Object>) (entry), market);
                 ((Map<String, Object>)result).put((String)symbol, fee);
             }
             return result;
@@ -6631,7 +6631,7 @@ final Object finalMinNotional = minNotional;
 
     }
 
-    public Map<String, Object> parseTradingFee(Map<String, Object> data, Object... optionalArgs)
+    public Object parseTradingFee(Map<String, Object> data, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(data, "symbol");
@@ -6738,7 +6738,7 @@ final Object finalMinNotional = minNotional;
             }
             Integer msInDay = 86400000;
             Long now = this.milliseconds();
-            Long duration = (((long) this.parseTimeframe(timeframe)) * 1000L);
+            Object duration = Helpers.multiply(this.parseTimeframe(timeframe), 1000);
             Long until = this.safeInteger(parameters, "until");
             Boolean limitDefined = !java.util.Objects.equals(limit, null);
             Boolean sinceDefined = !java.util.Objects.equals(since, null);
@@ -6809,9 +6809,9 @@ final Object finalMinNotional = minNotional;
                 {
                     Integer maxDistanceDaysForContracts = 90;
                     // only correct if request is larger
-                    if (Helpers.isGreaterThan(Helpers.subtract(calculatedEndTime, calculatedStartTime), (((long) maxDistanceDaysForContracts) * ((long) msInDay))))
+                    if (Helpers.isGreaterThan(Helpers.subtract(calculatedEndTime, calculatedStartTime), Helpers.multiply(maxDistanceDaysForContracts, msInDay)))
                     {
-                        calculatedEndTime = this.sum(calculatedStartTime, (((long) maxDistanceDaysForContracts) * ((long) msInDay)));
+                        calculatedEndTime = this.sum(calculatedStartTime, Helpers.multiply(maxDistanceDaysForContracts, msInDay));
                         ((Map<String, Object>)request).put("endTime", calculatedEndTime);
                     }
                 }
@@ -7119,7 +7119,7 @@ final Object finalMinNotional = minNotional;
         //
         for (var i = 0; i < ((List<?>)balance).size(); i++)
         {
-            Object entry = Helpers.GetValue(balance, i);
+            Object entry = (balance == null || i < 0 || i >= ((List<?>)balance).size() ? null : ((List<?>)balance).get(i));
             Object account = this.account();
             String currencyId = this.safeString(entry, "coin");
             String code = this.safeCurrencyCode(currencyId);
@@ -7189,7 +7189,7 @@ final Object finalMinNotional = minNotional;
         //
         for (var i = 0; i < ((List<?>)balance).size(); i++)
         {
-            Object entry = Helpers.GetValue(balance, i);
+            Object entry = (balance == null || i < 0 || i >= ((List<?>)balance).size() ? null : ((List<?>)balance).get(i));
             Object account = this.account();
             String currencyId = this.safeString2(entry, "marginCoin", "coin");
             String code = this.safeCurrencyCode(currencyId);
@@ -7466,12 +7466,12 @@ final Object finalMinNotional = minNotional;
         String errorMessage = this.safeString(order, "errorMsg");
         if (!java.util.Objects.equals(errorMessage, null))
         {
-            return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+            return this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", order );
                 put( "id", Bitget.this.safeString(order, "orderId") );
                 put( "clientOrderId", Bitget.this.safeString2(order, "clientOrderId", "clientOid") );
                 put( "status", "rejected" );
-            }}), market);
+            }}, market);
         }
         String posSide = this.safeString(order, "posSide");
         Boolean isContractOrder = (!java.util.Objects.equals(posSide, null));
@@ -7517,7 +7517,7 @@ final Object finalMinNotional = minNotional;
                 Object feeObject = null;
                 for (var i = 0; i < ((List<?>)feeValues).size(); i++)
                 {
-                    Object feeValue = Helpers.GetValue(feeValues, i);
+                    Object feeValue = (feeValues == null || i < 0 || i >= ((List<?>)feeValues).size() ? null : ((List<?>)feeValues).get(i));
                     if (!java.util.Objects.equals(this.safeValue(feeValue, "feeCoinCode"), null))
                     {
                         feeObject = feeValue;
@@ -7594,7 +7594,7 @@ final Object finalMinNotional = minNotional;
         final Object finalPostOnly = postOnly;
         final Object finalReduceOnly = reduceOnly;
         final Object finalFee = fee;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", Bitget.this.safeString2(order, "orderId", "data") );
             put( "clientOrderId", Bitget.this.safeString2(order, "clientOrderId", "clientOid") );
@@ -7620,7 +7620,7 @@ final Object finalMinNotional = minNotional;
             put( "status", Bitget.this.parseOrderStatus(rawStatus) );
             put( "fee", finalFee );
             put( "trades", null );
-        }}), market);
+        }}, market);
     }
 
     /**
@@ -8300,7 +8300,7 @@ final Object finalMinNotional = minNotional;
             Object marginMode = null;
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object rawOrder = Helpers.GetValue(orders, i);
+                Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
                 String marketId = this.safeString(rawOrder, "symbol");
                 if (java.util.Objects.equals(symbol, null))
                 {
@@ -8393,7 +8393,7 @@ final Object finalMinNotional = minNotional;
             Object marginMode = null;
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object rawOrder = Helpers.GetValue(orders, i);
+                Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
                 String marketId = this.safeString(rawOrder, "symbol");
                 if (java.util.Objects.equals(symbol, null))
                 {
@@ -9010,7 +9010,7 @@ final Object finalMinNotional = minNotional;
             List<Object> requestList = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
-                Object individualId = Helpers.GetValue(ids, i);
+                Object individualId = (ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i));
                 final Object finalProductType = productType;
                 Map<String, Object> order = new HashMap<String, Object>() {{
                     put( "orderId", individualId );
@@ -9090,7 +9090,7 @@ final Object finalMinNotional = minNotional;
             List<Object> orderIdList = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
-                Object individualId = Helpers.GetValue(ids, i);
+                Object individualId = (ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i));
                 Map<String, Object> orderId = new HashMap<String, Object>() {{
                     put( "orderId", individualId );
                 }};
@@ -9252,12 +9252,12 @@ final Object finalMinNotional = minNotional;
                     Map<String, Object> responseData = (Map<String, Object>) this.safeDict(response, "data");
                     String marketId = this.safeString(responseData, "symbol");
                     final Object finalResponse = response;
-                    return new ArrayList<Object>(Arrays.asList(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+                    return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
         put( "info", finalResponse );
         put( "symbol", Bitget.this.safeSymbol(marketId, null, null, "spot") );
         put( "timestamp", timestamp );
         put( "datetime", Bitget.this.iso8601(timestamp) );
-    }}))));
+    }})));
                 }
             } else
             {
@@ -10141,7 +10141,7 @@ final Object finalMinNotional = minNotional;
                 {
                     if (java.util.Objects.equals(since, null))
                     {
-                        since = (now - 7776000000L);
+                        since = Helpers.subtract(now, 7776000000L);
                         ((Map<String, Object>)request).put("startTime", since);
                     }
                     if (java.util.Objects.equals(marginMode, "isolated"))
@@ -10161,7 +10161,7 @@ final Object finalMinNotional = minNotional;
                     parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
                     if (java.util.Objects.equals(since, null))
                     {
-                        since = (now - 7776000000L);
+                        since = Helpers.subtract(now, 7776000000L);
                         ((Map<String, Object>)request).put("startTime", since);
                     }
                     if (java.util.Objects.equals(endTime, null))
@@ -10608,7 +10608,7 @@ final Object finalMinNotional = minNotional;
             Object request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency((String) (code));
+                currency = this.currency(code);
                 ((Map<String, Object>)request).put("coin", ((Map<String, Object>)currency).get("id"));
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
@@ -10694,7 +10694,7 @@ final Object finalMinNotional = minNotional;
 
     }
 
-    public Object parseLedgerEntry(Map<String, Object> item, Object... optionalArgs)
+    public Object parseLedgerEntry(Object item, Object... optionalArgs)
     {
         //
         // spot
@@ -11192,7 +11192,7 @@ final Object finalMinNotional = minNotional;
                 result = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             }
             Map<String, Object> first = (Map<String, Object>) this.safeDict(result, 0, new HashMap<String, Object>() {{}});
-            return this.parsePosition((Map<String, Object>) (first), market);
+            return this.parsePosition(first, market);
         }).thenApply(Position::new);
 
     }
@@ -11420,7 +11420,7 @@ final Object finalMinNotional = minNotional;
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)position).size(); i++)
             {
-                ((List<Object>)result).add(this.parsePosition((Map<String, Object>) (Helpers.GetValue(position, i)), market));
+                ((List<Object>)result).add(this.parsePosition((position == null || i < 0 || i >= ((List<?>)position).size() ? null : ((List<?>)position).get(i)), market));
             }
             symbols = this.marketSymbols(symbols);
             return this.filterByArrayPositions(result, "symbol", symbols, false);
@@ -11428,7 +11428,7 @@ final Object finalMinNotional = minNotional;
 
     }
 
-    public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
+    public Object parsePosition(Object position, Object... optionalArgs)
     {
         //
         // fetchPosition
@@ -11639,7 +11639,7 @@ final Object finalMinNotional = minNotional;
         final Object finalHedged = hedged;
         final Object finalCollateral = collateral;
         final Object finalInitialMargin = initialMargin;
-        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safePosition(new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", Bitget.this.safeString2(position, "orderId", "positionId") );
             put( "symbol", symbol );
@@ -11668,7 +11668,7 @@ final Object finalMinNotional = minNotional;
             put( "marginRatio", Bitget.this.safeNumber2(position, "marginRatio", "mmr") );
             put( "stopLossPrice", null );
             put( "takeProfitPrice", null );
-        }}));
+        }});
     }
 
     /**
@@ -11777,7 +11777,7 @@ final Object finalMinNotional = minNotional;
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)result).size(); i++)
             {
-                Object entry = Helpers.GetValue(result, i);
+                Object entry = (result == null || i < 0 || i >= ((List<?>)result).size() ? null : ((List<?>)result).get(i));
                 String marketId = this.safeString(entry, "symbol");
                 String symbolInner = this.safeSymbol(marketId, market);
                 Long timestamp = (Long) this.safeInteger2(entry, "fundingTime", "fundingRateTimestamp");
@@ -12177,7 +12177,7 @@ final Object finalMinNotional = minNotional;
 
     }
 
-    public Map<String, Object> parseFundingHistory(Map<String, Object> contract, Object... optionalArgs)
+    public Object parseFundingHistory(Map<String, Object> contract, Object... optionalArgs)
     {
         //
         //     {
@@ -12226,7 +12226,7 @@ final Object finalMinNotional = minNotional;
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)contracts).size(); i++)
         {
-            Object contract = Helpers.GetValue(contracts, i);
+            Object contract = (contracts == null || i < 0 || i >= ((List<?>)contracts).size() ? null : ((List<?>)contracts).get(i));
             // for non-uta, we've set bussinessType in request payload. Not sure why this existed.
             // const business = this.safeString (contract, 'businessType');
             // if (business !== 'contract_settle_fee') {
@@ -12277,7 +12277,7 @@ final Object finalMinNotional = minNotional;
             //         "data": ""
             //     }
             //
-            return this.extend(this.parseMarginModification((Map<String, Object>) (response), market), new HashMap<String, Object>() {{
+            return this.extend(this.parseMarginModification(response, market), new HashMap<String, Object>() {{
                 put( "amount", Bitget.this.parseNumber(amount) );
                 put( "type", type );
             }});
@@ -12285,7 +12285,7 @@ final Object finalMinNotional = minNotional;
 
     }
 
-    public Object parseMarginModification(Map<String, Object> data, Object... optionalArgs)
+    public Object parseMarginModification(Object data, Object... optionalArgs)
     {
         //
         // addMargin/reduceMargin
@@ -12430,12 +12430,12 @@ final Object finalMinNotional = minNotional;
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseLeverage((Map<String, Object>) (data), market);
+            return this.parseLeverage(data, market);
         }).thenApply(Leverage::new);
 
     }
 
-    public Object parseLeverage(Map<String, Object> leverage, Object... optionalArgs)
+    public Object parseLeverage(Object leverage, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Boolean isCrossMarginMode = java.util.Objects.equals(this.safeString(leverage, "marginMode"), "crossed");
@@ -12773,7 +12773,7 @@ final Object finalMinNotional = minNotional;
             parameters = this.omit(parameters, "fromAccount");
             Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             type = this.safeString(accountsByType, fromAccount);
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             final Object finalType = type;
             Object request = new HashMap<String, Object>() {{
                 put( "coin", ((Map<String, Object>)currency).get("id") );
@@ -12848,7 +12848,7 @@ final Object finalMinNotional = minNotional;
             List<Object> utaparametersVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (parameters), "transfer", false)).join();
             uta = ((List<Object>) utaparametersVariable).get(0);
             parameters = ((List<Object>) utaparametersVariable).get(1);
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             String fromType = this.safeString(accountsByType, fromAccount);
             String toType = this.safeString(accountsByType, toAccount);
@@ -12887,12 +12887,12 @@ final Object finalMinNotional = minNotional;
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             ((Map<String, Object>)data).put("ts", this.safeInteger(response, "requestTime"));
-            return this.parseTransfer((Map<String, Object>) (data), currency);
+            return this.parseTransfer(data, currency);
         }).thenApply(TransferEntry::new);
 
     }
 
-    public Object parseTransfer(Map<String, Object> transfer, Object... optionalArgs)
+    public Object parseTransfer(Object transfer, Object... optionalArgs)
     {
         //
         // transfer
@@ -13091,10 +13091,10 @@ final Object finalMinNotional = minNotional;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "coin", ((Map<String, Object>)currency).get("id") );
-                put( "borrowAmount", Bitget.this.currencyToPrecision((String) (code), amount) );
+                put( "borrowAmount", Bitget.this.currencyToPrecision(code, amount) );
             }};
             Map<String, Object> response = (this.privateMarginPostV2MarginCrossedAccountBorrow(this.extend(request, parameters))).join();
             //
@@ -13136,11 +13136,11 @@ final Object finalMinNotional = minNotional;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "coin", ((Map<String, Object>)currency).get("id") );
-                put( "borrowAmount", Bitget.this.currencyToPrecision((String) (code), amount) );
+                put( "borrowAmount", Bitget.this.currencyToPrecision(code, amount) );
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
             Map<String, Object> response = (this.privateMarginPostV2MarginIsolatedAccountBorrow(this.extend(request, parameters))).join();
@@ -13184,11 +13184,11 @@ final Object finalMinNotional = minNotional;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "coin", ((Map<String, Object>)currency).get("id") );
-                put( "repayAmount", Bitget.this.currencyToPrecision((String) (code), amount) );
+                put( "repayAmount", Bitget.this.currencyToPrecision(code, amount) );
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
             Map<String, Object> response = (this.privateMarginPostV2MarginIsolatedAccountRepay(this.extend(request, parameters))).join();
@@ -13232,10 +13232,10 @@ final Object finalMinNotional = minNotional;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "coin", ((Map<String, Object>)currency).get("id") );
-                put( "repayAmount", Bitget.this.currencyToPrecision((String) (code), amount) );
+                put( "repayAmount", Bitget.this.currencyToPrecision(code, amount) );
             }};
             Map<String, Object> response = (this.privateMarginPostV2MarginCrossedAccountRepay(this.extend(request, parameters))).join();
             //
@@ -13257,7 +13257,7 @@ final Object finalMinNotional = minNotional;
 
     }
 
-    public Map<String, Object> parseMarginLoan(Map<String, Object> info, Object... optionalArgs)
+    public Object parseMarginLoan(Map<String, Object> info, Object... optionalArgs)
     {
         //
         // isolated: borrowMargin
@@ -13495,7 +13495,7 @@ final Object finalMinNotional = minNotional;
         String liquidationFee = this.safeString2(liquidation, "LiqFee", "liqFee");
         String totalDebt = this.safeString(liquidation, "totalDebt");
         String quoteValueString = Precise.stringAdd(liquidationFee, totalDebt);
-        return this.safeLiquidation((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeLiquidation(new HashMap<String, Object>() {{
             put( "info", liquidation );
             put( "symbol", Bitget.this.safeSymbol(marketId, market) );
             put( "contracts", null );
@@ -13505,7 +13505,7 @@ final Object finalMinNotional = minNotional;
             put( "quoteValue", Bitget.this.parseNumber(quoteValueString) );
             put( "timestamp", timestamp );
             put( "datetime", Bitget.this.iso8601(timestamp) );
-        }}));
+        }});
     }
 
     /**
@@ -13577,12 +13577,12 @@ final Object finalMinNotional = minNotional;
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             ((Map<String, Object>)first).put("timestamp", timestamp);
-            return this.parseIsolatedBorrowRate((Map<String, Object>) (first), market);
+            return this.parseIsolatedBorrowRate(first, market);
         }).thenApply(IsolatedBorrowRate::new);
 
     }
 
-    public Object parseIsolatedBorrowRate(Map<String, Object> info, Object... optionalArgs)
+    public Object parseIsolatedBorrowRate(Object info, Object... optionalArgs)
     {
         //
         //     {
@@ -13658,7 +13658,7 @@ final Object finalMinNotional = minNotional;
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "coin", ((Map<String, Object>)currency).get("id") );
             }};
@@ -13812,7 +13812,7 @@ final Object finalMinNotional = minNotional;
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
-                currency = this.currency((String) (code));
+                currency = this.currency(code);
                 ((Map<String, Object>)request).put("coin", ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -13901,7 +13901,7 @@ final Object finalMinNotional = minNotional;
 
     }
 
-    public Object parseBorrowInterest(Map<String, Object> info, Object... optionalArgs)
+    public Object parseBorrowInterest(Object info, Object... optionalArgs)
     {
         //
         // isolated
@@ -14117,12 +14117,12 @@ final Object finalMinNotional = minNotional;
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseMarginMode((Map<String, Object>) (data), market);
+            return this.parseMarginMode(data, market);
         }).thenApply(MarginMode::new);
 
     }
 
-    public Object parseMarginMode(Map<String, Object> marginMode, Object... optionalArgs)
+    public Object parseMarginMode(Object marginMode, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marginType = this.safeString(marginMode, "marginMode");
@@ -14259,7 +14259,7 @@ final Object finalMinNotional = minNotional;
             Map<String, Object> fromCurrency = (Map<String, Object>) this.currency(fromCurrencyId);
             String toCurrencyId = this.safeString(data, "toCoin", toCode);
             Map<String, Object> toCurrency = (Map<String, Object>) this.currency(toCurrencyId);
-            return this.parseConversion((Map<String, Object>) (data), fromCurrency, toCurrency);
+            return this.parseConversion(data, fromCurrency, toCurrency);
         }).thenApply(Conversion::new);
 
     }
@@ -14327,7 +14327,7 @@ final Object finalMinNotional = minNotional;
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             String toCurrencyId = this.safeString(data, "toCoin", toCode);
             Map<String, Object> toCurrency = (Map<String, Object>) this.currency(toCurrencyId);
-            return this.parseConversion((Map<String, Object>) (data), null, toCurrency);
+            return this.parseConversion(data, null, toCurrency);
         }).thenApply(Conversion::new);
 
     }
@@ -14364,7 +14364,7 @@ final Object finalMinNotional = minNotional;
                 ((Map<String, Object>)request).put("startTime", since);
             } else
             {
-                ((Map<String, Object>)request).put("startTime", (now - ((long) msInDay)));
+                ((Map<String, Object>)request).put("startTime", Helpers.subtract(now, msInDay));
             }
             String endTime = this.safeString2(parameters, "endTime", "until");
             if (!java.util.Objects.equals(endTime, null))
@@ -14409,7 +14409,7 @@ final Object finalMinNotional = minNotional;
 
     }
 
-    public Object parseConversion(Map<String, Object> conversion, Object... optionalArgs)
+    public Object parseConversion(Object conversion, Object... optionalArgs)
     {
         //
         // fetchConvertQuote
@@ -14644,7 +14644,7 @@ final Object finalMinNotional = minNotional;
 
     }
 
-    public Object parseLongShortRatio(Map<String, Object> info, Object... optionalArgs)
+    public Object parseLongShortRatio(Object info, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(info, "symbol");

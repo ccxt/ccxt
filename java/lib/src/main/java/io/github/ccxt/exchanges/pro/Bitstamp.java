@@ -256,7 +256,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
     {
         for (var i = 0; i < ((List<?>)bidAsks).size(); i++)
         {
-            List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk(Helpers.GetValue(bidAsks, i));
+            List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk((bidAsks == null || i < 0 || i >= ((List<?>)bidAsks).size() ? null : ((List<?>)bidAsks).get(i)));
             Helpers.callDynamically(bookSide, "storeArray", new Object[]{bidAsk});
         }
     }

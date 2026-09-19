@@ -2413,7 +2413,7 @@ public class Htx extends HtxApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                Object symbol = Helpers.GetValue(symbols, i);
+                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                 ((Map<String, Object>)result).put((String)symbol, (this.fetchTradingLimitsById((String) (this.marketId(symbol)), parameters)).join());
             }
             return result;
@@ -2545,7 +2545,7 @@ public class Htx extends HtxApi
             promises = (Helpers.promiseAll(promises)).join();
             for (var i = 0; i < ((List<?>)promises).size(); i++)
             {
-                allMarkets = this.arrayConcat(allMarkets, Helpers.GetValue(promises, i));
+                allMarkets = this.arrayConcat(allMarkets, (promises == null || i < 0 || i >= ((List<?>)promises).size() ? null : ((List<?>)promises).get(i)));
             }
             return allMarkets;
         });
@@ -4399,7 +4399,7 @@ public class Htx extends HtxApi
             }
             for (var i = 0; i < ((List<?>)accounts).size(); i++)
             {
-                Object account = Helpers.GetValue(accounts, i);
+                Object account = (accounts == null || i < 0 || i >= ((List<?>)accounts).size() ? null : ((List<?>)accounts).get(i));
                 Map<String, Object> info = (Map<String, Object>) this.safeDict(account, "info");
                 String subtype = this.safeString(info, "subtype");
                 String typeFromAccount = this.safeString(account, "type");
@@ -5743,7 +5743,7 @@ public class Htx extends HtxApi
                     (this.loadAccounts()).join();
                     for (var i = 0; i < ((List<?>)this.accounts).size(); i++)
                     {
-                        Object account = Helpers.GetValue(this.accounts, i);
+                        Object account = (this.accounts == null || i < 0 || i >= ((List<?>)this.accounts).size() ? null : ((List<?>)this.accounts).get(i));
                         if (java.util.Objects.equals(this.safeString(account, "type"), "spot"))
                         {
                             accountId = this.safeString(account, "id");
@@ -7226,7 +7226,7 @@ public class Htx extends HtxApi
             Object marginMode = null;
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object rawOrder = Helpers.GetValue(orders, i);
+                Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
                 String marketId = this.safeString(rawOrder, "symbol");
                 if (java.util.Objects.equals(symbol, null))
                 {
@@ -7894,7 +7894,7 @@ public class Htx extends HtxApi
         }
         for (var i = 0; i < ((List<?>)success).size(); i++)
         {
-            Object order = Helpers.GetValue(success, i);
+            Object order = (success == null || i < 0 || i >= ((List<?>)success).size() ? null : ((List<?>)success).get(i));
             ((List<Object>)result).add(this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", order );
                 put( "id", order );
@@ -8227,7 +8227,7 @@ public class Htx extends HtxApi
             List<Object> addresses = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)allAddresses).size(); i++)
             {
-                Object address = Helpers.GetValue(allAddresses, i);
+                Object address = (allAddresses == null || i < 0 || i >= ((List<?>)allAddresses).size() ? null : ((List<?>)allAddresses).get(i));
                 Boolean noteMatch = (java.util.Objects.equals(note, null)) || (java.util.Objects.equals(((Map<String, Object>)address).get("note"), note));
                 Boolean networkMatch = (java.util.Objects.equals(networkCode, null)) || (java.util.Objects.equals(((Map<String, Object>)address).get("network"), networkCode));
                 if (Boolean.TRUE.equals(noteMatch) && Boolean.TRUE.equals(networkMatch))
@@ -11453,7 +11453,7 @@ public class Htx extends HtxApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)settlements).size(); i++)
         {
-            Object settlement = Helpers.GetValue(settlements, i);
+            Object settlement = (settlements == null || i < 0 || i >= ((List<?>)settlements).size() ? null : ((List<?>)settlements).get(i));
             List<Object> list = (List<Object>) this.safeList(settlement, "list");
             if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
             {
@@ -11474,7 +11474,7 @@ public class Htx extends HtxApi
                 }
             } else
             {
-                ((List<Object>)result).add(this.parseSettlement((Map<String, Object>) (Helpers.GetValue(settlements, i)), market));
+                ((List<Object>)result).add(this.parseSettlement((Map<String, Object>) ((settlements == null || i < 0 || i >= ((List<?>)settlements).size() ? null : ((List<?>)settlements).get(i))), market));
             }
         }
         return result;

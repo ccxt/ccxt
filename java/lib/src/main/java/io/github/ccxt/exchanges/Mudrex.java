@@ -565,7 +565,7 @@ public class Mudrex extends MudrexApi
             Map<String, Object> resultTickers = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)rows).size(); i++)
             {
-                Object t = Helpers.GetValue(rows, i);
+                Object t = (rows == null || i < 0 || i >= ((List<?>)rows).size() ? null : ((List<?>)rows).get(i));
                 String sym = this.safeString(t, "symbol");
                 if (java.util.Objects.equals(sym, null))
                 {
@@ -669,7 +669,7 @@ public class Mudrex extends MudrexApi
                 }
                 for (var i = 0; Helpers.isLessThan(i, numItems); i++)
                 {
-                    ((List<Object>)aggregated).add(Helpers.GetValue(items, i));
+                    ((List<Object>)aggregated).add((items == null || i < 0 || i >= ((List<?>)items).size() ? null : ((List<?>)items).get(i)));
                 }
                 if (Helpers.isLessThan(numItems, pageLimit))
                 {
@@ -1581,7 +1581,7 @@ public class Mudrex extends MudrexApi
                 Object positions = (this.fetchPositions((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
                 for (var i = 0; i < ((List<?>)positions).size(); i++)
                 {
-                    Object p = Helpers.GetValue(positions, i);
+                    Object p = (positions == null || i < 0 || i >= ((List<?>)positions).size() ? null : ((List<?>)positions).get(i));
                     if (!java.util.Objects.equals(side, null) && !java.util.Objects.equals(((Map<String, Object>)p).get("side"), side))
                     {
                         continue;
@@ -1649,7 +1649,7 @@ public class Mudrex extends MudrexApi
                 Object positions = (this.fetchPositions((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
                 for (var i = 0; i < ((List<?>)positions).size(); i++)
                 {
-                    Object p = Helpers.GetValue(positions, i);
+                    Object p = (positions == null || i < 0 || i >= ((List<?>)positions).size() ? null : ((List<?>)positions).get(i));
                     if (java.util.Objects.equals(((Map<String, Object>)p).get("symbol"), symbol))
                     {
                         positionId = this.safeString(p, "id");

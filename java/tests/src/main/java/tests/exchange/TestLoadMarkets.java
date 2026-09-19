@@ -34,7 +34,7 @@ public class TestLoadMarkets extends BaseTest {
         Object marketValues = Helpers.objectValues(markets);
         for (var i = 0; i < ((List<?>)marketValues).size(); i++)
         {
-            TestMarket.testMarket(exchange, skippedProperties, method, Helpers.GetValue(marketValues, i));
+            TestMarket.testMarket(exchange, skippedProperties, method, (marketValues == null || i < 0 || i >= ((List<?>)marketValues).size() ? null : ((List<?>)marketValues).get(i)));
         }
         // market-type coverage (inlined: a nested helper breaks Java emit into a missing TestLoadedMarketTypes class)
         List<Object> marketTypes = new ArrayList<Object>(Arrays.asList("spot", "swap", "future", "option", "index"));
@@ -42,7 +42,7 @@ public class TestLoadMarkets extends BaseTest {
         Object allMarkets = Helpers.objectValues(exchange.markets);
         for (var i = 0; i < ((List<?>)allMarkets).size(); i++)
         {
-            Object market = Helpers.GetValue(allMarkets, i);
+            Object market = (allMarkets == null || i < 0 || i >= ((List<?>)allMarkets).size() ? null : ((List<?>)allMarkets).get(i));
             if (!Helpers.isTrue(exchange.inArray(Helpers.GetValue(market, "type"), collectedTypes)))
             {
                 ((List<Object>)collectedTypes).add(Helpers.GetValue(market, "type"));

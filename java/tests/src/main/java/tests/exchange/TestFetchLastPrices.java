@@ -40,8 +40,8 @@ public class TestFetchLastPrices extends BaseTest {
         for (var i = 0; i < ((List<?>)values).size(); i++)
         {
             // todo: symbol check here
-            TestLastPrice.testLastPrice(exchange, skippedProperties, method, Helpers.GetValue(values, i), ((String)checkedSymbol));
-            atLeastOnePassed = Boolean.TRUE.equals(atLeastOnePassed) || (Helpers.isGreaterThan(exchange.safeNumber(Helpers.GetValue(values, i), "price"), 0));
+            TestLastPrice.testLastPrice(exchange, skippedProperties, method, (values == null || i < 0 || i >= ((List<?>)values).size() ? null : ((List<?>)values).get(i)), ((String)checkedSymbol));
+            atLeastOnePassed = Boolean.TRUE.equals(atLeastOnePassed) || (Helpers.isGreaterThan(exchange.safeNumber((values == null || i < 0 || i >= ((List<?>)values).size() ? null : ((List<?>)values).get(i)), "price"), 0));
         }
         Assert(atLeastOnePassed, (((((exchange.id + " ") + method) + " ") + checkedSymbol) + " at least one symbol should pass the test"));
         return true;

@@ -2047,7 +2047,7 @@ public class Toobit extends ToobitApi
         Object balances = this.safeList(response, "balances", response);
         for (var i = 0; i < ((List<?>)balances).size(); i++)
         {
-            Object balance = Helpers.GetValue(balances, i);
+            Object balance = (balances == null || i < 0 || i >= ((List<?>)balances).size() ? null : ((List<?>)balances).get(i));
             String code = this.safeCurrencyCode(this.safeString(balance, "asset"));
             Object account = this.account();
             ((Map<String, Object>)account).put("free", this.safeString2(balance, "free", "availableBalance"));

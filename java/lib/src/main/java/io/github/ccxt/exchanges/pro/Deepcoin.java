@@ -994,7 +994,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         Object cachedMessages = ((List<Object>)Helpers.GetValue(orderbook, "cache"));
         for (var j = 0; j < ((List<?>)cachedMessages).size(); j++)
         {
-            Object cachedMessage = Helpers.GetValue(cachedMessages, j);
+            Object cachedMessage = (cachedMessages == null || j < 0 || j >= ((List<?>)cachedMessages).size() ? null : ((List<?>)cachedMessages).get(j));
             this.handleOrderBookMessage(client, (Map<String, Object>) (cachedMessage), orderbook);
         }
         Helpers.addElementToObject(orderbook, "cache", new ArrayList<Object>(Arrays.asList()));
@@ -1336,7 +1336,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             {
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Object symbol = Helpers.GetValue(symbols, i);
+                    Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
                     String symbolMessageHash = ((messageHash + "::") + symbol);
                     ((List<Object>)messageHashes).add(symbolMessageHash);
                 }

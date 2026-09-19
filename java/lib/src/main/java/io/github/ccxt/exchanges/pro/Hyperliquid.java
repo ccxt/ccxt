@@ -1390,7 +1390,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         }
         for (var i = 0; i < ((List<?>)rawBalances).size(); i++)
         {
-            this.parseWsBalance((Map<String, Object>) (Helpers.GetValue(rawBalances, i)), account);
+            this.parseWsBalance((Map<String, Object>) ((rawBalances == null || i < 0 || i >= ((List<?>)rawBalances).size() ? null : ((List<?>)rawBalances).get(i))), account);
         }
         if (java.util.Objects.equals(this.safeValue(this.balance, account), null))
         {
@@ -1568,7 +1568,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         Object messageHashes = this.findMessageHashes(client, baseMessageHash);
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
-            Object messageHash = Helpers.GetValue(messageHashes, i);
+            Object messageHash = (messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i));
             Object parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
             String symbolsString = this.safeString(parts, 2);
             if (java.util.Objects.equals(symbolsString, null))
