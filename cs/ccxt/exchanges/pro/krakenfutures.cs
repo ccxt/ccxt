@@ -873,15 +873,15 @@ public partial class krakenfutures : ccxt.krakenfutures
             } else
             {
                 Dictionary<string, object> trade = ((Dictionary<string, object>)this.parseWsTrade(order));
-                if (isEqual(getValue(previousOrder, "trades"), null))
+                if (isEqual((previousOrder != null && previousOrder.ContainsKey("trades") ? previousOrder["trades"] : null), null))
                 {
                     ((IDictionary<string,object>)previousOrder)["trades"] = new List<object>() {};
                 }
-                ((IList<object>)getValue(previousOrder, "trades")).Add(trade);
+                ((IList<object>)(previousOrder != null && previousOrder.ContainsKey("trades") ? previousOrder["trades"] : null)).Add(trade);
                 ((IDictionary<string,object>)previousOrder)["lastTradeTimestamp"] = (trade != null && ((IDictionary<string, object>)trade).ContainsKey("timestamp") ? ((IDictionary<string, object>)trade)["timestamp"] : null);
                 string? totalCost = "0";
                 string? totalAmount = "0";
-                object trades = getValue(previousOrder, "trades");
+                object trades = (previousOrder != null && previousOrder.ContainsKey("trades") ? previousOrder["trades"] : null);
                 for (int i = 0; i < getArrayLength(trades); i++)
                 {
                     object currentTrade = getValue(trades, i);
@@ -900,7 +900,7 @@ public partial class krakenfutures : ccxt.krakenfutures
                 string? prevAmountString = this.safeString(previousOrder, "amount");
                 string? remaining = Precise.stringSub(prevAmountString, totalFilled);
                 ((IDictionary<string,object>)previousOrder)["remaining"] = remaining;
-                if (isEqual(getValue(previousOrder, "fee"), null))
+                if (isEqual((previousOrder != null && previousOrder.ContainsKey("fee") ? previousOrder["fee"] : null), null))
                 {
                     ((IDictionary<string,object>)previousOrder)["fee"] = new Dictionary<string, object>() {
                         { "rate", null },
@@ -908,11 +908,11 @@ public partial class krakenfutures : ccxt.krakenfutures
                         { "currency", this.numberToString(this.safeString((trade != null && ((IDictionary<string, object>)trade).ContainsKey("fee") ? ((IDictionary<string, object>)trade)["fee"] : null), "currency")) },
                     };
                 }
-                if ((!isEqual(getValue(getValue(previousOrder, "fee"), "cost"), null)) && (!isEqual(this.safeNumber((trade != null && ((IDictionary<string, object>)trade).ContainsKey("fee") ? ((IDictionary<string, object>)trade)["fee"] : null), "cost"), null)))
+                if ((!isEqual(getValue((previousOrder != null && previousOrder.ContainsKey("fee") ? previousOrder["fee"] : null), "cost"), null)) && (!isEqual(this.safeNumber((trade != null && ((IDictionary<string, object>)trade).ContainsKey("fee") ? ((IDictionary<string, object>)trade)["fee"] : null), "cost"), null)))
                 {
-                    string? stringOrderCost = this.numberToString(getValue(getValue(previousOrder, "fee"), "cost"));
+                    string? stringOrderCost = this.numberToString(getValue((previousOrder != null && previousOrder.ContainsKey("fee") ? previousOrder["fee"] : null), "cost"));
                     string? stringTradeCost = this.numberToString(this.safeNumber((trade != null && ((IDictionary<string, object>)trade).ContainsKey("fee") ? ((IDictionary<string, object>)trade)["fee"] : null), "cost"));
-                    ((IDictionary<string,object>)getValue(previousOrder, "fee"))["cost"] = Precise.stringAdd(stringOrderCost, stringTradeCost);
+                    ((IDictionary<string,object>)(previousOrder != null && previousOrder.ContainsKey("fee") ? previousOrder["fee"] : null))["cost"] = Precise.stringAdd(stringOrderCost, stringTradeCost);
                 }
                 // update the newUpdates count
                 callDynamically(orders, "append", new object[] {this.safeOrder(previousOrder)});

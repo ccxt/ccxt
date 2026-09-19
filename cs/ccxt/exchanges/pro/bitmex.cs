@@ -1227,7 +1227,7 @@ public partial class bitmex : ccxt.bitmex
                 object rawOrder = currentOrder;
                 if ((previousOrder != null))
                 {
-                    rawOrder = this.extend(getValue(previousOrder, "info"), currentOrder);
+                    rawOrder = this.extend((previousOrder != null && previousOrder.ContainsKey("info") ? previousOrder["info"] : null), currentOrder);
                 }
                 Dictionary<string, object> order = this.parseOrder(rawOrder);
                 callDynamically(stored, "append", new object[] {order});

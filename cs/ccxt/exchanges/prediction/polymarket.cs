@@ -1728,7 +1728,7 @@ public partial class polymarket : PredictionExchange
                 ((IDictionary<string,object>)buckets)[(string)bucketKey] = new List<object>() {snappedMs, price, price, price, price, vol};
             } else
             {
-                object candle = getValue(buckets, bucketKey);
+                object candle = (buckets != null && buckets.ContainsKey(bucketKey) ? buckets[bucketKey] : null);
                 ((List<object>)candle)[Convert.ToInt32(2)] = mathMax(getValue(candle, 2), price); // high
                 ((List<object>)candle)[Convert.ToInt32(3)] = mathMin(getValue(candle, 3), price); // low
                 ((List<object>)candle)[Convert.ToInt32(4)] = price; // close (last tick wins)

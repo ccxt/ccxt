@@ -175,7 +175,7 @@ function csharpArgumentCount (args: string): number {
 }
 
 
-// ===== native getArrayLength / inOp on a receiver the EMITTED text declares =====
+// ===== native getArrayLength / inOp / getValue on a receiver the EMITTED text declares =====
 //
 // The printer's helper-to-native arms (csharpDeclaredLengthExpression / csharpNativeInExpression)
 // read the print-time declared-local table, so a receiver whose C# type is produced later — a
@@ -183,8 +183,9 @@ function csharpArgumentCount (args: string): number {
 // post-print wrapper, a copy a later pass renamed — keeps the runtime helper. This pass reads the
 // emitted signature and declarations and rewrites the call into the member the helper's own
 // runtime branch performs: `Count` / `Length` for getArrayLength, `ContainsKey` / `Contains` for
-// inOp. Nothing is retyped here and no cast is added: a receiver the emitted text does not name,
-// and a key that is not a literal or a non-nullable `string`, keep the helper.
+// inOp, and the key-tested indexer read for getValue. Nothing is retyped here and no cast is
+// added: a receiver the emitted text does not name, and a key that is not a literal or a
+// non-nullable `string`, keep the helper.
 
 // declared C# types whose `Count` counts the elements getArrayLength's IList / ICollection
 // branches count (the helper answers 0 for null, which `x?.Count ?? 0` reproduces)
@@ -196,6 +197,10 @@ const CSHARP_DECLARED_LENGTH_TYPES = [ 'byte[]', 'string', 'string?' ];
 // declared C# dictionary types whose `ContainsKey` is InOp's IDictionary<string, object> branch
 const CSHARP_DECLARED_DICT_TYPES = [ 'Dictionary<', 'IDictionary<', 'ConcurrentDictionary<',
     'IReadOnlyDictionary<', 'SortedDictionary<', 'SortedList<' ];
+// space-normalized dictionary types whose indexer hands back an `object`: the box GetValue's
+// dictionary branch returns, and the only value the `: null` branch can join
+const CSHARP_DECLARED_OBJECT_DICT_TYPES = [ 'Dictionary<string,object>', 'IDictionary<string,object>',
+    'ConcurrentDictionary<string,object>', 'IReadOnlyDictionary<string,object>', 'SortedDictionary<string,object>' ];
 // declared C# list types whose `Contains` is InOp's IList<object> branch (a List<string> /
 // List<Int64> receiver casts the key in the helper, so it keeps the helper)
 const CSHARP_DECLARED_LIST_TYPES = [ 'List<object>', 'IList<object>' ];
@@ -386,6 +391,28 @@ function csharpHelperRewriteLine (original: string, masked: string, takeType, ta
             || (receiver.kind === 'local' && !receiver.nonNull));
         edits.push ({ start: match.index, end: close + 1, text: guarded ? `(${name} != null && ${call})` : call });
     }
+    const valueCall = /(?<![A-Za-z_.])getValue[ ]*\(/g;
+    while ((match = valueCall.exec (masked)) !== null) {
+        const open = match.index + match[0].length - 1;
+        const close = csharpHelperCallEnd (masked, open);
+        if (close === undefined) continue;
+        const firstComma = csharpHelperTopLevelComma (masked, open, close);
+        if (firstComma === undefined) continue;
+        const name = masked.substring (open + 1, firstComma).trim ();
+        if (!/^[A-Za-z_]\w*$/.test (name)) continue;
+        const secondComma = csharpHelperTopLevelComma (masked, firstComma, close);
+        if (secondComma !== undefined) continue; // more than two arguments
+        const keyMask = masked.substring (firstComma + 1, close).trim ();
+        const receiver = takeType (name);
+        if (receiver === undefined) continue;
+        // the helper's dictionary branch hands back the boxed value; a value-typed dictionary
+        // (int/Int64/double) cannot join the `: null` branch, so only object-valued dictionaries
+        if (!CSHARP_DECLARED_OBJECT_DICT_TYPES.includes (receiver.type.replace (/\s+/g, ''))) continue;
+        if (!takeKeyType (keyMask)) continue;
+        const keyText = original.substring (firstComma + 1, close).trim ();
+        edits.push ({ start: match.index, end: close + 1,
+            text: `(${name} != null && ${name}.ContainsKey(${keyText}) ? ${name}[${keyText}] : null)` });
+    }
     if (edits.length === 0) {
         return undefined;
     }
@@ -425,7 +452,7 @@ function csharpHelperTopLevelComma (line: string, open: number, close: number): 
 // `x.ContainsKey(k)` / `x.Contains(k)` (with a null test where the emitted declaration allows a
 // null receiver) for every receiver the emitted signature / declarations type as a collection
 export function nativeDeclaredHelperCalls (content: string): string {
-    if (!content.includes ('getArrayLength') && !content.includes ('inOp')) {
+    if (!content.includes ('getArrayLength') && !content.includes ('inOp') && !content.includes ('getValue')) {
         return content;
     }
     const lines = content.split ('\n');
@@ -462,7 +489,7 @@ export function nativeDeclaredHelperCalls (content: string): string {
     };
     let changed = false;
     const out = lines.map ((line, i) => {
-        if ((line.indexOf ('getArrayLength') < 0) && (line.indexOf ('inOp') < 0)) {
+        if ((line.indexOf ('getArrayLength') < 0) && (line.indexOf ('inOp') < 0) && (line.indexOf ('getValue') < 0)) {
             return line;
         }
         const region = regionOfLine (i);

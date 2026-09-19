@@ -2057,7 +2057,7 @@ public partial class htx : ccxt.htx
                         // cross margin
                         if ((currencyCode != null))
                         {
-                            channel = add(add(prefix, "."), getValue(currencyCode, "id"));
+                            channel = add(add(prefix, "."), (currencyCode != null && currencyCode.ContainsKey("id") ? currencyCode["id"] : null));
                             messageHash = channel;
                         } else
                         {
@@ -2071,7 +2071,7 @@ public partial class htx : ccxt.htx
                 // inverse futures account
                 if ((currencyCode != null))
                 {
-                    messageHash = add(messageHash, ("." + (getValue(currencyCode, "id"))));
+                    messageHash = add(messageHash, ("." + ((currencyCode != null && currencyCode.ContainsKey("id") ? currencyCode["id"] : null))));
                     channel = messageHash;
                 } else
                 {

@@ -1494,7 +1494,7 @@ public partial class kraken : ccxt.kraken
                 object newOrder = parsed;
                 if ((previousOrder != null))
                 {
-                    Dictionary<string, object> newRawOrder = this.extend(getValue(previousOrder, "info"), getValue(newOrder, "info"));
+                    Dictionary<string, object> newRawOrder = this.extend((previousOrder != null && previousOrder.ContainsKey("info") ? previousOrder["info"] : null), getValue(newOrder, "info"));
                     newOrder = this.parseWsOrder(newRawOrder);
                 }
                 int length = getArrayLength(stored);

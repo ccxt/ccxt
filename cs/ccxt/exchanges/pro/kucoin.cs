@@ -108,7 +108,7 @@ public partial class kucoin : ccxt.kucoin
         // fetch different urls and overwrite each other
         ((IDictionary<string,object>)urls)[(string)connectId] = this.spawn(this.negotiateHelper, new object[] { privateChannel, connectId, parameters});
         ((IDictionary<string,object>)this.options)["urls"] = urls;
-        future = getValue(urls, connectId);
+        future = (urls != null && urls.ContainsKey(connectId) ? urls[connectId] : null);
         return await (future as Exchange.Future);
     }
 
@@ -2491,7 +2491,7 @@ public partial class kucoin : ccxt.kucoin
         IDictionary<string, object> order = this.safeDict(orders, orderId);
         if ((order != null))
         {
-            if (isEqual(getValue(order, "status"), "closed"))
+            if (isEqual((order != null && order.ContainsKey("status") ? order["status"] : null), "closed"))
             {
                 ((IDictionary<string,object>)parsed)["status"] = "closed";
             }
@@ -2500,14 +2500,14 @@ public partial class kucoin : ccxt.kucoin
             // derives cost from the order price otherwise, which is wrong for
             // orders filled at better prices, so the accumulated values win on
             // the non match messages, see https://github.com/ccxt/ccxt/issues/19083
-            if (!isEqual(getValue(order, "average"), null))
+            if (!isEqual((order != null && order.ContainsKey("average") ? order["average"] : null), null))
             {
-                ((IDictionary<string,object>)parsed)["average"] = getValue(order, "average");
-                ((IDictionary<string,object>)parsed)["cost"] = getValue(order, "cost");
+                ((IDictionary<string,object>)parsed)["average"] = (order != null && order.ContainsKey("average") ? order["average"] : null);
+                ((IDictionary<string,object>)parsed)["cost"] = (order != null && order.ContainsKey("cost") ? order["cost"] : null);
             }
             if (isEqual((parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("filled") ? ((IDictionary<string, object>)parsed)["filled"] : null), null))
             {
-                ((IDictionary<string,object>)parsed)["filled"] = getValue(order, "filled");
+                ((IDictionary<string,object>)parsed)["filled"] = (order != null && order.ContainsKey("filled") ? order["filled"] : null);
             }
         }
         // accumulate the average fill price and cost from the match messages,

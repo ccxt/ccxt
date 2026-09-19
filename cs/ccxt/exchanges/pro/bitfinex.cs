@@ -858,8 +858,8 @@ public partial class bitfinex : ccxt.bitfinex
         }
         int depth = 25; // covers the first 25 bids and asks
         List<object> stringArray = new List<object>() {};
-        object bids = getValue(book, "bids");
-        object asks = getValue(book, "asks");
+        object bids = (book != null && book.ContainsKey("bids") ? book["bids"] : null);
+        object asks = (book != null && book.ContainsKey("asks") ? book["asks"] : null);
         string? prec = this.safeString(subscription, "prec", "P0");
         bool isRaw = ((prec == "R0"));
         int idToCheck = ((bool) isRaw) ? 2 : 0;

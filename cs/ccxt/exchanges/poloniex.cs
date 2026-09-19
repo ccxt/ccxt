@@ -3132,7 +3132,7 @@ public partial class poloniex : Exchange
         IDictionary<string, object> networkEntry = ((bool) ((networkCode == null))) ? null : this.safeDict((currency.ContainsKey("networks") ? currency["networks"] : null), networkCode);
         if ((networkEntry != null))
         {
-            exchangeNetworkId = getValue(networkEntry, "id");
+            exchangeNetworkId = (networkEntry != null && networkEntry.ContainsKey("id") ? networkEntry["id"] : null);
         } else
         {
             exchangeNetworkId = networkCode;

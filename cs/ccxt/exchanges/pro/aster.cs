@@ -2062,27 +2062,27 @@ public partial class aster : ccxt.aster
                             for (int i = 0; i < fees.Count; i++)
                             {
                                 object orderFee = fees[i];
-                                if (isEqual(getValue(orderFee, "currency"), getValue(tradeFee, "currency")))
+                                if (isEqual(getValue(orderFee, "currency"), (tradeFee != null && tradeFee.ContainsKey("currency") ? tradeFee["currency"] : null)))
                                 {
-                                    object feeCost = this.sum(getValue(tradeFee, "cost"), getValue(orderFee, "cost"));
-                                    string? feeCostString = this.currencyToPrecision(((string)getValue(tradeFee, "currency")), feeCost);
-                                    ((IDictionary<string,object>)getValue(getValue(order, "fees"), i))["cost"] = ((bool) ((feeCostString == null))) ? null : parseFloat(feeCostString);
+                                    object feeCost = this.sum((tradeFee != null && tradeFee.ContainsKey("cost") ? tradeFee["cost"] : null), getValue(orderFee, "cost"));
+                                    string? feeCostString = this.currencyToPrecision(((string)(tradeFee != null && tradeFee.ContainsKey("currency") ? tradeFee["currency"] : null)), feeCost);
+                                    ((IDictionary<string,object>)getValue((order != null && order.ContainsKey("fees") ? order["fees"] : null), i))["cost"] = ((bool) ((feeCostString == null))) ? null : parseFloat(feeCostString);
                                     insertNewFeeCurrency = false;
                                     break;
                                 }
                             }
                             if (insertNewFeeCurrency)
                             {
-                                ((IList<object>)getValue(order, "fees")).Add(tradeFee);
+                                ((IList<object>)(order != null && order.ContainsKey("fees") ? order["fees"] : null)).Add(tradeFee);
                             }
                         } else if ((fee != null))
                         {
-                            if (isEqual(getValue(fee, "currency"), getValue(tradeFee, "currency")))
+                            if (isEqual((fee != null && fee.ContainsKey("currency") ? fee["currency"] : null), (tradeFee != null && tradeFee.ContainsKey("currency") ? tradeFee["currency"] : null)))
                             {
-                                object feeCost = this.sum(getValue(fee, "cost"), getValue(tradeFee, "cost"));
-                                string? feeCostString = this.currencyToPrecision(((string)getValue(tradeFee, "currency")), feeCost);
-                                ((IDictionary<string,object>)getValue(order, "fee"))["cost"] = ((bool) ((feeCostString == null))) ? null : parseFloat(feeCostString);
-                            } else if (isEqual(getValue(fee, "currency"), null))
+                                object feeCost = this.sum((fee != null && fee.ContainsKey("cost") ? fee["cost"] : null), (tradeFee != null && tradeFee.ContainsKey("cost") ? tradeFee["cost"] : null));
+                                string? feeCostString = this.currencyToPrecision(((string)(tradeFee != null && tradeFee.ContainsKey("currency") ? tradeFee["currency"] : null)), feeCost);
+                                ((IDictionary<string,object>)(order != null && order.ContainsKey("fee") ? order["fee"] : null))["cost"] = ((bool) ((feeCostString == null))) ? null : parseFloat(feeCostString);
+                            } else if (isEqual((fee != null && fee.ContainsKey("currency") ? fee["currency"] : null), null))
                             {
                                 ((IDictionary<string,object>)order)["fee"] = tradeFee;
                             } else

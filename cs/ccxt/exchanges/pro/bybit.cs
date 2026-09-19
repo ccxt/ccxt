@@ -645,7 +645,7 @@ public partial class bybit : ccxt.bybit
         if (((updateType == "snapshot")))
         {
             parsed = this.parseTicker(data);
-            symbol = getValue(parsed, "symbol");
+            symbol = (parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null);
         } else if ((updateType == "delta"))
         {
             List<object> topicParts = ((string)topic).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();

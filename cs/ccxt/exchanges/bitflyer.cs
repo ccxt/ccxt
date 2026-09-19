@@ -994,7 +994,7 @@ public partial class bitflyer : Exchange
         Dictionary<string, object> ordersById = this.indexBy(orders, "id");
         if ((ordersById != null && ordersById.ContainsKey(id)))
         {
-            return ccxt.BaseExchange.ToOrder(getValue(ordersById, id));
+            return ccxt.BaseExchange.ToOrder((ordersById != null && ordersById.ContainsKey(id) ? ordersById[id] : null));
         }
         throw new OrderNotFound ((string)((this.id + " No order found with id ") + (id))) ;
     }

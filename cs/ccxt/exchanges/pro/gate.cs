@@ -1698,14 +1698,14 @@ public partial class gate : ccxt.gate
                 IDictionary<string, object> prevLongPosition = this.safeDict(cache, add(symbol, "long"));
                 if ((prevLongPosition != null))
                 {
-                    ((IDictionary<string,object>)position)["side"] = getValue(prevLongPosition, "side");
+                    ((IDictionary<string,object>)position)["side"] = (prevLongPosition != null && prevLongPosition.ContainsKey("side") ? prevLongPosition["side"] : null);
                     ((IList<object>)newPositions).Add(position);
                     callDynamically(cache, "append", new object[] {position});
                 }
                 IDictionary<string, object> prevShortPosition = this.safeDict(cache, add(symbol, "short"));
                 if ((prevShortPosition != null))
                 {
-                    ((IDictionary<string,object>)position)["side"] = getValue(prevShortPosition, "side");
+                    ((IDictionary<string,object>)position)["side"] = (prevShortPosition != null && prevShortPosition.ContainsKey("side") ? prevShortPosition["side"] : null);
                     ((IList<object>)newPositions).Add(position);
                     callDynamically(cache, "append", new object[] {position});
                 }
@@ -2244,7 +2244,7 @@ public partial class gate : ccxt.gate
         {
             string? subscriptionHash = this.safeString(((WebSocketClient)client).subscriptions, id);
             object subscription = this.safeValue(((WebSocketClient)client).subscriptions, subscriptionHash);
-            object method = getValue(methods, channel);
+            object method = (methods != null && methods.ContainsKey(channel) ? methods[channel] : null);
             DynamicInvoker.InvokeMethod(method, new object[] { client, message, subscription});
         }
         if (inOp(((WebSocketClient)client).subscriptions, id))

@@ -2160,7 +2160,7 @@ public partial class coinbaseexchange : Exchange
             throw new ExchangeError ((string)((this.id + " fetchLedger() could not find account id for ") + (code))) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "id", getValue(account, "id") },
+            { "id", (account != null && account.ContainsKey("id") ? account["id"] : null) },
         };
         if ((since != null))
         {
@@ -2219,7 +2219,7 @@ public partial class coinbaseexchange : Exchange
                 {
                     throw new ExchangeError ((string)((this.id + " fetchDepositsWithdrawals() could not find account id for ") + (code))) ;
                 }
-                id = getValue(account, "id");
+                id = (account != null && account.ContainsKey("id") ? account["id"] : null);
             }
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
@@ -2486,7 +2486,7 @@ public partial class coinbaseexchange : Exchange
             throw new InvalidAddress ((string)(((((this.id + " createDepositAddress() could not find currency code ") + (code)) + " with id = ") + currencyId) + " in this.options['coinbaseAccountsByCurrencyId']")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "id", getValue(account, "id") },
+            { "id", (account != null && account.ContainsKey("id") ? account["id"] : null) },
         };
         Dictionary<string, object> response = await this.privatePostCoinbaseAccountsIdAddresses(this.extend(request, parameters));
         string? address = this.safeString(response, "address");

@@ -2979,7 +2979,7 @@ public partial class ndax : Exchange
             { "AccountId", accountId },
             { "ProductId", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "TemplateType", templateName },
-            { "AccountProviderId", getValue(firstTemplateType, "AccountProviderId") },
+            { "AccountProviderId", (firstTemplateType != null && firstTemplateType.ContainsKey("AccountProviderId") ? firstTemplateType["AccountProviderId"] : null) },
         };
         Dictionary<string, object> withdrawTemplateResponse = await this.privateGetGetWithdrawTemplate(withdrawTemplateRequest);
         //

@@ -1472,7 +1472,7 @@ public partial class luno : Exchange
         {
             throw new NullResponse ((string)(this.id + " createOrder() returned empty response")) ;
         }
-        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", getValue(response, "order_id") },         }, market));
+        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", (response != null && response.ContainsKey("order_id") ? response["order_id"] : null) },         }, market));
     }
 
     /**
@@ -1561,7 +1561,7 @@ public partial class luno : Exchange
             {
                 throw new ExchangeError ((string)((this.id + " fetchLedger() could not find account id for ") + (code))) ;
             }
-            id = getValue(account, "id");
+            id = (account != null && account.ContainsKey("id") ? account["id"] : null);
         }
         if ((min_row == null) && (max_row == null))
         {

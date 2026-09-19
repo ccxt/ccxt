@@ -89,9 +89,51 @@ check ('List<object> receiver with a non-null key -> Contains',
     '    public virtual object f(object eventVar)\n    {\n        List<object> marketIds = new List<object>() {};\n        string marketId = "x";\n        if (!(inOp(marketIds, marketId)))\n        {\n            ((IList<object>)marketIds).Add(marketId);\n        }\n        return eventVar;\n    }',
     '    public virtual object f(object eventVar)\n    {\n        List<object> marketIds = new List<object>() {};\n        string marketId = "x";\n        if (!(marketIds.Contains(marketId)))\n        {\n            ((IList<object>)marketIds).Add(marketId);\n        }\n        return eventVar;\n    }');
 
-check ('three-argument call-shaped receiver keeps the helper',
+check ('three-argument inOp keeps the helper (inner getValue converts)',
     '    public virtual object f(object a, object b)\n    {\n        IDictionary<string, object> m = new Dictionary<string, object>() {};\n        return inOp(getValue(m, "x"), b);\n    }',
-    '    public virtual object f(object a, object b)\n    {\n        IDictionary<string, object> m = new Dictionary<string, object>() {};\n        return inOp(getValue(m, "x"), b);\n    }');
+    '    public virtual object f(object a, object b)\n    {\n        IDictionary<string, object> m = new Dictionary<string, object>() {};\n        return inOp((m != null && m.ContainsKey("x") ? m["x"] : null), b);\n    }');
+
+// ---- getValue ----
+
+check ('dict parameter + literal key (D-17/D-18 typed param) -> key-tested read',
+    '    public virtual object parseFee(object fee, Dictionary<string, object> parameters)\n    {\n        object rate = getValue(parameters, "rate");\n        return fee;\n    }',
+    '    public virtual object parseFee(object fee, Dictionary<string, object> parameters)\n    {\n        object rate = (parameters != null && parameters.ContainsKey("rate") ? parameters["rate"] : null);\n        return fee;\n    }');
+
+check ('dict parameter + string local key -> key-tested read',
+    '    public virtual object f(IDictionary<string, object> market)\n    {\n        string symbol = "BTC/USDT";\n        return getValue(market, symbol);\n    }',
+    '    public virtual object f(IDictionary<string, object> market)\n    {\n        string symbol = "BTC/USDT";\n        return (market != null && market.ContainsKey(symbol) ? market[symbol] : null);\n    }');
+
+check ('cast-wrapped getValue keeps the cast',
+    '    public virtual object f(Dictionary<string, object> parsed)\n    {\n        string? code = ((string)getValue(parsed, "code"));\n        return code;\n    }',
+    '    public virtual object f(Dictionary<string, object> parsed)\n    {\n        string? code = ((string)(parsed != null && parsed.ContainsKey("code") ? parsed["code"] : null));\n        return code;\n    }');
+
+check ('dict local from a nullable producer gets the null test',
+    '    public virtual object f(object response)\n    {\n        IDictionary<string, object> networks = this.safeDict(response, "networks", new Dictionary<string, object>() {});\n        return getValue(networks, "info");\n    }',
+    '    public virtual object f(object response)\n    {\n        IDictionary<string, object> networks = this.safeDict(response, "networks", new Dictionary<string, object>() {});\n        return (networks != null && networks.ContainsKey("info") ? networks["info"] : null);\n    }');
+
+check ('object receiver keeps the helper',
+    '    public virtual object f(object response)\n    {\n        return getValue(response, "code");\n    }',
+    '    public virtual object f(object response)\n    {\n        return getValue(response, "code");\n    }');
+
+check ('nullable string key keeps the helper',
+    '    public virtual object f(Dictionary<string, object> row, object entry)\n    {\n        string? id = this.safeString(entry, "id");\n        return getValue(row, id);\n    }',
+    '    public virtual object f(Dictionary<string, object> row, object entry)\n    {\n        string? id = this.safeString(entry, "id");\n        return getValue(row, id);\n    }');
+
+check ('numeric key keeps the helper (the helper index-converts it)',
+    '    public virtual object f(List<object> fees, int i)\n    {\n        return getValue(fees, i);\n    }',
+    '    public virtual object f(List<object> fees, int i)\n    {\n        return getValue(fees, i);\n    }');
+
+check ('value-typed dictionary keeps the helper (no null branch binds)',
+    '    public virtual object f(Dictionary<string, int> counts)\n    {\n        return getValue(counts, "code");\n    }',
+    '    public virtual object f(Dictionary<string, int> counts)\n    {\n        return getValue(counts, "code");\n    }');
+
+check ('this.<field> receiver keeps the helper',
+    '    public virtual object f()\n    {\n        return getValue(this.options, "code");\n    }',
+    '    public virtual object f()\n    {\n        return getValue(this.options, "code");\n    }');
+
+check ('list receiver keeps the helper',
+    '    public virtual object f(object a)\n    {\n        List<object> chains = new List<object>() {};\n        return getValue(chains, "x");\n    }',
+    '    public virtual object f(object a)\n    {\n        List<object> chains = new List<object>() {};\n        return getValue(chains, "x");\n    }');
 
 check ('a nullable-return signature starts its own region (no parameter drift)',
     '    public virtual void handleBalance(WebSocketClient client, Dictionary<string, object> message)\n    {\n        return;\n    }\n    public virtual bool? handleErrorMessage(WebSocketClient client, object message)\n    {\n        if (!(inOp(message, "success")))\n        {\n            return false;\n        }\n        return true;\n    }',

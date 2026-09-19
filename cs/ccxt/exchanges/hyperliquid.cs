@@ -601,7 +601,7 @@ public partial class hyperliquid : Exchange
             IDictionary<string, object> dex = this.safeDict(fetchDexes, i, new Dictionary<string, object>() {});
             object secondPart = multiply((subtract(i, 1)), 10000);
             object offset = this.sum(110000, secondPart);
-            ((IDictionary<string,object>)perpDexesOffset)[(string)getValue(dex, "name")] = offset;
+            ((IDictionary<string,object>)perpDexesOffset)[(string)(dex != null && dex.ContainsKey("name") ? dex["name"] : null)] = offset;
         }
         List<object> fetchDexesList = new List<object>() {};
         IDictionary<string, object> options = this.safeDict(this.options, "fetchMarkets", new Dictionary<string, object>() {});

@@ -695,7 +695,7 @@ public partial class mercado : Exchange
             }
         }
         // TODO: replace this with a call to parseOrder for unification
-        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", ((object)getValue(getValue(getValue(response, "response_data"), "order"), "order_id")).ToString() },         }, market));
+        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", ((object)getValue(getValue((response != null && response.ContainsKey("response_data") ? response["response_data"] : null), "order"), "order_id")).ToString() },         }, market));
     }
 
     /**

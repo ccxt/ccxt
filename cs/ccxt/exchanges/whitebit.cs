@@ -1534,7 +1534,7 @@ public partial class whitebit : Exchange
             {
                 string? feeKey = ((string)feeKeys[j]);
                 IDictionary<string, object> fee = this.safeDict(feesData, feeKey);
-                if (((fee != null) && (fee != null)) && isEqual(getValue(fee, "ticker"), code))
+                if (((fee != null) && (fee != null)) && isEqual((fee != null && fee.ContainsKey("ticker") ? fee["ticker"] : null), code))
                 {
                     feeData = fee;
                     break;
@@ -1555,8 +1555,8 @@ public partial class whitebit : Exchange
             // Add fee information if available
             if ((feeData != null))
             {
-                object depositFee = getValue(feeData, "deposit");
-                object withdrawFee = getValue(feeData, "withdraw");
+                object depositFee = (feeData != null && feeData.ContainsKey("deposit") ? feeData["deposit"] : null);
+                object withdrawFee = (feeData != null && feeData.ContainsKey("withdraw") ? feeData["withdraw"] : null);
                 if (((depositFee != null)) && ((depositFee != null)))
                 {
                     Dictionary<string, object> depositFeeData = new Dictionary<string, object>() {
