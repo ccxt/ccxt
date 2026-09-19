@@ -4309,7 +4309,7 @@ public partial class bitget : Exchange
         return this.parseCurrencies(data);
     }
 
-    public override Dictionary<string, object> parseCurrency(object rawCurrency)
+    public override Dictionary<string, object> parseCurrency(IDictionary<string, object> rawCurrency)
     {
         object fiatCurrencies = this.handleOption("fetchCurrencies", "fiatCurrencies", new List<object>() {});
         object entry = rawCurrency;
@@ -7023,7 +7023,7 @@ public partial class bitget : Exchange
         return this.safeString(statuses, ((string)status), status);
     }
 
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(IDictionary<string, object> order, object market = null)
     {
         //
         // createOrder, editOrder, closePosition
@@ -11984,7 +11984,7 @@ public partial class bitget : Exchange
         return ccxt.BaseExchange.ToLeverage(this.parseLeverage(data, market));
     }
 
-    public override object parseLeverage(object leverage, object market = null)
+    public override object parseLeverage(IDictionary<string, object> leverage, object market = null)
     {
         bool isCrossMarginMode = (this.safeString(leverage, "marginMode") == "crossed");
         string longLevKey = ((bool) isCrossMarginMode) ? "crossedMarginLeverage" : "isolatedLongLever";
@@ -13046,7 +13046,7 @@ public partial class bitget : Exchange
         return ccxt.BaseExchange.ToIsolatedBorrowRate(this.parseIsolatedBorrowRate(first, market));
     }
 
-    public override object parseIsolatedBorrowRate(object info, object market = null)
+    public override object parseIsolatedBorrowRate(IDictionary<string, object> info, object market = null)
     {
         //
         //     {
@@ -13349,7 +13349,7 @@ public partial class bitget : Exchange
         return ccxt.BaseExchange.ToBorrowInterestList(this.filterByCurrencySinceLimit(interest,((string)code), since, limit));
     }
 
-    public override object parseBorrowInterest(object info, object market = null)
+    public override object parseBorrowInterest(IDictionary<string, object> info, object market = null)
     {
         //
         // isolated
@@ -13551,7 +13551,7 @@ public partial class bitget : Exchange
         return ccxt.BaseExchange.ToMarginMode(this.parseMarginMode(data, market));
     }
 
-    public override object parseMarginMode(object marginMode, object market = null)
+    public override object parseMarginMode(IDictionary<string, object> marginMode, object market = null)
     {
         string? marginType = this.safeString(marginMode, "marginMode");
         marginType = ((bool) ((marginType == "crossed"))) ? "cross" : marginType;
@@ -13806,7 +13806,7 @@ public partial class bitget : Exchange
         return ccxt.BaseExchange.ToConversionList(this.parseConversions(dataList,((string)code), "fromCoin", "toCoin", since, limit));
     }
 
-    public override object parseConversion(object conversion, object fromCurrency = null, object toCurrency = null)
+    public override object parseConversion(IDictionary<string, object> conversion, object fromCurrency = null, object toCurrency = null)
     {
         //
         // fetchConvertQuote
@@ -14019,7 +14019,7 @@ public partial class bitget : Exchange
         return ccxt.BaseExchange.ToLongShortRatioList(this.parseLongShortRatioHistory(data, market));
     }
 
-    public override object parseLongShortRatio(object info, object market = null)
+    public override object parseLongShortRatio(IDictionary<string, object> info, object market = null)
     {
         string? marketId = this.safeString(info, "symbol");
         Int64? timestamp = this.safeIntegerOmitZero(info, "ts");

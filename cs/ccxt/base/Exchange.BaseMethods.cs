@@ -1180,7 +1180,7 @@ public partial class BaseExchange
         throw new NotSupported ((string)(this.id + " fetchTradingLimits() is not supported yet")) ;
     }
 
-    public virtual Dictionary<string, object> parseCurrency(object rawCurrency)
+    public virtual Dictionary<string, object> parseCurrency(IDictionary<string, object> rawCurrency)
     {
         throw new NotSupported ((string)(this.id + " parseCurrency() is not supported yet")) ;
     }
@@ -1256,7 +1256,7 @@ public partial class BaseExchange
         throw new NotSupported ((string)(this.id + " parseLedgerEntry() is not supported yet")) ;
     }
 
-    public virtual Dictionary<string, object> parseOrder(object order, object market = null)
+    public virtual Dictionary<string, object> parseOrder(IDictionary<string, object> order, object market = null)
     {
         throw new NotSupported ((string)(this.id + " parseOrder() is not supported yet")) ;
     }
@@ -1294,12 +1294,12 @@ public partial class BaseExchange
         throw new NotSupported ((string)(this.id + " parseFundingRateHistory() is not supported yet")) ;
     }
 
-    public virtual object parseBorrowInterest(object info, object market = null)
+    public virtual object parseBorrowInterest(IDictionary<string, object> info, object market = null)
     {
         throw new NotSupported ((string)(this.id + " parseBorrowInterest() is not supported yet")) ;
     }
 
-    public virtual object parseIsolatedBorrowRate(object info, object market = null)
+    public virtual object parseIsolatedBorrowRate(IDictionary<string, object> info, object market = null)
     {
         throw new NotSupported ((string)(this.id + " parseIsolatedBorrowRate() is not supported yet")) ;
     }
@@ -1314,7 +1314,7 @@ public partial class BaseExchange
         throw new NotSupported ((string)(this.id + " parseWsOrder() is not supported yet")) ;
     }
 
-    public virtual object parseWsOrderTrade(object trade, object market = null)
+    public virtual object parseWsOrderTrade(IDictionary<string, object> trade, object market = null)
     {
         throw new NotSupported ((string)(this.id + " parseWsOrderTrade() is not supported yet")) ;
     }
@@ -4075,7 +4075,7 @@ public partial class BaseExchange
         return this.filterByArrayPositions(result, "symbol", symbols, false);
     }
 
-    public virtual object parseADLRank(object info, object market = null)
+    public virtual object parseADLRank(IDictionary<string, object> info, object market = null)
     {
         if ((info == null))
         {
@@ -4134,13 +4134,13 @@ public partial class BaseExchange
         return this.filterBySymbolSinceLimit(result, symbol, since, limit);
     }
 
-    public virtual IList<object> parseTrades(object trades, object market = null, object since = null, object limit = null, object parameters = null)
+    public virtual IList<object> parseTrades(IList<object> trades, object market = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return this.parseTradesHelper(false, trades, market, since, limit, parameters);
     }
 
-    public virtual object parseWsTrades(object trades, object market = null, object since = null, object limit = null, object parameters = null)
+    public virtual object parseWsTrades(IList<object> trades, object market = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return this.parseTradesHelper(true, trades, market, since, limit, parameters);
@@ -6135,7 +6135,7 @@ public partial class BaseExchange
         return this.filterByArray(fundingRates, "symbol", symbols);
     }
 
-    public virtual object parseLongShortRatio(object info, object market = null)
+    public virtual object parseLongShortRatio(IDictionary<string, object> info, object market = null)
     {
         throw new NotSupported ((string)(this.id + " parseLongShortRatio() is not supported yet")) ;
     }
@@ -7402,7 +7402,7 @@ public partial class BaseExchange
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
 
-    public virtual object parseGreeks(object greeks, object market = null)
+    public virtual object parseGreeks(IDictionary<string, object> greeks, object market = null)
     {
         throw new NotSupported ((string)(this.id + " parseGreeks () is not supported yet")) ;
     }
@@ -7438,7 +7438,7 @@ public partial class BaseExchange
         return this.filterByArray(results, "symbol", symbols);
     }
 
-    public virtual object parseOption(object chain, object currency = null, object market = null)
+    public virtual object parseOption(IDictionary<string, object> chain, object currency = null, object market = null)
     {
         throw new NotSupported ((string)(this.id + " parseOption () is not supported yet")) ;
     }
@@ -7478,7 +7478,7 @@ public partial class BaseExchange
         return ((Dictionary<string, object>)((object)(marginModeStructures)));
     }
 
-    public virtual object parseMarginMode(object marginMode, object market = null)
+    public virtual object parseMarginMode(IDictionary<string, object> marginMode, object market = null)
     {
         throw new NotSupported ((string)(this.id + " parseMarginMode () is not supported yet")) ;
     }
@@ -7503,7 +7503,7 @@ public partial class BaseExchange
         return ((Dictionary<string, object>)((object)(leverageStructures)));
     }
 
-    public virtual object parseLeverage(object leverage, object market = null)
+    public virtual object parseLeverage(IDictionary<string, object> leverage, object market = null)
     {
         throw new NotSupported ((string)(this.id + " parseLeverage () is not supported yet")) ;
     }
@@ -7553,7 +7553,7 @@ public partial class BaseExchange
         return this.filterBySinceLimit(both, since, limit);
     }
 
-    public virtual object parseConversion(object conversion, object fromCurrency = null, object toCurrency = null)
+    public virtual object parseConversion(IDictionary<string, object> conversion, object fromCurrency = null, object toCurrency = null)
     {
         if ((conversion == null))
         {
