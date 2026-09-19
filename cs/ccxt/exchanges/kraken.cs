@@ -2725,7 +2725,7 @@ public partial class kraken : Exchange
         //     }
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new List<object>() {});
-        if (!(inOp(result, id)))
+        if (!((result != null && result.ContainsKey(id))))
         {
             throw new OrderNotFound ((string)((this.id + " fetchOrder() could not find order id ") + (id))) ;
         }

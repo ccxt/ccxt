@@ -6264,7 +6264,7 @@ public partial class htx : Exchange
         if ((triggerPrice == null))
         {
             IDictionary<string, object> stopOrderTypes = this.safeDict(options, "stopOrderTypes", new Dictionary<string, object>() {});
-            if (inOp(stopOrderTypes, orderType))
+            if ((stopOrderTypes != null && stopOrderTypes.ContainsKey(orderType)))
             {
                 throw new ArgumentsRequired ((string)(this.id + " createOrder() requires a triggerPrice for a trigger order")) ;
             }
@@ -6358,7 +6358,7 @@ public partial class htx : Exchange
             ((IDictionary<string,object>)request)["amount"] = this.amountToPrecision(symbol, amount);
         }
         IDictionary<string, object> limitOrderTypes = this.safeDict(options, "limitOrderTypes", new Dictionary<string, object>() {});
-        if (inOp(limitOrderTypes, orderType))
+        if ((limitOrderTypes != null && limitOrderTypes.ContainsKey(orderType)))
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }

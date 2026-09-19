@@ -364,7 +364,7 @@ public partial class hyperliquid : PredictionExchange
                     { "RECURRING_FALLBACK", true },
                     { "RECURRING_NAMED_OUTCOME", true },
                 };
-                if (inOp(genericOutcomeNames, outcomeSlug))
+                if (genericOutcomeNames.ContainsKey(outcomeSlug))
                 {
                     if (((string)outcomeSlug).IndexOf("FALLBACK", StringComparison.Ordinal) >= 0)
                     {

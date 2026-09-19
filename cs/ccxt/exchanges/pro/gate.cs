@@ -2240,7 +2240,7 @@ public partial class gate : ccxt.gate
         {
             return;
         }
-        if (inOp(methods, channel))
+        if (methods.ContainsKey(channel))
         {
             string? subscriptionHash = this.safeString(((WebSocketClient)client).subscriptions, id);
             object subscription = this.safeValue(((WebSocketClient)client).subscriptions, subscriptionHash);
