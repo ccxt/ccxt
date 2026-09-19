@@ -1644,7 +1644,7 @@ func (this *Bitteam) ParseOrder(order any, optionalArgs ...any) any {
 		"postOnly":            false,
 	}, market)
 }
-func (this *Bitteam) ParseOrderStatus(status any) *string {
+func (this *Bitteam) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"accepted":           "open",
 		"executed":           "closed",
@@ -2790,7 +2790,7 @@ func (this *Bitteam) ParseTransactionType(typeVar any) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Bitteam) ParseTransactionStatus(status any) *string {
+func (this *Bitteam) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"approving": "pending",
 		"success":   "ok",

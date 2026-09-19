@@ -1291,7 +1291,7 @@ func (this *Modetrade) ParseFundingRate(fundingRate any, optionalArgs ...any) an
 		"interval":                 this.ParseFundingInterval(millisecondsInterval),
 	}
 }
-func (this *Modetrade) ParseFundingInterval(interval any) any {
+func (this *Modetrade) ParseFundingInterval(interval *string) any {
 	var intervals map[string]any = map[string]any{
 		"3600000":  "1h",
 		"14400000": "4h",
@@ -2002,7 +2002,7 @@ func (this *Modetrade) ParseOrder(order any, optionalArgs ...any) any {
 		"info": order,
 	}, market)
 }
-func (this *Modetrade) ParseTimeInForce(timeInForce any) *string {
+func (this *Modetrade) ParseTimeInForce(timeInForce *string) *string {
 	var timeInForces map[string]any = map[string]any{
 		"ioc":       "IOC",
 		"fok":       "FOK",
@@ -2033,7 +2033,7 @@ func (this *Modetrade) ParseOrderStatus(status any) *string {
 	}
 	return nil
 }
-func (this *Modetrade) ParseOrderType(typeVar any) *string {
+func (this *Modetrade) ParseOrderType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
 		"LIMIT":     "limit",
 		"MARKET":    "market",
@@ -3412,7 +3412,7 @@ func (this *Modetrade) ParseTransaction(transaction any, optionalArgs ...any) an
 		"network":     nil,
 	}
 }
-func (this *Modetrade) ParseTransactionStatus(status any) *string {
+func (this *Modetrade) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"NEW":        "pending",
 		"CONFIRMING": "pending",

@@ -2414,7 +2414,7 @@ func (this *Limitless) ParsePredictionOrder(order any, optionalArgs ...any) any 
  * @param {string} status the raw limitless order status
  * @returns {string} the unified order status
  */
-func (this *Limitless) ParseOrderStatus(status any) *string {
+func (this *Limitless) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"LIVE":      "open",
 		"MATCHED":   "closed",
@@ -2434,7 +2434,7 @@ func (this *Limitless) ParseOrderStatus(status any) *string {
  * @param {string} timeInForce the raw limitless time in force
  * @returns {string} the unified time in force
  */
-func (this *Limitless) ParseOrderTimeInForce(timeInForce any) *string {
+func (this *Limitless) ParseOrderTimeInForce(timeInForce *string) *string {
 	var timeInForces map[string]any = map[string]any{
 		"FAK": "FOK",
 	}
@@ -2449,7 +2449,7 @@ func (this *Limitless) ParseOrderTimeInForce(timeInForce any) *string {
  * @param {string} side the raw limitless order side
  * @returns {string} the unified order side
  */
-func (this *Limitless) ParseOrderSide(side any) *string {
+func (this *Limitless) ParseOrderSide(side *string) *string {
 	var sides map[string]any = map[string]any{
 		"BUY":  "buy",
 		"SELL": "sell",

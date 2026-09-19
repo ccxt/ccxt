@@ -2716,7 +2716,7 @@ func (this *Weex) ParseTransfer(transfer any, optionalArgs ...any) any {
 		"status":      this.ParseTransferStatus(status),
 	}
 }
-func (this *Weex) ParseTransferStatus(status any) *string {
+func (this *Weex) ParseTransferStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"Successful": "ok",
 	}
@@ -4105,7 +4105,7 @@ func (this *Weex) ParseOrder(order any, optionalArgs ...any) any {
 		"info":                order,
 	}, market)
 }
-func (this *Weex) ParseOrderStatus(status any) *string {
+func (this *Weex) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"new":          "open",
 		"partial_fill": "closed",
@@ -4118,7 +4118,7 @@ func (this *Weex) ParseOrderStatus(status any) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Weex) ParseOrderType(typeVar any) *string {
+func (this *Weex) ParseOrderType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
 		"LIMIT":              "limit",
 		"MARKET":             "market",
@@ -5149,7 +5149,7 @@ func (this *Weex) ParseMarginMode(marginMode any, optionalArgs ...any) any {
 		"marginMode": this.ParseMarginType(marginType),
 	}
 }
-func (this *Weex) ParseMarginType(marginType any) *string {
+func (this *Weex) ParseMarginType(marginType *string) *string {
 	var marginTypes map[string]any = map[string]any{
 		"CROSSED":  "cross",
 		"ISOLATED": "isolated",

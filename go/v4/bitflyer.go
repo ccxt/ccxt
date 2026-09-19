@@ -984,7 +984,7 @@ func (this *Bitflyer) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 	})
 	return nil
 }
-func (this *Bitflyer) ParseOrderStatus(status any) *string {
+func (this *Bitflyer) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"ACTIVE":    "open",
 		"COMPLETED": "closed",

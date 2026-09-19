@@ -1519,7 +1519,7 @@ func (this *Backpack) ParseWsOrder(order any, optionalArgs ...any) any {
 		"info":               order,
 	}, market)
 }
-func (this *Backpack) ParseWsOrderStatus(status any, optionalArgs ...any) *string {
+func (this *Backpack) ParseWsOrderStatus(status *string, optionalArgs ...any) *string {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
 	var statuses map[string]any = map[string]any{
@@ -1533,7 +1533,7 @@ func (this *Backpack) ParseWsOrderStatus(status any, optionalArgs ...any) *strin
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Backpack) ParseWsOrderSide(side any) *string {
+func (this *Backpack) ParseWsOrderSide(side *string) *string {
 	var sides map[string]any = map[string]any{
 		"Bid": "buy",
 		"Ask": "sell",

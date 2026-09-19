@@ -3339,7 +3339,7 @@ func (this *Btse) ParseOrder(order any, optionalArgs ...any) any {
 		"average":             this.OmitZero(this.SafeString2(order, "avgFilledPrice", "averageFillPrice")),
 	}, market)
 }
-func (this *Btse) ParseOrderStatus(status any) *string {
+func (this *Btse) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"2":                          "open",
 		"3":                          "closed",
@@ -3363,7 +3363,7 @@ func (this *Btse) ParseOrderStatus(status any) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Btse) ParseOrderType(typeVar any) *string {
+func (this *Btse) ParseOrderType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
 		"76": "limit",
 		"77": "market",
@@ -3371,7 +3371,7 @@ func (this *Btse) ParseOrderType(typeVar any) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Btse) ParseTimeInForce(timeInForce any) *string {
+func (this *Btse) ParseTimeInForce(timeInForce *string) *string {
 	var values map[string]any = map[string]any{
 		"GTC":        "GTC",
 		"IOC":        "IOC",
@@ -3735,7 +3735,7 @@ func (this *Btse) ParseTransaction(transaction any, optionalArgs ...any) any {
 		},
 	}
 }
-func (this *Btse) ParseTransactionType(typeVar any) *string {
+func (this *Btse) ParseTransactionType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
 		"Deposit":  "deposit",
 		"Withdraw": "withdrawal",
@@ -3744,7 +3744,7 @@ func (this *Btse) ParseTransactionType(typeVar any) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Btse) ParseTransactionStatus(status any) *string {
+func (this *Btse) ParseTransactionStatus(status *string) *string {
 	// the full enum from the wallet documentation, PROCESSING is also live-verified
 	var statuses map[string]any = map[string]any{
 		"PROCESSING": "pending",
@@ -3869,7 +3869,7 @@ func (this *Btse) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		},
 	}
 }
-func (this *Btse) ParseLedgerEntryType(typeVar any) *string {
+func (this *Btse) ParseLedgerEntryType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
 		"Deposit":                    "transaction",
 		"Withdraw":                   "transaction",
@@ -3899,7 +3899,7 @@ func (this *Btse) ParseLedgerEntryType(typeVar any) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Btse) ParseLedgerEntryDirection(typeVar any) any {
+func (this *Btse) ParseLedgerEntryDirection(typeVar *string) any {
 	var directions map[string]any = map[string]any{
 		"Deposit":                    "in",
 		"Withdraw":                   "out",
@@ -4152,7 +4152,7 @@ func (this *Btse) ParsePosition(position any, optionalArgs ...any) any {
 		"percentage":                  nil,
 	})
 }
-func (this *Btse) ParseMarginModeType(marginMode any) *string {
+func (this *Btse) ParseMarginModeType(marginMode *string) *string {
 	var marginModes map[string]any = map[string]any{
 		"91":       "cross",
 		"92":       "isolated",
@@ -4161,7 +4161,7 @@ func (this *Btse) ParseMarginModeType(marginMode any) *string {
 	}
 	return this.SafeString(marginModes, marginMode, marginMode)
 }
-func (this *Btse) ParsePositionSide(side any) *string {
+func (this *Btse) ParsePositionSide(side *string) *string {
 	var sides map[string]any = map[string]any{
 		"buy":  "long",
 		"sell": "short",

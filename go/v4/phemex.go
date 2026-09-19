@@ -2730,7 +2730,7 @@ func (this *Phemex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseSpotBalance(response)
 	return nil
 }
-func (this *Phemex) ParseOrderStatus(status any) *string {
+func (this *Phemex) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"Created":         "open",
 		"Untriggered":     "open",
@@ -2753,7 +2753,7 @@ func (this *Phemex) ParseOrderStatus(status any) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Phemex) ParseOrderType(typeVar any) *string {
+func (this *Phemex) ParseOrderType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
 		"1":      "market",
 		"2":      "limit",
@@ -2770,7 +2770,7 @@ func (this *Phemex) ParseOrderType(typeVar any) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Phemex) ParseTimeInForce(timeInForce any) *string {
+func (this *Phemex) ParseTimeInForce(timeInForce *string) *string {
 	var timeInForces map[string]any = map[string]any{
 		"GoodTillCancel":    "GTC",
 		"PostOnly":          "PO",
@@ -4426,7 +4426,7 @@ func (this *Phemex) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseTransactions(data, currency, since, limit)
 	return nil
 }
-func (this *Phemex) ParseTransactionStatus(status any) *string {
+func (this *Phemex) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"Success":               "ok",
 		"Succeed":               "ok",
@@ -5998,7 +5998,7 @@ func (this *Phemex) ParseTransfer(transfer any, optionalArgs ...any) any {
 		"status":      this.ParseTransferStatus(status),
 	}
 }
-func (this *Phemex) ParseTransferStatus(status any) *string {
+func (this *Phemex) ParseTransferStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"3":  "rejected",
 		"6":  "canceled",

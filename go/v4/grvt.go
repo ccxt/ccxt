@@ -3998,7 +3998,7 @@ func (this *Grvt) ParseOrder(order any, optionalArgs ...any) any {
 		"info":                order,
 	}, market)
 }
-func (this *Grvt) ParseTimeInForce(typeVar any) *string {
+func (this *Grvt) ParseTimeInForce(typeVar *string) *string {
 	var types map[string]any = map[string]any{
 		"GOOD_TILL_TIME":           "GTC",
 		"IMMEDIATE_OR_CANCEL":      "IOC",
@@ -4018,7 +4018,7 @@ func (this *Grvt) TimeInForceToInt(timeInForce any) any {
 	}
 	return this.SafeInteger(timeInForces, timeInForce, 0)
 }
-func (this *Grvt) ParseOrderStatus(status any) *string {
+func (this *Grvt) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"PENDING":   "pending",
 		"OPEN":      "open",

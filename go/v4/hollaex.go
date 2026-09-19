@@ -1565,7 +1565,7 @@ func (this *Hollaex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseOrders(data, market, since, limit)
 	return nil
 }
-func (this *Hollaex) ParseOrderStatus(status any) *string {
+func (this *Hollaex) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"new":      "open",
 		"pfilled":  "open",

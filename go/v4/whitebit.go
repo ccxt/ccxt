@@ -3397,7 +3397,7 @@ func (this *Whitebit) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 	ch <- results
 	return nil
 }
-func (this *Whitebit) ParseOrderType(typeVar any) *string {
+func (this *Whitebit) ParseOrderType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
 		"limit":         "limit",
 		"market":        "market",
@@ -3516,7 +3516,7 @@ func (this *Whitebit) ParseOrder(order any, optionalArgs ...any) any {
 		"trades":             nil,
 	}, market)
 }
-func (this *Whitebit) ParseOrderStatus(status any) *string {
+func (this *Whitebit) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"CANCELED":         "canceled",
 		"OPEN":             "open",
@@ -4247,7 +4247,7 @@ func (this *Whitebit) ParseTransaction(transaction any, optionalArgs ...any) any
 		"info": transaction,
 	}
 }
-func (this *Whitebit) ParseTransactionStatus(status any) *string {
+func (this *Whitebit) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"1":  "pending",
 		"2":  "pending",

@@ -1220,7 +1220,7 @@ func (this *Coincheck) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) an
 	})
 	return nil
 }
-func (this *Coincheck) ParseTransactionStatus(status any) *string {
+func (this *Coincheck) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"pending":    "pending",
 		"processing": "pending",

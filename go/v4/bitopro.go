@@ -1215,7 +1215,7 @@ func (this *Bitopro) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseBalance(balances)
 	return nil
 }
-func (this *Bitopro) ParseOrderStatus(status any) any {
+func (this *Bitopro) ParseOrderStatus(status *string) any {
 	var statuses map[string]any = map[string]any{
 		"-1": "open",
 		"0":  "open",
@@ -1882,7 +1882,7 @@ func (this *Bitopro) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseTrades(trades, market, since, limit)
 	return nil
 }
-func (this *Bitopro) ParseTransactionStatus(status any) *string {
+func (this *Bitopro) ParseTransactionStatus(status *string) *string {
 	var states map[string]any = map[string]any{
 		"COMPLETE":           "ok",
 		"INVALID":            "failed",

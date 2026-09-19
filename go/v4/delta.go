@@ -2222,7 +2222,7 @@ func (this *Delta) ParsePosition(position any, optionalArgs ...any) any {
 		"takeProfitPrice":             nil,
 	})
 }
-func (this *Delta) ParseOrderStatus(status any) *string {
+func (this *Delta) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"open":      "open",
 		"pending":   "open",

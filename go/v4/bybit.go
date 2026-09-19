@@ -5085,7 +5085,7 @@ func (this *Bybit) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseBalance(response)
 	return nil
 }
-func (this *Bybit) ParseOrderStatus(status any) *string {
+func (this *Bybit) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"NEW":                        "open",
 		"PARTIALLY_FILLED":           "open",
@@ -5110,7 +5110,7 @@ func (this *Bybit) ParseOrderStatus(status any) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bybit) ParseTimeInForce(timeInForce any) *string {
+func (this *Bybit) ParseTimeInForce(timeInForce *string) *string {
 	var timeInForces map[string]any = map[string]any{
 		"GoodTillCancel":    "GTC",
 		"ImmediateOrCancel": "IOC",
@@ -8077,7 +8077,7 @@ func (this *Bybit) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseTransactions(data, currency, since, limit)
 	return nil
 }
-func (this *Bybit) ParseTransactionStatus(status any) *string {
+func (this *Bybit) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"0":                   "unknown",
 		"1":                   "pending",
@@ -10239,7 +10239,7 @@ func (this *Bybit) ParseMarginLoan(info any, optionalArgs ...any) any {
 		"info":      info,
 	}
 }
-func (this *Bybit) ParseTransferStatus(status any) *string {
+func (this *Bybit) ParseTransferStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"0":       "ok",
 		"OK":      "ok",
@@ -12830,7 +12830,7 @@ func (this *Bybit) ParseMarginMode(marginMode any, optionalArgs ...any) any {
 		"marginMode": this.ParseMarginModeType(marginType),
 	}
 }
-func (this *Bybit) ParseMarginModeType(marginMode any) *string {
+func (this *Bybit) ParseMarginModeType(marginMode *string) *string {
 	var marginModes map[string]any = map[string]any{
 		"ISOLATED_MARGIN":  "isolated",
 		"REGULAR_MARGIN":   "cross",

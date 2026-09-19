@@ -2710,7 +2710,7 @@ func (this *Polymarket) ParsePredictionOrder(order any, optionalArgs ...any) any
  * @param {string} status the raw polymarket order status
  * @returns {string} a unified order status
  */
-func (this *Polymarket) ParseOrderStatus(status any) *string {
+func (this *Polymarket) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"live":         "open",
 		"matched":      "closed",
@@ -4656,7 +4656,7 @@ func (this *Polymarket) TokenIdToSymbol(tokenId any) any {
 	var market map[string]any = ccxt.SafeMapTyped(this.Markets_by_id, tokenId)
 	return this.SafeString2(market, "market", "symbol")
 }
-func (this *Polymarket) ParsePolyTimestamp(raw any) any {
+func (this *Polymarket) ParsePolyTimestamp(raw *string) any {
 	if raw == nil {
 		return this.Milliseconds()
 	}

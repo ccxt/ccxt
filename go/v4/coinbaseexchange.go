@@ -1722,7 +1722,7 @@ func (this *Coinbaseexchange) fetchTimeBody(ch chan any, optionalArgs ...any) an
 	ch <- this.SafeTimestamp(response, "epoch")
 	return nil
 }
-func (this *Coinbaseexchange) ParseOrderStatus(status any) *string {
+func (this *Coinbaseexchange) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"pending":   "open",
 		"active":    "open",

@@ -2698,7 +2698,7 @@ func (this *Extended) GetExtendedCurrencyCodeById(assetId any, optionalArgs ...a
 	}
 	return code
 }
-func (this *Extended) ParseTransactionStatus(status any) *string {
+func (this *Extended) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"CREATED":     "pending",
 		"IN_PROGRESS": "pending",
@@ -2707,7 +2707,7 @@ func (this *Extended) ParseTransactionStatus(status any) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Extended) ParseTransactionType(typeVar any) *string {
+func (this *Extended) ParseTransactionType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
 		"DEPOSIT":    "deposit",
 		"WITHDRAWAL": "withdrawal",
@@ -4387,7 +4387,7 @@ func (this *Extended) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) 
 	ch <- this.FilterBySymbolSinceLimit(canceledOrders, symbol, since, limit)
 	return nil
 }
-func (this *Extended) ParseOrderStatus(status any) *string {
+func (this *Extended) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"NEW":              "open",
 		"PARTIALLY_FILLED": "open",

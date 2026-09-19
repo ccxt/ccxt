@@ -1179,7 +1179,7 @@ func (this *Btcturk) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseOrders(data, market, since, limit)
 	return nil
 }
-func (this *Btcturk) ParseOrderStatus(status any) *string {
+func (this *Btcturk) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"Untouched": "open",
 		"Partial":   "open",

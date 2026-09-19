@@ -5068,7 +5068,7 @@ func (this *Xt) ParseOrder(order any, optionalArgs ...any) any {
 		"trades": nil,
 	}, market)
 }
-func (this *Xt) ParseOrderStatus(status any) *string {
+func (this *Xt) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"NEW":                 "open",
 		"PARTIALLY_FILLED":    "open",
@@ -5630,7 +5630,7 @@ func (this *Xt) ParseTransaction(transaction any, optionalArgs ...any) any {
 		"internal": nil,
 	}
 }
-func (this *Xt) ParseTransactionStatus(status any) *string {
+func (this *Xt) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"SUBMIT":  "pending",
 		"REVIEW":  "pending",

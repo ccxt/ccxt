@@ -2037,7 +2037,7 @@ func (this *Bittrade) fetchOpenOrdersV2Body(ch chan any, optionalArgs ...any) an
 	ch <- this.ParseOrders(data, market, since, limit)
 	return nil
 }
-func (this *Bittrade) ParseOrderStatus(status any) *string {
+func (this *Bittrade) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"partial-filled":   "open",
 		"partial-canceled": "canceled",
@@ -2739,7 +2739,7 @@ func (this *Bittrade) ParseTransaction(transaction any, optionalArgs ...any) any
 		},
 	}
 }
-func (this *Bittrade) ParseTransactionStatus(status any) *string {
+func (this *Bittrade) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"unknown":         "failed",
 		"confirming":      "pending",

@@ -1789,7 +1789,7 @@ func (this *Myriad) ToOrderbookWei(value any) any {
 	}
 	return scaled
 }
-func (this *Myriad) ParseOrderStatus(status any) *string {
+func (this *Myriad) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"open":             "open",
 		"pending":          "open",

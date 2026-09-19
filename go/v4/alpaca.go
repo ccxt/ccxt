@@ -2065,7 +2065,7 @@ func (this *Alpaca) ParseOrder(order any, optionalArgs ...any) any {
 		"info":               order,
 	}, market)
 }
-func (this *Alpaca) ParseOrderStatus(status any) *string {
+func (this *Alpaca) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"pending_new":          "open",
 		"accepted":             "open",
@@ -2088,7 +2088,7 @@ func (this *Alpaca) ParseOrderStatus(status any) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Alpaca) ParseTimeInForce(timeInForce any) *string {
+func (this *Alpaca) ParseTimeInForce(timeInForce *string) *string {
 	var timeInForces map[string]any = map[string]any{
 		"day": "Day",
 		"gtc": "GTC",
@@ -2697,7 +2697,7 @@ func (this *Alpaca) ParseTransaction(transaction any, optionalArgs ...any) any {
 		"fee":         fee,
 	}
 }
-func (this *Alpaca) ParseTransactionStatus(status any) *string {
+func (this *Alpaca) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"PROCESSING": "pending",
 		"FAILED":     "failed",

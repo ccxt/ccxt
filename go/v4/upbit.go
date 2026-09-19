@@ -2196,7 +2196,7 @@ func (this *Upbit) fetchWithdrawalBody(ch chan any, id any, optionalArgs ...any)
 	ch <- this.ParseTransaction(response, currency)
 	return nil
 }
-func (this *Upbit) ParseTransactionStatus(status any) *string {
+func (this *Upbit) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"submitting":      "pending",
 		"submitted":       "pending",
@@ -2278,7 +2278,7 @@ func (this *Upbit) ParseTransaction(transaction any, optionalArgs ...any) any {
 		},
 	}
 }
-func (this *Upbit) ParseOrderStatus(status any) *string {
+func (this *Upbit) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"wait":   "open",
 		"done":   "closed",

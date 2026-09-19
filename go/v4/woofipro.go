@@ -2383,7 +2383,7 @@ func (this *Woofipro) ParseOrder(order any, optionalArgs ...any) any {
 		"info": order,
 	}, market)
 }
-func (this *Woofipro) ParseTimeInForce(timeInForce any) *string {
+func (this *Woofipro) ParseTimeInForce(timeInForce *string) *string {
 	var timeInForces map[string]any = map[string]any{
 		"ioc":       "IOC",
 		"fok":       "FOK",
@@ -2408,7 +2408,7 @@ func (this *Woofipro) ParseOrderStatus(status any) *string {
 	}
 	return nil
 }
-func (this *Woofipro) ParseOrderType(typeVar any) *string {
+func (this *Woofipro) ParseOrderType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
 		"LIMIT":     "limit",
 		"MARKET":    "market",
@@ -3791,7 +3791,7 @@ func (this *Woofipro) ParseTransaction(transaction any, optionalArgs ...any) any
 		"network":     nil,
 	}
 }
-func (this *Woofipro) ParseTransactionStatus(status any) *string {
+func (this *Woofipro) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"NEW":        "pending",
 		"CONFIRMING": "pending",

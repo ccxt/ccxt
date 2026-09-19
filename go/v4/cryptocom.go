@@ -3213,7 +3213,7 @@ func (this *Cryptocom) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	_ = market
 	return []any{this.SafeInteger(ohlcv, "t"), this.SafeNumber(ohlcv, "o"), this.SafeNumber(ohlcv, "h"), this.SafeNumber(ohlcv, "l"), this.SafeNumber(ohlcv, "c"), this.SafeNumber(ohlcv, "v")}
 }
-func (this *Cryptocom) ParseOrderStatus(status any) *string {
+func (this *Cryptocom) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"ACTIVE":   "open",
 		"CANCELED": "canceled",
@@ -3223,7 +3223,7 @@ func (this *Cryptocom) ParseOrderStatus(status any) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Cryptocom) ParseTimeInForce(timeInForce any) *string {
+func (this *Cryptocom) ParseTimeInForce(timeInForce *string) *string {
 	var timeInForces map[string]any = map[string]any{
 		"GOOD_TILL_CANCEL":    "GTC",
 		"IMMEDIATE_OR_CANCEL": "IOC",

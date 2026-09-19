@@ -889,7 +889,7 @@ func (this *Bitbank) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseBalance(response)
 	return nil
 }
-func (this *Bitbank) ParseOrderStatus(status any) *string {
+func (this *Bitbank) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"UNFILLED":                  "open",
 		"PARTIALLY_FILLED":          "open",

@@ -1131,7 +1131,7 @@ func (this *Dydx) ParseOrder(order any, optionalArgs ...any) any {
 		"trades":              nil,
 	}, market)
 }
-func (this *Dydx) ParseOrderStatus(status any) *string {
+func (this *Dydx) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"UNTRIGGERED":          "open",
 		"OPEN":                 "open",
@@ -1141,7 +1141,7 @@ func (this *Dydx) ParseOrderStatus(status any) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Dydx) ParseOrderType(typeVar any) *string {
+func (this *Dydx) ParseOrderType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
 		"LIMIT":              "LIMIT",
 		"STOP_LIMIT":         "LIMIT",

@@ -642,7 +642,7 @@ func (this *Upbit) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterBySymbolSinceLimit(trades, symbol, since, limit, true)
 	return nil
 }
-func (this *Upbit) ParseWsOrderStatus(status any) *string {
+func (this *Upbit) ParseWsOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"wait":   "open",
 		"done":   "closed",

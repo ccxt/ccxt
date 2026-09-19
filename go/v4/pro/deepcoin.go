@@ -670,7 +670,7 @@ func (this *Deepcoin) ParseWsTrade(trade any, optionalArgs ...any) any {
 		"fee":          fee,
 	}, market)
 }
-func (this *Deepcoin) ParseTradeSide(direction any) *string {
+func (this *Deepcoin) ParseTradeSide(direction *string) *string {
 	var sides map[string]any = map[string]any{
 		"0": "buy",
 		"1": "sell",
@@ -1329,7 +1329,7 @@ func (this *Deepcoin) ParseWsOrder(order any, optionalArgs ...any) any {
 		"info":                order,
 	}, market)
 }
-func (this *Deepcoin) ParseWsOrderStatus(status any) *string {
+func (this *Deepcoin) ParseWsOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"1": "closed",
 		"4": "open",
@@ -1492,7 +1492,7 @@ func (this *Deepcoin) ParseWsPosition(position any, optionalArgs ...any) any {
 		"info":                        position,
 	})
 }
-func (this *Deepcoin) ParsePositionSide(direction any) any {
+func (this *Deepcoin) ParsePositionSide(direction *string) any {
 	if direction == nil {
 		return direction
 	}
@@ -1502,7 +1502,7 @@ func (this *Deepcoin) ParsePositionSide(direction any) any {
 	}
 	return this.SafeString(directions, direction, direction)
 }
-func (this *Deepcoin) ParseWsMarginMode(marginMode any) any {
+func (this *Deepcoin) ParseWsMarginMode(marginMode *string) any {
 	if marginMode == nil {
 		return marginMode
 	}

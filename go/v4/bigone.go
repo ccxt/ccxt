@@ -1679,7 +1679,7 @@ func (this *Bigone) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseBalance(response)
 	return nil
 }
-func (this *Bigone) ParseType(typeVar any) *string {
+func (this *Bigone) ParseType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
 		"STOP_LIMIT":  "limit",
 		"STOP_MARKET": "market",
@@ -2261,7 +2261,7 @@ func (this *Bigone) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseTrades(trades, market, since, limit)
 	return nil
 }
-func (this *Bigone) ParseOrderStatus(status any) *string {
+func (this *Bigone) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"PENDING":   "open",
 		"FILLED":    "closed",
@@ -2466,7 +2466,7 @@ func (this *Bigone) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 	}
 	return nil
 }
-func (this *Bigone) ParseTransactionStatus(status any) *string {
+func (this *Bigone) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"WITHHOLD":    "ok",
 		"UNCONFIRMED": "pending",
@@ -2796,7 +2796,7 @@ func (this *Bigone) ParseTransfer(transfer any, optionalArgs ...any) any {
 		"status":      this.ParseTransferStatus(code),
 	}
 }
-func (this *Bigone) ParseTransferStatus(status any) *string {
+func (this *Bigone) ParseTransferStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"0": "ok",
 	}

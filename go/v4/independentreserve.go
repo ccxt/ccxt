@@ -814,7 +814,7 @@ func (this *Independentreserve) ParseOrder(order any, optionalArgs ...any) any {
 		"trades": nil,
 	}, market)
 }
-func (this *Independentreserve) ParseOrderStatus(status any) *string {
+func (this *Independentreserve) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"Open":                        "open",
 		"PartiallyFilled":             "open",
@@ -827,7 +827,7 @@ func (this *Independentreserve) ParseOrderStatus(status any) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Independentreserve) ParseTimeInForce(timeInForce any) *string {
+func (this *Independentreserve) ParseTimeInForce(timeInForce *string) *string {
 	var timeInForces map[string]any = map[string]any{
 		"Gtc": "GTC",
 		"Moc": "PO",

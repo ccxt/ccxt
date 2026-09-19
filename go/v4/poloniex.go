@@ -2053,7 +2053,7 @@ func (this *Poloniex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	ch <- result
 	return nil
 }
-func (this *Poloniex) ParseOrderStatus(status any) *string {
+func (this *Poloniex) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"NEW":                "open",
 		"PARTIALLY_FILLED":   "open",

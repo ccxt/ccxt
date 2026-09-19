@@ -840,7 +840,7 @@ func (this *Paymium) ParseTransfer(transfer any, optionalArgs ...any) any {
 		"status":      this.ParseTransferStatus(status),
 	}
 }
-func (this *Paymium) ParseTransferStatus(status any) *string {
+func (this *Paymium) ParseTransferStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"executed": "ok",
 	}

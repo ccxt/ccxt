@@ -1844,7 +1844,7 @@ func (this *Blofin) CreateOrderRequest(symbol any, typeVar any, side any, amount
 	}
 	return this.Extend(request, params)
 }
-func (this *Blofin) ParseOrderStatus(status any) *string {
+func (this *Blofin) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"canceled":         "canceled",
 		"order_failed":     "canceled",
@@ -2900,7 +2900,7 @@ func (this *Blofin) ParseTransaction(transaction any, optionalArgs ...any) any {
 		},
 	}
 }
-func (this *Blofin) ParseTransactionWithdrawalStatus(status any) *string {
+func (this *Blofin) ParseTransactionWithdrawalStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"0": "pending",
 		"2": "failed",
@@ -2911,7 +2911,7 @@ func (this *Blofin) ParseTransactionWithdrawalStatus(status any) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Blofin) ParseTransactionDepositStatus(status any) *string {
+func (this *Blofin) ParseTransactionDepositStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"0": "pending",
 		"1": "ok",

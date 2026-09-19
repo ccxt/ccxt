@@ -1170,7 +1170,7 @@ func (this *Bydfi) ParseWsPosition(position any, optionalArgs ...any) any {
 		"percentage":                  nil,
 	})
 }
-func (this *Bydfi) ParseWsPositionSide(rawPositionSide any) *string {
+func (this *Bydfi) ParseWsPositionSide(rawPositionSide *string) *string {
 	var sides map[string]any = map[string]any{
 		"1": "long",
 		"2": "short",

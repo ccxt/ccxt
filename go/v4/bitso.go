@@ -1604,7 +1604,7 @@ func (this *Bitso) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	ch <- canceledOrders
 	return nil
 }
-func (this *Bitso) ParseOrderStatus(status any) *string {
+func (this *Bitso) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"partial-fill":     "open",
 		"partially filled": "open",
@@ -2448,7 +2448,7 @@ func (this *Bitso) ParseTransaction(transaction any, optionalArgs ...any) any {
 		"info":     transaction,
 	}
 }
-func (this *Bitso) ParseTransactionStatus(status any) *string {
+func (this *Bitso) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"pending":     "pending",
 		"in_progress": "pending",

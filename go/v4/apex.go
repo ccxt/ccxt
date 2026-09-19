@@ -1517,7 +1517,7 @@ func (this *Apex) ParseOrder(order any, optionalArgs ...any) any {
 		"info": order,
 	}, market)
 }
-func (this *Apex) ParseTimeInForce(timeInForce any) *string {
+func (this *Apex) ParseTimeInForce(timeInForce *string) *string {
 	var timeInForces map[string]any = map[string]any{
 		"GOOD_TIL_CANCEL":     "GOOD_TIL_CANCEL",
 		"FILL_OR_KILL":        "FILL_OR_KILL",
@@ -1526,7 +1526,7 @@ func (this *Apex) ParseTimeInForce(timeInForce any) *string {
 	}
 	return this.SafeString(timeInForces, timeInForce)
 }
-func (this *Apex) ParseOrderStatus(status any) *string {
+func (this *Apex) ParseOrderStatus(status *string) *string {
 	if status != nil {
 		var statuses map[string]any = map[string]any{
 			"PENDING":     "open",
@@ -1540,7 +1540,7 @@ func (this *Apex) ParseOrderStatus(status any) *string {
 	}
 	return nil
 }
-func (this *Apex) ParseOrderType(typeVar any) *string {
+func (this *Apex) ParseOrderType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
 		"LIMIT":              "limit",
 		"MARKET":             "market",

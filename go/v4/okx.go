@@ -5574,7 +5574,7 @@ func (this *Okx) cancelAllOrdersAfterBody(ch chan any, timeout any, optionalArgs
 	ch <- response
 	return nil
 }
-func (this *Okx) ParseOrderStatus(status any) *string {
+func (this *Okx) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"canceled":            "canceled",
 		"order_failed":        "canceled",
@@ -7671,7 +7671,7 @@ func (this *Okx) fetchWithdrawalBody(ch chan any, id any, optionalArgs ...any) a
 	ch <- this.ParseTransaction(withdrawal)
 	return nil
 }
-func (this *Okx) ParseTransactionStatus(status any) *string {
+func (this *Okx) ParseTransactionStatus(status *string) *string {
 	//
 	// deposit statuses
 	//
@@ -8496,7 +8496,7 @@ func (this *Okx) ParseTransfer(transfer any, optionalArgs ...any) any {
 		"status": this.ParseTransferStatus(this.SafeString(transfer, "state")),
 	}
 }
-func (this *Okx) ParseTransferStatus(status any) *string {
+func (this *Okx) ParseTransferStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"success": "ok",
 	}

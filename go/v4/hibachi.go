@@ -788,7 +788,7 @@ func (this *Hibachi) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	ch <- this.ParseTicker(ticker, market)
 	return nil
 }
-func (this *Hibachi) ParseOrderStatus(status any) *string {
+func (this *Hibachi) ParseOrderStatus(status *string) *string {
 	var uppercaseStatus any = func() any {
 		if status == nil {
 			return nil
@@ -2337,7 +2337,7 @@ func (this *Hibachi) ParseTransactionType(typeVar any) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Hibachi) ParseTransactionStatus(status any) *string {
+func (this *Hibachi) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"pending":   "pending",
 		"claimable": "pending",

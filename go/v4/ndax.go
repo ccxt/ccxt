@@ -1894,7 +1894,7 @@ func (this *Ndax) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseLedger(response, currency, since, limit)
 	return nil
 }
-func (this *Ndax) ParseOrderStatus(status any) *string {
+func (this *Ndax) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"Accepted":      "open",
 		"Rejected":      "rejected",

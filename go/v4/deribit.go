@@ -2449,7 +2449,7 @@ func (this *Deribit) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	ch <- orderbook
 	return nil
 }
-func (this *Deribit) ParseOrderStatus(status any) *string {
+func (this *Deribit) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"open":        "open",
 		"cancelled":   "canceled",
@@ -2459,7 +2459,7 @@ func (this *Deribit) ParseOrderStatus(status any) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Deribit) ParseTimeInForce(timeInForce any) *string {
+func (this *Deribit) ParseTimeInForce(timeInForce *string) *string {
 	var timeInForces map[string]any = map[string]any{
 		"good_til_cancelled":  "GTC",
 		"fill_or_kill":        "FOK",
@@ -3446,7 +3446,7 @@ func (this *Deribit) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 	ch <- this.ParseTransactions(data, currency, since, limit, params)
 	return nil
 }
-func (this *Deribit) ParseTransactionStatus(status any) *string {
+func (this *Deribit) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"completed":   "ok",
 		"unconfirmed": "pending",
@@ -4015,7 +4015,7 @@ func (this *Deribit) ParseTransfer(transfer any, optionalArgs ...any) any {
 		"datetime":  this.Iso8601(timestamp),
 	}
 }
-func (this *Deribit) ParseTransferStatus(status any) *string {
+func (this *Deribit) ParseTransferStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"prepared":          "pending",
 		"confirmed":         "ok",

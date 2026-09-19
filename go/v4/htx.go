@@ -6154,7 +6154,7 @@ func (this *Htx) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseOrders(orders, market, since, limit)
 	return nil
 }
-func (this *Htx) ParseOrderStatus(status any) *string {
+func (this *Htx) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"partial-filled":     "open",
 		"partial-canceled":   "canceled",
@@ -8511,7 +8511,7 @@ func (this *Htx) ParseTransaction(transaction any, optionalArgs ...any) any {
 		},
 	}
 }
-func (this *Htx) ParseTransactionStatus(status any) *string {
+func (this *Htx) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"unknown":         "failed",
 		"confirming":      "pending",

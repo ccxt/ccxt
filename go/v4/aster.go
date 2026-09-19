@@ -2913,7 +2913,7 @@ func (this *Aster) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ...
 	ch <- this.ParseTradingFee(response, market)
 	return nil
 }
-func (this *Aster) ParseOrderStatus(status any) *string {
+func (this *Aster) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"NEW":              "open",
 		"PARTIALLY_FILLED": "open",
@@ -2924,7 +2924,7 @@ func (this *Aster) ParseOrderStatus(status any) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Aster) ParseOrderType(typeVar any) *string {
+func (this *Aster) ParseOrderType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
 		"LIMIT":                "limit",
 		"MARKET":               "market",
@@ -5447,7 +5447,7 @@ func (this *Aster) ParseTransfer(transfer any, optionalArgs ...any) any {
 		"status":      this.ParseTransferStatus(this.SafeString(transfer, "status")),
 	}
 }
-func (this *Aster) ParseTransferStatus(status any) *string {
+func (this *Aster) ParseTransferStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"SUCCESS": "ok",
 	}

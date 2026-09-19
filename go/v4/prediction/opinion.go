@@ -1426,7 +1426,7 @@ func (this *Opinion) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
  * @param {string} status the raw opinion order statusEnum
  * @returns {string} a unified order status
  */
-func (this *Opinion) ParseOrderStatus(status any) *string {
+func (this *Opinion) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"Pending":  "open",
 		"Finished": "closed",

@@ -211,8 +211,8 @@ func (this *Hyperliquid) OutcomeToken(encoding any) any {
  * @param {string} description the raw outcome description string
  * @returns {object} a dict of the parsed key/value pairs
  */
-func (this *Hyperliquid) ParseOutcomeDescription(description any) any {
-	if (description == nil) || (ccxt.IsEqual(description, "")) {
+func (this *Hyperliquid) ParseOutcomeDescription(description *string) any {
+	if (description == nil) || (description != nil && *description == "") {
 		return map[string]any{}
 	}
 	var parts []string = ccxt.Split(description, "|")
@@ -2112,7 +2112,7 @@ func (this *Hyperliquid) ParsePredictionOrder(order any, optionalArgs ...any) an
 		"trades":             []any{},
 	}, resolvedMarket)
 }
-func (this *Hyperliquid) ParseOrderStatus(status any) any {
+func (this *Hyperliquid) ParseOrderStatus(status *string) any {
 	var statuses map[string]any = map[string]any{
 		"triggered":      "open",
 		"filled":         "closed",
@@ -2132,20 +2132,20 @@ func (this *Hyperliquid) ParseOrderStatus(status any) any {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Hyperliquid) ParseOrderType(status any) *string {
+func (this *Hyperliquid) ParseOrderType(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"stop limit":  "limit",
 		"stop market": "market",
 	}
 	var statusLower any = func() any {
-		if (status != nil) && (!ccxt.IsEqual(status, "")) {
+		if (status != nil) && (status == nil || *status != "") {
 			return ccxt.ToLower(status)
 		}
 		return nil
 	}()
 	return this.SafeString(statuses, statusLower, statusLower)
 }
-func (this *Hyperliquid) ParseTimeInForce(timeInForce any) *string {
+func (this *Hyperliquid) ParseTimeInForce(timeInForce *string) *string {
 	var statuses map[string]any = map[string]any{
 		"gtc": "GTC",
 		"ioc": "IOC",
@@ -2153,7 +2153,7 @@ func (this *Hyperliquid) ParseTimeInForce(timeInForce any) *string {
 		"alo": "PO",
 	}
 	var tifLower any = func() any {
-		if (timeInForce != nil) && (!ccxt.IsEqual(timeInForce, "")) {
+		if (timeInForce != nil) && (timeInForce == nil || *timeInForce != "") {
 			return ccxt.ToLower(timeInForce)
 		}
 		return nil

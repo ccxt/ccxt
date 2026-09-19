@@ -3628,7 +3628,7 @@ func (this *Nado) ParseOrder(order any, optionalArgs ...any) any {
 		"trades":              nil,
 	}, market)
 }
-func (this *Nado) ParseOrderTimeInForce(timeInForce any) *string {
+func (this *Nado) ParseOrderTimeInForce(timeInForce *string) *string {
 	var timeInForces map[string]any = map[string]any{
 		"default":   "GTC",
 		"ioc":       "IOC",

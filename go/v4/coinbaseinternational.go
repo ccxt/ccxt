@@ -1037,7 +1037,7 @@ func (this *Coinbaseinternational) ParseTransfer(transfer any, optionalArgs ...a
 		"status":      this.ParseTransferStatus(this.SafeString(transfer, "status")),
 	}
 }
-func (this *Coinbaseinternational) ParseTransferStatus(status any) *string {
+func (this *Coinbaseinternational) ParseTransferStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"FAILED":    "failed",
 		"PROCESSED": "ok",
@@ -1655,7 +1655,7 @@ func (this *Coinbaseinternational) fetchDepositsBody(ch chan any, optionalArgs .
 	ch <- retRes124615
 	return nil
 }
-func (this *Coinbaseinternational) ParseTransactionStatus(status any) *string {
+func (this *Coinbaseinternational) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"PROCESSED": "ok",
 		"NEW":       "pending",
@@ -2504,7 +2504,7 @@ func (this *Coinbaseinternational) ParseOrder(order any, optionalArgs ...any) an
 		"trades":             nil,
 	}, market)
 }
-func (this *Coinbaseinternational) ParseOrderStatus(status any) *string {
+func (this *Coinbaseinternational) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"WORKING":         "open",
 		"NEW":             "open",
@@ -2520,8 +2520,8 @@ func (this *Coinbaseinternational) ParseOrderStatus(status any) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Coinbaseinternational) ParseOrderType(typeVar any) *string {
-	if IsEqual(typeVar, "UNKNOWN_ORDER_TYPE") {
+func (this *Coinbaseinternational) ParseOrderType(typeVar *string) *string {
+	if typeVar != nil && *typeVar == "UNKNOWN_ORDER_TYPE" {
 		return nil
 	}
 	var types map[string]any = map[string]any{

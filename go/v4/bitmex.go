@@ -2041,7 +2041,7 @@ func (this *Bitmex) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...an
 	ch <- this.ParseTransactions(transactions, currency, since, limit)
 	return nil
 }
-func (this *Bitmex) ParseTransactionStatus(status any) *string {
+func (this *Bitmex) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"Confirmed": "pending",
 		"Canceled":  "canceled",
@@ -2495,7 +2495,7 @@ func (this *Bitmex) ParseTrade(trade any, optionalArgs ...any) any {
 		"fee":          fee,
 	}, market)
 }
-func (this *Bitmex) ParseOrderStatus(status any) *string {
+func (this *Bitmex) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"New":             "open",
 		"PartiallyFilled": "open",
@@ -2512,7 +2512,7 @@ func (this *Bitmex) ParseOrderStatus(status any) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bitmex) ParseTimeInForce(timeInForce any) *string {
+func (this *Bitmex) ParseTimeInForce(timeInForce *string) *string {
 	var timeInForces map[string]any = map[string]any{
 		"Day":               "Day",
 		"GoodTillCancel":    "GTC",
