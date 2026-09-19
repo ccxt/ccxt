@@ -839,7 +839,12 @@ func (this *BaseExchange) FilterBySinceLimit(array any, optionalArgs ...any) any
 	if sinceIsDefined {
 		result = []any{}
 		for i := 0; i < len(parsedArray); i++ {
-			var entry any = GetValue(parsedArray, i)
+			var entry any = func() any {
+				if i >= 0 && i < len(parsedArray) {
+					return DerefScalar(parsedArray[i])
+				}
+				return nil
+			}()
 			var value any = this.SafeValue(entry, key)
 			if (!IsEqual(value, nil)) && (!IsEqual(value, nil)) && (!IsEqual(value, 0)) && (IsGreaterThanOrEqual(value, since)) {
 				result = append(result, entry)
@@ -873,7 +878,12 @@ func (this *BaseExchange) FilterByValueSinceLimit(array any, field any, optional
 	if valueIsDefined || sinceIsDefined {
 		result = []any{}
 		for i := 0; i < len(parsedArray); i++ {
-			var entry any = GetValue(parsedArray, i)
+			var entry any = func() any {
+				if i >= 0 && i < len(parsedArray) {
+					return DerefScalar(parsedArray[i])
+				}
+				return nil
+			}()
 			// safeValue (not entry[field]) so a missing field is a non-match, not a
 			// KeyError in python/php — prediction structures key on outcome, not symbol
 			var entryFiledEqualValue bool = IsEqual(this.SafeValue(entry, field), value)
@@ -1287,7 +1297,12 @@ func (this *BaseExchange) ParseCurrencies(rawCurrencies any) any {
 	var arr []any = this.ToArray(rawCurrencies)
 	for i := 0; i < len(arr); i++ {
 
-		var parsed any = this.DerivedExchange.ParseCurrency(GetValue(arr, i))
+		var parsed any = this.DerivedExchange.ParseCurrency(func() any {
+			if i >= 0 && i < len(arr) {
+				return DerefScalar(arr[i])
+			}
+			return nil
+		}())
 		PanicOnError(parsed)
 		if IsEqual(parsed, nil) {
 			continue
@@ -1901,7 +1916,12 @@ func (this *BaseExchange) FeaturesGenerator() {
 	var subTypes []any = []any{"linear", "inverse"}
 	// atm only support basic methods, eg: 'createOrder', 'fetchOrder', 'fetchOrders', 'fetchMyTrades'
 	for i := 0; i < len(unifiedMarketTypes); i++ {
-		var marketType any = GetValue(unifiedMarketTypes, i)
+		var marketType any = func() any {
+			if i >= 0 && i < len(unifiedMarketTypes) {
+				return DerefScalar(unifiedMarketTypes[i])
+			}
+			return nil
+		}()
 		// if marketType is not filled for this exchange, don't add that in `features`
 		if !(InOp(initialFeatures, marketType)) {
 			AddElementToObject(this.Features, marketType, nil)
@@ -1911,7 +1931,12 @@ func (this *BaseExchange) FeaturesGenerator() {
 			} else {
 				AddElementToObject(this.Features, marketType, map[string]any{})
 				for j := 0; j < len(subTypes); j++ {
-					var subType any = GetValue(subTypes, j)
+					var subType any = func() any {
+						if j >= 0 && j < len(subTypes) {
+							return DerefScalar(subTypes[j])
+						}
+						return nil
+					}()
 					AddElementToObject(GetValue(this.Features, marketType), subType, this.FeaturesMapper(initialFeatures, marketType, subType))
 				}
 			}
@@ -2375,7 +2400,12 @@ func (this *BaseExchange) SetMarkets(markets any, optionalArgs ...any) any {
 	// we insert spot markets first
 	var marketValues []any = this.SortBy(this.ToArray(markets), "spot", true, true)
 	for i := 0; i < len(marketValues); i++ {
-		var value any = GetValue(marketValues, i)
+		var value any = func() any {
+			if i >= 0 && i < len(marketValues) {
+				return DerefScalar(marketValues[i])
+			}
+			return nil
+		}()
 		if InOp(this.Markets_by_id, GetValue(value, "id")) {
 			var marketsByIdArray any = GetValue(this.Markets_by_id, GetValue(value, "id"))
 			AppendToArray(&marketsByIdArray, value)
@@ -2424,7 +2454,12 @@ func (this *BaseExchange) SetMarkets(markets any, optionalArgs ...any) any {
 		var baseCurrencies []any = []any{}
 		var quoteCurrencies []any = []any{}
 		for i := 0; i < len(values); i++ {
-			var market any = GetValue(values, i)
+			var market any = func() any {
+				if i >= 0 && i < len(values) {
+					return DerefScalar(values[i])
+				}
+				return nil
+			}()
 			var defaultCurrencyPrecision any = func() any {
 				if IsEqual(this.PrecisionMode, DECIMAL_PLACES) {
 					return 8
@@ -3249,7 +3284,12 @@ func (this *BaseExchange) ReduceFeesByCurrency(fees any) any {
 	var result []any = []any{}
 	var feeValues []any = ObjectValues(reduced)
 	for i := 0; i < len(feeValues); i++ {
-		var reducedFeeValues []any = ObjectValues(GetValue(feeValues, i))
+		var reducedFeeValues []any = ObjectValues(func() any {
+			if i >= 0 && i < len(feeValues) {
+				return DerefScalar(feeValues[i])
+			}
+			return nil
+		}())
 		result = this.ArrayConcat(result, reducedFeeValues)
 	}
 	return result
@@ -4328,7 +4368,12 @@ func (this *BaseExchange) ParsePositions(positions any, optionalArgs ...any) any
 	var positionsArray []any = this.ToArray(positions)
 	var result []any = []any{}
 	for i := 0; i < len(positionsArray); i++ {
-		var position map[string]any = this.Extend(this.DerivedExchange.ParsePosition(GetValue(positionsArray, i)), params)
+		var position map[string]any = this.Extend(this.DerivedExchange.ParsePosition(func() any {
+			if i >= 0 && i < len(positionsArray) {
+				return DerefScalar(positionsArray[i])
+			}
+			return nil
+		}()), params)
 		result = append(result, position)
 	}
 	return this.FilterByArrayPositions(result, "symbol", symbols, false)
@@ -4350,7 +4395,12 @@ func (this *BaseExchange) ParseADLRanks(ranks any, optionalArgs ...any) any {
 	var ranksArray []any = this.ToArray(ranks)
 	var result []any = []any{}
 	for i := 0; i < len(ranksArray); i++ {
-		var rank map[string]any = this.Extend(this.DerivedExchange.ParseADLRank(GetValue(ranksArray, i)), params)
+		var rank map[string]any = this.Extend(this.DerivedExchange.ParseADLRank(func() any {
+			if i >= 0 && i < len(ranksArray) {
+				return DerefScalar(ranksArray[i])
+			}
+			return nil
+		}()), params)
 		result = append(result, rank)
 	}
 	return this.FilterByArrayPositions(result, "symbol", symbols, false)
@@ -4361,7 +4411,12 @@ func (this *BaseExchange) ParseAccounts(accounts any, optionalArgs ...any) any {
 	var accountsArray []any = this.ToArray(accounts)
 	var result []any = []any{}
 	for i := 0; i < len(accountsArray); i++ {
-		var account map[string]any = this.Extend(this.DerivedExchange.ParseAccount(GetValue(accountsArray, i)), params)
+		var account map[string]any = this.Extend(this.DerivedExchange.ParseAccount(func() any {
+			if i >= 0 && i < len(accountsArray) {
+				return DerefScalar(accountsArray[i])
+			}
+			return nil
+		}()), params)
 		result = append(result, account)
 	}
 	return result
@@ -4381,11 +4436,21 @@ func (this *BaseExchange) ParseTradesHelper(isWs any, trades any, optionalArgs .
 		var parsed any = nil
 		if EvalTruthy(isWs) {
 
-			parsed = this.DerivedExchange.ParseWsTrade(GetValue(tradesArray, i), market)
+			parsed = this.DerivedExchange.ParseWsTrade(func() any {
+				if i >= 0 && i < len(tradesArray) {
+					return DerefScalar(tradesArray[i])
+				}
+				return nil
+			}(), market)
 			PanicOnError(parsed)
 		} else {
 
-			parsed = this.DerivedExchange.ParseTrade(GetValue(tradesArray, i), market)
+			parsed = this.DerivedExchange.ParseTrade(func() any {
+				if i >= 0 && i < len(tradesArray) {
+					return DerefScalar(tradesArray[i])
+				}
+				return nil
+			}(), market)
 			PanicOnError(parsed)
 		}
 		var trade map[string]any = this.Extend(parsed, params)
@@ -4429,7 +4494,12 @@ func (this *BaseExchange) ParseTransactions(transactions any, optionalArgs ...an
 	var transactionsArray []any = this.ToArray(transactions)
 	var result []any = []any{}
 	for i := 0; i < len(transactionsArray); i++ {
-		var transaction map[string]any = this.Extend(this.DerivedExchange.ParseTransaction(GetValue(transactionsArray, i), currency), params)
+		var transaction map[string]any = this.Extend(this.DerivedExchange.ParseTransaction(func() any {
+			if i >= 0 && i < len(transactionsArray) {
+				return DerefScalar(transactionsArray[i])
+			}
+			return nil
+		}(), currency), params)
 		result = append(result, transaction)
 	}
 	result = this.SortBy(result, "timestamp")
@@ -4453,7 +4523,12 @@ func (this *BaseExchange) ParseTransfers(transfers any, optionalArgs ...any) any
 	var transfersArray []any = this.ToArray(transfers)
 	var result []any = []any{}
 	for i := 0; i < len(transfersArray); i++ {
-		var transfer map[string]any = this.Extend(this.DerivedExchange.ParseTransfer(GetValue(transfersArray, i), currency), params)
+		var transfer map[string]any = this.Extend(this.DerivedExchange.ParseTransfer(func() any {
+			if i >= 0 && i < len(transfersArray) {
+				return DerefScalar(transfersArray[i])
+			}
+			return nil
+		}(), currency), params)
 		result = append(result, transfer)
 	}
 	result = this.SortBy(result, "timestamp")
@@ -4478,7 +4553,12 @@ func (this *BaseExchange) ParseLedger(data any, optionalArgs ...any) any {
 	var arrayData []any = this.ToArray(data)
 	for i := 0; i < len(arrayData); i++ {
 
-		var itemOrItems any = this.DerivedExchange.ParseLedgerEntry(GetValue(arrayData, i), currency)
+		var itemOrItems any = this.DerivedExchange.ParseLedgerEntry(func() any {
+			if i >= 0 && i < len(arrayData) {
+				return DerefScalar(arrayData[i])
+			}
+			return nil
+		}(), currency)
 		PanicOnError(itemOrItems)
 		if IsArray(itemOrItems) {
 			for j := 0; j < GetArrayLength(itemOrItems); j++ {
@@ -5579,7 +5659,12 @@ func (this *BaseExchange) HandleSubTypeAndParams(methodName any, optionalArgs ..
 		// if it was not defined in market object
 		if subType == nil {
 			var values []any = this.HandleOptionAndParams(map[string]any{}, methodName, "subType", defaultValue) // no need to re-test params here
-			subType = GetValue(values, 0)
+			subType = func() any {
+				if 0 >= 0 && 0 < len(values) {
+					return DerefScalar(values[0])
+				}
+				return nil
+			}()
 		}
 	}
 	return []any{subType, params}
@@ -6304,7 +6389,12 @@ func (this *BaseExchange) MergeBalanceAccount(result any, code any, account any)
 	}
 	var fields []any = []any{"free", "used", "total", "debt"}
 	for i := 0; i < len(fields); i++ {
-		var field any = GetValue(fields, i)
+		var field any = func() any {
+			if i >= 0 && i < len(fields) {
+				return DerefScalar(fields[i])
+			}
+			return nil
+		}()
 		var current *string = this.SafeString(GetValue(result, code), field)
 		var incoming *string = this.SafeString(account, field)
 		if current == nil {
@@ -6377,7 +6467,12 @@ func (this *BaseExchange) IsLeveragedCurrency(currencyCode any, optionalArgs ...
 	_ = existingCurrencies
 	var leverageSuffixes []any = []any{"2L", "2S", "3L", "3S", "4L", "4S", "5L", "5S", "UP", "DOWN", "BULL", "BEAR"}
 	for i := 0; i < len(leverageSuffixes); i++ {
-		var leverageSuffix any = GetValue(leverageSuffixes, i)
+		var leverageSuffix any = func() any {
+			if i >= 0 && i < len(leverageSuffixes) {
+				return DerefScalar(leverageSuffixes[i])
+			}
+			return nil
+		}()
 		var endsWithSuffix bool = EndsWith(currencyCode, leverageSuffix)
 		if endsWithSuffix {
 			if !EvalTruthy(checkBaseCoin) {
@@ -8489,7 +8584,12 @@ func (this *BaseExchange) ParseConversions(conversions any, optionalArgs ...any)
 	var fromCurrency any = nil
 	var toCurrency any = nil
 	for i := 0; i < len(conversionsArray); i++ {
-		var entry any = GetValue(conversionsArray, i)
+		var entry any = func() any {
+			if i >= 0 && i < len(conversionsArray) {
+				return DerefScalar(conversionsArray[i])
+			}
+			return nil
+		}()
 		var fromId any = func() any {
 			if fromCurrencyKey == nil {
 				return nil
@@ -8868,7 +8968,12 @@ func (this *BaseExchange) CleanCache(subscription any) {
 			this.Positions = nil
 			var clients []any = ObjectValues(this.Clients)
 			for i := 0; i < len(clients); i++ {
-				var client any = GetValue(clients, i)
+				var client any = func() any {
+					if i >= 0 && i < len(clients) {
+						return DerefScalar(clients[i])
+					}
+					return nil
+				}()
 				var futures any = (client.(Client)).Futures
 				if (!IsEqual(futures, nil)) && (InOp(futures, "fetchPositionsSnapshot")) {
 					Remove(futures, "fetchPositionsSnapshot")

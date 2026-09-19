@@ -741,7 +741,12 @@ func (this *Bitget) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	var instType any = nil
 	var messageHash any = nil
 	var values []any = this.HandleOptionAndParams(params, "watchOHLCV", "uta", false)
-	var uta any = ccxt.GetValue(values, 0)
+	var uta any = func() any {
+		if 0 >= 0 && 0 < len(values) {
+			return ccxt.DerefScalar(values[0])
+		}
+		return nil
+	}()
 	instTypeparamsVariable := this.GetInstType("watchOHLCV", market, uta, params)
 	instType = ccxt.GetValue(instTypeparamsVariable, 0)
 	params = ccxt.GetValue(instTypeparamsVariable, 1)
@@ -1433,7 +1438,12 @@ func (this *Bitget) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	var values []any = this.HandleOptionAndParams(params, "watchTrades", "uta", false)
-	var uta any = ccxt.GetValue(values, 0)
+	var uta any = func() any {
+		if 0 >= 0 && 0 < len(values) {
+			return ccxt.DerefScalar(values[0])
+		}
+		return nil
+	}()
 	var channelTopic string = func() string {
 		if ccxt.EvalTruthy(uta) {
 			return "publicTrade"

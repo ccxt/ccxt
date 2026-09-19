@@ -4989,7 +4989,12 @@ func (this *Binance) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var fetchMargins *bool = this.SafeBool(this.Options, "fetchMargins", false)
 	for i := 0; i < len(fetchMarkets); i++ {
-		var marketType any = GetValue(fetchMarkets, i)
+		var marketType any = func() any {
+			if i >= 0 && i < len(fetchMarkets) {
+				return DerefScalar(fetchMarkets[i])
+			}
+			return nil
+		}()
 		if IsEqual(marketType, "spot") {
 			promisesRaw = append(promisesRaw, this.PublicGetExchangeInfo(params))
 			if (fetchMargins != nil && *fetchMargins == true) && this.CheckRequiredCredentials(false) && (isDemoEnv != true) {
@@ -5280,7 +5285,12 @@ func (this *Binance) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var result []any = []any{}
 	for i := 0; i < len(markets); i++ {
-		result = append(result, this.ParseMarket(GetValue(markets, i)))
+		result = append(result, this.ParseMarket(func() any {
+			if i >= 0 && i < len(markets) {
+				return DerefScalar(markets[i])
+			}
+			return nil
+		}()))
 	}
 
 	ch <- result
@@ -12840,7 +12850,12 @@ func (this *Binance) fetchTransactionFeesBody(ch chan any, optionalArgs ...any) 
 	var withdrawFees map[string]any = map[string]any{}
 	var coins []any = this.ToArray(response)
 	for i := 0; i < len(coins); i++ {
-		var entry any = GetValue(coins, i)
+		var entry any = func() any {
+			if i >= 0 && i < len(coins) {
+				return DerefScalar(coins[i])
+			}
+			return nil
+		}()
 		var currencyId *string = this.SafeString(entry, "coin")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var networkList []any = SafeListTyped(entry, "networkList")
@@ -13337,7 +13352,12 @@ func (this *Binance) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 		}
 		var fees []any = this.ToArray(response)
 		for i := 0; i < len(fees); i++ {
-			var fee any = this.ParseTradingFee(GetValue(fees, i))
+			var fee any = this.ParseTradingFee(func() any {
+				if i >= 0 && i < len(fees) {
+					return DerefScalar(fees[i])
+				}
+				return nil
+			}())
 			var symbol any = GetValue(fee, "symbol")
 			if symbol != nil {
 				AddElementToObject(result, symbol, fee)
@@ -14423,7 +14443,12 @@ func (this *Binance) loadLeverageBracketsBody(ch chan any, optionalArgs ...any) 
 		}
 		var entries []any = this.ToArray(response)
 		for i := 0; i < len(entries); i++ {
-			var entry any = GetValue(entries, i)
+			var entry any = func() any {
+				if i >= 0 && i < len(entries) {
+					return DerefScalar(entries[i])
+				}
+				return nil
+			}()
 			var marketId *string = this.SafeString(entry, "symbol")
 			var symbol *string = this.SafeSymbol(marketId, nil, nil, "contract")
 			var brackets []any = SafeListTyped(entry, "brackets")
@@ -14740,7 +14765,12 @@ func (this *Binance) fetchOptionPositionsBody(ch chan any, optionalArgs ...any) 
 	var result []any = []any{}
 	var positions []any = this.ToArray(response)
 	for i := 0; i < len(positions); i++ {
-		result = append(result, this.ParseOptionPosition(GetValue(positions, i), market))
+		result = append(result, this.ParseOptionPosition(func() any {
+			if i >= 0 && i < len(positions) {
+				return DerefScalar(positions[i])
+			}
+			return nil
+		}(), market))
 	}
 
 	ch <- this.FilterByArrayPositions(result, "symbol", symbols, false)
@@ -15148,7 +15178,12 @@ func (this *Binance) fetchPositionsRiskBody(ch chan any, optionalArgs ...any) an
 	}
 	var positions []any = this.ToArray(response)
 	for i := 0; i < len(positions); i++ {
-		var rawPosition any = GetValue(positions, i)
+		var rawPosition any = func() any {
+			if i >= 0 && i < len(positions) {
+				return DerefScalar(positions[i])
+			}
+			return nil
+		}()
 		var entryPriceString *string = this.SafeString(rawPosition, "entryPrice")
 		if Precise.StringGt(entryPriceString, "0") {
 			result = append(result, this.ParsePositionRisk(rawPosition))
@@ -18717,7 +18752,12 @@ func (this *Binance) fetchConvertCurrenciesBody(ch chan any, optionalArgs ...any
 	var result map[string]any = map[string]any{}
 	var assets []any = this.ToArray(response)
 	for i := 0; i < len(assets); i++ {
-		var entry any = GetValue(assets, i)
+		var entry any = func() any {
+			if i >= 0 && i < len(assets) {
+				return DerefScalar(assets[i])
+			}
+			return nil
+		}()
 		var id *string = this.SafeString(entry, "asset")
 		var code *string = this.SafeCurrencyCode(id)
 		if code != nil {

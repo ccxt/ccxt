@@ -3779,7 +3779,12 @@ func (this *Bitget) fetchDefaultMarketsBody(ch chan any, params any) any {
 			var subTypes []any = []any{"USDT-FUTURES", "COIN-FUTURES", "USDC-FUTURES", "SUSDT-FUTURES", "SCOIN-FUTURES", "SUSDC-FUTURES"}
 			for j := 0; j < len(subTypes); j++ {
 				promises = append(promises, this.PublicMixGetV2MixMarketContracts(this.Extend(params, map[string]any{
-					"productType": GetValue(subTypes, j),
+					"productType": func() any {
+						if j >= 0 && j < len(subTypes) {
+							return DerefScalar(subTypes[j])
+						}
+						return nil
+					}(),
 				})))
 			}
 		} else if IsEqual(typeVar, "spot") {
@@ -3886,7 +3891,12 @@ func (this *Bitget) fetchDefaultMarketsBody(ch chan any, params any) any {
 	//
 	var result []any = []any{}
 	for i := 0; i < len(markets); i++ {
-		var market any = GetValue(markets, i)
+		var market any = func() any {
+			if i >= 0 && i < len(markets) {
+				return DerefScalar(markets[i])
+			}
+			return nil
+		}()
 		var marketId *string = this.SafeString(market, "symbol")
 		var quoteId *string = this.SafeString(market, "quoteCoin")
 		var baseId *string = this.SafeString(market, "baseCoin")
@@ -4066,7 +4076,12 @@ func (this *Bitget) fetchUtaMarketsBody(ch chan any, params any) any {
 	var promises []any = []any{}
 	for i := 0; i < len(subTypes); i++ {
 		var req map[string]any = this.Extend(params, map[string]any{
-			"category": GetValue(subTypes, i),
+			"category": func() any {
+				if i >= 0 && i < len(subTypes) {
+					return DerefScalar(subTypes[i])
+				}
+				return nil
+			}(),
 		})
 		promises = append(promises, this.PublicUtaGetV3MarketInstruments(req))
 	}
@@ -4170,7 +4185,12 @@ func (this *Bitget) fetchUtaMarketsBody(ch chan any, params any) any {
 	//
 	var result []any = []any{}
 	for i := 0; i < len(markets); i++ {
-		var market any = GetValue(markets, i)
+		var market any = func() any {
+			if i >= 0 && i < len(markets) {
+				return DerefScalar(markets[i])
+			}
+			return nil
+		}()
 		var category *string = this.SafeString(market, "category")
 		var marketId *string = this.SafeString(market, "symbol")
 		var quoteId *string = this.SafeString(market, "quoteCoin")
@@ -7578,7 +7598,12 @@ func (this *Bitget) ParseOrder(order any, optionalArgs ...any) any {
 			var feeValues []any = ObjectValues(parsedFeeDetail)
 			var feeObject any = nil
 			for i := 0; i < len(feeValues); i++ {
-				var feeValue any = GetValue(feeValues, i)
+				var feeValue any = func() any {
+					if i >= 0 && i < len(feeValues) {
+						return DerefScalar(feeValues[i])
+					}
+					return nil
+				}()
 				if !IsEqual(this.SafeValue(feeValue, "feeCoinCode"), nil) {
 					feeObject = feeValue
 					break
