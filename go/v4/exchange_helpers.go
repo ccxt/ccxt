@@ -189,6 +189,24 @@ func GetValue(collection any, key any) any {
 	return derefScalar(getValue(collection, key))
 }
 
+// MapTyped converts a boxed dictionary into a plain map: a map passes through, a
+// *sync.Map is converted, anything else (including nil) reads as a nil map, exactly
+// what the boxed value answered through GetValue/ObjectKeys/InOp. The printer emits it
+// for a local whose TypeScript type proves the box holds the market dictionary.
+func MapTyped(v any) map[string]any {
+	v = derefScalar(v)
+	if v == nil {
+		return nil
+	}
+	if asMap, ok := v.(map[string]any); ok {
+		return asMap
+	}
+	if asSyncMap, ok := v.(*sync.Map); ok {
+		return SafeMapToMap(asSyncMap)
+	}
+	return nil
+}
+
 func getValue(collection any, key any) any {
 	collection = derefScalar(collection)
 	key = derefScalar(key)

@@ -1990,9 +1990,9 @@ func (this *BaseExchange) FeatureValue(symbol any, optionalArgs ...any) any {
 	defaultValue := GetArg(optionalArgs, 2, nil)
 	_ = defaultValue
 
-	var market any = this.DerivedExchange.Market(symbol)
+	var market map[string]any = MapTyped(this.DerivedExchange.Market(symbol))
 	PanicOnError(market)
-	return this.FeatureValueByType(GetValue(market, "type"), GetValue(market, "subType"), methodName, paramName, defaultValue)
+	return this.FeatureValueByType(market["type"], market["subType"], methodName, paramName, defaultValue)
 }
 func (this *BaseExchange) FeatureValueByType(marketType any, subType any, optionalArgs ...any) any {
 	/**
@@ -4525,7 +4525,7 @@ func (this *BaseExchange) Symbol(symbol any) any {
 		panic(ArgumentsRequired(this.Id + " symbol() requires a symbol argument"))
 	}
 
-	var market any = this.DerivedExchange.Market(symbol)
+	var market map[string]any = MapTyped(this.DerivedExchange.Market(symbol))
 	PanicOnError(market)
 	return this.SafeString(market, "symbol", symbol)
 }
@@ -5812,9 +5812,9 @@ func (this *BaseExchange) fetchPositionADLRankBody(ch chan any, symbol any, opti
 		retRes701712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes701712)
 
-		var market any = this.DerivedExchange.Market(symbol)
+		var market map[string]any = MapTyped(this.DerivedExchange.Market(symbol))
 		PanicOnError(market)
-		symbol = GetValue(market, "symbol")
+		symbol = market["symbol"]
 
 		ranks := <-this.DerivedExchange.FetchPositionsADLRankAsync([]any{symbol}, params)
 		PanicOnError(ranks)
@@ -6406,20 +6406,20 @@ func (this *BaseExchange) CostToPrecision(symbol any, cost any) any {
 		return nil
 	}
 
-	var market any = this.DerivedExchange.Market(symbol)
+	var market map[string]any = MapTyped(this.DerivedExchange.Market(symbol))
 	PanicOnError(market)
-	return this.DecimalToPrecision(cost, TRUNCATE, this.SafeString2(GetValue(market, "precision"), "cost", "price"), this.PrecisionMode, this.PaddingMode)
+	return this.DecimalToPrecision(cost, TRUNCATE, this.SafeString2(market["precision"], "cost", "price"), this.PrecisionMode, this.PaddingMode)
 }
 func (this *BaseExchange) PriceToPrecision(symbol any, price any) any {
 	if IsEqual(price, nil) {
 		return nil
 	}
 
-	var market any = this.DerivedExchange.Market(symbol)
+	var market map[string]any = MapTyped(this.DerivedExchange.Market(symbol))
 	PanicOnError(market)
-	var result string = this.DecimalToPrecision(price, ROUND, GetValue(GetValue(market, "precision"), "price"), this.PrecisionMode, this.PaddingMode)
+	var result string = this.DecimalToPrecision(price, ROUND, GetValue(market["precision"], "price"), this.PrecisionMode, this.PaddingMode)
 	if result == "0" {
-		panic(InvalidOrder(Add(Add(Add(this.Id+" price of ", GetValue(market, "symbol")), " must be greater than minimum price precision of "), this.NumberToString(GetValue(GetValue(market, "precision"), "price")))))
+		panic(InvalidOrder(Add(Add(Add(this.Id+" price of ", market["symbol"]), " must be greater than minimum price precision of "), this.NumberToString(GetValue(market["precision"], "price")))))
 	}
 	return result
 }
@@ -6428,11 +6428,11 @@ func (this *BaseExchange) AmountToPrecision(symbol any, amount any) any {
 		return nil
 	}
 
-	var market any = this.DerivedExchange.Market(symbol)
+	var market map[string]any = MapTyped(this.DerivedExchange.Market(symbol))
 	PanicOnError(market)
-	var result string = this.DecimalToPrecision(amount, TRUNCATE, GetValue(GetValue(market, "precision"), "amount"), this.PrecisionMode, this.PaddingMode)
+	var result string = this.DecimalToPrecision(amount, TRUNCATE, GetValue(market["precision"], "amount"), this.PrecisionMode, this.PaddingMode)
 	if result == "0" {
-		panic(InvalidOrder(Add(Add(Add(this.Id+" amount of ", GetValue(market, "symbol")), " must be greater than minimum amount precision of "), this.NumberToString(GetValue(GetValue(market, "precision"), "amount")))))
+		panic(InvalidOrder(Add(Add(Add(this.Id+" amount of ", market["symbol"]), " must be greater than minimum amount precision of "), this.NumberToString(GetValue(market["precision"], "amount")))))
 	}
 	return result
 }
@@ -6441,9 +6441,9 @@ func (this *BaseExchange) FeeToPrecision(symbol any, fee any) any {
 		return nil
 	}
 
-	var market any = this.DerivedExchange.Market(symbol)
+	var market map[string]any = MapTyped(this.DerivedExchange.Market(symbol))
 	PanicOnError(market)
-	return this.DecimalToPrecision(fee, ROUND, GetValue(GetValue(market, "precision"), "price"), this.PrecisionMode, this.PaddingMode)
+	return this.DecimalToPrecision(fee, ROUND, GetValue(market["precision"], "price"), this.PrecisionMode, this.PaddingMode)
 }
 func (this *BaseExchange) CurrencyToPrecision(code any, fee any, optionalArgs ...any) any {
 	networkCode := GetArg(optionalArgs, 0, nil)
@@ -7333,9 +7333,9 @@ func (this *BaseExchange) ConvertTypeToAccount(account any) any {
 	var marketsById any = this.Markets_by_id
 	if ((!IsEqual(markets, nil)) && (InOp(markets, account))) || ((!IsEqual(marketsById, nil)) && (InOp(marketsById, account))) {
 
-		var market any = this.DerivedExchange.Market(account)
+		var market map[string]any = MapTyped(this.DerivedExchange.Market(account))
 		PanicOnError(market)
-		return GetValue(market, "id")
+		return market["id"]
 	} else {
 		return account
 	}
@@ -9141,9 +9141,9 @@ func (this *Exchange) fetchMarkPriceBody(ch chan any, symbol any, optionalArgs .
 		retRes927712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes927712)
 
-		var market any = this.DerivedExchange.Market(symbol)
+		var market map[string]any = MapTyped(this.DerivedExchange.Market(symbol))
 		PanicOnError(market)
-		symbol = GetValue(market, "symbol")
+		symbol = market["symbol"]
 
 		tickers := (<-this.FetchMarkPricesAsync([]any{symbol}, params))
 		PanicOnError(tickers)
@@ -10019,9 +10019,9 @@ func (this *Exchange) fetchTickerWsBody(ch chan any, symbol any, optionalArgs ..
 		retRes965312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes965312)
 
-		var market any = this.DerivedExchange.Market(symbol)
+		var market map[string]any = MapTyped(this.DerivedExchange.Market(symbol))
 		PanicOnError(market)
-		symbol = GetValue(market, "symbol")
+		symbol = market["symbol"]
 
 		tickers := <-this.DerivedExchange.(IFetchTickersWs).FetchTickersWsAsync([]any{symbol}, params)
 		PanicOnError(tickers)
@@ -10404,9 +10404,9 @@ func (this *Exchange) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
 		retRes980212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes980212)
 
-		var market any = this.DerivedExchange.Market(symbol)
+		var market map[string]any = MapTyped(this.DerivedExchange.Market(symbol))
 		PanicOnError(market)
-		symbol = GetValue(market, "symbol")
+		symbol = market["symbol"]
 
 		tickers := <-this.DerivedExchange.(IFetchTickers).FetchTickersAsync([]any{symbol}, params)
 		PanicOnError(tickers)

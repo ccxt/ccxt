@@ -6654,7 +6654,7 @@ func (this *Bitget) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 		var entry any = GetValue(data, i)
 		var marketId *string = this.SafeString(entry, "symbol")
 		var symbol *string = this.SafeSymbol(marketId, nil, nil, marketType)
-		var market any = this.Market(symbol)
+		var market map[string]any = MapTyped(this.Market(symbol))
 		var fee any = this.ParseTradingFee(entry, market)
 		AddElementToObject(result, symbol, fee)
 	}
@@ -7842,7 +7842,7 @@ func (this *Bitget) CreateUtaOrderRequest(symbol any, typeVar any, side any, amo
 	if side == nil {
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var productType any = nil
 	productTypeparamsVariable := this.HandleProductTypeAndParams(market, params)
 	productType = GetValue(productTypeparamsVariable, 0)
@@ -7858,7 +7858,7 @@ func (this *Bitget) CreateUtaOrderRequest(symbol any, typeVar any, side any, amo
 	}
 	var request map[string]any = map[string]any{
 		"category": productType,
-		"symbol":   GetValue(market, "id"),
+		"symbol":   market["id"],
 		"qty":      this.AmountToPrecision(symbol, amount),
 		"side":     side,
 	}
@@ -7991,7 +7991,7 @@ func (this *Bitget) CreateOrderRequest(symbol any, typeVar any, side any, amount
 	if side == nil {
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var marketType any = nil
 	var marginMode any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("createOrder", market, params)
@@ -8001,7 +8001,7 @@ func (this *Bitget) CreateOrderRequest(symbol any, typeVar any, side any, amount
 	marginMode = GetValue(marginModeparamsVariable, 0)
 	params = GetValue(marginModeparamsVariable, 1)
 	var request map[string]any = map[string]any{
-		"symbol":    GetValue(market, "id"),
+		"symbol":    market["id"],
 		"orderType": typeVar,
 	}
 	var hedged any = nil
@@ -8071,7 +8071,7 @@ func (this *Bitget) CreateOrderRequest(symbol any, typeVar any, side any, amount
 	}
 	params = this.Omit(params, []any{"stopPrice", "triggerType", "stopLossPrice", "takeProfitPrice", "stopLoss", "takeProfit", "postOnly", "reduceOnly", "clientOrderId", "trailingPercent", "trailingTriggerPrice"})
 	if (IsEqual(marketType, "swap")) || (IsEqual(marketType, "future")) {
-		request["marginCoin"] = GetValue(market, "settleId")
+		request["marginCoin"] = market["settleId"]
 		request["size"] = this.AmountToPrecision(symbol, amount)
 		var productType any = nil
 		productTypeparamsVariable := this.HandleProductTypeAndParams(market, params)
@@ -8311,7 +8311,7 @@ func (this *Bitget) createUtaOrdersBody(ch chan any, orders any, optionalArgs ..
 		var orderRequest any = this.CreateUtaOrderRequest(marketId, typeVar, side, amount, price, orderParams)
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 
 	response := (<-this.PrivateUtaPostV3TradePlaceBatch(ordersRequests))
 	PanicOnError(response)
@@ -8973,7 +8973,7 @@ func (this *Bitget) cancelUtaOrdersBody(ch chan any, ids any, optionalArgs ...an
 		retRes659612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes659612)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var productType any = nil
 	productTypeparamsVariable := this.HandleProductTypeAndParams(market, params)
 	productType = GetValue(productTypeparamsVariable, 0)
@@ -8983,7 +8983,7 @@ func (this *Bitget) cancelUtaOrdersBody(ch chan any, ids any, optionalArgs ...an
 		var individualId any = GetValue(ids, i)
 		var order map[string]any = map[string]any{
 			"orderId":  individualId,
-			"symbol":   GetValue(market, "id"),
+			"symbol":   market["id"],
 			"category": productType,
 		}
 		requestList = append(requestList, order)
@@ -11139,13 +11139,13 @@ func (this *Bitget) fetchPositionBody(ch chan any, symbol any, optionalArgs ...a
 		retRes839912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes839912)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var productType any = nil
 	productTypeparamsVariable := this.HandleProductTypeAndParams(market, params)
 	productType = GetValue(productTypeparamsVariable, 0)
 	params = GetValue(productTypeparamsVariable, 1)
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	var response any = nil
 	var uta any = nil
@@ -11199,7 +11199,7 @@ func (this *Bitget) fetchPositionBody(ch chan any, symbol any, optionalArgs ...a
 		var data map[string]any = SafeMapTyped(response, "data")
 		result = this.SafeList(data, "list", []any{})
 	} else {
-		request["marginCoin"] = GetValue(market, "settleId")
+		request["marginCoin"] = market["settleId"]
 		request["productType"] = productType
 
 		response = (<-this.PrivateMixGetV2MixPositionSinglePosition(this.Extend(request, params)))
@@ -11733,9 +11733,9 @@ func (this *Bitget) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 		retRes893212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes893212)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	var productType any = nil
 	var uta any = nil
@@ -11824,7 +11824,7 @@ func (this *Bitget) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	}
 	var sorted []any = this.SortBy(rates, "timestamp")
 
-	ch <- this.FilterBySymbolSinceLimit(sorted, GetValue(market, "symbol"), since, limit)
+	ch <- this.FilterBySymbolSinceLimit(sorted, market["symbol"], since, limit)
 	return nil
 }
 
@@ -12318,14 +12318,14 @@ func (this *Bitget) modifyMarginHelperBody(ch chan any, symbol any, amount any, 
 		PanicOnError(retRes947012)
 	}
 	var holdSide *string = this.SafeString(params, "holdSide")
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var productType any = nil
 	productTypeparamsVariable := this.HandleProductTypeAndParams(market, params)
 	productType = GetValue(productTypeparamsVariable, 0)
 	params = GetValue(productTypeparamsVariable, 1)
 	var request map[string]any = map[string]any{
-		"symbol":      GetValue(market, "id"),
-		"marginCoin":  GetValue(market, "settleId"),
+		"symbol":      market["id"],
+		"marginCoin":  market["settleId"],
 		"amount":      this.AmountToPrecision(symbol, amount),
 		"holdSide":    holdSide,
 		"productType": productType,
@@ -12472,14 +12472,14 @@ func (this *Bitget) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...a
 		retRes957612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes957612)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var productType any = nil
 	productTypeparamsVariable := this.HandleProductTypeAndParams(market, params)
 	productType = GetValue(productTypeparamsVariable, 0)
 	params = GetValue(productTypeparamsVariable, 1)
 	var request map[string]any = map[string]any{
-		"symbol":      GetValue(market, "id"),
-		"marginCoin":  GetValue(market, "settleId"),
+		"symbol":      market["id"],
+		"marginCoin":  market["settleId"],
 		"productType": productType,
 	}
 
@@ -12582,13 +12582,13 @@ func (this *Bitget) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
 		retRes965112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes965112)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var productType any = nil
 	productTypeparamsVariable := this.HandleProductTypeAndParams(market, params)
 	productType = GetValue(productTypeparamsVariable, 0)
 	params = GetValue(productTypeparamsVariable, 1)
 	var request map[string]any = map[string]any{
-		"symbol":   GetValue(market, "id"),
+		"symbol":   market["id"],
 		"leverage": this.NumberToString(leverage),
 	}
 	var uta any = nil
@@ -12606,13 +12606,13 @@ func (this *Bitget) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
 				productType = "MARGIN"
 			}
 		}
-		request["coin"] = GetValue(market, "settleId")
+		request["coin"] = market["settleId"]
 		request["category"] = productType
 
 		response = (<-this.PrivateUtaPostV3AccountSetLeverage(this.Extend(request, params)))
 		PanicOnError(response)
 	} else {
-		request["marginCoin"] = GetValue(market, "settleId")
+		request["marginCoin"] = market["settleId"]
 		request["productType"] = productType
 
 		response = (<-this.PrivateMixPostV2MixAccountSetLeverage(this.Extend(request, params)))
@@ -12660,14 +12660,14 @@ func (this *Bitget) setMarginModeBody(ch chan any, marginMode any, optionalArgs 
 		retRes972712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes972712)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var productType any = nil
 	productTypeparamsVariable := this.HandleProductTypeAndParams(market, params)
 	productType = GetValue(productTypeparamsVariable, 0)
 	params = GetValue(productTypeparamsVariable, 1)
 	var request map[string]any = map[string]any{
-		"symbol":      GetValue(market, "id"),
-		"marginCoin":  GetValue(market, "settleId"),
+		"symbol":      market["id"],
+		"marginCoin":  market["settleId"],
 		"marginMode":  marginMode,
 		"productType": productType,
 	}
@@ -13285,11 +13285,11 @@ func (this *Bitget) borrowIsolatedMarginBody(ch chan any, symbol any, code any, 
 		PanicOnError(retRes1025112)
 	}
 	var currency map[string]any = this.Currency(code).(map[string]any)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"coin":         currency["id"],
 		"borrowAmount": this.CurrencyToPrecision(code, amount),
-		"symbol":       GetValue(market, "id"),
+		"symbol":       market["id"],
 	}
 
 	response := (<-this.PrivateMarginPostV2MarginIsolatedAccountBorrow(this.Extend(request, params)))
@@ -13340,11 +13340,11 @@ func (this *Bitget) repayIsolatedMarginBody(ch chan any, symbol any, code any, a
 		PanicOnError(retRes1029112)
 	}
 	var currency map[string]any = this.Currency(code).(map[string]any)
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"coin":        currency["id"],
 		"repayAmount": this.CurrencyToPrecision(code, amount),
-		"symbol":      GetValue(market, "id"),
+		"symbol":      market["id"],
 	}
 
 	response := (<-this.PrivateMarginPostV2MarginIsolatedAccountRepay(this.Extend(request, params)))
@@ -13700,9 +13700,9 @@ func (this *Bitget) fetchIsolatedBorrowRateBody(ch chan any, symbol any, optiona
 		retRes1058312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes1058312)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 
 	response := (<-this.PrivateMarginGetV2MarginIsolatedInterestRateAndLimit(this.Extend(request, params)))
@@ -14170,9 +14170,9 @@ func (this *Bitget) closePositionBody(ch chan any, symbol any, optionalArgs ...a
 		retRes1097612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes1097612)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	var productType any = nil
 	var uta any = nil
@@ -14285,14 +14285,14 @@ func (this *Bitget) fetchMarginModeBody(ch chan any, symbol any, optionalArgs ..
 		retRes1111312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes1111312)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var productType any = nil
 	productTypeparamsVariable := this.HandleProductTypeAndParams(market, params)
 	productType = GetValue(productTypeparamsVariable, 0)
 	params = GetValue(productTypeparamsVariable, 1)
 	var request map[string]any = map[string]any{
-		"symbol":      GetValue(market, "id"),
-		"marginCoin":  GetValue(market, "settleId"),
+		"symbol":      market["id"],
+		"marginCoin":  market["settleId"],
 		"productType": productType,
 	}
 
@@ -14812,13 +14812,13 @@ func (this *Bitget) fetchFundingIntervalBody(ch chan any, symbol any, optionalAr
 		retRes1157612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes1157612)
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = MapTyped(this.Market(symbol))
 	var productType any = nil
 	productTypeparamsVariable := this.HandleProductTypeAndParams(market, params)
 	productType = GetValue(productTypeparamsVariable, 0)
 	params = GetValue(productTypeparamsVariable, 1)
 	var request map[string]any = map[string]any{
-		"symbol": GetValue(market, "id"),
+		"symbol": market["id"],
 	}
 	var response any = nil
 	var uta any = nil

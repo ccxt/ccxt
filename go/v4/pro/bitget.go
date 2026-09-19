@@ -162,8 +162,8 @@ func (this *Bitget) watchTickerBody(ch chan any, symbol any, optionalArgs ...any
 		retRes13912 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes13912)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
 	var messageHash any = ccxt.Add("ticker:", symbol)
 	var instType any = nil
 	var uta any = nil
@@ -189,7 +189,7 @@ func (this *Bitget) watchTickerBody(ch chan any, symbol any, optionalArgs ...any
 		return "instId"
 	}()
 	args[topicOrChannel] = "ticker"
-	args[symbolOrInstId] = ccxt.GetValue(market, "id")
+	args[symbolOrInstId] = market["id"]
 
 	retRes15515 := (<-this.WatchPublicAsync(uta, messageHash, args, params))
 	ccxt.PanicOnError(retRes15515)
@@ -257,7 +257,7 @@ func (this *Bitget) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	if symbols == nil {
 		symbols = []any{}
 	}
-	var market any = this.Market(ccxt.GetValue(symbols, 0))
+	var market map[string]any = ccxt.MapTyped(this.Market(ccxt.GetValue(symbols, 0)))
 	var instType any = nil
 	var uta any = nil
 	var utaparamsVariable []any = this.HandleOptionAndParams(params, "watchTickers", "uta", false)
@@ -270,7 +270,7 @@ func (this *Bitget) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
-		var marketInner any = this.Market(symbol)
+		var marketInner map[string]any = ccxt.MapTyped(this.Market(symbol))
 		var args map[string]any = map[string]any{
 			"instType": instType,
 		}
@@ -287,7 +287,7 @@ func (this *Bitget) watchTickersBody(ch chan any, optionalArgs ...any) any {
 			return "instId"
 		}()
 		args[topicOrChannel] = "ticker"
-		args[symbolOrInstId] = ccxt.GetValue(marketInner, "id")
+		args[symbolOrInstId] = marketInner["id"]
 		topics = append(topics, args)
 		messageHashes = append(messageHashes, ccxt.Add("ticker:", symbol))
 	}
@@ -541,7 +541,7 @@ func (this *Bitget) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	if symbols == nil {
 		symbols = []any{}
 	}
-	var market any = this.Market(ccxt.GetValue(symbols, 0))
+	var market map[string]any = ccxt.MapTyped(this.Market(ccxt.GetValue(symbols, 0)))
 	var instType any = nil
 	var uta any = nil
 	var utaparamsVariable []any = this.HandleOptionAndParams(params, "watchBidsAsks", "uta", false)
@@ -554,7 +554,7 @@ func (this *Bitget) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
-		var marketInner any = this.Market(symbol)
+		var marketInner map[string]any = ccxt.MapTyped(this.Market(symbol))
 		var args map[string]any = map[string]any{
 			"instType": instType,
 		}
@@ -571,7 +571,7 @@ func (this *Bitget) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 			return "instId"
 		}()
 		args[topicOrChannel] = "ticker"
-		args[symbolOrInstId] = ccxt.GetValue(marketInner, "id")
+		args[symbolOrInstId] = marketInner["id"]
 		topics = append(topics, args)
 		messageHashes = append(messageHashes, ccxt.Add("bidask:", symbol))
 	}
@@ -664,8 +664,8 @@ func (this *Bitget) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		retRes51712 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes51712)
 	}
-	var market any = this.Market(symbol)
-	symbol = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	symbol = market["symbol"]
 	var timeframes map[string]any = ccxt.SafeMapTyped(this.Options, "timeframes")
 	var interval *string = this.SafeString(timeframes, timeframe)
 	var messageHash any = nil
@@ -682,7 +682,7 @@ func (this *Bitget) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	}
 	if ccxt.EvalTruthy(uta) {
 		args["topic"] = "kline"
-		args["symbol"] = ccxt.GetValue(market, "id")
+		args["symbol"] = market["id"]
 		args["interval"] = interval
 		params = this.Extend(params, map[string]any{
 			"uta": true,
@@ -690,7 +690,7 @@ func (this *Bitget) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		messageHash = ccxt.Add("kline:", symbol)
 	} else {
 		args["channel"] = ccxt.Add("candle", interval)
-		args["instId"] = ccxt.GetValue(market, "id")
+		args["instId"] = market["id"]
 		messageHash = ccxt.Add(ccxt.Add(ccxt.Add("candles:", timeframe), ":"), symbol)
 	}
 
@@ -737,7 +737,7 @@ func (this *Bitget) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	var timeframes map[string]any = ccxt.SafeMapTyped(this.Options, "timeframes")
 	var interval *string = this.SafeString(timeframes, timeframe)
 	var channel any = nil
-	var market any = this.Market(symbol)
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 	var instType any = nil
 	var messageHash any = nil
 	var values []any = this.HandleOptionAndParams(params, "watchOHLCV", "uta", false)
@@ -751,7 +751,7 @@ func (this *Bitget) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	if ccxt.EvalTruthy(uta) {
 		channel = "kline"
 		args["topic"] = channel
-		args["symbol"] = ccxt.GetValue(market, "id")
+		args["symbol"] = market["id"]
 		args["interval"] = interval
 		params = this.Extend(params, map[string]any{
 			"uta": true,
@@ -761,7 +761,7 @@ func (this *Bitget) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	} else {
 		channel = ccxt.Add("candle", interval)
 		args["channel"] = channel
-		args["instId"] = ccxt.GetValue(market, "id")
+		args["instId"] = market["id"]
 		messageHash = ccxt.Add("candles:", interval)
 	}
 
@@ -994,8 +994,8 @@ func (this *Bitget) unWatchChannelBody(ch chan any, symbol any, channel any, mes
 		retRes77812 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes77812)
 	}
-	var market any = this.Market(symbol)
-	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("unsubscribe:", messageHashTopic), ":"), ccxt.GetValue(market, "symbol"))
+	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("unsubscribe:", messageHashTopic), ":"), market["symbol"])
 	var instType any = nil
 	var uta any = nil
 	var utaparamsVariable []any = this.HandleOptionAndParams(params, methodName, "uta", false)
@@ -1009,7 +1009,7 @@ func (this *Bitget) unWatchChannelBody(ch chan any, symbol any, channel any, mes
 	}
 	if ccxt.EvalTruthy(uta) {
 		args["topic"] = channel
-		args["symbol"] = ccxt.GetValue(market, "id")
+		args["symbol"] = market["id"]
 		args["interval"] = this.SafeString(params, "interval", "1m")
 		params = this.Extend(params, map[string]any{
 			"uta": true,
@@ -1017,7 +1017,7 @@ func (this *Bitget) unWatchChannelBody(ch chan any, symbol any, channel any, mes
 		params = this.Omit(params, "interval")
 	} else {
 		args["channel"] = channel
-		args["instId"] = ccxt.GetValue(market, "id")
+		args["instId"] = market["id"]
 	}
 
 	retRes79915 := (<-this.UnWatchPublicAsync(uta, messageHash, args, params))
@@ -1071,7 +1071,7 @@ func (this *Bitget) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 	params = ccxt.GetValue(utaparamsVariable, 1)
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
-		var market any = this.Market(symbol)
+		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 		var instType any = nil
 		instTypeparamsVariable := this.GetInstType("watchOrderBookForSymbols", market, uta, params)
 		instType = ccxt.GetValue(instTypeparamsVariable, 0)
@@ -1092,7 +1092,7 @@ func (this *Bitget) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 			return "instId"
 		}()
 		args[topicOrChannel] = channel
-		args[symbolOrInstId] = ccxt.GetValue(market, "id")
+		args[symbolOrInstId] = market["id"]
 		topics = append(topics, args)
 		messageHashes = append(messageHashes, ccxt.Add("orderbook:", symbol))
 	}
@@ -1169,8 +1169,8 @@ func (this *Bitget) HandleOrderBook(client any, message any) {
 		return "contract"
 	}()
 	var marketId *string = this.SafeString2(arg, "instId", "symbol")
-	var market any = this.SafeMarket(marketId, nil, nil, marketType)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, nil, marketType))
+	var symbol any = market["symbol"]
 	var messageHash any = ccxt.Add("orderbook:", symbol)
 	var data any = this.SafeList(message, "data")
 	var rawOrderBook any = this.SafeDict(data, 0, map[string]any{})
@@ -1349,7 +1349,7 @@ func (this *Bitget) watchTradesForSymbolsBody(ch chan any, symbols any, optional
 	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
-		var market any = this.Market(symbol)
+		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
 		var instType any = nil
 		instTypeparamsVariable := this.GetInstType("watchTradesForSymbols", market, uta, params)
 		instType = ccxt.GetValue(instTypeparamsVariable, 0)
@@ -1375,7 +1375,7 @@ func (this *Bitget) watchTradesForSymbolsBody(ch chan any, symbols any, optional
 			}
 			return "trade"
 		}()
-		args[symbolOrInstId] = ccxt.GetValue(market, "id")
+		args[symbolOrInstId] = market["id"]
 		topics = append(topics, args)
 		messageHashes = append(messageHashes, ccxt.Add("trade:", symbol))
 	}
@@ -3457,9 +3457,9 @@ func (this *Bitget) HandleOrderBookUnSubscription(client any, message any) {
 		return "contract"
 	}()
 	var instId *string = this.SafeString2(arg, "instId", "symbol")
-	var market any = this.SafeMarket(instId, nil, nil, typeVar)
-	var symbol any = ccxt.GetValue(market, "symbol")
-	var messageHash any = ccxt.Add("unsubscribe:orderbook:", ccxt.GetValue(market, "symbol"))
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(instId, nil, nil, typeVar))
+	var symbol any = market["symbol"]
+	var messageHash any = ccxt.Add("unsubscribe:orderbook:", market["symbol"])
 	var subMessageHash any = ccxt.Add("orderbook:", symbol)
 	if ccxt.InOp(this.Orderbooks, symbol) {
 		ccxt.Remove(this.Orderbooks, symbol)
@@ -3489,9 +3489,9 @@ func (this *Bitget) HandleTradesUnSubscription(client any, message any) {
 		return "contract"
 	}()
 	var instId *string = this.SafeString2(arg, "instId", "symbol")
-	var market any = this.SafeMarket(instId, nil, nil, typeVar)
-	var symbol any = ccxt.GetValue(market, "symbol")
-	var messageHash any = ccxt.Add("unsubscribe:trade:", ccxt.GetValue(market, "symbol"))
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(instId, nil, nil, typeVar))
+	var symbol any = market["symbol"]
+	var messageHash any = ccxt.Add("unsubscribe:trade:", market["symbol"])
 	var subMessageHash any = ccxt.Add("trade:", symbol)
 	if ccxt.InOp(this.Trades, symbol) {
 		ccxt.Remove(this.Trades, symbol)
@@ -3521,9 +3521,9 @@ func (this *Bitget) HandleTickerUnSubscription(client any, message any) {
 		return "contract"
 	}()
 	var instId *string = this.SafeString2(arg, "instId", "symbol")
-	var market any = this.SafeMarket(instId, nil, nil, typeVar)
-	var symbol any = ccxt.GetValue(market, "symbol")
-	var messageHash any = ccxt.Add("unsubscribe:ticker:", ccxt.GetValue(market, "symbol"))
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(instId, nil, nil, typeVar))
+	var symbol any = market["symbol"]
+	var messageHash any = ccxt.Add("unsubscribe:ticker:", market["symbol"])
 	var subMessageHash any = ccxt.Add("ticker:", symbol)
 	if ccxt.InOp(this.Tickers, symbol) {
 		ccxt.Remove(this.Tickers, symbol)
@@ -3568,8 +3568,8 @@ func (this *Bitget) HandleOHLCVUnSubscription(client any, message any) {
 	}
 	var timeframes any = this.SafeDict(this.Options, "timeframes")
 	var timeframe any = this.FindTimeframe(interval, timeframes)
-	var market any = this.SafeMarket(instId, nil, nil, typeVar)
-	var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = ccxt.MapTyped(this.SafeMarket(instId, nil, nil, typeVar))
+	var symbol any = market["symbol"]
 	var messageHash any = nil
 	var subMessageHash any = nil
 	if ccxt.EvalTruthy(isUta) {
