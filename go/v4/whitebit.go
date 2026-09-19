@@ -5585,7 +5585,7 @@ func (this *Whitebit) Sign(path any, optionalArgs ...any) any {
 	if headers == nil {
 		headers = map[string]any{}
 	}
-	AddElementToObject(headers, "User-Agent", Add("ccxt/"+this.Id+"-", this.Version))
+	AddElementToObject(headers, "User-Agent", "ccxt/"+this.Id+"-"+this.Version)
 	var pathWithParams any = Add("/", this.ImplodeParams(path, params))
 	var url any = Add(GetValue(GetValue(GetValue(this.Urls, "api"), version), accessibility), pathWithParams)
 	if IsEqual(accessibility, "public") {

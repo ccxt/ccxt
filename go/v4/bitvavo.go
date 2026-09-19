@@ -3375,7 +3375,7 @@ func (this *Bitvavo) Sign(path any, optionalArgs ...any) any {
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var url any = Add(Add(Add("/", this.Version), "/"), this.ImplodeParams(path, params))
+	var url any = Add("/"+this.Version+"/", this.ImplodeParams(path, params))
 	var getOrDelete bool = (IsEqual(method, "GET")) || (IsEqual(method, "DELETE"))
 	if getOrDelete {
 		if len(ObjectKeys(query)) > 0 {

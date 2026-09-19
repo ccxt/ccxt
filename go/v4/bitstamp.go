@@ -3834,7 +3834,7 @@ func (this *Bitstamp) Sign(path any, optionalArgs ...any) any {
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
 	var url any = Add(GetValue(GetValue(this.Urls, "api"), api), "/")
-	url = Add(url, Add(this.Version, "/"))
+	url = Add(url, this.Version+"/")
 	url = Add(url, this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if IsEqual(api, "public") {

@@ -1343,13 +1343,13 @@ func (this *Mercado) Sign(path any, optionalArgs ...any) any {
 		}
 	} else {
 		this.CheckRequiredCredentials()
-		url = Add(url, Add(this.Version, "/"))
+		url = Add(url, this.Version+"/")
 		var nonce any = this.Nonce()
 		body = this.Urlencode(this.Extend(map[string]any{
 			"tapi_method": path,
 			"tapi_nonce":  nonce,
 		}, params))
-		var auth any = Add(Add(Add(Add("/tapi/", this.Version), "/"), "?"), body)
+		var auth any = Add("/tapi/"+this.Version+"/"+"?", body)
 		headers = map[string]any{
 			"Content-Type": "application/x-www-form-urlencoded",
 			"TAPI-ID":      this.ApiKey,

@@ -2471,7 +2471,7 @@ func (this *Bitso) Sign(path any, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var endpoint any = Add(Add(Add("/", this.Version), "/"), this.ImplodeParams(path, params))
+	var endpoint any = Add("/"+this.Version+"/", this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if (IsEqual(method, "GET")) || (IsEqual(method, "DELETE")) {
 		if len(ObjectKeys(query)) > 0 {

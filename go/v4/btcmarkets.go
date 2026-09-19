@@ -1873,7 +1873,7 @@ func (this *Btcmarkets) Sign(path any, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var request any = Add(Add(Add("/", this.Version), "/"), this.ImplodeParams(path, params))
+	var request any = Add("/"+this.Version+"/", this.ImplodeParams(path, params))
 	var query map[string]any = this.Keysort(this.Omit(params, this.ExtractParams(path)))
 	if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()

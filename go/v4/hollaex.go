@@ -2561,7 +2561,7 @@ func (this *Hollaex) Sign(path any, optionalArgs ...any) any {
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
 	var query any = this.Omit(params, this.ExtractParams(path))
-	path = Add(Add(Add("/", this.Version), "/"), this.ImplodeParams(path, params))
+	path = Add("/"+this.Version+"/", this.ImplodeParams(path, params))
 	if (IsEqual(method, "GET")) || (IsEqual(method, "DELETE")) {
 		if len(ObjectKeys(query)) > 0 {
 			path = Add(path, "?"+this.Urlencode(query))
