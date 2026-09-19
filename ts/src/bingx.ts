@@ -5816,6 +5816,8 @@ export default class bingx extends Exchange {
             'marginType': marginMode,
         };
         let subType: Str = undefined;
+        // The required symbol determines the contract subtype for this endpoint.
+        params = this.omit (params, [ 'subType', 'defaultSubType' ]);
         [ subType, params ] = this.handleSubTypeAndParams ('setMarginMode', market, params);
         if (subType === 'inverse') {
             return await this.cswapV1PrivatePostTradeMarginType (this.extend (request, params));
@@ -6885,6 +6887,8 @@ export default class bingx extends Exchange {
         };
         let subType: Str = undefined;
         let response: Dict;
+        // The required symbol determines the contract subtype for this endpoint.
+        params = this.omit (params, [ 'subType', 'defaultSubType' ]);
         [ subType, params ] = this.handleSubTypeAndParams ('fetchMarginMode', market, params);
         if (subType === 'inverse') {
             response = await this.cswapV1PrivateGetTradeMarginType (this.extend (request, params));
