@@ -946,7 +946,7 @@ public class Hitbtc extends HitbtcApi
                     settleId = feeCurrencyId;
                     settle = this.safeCurrencyCode(settleId);
                     linear = ((!java.util.Objects.equals(quote, null)) && (java.util.Objects.equals(quote, settle)));
-                    inverse = !Helpers.isTrue(linear);
+                    inverse = !Boolean.TRUE.equals(linear);
                     symbol = Helpers.add((symbol + ":"), settle);
                     if (Boolean.TRUE.equals(future))
                     {

@@ -6983,7 +6983,7 @@ public Object describe()
         }
         Object cost = this.numberToString(amount);
         String key = null;
-        if (Helpers.isTrue(useQuote))
+        if (Boolean.TRUE.equals(useQuote))
         {
             Object priceString = this.numberToString(price);
             cost = Precise.stringMul(cost, priceString);

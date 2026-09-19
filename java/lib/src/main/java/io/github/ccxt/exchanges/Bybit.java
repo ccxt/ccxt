@@ -8789,7 +8789,7 @@ public class Bybit extends BybitApi
         {
             hedged = (!java.util.Objects.equals(positionIdx, "0"));
         }
-        if ((!java.util.Objects.equals(hedged, null)) && Helpers.isTrue(hedged))
+        if ((!java.util.Objects.equals(hedged, null)) && Boolean.TRUE.equals(hedged))
         {
             side = (((java.util.Objects.equals(positionIdx, "1")))) ? "long" : "short";
         } else if (!java.util.Objects.equals(side, null))

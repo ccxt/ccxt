@@ -2934,7 +2934,7 @@ public class Lighter extends LighterApi
         String side = null;
         if (!java.util.Objects.equals(isAsk, null))
         {
-            side = ((Helpers.isTrue(isAsk))) ? "sell" : "buy";
+            side = ((Boolean.TRUE.equals(isAsk))) ? "sell" : "buy";
         }
         String type = this.safeString(order, "type");
         if (java.util.Objects.equals(type, null))

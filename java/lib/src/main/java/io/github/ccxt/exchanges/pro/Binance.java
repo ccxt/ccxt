@@ -1336,7 +1336,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                             // 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
                             conditional = (Helpers.isEqual((Helpers.subtract(U, 1)), nonce));
                         }
-                        if (Helpers.isTrue(conditional))
+                        if (Boolean.TRUE.equals(conditional))
                         {
                             this.handleOrderBookMessage(client, message, orderbook);
                             if (Helpers.isLessThan(nonce, this.safeInteger(orderbook, "nonce", 0)))

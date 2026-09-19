@@ -1025,7 +1025,7 @@ public class Bullish extends BullishApi
             contractSize = this.safeNumber(market, "contractMultiplier");
             symbol = Helpers.add(symbol, Helpers.add(":", settle));
             linear = java.util.Objects.equals(settle, quote);
-            inverse = !Helpers.isTrue(linear);
+            inverse = !Boolean.TRUE.equals(linear);
             if (java.util.Objects.equals(type, "swap"))
             {
                 swap = true;

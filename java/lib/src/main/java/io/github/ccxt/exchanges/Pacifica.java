@@ -4387,7 +4387,7 @@ public class Pacifica extends PacificaApi
             error = true;
         }
         Boolean nonEmptyMessage = ((!java.util.Objects.equals(message, null)) && (!java.util.Objects.equals(message, "")));
-        if (Helpers.isTrue(error) || Boolean.TRUE.equals(nonEmptyMessage))
+        if (Boolean.TRUE.equals(error) || Boolean.TRUE.equals(nonEmptyMessage))
         {
             String feedback = ((this.id + " ") + body);
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback); // Try deeper catch first
