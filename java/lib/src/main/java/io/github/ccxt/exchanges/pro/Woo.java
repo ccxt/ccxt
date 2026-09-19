@@ -1681,7 +1681,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 }
             }
             // don't remove the future from the .futures cache
-            if (Helpers.inOp(client.futures, messageHash))
+            if ((messageHash != null && ((Map<?, ?>)client.futures).containsKey(messageHash)))
             {
                 io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, messageHash);
                 ((io.github.ccxt.ws.Future)future).resolve(cache);
@@ -1721,7 +1721,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         //
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Map<String, Object> rawPositions = (Map<String, Object>) this.safeDict(data, "positions", new HashMap<String, Object>() {{}});
-        Object postitionsIds = new ArrayList<Object>(((Map<String, Object>)rawPositions).keySet());
+        List<Object> postitionsIds = new ArrayList<Object>(rawPositions.keySet());
         if (java.util.Objects.equals(this.positions, null))
         {
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();

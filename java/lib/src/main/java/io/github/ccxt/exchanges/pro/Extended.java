@@ -449,7 +449,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             ((Map<String, Object>)symbols).put((String)symbol, true);
             Helpers.callDynamically(stored, "append", new Object[]{trade});
         }
-        Object keys = new ArrayList<Object>(((Map<String, Object>)symbols).keySet());
+        List<Object> keys = new ArrayList<Object>(symbols.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             String messageHash = ("myTrades:" + Helpers.GetValue(keys, i));
@@ -460,7 +460,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         for (var i = 0; i < ((List<?>)subscriptions).size(); i++)
         {
             Object messageHash = Helpers.GetValue(subscriptions, i);
-            if (Helpers.isEqual(((String)messageHash).indexOf("myTrades:"), 0))
+            if ((((String)messageHash).indexOf("myTrades:") == 0))
             {
                 client.resolve(stored, messageHash);
             }
@@ -630,7 +630,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             ((Map<String, Object>)symbols).put((String)symbol, true);
             Helpers.callDynamically(orders, "append", new Object[]{order});
         }
-        Object keys = new ArrayList<Object>(((Map<String, Object>)symbols).keySet());
+        List<Object> keys = new ArrayList<Object>(symbols.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             String messageHash = ("orders:" + Helpers.GetValue(keys, i));
@@ -641,7 +641,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         for (var i = 0; i < ((List<?>)subscriptions).size(); i++)
         {
             Object messageHash = Helpers.GetValue(subscriptions, i);
-            if (Helpers.isEqual(((String)messageHash).indexOf("orders:"), 0))
+            if ((((String)messageHash).indexOf("orders:") == 0))
             {
                 client.resolve(orders, messageHash);
             }
@@ -794,7 +794,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
         Long timestamp = this.safeInteger(data, "ts");
-        if ((java.util.Objects.equals(timestamp, null)) || (Helpers.isEqual(timestamp, 0)))
+        if ((java.util.Objects.equals(timestamp, null)) || ((timestamp != null && timestamp == 0)))
         {
             timestamp = this.safeInteger(message, "ts");
         }

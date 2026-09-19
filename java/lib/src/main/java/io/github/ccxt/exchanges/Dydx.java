@@ -1969,7 +1969,7 @@ public class Dydx extends DydxApi
             subAccountId = ((List<Object>) subAccountIdparametersVariable).get(0);
             parameters = ((List<Object>) subAccountIdparametersVariable).get(1);
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "orderFlags", "goodTillBlock", "goodTillBlockTime", "goodTillBlockTimeInSeconds", "subaccountId", "clientId")));
-            if (!Helpers.isEqual(orderFlags, 0) && !Helpers.isEqual(orderFlags, 64) && !Helpers.isEqual(orderFlags, 32))
+            if ((orderFlags == null || orderFlags != 0) && (orderFlags == null || orderFlags != 64) && (orderFlags == null || orderFlags != 32))
             {
                 throw new InvalidOrder((this.id + " invalid orderFlags, allowed values are (0, 64, 32).")) ;
             }

@@ -804,7 +804,7 @@ public class TestSharedMethods extends BaseTest {
             Object symbol = Helpers.GetValue(ticker, "symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
-                if ((!java.util.Objects.equals(exchange.markets, null)) && (Helpers.inOp(exchange.markets, symbol)))
+                if ((!java.util.Objects.equals(exchange.markets, null)) && ((symbol != null && ((Map<?, ?>)exchange.markets).containsKey(symbol))))
                 {
                     if (!java.util.Objects.equals(exchange.featureValue(symbol, "fetchOHLCV"), null))
                     {
@@ -828,7 +828,7 @@ public class TestSharedMethods extends BaseTest {
             if (!java.util.Objects.equals(symbol, null))
             {
                 // if it's not in markets, then maybe newly added symbol, so can can compromise there
-                if ((java.util.Objects.equals(exchange.markets, null)) || !(Helpers.inOp(exchange.markets, symbol)))
+                if ((java.util.Objects.equals(exchange.markets, null)) || !((symbol != null && ((Map<?, ?>)exchange.markets).containsKey(symbol))))
                 {
                     return;
                 }

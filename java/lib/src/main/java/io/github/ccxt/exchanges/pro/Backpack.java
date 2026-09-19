@@ -198,7 +198,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                     Object cache = this.orders;
                     if (!java.util.Objects.equals(cache, null))
                     {
-                        Object keys = new ArrayList<Object>(((Map<String, Object>)cache).keySet());
+                        List<Object> keys = new ArrayList<Object>(((Map<String, Object>)cache).keySet());
                         for (var j = 0; j < ((List<?>)keys).size(); j++)
                         {
                             Object symbol = Helpers.GetValue(keys, j);

@@ -1592,7 +1592,7 @@ public class Bingx extends BingxApi
             minAmount = this.safeNumber2(market, "minQty", "tradeMinQuantity");
         }
         Long timeOnline = this.safeInteger(market, "timeOnline");
-        if (Helpers.isEqual(timeOnline, 0))
+        if ((timeOnline != null && timeOnline == 0))
         {
             timeOnline = null;
         }
@@ -2081,7 +2081,7 @@ public class Bingx extends BingxApi
         {
             time = this.parse8601(datetimeId);
         }
-        if (Helpers.isEqual(time, 0))
+        if ((time != null && time == 0))
         {
             time = null;
         }
@@ -3146,7 +3146,7 @@ public class Bingx extends BingxApi
         }
         String change = this.safeString(ticker, "priceChange");
         Long ts = this.safeInteger(ticker, "closeTime");
-        if (Helpers.isEqual(ts, 0))
+        if ((ts != null && ts == 0))
         {
             ts = null;
         }
@@ -4225,12 +4225,12 @@ public class Bingx extends BingxApi
             String stopLoss = this.safeString(result, "stopLoss");
             // for py fix, the SL is already parsed as object (instead of stringified, as it's provided)
             // so we need trick to check if it's non-parsed string yet
-            if ((java.util.Objects.equals(stopLossDict, null)) && (!java.util.Objects.equals(stopLoss, null)) && (Helpers.isEqual(((String)stopLoss).indexOf("{"), 0)))
+            if ((java.util.Objects.equals(stopLossDict, null)) && (!java.util.Objects.equals(stopLoss, null)) && ((((String)stopLoss).indexOf("{") == 0)))
             {
                 ((Map<String, Object>)result).put("stopLoss", this.parseJson(stopLoss));
             }
             String takeProfit = this.safeString(result, "takeProfit");
-            if ((!java.util.Objects.equals(takeProfit, null)) && (Helpers.isEqual(((String)takeProfit).indexOf("{"), 0)))
+            if ((!java.util.Objects.equals(takeProfit, null)) && ((((String)takeProfit).indexOf("{") == 0)))
             {
                 ((Map<String, Object>)result).put("takeProfit", this.parseJson(takeProfit));
             }
@@ -6052,7 +6052,7 @@ public class Bingx extends BingxApi
                     return this.safeDict(addressStructures, defaultNetworkForCurrency);
                 } else
                 {
-                    Object keys = new ArrayList<Object>(((Map<String, Object>)addressStructures).keySet());
+                    List<Object> keys = new ArrayList<Object>(((Map<String, Object>)addressStructures).keySet());
                     String key = this.safeString(keys, 0);
                     return this.safeDict(addressStructures, key);
                 }
@@ -6757,7 +6757,7 @@ public class Bingx extends BingxApi
         //
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object networks = this.safeDict(fee, "networks", new HashMap<String, Object>() {{}});
-        Object networkCodes = new ArrayList<Object>(((Map<String, Object>)networks).keySet());
+        List<Object> networkCodes = new ArrayList<Object>(((Map<String, Object>)networks).keySet());
         Object networksLength = ((List<?>)networkCodes).size();
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", networks );
@@ -6819,7 +6819,7 @@ public class Bingx extends BingxApi
             }
             Object response = (this.fetchCurrencies((Object)(parameters))).join();
             Map<String, Object> depositWithdrawFees = new HashMap<String, Object>() {{}};
-            Object responseCodes = new ArrayList<Object>(((Map<String, Object>)response).keySet());
+            List<Object> responseCodes = new ArrayList<Object>(((Map<String, Object>)response).keySet());
             for (var i = 0; i < ((List<?>)responseCodes).size(); i++)
             {
                 Object code = Helpers.GetValue(responseCodes, i);

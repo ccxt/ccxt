@@ -295,7 +295,7 @@ public class Btcbox extends BtcboxApi
             var response2 = ((List<Object>) response1response2Variable).get(1);
             //
             Map<String, Object> result2Data = (Map<String, Object>) this.safeDict(response2, "data", new HashMap<String, Object>() {{}});
-            Object marketIds = new ArrayList<Object>(((Map<String, Object>)response1).keySet());
+            List<Object> marketIds = new ArrayList<Object>(((Map<String, Object>)response1).keySet());
             List<Object> markets = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {

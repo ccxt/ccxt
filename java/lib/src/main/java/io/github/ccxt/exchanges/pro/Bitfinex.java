@@ -683,7 +683,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         String takerOrMaker = null;
         if (!java.util.Objects.equals(maker, null))
         {
-            takerOrMaker = (((Helpers.isEqual(maker, -1)))) ? "taker" : "maker";
+            takerOrMaker = ((((maker != null && maker == -1)))) ? "taker" : "maker";
         }
         final Object finalType = type;
         final Object finalTakerOrMaker = takerOrMaker;
@@ -1105,7 +1105,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             Helpers.addElementToObject(this.balance, balanceType, this.safeBalance(oldBalance));
             ((Map<String, Object>)updatedTypes).put((String)balanceType, true);
         }
-        Object updatesKeys = new ArrayList<Object>(((Map<String, Object>)updatedTypes).keySet());
+        List<Object> updatesKeys = new ArrayList<Object>(updatedTypes.keySet());
         for (var i = 0; i < ((List<?>)updatesKeys).size(); i++)
         {
             Object type = Helpers.GetValue(updatesKeys, i);
@@ -1394,7 +1394,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         }
         String name = "orders";
         client.resolve(this.orders, name);
-        Object keys = new ArrayList<Object>(((Map<String, Object>)symbolIds).keySet());
+        List<Object> keys = new ArrayList<Object>(symbolIds.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object symbol = Helpers.GetValue(keys, i);

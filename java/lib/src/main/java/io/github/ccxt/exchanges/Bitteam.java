@@ -774,7 +774,7 @@ public class Bitteam extends BitteamApi
         Map<String, Object> statuses = (Map<String, Object>) this.safeDict(statusesResponse, numericId, new HashMap<String, Object>() {{}});
         Boolean deposit = (Boolean) this.safeBool(statuses, "depositStatus");
         Boolean withdraw = (Boolean) this.safeBool(statuses, "withdrawStatus");
-        Object networkIds = new ArrayList<Object>(((Map<String, Object>)feesByNetworkId).keySet());
+        List<Object> networkIds = new ArrayList<Object>(((Map<String, Object>)feesByNetworkId).keySet());
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         Object networkPrecision = this.parseNumber(this.parsePrecision(this.safeString(currency, "decimals")));
         String typeRaw = this.safeString(currency, "type");

@@ -2097,7 +2097,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         //
         Long timestamp = this.safeInteger(message, "time");
         Map<String, Object> bbos = (Map<String, Object>) this.safeDict(message, "bbos", new HashMap<String, Object>() {{}});
-        Object marketIds = new ArrayList<Object>(((Map<String, Object>)bbos).keySet());
+        List<Object> marketIds = new ArrayList<Object>(bbos.keySet());
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)marketIds).size(); i++)
         {
@@ -2127,7 +2127,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
     public void handleAllBidsAsks(Client client, Object message)
     {
         Object tickers = this.parseWsAllBidsAsks(message);
-        Object symbols = new ArrayList<Object>(((Map<String, Object>)tickers).keySet());
+        List<Object> symbols = new ArrayList<Object>(((Map<String, Object>)tickers).keySet());
         for (var i = 0; i < ((List<?>)symbols).size(); i++)
         {
             Object symbol = Helpers.GetValue(symbols, i);
@@ -2302,21 +2302,21 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         {
             return;
         }
-        if (Helpers.isEqual(((String)messageHash).indexOf("trade:"), 0))
+        if ((((String)messageHash).indexOf("trade:") == 0))
         {
             Object symbol = Helpers.replace(((String)messageHash), "trade:", "");
             if (((Map<?, ?>)this.trades).containsKey(symbol))
             {
                 ((Map<String,Object>)this.trades).remove((String)symbol);
             }
-        } else if (Helpers.isEqual(((String)messageHash).indexOf("orderbook:"), 0))
+        } else if ((((String)messageHash).indexOf("orderbook:") == 0))
         {
             Object symbol = Helpers.replace(((String)messageHash), "orderbook:", "");
             if (((Map<?, ?>)this.orderbooks).containsKey(symbol))
             {
                 ((Map<String,Object>)this.orderbooks).remove((String)symbol);
             }
-        } else if (Helpers.isEqual(((String)messageHash).indexOf("ohlcv:"), 0))
+        } else if ((((String)messageHash).indexOf("ohlcv:") == 0))
         {
             Object parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote(":"))));
             String timeframe = this.safeString(parts, 1);
@@ -2325,7 +2325,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             {
                 ((Map<String,Object>)Helpers.GetValue(this.ohlcvs, symbol)).remove((String)timeframe);
             }
-        } else if (Helpers.isEqual(((String)messageHash).indexOf("ticker:"), 0))
+        } else if ((((String)messageHash).indexOf("ticker:") == 0))
         {
             Object symbol = Helpers.replace(((String)messageHash), "ticker:", "");
             if (((Map<?, ?>)this.tickers).containsKey(symbol))
@@ -2339,7 +2339,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             {
                 ((Map<String,Object>)this.tickers).remove((String)Helpers.GetValue(symbols, i));
             }
-        } else if (Helpers.isEqual(((String)messageHash).indexOf("bidask:"), 0))
+        } else if ((((String)messageHash).indexOf("bidask:") == 0))
         {
             Object symbol = Helpers.replace(((String)messageHash), "bidask:", "");
             if (((Map<?, ?>)this.bidsasks).containsKey(symbol))
@@ -2353,13 +2353,13 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             {
                 ((Map<String,Object>)this.bidsasks).remove((String)Helpers.GetValue(symbols, i));
             }
-        } else if (Helpers.isEqual(((String)messageHash).indexOf("orders"), 0))
+        } else if ((((String)messageHash).indexOf("orders") == 0))
         {
             this.orders = null;
-        } else if (Helpers.isEqual(((String)messageHash).indexOf("myTrades"), 0))
+        } else if ((((String)messageHash).indexOf("myTrades") == 0))
         {
             this.myTrades = null;
-        } else if (Helpers.isEqual(((String)messageHash).indexOf("positions"), 0))
+        } else if ((((String)messageHash).indexOf("positions") == 0))
         {
             this.positions = null;
         }

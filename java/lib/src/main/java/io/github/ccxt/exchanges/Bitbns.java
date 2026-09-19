@@ -656,7 +656,7 @@ public class Bitbns extends BitbnsApi
             put( "datetime", Bitbns.this.iso8601(timestamp) );
         }};
         Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-        Object keys = new ArrayList<Object>(((Map<String, Object>)data).keySet());
+        List<Object> keys = new ArrayList<Object>(data.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);
@@ -1582,7 +1582,7 @@ public class Bitbns extends BitbnsApi
         Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
         Object urls = this.urls;
-        if (!(Helpers.inOp(((Map<String, Object>)urls).get("api"), api)))
+        if (!((api != null && ((Map<?, ?>)((Map<String, Object>)urls).get("api")).containsKey(api))))
         {
             throw new ExchangeError((Helpers.add((this.id + " does not have a testnet/sandbox URL for "), api) + " endpoints")) ;
         }

@@ -433,7 +433,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         {
             ((Map<String,Object>)this.orderbooks).remove((String)symbol);
         }
-        if (Helpers.inOp(client.subscriptions, topic))
+        if ((topic != null && ((Map<?, ?>)client.subscriptions).containsKey(topic)))
         {
             ((Map<String,Object>)client.subscriptions).remove((String)topic);
         }
@@ -452,7 +452,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         {
             ((Map<String,Object>)this.trades).remove((String)symbol);
         }
-        if (Helpers.inOp(client.subscriptions, topic))
+        if ((topic != null && ((Map<?, ?>)client.subscriptions).containsKey(topic)))
         {
             ((Map<String,Object>)client.subscriptions).remove((String)topic);
         }
@@ -476,7 +476,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         Map<String, Object> status = (Map<String, Object>) this.safeDict(result, "status");
         if (!java.util.Objects.equals(status, null))
         {
-            Object topics = new ArrayList<Object>(((Map<String, Object>)status).keySet());
+            List<Object> topics = new ArrayList<Object>(status.keySet());
             for (var i = 0; i < ((List<?>)topics).size(); i++)
             {
                 Object topic = Helpers.GetValue(topics, i);

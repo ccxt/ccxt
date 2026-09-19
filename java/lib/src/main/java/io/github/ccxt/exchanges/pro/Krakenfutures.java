@@ -1154,7 +1154,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         if (Helpers.isGreaterThan(length, 0))
         {
             client.resolve(this.orders, messageHash);
-            Object keys = new ArrayList<Object>(((Map<String, Object>)symbols).keySet());
+            List<Object> keys = new ArrayList<Object>(symbols.keySet());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 Object symbol = Helpers.GetValue(keys, i);
@@ -1676,7 +1676,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         Long timestamp = this.safeInteger(message, "timestamp");
         if (!java.util.Objects.equals(holding, null))
         {
-            Object holdingKeys = new ArrayList<Object>(((Map<String, Object>)holding).keySet()); // cashAccount
+            List<Object> holdingKeys = new ArrayList<Object>(holding.keySet()); // cashAccount
             Map<String, Object> holdingResult = new HashMap<String, Object>() {{
                 put( "info", message );
                 put( "timestamp", timestamp );
@@ -1699,7 +1699,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         }
         if (!java.util.Objects.equals(futures, null))
         {
-            Object futuresKeys = new ArrayList<Object>(((Map<String, Object>)futures).keySet()); // marginAccount
+            List<Object> futuresKeys = new ArrayList<Object>(futures.keySet()); // marginAccount
             Map<String, Object> futuresResult = new HashMap<String, Object>() {{
                 put( "info", message );
                 put( "timestamp", timestamp );
@@ -1729,7 +1729,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         if (!java.util.Objects.equals(flexFutures, null))
         {
             Map<String, Object> flexFutureCurrencies = (Map<String, Object>) this.safeDict(flexFutures, "currencies", new HashMap<String, Object>() {{}});
-            Object flexFuturesKeys = new ArrayList<Object>(((Map<String, Object>)flexFutureCurrencies).keySet()); // multi-collateral margin account
+            List<Object> flexFuturesKeys = new ArrayList<Object>(flexFutureCurrencies.keySet()); // multi-collateral margin account
             Map<String, Object> flexFuturesResult = new HashMap<String, Object>() {{
                 put( "info", message );
                 put( "timestamp", timestamp );
@@ -1802,7 +1802,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             }
             Helpers.callDynamically(stored, "append", new Object[]{parsedTrade});
         }
-        Object tradeSymbolKeys = new ArrayList<Object>(((Map<String, Object>)tradeSymbols).keySet());
+        List<Object> tradeSymbolKeys = new ArrayList<Object>(tradeSymbols.keySet());
         for (var i = 0; i < ((List<?>)tradeSymbolKeys).size(); i++)
         {
             Object symbol = Helpers.GetValue(tradeSymbolKeys, i);

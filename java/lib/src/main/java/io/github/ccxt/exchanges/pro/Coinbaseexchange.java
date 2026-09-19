@@ -898,7 +898,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                     {
                         Map<String, Object> info = this.extend(((Map<String, Object>)previousOrder).get("info"), message);
                         Object order = this.parseWsOrder(info);
-                        Object keys = new ArrayList<Object>(((Map<String, Object>)order).keySet());
+                        List<Object> keys = new ArrayList<Object>(((Map<String, Object>)order).keySet());
                         // update the reference
                         for (var i = 0; i < ((List<?>)keys).size(); i++)
                         {

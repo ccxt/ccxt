@@ -1557,7 +1557,7 @@ public class Coinone extends CoinoneApi
             //     }
             //
             Map<String, Object> walletAddress = (Map<String, Object>) this.safeDict(response, "walletAddress", new HashMap<String, Object>() {{}});
-            Object keys = new ArrayList<Object>(((Map<String, Object>)walletAddress).keySet());
+            List<Object> keys = new ArrayList<Object>(walletAddress.keySet());
             Object result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {

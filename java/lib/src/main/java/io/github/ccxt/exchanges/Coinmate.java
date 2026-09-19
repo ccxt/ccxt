@@ -600,7 +600,7 @@ public class Coinmate extends CoinmateApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        Object currencyIds = new ArrayList<Object>(((Map<String, Object>)balances).keySet());
+        List<Object> currencyIds = new ArrayList<Object>(balances.keySet());
         for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
         {
             Object currencyId = Helpers.GetValue(currencyIds, i);
@@ -762,7 +762,7 @@ public class Coinmate extends CoinmateApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object keys = new ArrayList<Object>(((Map<String, Object>)data).keySet());
+            List<Object> keys = new ArrayList<Object>(data.keySet());
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
@@ -990,7 +990,7 @@ public class Coinmate extends CoinmateApi
             String method = this.safeString(methods, code);
             if (java.util.Objects.equals(method, null))
             {
-                Object allowedCurrencies = new ArrayList<Object>(((Map<String, Object>)methods).keySet());
+                Object allowedCurrencies = new ArrayList<Object>(methods.keySet());
                 throw new ExchangeError(((this.id + " withdraw() only allows withdrawing the following currencies: ") + String.join(", ", (List<String>)allowedCurrencies))) ;
             }
             Map<String, Object> request = new HashMap<String, Object>() {{

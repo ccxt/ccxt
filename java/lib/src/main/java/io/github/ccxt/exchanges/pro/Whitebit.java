@@ -631,19 +631,19 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         }
         Long rawSide = this.safeInteger(trade, 8);
         String side = null;
-        if (Helpers.isEqual(rawSide, 1))
+        if ((rawSide != null && rawSide == 1))
         {
             side = "sell";
-        } else if (Helpers.isEqual(rawSide, 2))
+        } else if ((rawSide != null && rawSide == 2))
         {
             side = "buy";
         }
         Long role = this.safeInteger(trade, 9);
         String takerOrMaker = null;
-        if (Helpers.isEqual(role, 1))
+        if ((role != null && role == 1))
         {
             takerOrMaker = "maker";
-        } else if (Helpers.isEqual(role, 2))
+        } else if ((role != null && role == 2))
         {
             takerOrMaker = "taker";
         }
@@ -809,7 +809,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         Object lastTradeTimestamp = this.safeTimestamp(order, "mtime");
         Object symbol = ((Map<String, Object>)market).get("symbol");
         Long rawSide = this.safeInteger(order, "side");
-        String side = (((Helpers.isEqual(rawSide, 1)))) ? "sell" : "buy";
+        String side = ((((rawSide != null && rawSide == 1)))) ? "sell" : "buy";
         String dealFee = this.safeString(order, "deal_fee");
         Object fee = null;
         if (!java.util.Objects.equals(dealFee, null))
@@ -822,7 +822,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             }};
         }
         String unifiedStatus = null;
-        if ((Helpers.isEqual(status, 1)) || (Helpers.isEqual(status, 2)))
+        if (((status != null && status == 1)) || ((status != null && status == 2)))
         {
             unifiedStatus = "open";
         } else
@@ -943,7 +943,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
 
     public void setBalanceCache(Client client, Object type, Object subscriptionHash)
     {
-        if (Helpers.inOp(client.subscriptions, subscriptionHash))
+        if ((subscriptionHash != null && ((Map<?, ?>)client.subscriptions).containsKey(subscriptionHash)))
         {
             return;
         }
@@ -1043,7 +1043,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                 }
             } else
             {
-                Object keys = new ArrayList<Object>(((Map<String, Object>)balanceDict).keySet());
+                List<Object> keys = new ArrayList<Object>(balanceDict.keySet());
                 for (var j = 0; j < ((List<?>)keys).size(); j++)
                 {
                     Object currencyId = Helpers.GetValue(keys, j);
@@ -1153,7 +1153,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                 {
                     // resubscribe
                     Object marketIdsNew = new ArrayList<Object>(Arrays.asList());
-                    marketIdsNew = new ArrayList<Object>(((Map<String, Object>)subscription).keySet());
+                    marketIdsNew = new ArrayList<Object>(subscription.keySet());
                     if (Helpers.isTrue(isNested))
                     {
                         marketIdsNew = new ArrayList<Object>(Arrays.asList(marketIdsNew));

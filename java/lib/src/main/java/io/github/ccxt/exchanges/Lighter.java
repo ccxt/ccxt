@@ -1612,7 +1612,7 @@ public class Lighter extends LighterApi
                 String type = this.safeString(market, "market_type");
                 type = (((java.util.Objects.equals(type, "perp")))) ? "swap" : type;
                 Object baseId = this.safeString(market, "symbol");
-                if (!java.util.Objects.equals(baseId, null) && !Helpers.isEqual(((String)baseId).indexOf("/"), -1))
+                if (!java.util.Objects.equals(baseId, null) && (((String)baseId).indexOf("/") != -1))
                 {
                     baseId = Helpers.GetValue(new ArrayList<Object>(Arrays.asList(((String)baseId).split(java.util.regex.Pattern.quote("/")))), 0);
                 }

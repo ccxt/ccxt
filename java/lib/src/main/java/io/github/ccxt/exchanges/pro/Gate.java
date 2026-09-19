@@ -1407,7 +1407,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
             ((Map<String, Object>)marketIds).put((String)symbol, timeframe);
         }
-        Object keys = new ArrayList<Object>(((Map<String, Object>)marketIds).keySet());
+        List<Object> keys = new ArrayList<Object>(marketIds.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object symbol = Helpers.GetValue(keys, i);
@@ -1536,7 +1536,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 ((Map<String, Object>)marketIds).put((String)symbol, true);
             }
         }
-        Object keys = new ArrayList<Object>(((Map<String, Object>)marketIds).keySet());
+        List<Object> keys = new ArrayList<Object>(marketIds.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object market = Helpers.GetValue(keys, i);
@@ -1822,7 +1822,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 }
             }
             // don't remove the future from the .futures cache
-            if (Helpers.inOp(client.futures, messageHash))
+            if ((messageHash != null && ((Map<?, ?>)client.futures).containsKey(messageHash)))
             {
                 io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, messageHash);
                 ((io.github.ccxt.ws.Future)future).resolve(cache);
@@ -2088,7 +2088,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 if (java.util.Objects.equals(status, null))
                 {
                     Long left = this.safeInteger(info, "left");
-                    Helpers.addElementToObject(parsed, "status", (((Helpers.isEqual(left, 0)))) ? "closed" : "canceled");
+                    Helpers.addElementToObject(parsed, "status", ((((left != null && left == 0)))) ? "closed" : "canceled");
                 }
             }
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
@@ -2099,7 +2099,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 ((Map<String, Object>)marketIds).put((String)((Map<String, Object>)market).get("id"), true);
             }
         }
-        Object keys = new ArrayList<Object>(((Map<String, Object>)marketIds).keySet());
+        List<Object> keys = new ArrayList<Object>(marketIds.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object messageHash = Helpers.add(Helpers.add(hashPrefix, ":"), Helpers.GetValue(keys, i));
@@ -2716,7 +2716,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             put( "delivery", "future" );
             put( "fx", "swap" );
         }};
-        Object keys = new ArrayList<Object>(((Map<String, Object>)findBy).keySet());
+        List<Object> keys = new ArrayList<Object>(findBy.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);
@@ -2759,7 +2759,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             if (!java.util.Objects.equals(subscription, null))
             {
                 Client client = this.client(url);
-                if (!(Helpers.inOp(client.subscriptions, messageHash)))
+                if (!((messageHash != null && ((Map<?, ?>)client.subscriptions).containsKey(messageHash))))
                 {
                     Object tempSubscriptionHash = String.valueOf(requestId);
                     Helpers.addElementToObject(client.subscriptions, tempSubscriptionHash, messageHash);
@@ -2940,7 +2940,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 ((Map<String, Object>)request).put("payload", payload);
             }
             Client client = this.client(url);
-            if (!(Helpers.inOp(client.subscriptions, messageHash)))
+            if (!((messageHash != null && ((Map<?, ?>)client.subscriptions).containsKey(messageHash))))
             {
                 Object tempSubscriptionHash = String.valueOf(requestId);
                 // in case of authenticationError we will throw

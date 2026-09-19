@@ -1747,7 +1747,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
 
     public void setBalanceCache(Client client, Object type)
     {
-        if ((Helpers.inOp(client.subscriptions, type)) && (Helpers.inOp(this.balance, type)))
+        if (((type != null && ((Map<?, ?>)client.subscriptions).containsKey(type))) && (Helpers.inOp(this.balance, type)))
         {
             return;
         }
@@ -1781,7 +1781,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             Object response = (this.fetchBalance((Object)(parameters))).join();
             Helpers.addElementToObject(this.balance, type, this.extend(response, this.safeDict(this.balance, type, new HashMap<String, Object>() {{}})));
             // don't remove the future from the .futures cache
-            if (Helpers.inOp(client.futures, messageHash))
+            if ((messageHash != null && ((Map<?, ?>)client.futures).containsKey(messageHash)))
             {
                 io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, messageHash);
                 future.resolve();
@@ -1978,7 +1978,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 }
             }
             // don't remove the future from the .futures cache
-            if (Helpers.inOp(client.futures, messageHash))
+            if ((messageHash != null && ((Map<?, ?>)client.futures).containsKey(messageHash)))
             {
                 io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, messageHash);
                 ((io.github.ccxt.ws.Future)future).resolve(cache);

@@ -1617,7 +1617,7 @@ public class Hibachi extends HibachiApi
 
     public Object signMessage(Object message, Object privateKey)
     {
-        if (Helpers.isEqual(Helpers.getArrayLength(privateKey), 44))
+        if ((Helpers.getArrayLength(privateKey) == 44))
         {
             // For Exchange Managed account, the key length is 44 and we use HMAC to sign the message
             return this.hmac(message, this.encode(privateKey), sha256(), "hex");

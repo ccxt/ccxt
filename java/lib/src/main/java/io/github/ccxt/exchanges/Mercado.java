@@ -659,7 +659,7 @@ public class Mercado extends MercadoApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        Object currencyIds = new ArrayList<Object>(((Map<String, Object>)balances).keySet());
+        List<Object> currencyIds = new ArrayList<Object>(balances.keySet());
         for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
         {
             Object currencyId = Helpers.GetValue(currencyIds, i);

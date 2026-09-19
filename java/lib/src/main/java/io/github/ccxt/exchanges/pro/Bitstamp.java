@@ -279,7 +279,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         {
             Object delta = Helpers.GetValue(deltas, i);
             Long deltaNonce = this.safeInteger(delta, "microtimestamp");
-            if (Helpers.isEqual(deltaNonce, nonce))
+            if ((deltaNonce != null && nonce != null && deltaNonce == nonce))
             {
                 return (((long) i) + 1L);
             }
@@ -387,7 +387,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         }
         Object symbol = ((Map<String, Object>)market).get("symbol");
         Long sideRaw = this.safeInteger(trade, "type");
-        String side = (((Helpers.isEqual(sideRaw, 0)))) ? "buy" : "sell";
+        String side = ((((sideRaw != null && sideRaw == 0)))) ? "buy" : "sell";
         return this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
@@ -1094,7 +1094,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             put( "private-my_orders", "handleOrders");
             put( "private-my_trades", "handleMyTrades");
         }};
-        Object keys = new ArrayList<Object>(((Map<String, Object>)methods).keySet());
+        List<Object> keys = new ArrayList<Object>(methods.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);

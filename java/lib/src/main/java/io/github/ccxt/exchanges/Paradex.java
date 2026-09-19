@@ -947,14 +947,14 @@ public class Paradex extends ParadexApi
         if (Boolean.TRUE.equals(isOption))
         {
             String optionTypeSuffix = (((java.util.Objects.equals(optionType, "CALL")))) ? "C" : "P";
-            Object deliveryValue = (((Helpers.isEqual(expiry, 0)))) ? "" : (this.yymmdd(expiry) + "-");
+            Object deliveryValue = ((((expiry != null && expiry == 0)))) ? "" : (this.yymmdd(expiry) + "-");
             symbol = Helpers.add((Helpers.add(((symbol + "-") + deliveryValue), strikePrice) + "-"), optionTypeSuffix);
             makerFee = this.parseNumber("0.0003");
         } else
         {
             expiry = null;
         }
-        String expireDatetime = (((Helpers.isEqual(expiry, 0)))) ? null : this.iso8601(expiry);
+        String expireDatetime = ((((expiry != null && expiry == 0)))) ? null : this.iso8601(expiry);
         final Object finalSymbol = symbol;
         final Object finalBase = base;
         final Object finalType = type;
@@ -4375,7 +4375,7 @@ public class Paradex extends ParadexApi
         Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
         Object version = this.version;
-        if (Helpers.isEqual(Helpers.getIndexOf(path, "v2/"), 0))
+        if ((Helpers.getIndexOf(path, "v2/") == 0))
         {
             version = "v2";
             path = Helpers.replace(((String)path), "v2/", "");

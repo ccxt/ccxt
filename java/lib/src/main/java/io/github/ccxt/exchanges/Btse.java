@@ -1335,7 +1335,7 @@ public class Btse extends BtseApi
                 ((Map<String, Object>)frees).put((String)code, Precise.stringAdd(this.safeString(frees, code, "0"), this.safeString2(row, "availableAmount", "available")));
             }
         }
-        Object codes = new ArrayList<Object>(((Map<String, Object>)totals).keySet());
+        List<Object> codes = new ArrayList<Object>(totals.keySet());
         for (var i = 0; i < ((List<?>)codes).size(); i++)
         {
             Object code = Helpers.GetValue(codes, i);
@@ -1436,7 +1436,7 @@ public class Btse extends BtseApi
             // the exchange only provides the cap of each risk tier, so the floor
             // is derived from the previous tier: 0 for the first tier, and the
             // previous tier's maxNotional for every subsequent tier
-            Object symbolKeys = new ArrayList<Object>(((Map<String, Object>)result).keySet());
+            List<Object> symbolKeys = new ArrayList<Object>(result.keySet());
             for (var i = 0; i < ((List<?>)symbolKeys).size(); i++)
             {
                 Object symbolKey = Helpers.GetValue(symbolKeys, i);

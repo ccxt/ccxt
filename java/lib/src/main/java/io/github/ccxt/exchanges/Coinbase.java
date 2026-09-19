@@ -1747,7 +1747,7 @@ public class Coinbase extends CoinbaseApi
             List<Object> data = (List<Object>) this.safeList(currencies, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> dataById = this.indexBy(data, "id");
             Map<String, Object> rates = (Map<String, Object>) this.safeDict(this.safeDict(exchangeRates, "data", new HashMap<String, Object>() {{}}), "rates", new HashMap<String, Object>() {{}});
-            Object baseIds = new ArrayList<Object>(((Map<String, Object>)rates).keySet());
+            List<Object> baseIds = new ArrayList<Object>(rates.keySet());
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)baseIds).size(); i++)
             {
@@ -2404,7 +2404,7 @@ public class Coinbase extends CoinbaseApi
             List<Object> cryptoData = (List<Object>) this.safeList(cryptoResponse, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> ratesData = (Map<String, Object>) this.safeDict(ratesResponse, "data", new HashMap<String, Object>() {{}});
             Map<String, Object> rates = (Map<String, Object>) this.safeDict(ratesData, "rates", new HashMap<String, Object>() {{}});
-            Object ratesIds = new ArrayList<Object>(((Map<String, Object>)rates).keySet());
+            List<Object> ratesIds = new ArrayList<Object>(rates.keySet());
             List<Object> currencies = (List<Object>) this.arrayConcat(fiatData, cryptoData);
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             Map<String, Object> networks = new HashMap<String, Object>() {{}};
@@ -2548,7 +2548,7 @@ public class Coinbase extends CoinbaseApi
             Map<String, Object> rates = (Map<String, Object>) this.safeDict(data, "rates", new HashMap<String, Object>() {{}});
             String quoteId = this.safeString(data, "currency");
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            Object baseIds = new ArrayList<Object>(((Map<String, Object>)rates).keySet());
+            List<Object> baseIds = new ArrayList<Object>(rates.keySet());
             String delimiter = "-";
             for (var i = 0; i < ((List<?>)baseIds).size(); i++)
             {

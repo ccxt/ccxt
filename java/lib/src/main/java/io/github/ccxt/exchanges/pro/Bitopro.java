@@ -484,7 +484,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
 
     public void authenticate(Object url)
     {
-        if ((!java.util.Objects.equals(this.clients, null)) && (Helpers.inOp(this.clients, url)))
+        if ((!java.util.Objects.equals(this.clients, null)) && ((url != null && ((Map<?, ?>)this.clients).containsKey(url))))
         {
             return;
         }
@@ -567,7 +567,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Long timestamp = this.safeInteger(message, "timestamp");
         String datetime = this.safeString(message, "datetime");
-        Object currencies = new ArrayList<Object>(((Map<String, Object>)data).keySet());
+        List<Object> currencies = new ArrayList<Object>(data.keySet());
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", data );
             put( "timestamp", timestamp );

@@ -927,7 +927,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
 
     public void setBalanceCache(Client client, Object type, Object subscribeHash)
     {
-        if (Helpers.inOp(client.subscriptions, subscribeHash))
+        if ((subscribeHash != null && ((Map<?, ?>)client.subscriptions).containsKey(subscribeHash)))
         {
             return;
         }
@@ -955,7 +955,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             }}))).join();
             Helpers.addElementToObject(this.balance, type, this.extend(response, this.safeDict(this.balance, type, new HashMap<String, Object>() {{}})));
             // don't remove the future from the .futures cache
-            if (Helpers.inOp(client.futures, messageHash))
+            if ((messageHash != null && ((Map<?, ?>)client.futures).containsKey(messageHash)))
             {
                 io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, messageHash);
                 future.resolve();

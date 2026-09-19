@@ -537,7 +537,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
         }
         client.resolve(newLiquidations, "liquidations");
         Map<String, Object> liquidationsBySymbol = this.indexBy(newLiquidations, "symbol");
-        Object symbols = new ArrayList<Object>(((Map<String, Object>)liquidationsBySymbol).keySet());
+        List<Object> symbols = new ArrayList<Object>(liquidationsBySymbol.keySet());
         for (var i = 0; i < ((List<?>)symbols).size(); i++)
         {
             Object symbol = Helpers.GetValue(symbols, i);
@@ -746,7 +746,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
         String table = "trade";
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> dataByMarketIds = this.groupBy(data, "symbol");
-        Object marketIds = new ArrayList<Object>(((Map<String, Object>)dataByMarketIds).keySet());
+        List<Object> marketIds = new ArrayList<Object>(dataByMarketIds.keySet());
         for (var i = 0; i < ((List<?>)marketIds).size(); i++)
         {
             Object marketId = Helpers.GetValue(marketIds, i);
@@ -1059,7 +1059,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
                 // the ArrayCacheBySymbolBySide index (see issue #29001).
                 String symbol = this.safeString(position, "symbol");
                 Map<String, Object> cachedBySide = (Map<String, Object>) this.safeDict(((io.github.ccxt.ws.ArrayCache)cache).hashmap, symbol, new HashMap<String, Object>() {{}});
-                Object cachedSides = new ArrayList<Object>(((Map<String, Object>)cachedBySide).keySet());
+                List<Object> cachedSides = new ArrayList<Object>(cachedBySide.keySet());
                 Object sidesLength = ((List<?>)cachedSides).size();
                 if (java.util.Objects.equals(sidesLength, 1))
                 {
@@ -1318,7 +1318,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
                 ((Map<String, Object>)symbols).put((String)((String)symbol), true);
             }
             client.resolve(this.orders, messageHash);
-            Object keys = new ArrayList<Object>(((Map<String, Object>)symbols).keySet());
+            List<Object> keys = new ArrayList<Object>(symbols.keySet());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 Object symbol = Helpers.GetValue(keys, i);
@@ -1458,7 +1458,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
         {
             client.resolve(stored, messageHash);
         }
-        Object keys = new ArrayList<Object>(((Map<String, Object>)symbols).keySet());
+        List<Object> keys = new ArrayList<Object>(symbols.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             client.resolve(stored, Helpers.add(Helpers.add(messageHash, ":"), Helpers.GetValue(keys, i)));
@@ -1734,7 +1734,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
             Helpers.callDynamically(stored, "append", new Object[]{result});
             ((Map<String, Object>)results).put((String)messageHash, stored);
         }
-        Object messageHashes = new ArrayList<Object>(((Map<String, Object>)results).keySet());
+        List<Object> messageHashes = new ArrayList<Object>(results.keySet());
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
@@ -1884,7 +1884,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
                 Helpers.addElementToObject(orderbook, "timestamp", this.parse8601(datetime));
                 Helpers.addElementToObject(orderbook, "datetime", datetime);
             }
-            Object marketIds = new ArrayList<Object>(((Map<String, Object>)numUpdatesByMarketId).keySet());
+            List<Object> marketIds = new ArrayList<Object>(numUpdatesByMarketId.keySet());
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);

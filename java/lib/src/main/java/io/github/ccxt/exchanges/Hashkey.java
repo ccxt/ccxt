@@ -5141,14 +5141,14 @@ final Object finalI = i;
         Boolean errorInArray = false;
         String responseCodeString = this.safeString(response, "code");
         Long responseCodeInteger = this.safeInteger(response, "code"); // some codes in response are returned as '0000' others as 0
-        if (Helpers.isEqual(responseCodeInteger, 0))
+        if ((responseCodeInteger != null && responseCodeInteger == 0))
         {
             List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList())); // for batch methods
             for (var i = 0; i < ((List<?>)result).size(); i++)
             {
                 Map<String, Object> entry = (Map<String, Object>) this.safeDict(result, i);
                 Long entryCodeInteger = this.safeInteger(entry, "code");
-                if (!Helpers.isEqual(entryCodeInteger, 0))
+                if ((entryCodeInteger == null || entryCodeInteger != 0))
                 {
                     errorInArray = true;
                     responseCodeString = this.safeString(entry, "code");
