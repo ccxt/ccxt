@@ -1,6 +1,6 @@
 import { Transpiler } from 'ast-transpiler';
 import { getProgramBatch } from './worker-program-batch.js';
-import { installCsharpAsyncCoreReturns, installCsharpCollectionReturns, installCsharpLocalTypes, installCsharpNativeArithmetic, installCsharpNumericComparisons, installCsharpNumericReturns, installCsharpStringReturns } from './csharp-local-types.js';
+import { installCsharpAsyncCoreReturns, installCsharpCollectionReturns, installCsharpLocalTypes, installCsharpNativeArithmetic, installCsharpNumericComparisons, installCsharpNumericReturns, installCsharpParameterTypes, installCsharpStringReturns } from './csharp-local-types.js';
 import log from 'ololog'
 // "typescript6" is an npm alias for typescript@6 — the last release that ships the JS compiler API
 import ts from 'typescript6';
@@ -131,6 +131,10 @@ export function setupCsharpPrinter (transpiler: Transpiler) {
     // the dict/list-returns section of build/csharp-local-types.js) — their returns carry
     // the same boundary cast and the locals map registers the same types
     installCsharpCollectionReturns (transpiler);
+    // the C# type the emitted signature carries for a narrowed core argument (see the
+    // parameter-type section of build/csharp-local-types.js); installed last so it wraps the
+    // read-type resolver the numeric-comparison installer above already set
+    installCsharpParameterTypes (transpiler);
 }
 
 // piscina reuses worker threads across tasks — cache the Transpiler per thread

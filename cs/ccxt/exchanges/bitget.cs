@@ -4661,7 +4661,7 @@ public partial class bitget : Exchange
             }
             return ccxt.BaseExchange.ToTransactionList(await this.fetchPaginatedCallCursor("fetchDeposits", null, sinceVar, limit, parameters, "idLessThan", "idLessThan", null, 100));
         }
-        if (isEqual(sinceVar, null))
+        if ((sinceVar == null))
         {
             if (isEqual(uta, true))
             {
@@ -4681,7 +4681,7 @@ public partial class bitget : Exchange
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["coin"] = getValue(currency, "id");
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -4877,7 +4877,7 @@ public partial class bitget : Exchange
         {
             currency = this.currency(((string)code));
         }
-        if (isEqual(sinceVar, null))
+        if ((sinceVar == null))
         {
             if (isEqual(uta, true))
             {
@@ -4898,7 +4898,7 @@ public partial class bitget : Exchange
         IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("endTime", request, parameters);
         request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -5205,7 +5205,7 @@ public partial class bitget : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -6001,7 +6001,7 @@ public partial class bitget : Exchange
         var utaparametersVariable = await this.handleUTAAndParams(parameters, "fetchTrades", false);
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             if (isEqual(uta, true))
             {
@@ -6046,7 +6046,7 @@ public partial class bitget : Exchange
                 IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("endTime", request, parameters);
                 request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
                 parameters = ((IList<object>)requestparametersVariable)[1];
-                if (!isEqual(since, null))
+                if ((since != null))
                 {
                     ((IDictionary<string,object>)request)["startTime"] = since;
                 }
@@ -6067,7 +6067,7 @@ public partial class bitget : Exchange
                 IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("endTime", request, parameters);
                 request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
                 parameters = ((IList<object>)requestparametersVariable)[1];
-                if (!isEqual(since, null))
+                if ((since != null))
                 {
                     ((IDictionary<string,object>)request)["startTime"] = since;
                 }
@@ -6523,8 +6523,8 @@ public partial class bitget : Exchange
         Int64 now = this.milliseconds();
         Int64 duration = multiply(this.parseTimeframe(timeframeVar), 1000);
         Int64? until = this.safeInteger(parameters, "until");
-        bool limitDefined = !isEqual(limitVar, null);
-        bool sinceDefined = !isEqual(since, null);
+        bool limitDefined = (limitVar != null);
+        bool sinceDefined = (since != null);
         bool untilDefined = !isEqual(until, null);
         parameters = this.omit(parameters, new List<object>() {"until"});
         // retrievable periods listed here:
@@ -8277,7 +8277,7 @@ public partial class bitget : Exchange
         {
             ((IDictionary<string,object>)request)["orderId"] = id;
         }
-        bool isMarketOrder = isEqual(type, "market");
+        bool isMarketOrder = (type == "market");
         double? triggerPrice = this.safeNumber2(parameters, "stopPrice", "triggerPrice");
         bool isTriggerOrder = !isEqual(triggerPrice, null);
         double? stopLossPrice = this.safeNumber(parameters, "stopLossPrice");
@@ -8313,7 +8313,7 @@ public partial class bitget : Exchange
         parameters = ((IList<object>)utaparametersVariable)[1];
         if (isEqual(uta, true))
         {
-            if (!isEqual(amount, null))
+            if ((amount != null))
             {
                 ((IDictionary<string,object>)request)["qty"] = this.amountToPrecision(symbol, amount);
             }
@@ -8324,7 +8324,7 @@ public partial class bitget : Exchange
                     string? slType = this.safeString(parameters, "slTriggerBy", "mark");
                     ((IDictionary<string,object>)request)["slTriggerBy"] = slType;
                     ((IDictionary<string,object>)request)["stopLoss"] = this.priceToPrecision(symbol, stopLossPrice);
-                    if (!isEqual(price, null))
+                    if ((price != null))
                     {
                         ((IDictionary<string,object>)request)["slLimitPrice"] = this.priceToPrecision(symbol, price);
                         ((IDictionary<string,object>)request)["slOrderType"] = this.safeString(parameters, "slOrderType", "limit");
@@ -8337,7 +8337,7 @@ public partial class bitget : Exchange
                     string? tpType = this.safeString(parameters, "tpTriggerBy", "mark");
                     ((IDictionary<string,object>)request)["tpTriggerBy"] = tpType;
                     ((IDictionary<string,object>)request)["takeProfit"] = this.priceToPrecision(symbol, takeProfitPrice);
-                    if (!isEqual(price, null))
+                    if ((price != null))
                     {
                         ((IDictionary<string,object>)request)["tpLimitPrice"] = this.priceToPrecision(symbol, price);
                         ((IDictionary<string,object>)request)["tpOrderType"] = this.safeString(parameters, "tpOrderType", "limit");
@@ -8350,7 +8350,7 @@ public partial class bitget : Exchange
                 response = await this.privateUtaPostV3TradeModifyStrategyOrder(this.extend(request, parameters));
             } else
             {
-                if (!isEqual(price, null))
+                if ((price != null))
                 {
                     ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
                 }
@@ -8361,9 +8361,9 @@ public partial class bitget : Exchange
             string? cost = this.safeString(parameters, "cost");
             parameters = this.omit(parameters, "cost");
             bool? editMarketBuyOrderRequiresPrice = this.safeBool(this.options, "editMarketBuyOrderRequiresPrice", true);
-            if ((((editMarketBuyOrderRequiresPrice == true)) || ((cost != null))) && isMarketOrder && (isEqual(side, "buy")))
+            if ((((editMarketBuyOrderRequiresPrice == true)) || ((cost != null))) && isMarketOrder && ((side == "buy")))
             {
-                if (isEqual(price, null) && (cost == null))
+                if ((price == null) && (cost == null))
                 {
                     throw new InvalidOrder ((string)(this.id + " editOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively provide `cost` in the params")) ;
                 } else
@@ -8383,7 +8383,7 @@ public partial class bitget : Exchange
                 ((IDictionary<string,object>)request)["triggerPrice"] = this.priceToPrecision(symbol, triggerPrice);
                 // market plan orders carry no execute price, follow up to
                 // https://github.com/ccxt/ccxt/issues/25427
-                if (!isEqual(price, null))
+                if ((price != null))
                 {
                     ((IDictionary<string,object>)request)["executePrice"] = this.priceToPrecision(symbol, price);
                 }
@@ -8409,11 +8409,11 @@ public partial class bitget : Exchange
             ((IDictionary<string,object>)request)["productType"] = productType;
             if (!isTakeProfitOrder && !isStopLossOrder)
             {
-                if (!isEqual(amount, null))
+                if ((amount != null))
                 {
                     ((IDictionary<string,object>)request)["newSize"] = this.amountToPrecision(symbol, amount);
                 }
-                if ((!isEqual(price, null)) && !isTrailingPercentOrder)
+                if (((price != null)) && !isTrailingPercentOrder)
                 {
                     ((IDictionary<string,object>)request)["newPrice"] = this.priceToPrecision(symbol, price);
                 }
@@ -8434,7 +8434,7 @@ public partial class bitget : Exchange
             {
                 ((IDictionary<string,object>)request)["marginCoin"] = (market.ContainsKey("settleId") ? market["settleId"] : null);
                 ((IDictionary<string,object>)request)["size"] = this.amountToPrecision(symbol, amount);
-                if (!isEqual(price, null))
+                if ((price != null))
                 {
                     ((IDictionary<string,object>)request)["executePrice"] = this.priceToPrecision(symbol, price);
                 }
@@ -9261,11 +9261,11 @@ public partial class bitget : Exchange
         IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("endTime", request, parameters);
         request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        if (!isEqual(sinceVar, null))
+        if ((sinceVar != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = sinceVar;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -9307,7 +9307,7 @@ public partial class bitget : Exchange
         {
             if ((marginMode != null))
             {
-                if (isEqual(sinceVar, null))
+                if ((sinceVar == null))
                 {
                     sinceVar = (this.milliseconds() - 7776000000);
                     ((IDictionary<string,object>)request)["startTime"] = sinceVar;
@@ -9776,11 +9776,11 @@ public partial class bitget : Exchange
         IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("endTime", request, parameters);
         request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        if (!isEqual(sinceVar, null))
+        if ((sinceVar != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = sinceVar;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -9798,7 +9798,7 @@ public partial class bitget : Exchange
         {
             if ((marginMode != null))
             {
-                if (isEqual(sinceVar, null))
+                if ((sinceVar == null))
                 {
                     sinceVar = (now - 7776000000);
                     ((IDictionary<string,object>)request)["startTime"] = sinceVar;
@@ -9818,7 +9818,7 @@ public partial class bitget : Exchange
                 }
                 Int64? endTime = this.safeInteger2(parameters, "endTime", "until");
                 parameters = this.omit(parameters, new List<object>() {"until"});
-                if (isEqual(sinceVar, null))
+                if ((sinceVar == null))
                 {
                     sinceVar = (now - 7776000000);
                     ((IDictionary<string,object>)request)["startTime"] = sinceVar;
@@ -10093,11 +10093,11 @@ public partial class bitget : Exchange
         IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("endTime", request, parameters);
         request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -10256,11 +10256,11 @@ public partial class bitget : Exchange
         IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("endTime", request, parameters);
         request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -10483,11 +10483,11 @@ public partial class bitget : Exchange
         IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("endTime", request, parameters);
         request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -10532,7 +10532,7 @@ public partial class bitget : Exchange
             {
                 if ((marginMode != null))
                 {
-                    if (isEqual(since, null))
+                    if ((since == null))
                     {
                         ((IDictionary<string,object>)request)["startTime"] = (this.milliseconds() - 7776000000);
                     }
@@ -11323,7 +11323,7 @@ public partial class bitget : Exchange
         parameters = ((IList<object>)utaparametersVariable)[1];
         if (isEqual(uta, true))
         {
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 ((IDictionary<string,object>)request)["limit"] = limit;
             }
@@ -11357,7 +11357,7 @@ public partial class bitget : Exchange
             {
                 return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, parameters, "pageNo", 100));
             }
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 ((IDictionary<string,object>)request)["pageSize"] = limit;
             }
@@ -11722,11 +11722,11 @@ public partial class bitget : Exchange
         IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("endTime", request, parameters);
         request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -12081,11 +12081,11 @@ public partial class bitget : Exchange
             throw new ArgumentsRequired ((string)(this.id + " setMarginMode() requires a symbol argument")) ;
         }
         marginModeVar = ((string)marginModeVar).ToLower();
-        if (isEqual(marginModeVar, "cross"))
+        if ((marginModeVar == "cross"))
         {
             marginModeVar = "crossed";
         }
-        if ((!isEqual(marginModeVar, "isolated")) && (!isEqual(marginModeVar, "crossed")))
+        if (((marginModeVar != "isolated")) && ((marginModeVar != "crossed")))
         {
             throw new ArgumentsRequired ((string)(this.id + " setMarginMode() marginMode must be either isolated or crossed (cross)")) ;
         }
@@ -12295,11 +12295,11 @@ public partial class bitget : Exchange
             { "coin", getValue(currency, "id") },
             { "fromType", type },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -12842,14 +12842,14 @@ public partial class bitget : Exchange
         IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("endTime", request, parameters);
         request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         } else
         {
             ((IDictionary<string,object>)request)["startTime"] = (this.milliseconds() - 7776000000);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -13265,14 +13265,14 @@ public partial class bitget : Exchange
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["coin"] = getValue(currency, "id");
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         } else
         {
             ((IDictionary<string,object>)request)["startTime"] = (this.milliseconds() - 7776000000);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -13598,11 +13598,11 @@ public partial class bitget : Exchange
                 ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             }
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -13758,7 +13758,7 @@ public partial class bitget : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         int msInDay = 86400000;
         Int64 now = this.milliseconds();
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         } else
@@ -13773,7 +13773,7 @@ public partial class bitget : Exchange
         {
             ((IDictionary<string,object>)request)["endTime"] = now;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
