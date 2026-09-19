@@ -851,7 +851,7 @@ public partial class kraken : ccxt.kraken
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> requiredParams = new Dictionary<string, object>() {};
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             if (this.inArray(limit, new List<object>() {10, 25, 100, 500, 1000}))
             {

@@ -1215,9 +1215,9 @@ public partial class ndax : Exchange
         };
         int duration = this.parseTimeframe(timeframeVar);
         Int64 now = this.milliseconds();
-        if (isEqual(since, null))
+        if ((since == null))
         {
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 ((IDictionary<string,object>)request)["FromDate"] = this.ymdhms(subtract(now, multiply(multiply(duration, limit), 1000)));
                 ((IDictionary<string,object>)request)["ToDate"] = this.ymdhms(now);
@@ -1225,7 +1225,7 @@ public partial class ndax : Exchange
         } else
         {
             ((IDictionary<string,object>)request)["FromDate"] = this.ymdhms(since);
-            if (isEqual(limit, null))
+            if ((limit == null))
             {
                 ((IDictionary<string,object>)request)["ToDate"] = this.ymdhms(now);
             } else
@@ -1450,7 +1450,7 @@ public partial class ndax : Exchange
             { "omsId", omsId },
             { "InstrumentId", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["Count"] = limit;
         }
@@ -1703,7 +1703,7 @@ public partial class ndax : Exchange
             { "omsId", omsId },
             { "AccountId", accountId },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["Depth"] = limit;
         }
@@ -1878,17 +1878,17 @@ public partial class ndax : Exchange
         string? triggerPrice = this.safeString(parameters, "triggerPrice");
         if ((triggerPrice != null))
         {
-            if (isEqual(type, "market"))
+            if ((type == "market"))
             {
                 orderType = 3;
-            } else if (isEqual(type, "limit"))
+            } else if ((type == "limit"))
             {
                 orderType = 4;
             }
         }
         parameters = this.omit(parameters, new List<object>() {"accountId", "AccountId", "clientOrderId", "ClientOrderId", "triggerPrice"});
         Dictionary<string, object> market = this.market(symbol);
-        int orderSide = ((bool) (isEqual(side, "buy"))) ? 0 : 1;
+        int orderSide = ((bool) ((side == "buy"))) ? 0 : 1;
         string? amountString = this.amountToPrecision(symbol, amount);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "InstrumentId", this.parseToInt((market.ContainsKey("id") ? market["id"] : null)) },
@@ -1900,7 +1900,7 @@ public partial class ndax : Exchange
             { "OrderType", orderType },
         };
         // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
-        if (!isEqual(price, null))
+        if ((price != null))
         {
             string? limitPriceString = this.priceToPrecision(symbol, price);
             if ((limitPriceString == null))
@@ -1956,7 +1956,7 @@ public partial class ndax : Exchange
         Int64? clientOrderId = this.safeInteger2(parameters, "ClientOrderId", "clientOrderId");
         parameters = this.omit(parameters, new List<object>() {"accountId", "AccountId", "clientOrderId", "ClientOrderId"});
         Dictionary<string, object> market = this.market(symbol);
-        int orderSide = ((bool) (isEqual(side, "buy"))) ? 0 : 1;
+        int orderSide = ((bool) ((side == "buy"))) ? 0 : 1;
         string? amountString = this.amountToPrecision(symbol, amount);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "OrderIdToReplace", parseInt(id) },
@@ -1969,7 +1969,7 @@ public partial class ndax : Exchange
             { "OrderType", this.safeInteger((this.options.ContainsKey("orderTypes") ? this.options["orderTypes"] : null), this.capitalize(type)) },
         };
         // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
-        if (!isEqual(price, null))
+        if ((price != null))
         {
             string? limitPriceString = this.priceToPrecision(symbol, price);
             if ((limitPriceString == null))
@@ -2027,11 +2027,11 @@ public partial class ndax : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["InstrumentId"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["StartTimeStamp"] = this.parseToInt(divide(since, 1000));
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["Depth"] = limit;
         }
@@ -2288,11 +2288,11 @@ public partial class ndax : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["InstrumentId"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["StartTimeStamp"] = this.parseToInt(divide(since, 1000));
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["Depth"] = limit;
         }

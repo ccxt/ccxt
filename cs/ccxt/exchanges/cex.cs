@@ -723,7 +723,7 @@ public partial class cex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["fromDateISO"] = this.iso8601(since);
         }
@@ -735,7 +735,7 @@ public partial class cex : Exchange
         {
             ((IDictionary<string,object>)request)["toDateISO"] = this.iso8601(until);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["pageSize"] = mathMin(limit, 10000); // has a bug, still returns more trades
         }
@@ -874,7 +874,7 @@ public partial class cex : Exchange
             { "resolution", getValue(this.timeframes, timeframeVar) },
             { "dataType", dataType },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["fromISO"] = this.iso8601(since);
         }
@@ -885,19 +885,19 @@ public partial class cex : Exchange
         if (!isEqual(until, null))
         {
             ((IDictionary<string,object>)request)["toISO"] = this.iso8601(until);
-        } else if (isEqual(since, null))
+        } else if ((since == null))
         {
             // exchange still requires that we provide one of them
             ((IDictionary<string,object>)request)["toISO"] = this.iso8601(this.milliseconds());
         }
-        if (!isEqual(since, null) && !isEqual(until, null) && !isEqual(limit, null))
+        if ((since != null) && !isEqual(until, null) && (limit != null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchOHLCV does not support fetching candles with both a limit and since/until")) ;
-        } else if ((!isEqual(since, null) || !isEqual(until, null)) && isEqual(limit, null))
+        } else if (((since != null) || !isEqual(until, null)) && (limit == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchOHLCV requires a limit parameter when fetching candles with since or until")) ;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -1163,11 +1163,11 @@ public partial class cex : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["pair"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["pageSize"] = limit;
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["serverCreateTimestampFrom"] = since;
         } else if (isClosedOrders)
@@ -1458,7 +1458,7 @@ public partial class cex : Exchange
         IList<object> timeInForceparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "timeInForce", "GTC");
         timeInForce = ((IList<object>)timeInForceparametersVariable)[0];
         parameters = ((IList<object>)timeInForceparametersVariable)[1];
-        if (isEqual(type, "limit"))
+        if ((type == "limit"))
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
             ((IDictionary<string,object>)request)["timeInForce"] = timeInForce;
@@ -1621,11 +1621,11 @@ public partial class cex : Exchange
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["dateFrom"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["pageSize"] = limit;
         }
@@ -1728,11 +1728,11 @@ public partial class cex : Exchange
         {
             currency = this.currency(((string)code));
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["dateFrom"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["pageSize"] = limit;
         }
@@ -1828,7 +1828,7 @@ public partial class cex : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object transfer = null;
-        if (!isEqual(toAccount, "") && !isEqual(fromAccount, ""))
+        if ((toAccount != "") && (fromAccount != ""))
         {
             transfer = ccxt.BaseExchange.FromTransferEntry(await this.TransferBetweenSubAccounts(((string)code), amount,((string)fromAccount),((string)toAccount), parameters));
         } else
@@ -1852,7 +1852,7 @@ public partial class cex : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(((string)code));
-        bool fromMain = (isEqual(fromAccount, ""));
+        bool fromMain = ((fromAccount == ""));
         object targetAccount = ((bool) fromMain) ? toAccount : fromAccount;
         string? guid = this.safeString(parameters, "guid", this.uuid());
         Dictionary<string, object> request = new Dictionary<string, object>() {

@@ -1277,11 +1277,11 @@ public partial class lbank : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["time"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["size"] = mathMin(limit, 600);
         } else
@@ -1868,11 +1868,11 @@ public partial class lbank : Exchange
         bool ioc = ((timeInForce == "IOC"));
         bool fok = ((timeInForce == "FOK"));
         bool maker = (((postOnly == true)) || ((timeInForce == "PO")));
-        if ((isEqual(type, "market")) && (ioc || fok || maker))
+        if (((type == "market")) && (ioc || fok || maker))
         {
             throw new InvalidOrder ((string)(this.id + " createOrder () does not allow market FOK, IOC, or postOnly orders. Only limit IOC, FOK, and postOnly orders are allowed")) ;
         }
-        if (isEqual(type, "limit"))
+        if ((type == "limit"))
         {
             ((IDictionary<string,object>)request)["type"] = side;
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
@@ -1887,13 +1887,13 @@ public partial class lbank : Exchange
             {
                 ((IDictionary<string,object>)request)["type"] = add(add(side, "_"), "maker");
             }
-        } else if (isEqual(type, "market"))
+        } else if ((type == "market"))
         {
-            if (isEqual(side, "sell"))
+            if ((side == "sell"))
             {
                 ((IDictionary<string,object>)request)["type"] = add(add(side, "_"), "market");
                 ((IDictionary<string,object>)request)["amount"] = this.amountToPrecision(symbol, amount);
-            } else if (isEqual(side, "buy"))
+            } else if ((side == "buy"))
             {
                 ((IDictionary<string,object>)request)["type"] = add(add(side, "_"), "market");
                 string? quoteAmount = null;
@@ -1908,7 +1908,7 @@ public partial class lbank : Exchange
                     quoteAmount = this.costToPrecision(symbol, cost);
                 } else if (isTrue(createMarketBuyOrderRequiresPrice))
                 {
-                    if (isEqual(price, null))
+                    if ((price == null))
                     {
                         throw new InvalidOrder ((string)(this.id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                     } else
@@ -2273,7 +2273,7 @@ public partial class lbank : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["size"] = limit;
         }
@@ -2852,7 +2852,7 @@ public partial class lbank : Exchange
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["coin"] = getValue(currency, "id");
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
@@ -2910,7 +2910,7 @@ public partial class lbank : Exchange
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["coin"] = getValue(currency, "id");
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }

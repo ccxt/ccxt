@@ -834,7 +834,7 @@ public partial class cryptomus : Exchange
             parameters = this.omit(parameters, "clientOrderId");
             ((IDictionary<string,object>)request)["client_order_id"] = clientOrderId;
         }
-        bool sideBuy = isEqual(side, "buy");
+        bool sideBuy = (side == "buy");
         string? amountToString = this.numberToString(amount);
         string? priceToString = this.numberToString(price);
         object cost = null;
@@ -842,7 +842,7 @@ public partial class cryptomus : Exchange
         cost = ((IList<object>)costparametersVariable)[0];
         parameters = ((IList<object>)costparametersVariable)[1];
         object response = null;
-        if (isEqual(type, "market"))
+        if ((type == "market"))
         {
             if (sideBuy)
             {
@@ -852,7 +852,7 @@ public partial class cryptomus : Exchange
                 parameters = ((IList<object>)createMarketBuyOrderRequiresPriceparametersVariable)[1];
                 if (isTrue(createMarketBuyOrderRequiresPrice))
                 {
-                    if ((isEqual(price, null)) && ((cost == null)))
+                    if (((price == null)) && ((cost == null)))
                     {
                         throw new InvalidOrder ((string)(this.id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option of param to false and pass the cost to spend in the amount argument")) ;
                     } else if ((cost == null))
@@ -869,9 +869,9 @@ public partial class cryptomus : Exchange
                 ((IDictionary<string,object>)request)["quantity"] = amountToString;
             }
             response = await this.privatePostV2UserApiExchangeOrdersMarket(this.extend(request, parameters));
-        } else if (isEqual(type, "limit"))
+        } else if ((type == "limit"))
         {
-            if (isEqual(price, null))
+            if ((price == null))
             {
                 throw new ArgumentsRequired ((string)(((this.id + " createOrder() requires a price parameter for a ") + (type)) + " order")) ;
             }
@@ -948,7 +948,7 @@ public partial class cryptomus : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["market"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }

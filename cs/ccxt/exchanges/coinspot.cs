@@ -876,7 +876,7 @@ public partial class coinspot : Exchange
         {
             market = this.market(symbol);
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startdate"] = this.yyyymmdd(since);
         }
@@ -1019,7 +1019,7 @@ public partial class coinspot : Exchange
             throw new ArgumentsRequired ((string)(this.id + " createOrder() requires a side argument")) ;
         }
         string sideUpper = ((string)side).ToUpper();
-        if (isEqual(type, "market"))
+        if ((type == "market"))
         {
             throw new ExchangeError ((string)(this.id + " createOrder() allows limit orders only")) ;
         }

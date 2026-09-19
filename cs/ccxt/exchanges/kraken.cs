@@ -1143,7 +1143,7 @@ public partial class kraken : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["count"] = limit; // 100
         }
@@ -1363,7 +1363,7 @@ public partial class kraken : Exchange
         {
             ((IDictionary<string,object>)request)["interval"] = timeframeVar;
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             Int64? scaledSince = this.parseToInt(divide(since, 1000));
             if (isEqual(parsedTimeframe, null))
@@ -1490,7 +1490,7 @@ public partial class kraken : Exchange
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["asset"] = getValue(currency, "id");
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start"] = this.parseToInt(divide(since, 1000));
         }
@@ -1757,11 +1757,11 @@ public partial class kraken : Exchange
         };
         // https://support.kraken.com/hc/en-us/articles/218198197-How-to-pull-all-trade-data-using-the-Kraken-REST-API
         // https://github.com/ccxt/ccxt/issues/5677
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["since"] = this.numberToString(this.parseToInt(divide(since, 1000))); // expected to be in seconds
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["count"] = limit;
         }
@@ -2614,7 +2614,7 @@ public partial class kraken : Exchange
             parameters = this.omit(parameters, new List<object>() {"clientOrderId", "cl_ord_id"});
             request = this.omit(request, "txid");
         }
-        bool isMarket = (isEqual(type, "market"));
+        bool isMarket = ((type == "market"));
         bool? postOnly = null;
         IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isMarket, false, parameters);
         postOnly = (bool?)((IList<object>)postOnlyparametersVariable)[0];
@@ -2623,11 +2623,11 @@ public partial class kraken : Exchange
         {
             ((IDictionary<string,object>)request)["post_only"] = "true"; // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
         }
-        if (!isEqual(amount, null))
+        if ((amount != null))
         {
             ((IDictionary<string,object>)request)["order_qty"] = this.amountToPrecision(symbol, amount);
         }
-        if (!isEqual(price, null))
+        if ((price != null))
         {
             ((IDictionary<string,object>)request)["limit_price"] = this.priceToPrecision(symbol, price);
         }
@@ -2887,7 +2887,7 @@ public partial class kraken : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start"] = this.parseToInt(divide(since, 1000));
         }
@@ -3113,7 +3113,7 @@ public partial class kraken : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start"] = this.parseToInt(divide(since, 1000));
         }
@@ -3209,7 +3209,7 @@ public partial class kraken : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start"] = this.parseToInt(divide(since, 1000));
         }
@@ -3462,7 +3462,7 @@ public partial class kraken : Exchange
             Dictionary<string, object> currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["asset"] = getValue(currency, "id");
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             string? sinceString = this.numberToString(since);
             ((IDictionary<string,object>)request)["start"] = Precise.stringDiv(sinceString, "1000");
@@ -3554,7 +3554,7 @@ public partial class kraken : Exchange
             Dictionary<string, object> currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["asset"] = getValue(currency, "id");
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             string? sinceString = this.numberToString(since);
             ((IDictionary<string,object>)request)["start"] = Precise.stringDiv(sinceString, "1000");
@@ -3825,7 +3825,7 @@ public partial class kraken : Exchange
                 { "asset", getValue(currency, "id") },
                 { "amount", amount },
             };
-            if ((address != null) && !isEqual(address, ""))
+            if ((address != null) && (address != ""))
             {
                 ((IDictionary<string,object>)request)["address"] = address;
                 this.checkAddress(address);

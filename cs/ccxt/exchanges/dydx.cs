@@ -799,7 +799,7 @@ public partial class dydx : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000);
         }
@@ -872,11 +872,11 @@ public partial class dydx : Exchange
             { "market", (market.ContainsKey("id") ? market["id"] : null) },
             { "resolution", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000);
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["fromIso"] = this.iso8601(since);
         }
@@ -939,7 +939,7 @@ public partial class dydx : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -1154,7 +1154,7 @@ public partial class dydx : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["ticker"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -2176,7 +2176,7 @@ public partial class dydx : Exchange
     public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual(code, "USDC"))
+        if ((code != "USDC"))
         {
             throw new NotSupported ((string)(this.id + " transfer() only support USDC")) ;
         }
@@ -2186,7 +2186,7 @@ public partial class dydx : Exchange
         }
         Int64? fromSubaccountId = this.safeInteger(parameters, "fromSubaccountId");
         Int64? toSubaccountId = this.safeInteger(parameters, "toSubaccountId");
-        if (!isEqual(fromAccount, "main"))
+        if ((fromAccount != "main"))
         {
             // throw error if from subaccount id is undefined
             if ((fromAccount == null))
@@ -2204,7 +2204,7 @@ public partial class dydx : Exchange
         Int64? usd = this.parseToInt(Precise.stringMul(this.numberToString(amount), "1000000"));
         Dictionary<string, object> payload = null;
         Dictionary<string, object> signingPayload = null;
-        if (isEqual(fromAccount, "main"))
+        if ((fromAccount == "main"))
         {
             // deposit to subaccount
             if (isEqual(toSubaccountId, null))
@@ -2413,7 +2413,7 @@ public partial class dydx : Exchange
     public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual(code, "USDC"))
+        if ((code != "USDC"))
         {
             throw new NotSupported ((string)(this.id + " withdraw() only support USDC")) ;
         }

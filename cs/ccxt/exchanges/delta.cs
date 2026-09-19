@@ -1565,7 +1565,7 @@ public partial class delta : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["depth"] = limit;
         }
@@ -1784,7 +1784,7 @@ public partial class delta : Exchange
         {
             until = this.parseToInt(until);
         }
-        if (isEqual(since, null))
+        if ((since == null))
         {
             Int64? end = ((bool) untilIsDefined) ? until : this.seconds();
             ((IDictionary<string,object>)request)["end"] = end;
@@ -2192,7 +2192,7 @@ public partial class delta : Exchange
             { "side", side },
             { "order_type", orderType },
         };
-        if (isEqual(type, "limit"))
+        if ((type == "limit"))
         {
             ((IDictionary<string,object>)request)["limit_price"] = this.priceToPrecision((market.ContainsKey("symbol") ? market["symbol"] : null), price);
         }
@@ -2272,7 +2272,7 @@ public partial class delta : Exchange
             { "id", parseInt(id) },
             { "product_id", (market.ContainsKey("numericId") ? market["numericId"] : null) },
         };
-        if (!isEqual(amount, null))
+        if ((amount != null))
         {
             string? sizeString = this.amountToPrecision(symbol, amount);
             if ((sizeString == null))
@@ -2281,7 +2281,7 @@ public partial class delta : Exchange
             }
             ((IDictionary<string,object>)request)["size"] = parseInt(sizeString);
         }
-        if (!isEqual(price, null))
+        if ((price != null))
         {
             ((IDictionary<string,object>)request)["limit_price"] = this.priceToPrecision(symbol, price);
         }
@@ -2509,11 +2509,11 @@ public partial class delta : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["product_ids"] = (market.ContainsKey("numericId") ? market["numericId"] : null); // accepts a comma-separated list of ids
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_time"] = (((object)since).ToString() + "000");
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["page_size"] = limit;
         }
@@ -2574,11 +2574,11 @@ public partial class delta : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["product_ids"] = (market.ContainsKey("numericId") ? market["numericId"] : null); // accepts a comma-separated list of ids
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_time"] = (((object)since).ToString() + "000");
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["page_size"] = limit;
         }
@@ -2654,7 +2654,7 @@ public partial class delta : Exchange
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["asset_id"] = getValue(currency, "numericId");
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["page_size"] = limit;
         }
@@ -3406,7 +3406,7 @@ public partial class delta : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "states", "expired" },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["page_size"] = limit;
         }

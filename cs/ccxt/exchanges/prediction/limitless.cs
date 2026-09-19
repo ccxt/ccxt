@@ -1418,7 +1418,7 @@ public partial class limitless : PredictionExchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "slug", slug },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 100);
         }
@@ -1737,7 +1737,7 @@ public partial class limitless : PredictionExchange
             { "slug", this.safeString(info, "slug") },
             { "statuses", new List<object>() {"LIVE", "MATCHED"} },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -2396,7 +2396,7 @@ public partial class limitless : PredictionExchange
         string? priceString = this.numberToString(price);
         string? makerAmount = null;
         string? takerAmount = null;
-        bool isMarket = isEqual(type, "market");
+        bool isMarket = (type == "market");
         bool postOnly = false;
         IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isMarket, false, parameters);
         postOnly = (bool)((IList<object>)postOnlyparametersVariable)[0];
@@ -2408,7 +2408,7 @@ public partial class limitless : PredictionExchange
             timeInForce = ((bool) isMarket) ? "FOK" : "GTC";
         }
         string? marketSymbol = this.safeString(outcomeObj, "market");
-        if (isMarket && (isEqual(side, "buy")))
+        if (isMarket && ((side == "buy")))
         {
             object createMarketBuyOrderRequiresPrice = true;
             IList<object> createMarketBuyOrderRequiresPriceparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
@@ -2418,7 +2418,7 @@ public partial class limitless : PredictionExchange
             parameters = this.omit(parameters, "cost");
             if (isTrue(createMarketBuyOrderRequiresPrice))
             {
-                if ((isEqual(price, null)) && (isEqual(cost, null)))
+                if (((price == null)) && (isEqual(cost, null)))
                 {
                     throw new InvalidOrder ((string)(this.id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                 } else
@@ -2437,7 +2437,7 @@ public partial class limitless : PredictionExchange
         } else
         {
             string? calculatedCost = Precise.stringMul(amountString, priceString);
-            if (isEqual(side, "buy"))
+            if ((side == "buy"))
             {
                 makerAmount = this.costToPredictionPrecision(outcome, calculatedCost);
                 takerAmount = this.amountToPredictionPrecision(outcome, amount);
@@ -2453,7 +2453,7 @@ public partial class limitless : PredictionExchange
         object signature = this.signOrderRequest(signRequest, marketSymbol);
         ((IDictionary<string,object>)signRequest)["signature"] = signature;
         // price is an unsigned hint required by the API for GTC/FAK orders (not part of the EIP-712 struct)
-        if (!isMarket && (!isEqual(price, null)))
+        if (!isMarket && ((price != null)))
         {
             ((IDictionary<string,object>)signRequest)["price"] = this.parseNumber(priceString);
         }
@@ -2815,7 +2815,7 @@ public partial class limitless : PredictionExchange
             return ccxt.BaseExchange.ToPredictionTradeList(await this.fetchPaginatedCallCursor("fetchMyTrades", outcome, since, limit, parameters, "nextCursor", "cursor", null, maxLimit));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, maxLimit);
         }

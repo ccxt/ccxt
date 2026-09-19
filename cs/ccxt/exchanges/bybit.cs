@@ -3754,7 +3754,7 @@ public partial class bybit : Exchange
         {
             limitVar = 200; // default is 200 when requested with `since`
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             // bybit returns the candle that contains `start`, whose timestamp is
             // before a mid-interval `since` and gets dropped by the client-side
@@ -4062,7 +4062,7 @@ public partial class bybit : Exchange
             throw new NotSupported ((string)(this.id + " fetchFundingRateHistory() only support linear and inverse market")) ;
         }
         ((IDictionary<string,object>)request)["category"] = type;
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
@@ -4074,7 +4074,7 @@ public partial class bybit : Exchange
             ((IDictionary<string,object>)request)["endTime"] = endTime;
         } else
         {
-            if (!isEqual(since, null))
+            if ((since != null))
             {
                 // end time is required when since is not empty
                 object fundingInterval = ((multiply(60, 60) * 8) * 1000);
@@ -4409,7 +4409,7 @@ public partial class bybit : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             // spot: [1,60], default: 60.
             // others: [1,1000], default: 500
@@ -4495,7 +4495,7 @@ public partial class bybit : Exchange
                 ((IDictionary<string,object>)request)["category"] = "inverse";
             }
         }
-        ((IDictionary<string,object>)request)["limit"] = ((bool) (!isEqual(limit, null))) ? limit : defaultLimit;
+        ((IDictionary<string,object>)request)["limit"] = ((bool) ((limit != null))) ? limit : defaultLimit;
         Dictionary<string, object> response = await this.publicGetV5MarketOrderbook(this.extend(request, parameters));
         //
         //     {
@@ -6644,11 +6644,11 @@ public partial class bybit : Exchange
         {
             ((IDictionary<string,object>)request)["orderFilter"] = "StopOrder";
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
@@ -6847,11 +6847,11 @@ public partial class bybit : Exchange
         {
             ((IDictionary<string,object>)request)["orderFilter"] = "StopOrder";
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
@@ -7055,7 +7055,7 @@ public partial class bybit : Exchange
         {
             ((IDictionary<string,object>)request)["orderFilter"] = "StopOrder";
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -7199,11 +7199,11 @@ public partial class bybit : Exchange
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         ((IDictionary<string,object>)request)["category"] = type;
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
@@ -7398,11 +7398,11 @@ public partial class bybit : Exchange
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["coin"] = getValue(currency, "id");
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -7476,11 +7476,11 @@ public partial class bybit : Exchange
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["coin"] = getValue(currency, "id");
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -7670,13 +7670,13 @@ public partial class bybit : Exchange
         if (isEqual(getValue(enableUnified, 1), true))
         {
             currencyKey = "currency";
-            if (!isEqual(since, null))
+            if ((since != null))
             {
                 ((IDictionary<string,object>)request)["startTime"] = since;
             }
         } else
         {
-            if (!isEqual(since, null))
+            if ((since != null))
             {
                 ((IDictionary<string,object>)request)["start_date"] = this.yyyymmdd(since);
             }
@@ -7686,7 +7686,7 @@ public partial class bybit : Exchange
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)[(string)currencyKey] = getValue(currency, "id");
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -8772,7 +8772,7 @@ public partial class bybit : Exchange
             { "intervalTime", interval },
             { "category", category },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
@@ -8781,14 +8781,14 @@ public partial class bybit : Exchange
         if (!isEqual(until, null))
         {
             ((IDictionary<string,object>)request)["endTime"] = until;
-        } else if (!isEqual(since, null))
+        } else if ((since != null))
         {
             // the endpoint walks backwards from endTime and ignores a lone startTime
             int duration = this.parseTimeframe(timeframeVar);
-            object requestedLimit = ((bool) (isEqual(limit, null))) ? 50 : limit; // exchange default
+            object requestedLimit = ((bool) ((limit == null))) ? 50 : limit; // exchange default
             ((IDictionary<string,object>)request)["endTime"] = this.sum(since, multiply(multiply(duration, requestedLimit), 1000));
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -8933,7 +8933,7 @@ public partial class bybit : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -9285,11 +9285,11 @@ public partial class bybit : Exchange
             currency = this.safeCurrency(code);
             ((IDictionary<string,object>)request)["coin"] = getValue(currency, "id");
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -9840,7 +9840,7 @@ public partial class bybit : Exchange
             throw new NotSupported ((string)(this.id + " fetchSettlementHistory() is not supported for spot market")) ;
         }
         ((IDictionary<string,object>)request)["category"] = type;
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -9907,7 +9907,7 @@ public partial class bybit : Exchange
             throw new NotSupported ((string)(this.id + " fetchMySettlementHistory() is not supported for spot market")) ;
         }
         ((IDictionary<string,object>)request)["category"] = type;
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -10326,11 +10326,11 @@ public partial class bybit : Exchange
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         ((IDictionary<string,object>)request)["category"] = type;
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
@@ -10632,11 +10632,11 @@ public partial class bybit : Exchange
         {
             ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["size"] = limit;
         } else
@@ -10939,11 +10939,11 @@ public partial class bybit : Exchange
         {
             ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -11301,7 +11301,7 @@ public partial class bybit : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -11438,7 +11438,7 @@ public partial class bybit : Exchange
             { "period", timeframeVar },
             { "category", type },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }

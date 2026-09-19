@@ -706,7 +706,7 @@ public partial class btcturk : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "pairSymbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["last"] = limit;
         }
@@ -782,7 +782,7 @@ public partial class btcturk : Exchange
         };
         Int64? until = this.safeInteger(parameters, "until", this.milliseconds());
         ((IDictionary<string,object>)request)["to"] = this.parseToInt(((until / 1000)));
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(since, 1000));
         } else if (isEqual(limitVar, null))
@@ -798,7 +798,7 @@ public partial class btcturk : Exchange
             }
             int seconds = this.parseTimeframe(timeframeVar);
             object limitSeconds = multiply(seconds, (subtract(limitVar, 1)));
-            if (!isEqual(since, null))
+            if ((since != null))
             {
                 object to = add(this.parseToInt(divide(since, 1000)), limitSeconds);
                 ((IDictionary<string,object>)request)["to"] = mathMin(getValue(request, "to"), to);
@@ -901,7 +901,7 @@ public partial class btcturk : Exchange
             { "pairSymbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "quantity", this.amountToPrecision(symbol, amount) },
         };
-        if (!isEqual(type, "market"))
+        if ((type != "market"))
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
@@ -998,12 +998,12 @@ public partial class btcturk : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "pairSymbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             // default 100 max 1000
             ((IDictionary<string,object>)request)["last"] = limit;
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = (Math.Floor(Double.Parse((divide(since, 1000)).ToString())));
         }

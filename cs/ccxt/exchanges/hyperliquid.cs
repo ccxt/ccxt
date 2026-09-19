@@ -1574,7 +1574,7 @@ public partial class hyperliquid : Exchange
         object originalSince = sinceVar;
         if (isEqual(sinceVar, null))
         {
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 // optimization if limit is provided
                 Int64 timeframeInMilliseconds = multiply(this.parseTimeframe(timeframeVar), 1000);
@@ -1678,7 +1678,7 @@ public partial class hyperliquid : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "user", userAddress },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["type"] = "userFillsByTime";
             ((IDictionary<string,object>)request)["startTime"] = since;
@@ -2345,7 +2345,7 @@ public partial class hyperliquid : Exchange
         await this.initializeClient();
         Dictionary<string, object> market = this.market(symbol);
         Int64 nonce = this.milliseconds();
-        bool isBuy = (isEqual(side, "BUY"));
+        bool isBuy = ((side == "BUY"));
         object vaultAddress = null;
         bool? randomize = this.safeBool(parameters, "randomize", false);
         parameters = this.omit(parameters, "randomize");
@@ -3374,12 +3374,12 @@ public partial class hyperliquid : Exchange
             { "type", "fundingHistory" },
             { "coin", this.safeString(market, "baseName") },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         } else
         {
-            object maxLimit = ((bool) (isEqual(limit, null))) ? 500 : limit;
+            object maxLimit = ((bool) ((limit == null))) ? 500 : limit;
             ((IDictionary<string,object>)request)["startTime"] = subtract(this.milliseconds(), multiply(multiply(multiply(maxLimit, 60), 60), 1000));
         }
         Int64? until = this.safeInteger(parameters, "until");
@@ -4005,7 +4005,7 @@ public partial class hyperliquid : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "user", userAddress },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["type"] = "userFillsByTime";
             ((IDictionary<string,object>)request)["startTime"] = since;
@@ -4364,7 +4364,7 @@ public partial class hyperliquid : Exchange
             throw new ArgumentsRequired ((string)(this.id + " setMarginMode() requires a leverage parameter")) ;
         }
         Int64? asset = this.parseToInt((market.ContainsKey("baseId") ? market["baseId"] : null));
-        bool isCross = (isEqual(marginMode, "cross"));
+        bool isCross = ((marginMode == "cross"));
         Int64 nonce = this.milliseconds();
         parameters = this.omit(parameters, new List<object>() {"leverage"});
         Dictionary<string, object> updateAction = new Dictionary<string, object>() {
@@ -4612,7 +4612,7 @@ public partial class hyperliquid : Exchange
                 strAmount = add(add(strAmount, " subaccount:"), vaultAddress);
             }
             object strAmountFinal = strAmount; // java req
-            bool toPerp = (isEqual(toAccount, "perp")) || (isEqual(toAccount, "swap"));
+            bool toPerp = ((toAccount == "perp")) || ((toAccount == "swap"));
             Dictionary<string, object> transferPayload = new Dictionary<string, object>() {
                 { "hyperliquidChain", ((bool) ((isSandboxMode == true))) ? "Testnet" : "Mainnet" },
                 { "amount", strAmountFinal },
@@ -4644,11 +4644,11 @@ public partial class hyperliquid : Exchange
         // transfer between main account and subaccount
         bool isDeposit = false;
         object subAccountAddress = null;
-        if (isEqual(fromAccount, "main"))
+        if ((fromAccount == "main"))
         {
             subAccountAddress = toAccount;
             isDeposit = true;
-        } else if (isEqual(toAccount, "main"))
+        } else if ((toAccount == "main"))
         {
             subAccountAddress = fromAccount;
         } else
@@ -5011,7 +5011,7 @@ public partial class hyperliquid : Exchange
             { "type", "userNonFundingLedgerUpdates" },
             { "user", userAddress },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
@@ -5120,14 +5120,14 @@ public partial class hyperliquid : Exchange
             { "type", "userNonFundingLedgerUpdates" },
             { "user", userAddress },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
         Int64? until = this.safeInteger(parameters, "until");
         if (!isEqual(until, null))
         {
-            if (isEqual(since, null))
+            if ((since == null))
             {
                 throw new ArgumentsRequired ((string)(this.id + " fetchDeposits requires since while until is set")) ;
             }
@@ -5209,7 +5209,7 @@ public partial class hyperliquid : Exchange
             { "type", "userNonFundingLedgerUpdates" },
             { "user", userAddress },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
@@ -5375,7 +5375,7 @@ public partial class hyperliquid : Exchange
             { "user", userAddress },
             { "type", "userFunding" },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }

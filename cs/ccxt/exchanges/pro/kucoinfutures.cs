@@ -84,7 +84,7 @@ public partial class kucoinfutures : kucoin
         {
             ((IDictionary<string,object>)request)["recAccountType"] = toAccountString;
             response = await this.futuresPrivatePostTransferOut(this.extend(request, parameters));
-        } else if (isEqual(toAccount, "future") || isEqual(toAccount, "swap") || isEqual(toAccount, "contract"))
+        } else if ((toAccount == "future") || (toAccount == "swap") || (toAccount == "contract"))
         {
             ((IDictionary<string,object>)request)["payAccountType"] = this.parseTransferType(fromAccount);
             response = await this.futuresPrivatePostTransferIn(this.extend(request, parameters));

@@ -721,7 +721,7 @@ public partial class zebpay : Exchange
         Dictionary<string, object> response = null;
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 ((IDictionary<string,object>)request)["limit"] = limit;
             }
@@ -872,7 +872,7 @@ public partial class zebpay : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limitVar;
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
             {
@@ -891,7 +891,7 @@ public partial class zebpay : Exchange
         Dictionary<string, object> response = null;
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
-            if (isEqual(until, null) || isEqual(since, null))
+            if (isEqual(until, null) || (since == null))
             {
                 throw new ArgumentsRequired ((string)(this.id + " fetchOHLCV() requires a both a since and until/endtime parameter for spot markets")) ;
             }
@@ -958,7 +958,7 @@ public partial class zebpay : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) && !isEqual(limit, null))
+        if (((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) && (limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -1258,9 +1258,9 @@ public partial class zebpay : Exchange
             } else
             {
                 ((IDictionary<string,object>)request)["type"] = upperCaseType;
-                if (isEqual(type, "limit"))
+                if ((type == "limit"))
                 {
-                    if (isEqual(price, null))
+                    if ((price == null))
                     {
                         throw new ArgumentsRequired ((string)(this.id + " createOrder() requires a price argument for limit orders")) ;
                     }
@@ -1426,7 +1426,7 @@ public partial class zebpay : Exchange
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
             ((IDictionary<string,object>)request)["currentPage"] = 1;
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 ((IDictionary<string,object>)request)["pageSize"] = limit;
             }
@@ -1435,11 +1435,11 @@ public partial class zebpay : Exchange
             orders = this.safeList(responseData, "items", new List<object>() {});
         } else
         {
-            if (!isEqual(since, null))
+            if ((since != null))
             {
                 ((IDictionary<string,object>)request)["since"] = since;
             }
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 ((IDictionary<string,object>)request)["limit"] = limit;
             }

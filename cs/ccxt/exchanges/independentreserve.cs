@@ -1092,7 +1092,7 @@ public partial class independentreserve : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         string orderType = this.capitalize(type);
-        orderType = orderType + (((bool) (isEqual(side, "sell"))) ? "Offer" : "Bid");
+        orderType = orderType + (((bool) ((side == "sell"))) ? "Offer" : "Bid");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "primaryCurrencyCode", (market.ContainsKey("baseId") ? market["baseId"] : null) },
             { "secondaryCurrencyCode", (market.ContainsKey("quoteId") ? market["quoteId"] : null) },
@@ -1100,7 +1100,7 @@ public partial class independentreserve : Exchange
         };
         object response = null;
         ((IDictionary<string,object>)request)["volume"] = amount;
-        if (isEqual(type, "limit"))
+        if ((type == "limit"))
         {
             ((IDictionary<string,object>)request)["price"] = price;
             response = await this.privatePostPlaceLimitOrder(this.extend(request, parameters));

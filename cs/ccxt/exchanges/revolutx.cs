@@ -680,7 +680,7 @@ public partial class revolutx : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -753,7 +753,7 @@ public partial class revolutx : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "interval", this.safeInteger(this.timeframes, timeframeVar, 5) },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["since"] = since;
         }
@@ -855,7 +855,7 @@ public partial class revolutx : Exchange
         {
             ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_date"] = since;
         }
@@ -863,11 +863,11 @@ public partial class revolutx : Exchange
         if (!isEqual(until, null))
         {
             ((IDictionary<string,object>)request)["end_date"] = until;
-        } else if (!isEqual(since, null))
+        } else if ((since != null))
         {
             ((IDictionary<string,object>)request)["end_date"] = this.milliseconds();
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1900);
         }
@@ -1080,7 +1080,7 @@ public partial class revolutx : Exchange
         string? timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force");
         List<object> executionInstructions = this.safeList(parameters, "executionInstructions", this.safeList(parameters, "execution_instructions"));
         Dictionary<string, object> orderConfiguration = new Dictionary<string, object>() {};
-        if (isEqual(type, "limit"))
+        if ((type == "limit"))
         {
             Dictionary<string, object> limitConfig = new Dictionary<string, object>() {};
             if ((cost != null))
@@ -1100,7 +1100,7 @@ public partial class revolutx : Exchange
                 ((IDictionary<string,object>)limitConfig)["execution_instructions"] = executionInstructions;
             }
             ((IDictionary<string,object>)orderConfiguration)["limit"] = limitConfig;
-        } else if (isEqual(type, "market"))
+        } else if ((type == "market"))
         {
             if ((timeInForce != null))
             {
@@ -1266,7 +1266,7 @@ public partial class revolutx : Exchange
             Dictionary<string, object> market = this.market(symbol);
             ((IDictionary<string,object>)request)["symbols"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -1337,7 +1337,7 @@ public partial class revolutx : Exchange
         }
         object thirtyDays = 2592000000;
         Int64? until = this.safeInteger2(parameters, "until", "until");
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_date"] = since;
         } else if (!isEqual(until, null))
@@ -1347,13 +1347,13 @@ public partial class revolutx : Exchange
         if (!isEqual(until, null))
         {
             ((IDictionary<string,object>)request)["end_date"] = until;
-        } else if (!isEqual(since, null))
+        } else if ((since != null))
         {
             Int64 now = this.milliseconds();
             object defaultEnd = add(since, thirtyDays);
             ((IDictionary<string,object>)request)["end_date"] = ((bool) (isLessThan(defaultEnd, now))) ? defaultEnd : now;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -1477,7 +1477,7 @@ public partial class revolutx : Exchange
         };
         object thirtyDays = 2592000000;
         Int64? until = this.safeInteger2(parameters, "until", "until");
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_date"] = since;
         } else if (!isEqual(until, null))
@@ -1487,13 +1487,13 @@ public partial class revolutx : Exchange
         if (!isEqual(until, null))
         {
             ((IDictionary<string,object>)request)["end_date"] = until;
-        } else if (!isEqual(since, null))
+        } else if ((since != null))
         {
             Int64 now = this.milliseconds();
             object defaultEnd = add(since, thirtyDays);
             ((IDictionary<string,object>)request)["end_date"] = ((bool) (isLessThan(defaultEnd, now))) ? defaultEnd : now;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -1561,11 +1561,11 @@ public partial class revolutx : Exchange
         if ((cost != null))
         {
             ((IDictionary<string,object>)request)["quote_size"] = this.costToPrecision(symbol, cost);
-        } else if (!isEqual(amount, null))
+        } else if ((amount != null))
         {
             ((IDictionary<string,object>)request)["base_size"] = this.amountToPrecision(symbol, amount);
         }
-        if (!isEqual(price, null))
+        if ((price != null))
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }

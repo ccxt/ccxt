@@ -912,11 +912,11 @@ public partial class bitvavo : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000);
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start"] = since;
         }
@@ -1161,7 +1161,7 @@ public partial class bitvavo : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["depth"] = limit;
         }
@@ -1401,17 +1401,17 @@ public partial class bitvavo : Exchange
         object subaccountId = this.safeString(parameters, "subaccountId");
         parameters = this.omit(parameters, "subaccountId");
         string? direction = null;
-        if ((isEqual(fromAccount, "master")) && (isEqual(toAccount, "master")))
+        if (((fromAccount == "master")) && ((toAccount == "master")))
         {
             throw new ArgumentsRequired ((string)(this.id + " transfer() requires fromAccount and toAccount to be different (one master and one subaccount id)")) ;
-        } else if (isEqual(fromAccount, "master"))
+        } else if ((fromAccount == "master"))
         {
             direction = "masterToSub";
             if ((subaccountId == null))
             {
                 subaccountId = toAccount;
             }
-        } else if (isEqual(toAccount, "master"))
+        } else if ((toAccount == "master"))
         {
             direction = "subToMaster";
             if ((subaccountId == null))
@@ -1480,11 +1480,11 @@ public partial class bitvavo : Exchange
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchTransfers() requires a subaccountId parameter")) ;
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -2500,11 +2500,11 @@ public partial class bitvavo : Exchange
         {
             currency = this.currency(((string)code));
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["fromDate"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["maxItems"] = mathMin(limit, 100);
         }

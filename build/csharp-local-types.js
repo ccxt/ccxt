@@ -471,6 +471,398 @@ import ts from 'typescript6';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+// ===== positional core-argument type tables (moved here from build/csharpTranspiler.ts) =====
+// The tables the ccxt-side typeCoreArgs text pass reads, kept in this module so the pooled
+// workers' parameter-type hook (installCsharpParameterTypes below) reads the very same proof:
+// typeCoreArgs narrows these positions to the type named here on EVERY generated declaration
+// of the method, and the hook answers the same (method, position) pair for the reads inside
+// the body, so an emitted helper call on such a parameter can go native.
+
+// Generated C# core parameters that can be narrowed from `object` to `string`.
+// Keyed by POSITION, never by name: the prediction tier renames `symbol` to
+// `outcome`, and C# overrides are invariant on parameter types, not names.
+// Produced by build/analyzeCoreArgs.py, which admits a position only when every
+// declaration of that method agrees on arity + defaults and no body assigns to it.
+// Generated C# core parameters that can be narrowed from `object` to a numeric type.
+// Same positional keying and same all-declarations-must-agree gate as CORE_STRING_ARGS,
+// plus the narrowed type must equal what the hand-written PascalCase wrapper already
+// declares for that position (the wrapper is derived from the TS signature).
+// Produced by build/analyzeNumericCoreArgs.py. Reflective dispatch is safe because
+// BaseExchange.coerceArgs converts every boxed arg to the parameter type before Invoke.
+export const CORE_NUMERIC_ARGS = {
+    'createAmmOrder': { 3: 'double', 4: 'double?' },
+    'createContractOrder': { 4: 'double?' },
+    'createConvertTrade': { 3: 'double?' },
+    'createExtendedOrderRequest': { 3: 'double', 4: 'double?' },
+    'createMarketBuyOrderWithCost': { 1: 'double' },
+    'createMarketOrderWithCost': { 2: 'double' },
+    'createMarketSellOrderWithCost': { 1: 'double' },
+    'createOrder': { 3: 'double', 4: 'double?' },
+    'createOrderbookOrder': { 3: 'double', 4: 'double?' },
+    'createTrailingAmountOrder': { 3: 'double', 4: 'double?' },
+    'createTrailingPercentOrder': { 3: 'double', 4: 'double?' },
+    'createTwapOrder': { 2: 'double' },
+    'createUtaOrder': { 3: 'double', 4: 'double?' },
+    'editContractOrder': { 4: 'double', 5: 'double?' },
+    'editOrder': { 4: 'double?', 5: 'double?' },
+    'editSpotOrder': { 4: 'double', 5: 'double?' },
+    'fetchAmmOrders': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchBorrowInterest': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchBorrowRateHistories': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchBorrowRateHistory': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchCanceledAndClosedOrders': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchCanceledOrders': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchClosedContractOrders': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchClosedOrders': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchClosedSpotOrders': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchContractDeposits': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchContractOHLCV': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchContractOrders': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchContractOrdersByStatus': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchContractWithdrawals': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchConvertQuote': { 2: 'double?' },
+    'fetchConvertTradeHistory': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchDeposits': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchDepositsWithdrawals': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchDerivativesOpenInterestHistory': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchEventsByQuery': { 1: 'Int64' },
+    'fetchFundingHistory': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchFundingRateHistory': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchL2OrderBook': { 1: 'Int64?' },
+    'fetchL3OrderBook': { 1: 'Int64?' },
+    'fetchLedger': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchLedgerByEntries': { 2: 'Int64?' },
+    'fetchLiquidations': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchLongShortRatioHistory': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchMarkOHLCV': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchMyBuys': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchMyContractTrades': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchMyDustTrades': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchMyLiquidations': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchMySells': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchMySettlementHistory': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchMySpotTrades': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchMyTrades': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchMyUtaTrades': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchOHLCV': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchOpenInterestHistory': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchOpenOrders': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchOpenOrdersV1': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchOpenOrdersV2': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchOpenSpotOrders': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchOpenSwapOrders': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchOptionOHLCV': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchOrderBook': { 1: 'Int64?' },
+    'fetchOrderBooks': { 1: 'Int64?' },
+    'fetchOrderTrades': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchOrders': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchOrdersByState': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchOrdersByStates': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchOrdersByStatus': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchOrdersByType': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchOrdersClassic': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchOrdersWithMethod': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchPositionHistory': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchPositionsHistory': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchSeriesEvents': { 2: 'Int64' },
+    'fetchSettlementHistory': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchSettlements': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchSpotOHLCV': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchSpotOrderTrades': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchSpotOrders': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchSpotOrdersByStates': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchSpotOrdersByStatus': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchTradeQuote': { 2: 'double' },
+    'fetchTrades': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchTransactions': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchTransactionsByType': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchTransactionsWithMethod': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchTransfers': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchUTAOHLCV': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchUtaCanceledAndClosedOrders': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchUtaOrdersByStatus': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchWithdrawals': { 1: 'Int64?', 2: 'Int64?' },
+    // cs-5: TS `amount: number` (required) -> double; the four call sites (bingx/lighter
+    // addMargin/reduceMargin) get the ToDoubleArgRequired wrap.
+    'setMargin': { 1: 'double' },
+    'transfer': { 1: 'double' },
+    'watchMyTrades': { 1: 'Int64?', 2: 'Int64?' },
+    // additional watch* numeric args, same evidence gate as above (build/tmp_watch_args.py)
+    'watchLiquidations': { 1: 'Int64?', 2: 'Int64?' },
+    'watchLiquidationsForSymbols': { 1: 'Int64?', 2: 'Int64?' },
+    'watchMyLiquidations': { 1: 'Int64?', 2: 'Int64?' },
+    'watchMyLiquidationsForSymbols': { 1: 'Int64?', 2: 'Int64?' },
+    'watchMyTradesForSymbols': { 1: 'Int64?', 2: 'Int64?' },
+    'watchOrderBookForSymbols': { 1: 'Int64?' },
+    'watchOrdersForSymbols': { 1: 'Int64?', 2: 'Int64?' },
+    'watchPositionForSymbols': { 1: 'Int64?', 2: 'Int64?' },
+    'watchTradesForSymbols': { 1: 'Int64?', 2: 'Int64?' },
+    'watchOHLCV': { 2: 'Int64?', 3: 'Int64?' },
+    'watchOrderBook': { 1: 'Int64?' },
+    'watchOrders': { 1: 'Int64?', 2: 'Int64?' },
+    'watchPositions': { 1: 'Int64?', 2: 'Int64?' },
+    'watchTrades': { 1: 'Int64?', 2: 'Int64?' },
+    'withdraw': { 1: 'double' },
+};
+
+export const CORE_STRING_ARGS = {
+    'addMargin': [ 0 ],
+    'borrowCrossMargin': [ 0 ],
+    'borrowIsolatedMargin': [ 1 ],
+    'borrowMargin': [ 0 ],
+    'buildOHLCVC': [ 1 ],
+    'cancelAllOrders': [ 0 ],
+    'cancelAllOrdersWs': [ 0 ],
+    'cancelContractOrder': [ 0, 1 ],
+    'cancelOrder': [ 0, 1 ],
+    'cancelOrderWithClientOrderId': [ 0, 1 ],
+    'cancelOrderWs': [ 0, 1 ],
+    'cancelOrders': [ 1 ],
+    'cancelOrdersWithClientOrderIds': [ 1 ],
+    'cancelOrdersWs': [ 1 ],
+    'cancelSpotOrder': [ 0, 1 ],
+    'cancelTwapOrder': [ 0, 1 ],
+    'cancelUtaOrder': [ 0, 1 ],
+    'cancelUtaOrders': [ 1 ],
+    'closePosition': [ 0, 1 ],
+    'commonCurrencyCode': [ 0 ],
+    'convertCurrencyNetwork': [ 0 ],
+    'convertToRealAmount': [ 0 ],
+    'createAmmOrder': [ 0, 1, 2 ],
+    'createConvertTrade': [ 0 ],
+    'createDepositAddress': [ 0 ],
+    'createGiftCode': [ 0 ],
+    'createLimitBuyOrder': [ 0 ],
+    'createLimitBuyOrderWs': [ 0 ],
+    'createLimitOrder': [ 0, 1 ],
+    'createLimitOrderWs': [ 0, 1 ],
+    'createLimitSellOrder': [ 0 ],
+    'createLimitSellOrderWs': [ 0 ],
+    'createMarketBuyOrder': [ 0 ],
+    'createMarketBuyOrderWithCost': [ 0 ],
+    'createMarketBuyOrderWs': [ 0 ],
+    'createMarketOrder': [ 0, 1 ],
+    'createMarketOrderWithCost': [ 0, 1 ],
+    'createMarketOrderWithCostWs': [ 0, 1 ],
+    'createMarketOrderWs': [ 0, 1 ],
+    'createMarketSellOrder': [ 0 ],
+    'createMarketSellOrderWithCost': [ 0 ],
+    'createMarketSellOrderWs': [ 0 ],
+    'createOHLCVObject': [ 1 ],
+    'createOrder': [ 0, 1, 2 ],
+    'createOrderWithTakeProfitAndStopLoss': [ 0, 1, 2 ],
+    'createOrderWithTakeProfitAndStopLossWs': [ 0, 1, 2 ],
+    'createOrderWs': [ 0, 1, 2 ],
+    'createOrderbookOrder': [ 0, 1, 2 ],
+    'createPostOnlyOrder': [ 0, 1, 2 ],
+    'createPostOnlyOrderWs': [ 0, 1, 2 ],
+    'createReduceOnlyOrder': [ 0, 1, 2 ],
+    'createReduceOnlyOrderWs': [ 0, 1, 2 ],
+    'createStopLimitOrder': [ 0, 1 ],
+    'createStopLimitOrderWs': [ 0, 1 ],
+    'createStopLossOrder': [ 0, 1, 2 ],
+    'createStopLossOrderWs': [ 0, 1, 2 ],
+    'createStopMarketOrder': [ 0, 1 ],
+    'createStopMarketOrderWs': [ 0, 1 ],
+    'createStopOrder': [ 0, 1, 2 ],
+    'createStopOrderWs': [ 0, 1, 2 ],
+    'createTakeProfitOrder': [ 0, 1, 2 ],
+    'createTakeProfitOrderWs': [ 0, 1, 2 ],
+    'createTrailingAmountOrder': [ 0, 1, 2 ],
+    'createTrailingAmountOrderWs': [ 0, 1, 2 ],
+    'createTrailingPercentOrder': [ 0, 1, 2 ],
+    'createTrailingPercentOrderWs': [ 0, 1, 2 ],
+    'createTriggerOrder': [ 0, 1, 2 ],
+    'createTriggerOrderWs': [ 0, 1, 2 ],
+    'createTwapOrder': [ 0, 1 ],
+    'currency': [ 0 ],
+    'currencyId': [ 0 ],
+    'currencyToPrecision': [ 0 ],
+    'deposit': [ 0 ],
+    'editContractOrder': [ 0, 1, 2, 3 ],
+    'editLimitBuyOrder': [ 0, 1 ],
+    'editLimitOrder': [ 0, 1, 2 ],
+    'editLimitSellOrder': [ 0, 1 ],
+    'editOrder': [ 0, 1, 2, 3 ],
+    'editOrderWithClientOrderId': [ 0, 1, 2, 3 ],
+    'editOrderWs': [ 0, 1, 2, 3 ],
+    'editSpotOrder': [ 0, 1, 2, 3 ],
+    'fetchADLRank': [ 0 ],
+    'fetchAmmOrders': [ 0 ],
+    'fetchBorrowInterest': [ 0 ],
+    'fetchBorrowRate': [ 0 ],
+    'fetchBorrowRateHistory': [ 0 ],
+    'fetchCanceledOrders': [ 0 ],
+    'fetchClosedOrder': [ 0, 1 ],
+    'fetchClosedOrders': [ 0 ],
+    'fetchClosedOrdersWs': [ 0 ],
+    'fetchContractDepositAddress': [ 0 ],
+    'fetchContractDeposits': [ 0 ],
+    'fetchContractOHLCV': [ 0, 1 ],
+    'fetchContractWithdrawals': [ 0 ],
+    'fetchConvertTrade': [ 0, 1 ],
+    'fetchConvertTradeHistory': [ 0 ],
+    'fetchCrossBorrowRate': [ 0 ],
+    'fetchCurrency': [ 0 ],
+    'fetchDeposit': [ 0, 1 ],
+    'fetchDepositAddress': [ 0 ],
+    'fetchDepositAddressDefault': [ 0 ],
+    'fetchDepositAddressSupplement': [ 0 ],
+    'fetchDepositAddressesByNetwork': [ 0 ],
+    'fetchDepositMethods': [ 0 ],
+    'fetchDepositWithdrawFee': [ 0 ],
+    'fetchDeposits': [ 0 ],
+    'fetchDepositsRequest': [ 0 ],
+    'fetchDepositsWithdrawals': [ 0 ],
+    'fetchDepositsWs': [ 0 ],
+    'fetchDerivativesMarketLeverageTiers': [ 0 ],
+    'fetchDerivativesOpenInterestHistory': [ 1 ],
+    'fetchEvent': [ 0 ],
+    'fetchFundingInterval': [ 0 ],
+    'fetchFundingRate': [ 0 ],
+    'fetchFundingRateHistory': [ 0 ],
+    'fetchGreeks': [ 0 ],
+    'fetchIndexOHLCV': [ 0, 1 ],
+    'fetchIsolatedBorrowRate': [ 0 ],
+    // cs-5: first-parameter symbol/id positions admitted by build/analyzeCoreArgs.py on the
+    // current tree (the table predates these methods). Every call site already passes a
+    // string-typed arg (blockchaincom fetchOrderBook -> fetchL3OrderBook, weex fetchPosition
+    // -> fetchPositionsForSymbol) or receives the standard ((string)…) wrap (bingx/lighter
+    // addMargin/reduceMargin -> setMargin).
+    'fetchL2OrderBook': [ 0 ],
+    'fetchL3OrderBook': [ 0 ],
+    'fetchLedger': [ 0 ],
+    'fetchLedgerByEntries': [ 0 ],
+    'fetchLedgerEntriesByIds': [ 1 ],
+    'fetchLedgerEntry': [ 0, 1 ],
+    'fetchLeverage': [ 0 ],
+    'fetchLiquidations': [ 0 ],
+    'fetchLongShortRatio': [ 0, 1 ],
+    'fetchLongShortRatioHistory': [ 0, 1 ],
+    'fetchMarginAdjustmentHistory': [ 0, 1 ],
+    'fetchMarginMode': [ 0 ],
+    'fetchMarkOHLCV': [ 0, 1 ],
+    'fetchMarkPrice': [ 0 ],
+    'fetchMarket': [ 0 ],
+    'fetchMarketById': [ 0 ],
+    'fetchMarketLeverageTiers': [ 0 ],
+    'fetchMyBuys': [ 0 ],
+    'fetchMySells': [ 0 ],
+    'fetchMyTrades': [ 0 ],
+    'fetchMyTradesWs': [ 0 ],
+    'fetchNetworkDepositAddress': [ 0 ],
+    'fetchOHLCV': [ 0, 1 ],
+    'fetchOHLCVRequest': [ 1 ],
+    'fetchOHLCVWs': [ 0, 1 ],
+    'fetchOpenInterest': [ 0 ],
+    'fetchOpenInterestHistory': [ 0, 1 ],
+    'fetchOpenOrder': [ 0, 1 ],
+    'fetchOpenOrders': [ 0 ],
+    'fetchOpenOrdersWs': [ 0 ],
+    'fetchOption': [ 0 ],
+    'fetchOptionChain': [ 0 ],
+    'fetchOptionOHLCV': [ 0, 1 ],
+    'fetchOrder': [ 0, 1 ],
+    'fetchOrderBook': [ 0 ],
+    'fetchOrderBookWs': [ 0 ],
+    'fetchOrderStatus': [ 0, 1 ],
+    'fetchOrderTrades': [ 0, 1 ],
+    'fetchOrderWithClientOrderId': [ 0, 1 ],
+    'fetchOrderWs': [ 0, 1 ],
+    'fetchOrders': [ 0 ],
+    'fetchOrdersByIds': [ 1 ],
+    'fetchOrdersByStatusWs': [ 0, 1 ],
+    'fetchOrdersWs': [ 0 ],
+    'fetchPaginatedCallDeterministic': [ 4 ],
+    'fetchPosition': [ 0 ],
+    'fetchPositionADLRank': [ 0 ],
+    'fetchPositionHistory': [ 0 ],
+    'fetchPositionMode': [ 0 ],
+    'fetchPositionWs': [ 0 ],
+    'fetchPositionsForSymbol': [ 0 ],
+    'fetchPositionsForSymbolWs': [ 0 ],
+    'fetchPremiumIndexOHLCV': [ 0, 1 ],
+    'fetchSettlements': [ 0 ],
+    'fetchSpotOHLCV': [ 0, 1 ],
+    'fetchSpotOrderTrades': [ 0, 1 ],
+    'fetchTicker': [ 0 ],
+    'fetchTicker2': [ 0 ],
+    'fetchTickerV1': [ 0 ],
+    'fetchTickerV1AndV2': [ 0 ],
+    'fetchTickerV2': [ 0 ],
+    'fetchTickerV3': [ 0 ],
+    'fetchTickerWs': [ 0 ],
+    'fetchTrades': [ 0 ],
+    'fetchTradesWs': [ 0 ],
+    'fetchTradingFee': [ 0 ],
+    'fetchTransactionFee': [ 0 ],
+    'fetchTransactions': [ 0 ],
+    'fetchTransactionsByType': [ 1 ],
+    'fetchTransactionsWithMethod': [ 1 ],
+    'fetchTransfer': [ 0, 1 ],
+    'fetchTransfers': [ 0 ],
+    'fetchUTAOHLCV': [ 0, 1 ],
+    'fetchVolatilityHistory': [ 0 ],
+    'fetchWithdrawAddresses': [ 0 ],
+    'fetchWithdrawal': [ 0, 1 ],
+    'fetchWithdrawals': [ 0 ],
+    'fetchWithdrawalsRequest': [ 0 ],
+    'fetchWithdrawalsWs': [ 0 ],
+    'filterByCurrencySinceLimit': [ 1 ],
+    'futuresTransfer': [ 0 ],
+    'getAssetHistoryRows': [ 0 ],
+    'mergeBalanceAccount': [ 1 ],
+    'parseBalanceForSingleCurrency': [ 1 ],
+    'parseBorrowRateHistory': [ 1 ],
+    'parseConversions': [ 1 ],
+    'parseOHLCVs': [ 2 ],
+    'parseTradingViewOHLCV': [ 2 ],
+    'parseTransactionsByType': [ 2 ],
+    'parseWsOHLCVs': [ 2 ],
+    'prepareAccountRequestWithCurrencyCode': [ 0 ],
+    'prepareRequestForDepositAddress': [ 0 ],
+    'queryTransactionsByEventType': [ 3 ],
+    'reduceMargin': [ 0 ],
+    'repayCrossMargin': [ 0 ],
+    'repayIsolatedMargin': [ 1 ],
+    'repayMargin': [ 0 ],
+    'requestWalletHistoryRows': [ 2 ],
+    'safeDeterministicCall': [ 4 ],
+    'setLeverage': [ 1 ],
+    'setMargin': [ 0 ],
+    'setMarginMode': [ 0, 1 ],
+    'setPositionMode': [ 1 ],
+    'transfer': [ 0, 2, 3 ],
+    'transferBetweenMainAndSubAccount': [ 0, 2, 3 ],
+    'transferBetweenSubAccounts': [ 0, 2, 3 ],
+    'transferClassic': [ 0, 2, 3 ],
+    'transferIn': [ 0 ],
+    'transferOut': [ 0 ],
+    'transferUta': [ 0, 2, 3 ],
+    'unWatchOHLCV': [ 1 ],
+    'updateSpotCurrencyCode': [ 0 ],
+    // watch* string args, gated by build/tmp_watch_args.py: admitted only when every
+    // generated wrapper declaration agrees on `string` at that position and every core
+    // declaration agrees on arity. The venue-internal helpers (watchPublic, watchTopics,
+    // watchMultiHelper, ...) disagree across venues and are absent.
+    'watchFundingRate': [ 0 ],
+    'watchLiquidations': [ 0 ],
+    'watchMarkPrice': [ 0 ],
+    'watchMyLiquidations': [ 0 ],
+    'watchMyTrades': [ 0 ],
+    'watchOHLCV': [ 0, 1 ],
+    'watchOrderBook': [ 0 ],
+    'watchOrders': [ 0 ],
+    'watchPosition': [ 0 ],
+    'watchTicker': [ 0 ],
+    'watchTrades': [ 0 ],
+    'withdraw': [ 0, 2, 3 ],
+    'withdrawRequest': [ 0 ],
+    'withdrawWs': [ 0, 2, 3 ],
+    // fetchRestOrderBookSafe omitted: TS declares `symbol: any`, so the wrapper and the
+    // hand-written WsBridge caller both pass `object` and cannot be narrowed here
+};
+
 // ===== string-returning method signatures =====
 //
 // Concrete C# return types for generated non-async string-returning methods.
@@ -6527,6 +6919,159 @@ export function installCsharpNumericComparisons (transpiler) {
         return referenceDeclaredType (csharp, declaration);
     };
     csharp._numericComparisonsPatched = true;
+}
+
+// ===== parameter-type proof hook (the narrowed core arguments) =====
+//
+// The printer prints every parameter as `object`, so a read of one answers no C# type and the
+// emitted helper calls stay: `isEqual(limit, null)`, `isEqual(symbol, "lit")`, `divide(since, 1000)`.
+// The ccxt-side typeCoreArgs pass narrows the CORE_STRING_ARGS / CORE_NUMERIC_ARGS positions on
+// every generated declaration of the method, so the EMITTED parameter really is that type at those
+// positions -- validated tree-wide (every declaration of every table name carries the narrow type
+// at every listed position, 0 exceptions over 3220 declarations + the non-table ones).
+// Answering the same (method, position) pair here is therefore the declaration's own type, and the
+// existing operators / helpers can replace their runtime call with the native one.
+function coreArgParamType (csharp, node) {
+    if (node === undefined || node.kind !== ts.SyntaxKind.Identifier) {
+        return undefined;
+    }
+    let symbol;
+    try {
+        symbol = csharp.getChecker().getSymbolAtLocation(node);
+    } catch (e) {
+        return undefined; // in-memory program: the printer keeps its own answer
+    }
+    const declaration = symbol?.valueDeclaration;
+    if (declaration === undefined || declaration.kind !== ts.SyntaxKind.Parameter) {
+        return undefined;
+    }
+    const owner = declaration.parent;
+    // a generated core is a class method; the generated tests' `async public` helpers are plain
+    // functions whose parameters print `object` (typeCoreArgs' signature rule skips them too)
+    if (owner === undefined || owner.kind !== ts.SyntaxKind.MethodDeclaration) {
+        return undefined;
+    }
+    const name = owner.name?.escapedText;
+    const strings = CORE_STRING_ARGS[name];
+    const numerics = CORE_NUMERIC_ARGS[name];
+    if (strings === undefined && numerics === undefined) {
+        return undefined;
+    }
+    const position = owner.parameters.indexOf(declaration);
+    if (position < 0) {
+        return undefined; // destructured / rest parameter
+    }
+    // a parameter the body WRITES (assignment, compound assignment, ++/--, or a destructuring
+    // target) cannot be read as its narrowed type: the ccxt-side typeCoreArgs pass inserts an
+    // `object <name>Var = <name>;` shadow for it and renames every body use, so the emitted read
+    // is the shadow's (unproven) type -- answering the narrowed type here would print a
+    // comparison the shadow's `object` cannot take.
+    if (csharpParameterIsWritten (csharp, owner, declaration)) {
+        return undefined;
+    }
+    // a LITERAL default makes the printer emit a `<name> ??= <literal>;` prologue
+    // (printFunctionBody: array / object / numeric / string / boolean initializer), which the
+    // pass above reads as a reassignment and shadows just like a body write
+    const init = declaration.initializer;
+    if (init !== undefined && (ts.isArrayLiteralExpression (init) || ts.isObjectLiteralExpression (init)
+            || ts.isNumericLiteral (init) || ts.isStringLiteralLike (init)
+            || (init.kind === ts.SyntaxKind.TrueKeyword) || (init.kind === ts.SyntaxKind.FalseKeyword))) {
+        return undefined;
+    }
+    if (strings !== undefined && strings.indexOf(position) >= 0) {
+        return 'string';
+    }
+    return (numerics === undefined) ? undefined : numerics[position];
+}
+
+// the parameter is the target of a write anywhere in the method body: its own symbol, an
+// assignment (or compound assignment) left side -- through parens and array/object patterns, so
+// a `[ tag, params ] = this.handleWithdrawTagAndParams (…)` destructure counts -- or ++/--
+function csharpParameterIsWritten (csharp, owner, declaration) {
+    if (owner.body === undefined) {
+        return false;
+    }
+    let checker;
+    try {
+        checker = csharp.getChecker ();
+    } catch (e) {
+        return false;
+    }
+    let written = false;
+    const visit = (node) => {
+        if (written || node === undefined) {
+            return;
+        }
+        if ((node.kind === ts.SyntaxKind.Identifier) && (node !== declaration.name)) {
+            let symbol;
+            try {
+                symbol = checker.getSymbolAtLocation (node);
+            } catch (e) {
+                symbol = undefined;
+            }
+            if ((symbol !== undefined) && (symbol.valueDeclaration === declaration) && csharpWriteTarget (node)) {
+                written = true;
+                return;
+            }
+        }
+        ts.forEachChild (node, visit);
+    };
+    ts.forEachChild (owner.body, visit);
+    return written;
+}
+
+const CSHARP_WRITE_OPERATORS = [
+    ts.SyntaxKind.EqualsToken, ts.SyntaxKind.PlusEqualsToken, ts.SyntaxKind.MinusEqualsToken,
+    ts.SyntaxKind.AsteriskEqualsToken, ts.SyntaxKind.SlashEqualsToken, ts.SyntaxKind.PercentEqualsToken,
+    ts.SyntaxKind.AsteriskAsteriskEqualsToken, ts.SyntaxKind.QuestionQuestionEqualsToken,
+    ts.SyntaxKind.AmpersandEqualsToken, ts.SyntaxKind.BarEqualsToken, ts.SyntaxKind.CaretEqualsToken,
+    ts.SyntaxKind.LessThanLessThanEqualsToken, ts.SyntaxKind.GreaterThanGreaterThanEqualsToken,
+];
+
+function csharpWriteTarget (node) {
+    let current = node;
+    for (;;) {
+        const parent = current.parent;
+        if (parent === undefined) {
+            return false;
+        }
+        const kind = parent.kind;
+        if ((kind === ts.SyntaxKind.ParenthesizedExpression) || (kind === ts.SyntaxKind.ArrayLiteralExpression) || (kind === ts.SyntaxKind.ObjectLiteralExpression)) {
+            current = parent;
+            continue;
+        }
+        if ((kind === ts.SyntaxKind.BinaryExpression) && (parent.left === current)) {
+            return CSHARP_WRITE_OPERATORS.indexOf (parent.operatorToken?.kind) >= 0;
+        }
+        if ((kind === ts.SyntaxKind.PrefixUnaryExpression) || (kind === ts.SyntaxKind.PostfixUnaryExpression)) {
+            return (parent.operator === ts.SyntaxKind.PlusPlusToken) || (parent.operator === ts.SyntaxKind.MinusMinusToken);
+        }
+        return false;
+    }
+}
+
+// a non-nullable C# value type cannot be null-tested; a nullable spelling (`Int64?`) and a
+// reference type can, which is what the null branch of isEqual prints
+function coreArgParamIsValueTyped (type) {
+    return (type === 'double') || (type === 'Int64') || (type === 'long') || (type === 'int') || (type === 'bool');
+}
+
+export function installCsharpParameterTypes (transpiler) {
+    const csharp = transpiler?.csharpTranspiler;
+    if (!csharp || csharp._parameterTypesPatched) {
+        return;
+    }
+    const answer = (node) => coreArgParamType (csharp, node);
+
+    const upstreamParameterOperandType = csharp.csharpParameterOperandType.bind (csharp);
+    csharp.csharpParameterOperandType = (node) => answer (node) ?? upstreamParameterOperandType (node);
+
+    const upstreamValueTyped = csharp.csharpOperandIsValueTyped.bind (csharp);
+    csharp.csharpOperandIsValueTyped = (node) => {
+        const type = answer (node);
+        return (type !== undefined) ? coreArgParamIsValueTyped (type) : upstreamValueTyped (node);
+    };
+    csharp._parameterTypesPatched = true;
 }
 
 export default installCsharpLocalTypes;

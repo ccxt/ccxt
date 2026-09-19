@@ -1660,9 +1660,9 @@ public partial class kucoin : ccxt.kucoin
         {
             throw new ArgumentsRequired ((string)(this.id + " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
-            if ((!isEqual(limit, 20)) && (!isEqual(limit, 100)) && (!isEqual(limit, 50)) && (!isEqual(limit, 5)))
+            if (((limit != 20)) && ((limit != 100)) && ((limit != 50)) && ((limit != 5)))
             {
                 throw new ExchangeError ((string)(this.id + " watchOrderBook 'limit' argument must be undefined, 5, 20, 50 or 100")) ;
             }
@@ -1683,7 +1683,7 @@ public partial class kucoin : ccxt.kucoin
         parameters = ((IList<object>)methodparametersVariable)[1];
         if (getIndexOf(method, "Depth") < 0)
         {
-            if ((isEqual(limit, 5)) || (isEqual(limit, 50)))
+            if (((limit == 5)) || ((limit == 50)))
             {
                 if (!isFuturesMethod)
                 {

@@ -1277,7 +1277,7 @@ public partial class derive : Exchange
             }
             ((IDictionary<string,object>)request)["page_size"] = limitVar; // default 100, max 1000
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["from_timestamp"] = since;
         }
@@ -1426,7 +1426,7 @@ public partial class derive : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument_name", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_timestamp"] = since;
         }
@@ -1601,7 +1601,7 @@ public partial class derive : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (isEqual(price, null))
+        if ((price == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " createOrder() requires a price argument")) ;
         }
@@ -2147,7 +2147,7 @@ public partial class derive : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["instrument_name"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["page_size"] = limit;
         } else
@@ -2489,11 +2489,11 @@ public partial class derive : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["instrument_name"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["page_size"] = limit;
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["from_timestamp"] = since;
         }
@@ -2580,11 +2580,11 @@ public partial class derive : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["instrument_name"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["page_size"] = limit;
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["from_timestamp"] = since;
         }
@@ -2829,11 +2829,11 @@ public partial class derive : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["instrument_name"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_timestamp"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["page_size"] = limit;
         }
@@ -3044,7 +3044,7 @@ public partial class derive : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "subaccount_id", subaccountId },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_timestamp"] = since;
         }
@@ -3099,7 +3099,7 @@ public partial class derive : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "subaccount_id", subaccountId },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_timestamp"] = since;
         }

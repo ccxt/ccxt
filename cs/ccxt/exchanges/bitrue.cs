@@ -1533,7 +1533,7 @@ public partial class bitrue : Exchange
                 { "contractName", (market.ContainsKey("id") ? market["id"] : null) },
                 { "interval", this.safeString(timeframesFuture, timeframeVar, "1min") },
             };
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 ((IDictionary<string,object>)request)["limit"] = limit;
             }
@@ -1552,7 +1552,7 @@ public partial class bitrue : Exchange
                 { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
                 { "scale", this.safeString(timeframesSpot, timeframeVar, "1m") },
             };
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 ((IDictionary<string,object>)request)["limit"] = limit;
             }
@@ -1942,7 +1942,7 @@ public partial class bitrue : Exchange
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             };
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 ((IDictionary<string,object>)request)["limit"] = limit; // default 100, max 1000
             }
@@ -2177,7 +2177,7 @@ public partial class bitrue : Exchange
         };
         if ((uppercaseType == "LIMIT"))
         {
-            if (isEqual(price, null))
+            if ((price == null))
             {
                 throw new InvalidOrder ((string)(this.id + " createOrder() requires a price argument")) ;
             }
@@ -2203,11 +2203,11 @@ public partial class bitrue : Exchange
             IList<object> createMarketBuyOrderRequiresPriceparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
             createMarketBuyOrderRequiresPrice = ((IList<object>)createMarketBuyOrderRequiresPriceparametersVariable)[0];
             parameters = ((IList<object>)createMarketBuyOrderRequiresPriceparametersVariable)[1];
-            if (isMarket && (isEqual(side, "buy")) && isTrue(createMarketBuyOrderRequiresPrice))
+            if (isMarket && ((side == "buy")) && isTrue(createMarketBuyOrderRequiresPrice))
             {
                 string? cost = this.safeString(parameters, "cost");
                 parameters = this.omit(parameters, "cost");
-                if (isEqual(price, null) && (cost == null))
+                if ((price == null) && (cost == null))
                 {
                     throw new InvalidOrder ((string)(this.id + " createOrder() requires the price argument with swap market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options[\"createMarketBuyOrderRequiresPrice\"] = false to supply the cost in the amount argument (the exchange-specific behaviour)")) ;
                 } else
@@ -2427,11 +2427,11 @@ public partial class bitrue : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default 100, max 1000
         }
@@ -2720,7 +2720,7 @@ public partial class bitrue : Exchange
         Dictionary<string, object> response = null;
         object data = new List<object>() {};
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
@@ -2827,11 +2827,11 @@ public partial class bitrue : Exchange
             { "coin", getValue(currency, "id") },
             { "status", 1 },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -2903,11 +2903,11 @@ public partial class bitrue : Exchange
             { "coin", getValue(currency, "id") },
             { "status", 5 },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -3303,7 +3303,7 @@ public partial class bitrue : Exchange
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["coinSymbol"] = getValue(currency, "id");
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["beginTime"] = since;
         }

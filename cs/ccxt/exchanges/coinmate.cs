@@ -776,11 +776,11 @@ public partial class coinmate : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "limit", 1000 },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["timestampFrom"] = since;
         }
@@ -1015,7 +1015,7 @@ public partial class coinmate : Exchange
             Dictionary<string, object> market = this.market(symbol);
             ((IDictionary<string,object>)request)["currencyPair"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["timestampFrom"] = since;
         }
@@ -1219,7 +1219,7 @@ public partial class coinmate : Exchange
             { "currencyPair", (market.ContainsKey("id") ? market["id"] : null) },
         };
         // offset param that appears in other parts of the API doesn't appear to be supported here
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -1364,9 +1364,9 @@ public partial class coinmate : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currencyPair", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (isEqual(type, "market"))
+        if ((type == "market"))
         {
-            if (isEqual(side, "buy"))
+            if ((side == "buy"))
             {
                 ((IDictionary<string,object>)request)["total"] = this.amountToPrecision(symbol, amount); // amount in fiat
             } else
@@ -1424,7 +1424,7 @@ public partial class coinmate : Exchange
             { "orderId", id },
         };
         IDictionary<string, object> market = null;
-        if (((symbol != null)) && (!isEqual(symbol, "")))
+        if (((symbol != null)) && ((symbol != "")))
         {
             market = this.market(symbol);
         }

@@ -937,10 +937,10 @@ public partial class hyperliquid : PredictionExchange
         IDictionary<string, object> info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
         Int64? until = this.safeInteger(parameters, "until", this.milliseconds());
         object startTime = since;
-        if (isEqual(since, null))
+        if ((since == null))
         {
             int tf = this.parseTimeframe(timeframeVar);
-            object candleCount = ((bool) (!isEqual(limit, null))) ? limit : 100;
+            object candleCount = ((bool) ((limit != null))) ? limit : 100;
             object startOffset = multiply(multiply(tf, candleCount), -1000);
             startTime = this.sum(until, startOffset);
             if (isEqual(startTime, null))
@@ -1385,7 +1385,7 @@ public partial class hyperliquid : PredictionExchange
             defaultTif = "Alo";
         }
         string tif = this.capitalize(this.safeStringLower(parameters, "timeInForce", defaultTif)); // eslint-disable-line
-        if (isEqual(price, null))
+        if ((price == null))
         {
             if (isMarket)
             {
@@ -1992,7 +1992,7 @@ public partial class hyperliquid : PredictionExchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "user", userAddress },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["type"] = "userFillsByTime";
             ((IDictionary<string,object>)request)["startTime"] = since;

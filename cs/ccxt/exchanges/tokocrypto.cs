@@ -990,7 +990,7 @@ public partial class tokocrypto : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", this.getMarketIdByType(market) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
         }
@@ -1219,7 +1219,7 @@ public partial class tokocrypto : Exchange
         ((IDictionary<string,object>)request)["symbol"] = this.getMarketIdByType(market);
         if (this.isNativeMarket(market))
         {
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 ((IDictionary<string,object>)request)["limit"] = limit;
             }
@@ -1250,14 +1250,14 @@ public partial class tokocrypto : Exchange
             List<object> list = this.safeList(data, "list", new List<object>() {});
             return ccxt.BaseExchange.ToTradeList(this.parseTrades(list, market, since, limit));
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default = 500, maximum = 1000
         }
         string defaultMethod = "binanceGetTrades";
         string? method = this.safeString(this.options, "fetchTradesMethod", defaultMethod);
         List<object> response = null;
-        if (((method == "binanceGetAggTrades")) && (!isEqual(since, null)))
+        if (((method == "binanceGetAggTrades")) && ((since != null)))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
             // https://github.com/ccxt/ccxt/issues/6400
@@ -1601,7 +1601,7 @@ public partial class tokocrypto : Exchange
             ((IDictionary<string,object>)request)["symbol"] = this.getMarketIdByType(market);
         }
         // const duration = this.parseTimeframe (timeframeVar);
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
@@ -2005,10 +2005,10 @@ public partial class tokocrypto : Exchange
             { "symbol", add(add((market.ContainsKey("baseId") ? market["baseId"] : null), "_"), (market.ContainsKey("quoteId") ? market["quoteId"] : null)) },
             { "type", this.safeString(reverseOrderTypeMapping, uppercaseType) },
         };
-        if (isEqual(side, "buy"))
+        if ((side == "buy"))
         {
             ((IDictionary<string,object>)request)["side"] = 0;
-        } else if (isEqual(side, "sell"))
+        } else if ((side == "sell"))
         {
             ((IDictionary<string,object>)request)["side"] = 1;
         }
@@ -2044,7 +2044,7 @@ public partial class tokocrypto : Exchange
         //
         if ((uppercaseType == "MARKET"))
         {
-            if (isEqual(side, "buy"))
+            if ((side == "buy"))
             {
                 object precision = getValue((market.ContainsKey("precision") ? market["precision"] : null), "price");
                 object quoteAmount = null;
@@ -2059,7 +2059,7 @@ public partial class tokocrypto : Exchange
                     quoteAmount = cost;
                 } else if (isTrue(createMarketBuyOrderRequiresPrice))
                 {
-                    if (isEqual(price, null))
+                    if ((price == null))
                     {
                         throw new InvalidOrder ((string)(this.id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")) ;
                     } else
@@ -2105,7 +2105,7 @@ public partial class tokocrypto : Exchange
         }
         if (priceIsRequired)
         {
-            if (isEqual(price, null))
+            if ((price == null))
             {
                 throw new InvalidOrder ((string)(((this.id + " createOrder() requires a price argument for a ") + (typeVar)) + " order")) ;
             }
@@ -2233,11 +2233,11 @@ public partial class tokocrypto : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -2395,7 +2395,7 @@ public partial class tokocrypto : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Int64? endTime = this.safeInteger2(parameters, "until", "endTime");
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
@@ -2404,7 +2404,7 @@ public partial class tokocrypto : Exchange
             ((IDictionary<string,object>)request)["endTime"] = endTime;
             parameters = this.omit(parameters, new List<object>() {"endTime", "until"});
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -2523,7 +2523,7 @@ public partial class tokocrypto : Exchange
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["coin"] = getValue(currency, "id");
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
             // max 3 months range https://github.com/ccxt/ccxt/issues/6495
@@ -2534,7 +2534,7 @@ public partial class tokocrypto : Exchange
             }
             ((IDictionary<string,object>)request)["endTime"] = endTime;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -2592,13 +2592,13 @@ public partial class tokocrypto : Exchange
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["coin"] = getValue(currency, "id");
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
             // max 3 months range https://github.com/ccxt/ccxt/issues/6495
             ((IDictionary<string,object>)request)["endTime"] = this.sum(since, 7776000000);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }

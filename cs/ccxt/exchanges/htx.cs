@@ -3293,17 +3293,17 @@ public partial class htx : Exchange
             }
         } else
         {
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 // Valid depths are 5, 10, 20 or empty https://huobiapi.github.io/docs/spot/v1/en/#get-market-depth
-                if ((!isEqual(limit, 5)) && (!isEqual(limit, 10)) && (!isEqual(limit, 20)) && (!isEqual(limit, 150)))
+                if (((limit != 5)) && ((limit != 10)) && ((limit != 20)) && ((limit != 150)))
                 {
                     throw new BadRequest ((string)(this.id + " fetchOrderBook() limit argument must be undefined, 5, 10, 20, or 150, default is 150")) ;
                 }
                 // only set the depth if it is not 150
                 // 150 is the implicit default on the exchange side for step0 and no orderbook aggregation
                 // it is not accepted by the exchange if you set it explicitly
-                if (!isEqual(limit, 150))
+                if ((limit != 150))
                 {
                     ((IDictionary<string,object>)request)["depth"] = limit;
                 }
@@ -3643,11 +3643,11 @@ public partial class htx : Exchange
                 market = this.market(symbol);
                 ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             }
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 ((IDictionary<string,object>)request)["size"] = limit; // default 100, max 500
             }
-            if (!isEqual(since, null))
+            if ((since != null))
             {
                 ((IDictionary<string,object>)request)["start-time"] = since; // a date within 120 days from today
             }
@@ -3661,7 +3661,7 @@ public partial class htx : Exchange
             {
                 throw new ArgumentsRequired ((string)(this.id + " fetchMyTrades() requires a symbol argument")) ;
             }
-            if (!isEqual(since, null))
+            if ((since != null))
             {
                 ((IDictionary<string,object>)request)["start_time"] = since;
             }
@@ -3671,14 +3671,14 @@ public partial class htx : Exchange
             if ((this.safeBool(market, "linear") == true))
             {
                 ((IDictionary<string,object>)request)["contract_code"] = this.safeString(market, "id");
-                if (!isEqual(limit, null))
+                if ((limit != null))
                 {
                     ((IDictionary<string,object>)request)["limit"] = limit; // default 100, max 500
                 }
                 response = await this.contractPrivateGetV5TradeOrderDetails(this.extend(request, parameters));
             } else if ((this.safeBool(market, "inverse") == true))
             {
-                if (!isEqual(limit, null))
+                if ((limit != null))
                 {
                     ((IDictionary<string,object>)request)["page_size"] = limit; // default 100, max 500
                 }
@@ -3975,7 +3975,7 @@ public partial class htx : Exchange
             {
                 int duration = this.parseTimeframe(timeframeVar);
                 object calcualtedEnd = null;
-                if (isEqual(since, null))
+                if ((since == null))
                 {
                     Int64 now = this.seconds();
                     ((IDictionary<string,object>)request)["from"] = subtract(now, multiply(duration, (subtract(limitVar, 1))));
@@ -4076,7 +4076,7 @@ public partial class htx : Exchange
             } else
             {
                 // "from & to" only available for the this endpoint
-                if (!isEqual(since, null))
+                if ((since != null))
                 {
                     ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(since, 1000));
                 }
@@ -5003,7 +5003,7 @@ public partial class htx : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start-time"] = since; // a window of 48 hours within 180 days
             ((IDictionary<string,object>)request)["end-time"] = this.sum(since, ((multiply(48, 60) * 60) * 1000));
@@ -5011,7 +5011,7 @@ public partial class htx : Exchange
         IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("end-time", request, parameters);
         request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["size"] = limit;
         }
@@ -5086,7 +5086,7 @@ public partial class htx : Exchange
         bool? trailing = this.safeBool(parameters, "trailing", false);
         bool isAlgo = (((trigger == true)) || ((stopLoss == true)) || ((takeProfit == true)) || ((stopLossTakeProfit == true)) || ((trailing == true)));
         parameters = this.omit(parameters, new List<object>() {"stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit"});
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_time"] = since;
         }
@@ -5095,7 +5095,7 @@ public partial class htx : Exchange
         parameters = ((IList<object>)requestparametersVariable)[1];
         if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
         {
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 ((IDictionary<string,object>)request)["limit"] = limit;
             }
@@ -5456,7 +5456,7 @@ public partial class htx : Exchange
                 }
             }
             ((IDictionary<string,object>)request)["account-id"] = accountId;
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 ((IDictionary<string,object>)request)["size"] = limit;
             }
@@ -5469,7 +5469,7 @@ public partial class htx : Exchange
                 // throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
                 ((IDictionary<string,object>)request)["contract_code"] = this.safeString(market, "id");
             }
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 if (isLinear)
                 {
@@ -8328,7 +8328,7 @@ public partial class htx : Exchange
         {
             if (isEqual(subType, "linear"))
             {
-                if ((isEqual(fromAccountId, "swap")) || (isEqual(fromAccount, "linear-swap")))
+                if ((isEqual(fromAccountId, "swap")) || ((fromAccount == "linear-swap")))
                 {
                     fromAccountId = "linear-swap";
                 } else
@@ -8396,7 +8396,7 @@ public partial class htx : Exchange
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_time"] = since;
         }
@@ -8406,7 +8406,7 @@ public partial class htx : Exchange
             parameters = this.omit(parameters, "until");
             ((IDictionary<string,object>)request)["end_time"] = until;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -8568,17 +8568,17 @@ public partial class htx : Exchange
         };
         if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
         {
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 100); // max 100
             }
-            if (!isEqual(since, null))
+            if ((since != null))
             {
                 ((IDictionary<string,object>)request)["start_time"] = since;
             }
         } else
         {
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 ((IDictionary<string,object>)request)["page_size"] = limit;
             } else
@@ -8840,11 +8840,11 @@ public partial class htx : Exchange
         parameters = ((IList<object>)marginModeparametersVariable)[1];
         marginMode = ((bool) ((marginMode == null))) ? "cross" : marginMode;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start-date"] = this.yyyymmdd(since);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["size"] = limit;
         }
@@ -9233,7 +9233,7 @@ public partial class htx : Exchange
         IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("end_time", request, parameters);
         request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
             {
@@ -9255,7 +9255,7 @@ public partial class htx : Exchange
                 marginMode = ((bool) ((marginMode == null))) ? "cross" : marginMode;
                 ((IDictionary<string,object>)request)["margin_mode"] = marginMode;
                 ((IDictionary<string,object>)request)["contract_code"] = (market.ContainsKey("id") ? market["id"] : null);
-                if (!isEqual(limit, null))
+                if ((limit != null))
                 {
                     ((IDictionary<string,object>)request)["limit"] = limit;
                 }
@@ -9824,11 +9824,11 @@ public partial class htx : Exchange
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // max 500
         }
@@ -9992,7 +9992,7 @@ public partial class htx : Exchange
             { "period", getValue(timeframes, timeframeVar) },
             { "amount_type", amountType },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["size"] = limit;
         }
@@ -10548,7 +10548,7 @@ public partial class htx : Exchange
         {
             ((IDictionary<string,object>)request)["contract_code"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             if (((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true)) && ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true)))
             {
@@ -10558,7 +10558,7 @@ public partial class htx : Exchange
                 ((IDictionary<string,object>)request)["page_size"] = limit;
             }
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_time"] = since;
         }
@@ -10947,7 +10947,7 @@ public partial class htx : Exchange
             ((IDictionary<string,object>)request)["trade_type"] = tradeType;
         }
         parameters = this.omit(parameters, new List<object>() {"trade_type", "tradeType"});
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_time"] = since;
         }
@@ -10960,7 +10960,7 @@ public partial class htx : Exchange
             if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
             {
                 ((IDictionary<string,object>)request)["contract_code"] = (market.ContainsKey("id") ? market["id"] : null);
-                if (!isEqual(limit, null))
+                if ((limit != null))
                 {
                     ((IDictionary<string,object>)request)["limit"] = limit;
                 }

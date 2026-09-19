@@ -1297,14 +1297,14 @@ public partial class grvt : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000);
         }
         IList<object> requestparametersVariable = (IList<object>)this.handleUntilOptionString("end_time", request, parameters, 1000000);
         request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_time"] = this.numberToString(multiply(since, 1000000));
         }
@@ -1466,14 +1466,14 @@ public partial class grvt : Exchange
         };
         string? selectedPriceType = this.safeString(parameters, "priceType", "last");
         ((IDictionary<string,object>)request)["type"] = this.safeString(priceTypeMap, selectedPriceType);
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000);
         }
         IList<object> requestparametersVariable = (IList<object>)this.handleUntilOptionString("end_time", request, parameters, 1000000);
         request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_time"] = this.numberToString(multiply(since, 1000000));
         }
@@ -1556,14 +1556,14 @@ public partial class grvt : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000);
         }
         IList<object> requestparametersVariable = (IList<object>)this.handleUntilOptionString("end_time", request, parameters, 1000000);
         request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_time"] = this.numberToString(multiply(since, 1000000));
         }
@@ -1750,14 +1750,14 @@ public partial class grvt : Exchange
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["currency"] = new List<object>() {getValue(currency, "code")};
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000);
         }
         IList<object> requestparametersVariable = (IList<object>)this.handleUntilOptionString("end_time", request, parameters, 1000000);
         request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_time"] = this.numberToString(multiply(since, 1000000));
         }
@@ -1817,14 +1817,14 @@ public partial class grvt : Exchange
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["currency"] = new List<object>() {getValue(currency, "code")};
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000);
         }
         IList<object> requestparametersVariable = (IList<object>)this.handleUntilOptionString("end_time", request, parameters, 1000000);
         request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_time"] = this.numberToString(multiply(since, 1000000));
         }
@@ -2054,14 +2054,14 @@ public partial class grvt : Exchange
         {
             return ccxt.BaseExchange.ToTransferEntryList(await this.fetchPaginatedCallDynamic("fetchTransfers", null, since, limit, parameters, maxLimit));
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000);
         }
         IList<object> requestparametersVariable = (IList<object>)this.handleUntilOptionString("end_time", request, parameters, 1000000);
         request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_time"] = this.numberToString(multiply(since, 1000000));
         }
@@ -2393,17 +2393,17 @@ public partial class grvt : Exchange
             { "instrument", (market.ContainsKey("id") ? market["id"] : null) },
             { "size", this.amountToPrecision(symbol, amount) },
         };
-        if (!isEqual(price, null))
+        if ((price != null))
         {
             ((IDictionary<string,object>)orderLeg)["limit_price"] = this.priceToPrecision(symbol, price);
         } else
         {
             ((IDictionary<string,object>)orderLeg)["limit_price"] = null;
         }
-        if (isEqual(side, "sell"))
+        if ((side == "sell"))
         {
             ((IDictionary<string,object>)orderLeg)["is_buying_asset"] = false;
-        } else if (isEqual(side, "buy"))
+        } else if ((side == "buy"))
         {
             ((IDictionary<string,object>)orderLeg)["is_buying_asset"] = true;
         } else
@@ -2416,7 +2416,7 @@ public partial class grvt : Exchange
             clientOrderId = ((((object)this.nonce()).ToString() + "000") + ((object)this.requestId()).ToString());
         }
         parameters = this.omit(parameters, new List<object>() {"clientOrderId"});
-        bool isMarketOrder = (isEqual(type, "market"));
+        bool isMarketOrder = ((type == "market"));
         string subAccountId = this.getSubAccountId(parameters);
         bool? isReduceOnly = this.safeBool(parameters, "reduceOnly", false);
         Dictionary<string, object> orderRequest = new Dictionary<string, object>() {
@@ -2486,7 +2486,7 @@ public partial class grvt : Exchange
             }
             // trigger type
             string? selectedType = null;
-            bool isBuy = (isEqual(side, "buy"));
+            bool isBuy = ((side == "buy"));
             if ((stopLossPrice != null))
             {
                 selectedType = ((bool) isBuy) ? "STOP_LOSS" : "TAKE_PROFIT";
@@ -2702,14 +2702,14 @@ public partial class grvt : Exchange
             ((IDictionary<string,object>)request)["quote"] = new List<object>() {};
             ((IList<object>)getValue(request, "quote")).Add((market.ContainsKey("quoteId") ? market["quoteId"] : null));
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000);
         }
         IList<object> requestparametersVariable = (IList<object>)this.handleUntilOptionString("end_time", request, parameters, 1000000);
         request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_time"] = this.numberToString(multiply(since, 1000000));
         }
@@ -3057,14 +3057,14 @@ public partial class grvt : Exchange
             ((IDictionary<string,object>)request)["quote"] = new List<object>() {};
             ((IList<object>)getValue(request, "quote")).Add((market.ContainsKey("quoteId") ? market["quoteId"] : null));
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000);
         }
         IList<object> requestparametersVariable = (IList<object>)this.handleUntilOptionString("end_time", request, parameters, 1000000);
         request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_time"] = this.numberToString(multiply(since, 1000000));
         }
@@ -3144,14 +3144,14 @@ public partial class grvt : Exchange
             ((IDictionary<string,object>)request)["quote"] = new List<object>() {};
             ((IList<object>)getValue(request, "quote")).Add((market.ContainsKey("quoteId") ? market["quoteId"] : null));
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000);
         }
         IList<object> requestparametersVariable = (IList<object>)this.handleUntilOptionString("end_time", request, parameters, 1000000);
         request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_time"] = this.numberToString(multiply(since, 1000000));
         }

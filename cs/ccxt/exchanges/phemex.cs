@@ -1513,7 +1513,7 @@ public partial class phemex : Exchange
             response = await this.v2GetMdV2Orderbook(this.extend(request, parameters));
         } else
         {
-            if ((!isEqual(limit, null)) && (isLessThanOrEqual(limit, 30)))
+            if (((limit != null)) && (isLessThanOrEqual(limit, 30)))
             {
                 response = await this.v1GetMdOrderbook(this.extend(request, parameters));
             } else
@@ -3108,7 +3108,7 @@ public partial class phemex : Exchange
             string? qtyType = this.safeString(parameters, "qtyType", "ByBase");
             if ((isEqual(typeVar, "Market")) || (isEqual(typeVar, "Stop")) || (isEqual(typeVar, "MarketIfTouched")))
             {
-                if (!isEqual(price, null))
+                if ((price != null))
                 {
                     qtyType = "ByQuote";
                 }
@@ -3131,7 +3131,7 @@ public partial class phemex : Exchange
                 parameters = this.omit(parameters, "cost");
                 if (isEqual((this.options.ContainsKey("createOrderByQuoteRequiresPrice") ? this.options["createOrderByQuoteRequiresPrice"] : null), true))
                 {
-                    if (!isEqual(price, null))
+                    if ((price != null))
                     {
                         string? amountString = this.numberToString(amount);
                         string? priceString = this.numberToString(price);
@@ -3430,7 +3430,7 @@ public partial class phemex : Exchange
         {
             ((IDictionary<string,object>)request)["orderID"] = id;
         }
-        if (!isEqual(price, null))
+        if ((price != null))
         {
             if (isStableSettled)
             {
@@ -3446,7 +3446,7 @@ public partial class phemex : Exchange
         if ((finalQty != null))
         {
             ((IDictionary<string,object>)request)["baseQtyEV"] = finalQty;
-        } else if (!isEqual(amount, null))
+        } else if ((amount != null))
         {
             if (isStableSettled)
             {
@@ -3693,11 +3693,11 @@ public partial class phemex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -3814,11 +3814,11 @@ public partial class phemex : Exchange
         {
             ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -3930,7 +3930,7 @@ public partial class phemex : Exchange
         {
             ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start"] = since;
         }
@@ -4543,7 +4543,7 @@ public partial class phemex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(200, limit);
         }
@@ -4790,7 +4790,7 @@ public partial class phemex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             if (isGreaterThan(limit, 200))
             {
@@ -5550,11 +5550,11 @@ public partial class phemex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", getValue(currency, "id") },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -5703,11 +5703,11 @@ public partial class phemex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", customSymbol },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -6004,7 +6004,7 @@ public partial class phemex : Exchange
             { "fromCurrency", fromCode },
             { "toCurrency", toCode },
         };
-        if (!isEqual(amount, null))
+        if ((amount != null))
         {
             ((IDictionary<string,object>)request)["fromAmountEv"] = this.toEn(amount, valueScale);
         }
@@ -6058,11 +6058,11 @@ public partial class phemex : Exchange
         {
             ((IDictionary<string,object>)request)["fromCurrency"] = code;
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }

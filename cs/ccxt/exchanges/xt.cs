@@ -1870,7 +1870,7 @@ public partial class xt : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "interval", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             // xt rounds startTime down to the candle boundary, which makes a mid-candle
             // window start return one pre-since candle, shifting paginated windows and
@@ -2013,14 +2013,14 @@ public partial class xt : Exchange
         Dictionary<string, object> response = null;
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 500);
             }
             response = await this.publicSpotGetDepth(this.extend(request, parameters));
         } else
         {
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 ((IDictionary<string,object>)request)["level"] = mathMin(limit, 50);
             } else
@@ -2500,14 +2500,14 @@ public partial class xt : Exchange
         Dictionary<string, object> response = null;
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000);
             }
             response = await this.publicSpotGetTradeRecent(this.extend(request, parameters));
         } else
         {
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 ((IDictionary<string,object>)request)["num"] = mathMin(limit, 1000);
             }
@@ -2585,7 +2585,7 @@ public partial class xt : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
@@ -2600,7 +2600,7 @@ public partial class xt : Exchange
         parameters = ((IList<object>)subTypeparametersVariable)[1];
         if (((subType != null)) || ((type == "swap")) || ((type == "future")))
         {
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 ((IDictionary<string,object>)request)["size"] = limit;
             }
@@ -2619,7 +2619,7 @@ public partial class xt : Exchange
             parameters = ((IList<object>)marginModeparametersVariable)[1];
             string marginOrSpotRequest = ((bool) ((marginMode != null))) ? "LEVER" : "SPOT";
             ((IDictionary<string,object>)request)["bizType"] = marginOrSpotRequest;
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 ((IDictionary<string,object>)request)["limit"] = limit;
             }
@@ -3243,7 +3243,7 @@ public partial class xt : Exchange
         {
             throw new ArgumentsRequired ((string)(this.id + " createOrder() trailingTriggerPrice requires trailingPercent or trailingAmount")) ;
         }
-        if (!isEqual(price, null))
+        if ((price != null))
         {
             if (!(isStopLoss) && !(isTakeProfit) && !(isTrailing))
             {
@@ -3590,11 +3590,11 @@ public partial class xt : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -3782,11 +3782,11 @@ public partial class xt : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["size"] = limit;
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
@@ -3846,11 +3846,11 @@ public partial class xt : Exchange
         }
         if (((trigger == true)) || ((stopLossTakeProfit == true)) || ((subType != null)) || ((type == "swap")) || ((type == "future")))
         {
-            if (!isEqual(since, null))
+            if ((since != null))
             {
                 ((IDictionary<string,object>)request)["startTime"] = since;
             }
-            if ((!isEqual(limit, null)) && ((trailing != true)))
+            if (((limit != null)) && ((trailing != true)))
             {
                 ((IDictionary<string,object>)request)["size"] = limit;
             }
@@ -3916,11 +3916,11 @@ public partial class xt : Exchange
             ((IDictionary<string,object>)request)["bizType"] = marginOrSpotRequest;
             if (!isEqual(status, "open"))
             {
-                if (!isEqual(since, null))
+                if ((since != null))
                 {
                     ((IDictionary<string,object>)request)["startTime"] = since;
                 }
-                if (!isEqual(limit, null))
+                if ((limit != null))
                 {
                     request = this.omit(request, "size");
                     ((IDictionary<string,object>)request)["limit"] = limit;
@@ -4741,11 +4741,11 @@ public partial class xt : Exchange
         {
             currency = this.currency(((string)code));
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -4940,11 +4940,11 @@ public partial class xt : Exchange
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default 10, max 200
         }
@@ -5005,11 +5005,11 @@ public partial class xt : Exchange
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default 10, max 200
         }
@@ -5578,7 +5578,7 @@ public partial class xt : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         } else
@@ -5959,11 +5959,11 @@ public partial class xt : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -6297,11 +6297,11 @@ public partial class xt : Exchange
                 ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             }
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -6614,7 +6614,7 @@ public partial class xt : Exchange
     public async override Task<ccxt.Order> EditOrder(string id, string symbol, string type, string side, double? amount = null, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(amount, null))
+        if ((amount == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " editOrder() requires an amount argument")) ;
         }

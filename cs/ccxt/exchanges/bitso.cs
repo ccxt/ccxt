@@ -380,7 +380,7 @@ public partial class bitso : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -966,15 +966,15 @@ public partial class bitso : Exchange
             { "book", (market.ContainsKey("id") ? market["id"] : null) },
             { "time_bucket", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start"] = since;
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 int duration = this.parseTimeframe(timeframeVar);
                 ((IDictionary<string,object>)request)["end"] = this.sum(since, multiply(multiply(duration, limit), 1000));
             }
-        } else if (!isEqual(limit, null))
+        } else if ((limit != null))
         {
             Int64 now = this.milliseconds();
             ((IDictionary<string,object>)request)["end"] = now;
@@ -1272,7 +1272,7 @@ public partial class bitso : Exchange
         bool markerInParams = (((IDictionary<string, object>)parameters).ContainsKey("marker"));
         // warn the user with an exception if the user wants to filter
         // starting from since timestamp, but does not set the trade id with an extra 'marker' param
-        if ((!isEqual(since, null)) && !markerInParams)
+        if (((since != null)) && !markerInParams)
         {
             throw new ExchangeError ((string)(this.id + " fetchMyTrades() does not support fetching trades starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id")) ;
         }
@@ -1320,7 +1320,7 @@ public partial class bitso : Exchange
             { "type", type },
             { "major", this.amountToPrecision((market.ContainsKey("symbol") ? market["symbol"] : null), amount) },
         };
-        if (isEqual(type, "limit"))
+        if ((type == "limit"))
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision((market.ContainsKey("symbol") ? market["symbol"] : null), price);
         }
@@ -1526,7 +1526,7 @@ public partial class bitso : Exchange
         bool markerInParams = (((IDictionary<string, object>)parameters).ContainsKey("marker"));
         // warn the user with an exception if the user wants to filter
         // starting from since timestamp, but does not set the trade id with an extra 'marker' param
-        if ((!isEqual(since, null)) && !markerInParams)
+        if (((since != null)) && !markerInParams)
         {
             throw new ExchangeError ((string)(this.id + " fetchOpenOrders() does not support fetching orders starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id")) ;
         }

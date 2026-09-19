@@ -1403,11 +1403,11 @@ public partial class kalshi : PredictionExchange
         };
         Int64 now = this.seconds();
         int tf = this.parseTimeframe(timeframeVar);
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             Int64? sinceS = this.parseToInt(divide(since, 1000));
             ((IDictionary<string,object>)request)["start_ts"] = sinceS;
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 object end = this.sum(sinceS, multiply(limit, tf));
                 ((IDictionary<string,object>)request)["end_ts"] = ((bool) (isLessThan(end, now))) ? end : now;
@@ -1419,7 +1419,7 @@ public partial class kalshi : PredictionExchange
         } else
         {
             Int64? defaultLimit = this.safeInteger(this.options, "defaultFetchOHLCVLimit", 200);
-            object candlesCount = ((bool) (!isEqual(limit, null))) ? limit : defaultLimit;
+            object candlesCount = ((bool) ((limit != null))) ? limit : defaultLimit;
             ((IDictionary<string,object>)request)["end_ts"] = now;
             ((IDictionary<string,object>)request)["start_ts"] = subtract(now, (multiply(candlesCount, tf)));
         }
@@ -1552,7 +1552,7 @@ public partial class kalshi : PredictionExchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "ticker", ticker },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000);
         }
@@ -1670,7 +1670,7 @@ public partial class kalshi : PredictionExchange
             }
             ((IDictionary<string,object>)request)["ticker"] = this.safeString(getValue(outcomeObj, "info"), "ticker");
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -1910,7 +1910,7 @@ public partial class kalshi : PredictionExchange
             await this.loadOutcome(outcome);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -2310,7 +2310,7 @@ public partial class kalshi : PredictionExchange
     {
         // kalshi has no market orders — every order is a limit order and the price is required
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(price, null))
+        if ((price == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " createOrder() requires a price - kalshi has only limit orders (no market orders). For immediate execution pass an aggressive price with params { 'time_in_force': 'immediate_or_cancel' }")) ;
         }
@@ -2318,7 +2318,7 @@ public partial class kalshi : PredictionExchange
         IDictionary<string, object> outcomeObj = this.outcome(outcome);
         string? ticker = this.safeString(getValue(outcomeObj, "info"), "ticker");
         bool isNo = (isEqual(getValue(outcomeObj, "label"), "NO"));
-        bool isBuy = (isEqual(side, "buy"));
+        bool isBuy = ((side == "buy"));
         // kalshi V2 (/portfolio/events/orders) quotes the YES leg only: side 'bid' = buy YES,
         // 'ask' = sell YES, price in dollars. a NO order maps to the complementary YES order
         // buy NO @ q == sell YES @ 1-q - flip the book side and the price
@@ -2327,12 +2327,12 @@ public partial class kalshi : PredictionExchange
         if (isNo)
         {
             bookSide = ((bool) (isBuy)) ? "ask" : "bid";
-            if (!isEqual(price, null))
+            if ((price != null))
             {
                 yesPrice = this.parseNumber(Precise.stringSub("1", this.numberToString(price)));
             }
         }
-        bool isMarket = (isEqual(type, "market"));
+        bool isMarket = ((type == "market"));
         // accept the unified `timeInForce` and map it onto kalshi's vocabulary; the native
         // `time_in_force` param (handled below) still overrides
         string? unifiedTif = this.safeStringUpper(parameters, "timeInForce");
@@ -2425,11 +2425,11 @@ public partial class kalshi : PredictionExchange
         // new order's required inputs BEFORE cancelling so a bad edit doesn't leave the user with the
         // order cancelled and nothing to replace it (kalshi is limit-only, so price + amount are required)
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(price, null))
+        if ((price == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " editOrder() requires a price - kalshi has only limit orders")) ;
         }
-        if (isEqual(amount, null))
+        if ((amount == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " editOrder() requires an amount")) ;
         }

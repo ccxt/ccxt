@@ -813,7 +813,7 @@ public partial class luno : Exchange
             { "pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = null;
-        if (!isEqual(limit, null) && isLessThanOrEqual(limit, 100))
+        if ((limit != null) && isLessThanOrEqual(limit, 100))
         {
             response = await this.publicGetOrderbookTop(this.extend(request, parameters));
         } else
@@ -1238,7 +1238,7 @@ public partial class luno : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["since"] = since;
         }
@@ -1286,7 +1286,7 @@ public partial class luno : Exchange
             { "duration", this.safeValue(this.timeframes, timeframeVar, timeframeVar) },
             { "pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["since"] = this.parseToInt(since);
         } else
@@ -1354,11 +1354,11 @@ public partial class luno : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["since"] = since;
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -1449,11 +1449,11 @@ public partial class luno : Exchange
         {
             throw new ArgumentsRequired ((string)(this.id + " createOrder() requires a side argument")) ;
         }
-        if (isEqual(type, "market"))
+        if ((type == "market"))
         {
             ((IDictionary<string,object>)request)["type"] = ((string)side).ToUpper();
             // todo add createMarketBuyOrderRequires price logic as it is implemented in the other exchanges
-            if (isEqual(side, "buy"))
+            if ((side == "buy"))
             {
                 ((IDictionary<string,object>)request)["counter_volume"] = this.amountToPrecision((market.ContainsKey("symbol") ? market["symbol"] : null), amount);
             } else
@@ -1465,7 +1465,7 @@ public partial class luno : Exchange
         {
             ((IDictionary<string,object>)request)["volume"] = this.amountToPrecision((market.ContainsKey("symbol") ? market["symbol"] : null), amount);
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision((market.ContainsKey("symbol") ? market["symbol"] : null), price);
-            ((IDictionary<string,object>)request)["type"] = ((bool) (isEqual(side, "buy"))) ? "BID" : "ASK";
+            ((IDictionary<string,object>)request)["type"] = ((bool) ((side == "buy"))) ? "BID" : "ASK";
             response = await this.privatePostPostorder(this.extend(request, parameters));
         }
         if ((response == null))
@@ -1571,7 +1571,7 @@ public partial class luno : Exchange
         {
             throw new ExchangeError ((string)(this.id + " fetchLedger() require both params 'max_row' and 'min_row' or neither to be defined")) ;
         }
-        if (!isEqual(limit, null) && isGreaterThan(subtract(max_row, min_row), limit))
+        if ((limit != null) && isGreaterThan(subtract(max_row, min_row), limit))
         {
             if (isLessThanOrEqual(max_row, 0))
             {

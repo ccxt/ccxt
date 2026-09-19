@@ -665,7 +665,7 @@ public partial class coinone : Exchange
             { "quote_currency", (market.ContainsKey("quote") ? market["quote"] : null) },
             { "target_currency", (market.ContainsKey("base") ? market["base"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["size"] = limit; // only support 5, 10, 15, 16
         }
@@ -978,7 +978,7 @@ public partial class coinone : Exchange
             { "quote_currency", (market.ContainsKey("quote") ? market["quote"] : null) },
             { "target_currency", (market.ContainsKey("base") ? market["base"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["size"] = mathMin(limit, 200);
         }
@@ -1027,7 +1027,7 @@ public partial class coinone : Exchange
         {
             throw new ExchangeError ((string)(this.id + " createOrder() allows limit orders only")) ;
         }
-        if (isEqual(price, null))
+        if ((price == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " createOrder() requires a price argument for the limit orders")) ;
         }

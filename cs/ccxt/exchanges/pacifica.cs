@@ -1442,7 +1442,7 @@ public partial class pacifica : Exchange
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(since, null))
+        if ((since == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchOHLCV() requires a \"since\" argument")) ;
         }
@@ -1477,7 +1477,7 @@ public partial class pacifica : Exchange
         object until = this.safeInteger(request, "end_time");
         if (isEqual(until, null))
         {
-            if (!isEqual(limit, null))
+            if ((limit != null))
             {
                 until = subtract(add(since, (multiply(limit, (multiply(this.parseTimeframe(tf), 1000))))), 1);
             }
@@ -1630,11 +1630,11 @@ public partial class pacifica : Exchange
         {
             ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start_time"] = since;
         }
@@ -2450,7 +2450,7 @@ public partial class pacifica : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -2754,7 +2754,7 @@ public partial class pacifica : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "account", userAddress },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -3224,7 +3224,7 @@ public partial class pacifica : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        bool isIsolated = (isEqual(marginMode, "isolated"));
+        bool isIsolated = ((marginMode == "isolated"));
         Dictionary<string, object> sigPayload = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "is_isolated", isIsolated },
@@ -3518,7 +3518,7 @@ public partial class pacifica : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "account", userAddress },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -3635,7 +3635,7 @@ public partial class pacifica : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "account", userAddress },
         };
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }

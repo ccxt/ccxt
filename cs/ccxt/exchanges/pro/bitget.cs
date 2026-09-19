@@ -909,7 +909,7 @@ public partial class bitget : ccxt.bitget
         symbols = this.marketSymbols(symbols);
         string channel = "books";
         bool incrementalFeed = true;
-        if ((isEqual(limit, 1)) || (isEqual(limit, 5)) || (isEqual(limit, 15)) || (isEqual(limit, 50)))
+        if (((limit == 1)) || ((limit == 5)) || ((limit == 15)) || ((limit == 50)))
         {
             channel = channel + ((object)limit).ToString();
             incrementalFeed = false;

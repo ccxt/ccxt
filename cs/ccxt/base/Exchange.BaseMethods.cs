@@ -6990,7 +6990,7 @@ public partial class BaseExchange
         {
             try
             {
-                if (((timeframe != null) && !isEqual(timeframe, "")) && !isEqual(method, "fetchFundingRateHistory"))
+                if (((timeframe != null) && (timeframe != "")) && !isEqual(method, "fetchFundingRateHistory"))
                 {
                     return await ((Task<object>)callDynamically(this, method, new object[] { symbol, timeframe, since, limit, parameters }));
                 } else

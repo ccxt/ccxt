@@ -1231,11 +1231,11 @@ public partial class bittrade : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["size"] = limit; // 1-100 orders, default is 100
         }
-        if (!isEqual(since, null))
+        if ((since != null))
         {
             ((IDictionary<string,object>)request)["start-time"] = since; // a date within 120 days from today
         }
@@ -1731,7 +1731,7 @@ public partial class bittrade : Exchange
             }
         }
         ((IDictionary<string,object>)request)["account-id"] = accountId;
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["size"] = limit;
         }
@@ -1923,7 +1923,7 @@ public partial class bittrade : Exchange
             ((IDictionary<string,object>)request)["client-order-id"] = clientOrderId;
         }
         parameters = this.omit(parameters, new List<object>() {"clientOrderId", "client-order-id"});
-        if ((isEqual(type, "market")) && (isEqual(side, "buy")))
+        if (((type == "market")) && ((side == "buy")))
         {
             string? quoteAmount = null;
             object createMarketBuyOrderRequiresPrice = true;
@@ -1937,7 +1937,7 @@ public partial class bittrade : Exchange
                 quoteAmount = this.amountToPrecision(symbol, cost);
             } else if (isTrue(createMarketBuyOrderRequiresPrice))
             {
-                if (isEqual(price, null))
+                if ((price == null))
                 {
                     throw new InvalidOrder ((string)(this.id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                 } else
@@ -1961,7 +1961,7 @@ public partial class bittrade : Exchange
         {
             ((IDictionary<string,object>)request)["amount"] = this.amountToPrecision(symbol, amount);
         }
-        if (isEqual(type, "limit") || isEqual(type, "ioc") || isEqual(type, "limit-maker") || isEqual(type, "stop-limit") || isEqual(type, "stop-limit-fok"))
+        if ((type == "limit") || (type == "ioc") || (type == "limit-maker") || (type == "stop-limit") || (type == "stop-limit-fok"))
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
