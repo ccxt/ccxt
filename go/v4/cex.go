@@ -800,7 +800,7 @@ func (this *Cex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) a
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["fromDateISO"] = this.Iso8601(since)
 	}
 	var until any = nil
@@ -810,7 +810,7 @@ func (this *Cex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) a
 	if !IsEqual(until, nil) {
 		request["toDateISO"] = this.Iso8601(until)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["pageSize"] = mathMin(limit, 10000) // has a bug, still returns more trades
 	}
 
@@ -977,7 +977,7 @@ func (this *Cex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 		"resolution": GetValue(this.Timeframes, timeframe),
 		"dataType":   dataType,
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["fromISO"] = this.Iso8601(since)
 	}
 	var until any = nil
@@ -986,16 +986,16 @@ func (this *Cex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 	params = SafeMapTyped(untilparamsVariable, 1)
 	if !IsEqual(until, nil) {
 		request["toISO"] = this.Iso8601(until)
-	} else if IsEqual(since, nil) {
+	} else if since == nil {
 		// exchange still requires that we provide one of them
 		request["toISO"] = this.Iso8601(this.Milliseconds())
 	}
-	if !IsEqual(since, nil) && !IsEqual(until, nil) && !IsEqual(limit, nil) {
+	if (since != nil) && !IsEqual(until, nil) && (limit != nil) {
 		panic(ArgumentsRequired(this.Id + " fetchOHLCV does not support fetching candles with both a limit and since/until"))
-	} else if (!IsEqual(since, nil) || !IsEqual(until, nil)) && IsEqual(limit, nil) {
+	} else if ((since != nil) || !IsEqual(until, nil)) && (limit == nil) {
 		panic(ArgumentsRequired(this.Id + " fetchOHLCV requires a limit parameter when fetching candles with since or until"))
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -1298,10 +1298,10 @@ func (this *Cex) fetchOrdersByStatusBody(ch chan any, status any, optionalArgs .
 		market = this.Market(symbol)
 		request["pair"] = GetValue(market, "id")
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["pageSize"] = limit
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["serverCreateTimestampFrom"] = since
 	} else if isClosedOrders {
 		// exchange requires a `since` parameter for closed orders, so set default to allowed 365
@@ -1864,10 +1864,10 @@ func (this *Cex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		currency = this.Currency(code)
 		request["currency"] = GetValue(currency, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["dateFrom"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["pageSize"] = limit
 	}
 	var until any = nil
@@ -1981,10 +1981,10 @@ func (this *Cex) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...any) 
 	if code != nil {
 		currency = this.Currency(code)
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["dateFrom"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["pageSize"] = limit
 	}
 	var until any = nil

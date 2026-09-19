@@ -981,13 +981,13 @@ func (this *Btse) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 		"symbol":     market["id"],
 		"resolution": interval,
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = mathMin(limit, maxLimit)
 	} else {
 		// the endpoint returns only 10 candles when the limit is omitted
 		request["limit"] = maxLimit
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		// the endpoint accepts timestamps in seconds
 		request["start"] = this.ParseToInt(Divide(since, 1000))
 	}
@@ -996,7 +996,7 @@ func (this *Btse) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 	until = GetValue(untilparamsVariable, 0)
 	params = SafeMapTyped(untilparamsVariable, 1)
 	if !IsEqual(until, nil) {
-		if !IsEqual(since, nil) {
+		if since != nil {
 			// check if the requested time range is too large for one request
 			// if so, just omit until for correct paginated calls for not to get an error from the exchange
 			var duration any = this.ParseTimeframe(timeframe)
@@ -1081,7 +1081,7 @@ func (this *Btse) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["depth"] = mathMin(limit, 50) // the endpoint supports a maximum depth of 50
 	}
 
@@ -1156,7 +1156,7 @@ func (this *Btse) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 	params = SafeMapTyped(periodparamsVariable, 1)
 	if IsEqual(period, nil) {
 		period = "7D"
-		if !IsEqual(since, nil) {
+		if since != nil {
 			var age any = Subtract(this.Milliseconds(), since)
 			var day int = 86400000
 			if IsGreaterThan(age, 14*day) {
@@ -1931,7 +1931,7 @@ func (this *Btse) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = mathMin(limit, 500) // the endpoint supports a maximum of 500 trades
 	}
 	// the unified trades endpoint has no server-side time filtering, since and until are applied client-side below
@@ -2028,10 +2028,10 @@ func (this *Btse) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		AddElementToObject(request, "startTime", since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request, "count", limit)
 	}
 	requestparamsVariable := this.HandleUntilOption("endTime", request, params)
@@ -2429,7 +2429,7 @@ func (this *Btse) createSpotOrderBody(ch chan any, symbol any, typeVar any, side
 	var isConditionalOrder bool = (isTriggerOrder || isStopLossOrder) && (isMarketOrder || isLimitOrder)
 	var isAlgoOrder bool = isConditionalOrder || (!isMarketOrder && !isLimitOrder)
 	if isLimitOrder || (IsEqual(typeVar, "PEG")) || (IsEqual(typeVar, "OCO")) {
-		if IsEqual(price, nil) {
+		if price == nil {
 			panic(InvalidOrder(Add(Add(this.Id+" createOrder() requires a price argument for ", typeVar), " orders")))
 		}
 	}
@@ -2448,7 +2448,7 @@ func (this *Btse) createSpotOrderBody(ch chan any, symbol any, typeVar any, side
 		if cost != nil {
 			quoteAmount = this.CostToPrecision(symbol, cost)
 		} else if EvalTruthy(createMarketBuyOrderRequiresPrice) {
-			if IsEqual(price, nil) {
+			if price == nil {
 				panic(InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend, alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument"))
 			} else {
 				var amountString *string = this.NumberToString(amount)
@@ -2675,7 +2675,7 @@ func (this *Btse) createContractOrderBody(ch chan any, symbol any, typeVar any, 
 	var isConditionalOrder bool = (isTriggerOrder || isStopLossOrder) && (isMarketOrder || isLimitOrder)
 	var isAlgoOrder bool = isConditionalOrder || (!isMarketOrder && !isLimitOrder)
 	if isLimitOrder || (IsEqual(typeVar, "OCO")) {
-		if IsEqual(price, nil) {
+		if price == nil {
 			panic(InvalidOrder(Add(Add(this.Id+" createOrder() requires a price argument for ", typeVar), " orders")))
 		}
 	}
@@ -2773,7 +2773,7 @@ func (this *Btse) createContractOrderBody(ch chan any, symbol any, typeVar any, 
 			} else if IsEqual(typeVar, "PEG") {
 				// the required deviation and stealth params pass through, the
 				// optional price argument becomes a worst-price bound
-				if !IsEqual(price, nil) {
+				if price != nil {
 					request["orderPrice"] = this.PriceToPrecision(symbol, price)
 				}
 			} else if IsEqual(typeVar, "TRAILING") {
@@ -2938,14 +2938,14 @@ func (this *Btse) editOrderBody(ch chan any, id any, symbol any, typeVar any, si
 		request["triggerPrice"] = this.PriceToPrecision(symbol, triggerPrice)
 		params = this.Omit(params, "triggerPrice")
 	}
-	if !IsEqual(amount, nil) {
+	if amount != nil {
 		request["orderSize"] = this.AmountToPrecision(symbol, amount)
 	}
-	if !IsEqual(price, nil) {
+	if price != nil {
 		request["orderPrice"] = this.PriceToPrecision(symbol, price)
 	}
 	var isSlide *bool = this.SafeBool(params, "slide", false)
-	if (IsEqual(amount, nil)) && (IsEqual(price, nil)) && (triggerPrice == nil) && (isSlide == nil || *isSlide != true) {
+	if (amount == nil) && (price == nil) && (triggerPrice == nil) && (isSlide == nil || *isSlide != true) {
 		panic(ArgumentsRequired(this.Id + " editOrder() requires an amount argument, a price argument or a triggerPrice parameter"))
 	}
 	var response any = nil
@@ -2959,13 +2959,13 @@ func (this *Btse) editOrderBody(ch chan any, id any, symbol any, typeVar any, si
 		// which can change the price and size together or a single field
 		request["symbol"] = this.FuturesRequestId(market)
 		if triggerPrice != nil {
-			if (!IsEqual(amount, nil)) || (!IsEqual(price, nil)) {
+			if (amount != nil) || (price != nil) {
 				panic(BadRequest(this.Id + " editOrder() can not amend the trigger price together with the price or the amount on contract markets"))
 			}
 			request["amendType"] = "TRIGGER_PRICE"
-		} else if (!IsEqual(amount, nil)) && (!IsEqual(price, nil)) {
+		} else if (amount != nil) && (price != nil) {
 			request["amendType"] = "ALL"
-		} else if !IsEqual(amount, nil) {
+		} else if amount != nil {
 			request["amendType"] = "SIZE"
 		} else {
 			request["amendType"] = "PRICE"
@@ -3499,10 +3499,10 @@ func (this *Btse) requestWalletHistoryRowsBody(ch chan any, methodName any, hist
 	} else if walletType != nil && *walletType == "SPOT" {
 		panic(ArgumentsRequired(Add(Add(this.Id+" ", methodName), "() requires a code argument for the spot wallet history")))
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["pageSize"] = limit
 	}
 	var until any = nil
@@ -3800,10 +3800,10 @@ func (this *Btse) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	} else if walletType != nil && *walletType == "SPOT" {
 		panic(ArgumentsRequired(this.Id + " fetchLedger() requires a code argument for the spot wallet history"))
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["pageSize"] = limit
 	}
 	var until any = nil

@@ -1719,10 +1719,10 @@ func (this *Hyperliquid) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ..
 	}
 	var market any = this.Market(symbol)
 	var until *int64 = this.SafeInteger(params, "until", this.Milliseconds())
-	var useTail bool = IsEqual(since, nil)
+	var useTail bool = (since == nil)
 	var originalSince any = since
-	if IsEqual(since, nil) {
-		if !IsEqual(limit, nil) {
+	if since == nil {
+		if limit != nil {
 			// optimization if limit is provided
 			var timeframeInMilliseconds any = Multiply(this.ParseTimeframe(timeframe), 1000)
 			since = this.Sum(until, Multiply(Multiply(timeframeInMilliseconds, limit), OpNeg(1)))
@@ -1842,7 +1842,7 @@ func (this *Hyperliquid) fetchTradesBody(ch chan any, symbol any, optionalArgs .
 	var request map[string]any = map[string]any{
 		"user": userAddress,
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["type"] = "userFillsByTime"
 		request["startTime"] = since
 	} else {
@@ -1951,7 +1951,7 @@ func (this *Hyperliquid) ActionHash(action any, vaultAddress any, nonce any, opt
 		data = Add(data, "01")
 		data = Add(data, vaultAddress)
 	}
-	if !IsEqual(expiresAfter, nil) {
+	if expiresAfter != nil {
 		data = Add(data, "00")
 		data = Add(data, "00000"+this.IntToBase16(expiresAfter))
 	}
@@ -3847,11 +3847,11 @@ func (this *Hyperliquid) fetchFundingRateHistoryBody(ch chan any, optionalArgs .
 		"type": "fundingHistory",
 		"coin": this.SafeString(market, "baseName"),
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = since
 	} else {
 		var maxLimit any = func() any {
-			if IsEqual(limit, nil) {
+			if limit == nil {
 				return 500
 			}
 			return limit
@@ -4598,7 +4598,7 @@ func (this *Hyperliquid) fetchMyTradesBody(ch chan any, optionalArgs ...any) any
 	var request map[string]any = map[string]any{
 		"user": userAddress,
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["type"] = "userFillsByTime"
 		request["startTime"] = since
 	} else {
@@ -5736,7 +5736,7 @@ func (this *Hyperliquid) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		"type": "userNonFundingLedgerUpdates",
 		"user": userAddress,
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = since
 	}
 	var until *int64 = this.SafeInteger(params, "until")
@@ -5858,12 +5858,12 @@ func (this *Hyperliquid) fetchDepositsBody(ch chan any, optionalArgs ...any) any
 		"type": "userNonFundingLedgerUpdates",
 		"user": userAddress,
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = since
 	}
 	var until *int64 = this.SafeInteger(params, "until")
 	if until != nil {
-		if IsEqual(since, nil) {
+		if since == nil {
 			panic(ArgumentsRequired(this.Id + " fetchDeposits requires since while until is set"))
 		}
 		request["endTime"] = until
@@ -5956,7 +5956,7 @@ func (this *Hyperliquid) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) 
 		"type": "userNonFundingLedgerUpdates",
 		"user": userAddress,
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = since
 	}
 	var until *int64 = this.SafeInteger(params, "until")
@@ -6155,7 +6155,7 @@ func (this *Hyperliquid) fetchFundingHistoryBody(ch chan any, optionalArgs ...an
 		"user": userAddress,
 		"type": "userFunding",
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = since
 	}
 	var until *int64 = this.SafeInteger(params, "until")

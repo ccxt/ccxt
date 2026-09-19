@@ -386,10 +386,10 @@ func (this *Btcmarkets) fetchTransactionsWithMethodBody(ch chan any, method any,
 		PanicOnError(retRes30412)
 	}
 	var request map[string]any = map[string]any{}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["after"] = since
 	}
 	var currency any = nil
@@ -879,10 +879,10 @@ func (this *Btcmarkets) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 		"marketId":   market["id"],
 		"timeWindow": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["from"] = this.Iso8601(since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = mathMin(limit, 200) // default is 10, max 200
 	}
 
@@ -1273,7 +1273,7 @@ func (this *Btcmarkets) createOrderBody(ch chan any, symbol any, typeVar any, si
 		triggerPriceIsRequired = true
 	}
 	if priceIsRequired {
-		if IsEqual(price, nil) {
+		if price == nil {
 			panic(ArgumentsRequired(Add(Add(this.Id+" createOrder() requires a price argument for a ", typeVar), "order")))
 		} else {
 			request["price"] = this.PriceToPrecision(symbol, price)
@@ -1627,10 +1627,10 @@ func (this *Btcmarkets) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		request["marketId"] = GetValue(market, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["after"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -1751,10 +1751,10 @@ func (this *Btcmarkets) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 		market = this.Market(symbol)
 		request["marketId"] = GetValue(market, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["after"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 

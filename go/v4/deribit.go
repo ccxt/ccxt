@@ -1993,8 +1993,8 @@ func (this *Deribit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	}
 	var duration any = this.ParseTimeframe(timeframe)
 	var now int64 = this.Milliseconds()
-	if IsEqual(since, nil) {
-		if IsEqual(limit, nil) {
+	if since == nil {
+		if limit == nil {
 			limit = 1000 // at max, it provides 5000 bars, but we set generous default here
 		}
 		request["start_timestamp"] = Subtract(now, Multiply(Multiply((Subtract(limit, 1)), duration), 1000))
@@ -2002,7 +2002,7 @@ func (this *Deribit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	} else {
 		since = mathMax(Subtract(since, 1), 0)
 		request["start_timestamp"] = since
-		if IsEqual(limit, nil) {
+		if limit == nil {
 			request["end_timestamp"] = now
 		} else {
 			request["end_timestamp"] = this.Sum(since, Multiply(Multiply(limit, duration), 1000))
@@ -2175,10 +2175,10 @@ func (this *Deribit) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		"instrument_name": market["id"],
 		"include_old":     true,
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start_timestamp"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["count"] = mathMin(limit, 1000) // default 10
 	}
 	var until *int64 = this.SafeInteger2(params, "until", "end_timestamp")
@@ -2187,7 +2187,7 @@ func (this *Deribit) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		request["end_timestamp"] = until
 	}
 	var response any = nil
-	if (IsEqual(since, nil)) && !(func() bool { _, ok := request["end_timestamp"]; return ok }()) {
+	if (since == nil) && !(func() bool { _, ok := request["end_timestamp"]; return ok }()) {
 
 		response = (<-this.PublicGetGetLastTradesByInstrument(this.Extend(request, params)))
 		PanicOnError(response)
@@ -2395,7 +2395,7 @@ func (this *Deribit) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	var request map[string]any = map[string]any{
 		"instrument_name": market["id"],
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["depth"] = limit
 	}
 
@@ -2864,7 +2864,7 @@ func (this *Deribit) editOrderBody(ch chan any, id any, symbol any, typeVar any,
 	_ = price
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if IsEqual(amount, nil) {
+	if amount == nil {
 		panic(ArgumentsRequired(this.Id + " editOrder() requires an amount argument"))
 	}
 	if this.Markets == nil {
@@ -2876,7 +2876,7 @@ func (this *Deribit) editOrderBody(ch chan any, id any, symbol any, typeVar any,
 		"order_id": id,
 		"amount":   this.AmountToPrecision(symbol, amount),
 	}
-	if !IsEqual(price, nil) {
+	if price != nil {
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
 	var trailingAmount *string = this.SafeString2(params, "trailingAmount", "trigger_offset")
@@ -3085,7 +3085,7 @@ func (this *Deribit) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
 	var request map[string]any = map[string]any{}
 	var market any = nil
 	var response any = nil
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["count"] = limit
 	} else {
 		request["count"] = 1000 // max value
@@ -3227,7 +3227,7 @@ func (this *Deribit) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		"include_old": true,
 	}
 	var market any = nil
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["count"] = limit // default 10
 	}
 	var response any = nil
@@ -3235,7 +3235,7 @@ func (this *Deribit) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		var code any = this.CodeFromOptions("fetchMyTrades", params)
 		var currency map[string]any = this.Currency(code).(map[string]any)
 		request["currency"] = currency["id"]
-		if IsEqual(since, nil) {
+		if since == nil {
 
 			response = (<-this.PrivateGetGetUserTradesByCurrency(this.Extend(request, params)))
 			PanicOnError(response)
@@ -3248,7 +3248,7 @@ func (this *Deribit) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	} else {
 		market = this.Market(symbol)
 		request["instrument_name"] = GetValue(market, "id")
-		if IsEqual(since, nil) {
+		if since == nil {
 
 			response = (<-this.PrivateGetGetUserTradesByInstrument(this.Extend(request, params)))
 			PanicOnError(response)
@@ -3338,7 +3338,7 @@ func (this *Deribit) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["count"] = limit
 	}
 
@@ -3410,7 +3410,7 @@ func (this *Deribit) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["count"] = limit
 	}
 
@@ -3854,7 +3854,7 @@ func (this *Deribit) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["count"] = limit
 	}
 
@@ -4266,7 +4266,7 @@ func (this *Deribit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 	var duration any = Multiply(this.ParseTimeframe(eachItemDuration), 1000)
 	var time any = this.Milliseconds()
 	var month int64 = Multiply(Multiply(Multiply(Multiply(30, 24), 60), 60), 1000).(int64)
-	if IsEqual(since, nil) {
+	if since == nil {
 		since = Subtract(time, month)
 	} else {
 		time = Add(since, month)
@@ -4284,7 +4284,7 @@ func (this *Deribit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 	}
 	if InOp(params, "isDeribitPaginationCall") {
 		params = this.Omit(params, "isDeribitPaginationCall")
-		if IsEqual(limit, nil) {
+		if limit == nil {
 			panic(ArgumentsRequired(this.Id + " fetchFundingRateHistory() requires a limit argument"))
 		}
 		var maxUntil any = this.Sum(since, Multiply(limit, duration))
@@ -4415,10 +4415,10 @@ func (this *Deribit) fetchLiquidationsBody(ch chan any, symbol any, optionalArgs
 		"instrument_name": GetValue(market, "id"),
 		"type":            "bankruptcy",
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["search_start_timestamp"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["count"] = limit
 	}
 
@@ -4514,10 +4514,10 @@ func (this *Deribit) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) a
 		"instrument_name": GetValue(market, "id"),
 		"type":            "bankruptcy",
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["search_start_timestamp"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["count"] = limit
 	}
 

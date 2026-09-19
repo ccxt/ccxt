@@ -734,7 +734,7 @@ func (this *Revolutx) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 	var region *string = this.SafeString2(params, "region", "region", GetValue(this.Options, "region"))
@@ -822,7 +822,7 @@ func (this *Revolutx) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		"symbol":   market["id"],
 		"interval": this.SafeInteger(this.Timeframes, timeframe, 5),
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["since"] = since
 	}
 	var until *int64 = this.SafeInteger2(params, "until", "until")
@@ -934,16 +934,16 @@ func (this *Revolutx) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	if !IsEqual(market, nil) {
 		request["symbol"] = GetValue(market, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start_date"] = since
 	}
 	var until *int64 = this.SafeInteger2(params, "until", "until")
 	if until != nil {
 		request["end_date"] = until
-	} else if !IsEqual(since, nil) {
+	} else if since != nil {
 		request["end_date"] = this.Milliseconds()
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = mathMin(limit, 1900)
 	}
 	var cursor *string = this.SafeString(params, "cursor")
@@ -1422,7 +1422,7 @@ func (this *Revolutx) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 		var market map[string]any = MapTyped(this.Market(symbol))
 		request["symbols"] = market["id"]
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 	var cursor *string = this.SafeString(params, "cursor")
@@ -1504,14 +1504,14 @@ func (this *Revolutx) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var thirtyDays int = 2592000000
 	var until *int64 = this.SafeInteger2(params, "until", "until")
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start_date"] = since
 	} else if until != nil {
 		request["start_date"] = Subtract(until, thirtyDays)
 	}
 	if until != nil {
 		request["end_date"] = until
-	} else if !IsEqual(since, nil) {
+	} else if since != nil {
 		var now int64 = this.Milliseconds()
 		var defaultEnd any = Add(since, thirtyDays)
 		request["end_date"] = func() any {
@@ -1521,7 +1521,7 @@ func (this *Revolutx) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 			return now
 		}()
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 	var cursor *string = this.SafeString(params, "cursor")
@@ -1679,14 +1679,14 @@ func (this *Revolutx) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var thirtyDays int = 2592000000
 	var until *int64 = this.SafeInteger2(params, "until", "until")
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start_date"] = since
 	} else if until != nil {
 		request["start_date"] = Subtract(until, thirtyDays)
 	}
 	if until != nil {
 		request["end_date"] = until
-	} else if !IsEqual(since, nil) {
+	} else if since != nil {
 		var now int64 = this.Milliseconds()
 		var defaultEnd any = Add(since, thirtyDays)
 		request["end_date"] = func() any {
@@ -1696,7 +1696,7 @@ func (this *Revolutx) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 			return now
 		}()
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 	var cursor *string = this.SafeString(params, "cursor")
@@ -1776,10 +1776,10 @@ func (this *Revolutx) editOrderBody(ch chan any, id any, symbol any, typeVar any
 	}
 	if cost != nil {
 		request["quote_size"] = this.CostToPrecision(symbol, cost)
-	} else if !IsEqual(amount, nil) {
+	} else if amount != nil {
 		request["base_size"] = this.AmountToPrecision(symbol, amount)
 	}
-	if !IsEqual(price, nil) {
+	if price != nil {
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
 	if timeInForce != nil {

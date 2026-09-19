@@ -901,10 +901,10 @@ func (this *Indodax) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		"tf":     selectedTimeframe,
 		"symbol": market["id"],
 	}
-	if IsEqual(limit, nil) {
+	if limit == nil {
 		limit = 1000
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["from"] = MathFloor(Divide(since, 1000))
 	} else {
 		var duration any = this.ParseTimeframe(timeframe)
@@ -1253,7 +1253,7 @@ func (this *Indodax) createOrderBody(ch chan any, symbol any, typeVar any, side 
 			if cost != nil {
 				quoteAmount = this.CostToPrecision(symbol, cost)
 			} else {
-				if IsEqual(price, nil) {
+				if price == nil {
 					panic(InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price)."))
 				}
 				var amountString *string = this.NumberToString(amount)
@@ -1273,7 +1273,7 @@ func (this *Indodax) createOrderBody(ch chan any, symbol any, typeVar any, side 
 		}
 	}
 	if priceIsRequired {
-		if IsEqual(price, nil) {
+		if price == nil {
 			panic(InvalidOrder(Add(Add(this.Id+" createOrder() requires a price argument for a ", typeVar), " order")))
 		}
 		request["price"] = price
@@ -1497,7 +1497,7 @@ func (this *Indodax) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...a
 		PanicOnError(retRes118612)
 	}
 	var request map[string]any = map[string]any{}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		var startTime string = this.Yyyymmdd(since)
 		request["start"] = startTime
 		request["end"] = this.Yyyymmdd(this.Milliseconds())

@@ -1538,7 +1538,7 @@ func (this *Bitmex) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 	var table any = nil
-	if ccxt.IsEqual(limit, nil) {
+	if limit == nil {
 		table = this.SafeString(this.Options, "watchOrderBookLevel", "orderBookL2")
 	} else if ccxt.IsEqual(limit, 25) {
 		table = "orderBookL2_25"

@@ -3718,7 +3718,7 @@ func (this *Coinbase) PrepareAccountRequest(optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"account_id": accountId,
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 	return request
@@ -3753,7 +3753,7 @@ func (this *Coinbase) prepareAccountRequestWithCurrencyCodeBody(ch chan any, opt
 	var request map[string]any = map[string]any{
 		"account_id": accountId,
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -3992,7 +3992,7 @@ func (this *Coinbase) createOrderBody(ch chan any, symbol any, typeVar any, side
 			if cost != nil {
 				total = this.CostToPrecision(symbol, cost)
 			} else if EvalTruthy(createMarketBuyOrderRequiresPrice) {
-				if IsEqual(price, nil) {
+				if price == nil {
 					panic(InvalidOrder(this.Id + " createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument"))
 				} else {
 					var amountString *string = this.NumberToString(amount)
@@ -4400,10 +4400,10 @@ func (this *Coinbase) editOrderBody(ch chan any, id any, symbol any, typeVar any
 	var request map[string]any = map[string]any{
 		"order_id": id,
 	}
-	if !IsEqual(amount, nil) {
+	if amount != nil {
 		request["size"] = this.AmountToPrecision(symbol, amount)
 	}
-	if !IsEqual(price, nil) {
+	if price != nil {
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
 	var preview *bool = this.SafeBool2(params, "preview", "test", false)
@@ -4567,10 +4567,10 @@ func (this *Coinbase) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if !IsEqual(market, nil) {
 		request["product_id"] = GetValue(market, "id")
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start_date"] = this.Iso8601(since)
 	}
 	var until *int64 = this.SafeInteger(params, "until")
@@ -4665,11 +4665,11 @@ func (this *Coinbase) fetchOrdersByStatusBody(ch chan any, status any, optionalA
 	if !IsEqual(market, nil) {
 		request["product_id"] = GetValue(market, "id")
 	}
-	if IsEqual(limit, nil) {
+	if limit == nil {
 		limit = 100
 	}
 	request["limit"] = limit
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start_date"] = this.Iso8601(since)
 	}
 	var until *int64 = this.SafeInteger(params, "until")
@@ -4911,7 +4911,7 @@ func (this *Coinbase) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	}
 	var maxLimit int = 300
 	limit = func() any {
-		if IsEqual(limit, nil) {
+		if limit == nil {
 			return maxLimit
 		}
 		return mathMin(limit, maxLimit)
@@ -4937,7 +4937,7 @@ func (this *Coinbase) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	var duration any = this.ParseTimeframe(timeframe)
 	var requestedDuration any = Multiply(limit, duration)
 	var sinceString any = nil
-	if !IsEqual(since, nil) {
+	if since != nil {
 		sinceString = this.NumberToString(this.ParseToInt(Divide(since, 1000)))
 	} else {
 		var now string = ToString(this.Seconds())
@@ -5037,10 +5037,10 @@ func (this *Coinbase) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	var request map[string]any = map[string]any{
 		"product_id": market["id"],
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start"] = this.NumberToString(this.ParseToInt(Divide(since, 1000)))
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = mathMin(limit, 1000)
 	}
 	var until any = nil
@@ -5049,7 +5049,7 @@ func (this *Coinbase) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	params = SafeMapTyped(untilparamsVariable, 1)
 	if !IsEqual(until, nil) {
 		request["end"] = this.NumberToString(this.ParseToInt(Divide(until, 1000)))
-	} else if !IsEqual(since, nil) {
+	} else if since != nil {
 		panic(ArgumentsRequired(this.Id + " fetchTrades() requires a `until` parameter when you use `since` argument"))
 	}
 	var response any = nil
@@ -5141,10 +5141,10 @@ func (this *Coinbase) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if !IsEqual(market, nil) {
 		request["product_id"] = GetValue(market, "id")
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start_sequence_timestamp"] = this.Iso8601(since)
 	}
 	var until *int64 = this.SafeInteger(params, "until")
@@ -5223,7 +5223,7 @@ func (this *Coinbase) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	var request map[string]any = map[string]any{
 		"product_id": market["id"],
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 	var response any = nil

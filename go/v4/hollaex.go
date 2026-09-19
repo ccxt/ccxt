@@ -1522,10 +1522,10 @@ func (this *Hollaex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start_date"] = this.Iso8601(since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit // default 50, max 100
 	}
 
@@ -1874,10 +1874,10 @@ func (this *Hollaex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit // default 50, max 100
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start_date"] = this.Iso8601(since)
 	}
 
@@ -2062,10 +2062,10 @@ func (this *Hollaex) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		currency = this.Currency(code)
 		request["currency"] = GetValue(currency, "id")
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit // default 50, max 100
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start_date"] = this.Iso8601(since)
 	}
 
@@ -2206,10 +2206,10 @@ func (this *Hollaex) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 		currency = this.Currency(code)
 		request["currency"] = GetValue(currency, "id")
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit // default 50, max 100
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start_date"] = this.Iso8601(since)
 	}
 

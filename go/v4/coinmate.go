@@ -869,10 +869,10 @@ func (this *Coinmate) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...
 	var request map[string]any = map[string]any{
 		"limit": 1000,
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["timestampFrom"] = since
 	}
 	if code != nil {
@@ -1124,7 +1124,7 @@ func (this *Coinmate) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		retRes84712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes84712)
 	}
-	if IsEqual(limit, nil) {
+	if limit == nil {
 		limit = 1000
 	}
 	var request map[string]any = map[string]any{
@@ -1134,7 +1134,7 @@ func (this *Coinmate) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		var market map[string]any = MapTyped(this.Market(symbol))
 		request["currencyPair"] = market["id"]
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["timestampFrom"] = since
 	}
 
@@ -1410,7 +1410,7 @@ func (this *Coinmate) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		"currencyPair": market["id"],
 	}
 	// offset param that appears in other parts of the API doesn't appear to be supported here
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 

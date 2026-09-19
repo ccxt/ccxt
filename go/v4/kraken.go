@@ -1058,7 +1058,7 @@ func (this *Kraken) ParseCurrency(rawCurrency any) any {
 		"code":   code,
 		"info":   rawCurrency,
 		"name":   this.SafeString(rawCurrency, "altname"),
-		"active": (this.SafeString(rawCurrency, "status") != nil && *this.SafeString(rawCurrency, "status") == "enabled"),
+		"active": IsEqual(this.SafeString(rawCurrency, "status"), "enabled"),
 		"type": func() string {
 			if isFiat {
 				return "fiat"
@@ -1122,9 +1122,9 @@ func (this *Kraken) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ..
 		retRes94912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes94912)
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
-		"pair":     market["id"],
+		"pair":     GetValue(market, "id"),
 		"fee-info": true,
 	}
 
@@ -1218,11 +1218,11 @@ func (this *Kraken) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		retRes102412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes102412)
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
-		"pair": market["id"],
+		"pair": GetValue(market, "id"),
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["count"] = limit // 100
 	}
 
@@ -1248,7 +1248,7 @@ func (this *Kraken) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var orderbook any = this.SafeValue(result, market["id"])
+	var orderbook any = this.SafeValue(result, GetValue(market, "id"))
 	// sometimes kraken returns wsname instead of market id
 	// https://github.com/ccxt/ccxt/issues/8662
 	var marketInfo map[string]any = SafeMapTyped(market, "info")
@@ -1393,15 +1393,15 @@ func (this *Kraken) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 		retRes116612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes116612)
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
-		"pair": market["id"],
+		"pair": GetValue(market, "id"),
 	}
 
 	response := (<-this.PublicGetTicker(this.Extend(request, params)))
 	PanicOnError(response)
 	var tickerResult map[string]any = SafeMapTyped(response, "result")
-	var ticker any = this.SafeValue(tickerResult, market["id"])
+	var ticker any = this.SafeValue(tickerResult, GetValue(market, "id"))
 
 	ch <- this.ParseTicker(ticker, market)
 	return nil
@@ -1461,7 +1461,7 @@ func (this *Kraken) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = SafeMapTyped(paginateparamsVariable, 1)
+	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes122119 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 720))
@@ -1469,17 +1469,17 @@ func (this *Kraken) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		ch <- retRes122119
 		return nil
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market any = this.Market(symbol)
 	var parsedTimeframe *int64 = this.SafeInteger(this.Timeframes, timeframe)
 	var request map[string]any = map[string]any{
-		"pair": market["id"],
+		"pair": GetValue(market, "id"),
 	}
 	if parsedTimeframe != nil {
 		request["interval"] = parsedTimeframe
 	} else {
 		request["interval"] = timeframe
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		var scaledSince int64 = this.ParseToInt(Divide(since, 1000))
 		if parsedTimeframe == nil {
 			panic(ExchangeError(this.Id + " fetchOHLCV() missing parsedTimeframe"))
@@ -1504,7 +1504,7 @@ func (this *Kraken) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	//         }
 	//     }
 	var result map[string]any = SafeMapTyped(response, "result")
-	var ohlcvs any = this.SafeList(result, market["id"], []any{})
+	var ohlcvs any = this.SafeList(result, GetValue(market, "id"), []any{})
 
 	ch <- this.ParseOHLCVs(ohlcvs, market, timeframe, since, limit)
 	return nil
@@ -1617,7 +1617,7 @@ func (this *Kraken) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		currency = this.Currency(code)
 		request["asset"] = GetValue(currency, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start"] = this.ParseToInt(Divide(since, 1000))
 	}
 	var until *string = this.SafeString2(params, "until", "till")
@@ -1916,17 +1916,17 @@ func (this *Kraken) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		retRes158212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes158212)
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
-	var id any = market["id"]
+	var market any = this.Market(symbol)
+	var id any = GetValue(market, "id")
 	var request map[string]any = map[string]any{
 		"pair": id,
 	}
 	// https://support.kraken.com/hc/en-us/articles/218198197-How-to-pull-all-trade-data-using-the-Kraken-REST-API
 	// https://github.com/ccxt/ccxt/issues/5677
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["since"] = this.NumberToString(this.ParseToInt(Divide(since, 1000))) // expected to be in seconds
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["count"] = limit
 	}
 
@@ -2137,9 +2137,9 @@ func (this *Kraken) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		retRes174012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes174012)
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
-		"pair":      market["id"],
+		"pair":      GetValue(market, "id"),
 		"type":      side,
 		"ordertype": typeVar,
 		"volume":    this.AmountToPrecision(symbol, amount),
@@ -2308,7 +2308,7 @@ func (this *Kraken) GetDelistedMarketById(id any) any {
 	AddElementToObject(GetValue(this.Options, "delistedMarketsById"), id, market)
 	return market
 }
-func (this *Kraken) ParseOrderStatus(status *string) *string {
+func (this *Kraken) ParseOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"pending":          "open",
 		"open":             "open",
@@ -2769,7 +2769,7 @@ func (this *Kraken) OrderRequest(method any, symbol any, typeVar any, request an
 	var postOnly any = nil
 	postOnlyparamsVariable := this.HandlePostOnly(isMarket, false, params)
 	postOnly = GetValue(postOnlyparamsVariable, 0)
-	params = SafeMapTyped(postOnlyparamsVariable, 1)
+	params = GetValue(postOnlyparamsVariable, 1)
 	if postOnly == true {
 		var extendedPostFlags any = func() any {
 			if flags != nil {
@@ -2845,14 +2845,14 @@ func (this *Kraken) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 	var postOnly any = nil
 	postOnlyparamsVariable := this.HandlePostOnly(isMarket, false, params)
 	postOnly = GetValue(postOnlyparamsVariable, 0)
-	params = SafeMapTyped(postOnlyparamsVariable, 1)
+	params = GetValue(postOnlyparamsVariable, 1)
 	if postOnly == true {
 		AddElementToObject(request, "post_only", "true") // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
 	}
-	if !IsEqual(amount, nil) {
+	if amount != nil {
 		AddElementToObject(request, "order_qty", this.AmountToPrecision(symbol, amount))
 	}
-	if !IsEqual(price, nil) {
+	if price != nil {
 		AddElementToObject(request, "limit_price", this.PriceToPrecision(symbol, price))
 	}
 	var allTriggerPrices any = DerefScalar(this.SafeStringN(params, []any{"stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent"}))
@@ -3160,7 +3160,7 @@ func (this *Kraken) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes257612)
 	}
 	var request map[string]any = map[string]any{}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start"] = this.ParseToInt(Divide(since, 1000))
 	}
 	var until *string = this.SafeString2(params, "until", "till")
@@ -3472,7 +3472,7 @@ func (this *Kraken) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes280012)
 	}
 	var request map[string]any = map[string]any{}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start"] = this.ParseToInt(Divide(since, 1000))
 	}
 	var userref *int64 = this.SafeInteger(params, "userref")
@@ -3580,23 +3580,23 @@ func (this *Kraken) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 		retRes288612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes288612)
 	}
-	var request map[string]any = map[string]any{}
-	if !IsEqual(since, nil) {
-		request["start"] = this.ParseToInt(Divide(since, 1000))
+	var request any = map[string]any{}
+	if since != nil {
+		AddElementToObject(request, "start", this.ParseToInt(Divide(since, 1000)))
 	}
 	var userref *int64 = this.SafeInteger(params, "userref")
 	if userref != nil {
-		request["userref"] = userref
+		AddElementToObject(request, "userref", userref)
 		params = this.Omit(params, "userref")
 	}
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
 	if clientOrderId != nil {
-		request["cl_ord_id"] = clientOrderId
+		AddElementToObject(request, "cl_ord_id", clientOrderId)
 		params = this.Omit(params, "clientOrderId")
 	}
 	requestparamsVariable := this.HandleUntilOption("end", request, params)
-	request = SafeMapTyped(requestparamsVariable, 0)
-	params = SafeMapTyped(requestparamsVariable, 1)
+	request = GetValue(requestparamsVariable, 0)
+	params = GetValue(requestparamsVariable, 1)
 
 	response := (<-this.PrivatePostClosedOrders(this.Extend(request, params)))
 	PanicOnError(response)
@@ -3658,7 +3658,7 @@ func (this *Kraken) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 	ch <- this.ParseOrders(orders, market, since, limit)
 	return nil
 }
-func (this *Kraken) ParseTransactionStatus(status *string) *string {
+func (this *Kraken) ParseTransactionStatus(status any) *string {
 	// IFEX transaction states
 	var statuses map[string]any = map[string]any{
 		"Initial": "pending",
@@ -3842,7 +3842,7 @@ func (this *Kraken) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		var currency map[string]any = this.Currency(code).(map[string]any)
 		request["asset"] = currency["id"]
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		var sinceString *string = this.NumberToString(since)
 		request["start"] = Precise.StringDiv(sinceString, "1000")
 	}
@@ -3949,7 +3949,7 @@ func (this *Kraken) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchWithdrawals", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = SafeMapTyped(paginateparamsVariable, 1)
+	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 		AddElementToObject(params, "cursor", true)
 
@@ -3963,7 +3963,7 @@ func (this *Kraken) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		var currency map[string]any = this.Currency(code).(map[string]any)
 		request["asset"] = currency["id"]
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		var sinceString *string = this.NumberToString(since)
 		request["start"] = Precise.StringDiv(sinceString, "1000")
 	}
@@ -4258,7 +4258,7 @@ func (this *Kraken) withdrawBody(ch chan any, code any, amount any, address any,
 	_ = params
 	tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
 	tag = GetValue(tagparamsVariable, 0)
-	params = SafeMapTyped(tagparamsVariable, 1)
+	params = GetValue(tagparamsVariable, 1)
 	if InOp(params, "key") {
 
 		retRes343712 := (<-this.LoadMarketsAsync())
@@ -4566,11 +4566,11 @@ func (this *Kraken) Sign(path any, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var url any = Add(Add(Add("/"+this.Version+"/", api), "/"), path)
+	var url any = Add(Add(Add(Add(Add("/", this.Version), "/"), api), "/"), path)
 	if IsEqual(api, "public") {
 		if len(ObjectKeys(params)) > 0 {
 			// rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
-			url = Add(url, "?"+this.UrlencodeNested(params))
+			url = Add(url, Add("?", this.UrlencodeNested(params)))
 		}
 	} else if IsEqual(api, "private") {
 		var price *string = this.SafeString(params, "price")

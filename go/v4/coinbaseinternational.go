@@ -652,7 +652,7 @@ func (this *Coinbaseinternational) fetchOHLCVBody(ch chan any, symbol any, optio
 		"instrument":  market["id"],
 		"granularity": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start"] = this.Iso8601(since)
 	} else {
 		panic(ArgumentsRequired(this.Id + " fetchOHLCV() requires a since argument"))
@@ -759,7 +759,7 @@ func (this *Coinbaseinternational) fetchFundingRateHistoryBody(ch chan any, opti
 		"instrument":    market["id"],
 		"result_offset": offSet,
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["result_limit"] = limit
 	}
 
@@ -871,10 +871,10 @@ func (this *Coinbaseinternational) fetchFundingHistoryBody(ch chan any, optional
 	if portfolios != nil {
 		request["portfolios"] = portfolios
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["time_from"] = this.Iso8601(since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["result_limit"] = limit
 	} else {
 		request["result_limit"] = 100
@@ -976,10 +976,10 @@ func (this *Coinbaseinternational) fetchTransfersBody(ch chan any, optionalArgs 
 	if portfolios != nil {
 		request["portfolios"] = portfolios
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["time_from"] = this.Iso8601(since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["result_limit"] = limit
 	} else {
 		request["result_limit"] = 100
@@ -1338,10 +1338,10 @@ func (this *Coinbaseinternational) fetchDepositsWithdrawalsBody(ch chan any, opt
 	var request map[string]any = map[string]any{
 		"result_offset": offSet,
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["time_from"] = this.Iso8601(since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		var newLimit any = mathMin(limit, 100)
 		request["result_limit"] = newLimit
 	}
@@ -2382,7 +2382,7 @@ func (this *Coinbaseinternational) createOrderBody(ch chan any, symbol any, type
 	}
 	request["type"] = typeId
 	if IsEqual(typeVar, "limit") {
-		if IsEqual(price, nil) {
+		if price == nil {
 			panic(InvalidOrder(this.Id + " createOrder() requires a price parameter for a limit order types"))
 		}
 		request["price"] = price
@@ -2693,10 +2693,10 @@ func (this *Coinbaseinternational) editOrderBody(ch chan any, id any, symbol any
 	if portfolio != nil {
 		request["portfolio"] = portfolio
 	}
-	if !IsEqual(amount, nil) {
+	if amount != nil {
 		request["size"] = this.AmountToPrecision(symbol, amount)
 	}
-	if !IsEqual(price, nil) {
+	if price != nil {
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
 	var triggerPrice *float64 = this.SafeNumberN(params, []any{"stopPrice", "stop_price", "triggerPrice"})
@@ -2854,13 +2854,13 @@ func (this *Coinbaseinternational) fetchOpenOrdersBody(ch chan any, optionalArgs
 		market = this.Market(symbol)
 		request["instrument"] = symbol
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		if IsGreaterThan(limit, 100) {
 			panic(BadRequest(this.Id + " fetchOpenOrders() maximum limit is 100"))
 		}
 		request["result_limit"] = limit
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["ref_datetime"] = this.Iso8601(since)
 	}
 
@@ -2965,13 +2965,13 @@ func (this *Coinbaseinternational) fetchMyTradesBody(ch chan any, optionalArgs .
 	var request map[string]any = map[string]any{
 		"result_offset": offSet,
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		if IsGreaterThan(limit, 100) {
 			panic(BadRequest(this.Id + " fetchMyTrades() maximum limit is 100. Consider setting paginate to true to fetch more trades."))
 		}
 		request["result_limit"] = limit
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["time_from"] = this.Iso8601(since)
 	}
 	var until *string = this.SafeString(params, "until")

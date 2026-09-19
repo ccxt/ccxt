@@ -289,7 +289,7 @@ func (this *Poloniex) createOrderWsBody(ch chan any, symbol any, typeVar any, si
 
 	retRes2188 := (<-this.AuthenticateAsync())
 	ccxt.PanicOnError(retRes2188)
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market any = this.Market(symbol)
 	var uppercaseType string = ccxt.ToUpper(typeVar)
 	if side == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " createOrderWs() side is required"))
@@ -300,7 +300,7 @@ func (this *Poloniex) createOrderWsBody(ch chan any, symbol any, typeVar any, si
 		uppercaseType = "LIMIT_MAKER"
 	}
 	var request map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": ccxt.GetValue(market, "id"),
 		"side":   ccxt.ToUpper(side),
 		"type":   ccxt.ToUpper(typeVar),
 	}
@@ -309,13 +309,13 @@ func (this *Poloniex) createOrderWsBody(ch chan any, symbol any, typeVar any, si
 		var createMarketBuyOrderRequiresPrice any = true
 		var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 		createMarketBuyOrderRequiresPrice = ccxt.GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 0)
-		params = ccxt.SafeMapTyped(createMarketBuyOrderRequiresPriceparamsVariable, 1)
+		params = ccxt.GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1)
 		var cost *float64 = this.SafeNumber(params, "cost")
 		params = this.Omit(params, "cost")
 		if cost != nil {
 			quoteAmount = this.CostToPrecision(symbol, cost)
 		} else if ccxt.EvalTruthy(createMarketBuyOrderRequiresPrice) {
-			if ccxt.IsEqual(price, nil) {
+			if price == nil {
 				panic(ccxt.InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument"))
 			} else {
 				var amountString *string = this.NumberToString(amount)
@@ -328,8 +328,8 @@ func (this *Poloniex) createOrderWsBody(ch chan any, symbol any, typeVar any, si
 		}
 		request["amount"] = quoteAmount
 	} else {
-		request["quantity"] = this.AmountToPrecision(market["symbol"], amount)
-		if !ccxt.IsEqual(price, nil) {
+		request["quantity"] = this.AmountToPrecision(ccxt.GetValue(market, "symbol"), amount)
+		if price != nil {
 			request["price"] = this.PriceToPrecision(symbol, price)
 		}
 	}
@@ -723,7 +723,7 @@ func (this *Poloniex) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	var name any = ccxt.DerefScalar(this.SafeString(watchOrderBookOptions, "name", "book_lv2"))
 	var nameparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "name", name)
 	name = ccxt.GetValue(nameparamsVariable, 0)
-	params = ccxt.SafeMapTyped(nameparamsVariable, 1)
+	params = ccxt.GetValue(nameparamsVariable, 1)
 
 	orderbook := (<-this.SubscribeAsync(name, name, false, []any{symbol}, params))
 	ccxt.PanicOnError(orderbook)
@@ -1248,8 +1248,8 @@ func (this *Poloniex) HandleOrder(client any, message any) any {
 	}
 	for i := 0; i < len(marketIds); i++ {
 		var marketId any = ccxt.GetValue(marketIds, i)
-		var market map[string]any = ccxt.MapTyped(this.Market(marketId))
-		var symbol any = market["symbol"]
+		var market any = this.Market(marketId)
+		var symbol any = ccxt.GetValue(market, "symbol")
 		var messageHash any = ccxt.Add("orders::", symbol)
 		client.(ccxt.ClientInterface).Resolve(orders, messageHash)
 	}
@@ -1436,8 +1436,8 @@ func (this *Poloniex) HandleOrderBook(client any, message any) {
 	for i := 0; i < ccxt.GetArrayLength(data); i++ {
 		var item any = ccxt.GetValue(data, i)
 		var marketId *string = this.SafeString(item, "symbol")
-		var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
-		var symbol any = market["symbol"]
+		var market any = this.SafeMarket(marketId)
+		var symbol any = ccxt.GetValue(market, "symbol")
 		var name string = "book_lv2"
 		var messageHash any = ccxt.Add(name+"::", symbol)
 		var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)

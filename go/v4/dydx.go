@@ -839,7 +839,7 @@ func (this *Dydx) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	var request map[string]any = map[string]any{
 		"market": market["id"],
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = mathMin(limit, 1000)
 	}
 
@@ -927,10 +927,10 @@ func (this *Dydx) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 		"market":     market["id"],
 		"resolution": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = mathMin(limit, 1000)
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["fromIso"] = this.Iso8601(since)
 	}
 	var until *int64 = this.SafeInteger(params, "until")
@@ -1008,7 +1008,7 @@ func (this *Dydx) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 	var request map[string]any = map[string]any{
 		"market": market["id"],
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 	var until *int64 = this.SafeInteger(params, "until")
@@ -1243,7 +1243,7 @@ func (this *Dydx) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		request["ticker"] = GetValue(market, "id")
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 

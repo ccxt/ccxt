@@ -1292,7 +1292,7 @@ func (this *Coinsph) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -1359,10 +1359,10 @@ func (this *Coinsph) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		"symbol":   market["id"],
 		"interval": interval,
 	}
-	if IsEqual(limit, nil) {
+	if limit == nil {
 		limit = 1000
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = since
 		// since work properly only when it is "younger" than last "limit" candle
 		if until != nil {
@@ -1446,11 +1446,11 @@ func (this *Coinsph) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		// since work properly only when it is "younger" than last 'limit' trade
 		request["limit"] = 1000
 	} else {
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			request["limit"] = limit
 		}
 	}
@@ -1514,11 +1514,11 @@ func (this *Coinsph) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = since
 		// since work properly only when it is "younger" than last 'limit' trade
 		request["limit"] = 1000
-	} else if !IsEqual(limit, nil) {
+	} else if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -1789,7 +1789,7 @@ func (this *Coinsph) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	var newOrderRespType any = this.SafeValue(options, "newOrderRespType", map[string]any{})
 	// if limit order
 	if IsEqual(orderType, "LIMIT") || IsEqual(orderType, "STOP_LOSS_LIMIT") || IsEqual(orderType, "TAKE_PROFIT_LIMIT") || IsEqual(orderType, "LIMIT_MAKER") {
-		if IsEqual(price, nil) {
+		if price == nil {
 			panic(ArgumentsRequired(Add(Add(this.Id+" createOrder() requires a price argument for a ", typeVar), " order")))
 		}
 		newOrderRespType = DerefScalar(this.SafeString(newOrderRespType, "limit", "FULL"))
@@ -1813,7 +1813,7 @@ func (this *Coinsph) createOrderBody(ch chan any, symbol any, typeVar any, side 
 			if cost != nil {
 				quoteAmount = this.CostToPrecision(symbol, cost)
 			} else if EvalTruthy(createMarketBuyOrderRequiresPrice) {
-				if IsEqual(price, nil) {
+				if price == nil {
 					panic(InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument"))
 				} else {
 					var amountString *string = this.NumberToString(amount)
@@ -2006,11 +2006,11 @@ func (this *Coinsph) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = since
 		// since work properly only when it is "younger" than last 'limit' order
 		request["limit"] = 1000
-	} else if !IsEqual(limit, nil) {
+	} else if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -2510,10 +2510,10 @@ func (this *Coinsph) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		currency = this.Currency(code)
 		request["coin"] = GetValue(currency, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -2591,10 +2591,10 @@ func (this *Coinsph) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 		currency = this.Currency(code)
 		request["coin"] = GetValue(currency, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 

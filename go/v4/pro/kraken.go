@@ -129,7 +129,7 @@ func (this *Kraken) OrderRequestWs(method any, symbol any, typeVar any, request 
 	_ = params
 	var isLimitOrder bool = ccxt.EndsWith(typeVar, "limit") // supporting limit, stop-loss-limit, take-profit-limit, etc
 	if isLimitOrder {
-		if ccxt.IsEqual(price, nil) {
+		if price == nil {
 			panic(ccxt.ArgumentsRequired(this.Id + " limit orders require a price argument"))
 		}
 		ccxt.AddElementToObject(ccxt.GetValue(request, "params"), "limit_price", this.ParseToNumeric(this.PriceToPrecision(symbol, price)))
@@ -1006,7 +1006,7 @@ func (this *Kraken) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 	var requiredParams map[string]any = map[string]any{}
-	if !ccxt.IsEqual(limit, nil) {
+	if limit != nil {
 		if this.InArray(limit, []any{10, 25, 100, 500, 1000}) {
 			requiredParams["depth"] = limit // default 10, valid options 10, 25, 100, 500, 1000
 		} else {

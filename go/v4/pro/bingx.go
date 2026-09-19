@@ -413,7 +413,7 @@ func (this *Bingx) ParseWsTicker(message any, optionalArgs ...any) any {
 func (this *Bingx) GetOrderBookLimitByMarketType(marketType any, optionalArgs ...any) any {
 	limit := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = limit
-	if ccxt.IsEqual(limit, nil) {
+	if limit == nil {
 		limit = 100
 	} else {
 		if (ccxt.IsEqual(marketType, "swap")) || (ccxt.IsEqual(marketType, "future")) {

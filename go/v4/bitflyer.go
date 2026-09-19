@@ -815,7 +815,7 @@ func (this *Bitflyer) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	var request map[string]any = map[string]any{
 		"product_code": market["id"],
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["count"] = limit
 	}
 
@@ -1244,7 +1244,7 @@ func (this *Bitflyer) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"product_code": market["id"],
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["count"] = limit
 	}
 
@@ -1415,7 +1415,7 @@ func (this *Bitflyer) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	if code != nil {
 		currency = this.Currency(code)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["count"] = limit // default 100
 	}
 
@@ -1477,7 +1477,7 @@ func (this *Bitflyer) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 	if code != nil {
 		currency = this.Currency(code)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["count"] = limit // default 100
 	}
 

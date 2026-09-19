@@ -756,8 +756,8 @@ func (this *Bitbank) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(since, nil) {
-		if IsEqual(limit, nil) {
+	if since == nil {
+		if limit == nil {
 			limit = 1000 // it doesn't have any defaults, might return 200, might 2000 (i.e. https://public.bitbank.cc/btc_jpy/candlestick/4hour/2020)
 		}
 		var duration any = this.ParseTimeframe(timeframe)
@@ -1151,10 +1151,10 @@ func (this *Bitbank) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["count"] = limit
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["since"] = this.ParseToInt(Divide(since, 1000))
 	}
 
@@ -1205,10 +1205,10 @@ func (this *Bitbank) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		request["pair"] = GetValue(market, "id")
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["count"] = limit
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["since"] = this.ParseToInt(Divide(since, 1000))
 	}
 

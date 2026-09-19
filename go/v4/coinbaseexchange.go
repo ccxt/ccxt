@@ -1458,10 +1458,10 @@ func (this *Coinbaseexchange) fetchMyTradesBody(ch chan any, optionalArgs ...any
 	var request map[string]any = map[string]any{
 		"product_id": market["id"],
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start_date"] = this.Iso8601(since)
 	}
 	var until any = this.SafeValue2(params, "until", "end_date")
@@ -1511,7 +1511,7 @@ func (this *Coinbaseexchange) fetchTradesBody(ch chan any, symbol any, optionalA
 	var request map[string]any = map[string]any{
 		"id": market["id"],
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit // default 100
 	}
 
@@ -1658,9 +1658,9 @@ func (this *Coinbaseexchange) fetchOHLCVBody(ch chan any, symbol any, optionalAr
 	}
 	var until any = this.SafeValue2(params, "until", "end")
 	params = this.Omit(params, []any{"until"})
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start"] = this.Iso8601(since)
-		if IsEqual(limit, nil) {
+		if limit == nil {
 			// https://docs.pro.coinbase.com/#get-historic-rates
 			limit = 300 // max = 300
 		} else {
@@ -1993,10 +1993,10 @@ func (this *Coinbaseexchange) fetchOpenOrdersBody(ch chan any, optionalArgs ...a
 		market = this.Market(symbol)
 		request["product_id"] = GetValue(market, "id")
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit // default 100
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start_date"] = this.Iso8601(since)
 	}
 	var until any = this.SafeValue2(params, "until", "end_date")
@@ -2109,7 +2109,7 @@ func (this *Coinbaseexchange) createOrderBody(ch chan any, symbol any, typeVar a
 	} else if IsEqual(typeVar, "market") {
 		var cost any = DerefScalar(this.SafeNumber2(params, "cost", "funds"))
 		if IsEqual(cost, nil) {
-			if !IsEqual(price, nil) {
+			if price != nil {
 				cost = Multiply(amount, price)
 			}
 		} else {
@@ -2461,10 +2461,10 @@ func (this *Coinbaseexchange) fetchLedgerBody(ch chan any, optionalArgs ...any) 
 	var request map[string]any = map[string]any{
 		"id": GetValue(account, "id"),
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start_date"] = this.Iso8601(since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit // default 100
 	}
 	var until any = this.SafeValue2(params, "until", "end_date")
@@ -2538,7 +2538,7 @@ func (this *Coinbaseexchange) fetchDepositsWithdrawalsBody(ch chan any, optional
 	if !IsEqual(id, nil) {
 		request["id"] = id
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 	var response []any = nil

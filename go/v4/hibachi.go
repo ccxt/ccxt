@@ -1064,7 +1064,7 @@ func (this *Hibachi) CreateOrderRequest(nonce any, symbol any, typeVar any, side
 		sideInternal = "BID"
 	}
 	var priceInternal any = ""
-	if (!IsEqual(price, nil)) && (!IsEqual(price, 0)) {
+	if (price != nil) && (!IsEqual(price, 0)) {
 		priceInternal = this.PriceToPrecision(symbol, price)
 	}
 	var message any = this.OrderMessage(market, nonce, feeRate, typeVar, side, amount, price)
@@ -1947,7 +1947,7 @@ func (this *Hibachi) fetchOrdersByStatusBody(ch chan any, status any, optionalAr
 	if !IsEqual(status, nil) {
 		request["status"] = status
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = since
 	}
 	var until any = nil
@@ -2109,7 +2109,7 @@ func (this *Hibachi) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		"symbol":   market["id"],
 		"interval": timeframe,
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["fromMs"] = since
 	}
 	var until any = nil
@@ -2831,10 +2831,10 @@ func (this *Hibachi) fetchMySettlementHistoryBody(ch chan any, optionalArgs ...a
 		request["contractId"] = GetValue(market, "numericId")
 		symbol = GetValue(market, "symbol")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = this.ParseToInt(Divide(since, 1000))
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 	var until any = nil

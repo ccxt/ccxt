@@ -1511,7 +1511,7 @@ func (this *Limitless) fetchTradesBody(ch chan any, outcome any, optionalArgs ..
 	var request map[string]any = map[string]any{
 		"slug": slug,
 	}
-	if !ccxt.IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = ccxt.MathMin(limit, 100)
 	}
 
@@ -1891,7 +1891,7 @@ func (this *Limitless) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		"slug":     this.SafeString(info, "slug"),
 		"statuses": []any{"LIVE", "MATCHED"},
 	}
-	if !ccxt.IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -2706,7 +2706,7 @@ func (this *Limitless) createOrderBody(ch chan any, outcome any, typeVar any, si
 		var cost *float64 = this.SafeNumber(params, "cost")
 		params = this.Omit(params, "cost")
 		if ccxt.EvalTruthy(createMarketBuyOrderRequiresPrice) {
-			if (ccxt.IsEqual(price, nil)) && (cost == nil) {
+			if (price == nil) && (cost == nil) {
 				panic(ccxt.InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument"))
 			} else {
 				var quoteAmount any = this.ParseToNumeric(ccxt.Precise.StringMul(amountString, priceString))
@@ -2744,7 +2744,7 @@ func (this *Limitless) createOrderBody(ch chan any, outcome any, typeVar any, si
 	var signature any = this.SignOrderRequest(signRequest, marketSymbol)
 	signRequest["signature"] = signature
 	// price is an unsigned hint required by the API for GTC/FAK orders (not part of the EIP-712 struct)
-	if !isMarket && (!ccxt.IsEqual(price, nil)) {
+	if !isMarket && (price != nil) {
 		signRequest["price"] = this.ParseNumber(priceString)
 	}
 	var slug *string = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "slug")
@@ -3172,7 +3172,7 @@ func (this *Limitless) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var request map[string]any = map[string]any{}
-	if !ccxt.IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = ccxt.MathMin(limit, maxLimit)
 	}
 

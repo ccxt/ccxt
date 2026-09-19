@@ -1334,7 +1334,7 @@ func (this *Bitrue) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		var request map[string]any = map[string]any{
 			"contractName": GetValue(market, "id"),
 		}
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			if IsGreaterThan(limit, 100) {
 				limit = 100
 			}
@@ -1353,7 +1353,7 @@ func (this *Bitrue) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		var request map[string]any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			if IsGreaterThan(limit, 1000) {
 				limit = 1000
 			}
@@ -1610,7 +1610,7 @@ func (this *Bitrue) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 			"contractName": GetValue(market, "id"),
 			"interval":     this.SafeString(timeframesFuture, timeframe, "1min"),
 		}
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			request["limit"] = limit
 		}
 		if GetValue(market, "linear") == true {
@@ -1629,7 +1629,7 @@ func (this *Bitrue) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 			"symbol": GetValue(market, "id"),
 			"scale":  this.SafeString(timeframesSpot, timeframe, "1m"),
 		}
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			request["limit"] = limit
 		}
 		var until *int64 = this.SafeInteger(params, "until")
@@ -2062,7 +2062,7 @@ func (this *Bitrue) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		var request map[string]any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			request["limit"] = limit // default 100, max 1000
 		}
 
@@ -2310,7 +2310,7 @@ func (this *Bitrue) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		"type": uppercaseType,
 	}
 	if uppercaseType == "LIMIT" {
-		if IsEqual(price, nil) {
+		if price == nil {
 			panic(InvalidOrder(this.Id + " createOrder() requires a price argument"))
 		}
 		request["price"] = this.PriceToPrecision(symbol, price)
@@ -2334,7 +2334,7 @@ func (this *Bitrue) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		if isMarket && (IsEqual(side, "buy")) && EvalTruthy(createMarketBuyOrderRequiresPrice) {
 			var cost *string = this.SafeString(params, "cost")
 			params = this.Omit(params, "cost")
-			if IsEqual(price, nil) && (cost == nil) {
+			if (price == nil) && (cost == nil) {
 				panic(InvalidOrder(this.Id + " createOrder() requires the price argument with swap market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options[\"createMarketBuyOrderRequiresPrice\"] = false to supply the cost in the amount argument (the exchange-specific behaviour)"))
 			} else {
 				var amountString *string = this.NumberToString(amount)
@@ -2582,10 +2582,10 @@ func (this *Bitrue) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit // default 100, max 1000
 	}
 
@@ -2925,10 +2925,10 @@ func (this *Bitrue) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var response any = nil
 	var data any = []any{}
 	var request map[string]any = map[string]any{}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		if IsGreaterThan(limit, 1000) {
 			limit = 1000
 		}
@@ -3045,10 +3045,10 @@ func (this *Bitrue) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		"coin":   currency["id"],
 		"status": 1,
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -3136,10 +3136,10 @@ func (this *Bitrue) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		"coin":   currency["id"],
 		"status": 5,
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["startTime"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -3569,10 +3569,10 @@ func (this *Bitrue) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		currency = this.Currency(code)
 		request["coinSymbol"] = GetValue(currency, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["beginTime"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		if IsGreaterThan(limit, 200) {
 			limit = 200
 		}

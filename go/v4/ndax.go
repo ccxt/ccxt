@@ -1035,7 +1035,7 @@ func (this *Ndax) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	limit = func() any {
-		if IsEqual(limit, nil) {
+		if limit == nil {
 			return 100
 		}
 		return limit
@@ -1339,14 +1339,14 @@ func (this *Ndax) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 	}
 	var duration any = this.ParseTimeframe(timeframe)
 	var now int64 = this.Milliseconds()
-	if IsEqual(since, nil) {
-		if !IsEqual(limit, nil) {
+	if since == nil {
+		if limit != nil {
 			request["FromDate"] = this.Ymdhms(Subtract(now, Multiply(Multiply(duration, limit), 1000)))
 			request["ToDate"] = this.Ymdhms(now)
 		}
 	} else {
 		request["FromDate"] = this.Ymdhms(since)
-		if IsEqual(limit, nil) {
+		if limit == nil {
 			request["ToDate"] = this.Ymdhms(now)
 		} else {
 			request["ToDate"] = this.Ymdhms(this.Sum(since, Multiply(Multiply(duration, limit), 1000)))
@@ -1579,7 +1579,7 @@ func (this *Ndax) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 		"omsId":        omsId,
 		"InstrumentId": market["id"],
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["Count"] = limit
 	}
 
@@ -1862,7 +1862,7 @@ func (this *Ndax) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		"omsId":     omsId,
 		"AccountId": accountId,
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["Depth"] = limit
 	}
 
@@ -2077,7 +2077,7 @@ func (this *Ndax) createOrderBody(ch chan any, symbol any, typeVar any, side any
 		"OrderType": orderType,
 	}
 	// If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
-	if !IsEqual(price, nil) {
+	if price != nil {
 		var limitPriceString any = this.PriceToPrecision(symbol, price)
 		if limitPriceString == nil {
 			limitPriceString = "0"
@@ -2170,7 +2170,7 @@ func (this *Ndax) editOrderBody(ch chan any, id any, symbol any, typeVar any, si
 		"OrderType": this.SafeInteger(GetValue(this.Options, "orderTypes"), this.Capitalize(typeVar)),
 	}
 	// If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
-	if !IsEqual(price, nil) {
+	if price != nil {
 		var limitPriceString any = this.PriceToPrecision(symbol, price)
 		if limitPriceString == nil {
 			limitPriceString = "0"
@@ -2244,10 +2244,10 @@ func (this *Ndax) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		request["InstrumentId"] = GetValue(market, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["StartTimeStamp"] = this.ParseToInt(Divide(since, 1000))
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["Depth"] = limit
 	}
 
@@ -2574,10 +2574,10 @@ func (this *Ndax) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		request["InstrumentId"] = GetValue(market, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["StartTimeStamp"] = this.ParseToInt(Divide(since, 1000))
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["Depth"] = limit
 	}
 

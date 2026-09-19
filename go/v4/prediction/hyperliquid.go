@@ -1019,10 +1019,10 @@ func (this *Hyperliquid) fetchOHLCVBody(ch chan any, outcome any, optionalArgs .
 	var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 	var until *int64 = this.SafeInteger(params, "until", this.Milliseconds())
 	var startTime any = since
-	if ccxt.IsEqual(since, nil) {
+	if since == nil {
 		var tf any = this.ParseTimeframe(timeframe)
 		var candleCount any = func() any {
-			if !ccxt.IsEqual(limit, nil) {
+			if limit != nil {
 				return limit
 			}
 			return 100
@@ -1506,7 +1506,7 @@ func (this *Hyperliquid) createOrderBody(ch chan any, outcome any, typeVar any, 
 		defaultTif = "Alo"
 	}
 	var tif string = this.Capitalize(this.SafeStringLower(params, "timeInForce", defaultTif)) // eslint-disable-line
-	if ccxt.IsEqual(price, nil) {
+	if price == nil {
 		if isMarket {
 			panic(ccxt.ArgumentsRequired(this.Id + " createOrder() requires a reference price for market orders on outcome markets in between 0 and 1. The exchange uses this reference price together with the configured slippage to derive the execution price."))
 		}
@@ -2259,7 +2259,7 @@ func (this *Hyperliquid) fetchMyTradesBody(ch chan any, optionalArgs ...any) any
 	var request map[string]any = map[string]any{
 		"user": userAddress,
 	}
-	if !ccxt.IsEqual(since, nil) {
+	if since != nil {
 		request["type"] = "userFillsByTime"
 		request["startTime"] = since
 	} else {

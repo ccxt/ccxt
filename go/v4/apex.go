@@ -1028,19 +1028,19 @@ func (this *Apex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 		PanicOnError(retRes83512)
 	}
 	var market any = this.Market(symbol)
-	var request map[string]any = map[string]any{
+	var request any = map[string]any{
 		"interval": this.SafeString(this.Timeframes, timeframe, timeframe),
 		"symbol":   this.SafeString(market, "id2"),
 	}
-	if IsEqual(limit, nil) {
+	if limit == nil {
 		limit = 200 // default is 200 when requested with `since`
 	}
-	request["limit"] = limit // max 200, default 200
+	AddElementToObject(request, "limit", limit) // max 200, default 200
 	requestparamsVariable := this.HandleUntilOption("end", request, params, 0.001)
-	request = SafeMapTyped(requestparamsVariable, 0)
-	params = SafeMapTyped(requestparamsVariable, 1)
-	if !IsEqual(since, nil) {
-		request["start"] = MathFloor(Divide(since, 1000))
+	request = GetValue(requestparamsVariable, 0)
+	params = GetValue(requestparamsVariable, 1)
+	if since != nil {
+		AddElementToObject(request, "start", MathFloor(Divide(since, 1000)))
 	}
 
 	response := (<-this.PublicGetV3Klines(this.Extend(request, params)))
@@ -1101,7 +1101,7 @@ func (this *Apex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	var request map[string]any = map[string]any{
 		"symbol": this.SafeString(market, "id2"),
 	}
-	if IsEqual(limit, nil) {
+	if limit == nil {
 		limit = 100 // default is 200 when requested with `since`
 	}
 	request["limit"] = limit // max 100, default 100
@@ -1179,7 +1179,7 @@ func (this *Apex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	var request map[string]any = map[string]any{
 		"symbol": this.SafeString(market, "id2"),
 	}
-	if IsEqual(limit, nil) {
+	if limit == nil {
 		limit = 500 // default is 50
 	}
 	request["limit"] = limit
@@ -1364,10 +1364,10 @@ func (this *Apex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 	var request map[string]any = map[string]any{}
 	var market any = this.Market(symbol)
 	request["symbol"] = GetValue(market, "id")
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["beginTimeInclusive"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 	var page *int64 = this.SafeInteger(params, "page")
@@ -1673,7 +1673,7 @@ func (this *Apex) createOrderBody(ch chan any, symbol any, typeVar any, side any
 	var orderSide string = ToUpper(side)
 	var orderSize any = this.AmountToPrecision(symbol, amount)
 	var orderPrice any = "0"
-	if !IsEqual(price, nil) {
+	if price != nil {
 		orderPrice = this.PriceToPrecision(symbol, price)
 	}
 	var fees any = this.SafeDict(this.Fees, "swap", map[string]any{})
@@ -1702,7 +1702,7 @@ func (this *Apex) createOrderBody(ch chan any, symbol any, typeVar any, side any
 		triggerPrice = takeProfitPrice
 	}
 	var isMarket bool = (orderType == "MARKET")
-	if isMarket && (IsEqual(price, nil)) {
+	if isMarket && (price == nil) {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a price argument for market orders"))
 	}
 	var timeInForce any = this.SafeStringUpper(params, "timeInForce")
@@ -2185,10 +2185,10 @@ func (this *Apex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["beginTimeInclusive"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 	var endTimeExclusive *int64 = this.SafeIntegerN(params, []any{"endTime", "endTimeExclusive", "until"})
@@ -2299,10 +2299,10 @@ func (this *Apex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["beginTimeInclusive"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 	var endTimeExclusive *int64 = this.SafeIntegerN(params, []any{"endTime", "endTimeExclusive", "until"})
@@ -2361,10 +2361,10 @@ func (this *Apex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["beginTimeInclusive"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 	var endTimeExclusive *int64 = this.SafeIntegerN(params, []any{"endTime", "endTimeExclusive", "until"})

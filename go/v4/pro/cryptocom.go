@@ -195,7 +195,7 @@ func (this *Cryptocom) watchOrderBookForSymbolsBody(ch chan any, symbols any, op
 	symbols = this.MarketSymbols(symbols)
 	var topics []any = []any{}
 	var messageHashes []any = []any{}
-	if (ccxt.IsEqual(limit, nil)) || (ccxt.IsEqual(limit, 0)) {
+	if (limit == nil) || (ccxt.IsEqual(limit, 0)) {
 		limit = 50
 	}
 	var topicParams any = this.SafeValue(params, "params")

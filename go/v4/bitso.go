@@ -401,7 +401,7 @@ func (this *Bitso) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 	var request map[string]any = map[string]any{}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -1046,13 +1046,13 @@ func (this *Bitso) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 		"book":        market["id"],
 		"time_bucket": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start"] = since
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			var duration any = this.ParseTimeframe(timeframe)
 			request["end"] = this.Sum(since, Multiply(Multiply(duration, limit), 1000))
 		}
-	} else if !IsEqual(limit, nil) {
+	} else if limit != nil {
 		var now int64 = this.Milliseconds()
 		request["end"] = now
 		request["start"] = Subtract(now, Multiply(Multiply(this.ParseTimeframe(timeframe), 1000), limit))
@@ -1383,7 +1383,7 @@ func (this *Bitso) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var markerInParams bool = (InOp(params, "marker"))
 	// warn the user with an exception if the user wants to filter
 	// starting from since timestamp, but does not set the trade id with an extra 'marker' param
-	if (!IsEqual(since, nil)) && !markerInParams {
+	if (since != nil) && !markerInParams {
 		panic(ExchangeError(this.Id + " fetchMyTrades() does not support fetching trades starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id"))
 	}
 	// convert it to an integer unconditionally
@@ -1701,7 +1701,7 @@ func (this *Bitso) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var markerInParams bool = (InOp(params, "marker"))
 	// warn the user with an exception if the user wants to filter
 	// starting from since timestamp, but does not set the trade id with an extra 'marker' param
-	if (!IsEqual(since, nil)) && !markerInParams {
+	if (since != nil) && !markerInParams {
 		panic(ExchangeError(this.Id + " fetchOpenOrders() does not support fetching orders starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id"))
 	}
 	// convert it to an integer unconditionally

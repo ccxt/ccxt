@@ -846,7 +846,7 @@ func (this *BaseExchange) FilterBySinceLimit(array any, optionalArgs ...any) any
 			}
 		}
 	}
-	if EvalTruthy(tail) && !IsEqual(limit, nil) {
+	if EvalTruthy(tail) && (limit != nil) {
 		return this.ArraySlice(result, OpNeg(limit))
 	}
 	// if the user provided a 'since' argument
@@ -884,7 +884,7 @@ func (this *BaseExchange) FilterByValueSinceLimit(array any, field any, optional
 				return true
 			}()
 			var entryKeyValue any = this.SafeValue(entry, key)
-			var entryKeyGESince bool = (!IsEqual(entryKeyValue, nil)) && (!IsEqual(entryKeyValue, nil)) && (!IsEqual(entryKeyValue, 0)) && (!IsEqual(since, nil)) && (IsGreaterThanOrEqual(entryKeyValue, since))
+			var entryKeyGESince bool = (!IsEqual(entryKeyValue, nil)) && (!IsEqual(entryKeyValue, nil)) && (!IsEqual(entryKeyValue, 0)) && (since != nil) && (IsGreaterThanOrEqual(entryKeyValue, since))
 			var secondCondition bool = func() bool {
 				if sinceIsDefined {
 					return entryKeyGESince
@@ -896,7 +896,7 @@ func (this *BaseExchange) FilterByValueSinceLimit(array any, field any, optional
 			}
 		}
 	}
-	if EvalTruthy(tail) && !IsEqual(limit, nil) {
+	if EvalTruthy(tail) && (limit != nil) {
 		return this.ArraySlice(result, OpNeg(limit))
 	}
 	return this.FilterByLimit(result, limit, key, sinceIsDefined)
@@ -2951,7 +2951,7 @@ func (this *BaseExchange) CalculateFeeWithRate(symbol any, typeVar any, side any
 		takerOrMaker = "taker"
 	}
 	var rate any = func() any {
-		if !IsEqual(feeRate, nil) {
+		if feeRate != nil {
 			return this.NumberToString(feeRate)
 		}
 		return this.SafeString(market, takerOrMaker)
@@ -3046,7 +3046,7 @@ func (this *BaseExchange) CreateCcxtTradeId(optionalArgs ...any) any {
 	takerOrMaker := GetArg(optionalArgs, 4, nil)
 	_ = takerOrMaker
 	var id any = nil
-	if !IsEqual(timestamp, nil) {
+	if timestamp != nil {
 		id = this.NumberToString(timestamp)
 		if side != nil {
 			id = Add(id, Add("-", side))
@@ -5839,15 +5839,15 @@ func (this *BaseExchange) SetTakeProfitAndStopLossParams(symbol any, typeVar any
 	_ = stopLoss
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if (IsEqual(takeProfit, nil)) && (IsEqual(stopLoss, nil)) {
+	if (takeProfit == nil) && (stopLoss == nil) {
 		panic(ArgumentsRequired(this.Id + " createOrderWithTakeProfitAndStopLoss() requires either a takeProfit or stopLoss argument"))
 	}
-	if !IsEqual(takeProfit, nil) {
+	if takeProfit != nil {
 		AddElementToObject(params, "takeProfit", map[string]any{
 			"triggerPrice": takeProfit,
 		})
 	}
-	if !IsEqual(stopLoss, nil) {
+	if stopLoss != nil {
 		AddElementToObject(params, "stopLoss", map[string]any{
 			"triggerPrice": stopLoss,
 		})
@@ -7629,7 +7629,7 @@ func (this *BaseExchange) HandleMaxEntriesPerRequestAndParams(method any, option
 	if (!IsEqual(newMaxEntriesPerRequest, nil)) && (!IsEqual(newMaxEntriesPerRequest, maxEntriesPerRequest)) {
 		maxEntriesPerRequest = newMaxEntriesPerRequest
 	}
-	if IsEqual(maxEntriesPerRequest, nil) {
+	if maxEntriesPerRequest == nil {
 		maxEntriesPerRequest = 1000 // default to 1000
 	}
 	return []any{maxEntriesPerRequest, params}
@@ -7679,7 +7679,7 @@ func (this *BaseExchange) fetchPaginatedCallDynamicBody(ch chan any, method any,
 	maxEntriesPerRequest = GetValue(maxEntriesPerRequestparamsVariable, 0)
 	params = SafeMapTyped(maxEntriesPerRequestparamsVariable, 1)
 	if paginationDirection == "forward" {
-		if IsEqual(since, nil) {
+		if since == nil {
 			panic(ArgumentsRequired(this.Id + " pagination requires a since argument when paginationDirection set to forward"))
 		}
 		paginationTimestamp = since
@@ -7732,7 +7732,7 @@ func (this *BaseExchange) fetchPaginatedCallDynamicBody(ch chan any, method any,
 					if IsEqual(paginationTimestamp, nil) {
 						panic("break")
 					}
-					if (!IsEqual(since, nil)) && (IsLessThanOrEqual(paginationTimestamp, since)) {
+					if (since != nil) && (IsLessThanOrEqual(paginationTimestamp, since)) {
 						panic("break")
 					}
 				} else {
@@ -7897,7 +7897,7 @@ func (this *BaseExchange) fetchPaginatedCallDeterministicBody(ch chan any, metho
 	var step any = Multiply(time, maxEntriesPerRequest)
 	var until *int64 = this.SafeInteger2(params, "until", "till") // do not omit it here
 	var currentSince any = Subtract(Subtract(current, (Multiply(maxCalls, step))), 1)
-	if !IsEqual(since, nil) {
+	if since != nil {
 		if until != nil {
 			// the recent-window floor below would jump past a fully-historical [ since, until ]
 			// range and return an empty result - requiredCalls is validated against maxCalls
@@ -7911,7 +7911,7 @@ func (this *BaseExchange) fetchPaginatedCallDeterministicBody(ch chan any, metho
 		currentSince = mathMax(currentSince, 1241440531000) // avoid timestamps older than 2009
 	}
 	if until != nil {
-		if IsEqual(since, nil) {
+		if since == nil {
 			panic(ArgumentsRequired(this.Id + " fetchPaginatedCallDeterministic() requires a since argument when until is set"))
 		}
 		var requiredCalls float64 = MathCeil(Divide((Subtract(until, since)), step))
@@ -8012,7 +8012,7 @@ func (this *BaseExchange) fetchPaginatedCallCursorBody(ch chan any, method any, 
 				}()
 				// try block:
 				if !IsEqual(cursorValue, nil) {
-					if !IsEqual(cursorIncrement, nil) {
+					if cursorIncrement != nil {
 						cursorValue = Add(this.ParseToInt(cursorValue), cursorIncrement)
 					}
 					AddElementToObject(params, cursorSent, cursorValue)
@@ -8085,7 +8085,7 @@ func (this *BaseExchange) fetchPaginatedCallCursorBody(ch chan any, method any, 
 					panic("break")
 				}
 				var lastTimestamp *int64 = this.SafeInteger(last, "timestamp")
-				if IsEqual(since, nil) {
+				if since == nil {
 					panic(ArgumentsRequired(this.Id + " fetchPaginatedCallCursor() requires a since argument"))
 				}
 				if (lastTimestamp != nil) && IsLessThan(lastTimestamp, since) {
@@ -9597,7 +9597,7 @@ func (this *Exchange) createStopLossOrderWsBody(ch chan any, symbol any, typeVar
 	_ = stopLossPrice
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if IsEqual(stopLossPrice, nil) {
+	if stopLossPrice == nil {
 		panic(ArgumentsRequired(this.Id + " createStopLossOrderWs() requires a stopLossPrice argument"))
 	}
 	params = this.Extend(params, map[string]any{
@@ -9651,7 +9651,7 @@ func (this *Exchange) createStopOrderWsBody(ch chan any, symbol any, typeVar any
 	if IsEqual(this.Has["createStopOrderWs"], nil) || IsEqual(this.Has["createStopOrderWs"], false) {
 		panic(NotSupported(this.Id + " createStopOrderWs() is not supported yet"))
 	}
-	if IsEqual(triggerPrice, nil) {
+	if triggerPrice == nil {
 		panic(ArgumentsRequired(this.Id + " createStopOrderWs() requires a stopPrice argument"))
 	}
 	var query map[string]any = this.Extend(params, map[string]any{
@@ -9690,7 +9690,7 @@ func (this *Exchange) createTakeProfitOrderWsBody(ch chan any, symbol any, typeV
 	_ = takeProfitPrice
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if IsEqual(takeProfitPrice, nil) {
+	if takeProfitPrice == nil {
 		panic(ArgumentsRequired(this.Id + " createTakeProfitOrderWs() requires a takeProfitPrice argument"))
 	}
 	params = this.Extend(params, map[string]any{
@@ -9735,11 +9735,11 @@ func (this *Exchange) createTrailingAmountOrderWsBody(ch chan any, symbol any, t
 	_ = trailingTriggerPrice
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(trailingAmount, nil) {
+	if trailingAmount == nil {
 		panic(ArgumentsRequired(this.Id + " createTrailingAmountOrderWs() requires a trailingAmount argument"))
 	}
 	AddElementToObject(params, "trailingAmount", trailingAmount)
-	if !IsEqual(trailingTriggerPrice, nil) {
+	if trailingTriggerPrice != nil {
 		AddElementToObject(params, "trailingTriggerPrice", trailingTriggerPrice)
 	}
 	if !IsEqual(this.Has["createTrailingAmountOrderWs"], nil) && !IsEqual(this.Has["createTrailingAmountOrderWs"], false) {
@@ -9781,11 +9781,11 @@ func (this *Exchange) createTrailingPercentOrderWsBody(ch chan any, symbol any, 
 	_ = trailingTriggerPrice
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(trailingPercent, nil) {
+	if trailingPercent == nil {
 		panic(ArgumentsRequired(this.Id + " createTrailingPercentOrderWs() requires a trailingPercent argument"))
 	}
 	AddElementToObject(params, "trailingPercent", trailingPercent)
-	if !IsEqual(trailingTriggerPrice, nil) {
+	if trailingTriggerPrice != nil {
 		AddElementToObject(params, "trailingTriggerPrice", trailingTriggerPrice)
 	}
 	if !IsEqual(this.Has["createTrailingPercentOrderWs"], nil) && !IsEqual(this.Has["createTrailingPercentOrderWs"], false) {
@@ -9824,7 +9824,7 @@ func (this *Exchange) createTriggerOrderWsBody(ch chan any, symbol any, typeVar 
 	_ = triggerPrice
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if IsEqual(triggerPrice, nil) {
+	if triggerPrice == nil {
 		panic(ArgumentsRequired(this.Id + " createTriggerOrderWs() requires a triggerPrice argument"))
 	}
 	params = this.Extend(params, map[string]any{
@@ -10588,11 +10588,11 @@ func (this *Exchange) createTrailingAmountOrderBody(ch chan any, symbol any, typ
 	_ = trailingTriggerPrice
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(trailingAmount, nil) {
+	if trailingAmount == nil {
 		panic(ArgumentsRequired(this.Id + " createTrailingAmountOrder() requires a trailingAmount argument"))
 	}
 	AddElementToObject(params, "trailingAmount", trailingAmount)
-	if !IsEqual(trailingTriggerPrice, nil) {
+	if trailingTriggerPrice != nil {
 		AddElementToObject(params, "trailingTriggerPrice", trailingTriggerPrice)
 	}
 	if !IsEqual(this.Has["createTrailingAmountOrder"], nil) && !IsEqual(this.Has["createTrailingAmountOrder"], false) {
@@ -10634,11 +10634,11 @@ func (this *Exchange) createTrailingPercentOrderBody(ch chan any, symbol any, ty
 	_ = trailingTriggerPrice
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(trailingPercent, nil) {
+	if trailingPercent == nil {
 		panic(ArgumentsRequired(this.Id + " createTrailingPercentOrder() requires a trailingPercent argument"))
 	}
 	AddElementToObject(params, "trailingPercent", trailingPercent)
-	if !IsEqual(trailingTriggerPrice, nil) {
+	if trailingTriggerPrice != nil {
 		AddElementToObject(params, "trailingTriggerPrice", trailingTriggerPrice)
 	}
 	if !IsEqual(this.Has["createTrailingPercentOrder"], nil) && !IsEqual(this.Has["createTrailingPercentOrder"], false) {
@@ -10762,7 +10762,7 @@ func (this *Exchange) createTriggerOrderBody(ch chan any, symbol any, typeVar an
 	_ = triggerPrice
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if IsEqual(triggerPrice, nil) {
+	if triggerPrice == nil {
 		panic(ArgumentsRequired(this.Id + " createTriggerOrder() requires a triggerPrice argument"))
 	}
 	params = this.Extend(params, map[string]any{
@@ -10804,7 +10804,7 @@ func (this *Exchange) createStopLossOrderBody(ch chan any, symbol any, typeVar a
 	_ = stopLossPrice
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if IsEqual(stopLossPrice, nil) {
+	if stopLossPrice == nil {
 		panic(ArgumentsRequired(this.Id + " createStopLossOrder() requires a stopLossPrice argument"))
 	}
 	params = this.Extend(params, map[string]any{
@@ -10846,7 +10846,7 @@ func (this *Exchange) createTakeProfitOrderBody(ch chan any, symbol any, typeVar
 	_ = takeProfitPrice
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if IsEqual(takeProfitPrice, nil) {
+	if takeProfitPrice == nil {
 		panic(ArgumentsRequired(this.Id + " createTakeProfitOrder() requires a takeProfitPrice argument"))
 	}
 	params = this.Extend(params, map[string]any{
@@ -11365,7 +11365,7 @@ func (this *Exchange) createStopOrderBody(ch chan any, symbol any, typeVar any, 
 	if IsEqual(this.Has["createStopOrder"], nil) || IsEqual(this.Has["createStopOrder"], false) {
 		panic(NotSupported(this.Id + " createStopOrder() is not supported yet"))
 	}
-	if IsEqual(triggerPrice, nil) {
+	if triggerPrice == nil {
 		panic(ArgumentsRequired(this.Id + " create_stop_order() requires a stopPrice argument"))
 	}
 	var query map[string]any = this.Extend(params, map[string]any{

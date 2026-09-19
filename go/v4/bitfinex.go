@@ -1532,7 +1532,7 @@ func (this *Bitfinex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		"symbol":    GetValue(market, "id"),
 		"precision": precision,
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["len"] = limit
 	}
 	var fullRequest map[string]any = this.Extend(request, params)
@@ -1949,7 +1949,7 @@ func (this *Bitfinex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTrades", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = SafeMapTyped(paginateparamsVariable, 1)
+	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes153019 := (<-this.FetchPaginatedCallDynamicAsync("fetchTrades", symbol, since, limit, params, 10000))
@@ -1959,20 +1959,20 @@ func (this *Bitfinex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	}
 	var market any = this.Market(symbol)
 	var sort string = "-1"
-	var request map[string]any = map[string]any{
+	var request any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if !IsEqual(since, nil) {
-		request["start"] = since
+	if since != nil {
+		AddElementToObject(request, "start", since)
 		sort = "1"
 	}
-	if !IsEqual(limit, nil) {
-		request["limit"] = mathMin(limit, 10000) // default 120, max 10000
+	if limit != nil {
+		AddElementToObject(request, "limit", mathMin(limit, 10000)) // default 120, max 10000
 	}
-	request["sort"] = sort
+	AddElementToObject(request, "sort", sort)
 	requestparamsVariable := this.HandleUntilOption("end", request, params)
-	request = SafeMapTyped(requestparamsVariable, 0)
-	params = SafeMapTyped(requestparamsVariable, 1)
+	request = GetValue(requestparamsVariable, 0)
+	params = GetValue(requestparamsVariable, 1)
 
 	response := (<-this.PublicGetTradesSymbolHist(this.Extend(request, params)))
 	PanicOnError(response)
@@ -2037,7 +2037,7 @@ func (this *Bitfinex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = SafeMapTyped(paginateparamsVariable, 1)
+	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes158719 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 10000))
@@ -2046,23 +2046,23 @@ func (this *Bitfinex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		return nil
 	}
 	var market any = this.Market(symbol)
-	if IsEqual(limit, nil) {
+	if limit == nil {
 		limit = 10000
 	} else {
 		limit = mathMin(limit, 10000)
 	}
-	var request map[string]any = map[string]any{
+	var request any = map[string]any{
 		"symbol":    GetValue(market, "id"),
 		"timeframe": this.SafeString(this.Timeframes, timeframe, timeframe),
 		"limit":     limit,
 	}
-	if !IsEqual(since, nil) {
-		request["start"] = since
-		request["sort"] = 1
+	if since != nil {
+		AddElementToObject(request, "start", since)
+		AddElementToObject(request, "sort", 1)
 	}
 	requestparamsVariable := this.HandleUntilOption("end", request, params)
-	request = SafeMapTyped(requestparamsVariable, 0)
-	params = SafeMapTyped(requestparamsVariable, 1)
+	request = GetValue(requestparamsVariable, 0)
+	params = GetValue(requestparamsVariable, 1)
 
 	response := (<-this.PublicGetCandlesTradeTimeframeSymbolHist(this.Extend(request, params)))
 	PanicOnError(response)
@@ -2271,7 +2271,7 @@ func (this *Bitfinex) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	var ioc bool = (timeInForce != nil && *timeInForce == "IOC")
 	var fok bool = (timeInForce != nil && *timeInForce == "FOK")
 	var postOnly bool = ((postOnlyParam != nil && *postOnlyParam == true) || (timeInForce != nil && *timeInForce == "PO"))
-	if (ioc || fok) && (IsEqual(price, nil)) {
+	if (ioc || fok) && (price == nil) {
 		panic(InvalidOrder(this.Id + " createOrder() requires a price argument with IOC and FOK orders"))
 	}
 	if (ioc || fok) && (IsEqual(typeVar, "market")) {
@@ -2288,7 +2288,7 @@ func (this *Bitfinex) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	var marginMode any = nil
 	marginModeparamsVariable := this.HandleMarginModeAndParams("createOrder", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
-	params = SafeMapTyped(marginModeparamsVariable, 1)
+	params = GetValue(marginModeparamsVariable, 1)
 	if (GetValue(market, "spot") == true) && (marginMode == nil) {
 		// The EXCHANGE prefix is only required for non margin spot markets
 		orderType = Add("EXCHANGE ", orderType)
@@ -2919,7 +2919,7 @@ func (this *Bitfinex) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchClosedOrders", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = SafeMapTyped(paginateparamsVariable, 1)
+	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes228919 := (<-this.FetchPaginatedCallDynamicAsync("fetchClosedOrders", symbol, since, limit, params))
@@ -2927,16 +2927,16 @@ func (this *Bitfinex) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 		ch <- retRes228919
 		return nil
 	}
-	var request map[string]any = map[string]any{}
-	if !IsEqual(since, nil) {
-		request["start"] = since
+	var request any = map[string]any{}
+	if since != nil {
+		AddElementToObject(request, "start", since)
 	}
-	if !IsEqual(limit, nil) {
-		request["limit"] = limit // default 25, max 2500
+	if limit != nil {
+		AddElementToObject(request, "limit", limit) // default 25, max 2500
 	}
 	requestparamsVariable := this.HandleUntilOption("end", request, params)
-	request = SafeMapTyped(requestparamsVariable, 0)
-	params = SafeMapTyped(requestparamsVariable, 1)
+	request = GetValue(requestparamsVariable, 0)
+	params = GetValue(requestparamsVariable, 1)
 	var market any = nil
 	var response any = nil
 	if symbol == nil {
@@ -2945,7 +2945,7 @@ func (this *Bitfinex) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 		PanicOnError(response)
 	} else {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		AddElementToObject(request, "symbol", GetValue(market, "id"))
 
 		response = (<-this.PrivatePostAuthROrdersSymbolHist(this.Extend(request, params)))
 		PanicOnError(response)
@@ -3094,10 +3094,10 @@ func (this *Bitfinex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"end": this.Milliseconds(),
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit // default 25, max 1000
 	}
 	var response any = nil
@@ -3568,10 +3568,10 @@ func (this *Bitfinex) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...
 	}
 	var currency any = nil
 	var request map[string]any = map[string]any{}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit // max 1000
 	}
 	var response []any = nil
@@ -4063,7 +4063,7 @@ func (this *Bitfinex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchLedger", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = SafeMapTyped(paginateparamsVariable, 1)
+	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes322019 := (<-this.FetchPaginatedCallDynamicAsync("fetchLedger", code, since, limit, params, 2500))
@@ -4072,20 +4072,20 @@ func (this *Bitfinex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var currency any = nil
-	var request map[string]any = map[string]any{}
-	if !IsEqual(since, nil) {
-		request["start"] = since
+	var request any = map[string]any{}
+	if since != nil {
+		AddElementToObject(request, "start", since)
 	}
-	if !IsEqual(limit, nil) {
-		request["limit"] = limit
+	if limit != nil {
+		AddElementToObject(request, "limit", limit)
 	}
 	requestparamsVariable := this.HandleUntilOption("end", request, params)
-	request = SafeMapTyped(requestparamsVariable, 0)
-	params = SafeMapTyped(requestparamsVariable, 1)
+	request = GetValue(requestparamsVariable, 0)
+	params = GetValue(requestparamsVariable, 1)
 	var response any = nil
 	if code != nil {
 		currency = this.Currency(code)
-		request["currency"] = GetValue(currency, "id")
+		AddElementToObject(request, "currency", GetValue(currency, "id"))
 
 		response = (<-this.PrivatePostAuthRLedgersCurrencyHist(this.Extend(request, params)))
 		PanicOnError(response)
@@ -4232,7 +4232,7 @@ func (this *Bitfinex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = SafeMapTyped(paginateparamsVariable, 1)
+	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes333919 := (<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params, 5000))
@@ -4241,15 +4241,15 @@ func (this *Bitfinex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 		return nil
 	}
 	var market any = this.Market(symbol)
-	var request map[string]any = map[string]any{
+	var request any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if !IsEqual(since, nil) {
-		request["start"] = since
+	if since != nil {
+		AddElementToObject(request, "start", since)
 	}
 	requestparamsVariable := this.HandleUntilOption("end", request, params)
-	request = SafeMapTyped(requestparamsVariable, 0)
-	params = SafeMapTyped(requestparamsVariable, 1)
+	request = GetValue(requestparamsVariable, 0)
+	params = GetValue(requestparamsVariable, 1)
 
 	response := (<-this.PublicGetStatusDerivSymbolHist(this.Extend(request, params)))
 	PanicOnError(response)
@@ -4587,7 +4587,7 @@ func (this *Bitfinex) fetchOpenInterestHistoryBody(ch chan any, symbol any, opti
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOpenInterestHistory", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = SafeMapTyped(paginateparamsVariable, 1)
+	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes363119 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOpenInterestHistory", symbol, since, limit, "8h", params, 5000))
@@ -4596,18 +4596,18 @@ func (this *Bitfinex) fetchOpenInterestHistoryBody(ch chan any, symbol any, opti
 		return nil
 	}
 	var market any = this.Market(symbol)
-	var request map[string]any = map[string]any{
+	var request any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if !IsEqual(since, nil) {
-		request["start"] = since
+	if since != nil {
+		AddElementToObject(request, "start", since)
 	}
-	if !IsEqual(limit, nil) {
-		request["limit"] = limit
+	if limit != nil {
+		AddElementToObject(request, "limit", limit)
 	}
 	requestparamsVariable := this.HandleUntilOption("end", request, params)
-	request = SafeMapTyped(requestparamsVariable, 0)
-	params = SafeMapTyped(requestparamsVariable, 1)
+	request = GetValue(requestparamsVariable, 0)
+	params = GetValue(requestparamsVariable, 1)
 
 	response := (<-this.PublicGetStatusDerivSymbolHist(this.Extend(request, params)))
 	PanicOnError(response)
@@ -4759,7 +4759,7 @@ func (this *Bitfinex) fetchLiquidationsBody(ch chan any, symbol any, optionalArg
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchLiquidations", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = SafeMapTyped(paginateparamsVariable, 1)
+	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes377019 := (<-this.FetchPaginatedCallDeterministicAsync("fetchLiquidations", symbol, since, limit, "8h", params, 500))
@@ -4768,16 +4768,16 @@ func (this *Bitfinex) fetchLiquidationsBody(ch chan any, symbol any, optionalArg
 		return nil
 	}
 	var market any = this.Market(symbol)
-	var request map[string]any = map[string]any{}
-	if !IsEqual(since, nil) {
-		request["start"] = since
+	var request any = map[string]any{}
+	if since != nil {
+		AddElementToObject(request, "start", since)
 	}
-	if !IsEqual(limit, nil) {
-		request["limit"] = limit
+	if limit != nil {
+		AddElementToObject(request, "limit", limit)
 	}
 	requestparamsVariable := this.HandleUntilOption("end", request, params)
-	request = SafeMapTyped(requestparamsVariable, 0)
-	params = SafeMapTyped(requestparamsVariable, 1)
+	request = GetValue(requestparamsVariable, 0)
+	params = GetValue(requestparamsVariable, 1)
 
 	response := (<-this.PublicGetLiquidationsHist(this.Extend(request, params)))
 	PanicOnError(response)
@@ -5070,7 +5070,7 @@ func (this *Bitfinex) editOrderBody(ch chan any, id any, symbol any, typeVar any
 	var request map[string]any = map[string]any{
 		"id": this.ParseToNumeric(id),
 	}
-	if !IsEqual(amount, nil) {
+	if amount != nil {
 		var amountString any = this.AmountToPrecision(symbol, amount)
 		amountString = func() any {
 			if IsEqual(side, "buy") {

@@ -811,7 +811,7 @@ func (this *Coincheck) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -879,7 +879,7 @@ func (this *Coincheck) fetchTradesBody(ch chan any, symbol any, optionalArgs ...
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -1112,7 +1112,7 @@ func (this *Coincheck) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		currency = this.Currency(code)
 		request["currency"] = GetValue(currency, "id")
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -1186,7 +1186,7 @@ func (this *Coincheck) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) an
 		currency = this.Currency(code)
 	}
 	var request map[string]any = map[string]any{}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 

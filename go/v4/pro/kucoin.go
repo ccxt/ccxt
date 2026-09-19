@@ -2037,7 +2037,7 @@ func (this *Kucoin) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 	if symbolsLength == 0 {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchOrderBookForSymbols() requires a non-empty array of symbols"))
 	}
-	if !ccxt.IsEqual(limit, nil) {
+	if limit != nil {
 		if (!ccxt.IsEqual(limit, 20)) && (!ccxt.IsEqual(limit, 100)) && (!ccxt.IsEqual(limit, 50)) && (!ccxt.IsEqual(limit, 5)) {
 			panic(ccxt.ExchangeError(this.Id + " watchOrderBook 'limit' argument must be undefined, 5, 20, 50 or 100"))
 		}

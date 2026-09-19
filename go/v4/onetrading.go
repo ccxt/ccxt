@@ -1167,7 +1167,7 @@ func (this *Onetrading) fetchOrderBookBody(ch chan any, symbol any, optionalArgs
 	var request map[string]any = map[string]any{
 		"instrument_code": market["id"],
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["depth"] = limit
 	}
 
@@ -1320,7 +1320,7 @@ func (this *Onetrading) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 	unit := GetValue(periodunitVariable, 1)
 	var durationInSeconds any = this.ParseTimeframe(timeframe)
 	var duration any = Multiply(durationInSeconds, 1000)
-	if IsEqual(limit, nil) {
+	if limit == nil {
 		limit = 1500
 	}
 	var request map[string]any = map[string]any{
@@ -1328,7 +1328,7 @@ func (this *Onetrading) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 		"period":          period,
 		"unit":            unit,
 	}
-	if IsEqual(since, nil) {
+	if since == nil {
 		var now int64 = this.Milliseconds()
 		request["to"] = this.Iso8601(now)
 		request["from"] = this.Iso8601(Subtract(now, Multiply(limit, duration)))
@@ -1990,7 +1990,7 @@ func (this *Onetrading) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) an
 		market = this.Market(symbol)
 		request["instrument_code"] = GetValue(market, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["from"] = this.Iso8601(since)
 	}
 	var until *int64 = this.SafeInteger(params, "until")
@@ -1998,7 +1998,7 @@ func (this *Onetrading) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) an
 		params = this.Omit(params, "until")
 		request["to"] = this.Iso8601(until)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["max_page_size"] = limit
 	}
 
@@ -2163,7 +2163,7 @@ func (this *Onetrading) fetchOrderTradesBody(ch chan any, id any, optionalArgs .
 	var request map[string]any = map[string]any{
 		"order_id": id,
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["max_page_size"] = limit
 	}
 
@@ -2248,7 +2248,7 @@ func (this *Onetrading) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 		market = this.Market(symbol)
 		request["instrument_code"] = GetValue(market, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["from"] = this.Iso8601(since)
 	}
 	var until *int64 = this.SafeInteger(params, "until")
@@ -2256,7 +2256,7 @@ func (this *Onetrading) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 		params = this.Omit(params, "until")
 		request["to"] = this.Iso8601(until)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["max_page_size"] = limit
 	}
 

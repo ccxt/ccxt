@@ -111,23 +111,23 @@ func (this *Lbank) fetchOHLCVWsBody(ch chan any, symbol any, optionalArgs ...any
 		retRes8712 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes8712)
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market any = this.Market(symbol)
 	this.CheckContractMarket(market, "fetchOHLCVWs")
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var watchOHLCVOptions map[string]any = ccxt.SafeMapTyped(this.Options, "watchOHLCV")
 	var timeframes map[string]any = ccxt.SafeMapTyped(watchOHLCVOptions, "timeframes")
 	var timeframeId *string = this.SafeString(timeframes, timeframe, timeframe)
-	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("fetchOHLCV:", market["symbol"]), ":"), timeframeId)
+	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("fetchOHLCV:", ccxt.GetValue(market, "symbol")), ":"), timeframeId)
 	var message map[string]any = map[string]any{
 		"action":  "request",
 		"request": "kbar",
 		"kbar":    timeframeId,
-		"pair":    market["id"],
+		"pair":    ccxt.GetValue(market, "id"),
 	}
-	if !ccxt.IsEqual(since, nil) {
+	if since != nil {
 		message["start"] = this.ParseToInt(ccxt.MathFloor(ccxt.Divide(since, 1000)))
 	}
-	if !ccxt.IsEqual(limit, nil) {
+	if limit != nil {
 		message["size"] = limit
 	}
 	var request map[string]any = this.DeepExtend(message, params)
@@ -172,18 +172,18 @@ func (this *Lbank) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 		retRes12712 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes12712)
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market any = this.Market(symbol)
 	this.CheckContractMarket(market, "watchOHLCV")
 	var watchOHLCVOptions map[string]any = ccxt.SafeMapTyped(this.Options, "watchOHLCV")
 	var timeframes map[string]any = ccxt.SafeMapTyped(watchOHLCVOptions, "timeframes")
 	var timeframeId *string = this.SafeString(timeframes, timeframe, timeframe)
-	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("ohlcv:", market["symbol"]), ":"), timeframeId)
+	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("ohlcv:", ccxt.GetValue(market, "symbol")), ":"), timeframeId)
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var subscribe map[string]any = map[string]any{
 		"action":    "subscribe",
 		"subscribe": "kbar",
 		"kbar":      timeframeId,
-		"pair":      market["id"],
+		"pair":      ccxt.GetValue(market, "id"),
 	}
 	var request map[string]any = this.DeepExtend(subscribe, params)
 
@@ -311,14 +311,14 @@ func (this *Lbank) fetchTickerWsBody(ch chan any, symbol any, optionalArgs ...an
 		retRes26612 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes26612)
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market any = this.Market(symbol)
 	this.CheckContractMarket(market, "fetchTickerWs")
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var messageHash any = ccxt.Add("fetchTicker:", market["symbol"])
+	var messageHash any = ccxt.Add("fetchTicker:", ccxt.GetValue(market, "symbol"))
 	var message map[string]any = map[string]any{
 		"action":  "request",
 		"request": "tick",
-		"pair":    market["id"],
+		"pair":    ccxt.GetValue(market, "id"),
 	}
 	var request map[string]any = this.DeepExtend(message, params)
 	var requestId any = this.RequestId()
@@ -353,14 +353,14 @@ func (this *Lbank) watchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 		retRes29312 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes29312)
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market any = this.Market(symbol)
 	this.CheckContractMarket(market, "watchTicker")
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var messageHash any = ccxt.Add("ticker:", market["symbol"])
+	var messageHash any = ccxt.Add("ticker:", ccxt.GetValue(market, "symbol"))
 	var message map[string]any = map[string]any{
 		"action":    "subscribe",
 		"subscribe": "tick",
-		"pair":      market["id"],
+		"pair":      ccxt.GetValue(market, "id"),
 	}
 	var request map[string]any = this.DeepExtend(message, params)
 
@@ -483,17 +483,17 @@ func (this *Lbank) fetchTradesWsBody(ch chan any, symbol any, optionalArgs ...an
 		retRes40412 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes40412)
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market any = this.Market(symbol)
 	this.CheckContractMarket(market, "fetchTradesWs")
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var messageHash any = ccxt.Add("fetchTrades:", market["symbol"])
-	if ccxt.IsEqual(limit, nil) {
+	var messageHash any = ccxt.Add("fetchTrades:", ccxt.GetValue(market, "symbol"))
+	if limit == nil {
 		limit = 10
 	}
 	var message map[string]any = map[string]any{
 		"action":  "request",
 		"request": "trade",
-		"pair":    market["id"],
+		"pair":    ccxt.GetValue(market, "id"),
 		"size":    limit,
 	}
 	var request map[string]any = this.DeepExtend(message, params)
@@ -535,14 +535,14 @@ func (this *Lbank) watchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 		retRes43712 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes43712)
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market any = this.Market(symbol)
 	this.CheckContractMarket(market, "watchTrades")
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var messageHash any = ccxt.Add("trades:", market["symbol"])
+	var messageHash any = ccxt.Add("trades:", ccxt.GetValue(market, "symbol"))
 	var message map[string]any = map[string]any{
 		"action":    "subscribe",
 		"subscribe": "trade",
-		"pair":      market["id"],
+		"pair":      ccxt.GetValue(market, "id"),
 	}
 	var request map[string]any = this.DeepExtend(message, params)
 
@@ -699,10 +699,10 @@ func (this *Lbank) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if symbol == nil {
 		messageHash = "orders:all"
 	} else {
-		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+		var market any = this.Market(symbol)
 		symbol = this.Symbol(symbol)
-		messageHash = ccxt.Add("orders:", market["symbol"])
-		pair = market["id"]
+		messageHash = ccxt.Add("orders:", ccxt.GetValue(market, "symbol"))
+		pair = ccxt.GetValue(market, "id")
 	}
 	var message map[string]any = map[string]any{
 		"action":       "subscribe",
@@ -957,18 +957,18 @@ func (this *Lbank) fetchOrderBookWsBody(ch chan any, symbol any, optionalArgs ..
 		retRes78912 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes78912)
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market any = this.Market(symbol)
 	this.CheckContractMarket(market, "fetchOrderBookWs")
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var messageHash any = ccxt.Add("fetchOrderbook:", market["symbol"])
-	if ccxt.IsEqual(limit, nil) {
+	var messageHash any = ccxt.Add("fetchOrderbook:", ccxt.GetValue(market, "symbol"))
+	if limit == nil {
 		limit = 100
 	}
 	var subscribe map[string]any = map[string]any{
 		"action":  "request",
 		"request": "depth",
 		"depth":   limit,
-		"pair":    market["id"],
+		"pair":    ccxt.GetValue(market, "id"),
 	}
 	var request map[string]any = this.DeepExtend(subscribe, params)
 
@@ -1006,19 +1006,19 @@ func (this *Lbank) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 		retRes82112 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes82112)
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market any = this.Market(symbol)
 	this.CheckContractMarket(market, "watchOrderBook")
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var messageHash any = ccxt.Add("orderbook:", market["symbol"])
+	var messageHash any = ccxt.Add("orderbook:", ccxt.GetValue(market, "symbol"))
 	params = this.Omit(params, "aggregation")
-	if ccxt.IsEqual(limit, nil) {
+	if limit == nil {
 		limit = 100
 	}
 	var subscribe map[string]any = map[string]any{
 		"action":    "subscribe",
 		"subscribe": "depth",
 		"depth":     limit,
-		"pair":      market["id"],
+		"pair":      ccxt.GetValue(market, "id"),
 	}
 	var request map[string]any = this.DeepExtend(subscribe, params)
 

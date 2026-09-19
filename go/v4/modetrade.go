@@ -1210,7 +1210,7 @@ func (this *Modetrade) fetchTradesBody(ch chan any, symbol any, optionalArgs ...
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -1471,7 +1471,7 @@ func (this *Modetrade) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = SafeMapTyped(paginateparamsVariable, 1)
+	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes104619 := (<-this.FetchPaginatedCallIncrementalAsync("fetchFundingRateHistory", symbol, since, limit, params, "page", 25))
@@ -1479,18 +1479,18 @@ func (this *Modetrade) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...
 		ch <- retRes104619
 		return nil
 	}
-	var request map[string]any = map[string]any{}
+	var request any = map[string]any{}
 	if symbol != nil {
 		var market any = this.Market(symbol)
 		symbol = GetValue(market, "symbol")
-		request["symbol"] = GetValue(market, "id")
+		AddElementToObject(request, "symbol", GetValue(market, "id"))
 	}
-	if !IsEqual(since, nil) {
-		request["start_t"] = since
+	if since != nil {
+		AddElementToObject(request, "start_t", since)
 	}
 	requestparamsVariable := this.HandleUntilOption("end_t", request, params, 0.001)
-	request = SafeMapTyped(requestparamsVariable, 0)
-	params = SafeMapTyped(requestparamsVariable, 1)
+	request = GetValue(requestparamsVariable, 0)
+	params = GetValue(requestparamsVariable, 1)
 
 	response := (<-this.V1PublicGetPublicFundingRateHistory(this.Extend(request, params)))
 	PanicOnError(response)
@@ -1609,7 +1609,7 @@ func (this *Modetrade) fetchFundingHistoryBody(ch chan any, optionalArgs ...any)
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = SafeMapTyped(paginateparamsVariable, 1)
+	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes114919 := (<-this.FetchPaginatedCallIncrementalAsync("fetchFundingHistory", symbol, since, limit, params, "page", 500))
@@ -1623,7 +1623,7 @@ func (this *Modetrade) fetchFundingHistoryBody(ch chan any, optionalArgs ...any)
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start_t"] = since
 	}
 	var until *int64 = this.SafeInteger(params, "until") // unified in milliseconds
@@ -1631,7 +1631,7 @@ func (this *Modetrade) fetchFundingHistoryBody(ch chan any, optionalArgs ...any)
 	if until != nil {
 		request["end_t"] = until
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["size"] = mathMin(limit, 500)
 	}
 
@@ -1774,7 +1774,7 @@ func (this *Modetrade) fetchOrderBookBody(ch chan any, symbol any, optionalArgs 
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		limit = mathMin(limit, 1000)
 		request["max_level"] = limit
 	}
@@ -1848,7 +1848,7 @@ func (this *Modetrade) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 		"symbol": GetValue(market, "id"),
 		"type":   this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = mathMin(limit, 1000)
 	}
 
@@ -2120,7 +2120,7 @@ func (this *Modetrade) CreateOrderRequest(symbol any, typeVar any, side any, amo
 	if reduceOnly != nil && *reduceOnly == true {
 		request["reduce_only"] = reduceOnly
 	}
-	if !IsEqual(price, nil) {
+	if price != nil {
 		request[priceKey] = this.PriceToPrecision(symbol, price)
 	}
 	if isMarket && !isConditional {
@@ -2379,10 +2379,10 @@ func (this *Modetrade) editOrderBody(ch chan any, id any, symbol any, typeVar an
 		}
 		return "order_price"
 	}()
-	if !IsEqual(price, nil) {
+	if price != nil {
 		request[priceKey] = this.PriceToPrecision(symbol, price)
 	}
-	if !IsEqual(amount, nil) {
+	if amount != nil {
 		request[orderQtyKey] = this.AmountToPrecision(symbol, amount)
 	}
 	params = this.Omit(params, []any{"stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent"})
@@ -2819,7 +2819,7 @@ func (this *Modetrade) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}()
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrders", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = SafeMapTyped(paginateparamsVariable, 1)
+	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes213019 := (<-this.FetchPaginatedCallIncrementalAsync("fetchOrders", symbol, since, limit, params, "page", maxLimit))
@@ -2827,27 +2827,27 @@ func (this *Modetrade) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		ch <- retRes213019
 		return nil
 	}
-	var request map[string]any = map[string]any{}
+	var request any = map[string]any{}
 	var market any = nil
 	params = this.Omit(params, []any{"stop", "trigger"})
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		AddElementToObject(request, "symbol", GetValue(market, "id"))
 	}
-	if !IsEqual(since, nil) {
-		request["start_t"] = since
+	if since != nil {
+		AddElementToObject(request, "start_t", since)
 	}
-	if !IsEqual(limit, nil) {
-		request["size"] = mathMin(limit, maxLimit)
+	if limit != nil {
+		AddElementToObject(request, "size", mathMin(limit, maxLimit))
 	} else {
-		request["size"] = maxLimit
+		AddElementToObject(request, "size", maxLimit)
 	}
 	if isTrigger != nil && *isTrigger == true {
-		request["algo_type"] = "STOP"
+		AddElementToObject(request, "algo_type", "STOP")
 	}
 	requestparamsVariable := this.HandleUntilOption("end_t", request, params)
-	request = SafeMapTyped(requestparamsVariable, 0)
-	params = SafeMapTyped(requestparamsVariable, 1)
+	request = GetValue(requestparamsVariable, 0)
+	params = GetValue(requestparamsVariable, 1)
 	var response any = nil
 	if isTrigger != nil && *isTrigger == true {
 
@@ -3103,7 +3103,7 @@ func (this *Modetrade) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = SafeMapTyped(paginateparamsVariable, 1)
+	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes231619 := (<-this.FetchPaginatedCallIncrementalAsync("fetchMyTrades", symbol, since, limit, params, "page", 500))
@@ -3111,23 +3111,23 @@ func (this *Modetrade) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		ch <- retRes231619
 		return nil
 	}
-	var request map[string]any = map[string]any{}
+	var request any = map[string]any{}
 	var market any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		AddElementToObject(request, "symbol", GetValue(market, "id"))
 	}
-	if !IsEqual(since, nil) {
-		request["start_t"] = since
+	if since != nil {
+		AddElementToObject(request, "start_t", since)
 	}
-	if !IsEqual(limit, nil) {
-		request["size"] = limit
+	if limit != nil {
+		AddElementToObject(request, "size", limit)
 	} else {
-		request["size"] = 500
+		AddElementToObject(request, "size", 500)
 	}
 	requestparamsVariable := this.HandleUntilOption("end_t", request, params)
-	request = SafeMapTyped(requestparamsVariable, 0)
-	params = SafeMapTyped(requestparamsVariable, 1)
+	request = GetValue(requestparamsVariable, 0)
+	params = GetValue(requestparamsVariable, 1)
 
 	response := (<-this.V1PrivateGetTrades(this.Extend(request, params)))
 	PanicOnError(response)
@@ -3254,10 +3254,10 @@ func (this *Modetrade) getAssetHistoryRowsBody(ch chan any, optionalArgs ...any)
 		currency = this.Currency(code)
 		request["balance_token"] = GetValue(currency, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start_t"] = since
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["pageSize"] = limit
 	}
 	var transactionType *string = this.SafeString(params, "type")

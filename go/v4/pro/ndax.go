@@ -440,7 +440,7 @@ func (this *Ndax) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var requestId any = this.RequestId()
 	limit = func() any {
-		if ccxt.IsEqual(limit, nil) {
+		if limit == nil {
 			return 100
 		}
 		return limit

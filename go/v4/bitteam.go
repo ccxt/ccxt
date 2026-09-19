@@ -1026,7 +1026,7 @@ func (this *Bitteam) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		request["pair"] = GetValue(market, "id")
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -1365,7 +1365,7 @@ func (this *Bitteam) createOrderBody(ch chan any, symbol any, typeVar any, side 
 		"amount": this.AmountToPrecision(symbol, amount),
 	}
 	if IsEqual(typeVar, "limit") {
-		if IsEqual(price, nil) {
+		if price == nil {
 			panic(ArgumentsRequired(Add(Add(this.Id+" createOrder() requires a price argument for a ", typeVar), " order")))
 		} else {
 			request["price"] = this.PriceToPrecision(symbol, price)
@@ -2200,7 +2200,7 @@ func (this *Bitteam) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		request["pairId"] = GetValue(market, "numericId")
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -2591,7 +2591,7 @@ func (this *Bitteam) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...a
 		currency = this.Currency(code)
 		request["currency"] = GetValue(currency, "numericId")
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 

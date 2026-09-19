@@ -675,7 +675,7 @@ func (this *P2b) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 	var request map[string]any = map[string]any{
 		"market": market["id"],
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -753,7 +753,7 @@ func (this *P2b) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) a
 		"market": market["id"],
 		"lastId": lastId,
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -892,7 +892,7 @@ func (this *P2b) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 		"market":   market["id"],
 		"interval": timeframe,
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -1202,7 +1202,7 @@ func (this *P2b) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"market": market["id"],
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -1279,7 +1279,7 @@ func (this *P2b) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any) 
 	var request map[string]any = map[string]any{
 		"orderId": id,
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -1357,13 +1357,13 @@ func (this *P2b) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var until any = this.SafeInteger(params, "until")
 	params = this.Omit(params, "until")
 	if IsEqual(until, nil) {
-		if IsEqual(since, nil) {
+		if since == nil {
 			until = this.Milliseconds()
 		} else {
 			until = Add(since, 86400000)
 		}
 	}
-	if IsEqual(since, nil) {
+	if since == nil {
 		since = Subtract(until, 86400000)
 	}
 	if IsGreaterThan((Subtract(until, since)), 86400000) {
@@ -1377,7 +1377,7 @@ func (this *P2b) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		"startTime": sinceSec,
 		"endTime":   untilSec,
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -1459,13 +1459,13 @@ func (this *P2b) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 	}
 	if IsEqual(until, nil) {
-		if IsEqual(since, nil) {
+		if since == nil {
 			until = this.Milliseconds()
 		} else {
 			until = Add(since, 86400000)
 		}
 	}
-	if IsEqual(since, nil) {
+	if since == nil {
 		since = Subtract(until, 86400000)
 	}
 	if IsGreaterThan((Subtract(until, since)), 86400000) {
@@ -1480,7 +1480,7 @@ func (this *P2b) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	if !IsEqual(market, nil) {
 		request["market"] = GetValue(market, "id")
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 

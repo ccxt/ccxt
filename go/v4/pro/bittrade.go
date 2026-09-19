@@ -372,7 +372,7 @@ func (this *Bittrade) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if (!ccxt.IsEqual(limit, nil)) && (!ccxt.IsEqual(limit, 150)) {
+	if (limit != nil) && (!ccxt.IsEqual(limit, 150)) {
 		panic(ccxt.ExchangeError(this.Id + " watchOrderBook accepts limit = 150 only"))
 	}
 	if this.Markets == nil {
@@ -384,7 +384,7 @@ func (this *Bittrade) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	symbol = market["symbol"]
 	// only supports a limit of 150 at this time
 	limit = func() any {
-		if ccxt.IsEqual(limit, nil) {
+		if limit == nil {
 			return 150
 		}
 		return limit

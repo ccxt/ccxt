@@ -835,7 +835,7 @@ func (this *Foxbit) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	var request map[string]any = map[string]any{
 		"market": market["id"],
 		"depth": func() any {
-			if IsEqual(limit, nil) {
+			if limit == nil {
 				return defaultLimit
 			}
 			return limit
@@ -908,7 +908,7 @@ func (this *Foxbit) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	var request map[string]any = map[string]any{
 		"market": market["id"],
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["page_size"] = limit
 		if IsGreaterThan(limit, 200) {
 			request["page_size"] = 200
@@ -971,10 +971,10 @@ func (this *Foxbit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		"market":   market["id"],
 		"interval": interval,
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start_time"] = this.Iso8601(since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 		if IsGreaterThan(limit, 500) {
 			request["limit"] = 500
@@ -1182,10 +1182,10 @@ func (this *Foxbit) fetchOrdersByStatusBody(ch chan any, status any, optionalArg
 		market = this.Market(symbol)
 		request["market_symbol"] = GetValue(market, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start_time"] = this.Iso8601(since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["page_size"] = limit
 		if IsGreaterThan(limit, 100) {
 			request["page_size"] = 100
@@ -1592,10 +1592,10 @@ func (this *Foxbit) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		request["market_symbol"] = GetValue(market, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start_time"] = this.Iso8601(since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["page_size"] = limit
 		if IsGreaterThan(limit, 100) {
 			request["page_size"] = 100
@@ -1672,10 +1672,10 @@ func (this *Foxbit) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"market_symbol": market["id"],
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start_time"] = this.Iso8601(since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["page_size"] = limit
 		if IsGreaterThan(limit, 100) {
 			request["page_size"] = 100
@@ -1794,13 +1794,13 @@ func (this *Foxbit) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	if code != nil {
 		currency = this.Currency(code)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["page_size"] = limit
 		if IsGreaterThan(limit, 100) {
 			request["page_size"] = 100
 		}
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start_time"] = this.Iso8601(since)
 	}
 
@@ -1865,13 +1865,13 @@ func (this *Foxbit) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	if code != nil {
 		currency = this.Currency(code)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["page_size"] = limit
 		if IsGreaterThan(limit, 100) {
 			request["page_size"] = 100
 		}
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start_time"] = this.Iso8601(since)
 	}
 
@@ -2194,13 +2194,13 @@ func (this *Foxbit) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	if code == nil {
 		panic(ArgumentsRequired(this.Id + " fetchLedger() requires a code argument"))
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["page_size"] = limit
 		if IsGreaterThan(limit, 100) {
 			request["page_size"] = 100
 		}
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["start_time"] = this.Iso8601(since)
 	}
 	var currency map[string]any = this.Currency(code).(map[string]any)

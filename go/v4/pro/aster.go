@@ -1280,7 +1280,7 @@ func (this *Aster) watchOrderBookForSymbolsBody(ch chan any, symbols any, option
 		"method": "SUBSCRIBE",
 		"params": subscriptionArgs,
 	}
-	if ccxt.IsEqual(limit, nil) || ((!ccxt.IsEqual(limit, 5)) && (!ccxt.IsEqual(limit, 10)) && (!ccxt.IsEqual(limit, 20))) {
+	if (limit == nil) || ((!ccxt.IsEqual(limit, 5)) && (!ccxt.IsEqual(limit, 10)) && (!ccxt.IsEqual(limit, 20))) {
 		limit = 20
 	}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {

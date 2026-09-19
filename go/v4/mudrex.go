@@ -394,7 +394,7 @@ func (this *Mudrex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	}
 	var now int64 = this.Seconds()
 	var startTime any = nil
-	if !IsEqual(since, nil) {
+	if since != nil {
 		startTime = this.ParseToInt(Divide(since, 1000))
 	} else {
 		startTime = Subtract(now, Multiply(duration, requestLimit))
@@ -984,7 +984,7 @@ func (this *Mudrex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		return nil
 	}
 	var lev *int64 = this.SafeInteger(params, "leverage", 1)
-	if (IsEqual(typeVar, "market")) && (IsEqual(price, nil)) {
+	if (IsEqual(typeVar, "market")) && (price == nil) {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a price argument for market orders"))
 	}
 	var request map[string]any = map[string]any{
@@ -1075,10 +1075,10 @@ func (this *Mudrex) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 	var request map[string]any = map[string]any{
 		"order_id": id,
 	}
-	if !IsEqual(amount, nil) {
+	if amount != nil {
 		request["quantity"] = this.AmountToPrecision(symbol, amount)
 	}
-	if !IsEqual(price, nil) {
+	if price != nil {
 		request["order_price"] = this.PriceToPrecision(symbol, price)
 	}
 
@@ -1294,7 +1294,7 @@ func (this *Mudrex) fetchOrdersByStateBody(ch chan any, state any, optionalArgs 
 		PanicOnError(retRes96112)
 	}
 	var q map[string]any = map[string]any{}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		q["limit"] = limit
 	}
 	var request map[string]any = this.Extend(q, params)
@@ -1511,7 +1511,7 @@ func (this *Mudrex) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) 
 	}
 	symbols = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -1802,7 +1802,7 @@ func (this *Mudrex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	maxCalls = GetValue(maxCallsparamsVariable, 0)
 	params = SafeMapTyped(maxCallsparamsVariable, 1)
 	var pageSize any = 0
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		// every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
 		pageSize = Multiply(limit, 2)
 	}
@@ -1835,7 +1835,7 @@ func (this *Mudrex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		calls = this.Sum(calls, 1)
 		paging = false
 		// the page cap bounds the walk when the requested symbol has few or no rows anywhere near the top of the history
-		if (!IsEqual(limit, nil)) && (dataLength == pageSize) && (IsLessThan(transactionsCount, limit)) && (IsLessThan(calls, maxCalls)) {
+		if (limit != nil) && (dataLength == pageSize) && (IsLessThan(transactionsCount, limit)) && (IsLessThan(calls, maxCalls)) {
 			// this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
 			offset = this.Sum(offset, pageSize)
 			paging = true

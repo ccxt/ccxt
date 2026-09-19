@@ -1493,10 +1493,10 @@ func (this *Hitbtc) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	}
 	var market any = nil
 	var request map[string]any = map[string]any{}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = mathMin(limit, 1000)
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["from"] = since
 	}
 	if symbol != nil {
@@ -1568,10 +1568,10 @@ func (this *Hitbtc) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["from"] = since
 	}
 	var marketType any = nil
@@ -1579,10 +1579,10 @@ func (this *Hitbtc) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var response any = []any{}
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchMyTrades", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
-	params = SafeMapTyped(marketTypeparamsVariable, 1)
+	params = GetValue(marketTypeparamsVariable, 1)
 	marginModeparamsVariable := this.HandleMarginModeAndParams("fetchMyTrades", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
-	params = SafeMapTyped(marginModeparamsVariable, 1)
+	params = GetValue(marginModeparamsVariable, 1)
 	params = this.Omit(params, []any{"marginMode", "margin"})
 	if marginMode != nil {
 
@@ -2021,7 +2021,7 @@ func (this *Hitbtc) fetchOrderBooksBody(ch chan any, optionalArgs ...any) any {
 		var marketIdsInner any = this.MarketIds(symbols)
 		request["symbols"] = Join(marketIdsInner, ",")
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["depth"] = limit
 	}
 
@@ -2072,7 +2072,7 @@ func (this *Hitbtc) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["depth"] = limit
 	}
 
@@ -2185,7 +2185,7 @@ func (this *Hitbtc) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var marketTypequeryVariable []any = this.HandleMarketTypeAndParams("fetchTradingFees", nil, params)
 	marketType := GetValue(marketTypequeryVariable, 0)
-	query := SafeMapTyped(marketTypequeryVariable, 1)
+	query := GetValue(marketTypequeryVariable, 1)
 	var response any = nil
 	if marketType == "spot" {
 
@@ -2261,7 +2261,7 @@ func (this *Hitbtc) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = SafeMapTyped(paginateparamsVariable, 1)
+	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes187519 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))
@@ -2270,18 +2270,18 @@ func (this *Hitbtc) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		return nil
 	}
 	var market any = this.Market(symbol)
-	var request map[string]any = map[string]any{
+	var request any = map[string]any{
 		"symbol": GetValue(market, "id"),
 		"period": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
-	if !IsEqual(since, nil) {
-		request["from"] = this.Iso8601(since)
+	if since != nil {
+		AddElementToObject(request, "from", this.Iso8601(since))
 	}
 	requestparamsVariable := this.HandleUntilOption("until", request, params)
-	request = SafeMapTyped(requestparamsVariable, 0)
-	params = SafeMapTyped(requestparamsVariable, 1)
-	if !IsEqual(limit, nil) {
-		request["limit"] = mathMin(limit, 1000)
+	request = GetValue(requestparamsVariable, 0)
+	params = GetValue(requestparamsVariable, 1)
+	if limit != nil {
+		AddElementToObject(request, "limit", mathMin(limit, 1000))
 	}
 	var price *string = this.SafeString(params, "price")
 	params = this.Omit(params, "price")
@@ -2406,20 +2406,20 @@ func (this *Hitbtc) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["from"] = this.Iso8601(since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 	var marketType any = nil
 	var marginMode any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchClosedOrders", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
-	params = SafeMapTyped(marketTypeparamsVariable, 1)
+	params = GetValue(marketTypeparamsVariable, 1)
 	marginModeparamsVariable := this.HandleMarginModeAndParams("fetchClosedOrders", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
-	params = SafeMapTyped(marginModeparamsVariable, 1)
+	params = GetValue(marginModeparamsVariable, 1)
 	params = this.Omit(params, []any{"marginMode", "margin"})
 	var response any = nil
 	if marginMode != nil {
@@ -2491,10 +2491,10 @@ func (this *Hitbtc) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 	var marginMode any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchOrder", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
-	params = SafeMapTyped(marketTypeparamsVariable, 1)
+	params = GetValue(marketTypeparamsVariable, 1)
 	marginModeparamsVariable := this.HandleMarginModeAndParams("fetchOrder", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
-	params = SafeMapTyped(marginModeparamsVariable, 1)
+	params = GetValue(marginModeparamsVariable, 1)
 	params = this.Omit(params, []any{"marginMode", "margin"})
 	var response any = nil
 	if marginMode != nil {
@@ -2591,10 +2591,10 @@ func (this *Hitbtc) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...an
 	var marginMode any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchOrderTrades", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
-	params = SafeMapTyped(marketTypeparamsVariable, 1)
+	params = GetValue(marketTypeparamsVariable, 1)
 	marginModeparamsVariable := this.HandleMarginModeAndParams("fetchOrderTrades", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
-	params = SafeMapTyped(marginModeparamsVariable, 1)
+	params = GetValue(marginModeparamsVariable, 1)
 	params = this.Omit(params, []any{"marginMode", "margin"})
 	var response any = []any{}
 	if marginMode != nil {
@@ -2707,10 +2707,10 @@ func (this *Hitbtc) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var marginMode any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchOpenOrders", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
-	params = SafeMapTyped(marketTypeparamsVariable, 1)
+	params = GetValue(marketTypeparamsVariable, 1)
 	marginModeparamsVariable := this.HandleMarginModeAndParams("fetchOpenOrders", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
-	params = SafeMapTyped(marginModeparamsVariable, 1)
+	params = GetValue(marginModeparamsVariable, 1)
 	params = this.Omit(params, []any{"marginMode", "margin"})
 	var response any = nil
 	if marginMode != nil {
@@ -2800,10 +2800,10 @@ func (this *Hitbtc) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any)
 	var marginMode any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchOpenOrder", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
-	params = SafeMapTyped(marketTypeparamsVariable, 1)
+	params = GetValue(marketTypeparamsVariable, 1)
 	marginModeparamsVariable := this.HandleMarginModeAndParams("fetchOpenOrder", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
-	params = SafeMapTyped(marginModeparamsVariable, 1)
+	params = GetValue(marginModeparamsVariable, 1)
 	params = this.Omit(params, []any{"marginMode", "margin"})
 	var response any = nil
 	if marginMode != nil {
@@ -2872,10 +2872,10 @@ func (this *Hitbtc) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	var marginMode any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("cancelAllOrders", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
-	params = SafeMapTyped(marketTypeparamsVariable, 1)
+	params = GetValue(marketTypeparamsVariable, 1)
 	marginModeparamsVariable := this.HandleMarginModeAndParams("cancelAllOrders", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
-	params = SafeMapTyped(marginModeparamsVariable, 1)
+	params = GetValue(marginModeparamsVariable, 1)
 	params = this.Omit(params, []any{"marginMode", "margin"})
 	var response any = nil
 	if marginMode != nil {
@@ -2946,10 +2946,10 @@ func (this *Hitbtc) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	var marginMode any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("cancelOrder", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
-	params = SafeMapTyped(marketTypeparamsVariable, 1)
+	params = GetValue(marketTypeparamsVariable, 1)
 	marginModeparamsVariable := this.HandleMarginModeAndParams("cancelOrder", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
-	params = SafeMapTyped(marginModeparamsVariable, 1)
+	params = GetValue(marginModeparamsVariable, 1)
 	params = this.Omit(params, []any{"marginMode", "margin"})
 	var response any = nil
 	if marginMode != nil {
@@ -3002,7 +3002,7 @@ func (this *Hitbtc) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 		"quantity":        this.AmountToPrecision(symbol, amount),
 	}
 	if (IsEqual(typeVar, "limit")) || (IsEqual(typeVar, "stopLimit")) {
-		if IsEqual(price, nil) {
+		if price == nil {
 			panic(ExchangeError(this.Id + " editOrder() limit order requires price"))
 		}
 		request["price"] = this.PriceToPrecision(symbol, price)
@@ -3014,10 +3014,10 @@ func (this *Hitbtc) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 	var marginMode any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("editOrder", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
-	params = SafeMapTyped(marketTypeparamsVariable, 1)
+	params = GetValue(marketTypeparamsVariable, 1)
 	marginModeparamsVariable := this.HandleMarginModeAndParams("editOrder", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
-	params = SafeMapTyped(marginModeparamsVariable, 1)
+	params = GetValue(marginModeparamsVariable, 1)
 	params = this.Omit(params, []any{"marginMode", "margin"})
 	var response any = nil
 	if marginMode != nil {
@@ -3088,11 +3088,11 @@ func (this *Hitbtc) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	var marketType any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("createOrder", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
-	params = SafeMapTyped(marketTypeparamsVariable, 1)
+	params = GetValue(marketTypeparamsVariable, 1)
 	var marginMode any = nil
 	marginModeparamsVariable := this.HandleMarginModeAndParams("createOrder", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
-	params = SafeMapTyped(marginModeparamsVariable, 1)
+	params = GetValue(marginModeparamsVariable, 1)
 	requestparamsVariable := this.CreateOrderRequest(market, marketType, typeVar, side, amount, price, marginMode, params)
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
@@ -3147,7 +3147,7 @@ func (this *Hitbtc) CreateOrderRequest(market any, marketType any, typeVar any, 
 		request["time_in_force"] = timeInForce
 	}
 	if isLimit || (IsEqual(typeVar, "stopLimit")) || (IsEqual(typeVar, "takeProfitLimit")) {
-		if IsEqual(price, nil) {
+		if price == nil {
 			panic(ExchangeError(this.Id + " createOrder() requires a price argument for limit orders"))
 		}
 		request["price"] = this.PriceToPrecision(GetValue(market, "symbol"), price)
@@ -3348,7 +3348,7 @@ func (this *Hitbtc) fetchMarginModesBody(ch chan any, optionalArgs ...any) any {
 	var marketType any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchMarginMode", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
-	params = SafeMapTyped(marketTypeparamsVariable, 1)
+	params = GetValue(marketTypeparamsVariable, 1)
 	var response any = nil
 	if IsEqual(marketType, "margin") {
 
@@ -3525,7 +3525,7 @@ func (this *Hitbtc) withdrawBody(ch chan any, code any, amount any, address any,
 	_ = params
 	tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
 	tag = GetValue(tagparamsVariable, 0)
-	params = SafeMapTyped(tagparamsVariable, 1)
+	params = GetValue(tagparamsVariable, 1)
 	if this.Markets == nil {
 
 		retRes285012 := (<-this.LoadMarketsAsync())
@@ -3605,7 +3605,7 @@ func (this *Hitbtc) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any 
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchFundingRates", market, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = SafeMapTyped(typeVarparamsVariable, 1)
+	params = GetValue(typeVarparamsVariable, 1)
 	if !IsEqual(typeVar, "swap") {
 		panic(NotSupported(Add(Add(this.Id+" fetchFundingRates() does not support ", typeVar), " markets")))
 	}
@@ -3684,7 +3684,7 @@ func (this *Hitbtc) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = SafeMapTyped(paginateparamsVariable, 1)
+	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
 		retRes296519 := (<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params, 1000))
@@ -3693,20 +3693,20 @@ func (this *Hitbtc) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 		return nil
 	}
 	var market any = nil
-	var request map[string]any = map[string]any{}
+	var request any = map[string]any{}
 	requestparamsVariable := this.HandleUntilOption("until", request, params)
-	request = SafeMapTyped(requestparamsVariable, 0)
-	params = SafeMapTyped(requestparamsVariable, 1)
+	request = GetValue(requestparamsVariable, 0)
+	params = GetValue(requestparamsVariable, 1)
 	if symbol != nil {
 		market = this.Market(symbol)
 		symbol = GetValue(market, "symbol")
-		request["symbols"] = GetValue(market, "id")
+		AddElementToObject(request, "symbols", GetValue(market, "id"))
 	}
-	if !IsEqual(since, nil) {
-		request["from"] = since
+	if since != nil {
+		AddElementToObject(request, "from", since)
 	}
-	if !IsEqual(limit, nil) {
-		request["limit"] = limit
+	if limit != nil {
+		AddElementToObject(request, "limit", limit)
 	}
 
 	response := (<-this.PublicGetPublicFuturesHistoryFunding(this.Extend(request, params)))
@@ -3786,13 +3786,13 @@ func (this *Hitbtc) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var marginMode any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchPositions", nil, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
-	params = SafeMapTyped(marketTypeparamsVariable, 1)
+	params = GetValue(marketTypeparamsVariable, 1)
 	if IsEqual(marketType, "spot") {
 		marketType = "swap"
 	}
 	marginModeparamsVariable := this.HandleMarginModeAndParams("fetchPositions", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
-	params = SafeMapTyped(marginModeparamsVariable, 1)
+	params = GetValue(marginModeparamsVariable, 1)
 	params = this.Omit(params, []any{"marginMode", "margin"})
 	var response any = nil
 	if marginMode != nil {
@@ -3888,10 +3888,10 @@ func (this *Hitbtc) fetchPositionBody(ch chan any, symbol any, optionalArgs ...a
 	var marginMode any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchPosition", nil, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
-	params = SafeMapTyped(marketTypeparamsVariable, 1)
+	params = GetValue(marketTypeparamsVariable, 1)
 	marginModeparamsVariable := this.HandleMarginModeAndParams("fetchPosition", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
-	params = SafeMapTyped(marginModeparamsVariable, 1)
+	params = GetValue(marginModeparamsVariable, 1)
 	params = this.Omit(params, []any{"marginMode", "margin"})
 	var response any = nil
 	if marginMode != nil {
@@ -4318,10 +4318,10 @@ func (this *Hitbtc) modifyMarginHelperBody(ch chan any, symbol any, amount any, 
 	var marginMode any = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("modifyMarginHelper", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
-	params = SafeMapTyped(marketTypeparamsVariable, 1)
+	params = GetValue(marketTypeparamsVariable, 1)
 	marginModeparamsVariable := this.HandleMarginModeAndParams("modifyMarginHelper", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
-	params = SafeMapTyped(marginModeparamsVariable, 1)
+	params = GetValue(marginModeparamsVariable, 1)
 	var response any = nil
 	if IsEqual(marketType, "swap") {
 
@@ -4497,7 +4497,7 @@ func (this *Hitbtc) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...a
 	var marginMode any = nil
 	marginModeparamsVariable := this.HandleMarginModeAndParams("fetchLeverage", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
-	params = SafeMapTyped(marginModeparamsVariable, 1)
+	params = GetValue(marginModeparamsVariable, 1)
 	params = this.Omit(params, []any{"marginMode", "margin"})
 	var response any = nil
 	if marginMode != nil {
@@ -4779,7 +4779,7 @@ func (this *Hitbtc) closePositionBody(ch chan any, symbol any, optionalArgs ...a
 	var marginMode any = nil
 	marginModeparamsVariable := this.HandleMarginModeAndParams("closePosition", params, "cross")
 	marginMode = GetValue(marginModeparamsVariable, 0)
-	params = SafeMapTyped(marginModeparamsVariable, 1)
+	params = GetValue(marginModeparamsVariable, 1)
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol":      GetValue(market, "id"),
@@ -4824,7 +4824,7 @@ func (this *Hitbtc) HandleMarginModeAndParams(methodName any, optionalArgs ...an
 	var marginMode any = nil
 	marginModeparamsVariable := this.Exchange.HandleMarginModeAndParams(methodName, params, defaultValue)
 	marginMode = GetValue(marginModeparamsVariable, 0)
-	params = SafeMapTyped(marginModeparamsVariable, 1)
+	params = GetValue(marginModeparamsVariable, 1)
 	if marginMode == nil {
 		if (defaultType != nil && *defaultType == "margin") || (isMargin != nil && *isMargin == true) {
 			marginMode = "isolated"

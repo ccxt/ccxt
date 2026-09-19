@@ -77,9 +77,9 @@ func (this *Independentreserve) watchTradesBody(ch chan any, symbol any, optiona
 		retRes5512 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes5512)
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
-	symbol = market["symbol"]
-	var url any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "?subscribe=ticker-"), market["base"]), "-"), market["quote"])
+	var market any = this.Market(symbol)
+	symbol = ccxt.GetValue(market, "symbol")
+	var url any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "?subscribe=ticker-"), ccxt.GetValue(market, "base")), "-"), ccxt.GetValue(market, "quote"))
 	var messageHash any = ccxt.Add("trades:", symbol)
 
 	trades := (<-this.Watch(url, messageHash, nil, messageHash))
@@ -182,13 +182,13 @@ func (this *Independentreserve) watchOrderBookBody(ch chan any, symbol any, opti
 		retRes14312 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes14312)
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
-	symbol = market["symbol"]
-	if ccxt.IsEqual(limit, nil) {
+	var market any = this.Market(symbol)
+	symbol = ccxt.GetValue(market, "symbol")
+	if limit == nil {
 		limit = 100
 	}
 	var limitString *string = this.NumberToString(limit)
-	var url any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "/orderbook/"), limitString), "?subscribe="), market["base"]), "-"), market["quote"])
+	var url any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "/orderbook/"), limitString), "?subscribe="), ccxt.GetValue(market, "base")), "-"), ccxt.GetValue(market, "quote"))
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("orderbook:", symbol), ":"), limitString)
 	var subscription map[string]any = map[string]any{
 		"receivedSnapshot": false,

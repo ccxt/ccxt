@@ -717,7 +717,7 @@ func (this *Coinone) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		"quote_currency":  market["quote"],
 		"target_currency": market["base"],
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["size"] = limit // only support 5, 10, 15, 16
 	}
 
@@ -1079,7 +1079,7 @@ func (this *Coinone) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		"quote_currency":  market["quote"],
 		"target_currency": market["base"],
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["size"] = mathMin(limit, 200)
 	}
 
@@ -1139,7 +1139,7 @@ func (this *Coinone) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	if orderType != "LIMIT" {
 		panic(ExchangeError(this.Id + " createOrder() allows limit orders only"))
 	}
-	if IsEqual(price, nil) {
+	if price == nil {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a price argument for the limit orders"))
 	}
 	if this.Markets == nil {

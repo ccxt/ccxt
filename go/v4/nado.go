@@ -400,7 +400,7 @@ func (this *Nado) createOrderBody(ch chan any, symbol any, typeVar any, side any
 
 	retRes3568 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes3568)
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market any = this.Market(symbol)
 
 	request := (<-this.CreateOrderRequestAsync(symbol, typeVar, side, amount, price, params))
 	PanicOnError(request)
@@ -459,14 +459,14 @@ func (this *Nado) createOrderRequestBody(ch chan any, symbol any, typeVar any, s
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market any = this.Market(symbol)
 	if !IsEqual(typeVar, "limit") {
 		panic(InvalidOrder(this.Id + " createOrder() supports limit orders only"))
 	}
-	if IsEqual(price, nil) {
+	if price == nil {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a price argument"))
 	}
-	var productId int64 = this.ParseToInt(market["id"])
+	var productId int64 = this.ParseToInt(GetValue(market, "id"))
 	var priceString any = this.PriceToPrecision(symbol, price)
 	var amountString any = this.AmountToPrecision(symbol, amount)
 	var priceX18 any = this.ConvertToX18(priceString)
@@ -477,15 +477,15 @@ func (this *Nado) createOrderRequestBody(ch chan any, symbol any, typeVar any, s
 	var subaccount any = nil
 	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "subaccount", "default")
 	subaccount = GetValue(subaccountparamsVariable, 0)
-	params = SafeMapTyped(subaccountparamsVariable, 1)
+	params = GetValue(subaccountparamsVariable, 1)
 	var expiration any = nil
 	var expirationparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "expiration", "4294967295")
 	expiration = GetValue(expirationparamsVariable, 0)
-	params = SafeMapTyped(expirationparamsVariable, 1)
+	params = GetValue(expirationparamsVariable, 1)
 	var recvWindow any = nil
 	var recvWindowparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "recvWindow", 5000)
 	recvWindow = GetValue(recvWindowparamsVariable, 0)
-	params = SafeMapTyped(recvWindowparamsVariable, 1)
+	params = GetValue(recvWindowparamsVariable, 1)
 	var nonce any = this.CreateOrderNonce(recvWindow)
 	var requestId *int64 = this.SafeInteger(params, "id")
 	var spotLeverage *bool = this.SafeBool2(params, "spotLeverage", "spot_leverage")
@@ -518,7 +518,7 @@ func (this *Nado) createOrderRequestBody(ch chan any, symbol any, typeVar any, s
 		var triggerDirection any = nil
 		triggerDirectionparamsVariable := this.HandleTriggerDirectionAndParams(params)
 		triggerDirection = GetValue(triggerDirectionparamsVariable, 0)
-		params = SafeMapTyped(triggerDirectionparamsVariable, 1)
+		params = GetValue(triggerDirectionparamsVariable, 1)
 		var directionSuffix string = func() string {
 			if IsEqual(triggerDirection, "ascending") {
 				return "above"
@@ -630,7 +630,7 @@ func (this *Nado) editOrderBody(ch chan any, id any, symbol any, typeVar any, si
 
 	retRes5188 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes5188)
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market any = this.Market(symbol)
 
 	request := (<-this.EditOrderRequestAsync(id, symbol, typeVar, side, amount, price, params))
 	PanicOnError(request)
@@ -684,7 +684,7 @@ func (this *Nado) editOrderRequestBody(ch chan any, id any, symbol any, typeVar 
 	_ = price
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market any = this.Market(symbol)
 	if !IsEqual(typeVar, "limit") {
 		panic(InvalidOrder(this.Id + " editOrder() supports limit orders only"))
 	}
@@ -692,13 +692,13 @@ func (this *Nado) editOrderRequestBody(ch chan any, id any, symbol any, typeVar 
 	if triggerPrice != nil {
 		panic(NotSupported(this.Id + " editOrder() and editOrderWs() do not support trigger orders, cancel the trigger order and create a new one instead"))
 	}
-	if IsEqual(amount, nil) {
+	if amount == nil {
 		panic(ArgumentsRequired(this.Id + " editOrder() requires an amount argument"))
 	}
-	if IsEqual(price, nil) {
+	if price == nil {
 		panic(ArgumentsRequired(this.Id + " editOrder() requires a price argument"))
 	}
-	var productId int64 = this.ParseToInt(market["id"])
+	var productId int64 = this.ParseToInt(GetValue(market, "id"))
 	var priceString any = this.PriceToPrecision(symbol, price)
 	var amountString any = this.AmountToPrecision(symbol, amount)
 	var priceX18 any = this.ConvertToX18(priceString)
@@ -710,15 +710,15 @@ func (this *Nado) editOrderRequestBody(ch chan any, id any, symbol any, typeVar 
 	var subaccount any = nil
 	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "editOrder", "subaccount", "default")
 	subaccount = GetValue(subaccountparamsVariable, 0)
-	params = SafeMapTyped(subaccountparamsVariable, 1)
+	params = GetValue(subaccountparamsVariable, 1)
 	var expiration any = nil
 	var expirationparamsVariable []any = this.HandleOptionAndParams(params, "editOrder", "expiration", "4294967295")
 	expiration = GetValue(expirationparamsVariable, 0)
-	params = SafeMapTyped(expirationparamsVariable, 1)
+	params = GetValue(expirationparamsVariable, 1)
 	var recvWindow any = nil
 	var recvWindowparamsVariable []any = this.HandleOptionAndParams(params, "editOrder", "recvWindow", 5000)
 	recvWindow = GetValue(recvWindowparamsVariable, 0)
-	params = SafeMapTyped(recvWindowparamsVariable, 1)
+	params = GetValue(recvWindowparamsVariable, 1)
 	var cancelNonce any = this.CreateOrderNonce(recvWindow)
 	var orderNonce *string = Precise.StringAdd(cancelNonce, "1")
 	var appendix any = DerefScalar(this.SafeString(params, "appendix"))
@@ -895,18 +895,18 @@ func (this *Nado) cancelAllOrdersRequestBody(ch chan any, optionalArgs ...any) a
 	_ = params
 	var productIds []any = []any{}
 	if symbol != nil {
-		var market map[string]any = MapTyped(this.Market(symbol))
-		productIds = append(productIds, this.ParseToInt(market["id"]))
+		var market any = this.Market(symbol)
+		productIds = append(productIds, this.ParseToInt(GetValue(market, "id")))
 	}
 	var subaccount any = nil
 	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "cancelAllOrders", "subaccount", "default")
 	subaccount = GetValue(subaccountparamsVariable, 0)
-	params = SafeMapTyped(subaccountparamsVariable, 1)
+	params = GetValue(subaccountparamsVariable, 1)
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
 	var recvWindow any = nil
 	var recvWindowparamsVariable []any = this.HandleOptionAndParams(params, "cancelAllOrders", "recvWindow", 5000)
 	recvWindow = GetValue(recvWindowparamsVariable, 0)
-	params = SafeMapTyped(recvWindowparamsVariable, 1)
+	params = GetValue(recvWindowparamsVariable, 1)
 	var nonce any = this.CreateOrderNonce(recvWindow)
 	var tx map[string]any = map[string]any{
 		"sender":     sender,
@@ -972,7 +972,7 @@ func (this *Nado) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) an
 
 	retRes7918 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes7918)
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market any = this.Market(symbol)
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
 	params = this.Omit(params, []any{"stop", "trigger"})
 
@@ -1023,12 +1023,12 @@ func (this *Nado) cancelOrdersRequestBody(ch chan any, ids any, optionalArgs ...
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var market map[string]any = MapTyped(this.Market(symbol))
-	var productId int64 = this.ParseToInt(market["id"])
+	var market any = this.Market(symbol)
+	var productId int64 = this.ParseToInt(GetValue(market, "id"))
 	var subaccount any = nil
 	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "cancelOrders", "subaccount", "default")
 	subaccount = GetValue(subaccountparamsVariable, 0)
-	params = SafeMapTyped(subaccountparamsVariable, 1)
+	params = GetValue(subaccountparamsVariable, 1)
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
 	var productIds []any = []any{}
 	for i := 0; i < GetArrayLength(ids); i++ {
@@ -1037,7 +1037,7 @@ func (this *Nado) cancelOrdersRequestBody(ch chan any, ids any, optionalArgs ...
 	var recvWindow any = nil
 	var recvWindowparamsVariable []any = this.HandleOptionAndParams(params, "cancelOrders", "recvWindow", 5000)
 	recvWindow = GetValue(recvWindowparamsVariable, 0)
-	params = SafeMapTyped(recvWindowparamsVariable, 1)
+	params = GetValue(recvWindowparamsVariable, 1)
 	var nonce any = this.CreateOrderNonce(recvWindow)
 	var tx map[string]any = map[string]any{
 		"sender":     sender,
@@ -1106,10 +1106,10 @@ func (this *Nado) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 
 	retRes9158 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes9158)
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"type":       "order",
-		"product_id": this.ParseToInt(market["id"]),
+		"product_id": this.ParseToInt(GetValue(market, "id")),
 		"digest":     id,
 	}
 
@@ -1181,7 +1181,7 @@ func (this *Nado) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var subaccount any = nil
 	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrders", "subaccount", "default")
 	subaccount = GetValue(subaccountparamsVariable, 0)
-	params = SafeMapTyped(subaccountparamsVariable, 1)
+	params = GetValue(subaccountparamsVariable, 1)
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
 	params = this.Omit(params, []any{"stop", "trigger"})
@@ -1191,7 +1191,7 @@ func (this *Nado) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var recvWindow any = nil
 	var recvWindowparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrders", "recvWindow", 5000)
 	recvWindow = GetValue(recvWindowparamsVariable, 0)
-	params = SafeMapTyped(recvWindowparamsVariable, 1)
+	params = GetValue(recvWindowparamsVariable, 1)
 	var tx map[string]any = map[string]any{
 		"sender":   sender,
 		"recvTime": this.NumberToString(Add(this.Milliseconds(), recvWindow)),
@@ -1201,7 +1201,7 @@ func (this *Nado) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		"type":        "list_trigger_orders",
 		"product_ids": productIds,
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = mathMin(limit, 500)
 	}
 
@@ -1289,7 +1289,7 @@ func (this *Nado) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var subaccount any = nil
 	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "fetchOpenOrders", "subaccount", "default")
 	subaccount = GetValue(subaccountparamsVariable, 0)
-	params = SafeMapTyped(subaccountparamsVariable, 1)
+	params = GetValue(subaccountparamsVariable, 1)
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
 	if trigger != nil && *trigger == true {
@@ -1304,11 +1304,11 @@ func (this *Nado) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchOpenOrders() requires a symbol argument"))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"sender":     sender,
 		"type":       "subaccount_orders",
-		"product_id": this.ParseToInt(market["id"]),
+		"product_id": this.ParseToInt(GetValue(market, "id")),
 	}
 
 	response := (<-this.GatewayPublicGetQuery(this.Extend(request, params)))
@@ -1393,7 +1393,7 @@ func (this *Nado) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	var subaccount any = nil
 	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "fetchClosedOrders", "subaccount", "default")
 	subaccount = GetValue(subaccountparamsVariable, 0)
-	params = SafeMapTyped(subaccountparamsVariable, 1)
+	params = GetValue(subaccountparamsVariable, 1)
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
 	if trigger != nil && *trigger == true {
@@ -1405,17 +1405,17 @@ func (this *Nado) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 		ch <- retRes113019
 		return nil
 	}
-	var ordersRequest map[string]any = map[string]any{
+	var ordersRequest any = map[string]any{
 		"subaccounts": []any{sender},
 	}
 	if !IsEqual(market, nil) {
-		ordersRequest["product_ids"] = []any{this.ParseToInt(GetValue(market, "id"))}
+		AddElementToObject(ordersRequest, "product_ids", []any{this.ParseToInt(GetValue(market, "id"))})
 	}
 	ordersRequestparamsVariable := this.HandleUntilOption("max_time", ordersRequest, params, 0.001)
-	ordersRequest = SafeMapTyped(ordersRequestparamsVariable, 0)
-	params = SafeMapTyped(ordersRequestparamsVariable, 1)
-	if !IsEqual(limit, nil) {
-		ordersRequest["limit"] = mathMin(limit, 500)
+	ordersRequest = GetValue(ordersRequestparamsVariable, 0)
+	params = GetValue(ordersRequestparamsVariable, 1)
+	if limit != nil {
+		AddElementToObject(ordersRequest, "limit", mathMin(limit, 500))
 	}
 	var request map[string]any = map[string]any{
 		"orders": ordersRequest,
@@ -1573,18 +1573,18 @@ func (this *Nado) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var subaccount any = nil
 	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "subaccount", "default")
 	subaccount = GetValue(subaccountparamsVariable, 0)
-	params = SafeMapTyped(subaccountparamsVariable, 1)
-	var matchesRequest map[string]any = map[string]any{
+	params = GetValue(subaccountparamsVariable, 1)
+	var matchesRequest any = map[string]any{
 		"subaccounts": []any{this.CreateSubaccount(this.WalletAddress, subaccount)},
 	}
 	if !IsEqual(market, nil) {
-		matchesRequest["product_ids"] = []any{this.ParseToInt(GetValue(market, "id"))}
+		AddElementToObject(matchesRequest, "product_ids", []any{this.ParseToInt(GetValue(market, "id"))})
 	}
 	matchesRequestparamsVariable := this.HandleUntilOption("max_time", matchesRequest, params, 0.001)
-	matchesRequest = SafeMapTyped(matchesRequestparamsVariable, 0)
-	params = SafeMapTyped(matchesRequestparamsVariable, 1)
-	if !IsEqual(limit, nil) {
-		matchesRequest["limit"] = mathMin(limit, 500)
+	matchesRequest = GetValue(matchesRequestparamsVariable, 0)
+	params = GetValue(matchesRequestparamsVariable, 1)
+	if limit != nil {
+		AddElementToObject(matchesRequest, "limit", mathMin(limit, 500))
 	}
 	var request map[string]any = map[string]any{
 		"matches": matchesRequest,
@@ -1663,7 +1663,7 @@ func (this *Nado) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var subaccount any = nil
 	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "fetchBalance", "subaccount", "default")
 	subaccount = GetValue(subaccountparamsVariable, 0)
-	params = SafeMapTyped(subaccountparamsVariable, 1)
+	params = GetValue(subaccountparamsVariable, 1)
 	var request map[string]any = map[string]any{
 		"type":       "subaccount_info",
 		"subaccount": this.CreateSubaccount(this.WalletAddress, subaccount),
@@ -1796,13 +1796,13 @@ func (this *Nado) queryTransactionsByEventTypeBody(ch chan any, eventType any, t
 	var subaccount any = nil
 	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, methodName, "subaccount", "default")
 	subaccount = GetValue(subaccountparamsVariable, 0)
-	params = SafeMapTyped(subaccountparamsVariable, 1)
-	var eventsRequest map[string]any = map[string]any{
+	params = GetValue(subaccountparamsVariable, 1)
+	var eventsRequest any = map[string]any{
 		"subaccounts": []any{this.CreateSubaccount(this.WalletAddress, subaccount)},
 		"event_types": []any{eventType},
 		"limit": map[string]any{
 			"raw": func() any {
-				if IsEqual(limit, nil) {
+				if limit == nil {
 					return 100
 				}
 				return mathMin(limit, 500)
@@ -1810,11 +1810,11 @@ func (this *Nado) queryTransactionsByEventTypeBody(ch chan any, eventType any, t
 		},
 	}
 	if !IsEqual(currency, nil) {
-		eventsRequest["product_ids"] = []any{this.ParseToInt(GetValue(currency, "id"))}
+		AddElementToObject(eventsRequest, "product_ids", []any{this.ParseToInt(GetValue(currency, "id"))})
 	}
 	eventsRequestparamsVariable := this.HandleUntilOption("max_time", eventsRequest, params, 0.001)
-	eventsRequest = SafeMapTyped(eventsRequestparamsVariable, 0)
-	params = SafeMapTyped(eventsRequestparamsVariable, 1)
+	eventsRequest = GetValue(eventsRequestparamsVariable, 0)
+	params = GetValue(eventsRequestparamsVariable, 1)
 	var request map[string]any = map[string]any{
 		"events": eventsRequest,
 	}
@@ -1910,7 +1910,7 @@ func (this *Nado) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var subaccount any = nil
 	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "fetchPositions", "subaccount", "default")
 	subaccount = GetValue(subaccountparamsVariable, 0)
-	params = SafeMapTyped(subaccountparamsVariable, 1)
+	params = GetValue(subaccountparamsVariable, 1)
 	var request map[string]any = map[string]any{
 		"type":       "subaccount_info",
 		"subaccount": this.CreateSubaccount(this.WalletAddress, subaccount),
@@ -2371,8 +2371,8 @@ func (this *Nado) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 
 	retRes18248 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes18248)
-	var market map[string]any = MapTyped(this.Market(symbol))
-	symbol = market["symbol"]
+	var market any = this.Market(symbol)
+	symbol = GetValue(market, "symbol")
 
 	tickers := (<-this.FetchTickersAsync([]any{symbol}, params))
 	PanicOnError(tickers)
@@ -2489,13 +2489,13 @@ func (this *Nado) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 	var subaccount any = nil
 	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingHistory", "subaccount", "default")
 	subaccount = GetValue(subaccountparamsVariable, 0)
-	params = SafeMapTyped(subaccountparamsVariable, 1)
+	params = GetValue(subaccountparamsVariable, 1)
 	var request map[string]any = map[string]any{
 		"interest_and_funding": map[string]any{
 			"subaccount":  this.CreateSubaccount(this.WalletAddress, subaccount),
 			"product_ids": []any{this.ParseToInt(GetValue(market, "id"))},
 			"limit": func() any {
-				if IsEqual(limit, nil) {
+				if limit == nil {
 					return 100
 				}
 				return mathMin(limit, 100)
@@ -2744,12 +2744,12 @@ func (this *Nado) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 
 	retRes20908 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes20908)
-	var market map[string]any = MapTyped(this.Market(symbol))
-	var tickerId *string = this.SafeString(market["info"], "ticker_id")
+	var market any = this.Market(symbol)
+	var tickerId *string = this.SafeString(GetValue(market, "info"), "ticker_id")
 	var request map[string]any = map[string]any{
 		"ticker_id": tickerId,
 		"depth": func() any {
-			if IsEqual(limit, nil) {
+			if limit == nil {
 				return 100
 			}
 			return limit
@@ -2775,7 +2775,7 @@ func (this *Nado) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	//
 	var timestamp *int64 = this.SafeInteger(response, "timestamp")
 
-	ch <- this.ParseOrderBook(response, market["symbol"], timestamp)
+	ch <- this.ParseOrderBook(response, GetValue(market, "symbol"), timestamp)
 	return nil
 }
 
@@ -2808,12 +2808,12 @@ func (this *Nado) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 
 	retRes21308 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes21308)
-	var market map[string]any = MapTyped(this.Market(symbol))
-	var tickerId *string = this.SafeString(market["info"], "ticker_id")
+	var market any = this.Market(symbol)
+	var tickerId *string = this.SafeString(GetValue(market, "info"), "ticker_id")
 	var request map[string]any = map[string]any{
 		"ticker_id": tickerId,
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = mathMin(limit, 500)
 	}
 
@@ -2870,16 +2870,16 @@ func (this *Nado) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 
 	retRes21718 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes21718)
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market any = this.Market(symbol)
 	var until *int64 = this.SafeInteger(params, "until")
 	params = this.Omit(params, "until")
 	var request map[string]any = map[string]any{
 		"candlesticks": map[string]any{
-			"product_id":  this.ParseToInt(market["id"]),
+			"product_id":  this.ParseToInt(GetValue(market, "id")),
 			"granularity": this.SafeInteger(this.Timeframes, timeframe, this.ParseTimeframe(timeframe)),
 		},
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		AddElementToObject(request["candlesticks"], "limit", mathMin(limit, 500))
 	}
 	if until != nil {
@@ -3246,7 +3246,7 @@ func (this *Nado) ParseBalance(response any) any {
 		if IsEqual(code, "0") {
 			code = "USDT0"
 		} else if IsEqual(code, currencyId) {
-			var market map[string]any = MapTyped(this.SafeMarket(currencyId, nil, nil, "spot"))
+			var market any = this.SafeMarket(currencyId, nil, nil, "spot")
 			if IsEqual(this.SafeBool(market, "spot"), true) {
 				code = DerefScalar(this.SafeString(market, "base", code))
 			}
@@ -3628,7 +3628,7 @@ func (this *Nado) ParseOrder(order any, optionalArgs ...any) any {
 		"trades":              nil,
 	}, market)
 }
-func (this *Nado) ParseOrderTimeInForce(timeInForce *string) *string {
+func (this *Nado) ParseOrderTimeInForce(timeInForce any) *string {
 	var timeInForces map[string]any = map[string]any{
 		"default":   "GTC",
 		"ioc":       "IOC",

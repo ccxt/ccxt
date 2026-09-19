@@ -869,8 +869,8 @@ func (this *Alpaca) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		retRes65312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes65312)
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
-	var marketId any = market["id"]
+	var market any = this.Market(symbol)
+	var marketId any = GetValue(market, "id")
 	var loc *string = this.SafeString(params, "loc", "us")
 	var method *string = this.SafeString(params, "method", "marketPublicGetV1beta3CryptoLocTrades")
 	var request map[string]any = map[string]any{
@@ -880,10 +880,10 @@ func (this *Alpaca) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	params = this.Omit(params, []any{"loc", "method"})
 	var symbolTrades any = nil
 	if method != nil && *method == "marketPublicGetV1beta3CryptoLocTrades" {
-		if !IsEqual(since, nil) {
+		if since != nil {
 			request["start"] = this.Iso8601(since)
 		}
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			request["limit"] = limit
 		}
 
@@ -967,8 +967,8 @@ func (this *Alpaca) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		retRes73212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes73212)
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
-	var id any = market["id"]
+	var market any = this.Market(symbol)
+	var id any = GetValue(market, "id")
 	var loc *string = this.SafeString(params, "loc", "us")
 	var request map[string]any = map[string]any{
 		"symbols": id,
@@ -1018,7 +1018,7 @@ func (this *Alpaca) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	var rawOrderbook any = this.SafeDict(orderbooks, id, map[string]any{})
 	var timestamp *int64 = this.Parse8601(this.SafeString(rawOrderbook, "t"))
 
-	ch <- this.ParseOrderBook(rawOrderbook, market["symbol"], timestamp, "b", "a", "p", "s")
+	ch <- this.ParseOrderBook(rawOrderbook, GetValue(market, "symbol"), timestamp, "b", "a", "p", "s")
 	return nil
 }
 
@@ -1061,18 +1061,18 @@ func (this *Alpaca) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		retRes80512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes80512)
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
-	var marketId any = market["id"]
+	var market any = this.Market(symbol)
+	var marketId any = GetValue(market, "id")
 	var loc *string = this.SafeString(params, "loc", "us")
 	var method *string = this.SafeString(params, "method", "marketPublicGetV1beta3CryptoLocBars")
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
 	paginate = GetValue(paginateparamsVariable, 0)
-	params = SafeMapTyped(paginateparamsVariable, 1)
+	params = GetValue(paginateparamsVariable, 1)
 	var paginationCalls any = 10
 	var paginationCallsparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginationCalls", 10)
 	paginationCalls = GetValue(paginationCallsparamsVariable, 0)
-	params = SafeMapTyped(paginationCallsparamsVariable, 1)
+	params = GetValue(paginationCallsparamsVariable, 1)
 	var request map[string]any = map[string]any{
 		"symbols": marketId,
 		"loc":     loc,
@@ -1080,10 +1080,10 @@ func (this *Alpaca) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	params = this.Omit(params, []any{"loc", "method"})
 	var ohlcvs any = nil
 	if method != nil && *method == "marketPublicGetV1beta3CryptoLocBars" {
-		if !IsEqual(limit, nil) {
+		if limit != nil {
 			request["limit"] = limit
 		}
-		if !IsEqual(since, nil) {
+		if since != nil {
 			request["start"] = this.Iso8601(since)
 		}
 		var until *int64 = this.SafeInteger(params, "until")
@@ -1131,7 +1131,7 @@ func (this *Alpaca) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 			var pageToken *string = this.SafeString(response, "next_page_token")
 			for i := 1; IsLessThan(i, paginationCalls); i++ {
 				var ohlcvsLength int = GetArrayLength(ohlcvs)
-				if (pageToken == nil) || ((!IsEqual(limit, nil)) && (IsGreaterThanOrEqual(ohlcvsLength, limit))) {
+				if (pageToken == nil) || ((limit != nil) && (IsGreaterThanOrEqual(ohlcvsLength, limit))) {
 					break
 				}
 				request["page_token"] = pageToken
@@ -1518,8 +1518,8 @@ func (this *Alpaca) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		retRes116612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes116612)
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
-	var id any = market["id"]
+	var market any = this.Market(symbol)
+	var id any = GetValue(market, "id")
 	var request map[string]any = map[string]any{
 		"symbol": id,
 		"side":   side,
@@ -1549,7 +1549,7 @@ func (this *Alpaca) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	var defaultTIF any = nil
 	var defaultTIFparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "timeInForce")
 	defaultTIF = GetValue(defaultTIFparamsVariable, 0)
-	params = SafeMapTyped(defaultTIFparamsVariable, 1)
+	params = GetValue(defaultTIFparamsVariable, 1)
 	if defaultTIF != nil {
 		// the venue only accepts lowercase values, normalize the unified uppercase spellings
 		defaultTIF = ToLower(defaultTIF)
@@ -1770,7 +1770,7 @@ func (this *Alpaca) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		params = this.Omit(params, "until")
 		request["until"] = this.Iso8601(until)
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["after"] = this.Iso8601(since)
 		var direction *string = this.SafeString(params, "direction")
 		if direction == nil {
@@ -1778,7 +1778,7 @@ func (this *Alpaca) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 			request["direction"] = "asc"
 		}
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
@@ -1950,7 +1950,7 @@ func (this *Alpaca) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	if !IsEqual(amount, nil) {
+	if amount != nil {
 		request["qty"] = this.AmountToPrecision(symbol, amount)
 	}
 	var triggerPrice *string = this.SafeString2(params, "triggerPrice", "stop_price")
@@ -1958,13 +1958,13 @@ func (this *Alpaca) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 		request["stop_price"] = this.PriceToPrecision(symbol, triggerPrice)
 		params = this.Omit(params, "triggerPrice")
 	}
-	if !IsEqual(price, nil) {
+	if price != nil {
 		request["limit_price"] = this.PriceToPrecision(symbol, price)
 	}
 	var timeInForce any = nil
 	var timeInForceparamsVariable []any = this.HandleOptionAndParams(params, "editOrder", "timeInForce", "gtc")
 	timeInForce = GetValue(timeInForceparamsVariable, 0)
-	params = SafeMapTyped(timeInForceparamsVariable, 1)
+	params = GetValue(timeInForceparamsVariable, 1)
 	if timeInForce != nil {
 		// the venue only accepts lowercase values, normalize the unified uppercase spellings
 		request["time_in_force"] = ToLower(timeInForce)
@@ -2065,7 +2065,7 @@ func (this *Alpaca) ParseOrder(order any, optionalArgs ...any) any {
 		"info":               order,
 	}, market)
 }
-func (this *Alpaca) ParseOrderStatus(status *string) *string {
+func (this *Alpaca) ParseOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"pending_new":          "open",
 		"accepted":             "open",
@@ -2088,7 +2088,7 @@ func (this *Alpaca) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Alpaca) ParseTimeInForce(timeInForce *string) *string {
+func (this *Alpaca) ParseTimeInForce(timeInForce any) *string {
 	var timeInForces map[string]any = map[string]any{
 		"day": "Day",
 		"gtc": "GTC",
@@ -2133,7 +2133,7 @@ func (this *Alpaca) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes162912)
 	}
 	var market any = nil
-	var request map[string]any = map[string]any{
+	var request any = map[string]any{
 		"activity_type": "FILL",
 	}
 	if symbol != nil {
@@ -2142,17 +2142,17 @@ func (this *Alpaca) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var until *int64 = this.SafeInteger(params, "until")
 	if until != nil {
 		params = this.Omit(params, "until")
-		request["until"] = this.Iso8601(until)
+		AddElementToObject(request, "until", this.Iso8601(until))
 	}
-	if !IsEqual(since, nil) {
-		request["after"] = this.Iso8601(since)
+	if since != nil {
+		AddElementToObject(request, "after", this.Iso8601(since))
 	}
-	if !IsEqual(limit, nil) {
-		request["page_size"] = limit
+	if limit != nil {
+		AddElementToObject(request, "page_size", limit)
 	}
 	requestparamsVariable := this.HandleUntilOption("until", request, params)
-	request = SafeMapTyped(requestparamsVariable, 0)
-	params = SafeMapTyped(requestparamsVariable, 1)
+	request = GetValue(requestparamsVariable, 0)
+	params = GetValue(requestparamsVariable, 1)
 
 	response := (<-this.TraderPrivateGetV2AccountActivitiesActivityType(this.Extend(request, params)))
 	PanicOnError(response)
@@ -2333,7 +2333,7 @@ func (this *Alpaca) withdrawBody(ch chan any, code any, amount any, address any,
 	_ = params
 	tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
 	tag = GetValue(tagparamsVariable, 0)
-	params = SafeMapTyped(tagparamsVariable, 1)
+	params = GetValue(tagparamsVariable, 1)
 	this.CheckAddress(address)
 	if this.Markets == nil {
 
@@ -2697,7 +2697,7 @@ func (this *Alpaca) ParseTransaction(transaction any, optionalArgs ...any) any {
 		"fee":         fee,
 	}
 }
-func (this *Alpaca) ParseTransactionStatus(status *string) *string {
+func (this *Alpaca) ParseTransactionStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"PROCESSING": "pending",
 		"FAILED":     "failed",

@@ -609,10 +609,10 @@ func (this *Bit2c) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["date"] = this.ParseToInt(since)
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit // max 100000
 	}
 	var responseList []any = []any{}
@@ -1058,11 +1058,11 @@ func (this *Bit2c) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var market any = nil
 	var request map[string]any = map[string]any{}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["take"] = limit
 	}
 	request["take"] = limit
-	if !IsEqual(since, nil) {
+	if since != nil {
 		request["toTime"] = this.Yyyymmdd(this.Milliseconds(), ".")
 		request["fromTime"] = this.Yyyymmdd(since, ".")
 	}

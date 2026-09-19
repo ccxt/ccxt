@@ -931,7 +931,7 @@ func (this *Cryptomus) createOrderBody(ch chan any, symbol any, typeVar any, sid
 			createMarketBuyOrderRequiresPrice = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 0)
 			params = SafeMapTyped(createMarketBuyOrderRequiresPriceparamsVariable, 1)
 			if EvalTruthy(createMarketBuyOrderRequiresPrice) {
-				if (IsEqual(price, nil)) && (cost == nil) {
+				if (price == nil) && (cost == nil) {
 					panic(InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option of param to false and pass the cost to spend in the amount argument"))
 				} else if cost == nil {
 					cost = Precise.StringMul(amountToString, priceToString)
@@ -952,7 +952,7 @@ func (this *Cryptomus) createOrderBody(ch chan any, symbol any, typeVar any, sid
 		response = (<-this.PrivatePostV2UserApiExchangeOrdersMarket(this.Extend(request, params)))
 		PanicOnError(response)
 	} else if IsEqual(typeVar, "limit") {
-		if IsEqual(price, nil) {
+		if price == nil {
 			panic(ArgumentsRequired(Add(Add(this.Id+" createOrder() requires a price parameter for a ", typeVar), " order")))
 		}
 		request["quantity"] = amountToString
@@ -1060,7 +1060,7 @@ func (this *Cryptomus) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArg
 		market = this.Market(symbol)
 		request["market"] = GetValue(market, "id")
 	}
-	if !IsEqual(limit, nil) {
+	if limit != nil {
 		request["limit"] = limit
 	}
 
