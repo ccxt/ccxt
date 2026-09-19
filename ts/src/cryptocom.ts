@@ -1215,12 +1215,12 @@ export default class cryptocom extends Exchange {
         //
         const result = this.safeDict (response, 'result', {});
         const data = this.safeList (result, 'data', []);
-        const orderBook = this.safeValue (data, 0);
+        const orderBook = this.safeDict (data, 0);
         const timestamp = this.safeInteger (orderBook, 't');
         return this.parseOrderBook (orderBook, symbol, timestamp);
     }
 
-    override parseBalance (response: any): Balances {
+    override parseBalance (response: Dict): Balances {
         const responseResult = this.safeDict (response, 'result', {});
         const data = this.safeList (responseResult, 'data', []);
         const positionBalances = this.safeList (data[0], 'position_balances', []);
@@ -2519,7 +2519,7 @@ export default class cryptocom extends Exchange {
         const created = this.safeInteger (order, 'create_time');
         const marketId = this.safeString (order, 'instrument_name');
         const symbol = this.safeSymbol (marketId, market);
-        const execInst = this.safeValue (order, 'exec_inst');
+        const execInst = this.safeList (order, 'exec_inst');
         let postOnly: Bool = undefined;
         if (execInst !== undefined) {
             postOnly = false;
@@ -2695,7 +2695,7 @@ export default class cryptocom extends Exchange {
         return [ marginMode, params ];
     }
 
-    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined) {
+    override parseDepositWithdrawFee (fee: Dict, currency: Currency = undefined) {
         //
         //    {
         //        "full_name": "Alchemix",
@@ -2761,7 +2761,7 @@ export default class cryptocom extends Exchange {
             await this.loadMarkets ();
         }
         const response = await this.v1PrivatePostPrivateGetCurrencyNetworks (params);
-        const data = this.safeValue (response, 'result');
+        const data = this.safeDict (response, 'result');
         const currencyMap = this.safeList (data, 'currency_map');
         return this.parseDepositWithdrawFees (currencyMap, codes, 'full_name');
     }
@@ -2966,7 +2966,7 @@ export default class cryptocom extends Exchange {
         return this.parseAccounts (accounts, params);
     }
 
-    override parseAccount (account: any) {
+    override parseAccount (account: Dict) {
         //
         //     {
         //         "uuid": "a1234abc-1234-4321-q5r7-b1ab0a0b12b",
@@ -3054,7 +3054,7 @@ export default class cryptocom extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
-    parseSettlement (settlement: any, market: any) {
+    parseSettlement (settlement: Dict, market: any) {
         //
         //     {
         //         "i": "BTCUSD-230526",
@@ -3562,7 +3562,7 @@ export default class cryptocom extends Exchange {
         return this.parseTradingFees (result);
     }
 
-    parseTradingFees (response: any) {
+    parseTradingFees (response: Dict) {
         //
         // {
         //         "spot_tier": "3",

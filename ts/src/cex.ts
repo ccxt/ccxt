@@ -875,7 +875,7 @@ export default class cex extends Exchange {
         return this.parseTradingFees (fees, true);
     }
 
-    parseTradingFees (response: any, useKeyAsId = false): TradingFees {
+    parseTradingFees (response: Dict, useKeyAsId = false): TradingFees {
         const result: Dict = {};
         const keys = Object.keys (response);
         for (let i = 0; i < keys.length; i++) {
@@ -1004,7 +1004,7 @@ export default class cex extends Exchange {
         return this.parseBalance (accountBalance);
     }
 
-    override parseBalance (response: any): Balances {
+    override parseBalance (response: Dict): Balances {
         const result: Dict = {
             'info': response,
         };
@@ -1803,7 +1803,7 @@ export default class cex extends Exchange {
         return this.parseDepositAddress (data, currency);
     }
 
-    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
         const address = this.safeString (depositAddress, 'address');
         const currencyId = this.safeString (depositAddress, 'currency');
         currency = this.safeCurrency (currencyId, currency);
