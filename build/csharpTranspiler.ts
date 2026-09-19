@@ -171,6 +171,333 @@ function csharpArgumentCount (args: string): number {
     return count
 }
 
+
+// ===== native getArrayLength / inOp on a receiver the EMITTED text declares =====
+//
+// The printer's helper-to-native arms (csharpDeclaredLengthExpression / csharpNativeInExpression)
+// read the print-time declared-local table, so a receiver whose C# type is produced later — a
+// parameter narrowed by typeCoreArgs / retypeSignatureArgs, a local retyped by the classifier's
+// post-print wrapper, a copy a later pass renamed — keeps the runtime helper. This pass reads the
+// emitted signature and declarations and rewrites the call into the member the helper's own
+// runtime branch performs: `Count` / `Length` for getArrayLength, `ContainsKey` / `Contains` for
+// inOp. Nothing is retyped here and no cast is added: a receiver the emitted text does not name,
+// and a key that is not a literal or a non-nullable `string`, keep the helper.
+
+// declared C# types whose `Count` counts the elements getArrayLength's IList / ICollection
+// branches count (the helper answers 0 for null, which `x?.Count ?? 0` reproduces)
+const CSHARP_DECLARED_COUNT_TYPES = [ 'List<', 'IList<', 'Collection<', 'Dictionary<', 'IDictionary<',
+    'ConcurrentDictionary<', 'IReadOnlyDictionary<', 'SortedDictionary<', 'SortedList<', 'HashSet<',
+    'ConcurrentQueue<' ];
+// declared C# types whose `Length` is getArrayLength's own byte[] / string branch
+const CSHARP_DECLARED_LENGTH_TYPES = [ 'byte[]', 'string', 'string?' ];
+// declared C# dictionary types whose `ContainsKey` is InOp's IDictionary<string, object> branch
+const CSHARP_DECLARED_DICT_TYPES = [ 'Dictionary<', 'IDictionary<', 'ConcurrentDictionary<',
+    'IReadOnlyDictionary<', 'SortedDictionary<', 'SortedList<' ];
+// declared C# list types whose `Contains` is InOp's IList<object> branch (a List<string> /
+// List<Int64> receiver casts the key in the helper, so it keeps the helper)
+const CSHARP_DECLARED_LIST_TYPES = [ 'List<object>', 'IList<object>' ];
+
+// a method signature line inside a class body: indented, a member name, an argument list
+const CSHARP_HELPER_SIGNATURE_RE = /^[ ]{4,}(?:(?:public|private|protected|internal)[ ]+)?(?:static[ ]+|async[ ]+|virtual[ ]+|override[ ]+|sealed[ ]+|new[ ]+|partial[ ]+|extern[ ]+|unsafe[ ]+)*(?:[A-Za-z_][\w<>,.\[\]]*(?:[ ][A-Za-z_][\w<>,.\[\]]*)*)[ ]+([A-Za-z_]\w*)[ ]*\(/;
+// a declaration of one variable: `Type name = value;` / `Type name;`
+const CSHARP_HELPER_DECL_RE = /^[ ]*([A-Za-z_][\w<>,.\[\]]*(?:[ ][A-Za-z_][\w<>,.\[\]]*)*)[ ]+([A-Za-z_]\w*)[ ]*(=[ ]*([^;]*))?;[ ]*$/;
+// the same declaration with a collection/object initializer that spans lines (`= new X () {`)
+const CSHARP_HELPER_NEW_DECL_RE = /^[ ]*([A-Za-z_][\w<>,.\[\]]*(?:[ ][A-Za-z_][\w<>,.\[\]]*)*)[ ]+([A-Za-z_]\w*)[ ]*=[ ]*new\b[^;]*\{[ ]*$/;
+const CSHARP_HELPER_TYPE_RE = /^[A-Za-z_][\w.]*(?:[ ]*<[^<>=;(){}]*>)?(?:[ ]*\[\])?[?]?$/;
+// statement keywords a declaration-shaped line may start with
+const CSHARP_HELPER_KEYWORDS = [ 'return', 'throw', 'if', 'else', 'while', 'for', 'foreach', 'using',
+    'lock', 'yield', 'case', 'switch', 'do', 'try', 'catch', 'break', 'continue', 'goto', 'new',
+    'fixed', 'checked', 'unchecked', 'await', 'base', 'this', 'var' ];
+
+// string / char literal bodies and line comments blanked out, offsets and quotes preserved
+function csharpHelperMaskLine (line: string): string {
+    let out = '';
+    let i = 0;
+    while (i < line.length) {
+        const ch = line[i];
+        if ((ch === '/') && (line[i + 1] === '/')) {
+            out += ' '.repeat (line.length - i);
+            break;
+        }
+        if ((ch === '"') || (ch === "'")) {
+            const quote = ch;
+            let j = i + 1;
+            out += (quote === '"') ? '"' : ' ';
+            while (j < line.length) {
+                if (line[j] === '\\') { out += '  '; j += 2; continue; }
+                if (line[j] === quote) break;
+                out += ' '; j++;
+            }
+            if (j < line.length) { out += (quote === '"') ? '"' : ' '; j++; }
+            i = j;
+            continue;
+        }
+        out += ch;
+        i++;
+    }
+    return out;
+}
+
+// the parameter types a signature line (and its continuation lines) declares
+function csharpHelperSignatureParams (masked: string[], start: number): { [name: string]: string } {
+    let depth = 0;
+    let text = '';
+    for (let i = start; (i < masked.length) && (i < start + 14); i++) {
+        text += masked[i].split ('{')[0] + ' ';
+            depth += (masked[i].match (/\(/g) ?? []).length;
+            depth -= (masked[i].match (/\)/g) ?? []).length;
+        if ((depth <= 0) && text.includes ('(')) {
+            break;
+        }
+    }
+    const open = text.indexOf ('(');
+    const close = text.lastIndexOf (')');
+    if ((open < 0) || (close <= open)) {
+        return {};
+    }
+    const params: { [name: string]: string } = {};
+    const parts = [];
+    let current = '';
+    let nesting = 0;
+    for (const ch of text.substring (open + 1, close)) {
+        if ((ch === '(') || (ch === '<') || (ch === '[')) nesting++;
+        if ((ch === ')') || (ch === '>') || (ch === ']')) nesting--;
+        if ((ch === ',') && (nesting === 0)) { parts.push (current); current = ''; continue; }
+        current += ch;
+    }
+    if (current.trim ()) parts.push (current);
+    for (const part of parts) {
+        const tokens = part.trim ().split ('=')[0].trim ().split (/\s+/).filter ((t) => t.length > 0);
+        if (tokens.length < 2) continue;
+        const name = tokens[tokens.length - 1];
+        let type = tokens.slice (0, tokens.length - 1).join (' ');
+        type = type.replace (/^(ref|out|in|params|this)\s+/, '');
+        if (!/^[A-Za-z_]\w*$/.test (name) || !CSHARP_HELPER_TYPE_RE.test (type)) continue;
+        params[name] = type;
+    }
+    return params;
+}
+
+// the declaration a line carries, or undefined: `Type name = value;` / `Type name;` /
+// `Type name = new ...() {` (the initializer continues on the next lines)
+function csharpHelperDeclarationOfLine (line: string): { type: string, name: string, value: string } | undefined {
+    const match = CSHARP_HELPER_DECL_RE.exec (line);
+    if (match === null) {
+        const opened = CSHARP_HELPER_NEW_DECL_RE.exec (line);
+        if (opened === null) {
+            return undefined;
+        }
+        const type = opened[1].trim ();
+        if (CSHARP_HELPER_KEYWORDS.includes (type.split (' ')[0]) || !CSHARP_HELPER_TYPE_RE.test (type)) {
+            return undefined;
+        }
+        return { type, name: opened[2], value: 'new' };
+    }
+    const type = match[1].trim ();
+    const name = match[2];
+    if (CSHARP_HELPER_KEYWORDS.includes (type.split (' ')[0]) || !CSHARP_HELPER_TYPE_RE.test (type)) {
+        return undefined;
+    }
+    return { type, name, value: (match[4] ?? '').trim () };
+}
+
+// the C# type the emitted text declares for `name` at `line`: a local declared before the read,
+// else a parameter of the enclosing signature. A name the region declares with two different
+// types is left to the helper (the read may sit behind either binding)
+function csharpHelperReceiverType (region, name: string, line: number, params: { [name: string]: string }): { type: string, kind: string, value: string } | undefined {
+    const all = region.declarations.filter ((d) => d.name === name);
+    const types = [];
+    for (const declaration of all) {
+        if (!types.includes (declaration.type)) types.push (declaration.type);
+    }
+    if (types.length > 1) {
+        return undefined; // the read may sit behind either binding
+    }
+    const declarations = all.filter ((d) => d.line < line);
+    if (declarations.length > 0) {
+        const last = declarations[declarations.length - 1];
+        return { type: last.type, kind: 'local', value: last.value };
+    }
+    if (all.length > 0) {
+        return undefined; // bound only after the read: not the binding the read uses
+    }
+    if (params[name] !== undefined) {
+        return { type: params[name], kind: 'param', value: '' };
+    }
+    return undefined;
+}
+
+// whether the value a local holds at `line` can be null: only a freshly constructed initializer
+// that nothing has reassigned is provably non-null
+function csharpHelperLocalIsNonNull (region, name: string, line: number, value: string): boolean {
+    if (!/^new\b/.test (value)) {
+        return false;
+    }
+    return !region.lines.some ((maskedLine, i) => (i > region.start) && (i < line)
+        && new RegExp ('^[ ]*' + name + '[ ]*=[^=]').test (maskedLine));
+}
+
+// rewrite every proven helper call on one line; offsets are taken from the mask, the emitted text
+// from the original line
+function csharpHelperRewriteLine (original: string, masked: string, takeType, takeKeyType): string | undefined {
+    const edits = [];
+    const lengthCall = /getArrayLength[ ]*\(/g;
+    let match;
+    while ((match = lengthCall.exec (masked)) !== null) {
+        const open = match.index + match[0].length - 1;
+        const close = csharpHelperCallEnd (masked, open);
+        if (close === undefined) continue;
+        const name = masked.substring (open + 1, close).trim ();
+        if (!/^[A-Za-z_]\w*$/.test (name)) continue;
+        const receiver = takeType (name);
+        if (receiver === undefined) continue;
+        const member = CSHARP_DECLARED_COUNT_TYPES.some ((p) => receiver.type.startsWith (p)) ? 'Count'
+            : (CSHARP_DECLARED_LENGTH_TYPES.includes (receiver.type) ? 'Length' : undefined);
+        if (member === undefined) continue;
+        edits.push ({ start: match.index, end: close + 1, text: `(${name}?.${member} ?? 0)` });
+    }
+    const inCall = /(?<![A-Za-z_])inOp[ ]*\(/g;
+    while ((match = inCall.exec (masked)) !== null) {
+        const open = match.index + match[0].length - 1;
+        const close = csharpHelperCallEnd (masked, open);
+        if (close === undefined) continue;
+        const firstComma = csharpHelperTopLevelComma (masked, open, close);
+        if (firstComma === undefined) continue;
+        const name = masked.substring (open + 1, firstComma).trim ();
+        if (!/^[A-Za-z_]\w*$/.test (name)) continue;
+        const secondComma = csharpHelperTopLevelComma (masked, firstComma, close);
+        if (secondComma !== undefined) continue; // more than two arguments
+        const keyMask = masked.substring (firstComma + 1, close).trim ();
+        const receiver = takeType (name);
+        if (receiver === undefined) continue;
+        if (!takeKeyType (keyMask)) continue;
+        const isDict = CSHARP_DECLARED_DICT_TYPES.some ((p) => receiver.type.startsWith (p));
+        const isList = CSHARP_DECLARED_LIST_TYPES.includes (receiver.type);
+        if (!isDict && !isList) continue;
+        const keyText = original.substring (firstComma + 1, close).trim ();
+        const call = `${name}.${isDict ? 'ContainsKey' : 'Contains'}(${keyText})`;
+        const guarded = (receiver.type.endsWith ('?')
+            || (receiver.kind === 'param' && !receiver.paramsBag)
+            || (receiver.kind === 'local' && !receiver.nonNull));
+        edits.push ({ start: match.index, end: close + 1, text: guarded ? `(${name} != null && ${call})` : call });
+    }
+    if (edits.length === 0) {
+        return undefined;
+    }
+    let out = original;
+    for (const edit of edits.sort ((a, b) => b.start - a.start)) {
+        out = out.substring (0, edit.start) + edit.text + out.substring (edit.end);
+    }
+    return out;
+}
+
+// the index of the `)` closing the call whose `(` sits at `open`
+function csharpHelperCallEnd (line: string, open: number): number | undefined {
+    let depth = 0;
+    for (let i = open; i < line.length; i++) {
+        if (line[i] === '(') depth++;
+        if (line[i] === ')') {
+            depth--;
+            if (depth === 0) return i;
+        }
+    }
+    return undefined;
+}
+
+// the index of the first comma at the argument level between `open` and `close`
+function csharpHelperTopLevelComma (line: string, open: number, close: number): number | undefined {
+    let depth = 0;
+    for (let i = open + 1; i < close; i++) {
+        const ch = line[i];
+        if ((ch === '(') || (ch === '[') || (ch === '{')) depth++;
+        if ((ch === ')') || (ch === ']') || (ch === '}')) depth--;
+        if ((ch === ',') && (depth === 0)) return i;
+    }
+    return undefined;
+}
+
+// `getArrayLength(x)` -> `(x?.Count ?? 0)` / `(x?.Length ?? 0)`, `inOp(x, k)` ->
+// `x.ContainsKey(k)` / `x.Contains(k)` (with a null test where the emitted declaration allows a
+// null receiver) for every receiver the emitted signature / declarations type as a collection
+export function nativeDeclaredHelperCalls (content: string): string {
+    if (!content.includes ('getArrayLength') && !content.includes ('inOp')) {
+        return content;
+    }
+    const lines = content.split ('\n');
+    const masked = lines.map (csharpHelperMaskLine);
+    const signatures = [];
+    for (let i = 0; i < masked.length; i++) {
+        if (CSHARP_HELPER_SIGNATURE_RE.test (masked[i]) && !masked[i].trimEnd ().endsWith (';')) {
+            signatures.push (i);
+        }
+    }
+    if (signatures.length === 0) {
+        return content;
+    }
+    const regions = [];
+    for (let n = 0; n < signatures.length; n++) {
+        const start = signatures[n];
+        const end = (n + 1 < signatures.length) ? signatures[n + 1] : lines.length;
+        const params = csharpHelperSignatureParams (masked, start);
+        const declarations = [];
+        for (let i = start; i < end; i++) {
+            const declaration = csharpHelperDeclarationOfLine (masked[i]);
+            if (declaration !== undefined) {
+                declarations.push ({ line: i, name: declaration.name, type: declaration.type, value: declaration.value });
+            }
+        }
+        regions.push ({ start, end, params, declarations, lines: masked });
+    }
+    const regionOfLine = (line: number) => {
+        let current = regions[0];
+        for (const region of regions) {
+            if (region.start <= line) current = region;
+        }
+        return current;
+    };
+    let changed = false;
+    const out = lines.map ((line, i) => {
+        if ((line.indexOf ('getArrayLength') < 0) && (line.indexOf ('inOp') < 0)) {
+            return line;
+        }
+        const region = regionOfLine (i);
+        if ((i <= region.start) || (i >= region.end)) {
+            return line;
+        }
+        const rewrite = (name, isKey = false) => {
+            if (isKey) {
+                if (!/^[A-Za-z_]\w*$/.test (name)) return false;
+                const key = csharpHelperReceiverType (region, name, i, region.params);
+                return (key !== undefined) && (key.type === 'string');
+            }
+            const receiver = csharpHelperReceiverType (region, name, i, region.params);
+            if (receiver === undefined) {
+                return undefined;
+            }
+            if (receiver.kind === 'local') {
+                receiver.nonNull = csharpHelperLocalIsNonNull (region, name, i, receiver.value);
+            }
+            if (receiver.kind === 'param') {
+                const bag = new RegExp ('^[ ]*' + name + '[ ]*\\?\\?=');
+                receiver.paramsBag = masked.some ((maskedLine, k) => (k > region.start) && (k < i) && bag.test (maskedLine));
+            }
+            return receiver;
+        };
+        const takeType = (name) => rewrite (name, false);
+        const takeKeyType = (keyMask) => {
+            if (keyMask.startsWith ('"')) return true; // a string literal is never null
+            return rewrite (keyMask, true) === true;
+        };
+        const rewritten = csharpHelperRewriteLine (line, masked[i], takeType, takeKeyType);
+        if (rewritten === undefined) {
+            return line;
+        }
+        changed = true;
+        return rewritten;
+    });
+    return changed ? out.join ('\n') : content;
+}
+
 export function nativeDeclaredWsCalls (content: string): string {
     const opener = 'callDynamically('
     let out = ''
@@ -3671,7 +3998,7 @@ class NewTranspiler {
                 this.createGeneratedHeader().join('\n'),
                 "public partial class BaseExchange\n{\n\n"
             ]).join("\n");
-            const file = fileHeader + this.retypeSafeCollectionHelpers (this.pascalizeTypedCores (this.retypeCoreArgCopies (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (baseMethods), false))))), false)) + "\n";
+            const file = fileHeader + nativeDeclaredHelperCalls (this.retypeSafeCollectionHelpers (this.pascalizeTypedCores (this.retypeCoreArgCopies (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (baseMethods), false))))), false))) + "\n";
             fs.writeFileSync (csharpExchangeBase, file);
             log.green ('Transpiled base methods to', (csharpExchangeBase as any).yellow)
             if (exchangeClassMatch) {
@@ -3679,7 +4006,7 @@ class NewTranspiler {
                     this.createGeneratedHeader().join('\n'),
                     "public partial class Exchange\n{\n\n"
                 ]).join("\n");
-                const tradingFile = tradingHeader + this.pascalizeTypedCores (this.retypeCoreArgCopies (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (exchangeBody), false))))), false) + "\n}\n";
+                const tradingFile = tradingHeader + nativeDeclaredHelperCalls (this.pascalizeTypedCores (this.retypeCoreArgCopies (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (exchangeBody), false))))), false)) + "\n}\n";
                 fs.writeFileSync (BASE_TRADING_METHODS_FILE, tradingFile);
                 log.green ('Transpiled trading methods to', (BASE_TRADING_METHODS_FILE as any).yellow)
             }
@@ -3727,7 +4054,7 @@ class NewTranspiler {
                 "public partial class PredictionExchange : BaseExchange\n{\n\n"
             ]).join("\n");
             // method wrappers retired: PascalCase cores on PredictionExchange are the public API
-            const file = fileHeader + fields + this.pascalizeTypedCores (this.retypeCoreArgCopies (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (baseMethods), true))))), true) + "\n";
+            const file = fileHeader + fields + nativeDeclaredHelperCalls (this.pascalizeTypedCores (this.retypeCoreArgCopies (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (baseMethods), true))))), true)) + "\n";
             fs.writeFileSync (predictionBase, file);
             this._predictionBaseWritten = true;
             log.green ('Transpiled prediction base methods to', (predictionBase as any).yellow)
@@ -4069,7 +4396,7 @@ class NewTranspiler {
                 this.venueParents[this.currentVenue] = parent;
             }
         }
-        content = this.pascalizeTypedCores (this.retypeCoreArgCopies (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (content)))))));
+        content = nativeDeclaredHelperCalls (this.pascalizeTypedCores (this.retypeCoreArgCopies (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (content))))))));
         this.currentVenue = '';
         content = this.createGeneratedHeader().join('\n') + '\n' + content;
         return csharpImports + content;
@@ -4579,7 +4906,7 @@ class NewTranspiler {
                     '}',
                 ].join('\n');
             }
-            overwriteFileAndFolder (tests[idx].csharpFile, csharp);
+            overwriteFileAndFolder (tests[idx].csharpFile, nativeDeclaredHelperCalls (csharp));
         });
     }
 

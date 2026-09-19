@@ -2748,7 +2748,7 @@ public partial class poloniex : Exchange
         await this.loadMarkets();
         object orders = ccxt.BaseExchange.FromOrderList(await this.FetchOpenOrders(((string)symbol),ccxt.BaseExchange.ToInt64Arg(null),ccxt.BaseExchange.ToInt64Arg(null), parameters));
         Dictionary<string, object> indexed = this.indexBy(orders, "id");
-        return ccxt.BaseExchange.ToStringValue(((bool) (inOp(indexed, id))) ? "open" : "closed");
+        return ccxt.BaseExchange.ToStringValue(((bool) ((indexed != null && indexed.ContainsKey(id)))) ? "open" : "closed");
     }
 
     /**

@@ -992,7 +992,7 @@ public partial class bitflyer : Exchange
         }
         object orders = ccxt.BaseExchange.FromOrderList(await this.FetchOrders(((string)symbol)));
         Dictionary<string, object> ordersById = this.indexBy(orders, "id");
-        if (inOp(ordersById, id))
+        if ((ordersById != null && ordersById.ContainsKey(id)))
         {
             return ccxt.BaseExchange.ToOrder(getValue(ordersById, id));
         }

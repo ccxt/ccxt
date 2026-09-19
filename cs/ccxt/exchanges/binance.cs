@@ -11564,7 +11564,7 @@ public partial class binance : Exchange
         parameters = this.omit(parameters, "fiatOnly");
         Int64? until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, "until");
-        if (((fiatOnly == true)) || (((code != null)) && (inOp(legalMoney, code))))
+        if (((fiatOnly == true)) || (((code != null)) && ((legalMoney != null && legalMoney.ContainsKey(code)))))
         {
             if ((code != null))
             {
@@ -11663,7 +11663,7 @@ public partial class binance : Exchange
         }
         object response = null;
         IDictionary<string, object> currency = null;
-        if (((fiatOnly == true)) || (((code != null)) && (inOp(legalMoney, code))))
+        if (((fiatOnly == true)) || (((code != null)) && ((legalMoney != null && legalMoney.ContainsKey(code)))))
         {
             if ((code != null))
             {

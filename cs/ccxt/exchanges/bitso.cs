@@ -2035,7 +2035,7 @@ public partial class bitso : Exchange
             { "LTC", "Litecoin" },
         };
         Dictionary<string, object> currency = this.currency(((string)code));
-        object method = ((bool) (inOp(methods, code))) ? getValue(methods, code) : null;
+        object method = ((bool) (methods.ContainsKey(code))) ? getValue(methods, code) : null;
         if ((method == null))
         {
             throw new ExchangeError ((string)((this.id + " not valid withdraw coin: ") + (code))) ;
