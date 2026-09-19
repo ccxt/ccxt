@@ -3752,7 +3752,7 @@ export default class bitmex extends Exchange {
             throw new DDoSProtection (this.id + ' ' + body);
         }
         if (code >= 400) {
-            const error = this.safeValue (response, 'error', {});
+            const error = this.safeDict (response, 'error', {});
             const message = this.safeString (error, 'message');
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);

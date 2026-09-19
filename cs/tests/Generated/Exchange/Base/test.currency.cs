@@ -9,7 +9,7 @@ public partial class testMainClass : BaseTest
 {
     public static void testCurrency(BaseExchange exchange, object skippedProperties, object method, object entry)
     {
-        if (isTrue(isEqual(entry, null)))
+        if (isEqual(entry, null))
         {
             return;
         }
@@ -20,18 +20,18 @@ public partial class testMainClass : BaseTest
         // todo: remove fee from empty
         List<object> emptyAllowedFor = new List<object>() {"name", "fee"};
         // todo: info key needs to be added in base, when exchange does not have fetchCurrencies
-        bool isNative = isTrue(isTrue((!isEqual(getValue(exchange.has, "fetchCurrencies"), null))) && isTrue((!isEqual(getValue(exchange.has, "fetchCurrencies"), false)))) && isTrue((!isEqual(getValue(exchange.has, "fetchCurrencies"), "emulated")));
+        bool isNative = (!isEqual(getValue(exchange.has, "fetchCurrencies"), null)) && (!isEqual(getValue(exchange.has, "fetchCurrencies"), false)) && (!isEqual(getValue(exchange.has, "fetchCurrencies"), "emulated"));
         string? currencyType = exchange.safeString(entry, "type");
-        if (isTrue(isEqual(isNative, true)))
+        if ((isNative == true))
         {
-            ((IDictionary<string,object>)format)["info"] = new Dictionary<string, object>() {};
+            format["info"] = new Dictionary<string, object>() {};
             // todo: 'name': 'Bitcoin', // uppercase string, base currency, 2 or more letters
-            ((IDictionary<string,object>)format)["withdraw"] = true; // withdraw enabled
-            ((IDictionary<string,object>)format)["deposit"] = true; // deposit enabled
-            ((IDictionary<string,object>)format)["precision"] = exchange.parseNumber("0.0001"); // in case of SIGNIFICANT_DIGITS it will be 4 - number of digits "after the dot"
-            ((IDictionary<string,object>)format)["fee"] = exchange.parseNumber("0.001");
-            ((IDictionary<string,object>)format)["networks"] = new Dictionary<string, object>() {};
-            ((IDictionary<string,object>)format)["limits"] = new Dictionary<string, object>() {
+            format["withdraw"] = true; // withdraw enabled
+            format["deposit"] = true; // deposit enabled
+            format["precision"] = exchange.parseNumber("0.0001"); // in case of SIGNIFICANT_DIGITS it will be 4 - number of digits "after the dot"
+            format["fee"] = exchange.parseNumber("0.001");
+            format["networks"] = new Dictionary<string, object>() {};
+            format["limits"] = new Dictionary<string, object>() {
                 { "withdraw", new Dictionary<string, object>() {
                     { "min", exchange.parseNumber("0.01") },
                     { "max", exchange.parseNumber("1000") },
@@ -41,18 +41,18 @@ public partial class testMainClass : BaseTest
                     { "max", exchange.parseNumber("1000") },
                 } },
             };
-            ((IDictionary<string,object>)format)["type"] = "crypto"; // crypto, fiat, leverage, other
+            format["type"] = "crypto"; // crypto, fiat, leverage, other
             testSharedMethods.assertInArray(exchange, skippedProperties, method, entry, "type", new List<object>() {"fiat", "crypto", "leveraged", "other", null}); // todo: remove undefined
             // only require "deposit" & "withdraw" values, when currency is not fiat, or when it's fiat, but not skipped
-            if (isTrue(isTrue(!isEqual(currencyType, "crypto")) && isTrue((inOp(skippedProperties, "depositForNonCrypto")))))
+            if (currencyType != "crypto" && (inOp(skippedProperties, "depositForNonCrypto")))
             {
                 ((IList<object>)emptyAllowedFor).Add("deposit");
             }
-            if (isTrue(isTrue(!isEqual(currencyType, "crypto")) && isTrue((inOp(skippedProperties, "withdrawForNonCrypto")))))
+            if (currencyType != "crypto" && (inOp(skippedProperties, "withdrawForNonCrypto")))
             {
                 ((IList<object>)emptyAllowedFor).Add("withdraw");
             }
-            if (isTrue(isTrue(isEqual(currencyType, "leveraged")) || isTrue(isEqual(currencyType, "other"))))
+            if (currencyType == "leveraged" || currencyType == "other")
             {
                 ((IList<object>)emptyAllowedFor).Add("precision");
             }
@@ -62,8 +62,8 @@ public partial class testMainClass : BaseTest
         // check if empty networks should be skipped
         IDictionary<string, object> networks = exchange.safeDict(entry, "networks", new Dictionary<string, object>() {});
         List<object> networkKeys = new List<object>(((IDictionary<string,object>)networks).Keys);
-        int networkKeysLength = getArrayLength(networkKeys);
-        if (isTrue(isTrue(isEqual(networkKeysLength, 0)) && isTrue((inOp(skippedProperties, "skipCurrenciesWithoutNetworks")))))
+        int networkKeysLength = networkKeys.Count;
+        if ((networkKeysLength == 0) && (inOp(skippedProperties, "skipCurrenciesWithoutNetworks")))
         {
             return;
         }
@@ -74,10 +74,10 @@ public partial class testMainClass : BaseTest
         {
             object message = exchange.exceptionMessage(e);
             // check structure if key is numeric, not string
-            if (isTrue(isGreaterThanOrEqual(getIndexOf(message, "\"id\" key"), 0)))
+            if (getIndexOf(message, "\"id\" key") >= 0)
             {
                 // @ts-ignore
-                ((IDictionary<string,object>)format)["id"] = 123;
+                format["id"] = 123;
                 testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
             } else
             {
@@ -87,7 +87,7 @@ public partial class testMainClass : BaseTest
         //
         testSharedMethods.checkPrecisionAccuracy(exchange, skippedProperties, method, entry, "precision");
         testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, "fee", "0");
-        if (!isTrue((inOp(skippedProperties, "limits"))))
+        if (!(inOp(skippedProperties, "limits")))
         {
             object limits = exchange.safeValue(entry, "limits", new Dictionary<string, object>() {});
             object withdrawLimits = exchange.safeValue(limits, "withdraw", new Dictionary<string, object>() {});
@@ -98,13 +98,13 @@ public partial class testMainClass : BaseTest
             testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, depositLimits, "max", "0");
             // max should be more than min (withdrawal limits)
             string? minStringWithdrawal = exchange.safeString(withdrawLimits, "min");
-            if (isTrue(!isEqual(minStringWithdrawal, null)))
+            if ((minStringWithdrawal != null))
             {
                 testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, withdrawLimits, "max", minStringWithdrawal);
             }
             // max should be more than min (deposit limits)
             string? minStringDeposit = exchange.safeString(depositLimits, "min");
-            if (isTrue(!isEqual(minStringDeposit, null)))
+            if ((minStringDeposit != null))
             {
                 testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, depositLimits, "max", minStringDeposit);
             }

@@ -1,6 +1,6 @@
 import { Transpiler } from 'ast-transpiler';
 import { getProgramBatch } from './worker-program-batch.js';
-import { installCsharpAsyncCoreReturns, installCsharpCollectionReturns, installCsharpLocalTypes, installCsharpNumericReturns, installCsharpStringReturns } from './csharp-local-types.js';
+import { csharpTypeOfValue, installCsharpAsyncCoreReturns, installCsharpCollectionReturns, installCsharpConditionOperands, installCsharpLocalTypes, installCsharpNumericReturns, installCsharpReceiverTypes, installCsharpStringReceivers, installCsharpStringReturns } from './csharp-local-types.js';
 import log from 'ololog'
 // "typescript6" is an npm alias for typescript@6 — the last release that ships the JS compiler API
 import ts from 'typescript6';
@@ -56,6 +56,16 @@ export function setupCsharpPrinter (transpiler: Transpiler) {
     // concrete types for generated locals (see build/csharp-local-types.js); installed here
     // so the pooled workers and the main-thread transpiler emit identical declarations
     installCsharpLocalTypes (transpiler);
+    // `((string)x).Split/.ToUpper/...` receivers: the printer's cast is redundant once the
+    // declaration's emitted type is a string — the local-types tables above name those
+    installCsharpStringReceivers (transpiler);
+    // the printer's receiver-type hook: an element WRITE into a dict-typed local drops the
+    // interface cast (`request["k"] = v`) — see the receiver-declared-types section of the same file
+    installCsharpReceiverTypes (transpiler);
+    // `isTrue (x)` condition operands the local-types pass retypes to bool/bool? print
+    // natively (`x` / `x == true`, see the ast printer's csharpConditionOperandType); the
+    // printer's own answer covers the locals it types itself
+    installCsharpConditionOperands (transpiler);
     // concrete return types for the numeric base helpers whose C# signature was `object`
     // (see the numeric-returns section of build/csharp-local-types.js) — the locals map
     // registers the same types
@@ -124,6 +134,59 @@ export function setupCsharpPrinter (transpiler: Transpiler) {
     // the dict/list-returns section of build/csharp-local-types.js) — their returns carry
     // the same boundary cast and the locals map registers the same types
     installCsharpCollectionReturns (transpiler);
+    // S17: `return ((bool)((object)(x))!)` in a bool / bool? method is an identity box + unbox.
+    // Drop it when the returned expression's own C# static type already IS the method's boolean
+    // type — exact match only, so no nullability (and no spelling) is crossed.
+    installCsharpBooleanReturnCasts (csharp);
+}
+
+// bare helper calls whose hand-written C# signature returns `bool` and whose printed form IS
+// that call: `static bool isEqual / isTrue` (Exchange.TranspileHelpers.cs), `bool inOp` (ibid).
+const CSHARP_BOOLEAN_RETURN_CALLS = new Set ([ 'isEqual', 'isTrue', 'inOp' ]);
+
+// The C# static type of a returned expression, with the same authority that types the local
+// declarations (csharpTypeOfValue resolves locals through csharpLocalType). Undefined whenever
+// the box is not provably the boolean type, which keeps the printer's unbox in place.
+function booleanReturnValueType (csharp: any, node: any, scope: any): string | undefined {
+    let value = node;
+    while (value?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        value = value.expression;
+    }
+    if (value?.kind === ts.SyntaxKind.CallExpression && value.expression?.kind === ts.SyntaxKind.Identifier
+        && CSHARP_BOOLEAN_RETURN_CALLS.has (value.expression.escapedText)) {
+        return csharp.BOOLEAN_KEYWORD;
+    }
+    return csharpTypeOfValue (csharp, node, { scope, stack: new Set (), depth: 0 });
+}
+
+function installCsharpBooleanReturnCasts (csharp: any) {
+    if (!csharp || typeof csharp.printReturnStatement !== 'function' || csharp._localBooleanReturnCastsPatched) {
+        return;
+    }
+    const upstream = csharp.printReturnStatement.bind (csharp);
+    csharp.printReturnStatement = (node: any, identation: any) => {
+        const printed = upstream (node, identation);
+        if (typeof printed !== 'string' || !node.expression) {
+            return printed;
+        }
+        const booleanType = csharp.csharpBooleanReturnType (ts.findAncestor (node.parent, ts.isFunctionLike));
+        if (booleanType === undefined) {
+            return printed;
+        }
+        if (booleanReturnValueType (csharp, node.expression, csharp.csharpEnclosingFunction (node)) !== booleanType) {
+            return printed;
+        }
+        // rebuild the wrapper exactly as the printer emitted it, then splice the bare value in
+        const value = csharp.printNode (node.expression, identation).trim ();
+        const forgiving = booleanType.endsWith ('?') ? '' : '!';
+        const wrapper = `((${booleanType})((object)(${value}))${forgiving})`;
+        const at = printed.indexOf (wrapper);
+        if (at < 0) {
+            return printed;
+        }
+        return printed.slice (0, at) + value + printed.slice (at + wrapper.length);
+    };
+    csharp._localBooleanReturnCastsPatched = true;
 }
 
 // piscina reuses worker threads across tasks — cache the Transpiler per thread

@@ -870,7 +870,7 @@ export default class poloniex extends Exchange {
         const quote = this.safeCurrencyCode (quoteId);
         const state = this.safeString (market, 'state');
         const active = state === 'NORMAL';
-        const symbolTradeLimit = this.safeValue (market, 'symbolTradeLimit');
+        const symbolTradeLimit = this.safeDict (market, 'symbolTradeLimit');
         // these are known defaults
         return this.safeMarketStructure ({
             'id': id,

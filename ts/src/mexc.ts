@@ -2822,7 +2822,7 @@ export default class mexc extends Exchange {
             //         }
             //     }
             //
-            data = this.safeValue (response, 'data');
+            data = this.safeDict (response, 'data') as Dict;
         }
         return this.parseOrder (data, market);
     }
@@ -2949,8 +2949,8 @@ export default class mexc extends Exchange {
             }
             let method = this.safeString (this.options, 'fetchOrders', 'contractPrivateGetOrderListHistoryOrders');
             method = this.safeString (query, 'method', method);
-            let ordersOfRegular = [];
-            let ordersOfTrigger = [];
+            let ordersOfRegular: List = [];
+            let ordersOfTrigger: List = [];
             if (method === 'contractPrivateGetOrderListHistoryOrders') {
                 const response = await this.contractPrivateGetOrderListHistoryOrders (this.extend (request, query));
                 //
@@ -2987,7 +2987,7 @@ export default class mexc extends Exchange {
                 //          ]
                 //     }
                 //
-                ordersOfRegular = this.safeValue (response, 'data');
+                ordersOfRegular = this.safeList (response, 'data') as List;
             } else {
                 // the Planorder endpoints work not only for stop-market orders, but also for stop-limit orders that were supposed to have a separate endpoint
                 const response = await this.contractPrivateGetPlanorderListOrders (this.extend (request, query));
@@ -3017,7 +3017,7 @@ export default class mexc extends Exchange {
                 //         ]
                 //     }
                 //
-                ordersOfTrigger = this.safeValue (response, 'data');
+                ordersOfTrigger = this.safeList (response, 'data') as List;
             }
             const merged = this.arrayConcat (ordersOfTrigger, ordersOfRegular);
             return this.parseOrders (merged, market, since, limit, params);
@@ -4652,7 +4652,7 @@ export default class mexc extends Exchange {
         //        }
         //    }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeDict (response, 'data');
         const result = this.safeList (data, 'resultList', []);
         const rates: FundingRateHistory[] = [];
         for (let i = 0; i < result.length; i++) {
@@ -4868,7 +4868,7 @@ export default class mexc extends Exchange {
             const networks = this.safeDict (currency, 'networks', {});
             if ((networkUnified !== undefined) && (networkUnified in networks)) {
                 const network = (networkUnified === undefined) ? {} : this.safeDict (networks, networkUnified, {});
-                const networkInfo = this.safeValue (network, 'info', {});
+                const networkInfo = this.safeDict (network, 'info', {});
                 networkId = this.safeString (networkInfo, 'network');
             } else {
                 networkId = this.networkCodeToId (networkCode, code);
@@ -4922,7 +4922,7 @@ export default class mexc extends Exchange {
         const networks = this.safeDict (currency, 'networks', {});
         if ((networkUnified !== undefined) && (networkUnified in networks)) {
             const network = (networkUnified === undefined) ? {} : this.safeDict (networks, networkUnified, {});
-            const networkInfo = this.safeValue (network, 'info', {});
+            const networkInfo = this.safeDict (network, 'info', {});
             networkId = this.safeString (networkInfo, 'network');
         } else {
             networkId = this.networkCodeToId (networkCode, code);
@@ -5561,8 +5561,8 @@ export default class mexc extends Exchange {
                 request['page_size'] = limit;
             }
             const response = await this.contractPrivateGetAccountTransferRecord (this.extend (request, params));
-            const data = this.safeValue (response, 'data');
-            resultList = this.safeValue (data, 'resultList');
+            const data = this.safeDict (response, 'data');
+            resultList = this.safeList (data, 'resultList') as List;
             //
             //     {
             //         "success": true,

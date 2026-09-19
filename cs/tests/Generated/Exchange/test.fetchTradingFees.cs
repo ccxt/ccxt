@@ -13,9 +13,9 @@ public partial class testMainClass : BaseTest
         object fees = await invokeExchangeDynamically(exchange, "fetchTradingFees");
         List<object> symbols = new List<object>(((IDictionary<string,object>)fees).Keys);
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, symbols);
-        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, symbols.Count); postFixIncrement(ref i))
         {
-            object symbol = getValue(symbols, i);
+            object symbol = symbols[i];
             testTradingFee(exchange, skippedProperties, method, symbol, getValue(fees, symbol));
         }
         return true;

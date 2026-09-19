@@ -1158,7 +1158,7 @@ export default class bitfinex extends Exchange {
         //   "info": [ 'USTF0', [], [], [], [ "USTF0", "UST" ] ],
         const info = this.safeValue (currency, 'info');
         const transferId = this.safeString (info, 0);
-        const underlying = this.safeValue (info, 4, []);
+        const underlying = this.safeList (info, 4, []);
         let currencyId: Str = undefined;
         if (type === 'derivatives') {
             currencyId = this.safeString (underlying, 0, transferId);
@@ -2495,7 +2495,7 @@ export default class bitfinex extends Exchange {
         //         "success", // TEXT Text of the notification
         //     ]
         //
-        const result = this.safeValue (response, 4, []);
+        const result = this.safeList (response, 4, []);
         const poolAddress = this.safeString (result, 5);
         const address = (poolAddress === undefined) ? this.safeString (result, 4) : poolAddress;
         const tag = (poolAddress === undefined) ? undefined : this.safeString (result, 4);
@@ -2593,7 +2593,7 @@ export default class bitfinex extends Exchange {
         let network: Str = undefined;
         let comment: Str = undefined;
         if (transactionLength === 8) {
-            const data = this.safeValue (transaction, 4, []);
+            const data = this.safeList (transaction, 4, []);
             timestamp = this.safeInteger (transaction, 0);
             if (currency !== undefined) {
                 code = currency['code'];
@@ -2749,9 +2749,9 @@ export default class bitfinex extends Exchange {
         //
         const result: Dict = {};
         const fiat = this.safeDict (this.options, 'fiat', {});
-        const feeData = this.safeValue (response, 4, []);
-        const makerData = this.safeValue (feeData, 0, []);
-        const takerData = this.safeValue (feeData, 1, []);
+        const feeData = this.safeList (response, 4, []);
+        const makerData = this.safeList (feeData, 0, []);
+        const takerData = this.safeList (feeData, 1, []);
         const makerFee = this.safeNumber (makerData, 0);
         const makerFeeFiat = this.safeNumber (makerData, 2);
         const makerFeeDeriv = this.safeNumber (makerData, 5);

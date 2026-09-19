@@ -716,7 +716,7 @@ export default class woo extends wooRest {
         //         }
         //     }
         //
-        const data = this.safeValue (message, 'data');
+        const data = this.safeDict (message, 'data');
         const topic = this.safeValue (message, 'topic');
         const marketId = this.safeString (data, 'symbol');
         const market = this.safeMarket (marketId);

@@ -454,7 +454,7 @@ export default class bitteam extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const markets = this.safeValue (result, 'pairs', []);
+        const markets = this.safeList (result, 'pairs', []);
         return this.parseMarkets (markets);
     }
 
@@ -473,7 +473,7 @@ export default class bitteam extends Exchange {
         const currenciesValuedInUsd = this.handleOption ('fetchMarkets', 'currenciesValuedInUsd', {});
         const quoteInUsd = this.safeBool (currenciesValuedInUsd, quote, false);
         if (quoteInUsd === true) {
-            const settings = this.safeValue (market, 'settings', {});
+            const settings = this.safeDict (market, 'settings', {});
             minCost = this.safeNumber (settings, 'limit_usd');
         }
         return this.safeMarketStructure ({
@@ -666,7 +666,7 @@ export default class bitteam extends Exchange {
         const code = this.safeCurrencyCode (id);
         const active = this.safeBool (currency, 'active', false);
         const precision = this.parseNumber (this.parsePrecision (this.safeString (currency, 'precision')));
-        const txLimits = this.safeValue (currency, 'txLimits', {});
+        const txLimits = this.safeDict (currency, 'txLimits', {});
         const minWithdraw = this.safeString (txLimits, 'minWithdraw');
         const maxWithdraw = this.safeString (txLimits, 'maxWithdraw');
         const minDeposit = this.safeString (txLimits, 'minDeposit');
@@ -2381,7 +2381,7 @@ export default class bitteam extends Exchange {
         const timestamp = this.safeInteger (transaction, 'timestamp');
         let networkId = this.safeString (transaction, 'blockChain');
         if (networkId === undefined) {
-            const links = this.safeValue (currencyObject, 'links', []);
+            const links = this.safeList (currencyObject, 'links', []);
             const blockChain = this.safeValue (links, 0, {});
             networkId = this.safeString (blockChain, 'blockChain');
         }

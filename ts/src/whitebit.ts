@@ -793,11 +793,11 @@ export default class whitebit extends Exchange {
             const currency = currenciesIds[i];
             const data = this.safeDict (response, currency, {});
             const code = this.safeCurrencyCode (currency);
-            const withdraw = this.safeValue (data, 'withdraw', {});
+            const withdraw = this.safeDict (data, 'withdraw', {});
             if (code !== undefined) {
                 withdrawFees[code] = this.safeString (withdraw, 'fixed');
             }
-            const deposit = this.safeValue (data, 'deposit', {});
+            const deposit = this.safeDict (data, 'deposit', {});
             if (code !== undefined) {
                 depositFees[code] = this.safeString (deposit, 'fixed');
             }
@@ -927,8 +927,8 @@ export default class whitebit extends Exchange {
                 }
                 depositWithdrawFees[code]['info'][entry] = feeInfo;
                 let networkId = this.safeString (splitEntry, 1);
-                const withdraw = this.safeValue (feeInfo, 'withdraw');
-                const deposit = this.safeValue (feeInfo, 'deposit');
+                const withdraw = this.safeDict (feeInfo, 'withdraw');
+                const deposit = this.safeDict (feeInfo, 'deposit');
                 const withdrawFee = this.safeNumber (withdraw, 'fixed');
                 const depositFee = this.safeNumber (deposit, 'fixed');
                 const withdrawResult: Dict = {
@@ -2923,7 +2923,7 @@ export default class whitebit extends Exchange {
         //     }
         //
         const url = this.safeString (response, 'url');
-        const account = this.safeValue (response, 'account', {});
+        const account = this.safeDict (response, 'account', {});
         const address = this.safeString (account, 'address', url);
         const tag = this.safeString (account, 'memo');
         this.checkAddress (address);
@@ -3319,7 +3319,7 @@ export default class whitebit extends Exchange {
         //         "total": 300                                                                                             // total number of  transactions, use this for calculating ‘limit’ and ‘offset'
         //     }
         //
-        const records = this.safeValue (response, 'records', []);
+        const records = this.safeList (response, 'records', []);
         const first = this.safeDict (records, 0, {});
         return this.parseTransaction (first, currency);
     }
@@ -4197,7 +4197,7 @@ export default class whitebit extends Exchange {
     }
 
     isFiat (currency: string): boolean {
-        const fiatCurrencies = this.safeValue (this.options, 'fiatCurrencies', []);
+        const fiatCurrencies = this.safeList (this.options, 'fiatCurrencies', []);
         return this.inArray (currency, fiatCurrencies);
     }
 

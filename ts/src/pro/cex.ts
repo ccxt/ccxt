@@ -410,7 +410,7 @@ export default class cex extends cexRest {
         //        "priceChangePercentage": "0.23",
         //        "pair": ["BTC", "USDT"]
         //    }
-        const pair = this.safeValue (ticker, 'pair', []);
+        const pair = this.safeList (ticker, 'pair', []);
         let baseId = this.safeString (ticker, 'symbol1');
         if (baseId === undefined) {
             baseId = this.safeString (pair, 0);
@@ -552,7 +552,7 @@ export default class cex extends cexRest {
     }
 
     handleTransaction (client: Client, message: any) {
-        const data = this.safeValue (message, 'data');
+        const data = this.safeDict (message, 'data');
         const symbol2 = this.safeString (data, 'symbol2');
         if (symbol2 === undefined) {
             return;
@@ -1080,8 +1080,8 @@ export default class cex extends cexRest {
             return;
         }
         const timestamp = this.safeInteger (data, 'time');
-        const asks = this.safeValue (data, 'asks', []);
-        const bids = this.safeValue (data, 'bids', []);
+        const asks = this.safeList (data, 'asks', []);
+        const bids = this.safeList (data, 'bids', []);
         this.handleDeltas (storedOrderBook['asks'], asks);
         this.handleDeltas (storedOrderBook['bids'], bids);
         storedOrderBook['timestamp'] = timestamp;

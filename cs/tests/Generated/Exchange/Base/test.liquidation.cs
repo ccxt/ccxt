@@ -34,16 +34,16 @@ public partial class testMainClass : BaseTest
         object contractSize = exchange.safeString(entry, "contractSize");
         object price = exchange.safeString(entry, "price");
         object baseValue = exchange.safeString(entry, "baseValue");
-        if (isTrue(isTrue(isTrue(isTrue((!isEqual(contracts, null))) && isTrue((!isEqual(contracts, "")))) && isTrue((!isEqual(contractSize, null)))) && isTrue((!isEqual(contractSize, "")))))
+        if (((contracts != null)) && (!isEqual(contracts, "")) && ((contractSize != null)) && (!isEqual(contractSize, "")))
         {
-            assert(Precise.stringEq(baseValue, Precise.stringMul(contracts, contractSize)), add("baseValue == contracts * contractSize", logText));
-            if (isTrue(isTrue((!isEqual(price, null))) && isTrue((!isEqual(price, "")))))
+            assert(Precise.stringEq(baseValue, Precise.stringMul(contracts, contractSize)), ("baseValue == contracts * contractSize" + logText));
+            if (((price != null)) && (!isEqual(price, "")))
             {
-                assert(Precise.stringEq(baseValue, Precise.stringMul(Precise.stringMul(contracts, contractSize), price)), add("quoteValue == contracts * contractSize * price", logText));
+                assert(Precise.stringEq(baseValue, Precise.stringMul(Precise.stringMul(contracts, contractSize), price)), ("quoteValue == contracts * contractSize * price" + logText));
             }
         }
         // if singular was called, then symbol needs to be asserted
-        if (isTrue(isTrue(isEqual(method, "watchLiquidations")) || isTrue(isEqual(method, "fetchLiquidations"))))
+        if (isEqual(method, "watchLiquidations") || isEqual(method, "fetchLiquidations"))
         {
             testSharedMethods.assertSymbol(exchange, skippedProperties, method, entry, "symbol", symbol);
         }

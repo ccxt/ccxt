@@ -885,7 +885,7 @@ export default class bitrue extends bitrueRest {
                 //         }
                 //     }
                 //
-                const data = this.safeValue (response, 'data', {});
+                const data = this.safeDict (response, 'data', {});
                 const key = this.safeString (data, 'listenKey');
                 if (key === undefined) {
                     // reject instead of caching an empty credential, so

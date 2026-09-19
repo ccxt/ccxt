@@ -607,7 +607,7 @@ export default class bydfi extends bydfiRest {
         }
         const orders = await this.watchPrivate (messageHashes, params);
         if (this.newUpdates) {
-            const first = this.safeValue (orders, 0);
+            const first = this.safeDict (orders, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
             limit = orders.getLimit (tradeSymbol, limit);
         }

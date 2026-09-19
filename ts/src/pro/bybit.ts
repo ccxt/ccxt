@@ -1130,7 +1130,7 @@ export default class bybit extends bybitRest {
         }
         const trades = await this.watchTopics (url, messageHashes, topics, params);
         if (this.newUpdates) {
-            const first = this.safeValue (trades, 0);
+            const first = this.safeDict (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
             limit = trades.getLimit (tradeSymbol, limit);
         }
@@ -2526,7 +2526,7 @@ export default class bybit extends bybitRest {
             const success = this.safeValue (message, 'success');
             if ((success !== undefined) && (success !== true)) {
                 const ret_msg = this.safeString (message, 'ret_msg');
-                const request = this.safeValue (message, 'request', {});
+                const request = this.safeDict (message, 'request', {});
                 const op = this.safeString (request, 'op');
                 if (op === 'auth') {
                     throw new AuthenticationError ('Authentication failed: ' + ret_msg);

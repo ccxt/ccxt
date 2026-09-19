@@ -13,11 +13,11 @@ public partial class testMainClass : BaseTest
         string method = "watchTradesForSymbols";
         object logText = add(add(add(add(add(exchange.id, " "), method), " [symbols: "), exchange.json(symbols)), "] ");
         Int64 now = exchange.milliseconds();
-        object ends = add(now, 30000);
+        Int64 ends = add(now, 30000);
         int maxIdleTime = 5000;
         bool idle = false;
         List<object> returnedSymbols = new List<object>() {};
-        while (isTrue((isLessThan(now, ends))) && !isTrue(idle))
+        while ((isLessThan(now, ends)) && !idle)
         {
             object response = null;
             bool success = true;
@@ -35,14 +35,14 @@ public partial class testMainClass : BaseTest
             }
             now = exchange.milliseconds();
             Int64 elapsedMs = subtract(now, startTime);
-            if (isTrue(isTrue((isEqual(success, true))) && isTrue((!isEqual(response, null)))))
+            if (((success == true)) && ((response != null)))
             {
                 assert(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(logText, "must return an array. "), exchange.json(response)));
                 for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
                 {
                     object trade = getValue(response, i);
                     object symbol = getValue(trade, "symbol");
-                    assert(!isEqual(symbol, null), add(add(logText, "returned a trade without a symbol "), exchange.json(trade)));
+                    assert((symbol != null), add(add(logText, "returned a trade without a symbol "), exchange.json(trade)));
                     testTrade(exchange, skippedProperties, method, trade, ((string)symbol), now, true);
                     testSharedMethods.assertInArray(exchange, skippedProperties, method, trade, "symbol", symbols);
                     if (!isTrue(exchange.inArray(symbol, returnedSymbols)))
@@ -50,13 +50,13 @@ public partial class testMainClass : BaseTest
                         ((IList<object>)returnedSymbols).Add(symbol);
                     }
                 }
-                if (isTrue(isGreaterThan(elapsedMs, maxIdleTime)))
+                if (isGreaterThan(elapsedMs, maxIdleTime))
                 {
                     idle = true;
                 }
             }
         }
-        assert(isEqual(getArrayLength(returnedSymbols), getArrayLength(symbols)), add(add(logText, "only received part of symbols: "), exchange.json(returnedSymbols)));
+        assert(((returnedSymbols?.Count ?? 0) == getArrayLength(symbols)), add(add(logText, "only received part of symbols: "), exchange.json(returnedSymbols)));
         return true;
     }
 

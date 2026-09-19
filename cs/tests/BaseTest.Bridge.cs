@@ -81,7 +81,13 @@ public partial class BaseTest
     // bridges to make auxiliary methods available in tests
     //
 
+    // the S57 typed twins mirror Exchange.TranspileHelpers.cs: a generated test file's
+    // numerically typed residue must resolve exactly like the library's copy of the
+    // same expression (the bridge is what the tests' bare calls bind to)
     public static object mod(object a, object b) => Exchange.mod(a, b);
+    public static Int64 mod(Int64 a, Int64 b) => Exchange.mod(a, b);
+    public static Int64 mod(double a, double b) => Exchange.mod(a, b);
+    public static Int64? mod(Int64? a, Int64? b) => Exchange.mod(a, b);
 
     public string decimalToPrecision(object a, object b, object c = null, object d = null, object e = null) => Exchange.DecimalToPrecision(a, b, c, d, e);
     public virtual string numberToString(object number) => Exchange.NumberToString(number);
@@ -89,8 +95,15 @@ public partial class BaseTest
     public static object getValue(object a, object b) => Exchange.GetValue(a, b);
 
     public static bool inOp(object a, object b) => Exchange.InOp(a, b);
+    // typed twin mirroring Exchange.TranspileHelpers.cs (S58): Dictionary<string, object> + string
+    // takes InOp's IDictionary branch (a Dictionary is not an IList), ContainsKey behind null guards
+    public static bool inOp(Dictionary<string, object> a, string b) => Exchange.InOp(a, b);
     public static int getIndexOf(object a, object b) => Exchange.getIndexOf(a, b);
     public static int getArrayLength(object a) => Exchange.getArrayLength(a);
+    // typed twins mirroring Exchange.TranspileHelpers.cs (S58): a generated test operand that is
+    // statically List<object>/IList<object> must resolve to the library's own list branch
+    public static int getArrayLength(List<object> a) => Exchange.getArrayLength(a);
+    public static int getArrayLength(IList<object> a) => Exchange.getArrayLength(a);
     public static bool isLessThan(object a, object b) => Exchange.isLessThan(a, b);
     public static bool isGreaterThan(object a, object b) => Exchange.isGreaterThan(a, b);
     public static bool isGreaterThanOrEqual(object a, object b) => Exchange.isGreaterThanOrEqual(a, b);
@@ -125,21 +138,32 @@ public partial class BaseTest
     // null left operand as null — the casts keep every existing call's runtime value identical
     public static string add(string a, string b) => (string)Exchange.add((object)a, (object)b);
     public static string add(string a, object b) => (string)Exchange.add((object)a, b);
+    // typed numeric twins mirroring Exchange.TranspileHelpers.cs (S57's overload names): a
+    // generated test local whose `a + b` operands are all Int64/int/uint/double must resolve
+    // exactly like the library, and both forward to the same unchecked sum the object
+    // overload's Int64 / double branches compute
+    public static Int64 add(Int64 a, Int64 b) => Exchange.add(a, b);
+    public static double add(double a, double b) => Exchange.add(a, b);
     public static object multiply(object a, object b) => Exchange.multiply(a, b);
     // typed arithmetic twins mirroring Exchange.TranspileHelpers.cs: a generated test file
     // whose operands are numerically typed must resolve exactly like the library (the same
     // expression in cs/ccxt binds the typed overload there), so the mirror has to exist or
     // a typed residue declaration would bind (object, object) and return the other box
     public static Int64 multiply(Int64 a, Int64 b) => Exchange.multiply(a, b);
+    public static Int64? multiply(Int64? a, Int64? b) => Exchange.multiply(a, b);
     public static object subtract(object a, object b) => Exchange.subtract(a, b);
     public static int subtract(int a, int b) => Exchange.subtract(a, b);
     public static Int64 subtract(Int64 a, Int64 b) => Exchange.subtract(a, b);
+    public static double subtract(double a, double b) => Exchange.subtract(a, b);
     public static object divide(object a, object b) => Exchange.divide(a, b);
     public static Int64 divide(Int64 a, Int64 b) => Exchange.divide(a, b);
     public static double divide(double a, double b) => Exchange.divide(a, b);
+    public static Int64? divide(Int64? a, Int64? b) => Exchange.divide(a, b);
     public static string toStringOrNull(object a) => Exchange.toStringOrNull(a);
     public static bool isEqual(object a, object b) => Exchange.isEqual(a, b);
     public static bool isTrue(object a) => Exchange.isTrue(a);
+    // typed twin mirroring Exchange.TranspileHelpers.cs (S58): `isTrue` is the identity on a bool
+    public static bool isTrue(bool a) => Exchange.isTrue(a);
     public static object encode(object a) => a;
     public static object hash(object request2, Delegate algorithm2 = null, object digest2 = null) => Exchange.Hash(request2, algorithm2, digest2);
     public static string hmac(object request2, object secret2, Delegate algorithm2 = null, string digest = "hex") => Exchange.Hmac(request2, secret2, algorithm2, digest);

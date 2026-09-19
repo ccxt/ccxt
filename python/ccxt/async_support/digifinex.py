@@ -1748,9 +1748,9 @@ class digifinex(Exchange, ImplicitAPI):
         #
         data = []
         if market['swap'] is True:
-            data = self.safe_value(response, 'data', [])
+            data = self.safe_list(response, 'data', [])
         else:
-            data = self.safe_value(response, 'order_ids', [])
+            data = self.safe_list(response, 'order_ids', [])
         result = []
         for i in range(0, len(orders)):
             rawOrder = orders[i]

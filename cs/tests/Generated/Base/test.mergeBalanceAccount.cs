@@ -19,31 +19,31 @@ public partial class BaseTest
             // the local is seeded from the helper itself so the Go port infers the
             // helper's own return type instead of a map literal it cannot assign back to
             Dictionary<string, object> btcAccount = exchange.account();
-            ((IDictionary<string,object>)btcAccount)["free"] = "1";
-            ((IDictionary<string,object>)btcAccount)["used"] = "0.5";
-            ((IDictionary<string,object>)btcAccount)["debt"] = "0.1";
-            object result = exchange.mergeBalanceAccount(new Dictionary<string, object>() {}, "BTC", btcAccount);
+            btcAccount["free"] = "1";
+            btcAccount["used"] = "0.5";
+            btcAccount["debt"] = "0.1";
+            Dictionary<string, object> result = exchange.mergeBalanceAccount(new Dictionary<string, object>() {}, "BTC", btcAccount);
             Assert(isEqual(exchange.safeString(getValue(result, "BTC"), "free"), "1"));
             Dictionary<string, object> btcAccount2 = exchange.account();
-            ((IDictionary<string,object>)btcAccount2)["free"] = "2";
-            ((IDictionary<string,object>)btcAccount2)["used"] = "0.25";
-            ((IDictionary<string,object>)btcAccount2)["total"] = "2.25";
+            btcAccount2["free"] = "2";
+            btcAccount2["used"] = "0.25";
+            btcAccount2["total"] = "2.25";
             result = exchange.mergeBalanceAccount(result, "BTC", btcAccount2);
             Assert(isEqual(exchange.safeString(getValue(result, "BTC"), "free"), "3"));
             Assert(isEqual(exchange.safeString(getValue(result, "BTC"), "used"), "0.75"));
             Assert(isEqual(exchange.safeString(getValue(result, "BTC"), "total"), "2.25"));
             Assert(isEqual(exchange.safeString(getValue(result, "BTC"), "debt"), "0.1"));
             Dictionary<string, object> usdtAccount = exchange.account();
-            ((IDictionary<string,object>)usdtAccount)["free"] = "5";
+            usdtAccount["free"] = "5";
             result = exchange.mergeBalanceAccount(result, "USDT", usdtAccount);
             Assert(isEqual(exchange.safeString(getValue(result, "USDT"), "free"), "5"));
             Assert(isEqual(exchange.safeString(getValue(result, "USDT"), "used"), null));
             List<object> keys = new List<object>(((IDictionary<string,object>)result).Keys);
-            Assert(isEqual(getArrayLength(keys), 2));
+            Assert((keys.Count == 2));
             // the merged dict is a regular safeBalance input. safeBalance parses to a number,
             // and each port spells that number differently (JS "3", PHP "3.0"), so Assert on
             // the parsed value rather than on its string form
-            object balance = exchange.safeBalance(result);
+            Dictionary<string, object> balance = exchange.safeBalance(result);
             Assert(isEqual(exchange.safeNumber(getValue(balance, "BTC"), "free"), exchange.parseNumber("3")));
             Assert(isEqual(exchange.safeNumber(getValue(balance, "free"), "USDT"), exchange.parseNumber("5")));
             Assert(isEqual(exchange.safeNumber(getValue(balance, "debt"), "BTC"), exchange.parseNumber("0.1")));

@@ -394,7 +394,7 @@ export default class onetrading extends onetradingRest {
             const snapshot = this.parseOrderBook (message, symbol, timestamp, 'bids', 'asks');
             orderbook.reset (snapshot);
         } else if (type === 'ORDER_BOOK_UPDATE') {
-            const changes = this.safeValue (message, 'changes', []);
+            const changes = this.safeList (message, 'changes', []);
             this.handleDeltas (orderbook, changes);
         } else {
             throw new NotSupported (this.id + ' watchOrderBook() did not recognize message type ' + type);
@@ -1092,7 +1092,7 @@ export default class onetrading extends onetradingRest {
         let type = 'SUBSCRIBE';
         let subscription: Dict = {};
         if (client !== undefined) {
-            subscription = this.safeValue (client.subscriptions, subscriptionHash);
+            subscription = this.safeDict (client.subscriptions, subscriptionHash) as Dict;
             if (subscription !== undefined) {
                 const ohlcvMarket = this.safeValue (subscription, marketId, {});
                 const marketSubscribed = this.safeBool (ohlcvMarket, timeframe, false);
@@ -1354,7 +1354,7 @@ export default class onetrading extends onetradingRest {
         let type = 'SUBSCRIBE';
         let subscription: Dict = {};
         if (client !== undefined) {
-            subscription = this.safeValue (client.subscriptions, subscriptionHash);
+            subscription = this.safeDict (client.subscriptions, subscriptionHash) as Dict;
             if (subscription !== undefined) {
                 for (let i = 0; i < marketIds.length; i++) {
                     const marketId = marketIds[i];

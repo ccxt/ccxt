@@ -19,7 +19,7 @@ public partial class testMainClass : BaseTest
             Console.WriteLine(m1);
             return false;
         }
-        if (isTrue(isTrue(isEqual(getValue(exchange.has, method), null)) || isTrue(isEqual(getValue(exchange.has, method), false))))
+        if (isEqual(getValue(exchange.has, method), null) || isEqual(getValue(exchange.has, method), false))
         {
             object m2 = (add(add(add(exchange.id, " does not support "), method), "() method"));
             Console.WriteLine(m2);
@@ -27,7 +27,7 @@ public partial class testMainClass : BaseTest
         }
         object response = null;
         Int64 now = (new DateTimeOffset(DateTime.UtcNow)).ToUnixTimeMilliseconds();
-        object ends = add(now, 10000);
+        Int64 ends = add(now, 10000);
         while (isLessThan(now, ends))
         {
             try

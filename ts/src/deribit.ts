@@ -736,7 +736,7 @@ export default class deribit extends Exchange {
         //         "testnet": false
         //     }
         //
-        const result = this.safeValue (response, 'result');
+        const result = this.safeDict (response, 'result');
         const locked = this.safeString (result, 'locked');
         const updateTime = this.safeIntegerProduct (response, 'usIn', 0.001, this.milliseconds ());
         return {
@@ -3487,7 +3487,7 @@ export default class deribit extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         const cursor = this.safeString (result, 'continuation');
-        const settlements = this.safeValue (result, 'settlements', []);
+        const settlements = this.safeList (result, 'settlements', []);
         const settlementsWithCursor = this.addPaginationCursorToResult (cursor, settlements);
         return this.parseLiquidations (settlementsWithCursor, market, since, limit);
     }
@@ -3707,7 +3707,7 @@ export default class deribit extends Exchange {
         const timestamp = this.safeInteger (greeks, 'timestamp');
         const marketId = this.safeString (greeks, 'instrument_name');
         const symbol = this.safeSymbol (marketId, market);
-        const stats = this.safeValue (greeks, 'greeks', {});
+        const stats = this.safeDict (greeks, 'greeks', {});
         return {
             'symbol': symbol,
             'timestamp': timestamp,

@@ -35,16 +35,16 @@ public partial class testMainClass : BaseTest
         for (int i = 0; isLessThan(i, bidsLength); postFixIncrement(ref i))
         {
             string? currentBidString = exchange.safeString(getValue(bids, i), 0);
-            if (!isTrue((inOp(skippedProperties, "compareToNextItem"))))
+            if (!(inOp(skippedProperties, "compareToNextItem")))
             {
-                object nextI = add(i, 1);
-                if (isTrue(isGreaterThan(bidsLength, nextI)))
+                Int64 nextI = add(i, 1);
+                if (isGreaterThan(bidsLength, nextI))
                 {
                     string? nextBidString = exchange.safeString(getValue(bids, nextI), 0);
-                    assert(Precise.stringGt(currentBidString, nextBidString), add(add(add(add("current bid should be > than the next one: ", currentBidString), ">"), nextBidString), logText));
+                    assert(Precise.stringGt(currentBidString, nextBidString), (((("current bid should be > than the next one: " + currentBidString) + ">") + nextBidString) + logText));
                 }
             }
-            if (!isTrue((inOp(skippedProperties, "compareToZero"))))
+            if (!(inOp(skippedProperties, "compareToZero")))
             {
                 // compare price & volume to zero
                 testSharedMethods.assertGreater(exchange, skippedProperties, method, getValue(bids, i), 0, "0");
@@ -56,30 +56,30 @@ public partial class testMainClass : BaseTest
         for (int i = 0; isLessThan(i, asksLength); postFixIncrement(ref i))
         {
             string? currentAskString = exchange.safeString(getValue(asks, i), 0);
-            if (!isTrue((inOp(skippedProperties, "compareToNextItem"))))
+            if (!(inOp(skippedProperties, "compareToNextItem")))
             {
-                object nextI = add(i, 1);
-                if (isTrue(isGreaterThan(asksLength, nextI)))
+                Int64 nextI = add(i, 1);
+                if (isGreaterThan(asksLength, nextI))
                 {
                     string? nextAskString = exchange.safeString(getValue(asks, nextI), 0);
-                    assert(Precise.stringLt(currentAskString, nextAskString), add(add(add(add("current ask should be < than the next one: ", currentAskString), "<"), nextAskString), logText));
+                    assert(Precise.stringLt(currentAskString, nextAskString), (((("current ask should be < than the next one: " + currentAskString) + "<") + nextAskString) + logText));
                 }
             }
-            if (!isTrue((inOp(skippedProperties, "compareToZero"))))
+            if (!(inOp(skippedProperties, "compareToZero")))
             {
                 // compare price & volume to zero
                 testSharedMethods.assertGreater(exchange, skippedProperties, method, getValue(asks, i), 0, "0");
                 testSharedMethods.assertGreater(exchange, skippedProperties, method, getValue(asks, i), 1, "0");
             }
         }
-        if (!isTrue((inOp(skippedProperties, "spread"))))
+        if (!(inOp(skippedProperties, "spread")))
         {
-            if (isTrue(isTrue((isGreaterThan(bidsLength, 0))) && isTrue((isGreaterThan(asksLength, 0)))))
+            if ((isGreaterThan(bidsLength, 0)) && (isGreaterThan(asksLength, 0)))
             {
                 string? firstBid = exchange.safeString(getValue(bids, 0), 0);
                 string? firstAsk = exchange.safeString(getValue(asks, 0), 0);
                 // check bid-ask spread
-                assert(Precise.stringLt(firstBid, firstAsk), add(add(add(add(add("bids[0][0] (", firstBid), ") should be < than asks[0][0] ("), firstAsk), ")"), logText));
+                assert(Precise.stringLt(firstBid, firstAsk), ((((("bids[0][0] (" + firstBid) + ") should be < than asks[0][0] (") + firstAsk) + ")") + logText));
             }
         }
     }

@@ -278,7 +278,7 @@ export default class poloniex extends poloniexRest {
     override async cancelOrderWs (id: string, symbol: Str = undefined, params: Dict = {}) {
         const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
-            const clientOrderIds = this.safeValue (params, 'clientOrderId', []);
+            const clientOrderIds = this.safeList (params, 'clientOrderId', []);
             params['clientOrderIds'] = this.arrayConcat (clientOrderIds, [ clientOrderId ]);
         }
         const orders = await this.cancelOrdersWs ([ id ], symbol, params);
@@ -466,7 +466,7 @@ export default class poloniex extends poloniexRest {
         }
         const trades = await this.watchMultiple (url, messageHashes, request, messageHashes);
         if (this.newUpdates) {
-            const first = this.safeValue (trades, 0);
+            const first = this.safeDict (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
             limit = trades.getLimit (tradeSymbol, limit);
         }

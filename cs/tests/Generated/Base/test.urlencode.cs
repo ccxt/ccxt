@@ -22,6 +22,6 @@ public partial class BaseTest
             string expected1 = "a=1&c=%2B%26";
             string expected2 = "c=%2B%26&a=1";
             string encoded = exchange.urlencode(dict1);
-            Assert(isTrue(isEqual(encoded, expected1)) || isTrue(isEqual(encoded, expected2)), add(add(add(add(add("testUrlencode: expected ", expected1), " or "), expected2), " but got "), encoded));
+            Assert(isEqual(encoded, expected1) || isEqual(encoded, expected2), ((((("testUrlencode: expected " + expected1) + " or ") + expected2) + " but got ") + encoded));
         }
 }

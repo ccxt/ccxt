@@ -363,7 +363,7 @@ export default class cryptocom extends cryptocomRest {
         }
         const trades = await this.watchPublicMultiple (topics, topics, params);
         if (this.newUpdates) {
-            const first = this.safeValue (trades, 0);
+            const first = this.safeDict (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
             limit = trades.getLimit (tradeSymbol, limit);
         }
@@ -1009,7 +1009,7 @@ export default class cryptocom extends cryptocomRest {
         //
         // each account is connected to a different endpoint
         // and has exactly one subscriptionhash which is the account type
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeList (message, 'data', []);
         const firstData = this.safeValue (data, 0, {});
         const rawPositions = this.safeList (firstData, 'positions', []);
         if (this.positions === undefined) {

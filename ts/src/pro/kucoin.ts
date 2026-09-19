@@ -1126,7 +1126,7 @@ export default class kucoin extends kucoinRest {
             const channel = 'trade';
             const trades = await this.subscribePublicUta (messageHash, channel, symbol, params);
             if (this.newUpdates) {
-                const first = this.safeValue (trades, 0);
+                const first = this.safeDict (trades, 0);
                 const tradeSymbol = this.safeString (first, 'symbol');
                 limit = trades.getLimit (tradeSymbol, limit);
             }
@@ -1175,7 +1175,7 @@ export default class kucoin extends kucoinRest {
         }
         const trades = await this.subscribeMultiple (url, messageHashes, topic, subscriptionHashes, params);
         if (this.newUpdates) {
-            const first = this.safeValue (trades, 0);
+            const first = this.safeDict (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
             limit = trades.getLimit (tradeSymbol, limit);
         }
@@ -1757,7 +1757,7 @@ export default class kucoin extends kucoinRest {
     }
 
     override getCacheIndex (orderbook: any, cache: any) {
-        const firstDelta = this.safeValue (cache, 0);
+        const firstDelta = this.safeDict (cache, 0);
         const nonce = this.safeInteger (orderbook, 'nonce');
         const firstDeltaStart = this.safeIntegerN (firstDelta, [ 'sequenceStart', 'sequence', 'O' ]);
         if ((nonce === undefined) || (firstDeltaStart === undefined)) {

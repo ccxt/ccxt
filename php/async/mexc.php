@@ -2902,7 +2902,7 @@ class mexc extends Exchange {
             //         }
             //     }
             //
-            $data = $this->safe_value($response, 'data');
+            $data = $this->safe_dict($response, 'data');
         }
         return $this->parse_order($data, $market);
     }
@@ -3070,7 +3070,7 @@ class mexc extends Exchange {
                 //          ]
                 //     }
                 //
-                $ordersOfRegular = $this->safe_value($response, 'data');
+                $ordersOfRegular = $this->safe_list($response, 'data');
             } else {
                 // the Planorder endpoints work not only for stop-market orders, but also for stop-limit orders that were supposed to have a separate endpoint
                 $response = Async\await($this->contractPrivateGetPlanorderListOrders($this->extend($request, $query)));
@@ -3100,7 +3100,7 @@ class mexc extends Exchange {
                 //         ]
                 //     }
                 //
-                $ordersOfTrigger = $this->safe_value($response, 'data');
+                $ordersOfTrigger = $this->safe_list($response, 'data');
             }
             $merged = $this->array_concat($ordersOfTrigger, $ordersOfRegular);
             return $this->parse_orders($merged, $market, $since, $limit, $params);
@@ -5771,7 +5771,7 @@ class mexc extends Exchange {
             }
             $response = Async\await($this->contractPrivateGetAccountTransferRecord($this->extend($request, $params)));
             $data = $this->safe_value($response, 'data');
-            $resultList = $this->safe_value($data, 'resultList');
+            $resultList = $this->safe_list($data, 'resultList');
             //
             //     {
             //         "success": true,

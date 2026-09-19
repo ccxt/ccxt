@@ -2834,7 +2834,7 @@ export default class mexc extends Exchange {
             //         }
             //     }
             //
-            data = this.safeValue(response, 'data');
+            data = this.safeDict(response, 'data');
         }
         return this.parseOrder(data, market);
     }
@@ -3003,7 +3003,7 @@ export default class mexc extends Exchange {
                 //          ]
                 //     }
                 //
-                ordersOfRegular = this.safeValue(response, 'data');
+                ordersOfRegular = this.safeList(response, 'data');
             }
             else {
                 // the Planorder endpoints work not only for stop-market orders, but also for stop-limit orders that were supposed to have a separate endpoint
@@ -3034,7 +3034,7 @@ export default class mexc extends Exchange {
                 //         ]
                 //     }
                 //
-                ordersOfTrigger = this.safeValue(response, 'data');
+                ordersOfTrigger = this.safeList(response, 'data');
             }
             const merged = this.arrayConcat(ordersOfTrigger, ordersOfRegular);
             return this.parseOrders(merged, market, since, limit, params);
@@ -5566,7 +5566,7 @@ export default class mexc extends Exchange {
             }
             const response = await this.contractPrivateGetAccountTransferRecord(this.extend(request, params));
             const data = this.safeValue(response, 'data');
-            resultList = this.safeValue(data, 'resultList');
+            resultList = this.safeList(data, 'resultList');
             //
             //     {
             //         "success": true,

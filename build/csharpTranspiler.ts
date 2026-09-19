@@ -4,6 +4,8 @@ import errors from "../js/src/base/errors.js"
 import { basename, join, resolve } from 'path'
 import { createFolderRecursively, replaceInFile, overwriteFile, checkCreateFolder } from './fsLocal.js'
 import { setupCsharpPrinter } from './csharp-worker.js'
+import { CORE_LIST_ARGS, CORE_LIST_TARGET_TYPES } from './csharp-local-types.js'
+import { MARKET_ROW_STRING_KEYS } from './csharp-local-types.js'
 import { writeOverloadStrippedFile, removeOverloadStrippedFile, restoreParamsBagInitializers } from './stripOverloads.js'
 import { platform } from 'process'
 import os from 'os'
@@ -33,6 +35,16 @@ const metaUrl = import.meta.url
 let __dirname = new URL('.', metaUrl).pathname;
 
 let shouldTranspileTests = true
+
+// S10: keywords after which a `((string)…)` cast wrap is still an expression position. A
+// plain (non-keyword) identifier directly before the `(` makes it a call's argument list
+// instead (`Remove((string)key)`, the printer's `throw new ExchangeError ((string)arg)`).
+const CALL_PRECEDING_KEYWORDS = new Set ([
+    'return', 'throw', 'new', 'case', 'else', 'in', 'is', 'as', 'await', 'yield', 'when',
+    'do', 'if', 'while', 'switch', 'using', 'typeof', 'default', 'checked', 'unchecked',
+    'ref', 'out', 'params', 'stackalloc', 'and', 'or', 'not', 'this', 'base', 'null',
+    'true', 'false', 'void', 'var', 'delegate', 'lock', 'fixed', 'unsafe', 'goto',
+]);
 
 function overwriteFileAndFolder (path: string, content: string) {
     if (!(fs.existsSync(path))) {
@@ -686,21 +698,59 @@ const SYNC_TYPED_CORES: Record<string, string> = {
 // Produced by build/analyzeNumericCoreArgs.py. Reflective dispatch is safe because
 // BaseExchange.coerceArgs converts every boxed arg to the parameter type before Invoke.
 const CORE_NUMERIC_ARGS: Record<string, Record<number, string>> = {
+    // cs-strict S42 (margin family): the unified margin cores. TS spells the position `number`
+    // in every declaration (23/23 addMargin, 23/23 reduceMargin, 8/8 borrowCrossMargin,
+    // 8/8 repayCrossMargin, 7/7 borrowIsolatedMargin, 7/7 repayIsolatedMargin, 2/2 repayMargin,
+    // 1/1 deposit) and every body use is a currencyToPrecision / amountToPrecision /
+    // numberToString / costToPrecision call, a pass-through to modifyMarginHelper / SetMargin
+    // (object / double parameter) or a `prefixUnaryNeg (ref …)` sink that has a `ref double`
+    // overload, so the narrowed parameter is the same value the TS passes.
+    'addMargin': { 1: 'double' },
+    'borrowCrossMargin': { 1: 'double' },
+    'borrowIsolatedMargin': { 2: 'double' },
     'createAmmOrder': { 3: 'double', 4: 'double?' },
     'createContractOrder': { 4: 'double?' },
     'createConvertTrade': { 3: 'double?' },
+    'deposit': { 1: 'double' },
     'createExtendedOrderRequest': { 3: 'double', 4: 'double?' },
+    // cs-strict S42: the ws order chain. `createOrderWs`/`editOrderWs` plus the 17 PascalCase
+    // wrappers that forward into `createOrderWs` — every declaration's TS signature spells the
+    // position `number` (required -> double) or `Num` (optional -> double?), every use of the
+    // parameter in every body (base + 13 pro venues, 11 for editOrderWs) is a pass-through to
+    // another method's `object` parameter, an amountToPrecision/priceToPrecision/costToPrecision/
+    // numberToString call or an isEqual(x, null) test, and every in-tree caller passes the same
+    // type (the wrappers forward their own retyped parameter; the one example call passes a
+    // double amount and an int price literal, which widens).
+    'createLimitBuyOrderWs': { 1: 'double', 2: 'double' },
+    'createLimitOrderWs': { 2: 'double', 3: 'double' },
+    'createLimitSellOrderWs': { 1: 'double', 2: 'double' },
     'createMarketBuyOrderWithCost': { 1: 'double' },
+    'createMarketBuyOrderWs': { 1: 'double' },
     'createMarketOrderWithCost': { 2: 'double' },
+    'createMarketOrderWs': { 2: 'double', 3: 'double?' },
     'createMarketSellOrderWithCost': { 1: 'double' },
+    'createMarketSellOrderWs': { 1: 'double' },
     'createOrder': { 3: 'double', 4: 'double?' },
+    'createOrderWithTakeProfitAndStopLossWs': { 3: 'double', 4: 'double?' },
     'createOrderbookOrder': { 3: 'double', 4: 'double?' },
+    'createOrderWs': { 3: 'double', 4: 'double?' },
+    'createPostOnlyOrderWs': { 3: 'double', 4: 'double?' },
+    'createReduceOnlyOrderWs': { 3: 'double', 4: 'double?' },
+    'createStopLimitOrderWs': { 2: 'double', 3: 'double' },
+    'createStopLossOrderWs': { 3: 'double', 4: 'double?' },
+    'createStopMarketOrderWs': { 2: 'double' },
+    'createStopOrderWs': { 3: 'double', 4: 'double?' },
+    'createTakeProfitOrderWs': { 3: 'double', 4: 'double?' },
     'createTrailingAmountOrder': { 3: 'double', 4: 'double?' },
+    'createTrailingAmountOrderWs': { 3: 'double', 4: 'double?' },
     'createTrailingPercentOrder': { 3: 'double', 4: 'double?' },
+    'createTrailingPercentOrderWs': { 3: 'double', 4: 'double?' },
+    'createTriggerOrderWs': { 3: 'double', 4: 'double?' },
     'createTwapOrder': { 2: 'double' },
     'createUtaOrder': { 3: 'double', 4: 'double?' },
     'editContractOrder': { 4: 'double', 5: 'double?' },
     'editOrder': { 4: 'double?', 5: 'double?' },
+    'editOrderWs': { 4: 'double?', 5: 'double?' },
     'editSpotOrder': { 4: 'double', 5: 'double?' },
     'fetchAmmOrders': { 1: 'Int64?', 2: 'Int64?' },
     'fetchBorrowInterest': { 2: 'Int64?', 3: 'Int64?' },
@@ -778,6 +828,11 @@ const CORE_NUMERIC_ARGS: Record<string, Record<number, string>> = {
     'fetchUtaCanceledAndClosedOrders': { 1: 'Int64?', 2: 'Int64?' },
     'fetchUtaOrdersByStatus': { 2: 'Int64?', 3: 'Int64?' },
     'fetchWithdrawals': { 1: 'Int64?', 2: 'Int64?' },
+    // cs-strict S42 (margin family, continued)
+    'reduceMargin': { 1: 'double' },
+    'repayCrossMargin': { 1: 'double' },
+    'repayIsolatedMargin': { 2: 'double' },
+    'repayMargin': { 1: 'double' },
     // cs-5: TS `amount: number` (required) -> double; the four call sites (bingx/lighter
     // addMargin/reduceMargin) get the ToDoubleArgRequired wrap.
     'setMargin': { 1: 'double' },
@@ -801,6 +856,55 @@ const CORE_NUMERIC_ARGS: Record<string, Record<number, string>> = {
     'withdraw': { 1: 'double' },
 };
 
+// Generated C# core parameters that name a DICTIONARY ROW (`parse*(object row, …)` first params and
+// `object currency` params). Positional keying like CORE_STRING_ARGS, but NO call-site wrap: every
+// caller in cs/** (generated trees, tests, cli, examples) already passes a Dictionary<string, object>
+// or null -- campaigns/cs-strict/tools/S38/row_arg_census.py proves 20 (name,position) pairs over 161
+// sites. A name whose callers pass `getValue(list, i)` or an `object` local is deliberately absent:
+// the ((Dictionary<string, object>)…) wrap it would need is a new cast, i.e. an unproven assertion.
+const CORE_DICT_ARGS: Record<string, number[]> = {
+    'assignDefaultDepositWithdrawFees': [ 1 ],
+    'convertDerivativesId': [ 0 ],
+    'createTransferSettlementData': [ 1 ],
+    'createWithdrawalSettlementData': [ 2 ],
+    'getDedicatedNetworkId': [ 0 ],
+    'parseAccountPosition': [ 0 ],
+    'parseAccountPositions': [ 0 ],
+    'parseBorrowRate': [ 1 ],
+    'parseCustomBalance': [ 0 ],
+    'parseDepositAddress': [ 1 ],
+    'parseDepositAddressSpecial': [ 0 ],
+    'parseDepositWithdrawFee': [ 1 ],
+    'parseMarginLoan': [ 1 ],
+    'parseOption': [ 1 ],
+    'parsePortfolioDetails': [ 0 ],
+    'parseTradeQuote': [ 0 ],
+    'parseTradingViewOHLCV': [ 0 ],
+    'parseTransactionFee': [ 1 ],
+    'parseWeiOrderBook': [ 0 ],
+    'safeCurrencyStructure': [ 0 ],
+};
+
+// Same family, but at least one caller holds the value in an `IDictionary<string, object>` local
+// (`CSHARP_LOCAL_ANNOTATION_TYPES`' spelling for a row). Naming the parameter Dictionary there would
+// assert a runtime type the caller's static type does not prove, so the interface is the narrowest
+// safe name; Dictionary callers convert implicitly. Same no-wrap gate as CORE_DICT_ARGS.
+const CORE_IDICT_ARGS: Record<string, number[]> = {
+    'internalFetchTransfers': [ 1 ],
+    'parseCancelOrders': [ 0 ],
+    'parseFundingRateWs': [ 0 ],
+    'parseOutcomeMarket': [ 0 ],
+    'parsePredictionOpenInterest': [ 0 ],
+    'parseTransfer': [ 1 ],
+    'parseTransfers': [ 1 ],
+    'parseWsFundingRate': [ 0 ],
+    'parseWsUtaOrder': [ 0 ],
+    'parseWsUtaPosition': [ 0 ],
+    'parseWsUtaTicker': [ 0 ],
+    'parseWsUtaTrade': [ 0 ],
+};
+
+
 // Collection-returning helpers whose every return site yields a list (or null) at runtime but
 // whose generated declaration still said `object`. Every site was checked mechanically (a
 // return-site census over cs/ccxt/*.cs and cs/ccxt/exchanges/*.cs): `new List<object>()`, a
@@ -816,11 +920,15 @@ const CORE_NUMERIC_ARGS: Record<string, Record<number, string>> = {
 // parseWsTrades (46 ws-file overrides - a full ws regeneration is out of scope here) and
 // arraySlice (byte[] callers receive byte[] / List<byte> back, so it keeps its object
 // signature; its list returns are funnelled through toArray at the call sites above).
+// parseOHLCV: 81 declarations (the BaseExchange virtual + 80 overrides), 80 of them a single
+// `return [ … ];` row literal (a return-site census over cs/ccxt/exchanges/{,prediction/}*.cs);
+// the base is the `<own object param>` shape and normalises to toArray (identity for the row
+// the callers pass, null for null).
 const COLLECTION_RETURN_METHODS: string[] = [
     'filterByKey', 'filterBySymbol', 'filterByLimit', 'filterBySinceLimit',
     'filterByValueSinceLimit', 'filterBySymbolSinceLimit', 'filterByCurrencySinceLimit',
     'filterBySymbolsSinceLimit', 'filterByOutcomeSinceLimit',
-    'parseTrades', 'parseTradesHelper', 'parseOrders', 'parseOHLCVs', 'parseTransactions',
+    'parseTrades', 'parseTradesHelper', 'parseOrders', 'parseOHLCV', 'parseOHLCVs', 'parseTransactions',
     'parseLedger', 'parseLiquidations', 'marketIds', 'currencyIds', 'marketCodes',
     'marketSymbols', 'marketsForSymbols', 'parseMarkets',
 ];
@@ -833,6 +941,229 @@ const COLLECTION_RETURN_DICT_METHODS: string[] = [
     'parseCurrencies',
 ];
 
+// Generated venue-helper `object` parameters narrowed to `string?` (see the pass below).
+// Keyed by venue (`<id>`, `pro:<id>`, `prediction:<id>`, or the generated base class) and then
+// by method name -> positions, because one helper name can legitimately be a different method
+// in every venue class.  Produced by campaigns/cs-strict/tools/S45/admit_groups.py; admitted
+// only when every call site of the name at that position in the subtree of the declaring class
+// passes a `string`/`string?` argument, every declaration of the name at that position in the
+// override chain is still `object`, and every use of the parameter inside the bodies is an
+// identity under `string?` (see the pass for the shadow rule).
+const VENUE_STRING_ARGS: Record<string, Record<string, number[]>> = {
+    'BaseExchange': { 'CancelAllContractOrders': [ 0 ], 'CancelAllSpotOrders': [ 0 ], 'FetchFundingHistory': [ 0 ], 'FetchMyLiquidations': [ 0 ], 'borrowIsolatedMargin': [ 0 ], 'calculateFee': [ 0, 1, 2 ], 'repayIsolatedMargin': [ 0 ], 'repayMargin': [ 2 ], 'unWatchFundingRate': [ 0 ], 'unWatchMarkPrice': [ 0 ], 'unWatchMyTrades': [ 0 ], 'unWatchOrders': [ 0 ], 'unWatchTrades': [ 0 ] },
+    'alpaca': { 'FetchTransactionsHelper': [ 0, 1 ], 'parseOrderStatus': [ 0 ], 'parseTimeInForce': [ 0 ], 'parseTransactionStatus': [ 0 ], 'parseTransactionType': [ 0 ] },
+    'apex': { 'FetchFundingHistory': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseOrderType': [ 0 ], 'parseTimeInForce': [ 0 ] },
+    'aster': { 'FetchFundingHistory': [ 0 ], 'createOrderRequest': [ 0 ], 'isInverse': [ 0 ], 'modifyMarginHelper': [ 0 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseOrderType': [ 0 ], 'parseTransferStatus': [ 0 ] },
+    'backpack': { 'FetchFundingHistory': [ 0 ], 'createOrderRequest': [ 0 ], 'parseMarketType': [ 0 ], 'parseOrderSide': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseTransactionStatus': [ 0 ] },
+    'bigone': { 'parseOrderStatus': [ 0 ], 'parseTransactionStatus': [ 0 ], 'parseTransferStatus': [ 0 ], 'parseType': [ 0 ] },
+    'binance': { 'FetchFundingHistory': [ 0 ], 'FetchMyDustTrades': [ 0 ], 'FetchMyLiquidations': [ 0 ], 'FetchMySettlementHistory': [ 0 ], 'FetchSettlementHistory': [ 0 ], 'borrowIsolatedMargin': [ 0 ], 'editContractOrderRequest': [ 0 ], 'editSpotOrderRequest': [ 0 ], 'modifyMarginHelper': [ 0 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseOrderTypeByMarket': [ 0 ], 'parseTransactionStatusByType': [ 0 ], 'parseTransferStatus': [ 0 ], 'repayIsolatedMargin': [ 0 ], 'verifyGiftCode': [ 0 ] },
+    'bingx': { 'FetchFundingHistory': [ 0 ], 'FetchMyLiquidations': [ 0 ], 'createOrderRequest': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseOrderType': [ 0 ], 'parseTransactionStatus': [ 0 ], 'parseTransferStatus': [ 0 ] },
+    'bit2c': { 'isFiat': [ 0 ] },
+    'bitbank': { 'parseOrderStatus': [ 0 ] },
+    'bitbns': { 'parseTransactionStatusByType': [ 0, 1 ] },
+    'bitfinex': { 'createOrderRequest': [ 0 ], 'isFiat': [ 0 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseTimeInForce': [ 0 ], 'parseTransactionStatus': [ 0 ], 'parseTransferStatus': [ 0 ] },
+    'bitflyer': { 'parseDepositStatus': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseWithdrawalStatus': [ 0 ] },
+    'bitget': { 'FetchFundingHistory': [ 0 ], 'FetchMyLiquidations': [ 0 ], 'FetchUtaCanceledAndClosedOrders': [ 0 ], 'borrowIsolatedMargin': [ 0 ], 'modifyMarginHelper': [ 0, 2 ], 'parseLedgerType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseTransactionStatus': [ 0 ], 'parseTransactionType': [ 0 ], 'parseTransferStatus': [ 0 ], 'repayIsolatedMargin': [ 0 ] },
+    'bithumb': { 'createOrderRequest': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseTransactionStatusByType': [ 0, 1 ] },
+    'bitmex': { 'FetchSettlementHistory': [ 0 ], 'convertFromRawCost': [ 0 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseTimeInForce': [ 0 ] },
+    'bitopro': { 'parseOrderStatus': [ 0 ], 'parseTransactionStatus': [ 0 ] },
+    'bitrue': { 'parseOrderStatus': [ 0 ], 'parseTransactionStatusByType': [ 0, 1 ] },
+    'bitso': { 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseTransactionStatus': [ 0 ] },
+    'bitstamp': { 'getCurrencyName': [ 0 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseTransactionStatus': [ 0 ], 'parseTransferStatus': [ 0 ] },
+    'bitteam': { 'parseOrderStatus': [ 0 ], 'parseOrderType': [ 0 ], 'parseTransactionType': [ 0 ] },
+    'bittrade': { 'FetchOpenOrdersV1': [ 0 ], 'FetchOpenOrdersV2': [ 0 ], 'FetchTradingLimitsById': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseTradingLimits': [ 1 ], 'parseTransactionStatus': [ 0 ] },
+    'bitvavo': { 'cancelOrderRequest': [ 0 ], 'createOrderRequest': [ 0 ], 'editOrderRequest': [ 0 ], 'fetchOHLCVRequest': [ 0 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseTransactionStatus': [ 0 ], 'parseTransferStatus': [ 0 ] },
+    'blofin': { 'createOrderRequest': [ 0 ], 'createTpslOrderRequest': [ 0 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseTransactionDepositStatus': [ 0 ], 'parseTransactionWithdrawalStatus': [ 0 ] },
+    'btcbox': { 'FetchOrdersByType': [ 0, 1 ], 'parseOrderStatus': [ 0 ] },
+    'btcmarkets': { 'calculateFee': [ 0, 1, 2 ], 'parseOrderStatus': [ 0 ], 'parseTransactionStatus': [ 0 ], 'parseTransactionType': [ 0 ] },
+    'btcturk': { 'parseOrderStatus': [ 0 ] },
+    'btse': { 'CreateContractOrder': [ 0 ], 'CreateSpotOrder': [ 0 ], 'parseLedgerEntryDirection': [ 0 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseOrderType': [ 0 ], 'parsePositionSide': [ 0 ], 'parseTimeInForce': [ 0 ], 'parseTransactionStatus': [ 0 ], 'parseTransactionType': [ 0 ] },
+    'bullish': { 'parseMarketType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseOrderType': [ 0 ], 'parsePositionSide': [ 0 ], 'parseTransactionStatus': [ 0 ], 'parseTransactionType': [ 0 ] },
+    'bybit': { 'FetchDerivativesOpenInterestHistory': [ 0 ], 'FetchFundingHistory': [ 0 ], 'FetchMyLiquidations': [ 0 ], 'FetchMySettlementHistory': [ 0 ], 'FetchOrderClassic': [ 0 ], 'FetchSettlementHistory': [ 0 ], 'cancelOrderRequest': [ 0 ], 'createOrderRequest': [ 0 ], 'editOrderRequest': [ 0 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseTimeInForce': [ 0 ], 'parseTransactionStatus': [ 0 ], 'parseTransferStatus': [ 0 ] },
+    'bydfi': { 'FetchTransactionsHelper': [ 0, 1 ], 'createEditOrderRequest': [ 0, 2, 3 ], 'createOrderRequest': [ 0 ], 'paraseTransferStatus': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseOrderTimeInForce': [ 0 ], 'parseOrderType': [ 0 ], 'parsePositionSide': [ 0 ], 'parseTradeType': [ 0 ], 'parseTransactionStatus': [ 0 ] },
+    'cex': { 'FetchOrdersByStatus': [ 0, 1 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseTransactionStatus': [ 0 ] },
+    'coinbase': { 'FetchDepositMethodId': [ 0 ], 'FetchOrdersByStatus': [ 0, 1 ], 'deposit': [ 2 ], 'findAccountId': [ 0 ], 'parseLedgerEntryStatus': [ 0 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseOrderType': [ 0 ], 'parseTimeInForce': [ 0 ], 'parseTransactionStatus': [ 0 ] },
+    'coinbaseexchange': { 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ] },
+    'coinbaseinternational': { 'FetchFundingHistory': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseOrderType': [ 0 ], 'parseTransactionStatus': [ 0 ], 'parseTransferStatus': [ 0 ] },
+    'coincheck': { 'parseTransactionStatus': [ 0 ] },
+    'coinex': { 'FetchFundingHistory': [ 0 ], 'FetchOrdersByStatus': [ 0, 1 ], 'borrowIsolatedMargin': [ 0 ], 'modifyMarginHelper': [ 0, 2 ], 'parseOrderStatus': [ 0 ], 'parseTransactionStatus': [ 0 ], 'parseTransferStatus': [ 0 ], 'repayIsolatedMargin': [ 0 ] },
+    'coinmate': { 'parseOrderStatus': [ 0 ], 'parseOrderType': [ 0 ], 'parseTransactionStatus': [ 0 ] },
+    'coinsph': { 'encodeOrderSide': [ 0 ], 'parseOrderSide': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseOrderTimeInForce': [ 0 ], 'parseOrderType': [ 0 ], 'parseTransactionStatus': [ 0 ] },
+    'cryptocom': { 'FetchSettlementHistory': [ 0 ], 'createAdvancedOrderRequest': [ 0 ], 'createOrderRequest': [ 0 ], 'editOrderRequest': [ 0 ], 'parseDepositStatus': [ 0 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseTimeInForce': [ 0 ], 'parseWithdrawalStatus': [ 0 ] },
+    'cryptomus': { 'parseOrderStatus': [ 0 ] },
+    'deepcoin': { 'createOrderRequest': [ 0 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseOrderTimeInForce': [ 0 ], 'parseOrderType': [ 0 ], 'parseTransactionStatus': [ 0 ], 'parseTransferStatus': [ 0 ] },
+    'delta': { 'FetchOrdersWithMethod': [ 1 ], 'FetchSettlementHistory': [ 0 ], 'modifyMarginHelper': [ 0, 2 ], 'parseOrderStatus': [ 0 ] },
+    'deribit': { 'FetchMyLiquidations': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseOrderType': [ 0 ], 'parseTimeInForce': [ 0 ], 'parseTransactionStatus': [ 0 ], 'parseTransferStatus': [ 0 ] },
+    'derive': { 'FetchFundingHistory': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseTimeInForce': [ 0 ], 'parseTransactionStatus': [ 0 ] },
+    'digifinex': { 'FetchFundingHistory': [ 0 ], 'FetchTransactionsByType': [ 0 ], 'modifyMarginHelper': [ 0 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseTransactionStatus': [ 0 ], 'parseTransferStatus': [ 0 ] },
+    'dydx': { 'FetchTransactionsHelper': [ 0 ], 'createOrderRequest': [ 0 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseOrderType': [ 0 ] },
+    'extended': { 'CreateExtendedOrderRequest': [ 0 ], 'FetchFundingHistory': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseTransactionStatus': [ 0 ], 'parseTransactionType': [ 0 ] },
+    'foxbit': { 'FetchOrdersByStatus': [ 0, 1 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseTransactionStatus': [ 0 ] },
+    'gate': { 'FetchFundingHistory': [ 0 ], 'FetchMyLiquidations': [ 0 ], 'FetchMySettlementHistory': [ 0 ], 'FetchOrdersByStatus': [ 0 ], 'FetchSettlementHistory': [ 0 ], 'borrowIsolatedMargin': [ 0 ], 'editOrderRequest': [ 0 ], 'fetchOrderRequest': [ 0 ], 'getSettlementCurrencies': [ 0 ], 'modifyMarginHelper': [ 0 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseTransactionStatus': [ 0 ], 'prepareOrdersByStatusRequest': [ 0 ], 'repayIsolatedMargin': [ 0 ] },
+    'gemini': { 'parseMarketActive': [ 0 ], 'parseTransactionStatus': [ 0 ] },
+    'grvt': { 'FetchFundingHistory': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseTimeInForce': [ 0 ] },
+    'hashkey': { 'CreateSpotOrder': [ 0 ], 'CreateSwapOrder': [ 0 ], 'FetchOpenSpotOrders': [ 0 ], 'FetchOpenSwapOrders': [ 0 ], 'createOrderRequest': [ 0 ], 'modifyMarginHelper': [ 0 ], 'parseAccountType': [ 0 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ] },
+    'hibachi': { 'FetchMySettlementHistory': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseTransactionStatus': [ 0 ] },
+    'hitbtc': { 'FetchTransactionsHelper': [ 0, 1 ], 'modifyMarginHelper': [ 0, 2 ], 'parseOrderStatus': [ 0 ], 'parseTransactionStatus': [ 0 ], 'parseTransactionType': [ 0 ] },
+    'hollaex': { 'parseOrderStatus': [ 0 ] },
+    'htx': { 'FetchClosedContractOrders': [ 0 ], 'FetchClosedSpotOrders': [ 0 ], 'FetchFundingHistory': [ 0 ], 'FetchSettlementHistory': [ 0 ], 'FetchSpotOrders': [ 0 ], 'FetchTradingLimitsById': [ 0 ], 'borrowIsolatedMargin': [ 0 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseTradingLimits': [ 1 ], 'parseTransactionStatus': [ 0 ], 'repayIsolatedMargin': [ 0 ] },
+    'hyperliquid': { 'FetchFundingHistory': [ 0 ], 'createOrderRequest': [ 0, 3 ], 'modifyMarginHelper': [ 0, 2 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseOrderType': [ 0 ] },
+    'independentreserve': { 'parseOrderStatus': [ 0 ], 'parseTimeInForce': [ 0 ] },
+    'indodax': { 'parseOrderStatus': [ 0 ], 'parseTransactionStatus': [ 0 ] },
+    'kraken': { 'orderRequest': [ 0 ], 'parseAccountType': [ 0 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseTransactionStatus': [ 0 ], 'parseTransactionsByType': [ 0 ] },
+    'krakenfutures': { 'FetchFundingHistory': [ 0 ], 'createOrderRequest': [ 0 ], 'parseLedgerEntryType': [ 0 ] },
+    'kucoin': { 'CancelAllContractOrders': [ 0 ], 'CancelAllSpotOrders': [ 0 ], 'CancelAllUtaOrders': [ 0 ], 'CreateContractOrder': [ 0 ], 'CreateSpotOrder': [ 0 ], 'CreateUtaOrder': [ 0 ], 'FetchContractOrder': [ 0 ], 'FetchContractOrdersByStatus': [ 0 ], 'FetchFundingHistory': [ 0 ], 'FetchMyContractTrades': [ 0 ], 'FetchMySpotTrades': [ 0 ], 'FetchMyUtaTrades': [ 0 ], 'FetchOrdersByStatus': [ 0 ], 'FetchSpotOrder': [ 0 ], 'FetchSpotOrdersByStatus': [ 0 ], 'FetchUtaOrder': [ 0 ], 'FetchUtaOrdersByStatus': [ 0 ], 'borrowIsolatedMargin': [ 0 ], 'parseLedgerEntryType': [ 0 ], 'parseLedgerStatus': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseOrderTimeInForce': [ 0 ], 'parseTransactionStatus': [ 0 ], 'parseTransferStatus': [ 0 ], 'repayIsolatedMargin': [ 0 ] },
+    'latoken': { 'FetchPrivateTradingFee': [ 0 ], 'FetchPublicTradingFee': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseOrderType': [ 0 ], 'parseTimeInForce': [ 0 ], 'parseTransactionStatus': [ 0 ], 'parseTransactionType': [ 0 ], 'parseTransferStatus': [ 0 ] },
+    'lbank': { 'FetchOrderDefault': [ 0 ], 'FetchOrderSupplement': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseTransactionStatus': [ 0 ] },
+    'lighter': { 'parseOrderStatus': [ 0 ], 'parseTransactionStatus': [ 0 ], 'signAndCancelAllOrders': [ 1 ], 'signAndCancelOrder': [ 1 ], 'signAndCreateOrder': [ 1 ] },
+    'luno': { 'parseOrderStatus': [ 0 ] },
+    'mercado': { 'parseOrderStatus': [ 0 ] },
+    'mexc': { 'FetchFundingHistory': [ 0 ], 'modifyMarginHelper': [ 0, 2 ], 'parseOrderSide': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseOrderTimeInForce': [ 0 ], 'parseOrderType': [ 0 ], 'parseTransactionStatusByType': [ 0, 1 ], 'parseTransferStatus': [ 0 ] },
+    'modetrade': { 'FetchFundingHistory': [ 0 ], 'createOrderRequest': [ 0 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderType': [ 0 ], 'parseTimeInForce': [ 0 ], 'parseTransactionStatus': [ 0 ] },
+    'mudrex': { 'parseOrderStatus': [ 0 ] },
+    'nado': { 'CancelAllOrdersRequest': [ 0 ], 'CreateOrderRequest': [ 0 ], 'EditOrderRequest': [ 0 ], 'FetchFundingHistory': [ 0 ], 'parseOrderTimeInForce': [ 0 ] },
+    'ndax': { 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseTransactionStatusByType': [ 0 ] },
+    'okx': { 'FetchFundingHistory': [ 0 ], 'FetchSettlementHistory': [ 0 ], 'createOrderRequest': [ 0 ], 'editOrderRequest': [ 0 ], 'modifyMarginHelper': [ 0, 2 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseTransactionStatus': [ 0 ], 'parseTransferStatus': [ 0 ] },
+    'onetrading': { 'parseOrderStatus': [ 0 ], 'parseTimeInForce': [ 0 ] },
+    'pacifica': { 'FetchFundingHistory': [ 0 ], 'cancelAllOrdersRequest': [ 0 ], 'createOrderRequest': [ 0 ], 'editOrderRequest': [ 0 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseOrderType': [ 0 ] },
+    'paradex': { 'FetchFundingHistory': [ 0 ], 'FetchMyLiquidations': [ 0 ], 'createOrderRequest': [ 0 ], 'parseOrderType': [ 0 ], 'parseTimeInForce': [ 0 ], 'parseTransactionStatus': [ 0 ] },
+    'paymium': { 'parseTransferStatus': [ 0 ] },
+    'phemex': { 'FetchFundingHistory': [ 0 ], 'parseMarginStatus': [ 0 ], 'parseOrderSide': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseOrderType': [ 0 ], 'parseTimeInForce': [ 0 ], 'parseTransactionStatus': [ 0 ], 'parseTransferStatus': [ 0 ] },
+    'poloniex': { 'FetchTransactionsHelper': [ 0 ], 'modifyMarginHelper': [ 0, 2 ], 'orderRequest': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseOrderType': [ 0 ] },
+    'prediction:binance': { 'parseOrderStatus': [ 0 ] },
+    'prediction:hyperliquid': { 'parseOrderStatus': [ 0 ], 'parseOrderType': [ 0 ], 'parseTimeInForce': [ 0 ] },
+    'prediction:kalshi': { 'calculateFee': [ 0, 1, 2 ], 'parseOrderStatus': [ 0 ] },
+    'prediction:limitless': { 'parseOrderSide': [ 0 ], 'parseOrderTimeInForce': [ 0 ] },
+    'prediction:myriad': { 'FetchRawMarketById': [ 0 ], 'FetchRawQuestionById': [ 0 ], 'parseOrderStatus': [ 0 ] },
+    'prediction:opinion': { 'parseOrderStatus': [ 0 ] },
+    'prediction:polymarket': { 'parseOrderStatus': [ 0 ], 'polymarketOrderRawAmounts': [ 0 ] },
+    'pro:alpaca': { 'authenticate': [ 0 ] },
+    'pro:apex': { 'authenticate': [ 0 ] },
+    'pro:aster': { 'unWatchMarkPrice': [ 0 ], 'unWatchTrades': [ 0 ] },
+    'pro:backpack': { 'parseWsOrderSide': [ 0 ], 'parseWsOrderStatus': [ 0 ], 'unWatchOrders': [ 0 ], 'unWatchTrades': [ 0 ] },
+    'pro:binance': { 'ensureUserDataStreamWsSubscribeSignature': [ 0 ], 'unWatchMarkPrice': [ 0 ], 'unWatchTrades': [ 0 ] },
+    'pro:bingx': { 'getOrderBookLimitByMarketType': [ 0 ], 'unWatchTrades': [ 0 ] },
+    'pro:bitfinex': { 'parseWsOrderStatus': [ 0 ], 'subscribe': [ 1 ], 'unWatchTrades': [ 0 ] },
+    'pro:bitget': { 'parseWsOrderStatus': [ 0 ], 'unWatchTrades': [ 0 ] },
+    'pro:bitopro': { 'watchPublic': [ 1 ] },
+    'pro:bitrue': { 'parseWsOrderStatus': [ 0 ], 'parseWsOrderType': [ 0 ] },
+    'pro:bitstamp': { 'unWatchMyTrades': [ 0 ], 'unWatchOrders': [ 0 ], 'unWatchTrades': [ 0 ] },
+    'pro:bitvavo': { 'unWatchTrades': [ 0 ] },
+    'pro:blockchaincom': { 'parseWsOrderStatus': [ 0 ] },
+    'pro:bybit': { 'unWatchMyTrades': [ 0 ], 'unWatchOrders': [ 0 ], 'unWatchTrades': [ 0 ] },
+    'pro:coinbase': { 'unWatchOrders': [ 0 ], 'unWatchTrades': [ 0 ] },
+    'pro:coinbaseexchange': { 'parseWsOrderStatus': [ 0 ] },
+    'pro:coinex': { 'parseWsOrderStatus': [ 0 ] },
+    'pro:cryptocom': { 'unWatchTrades': [ 0 ] },
+    'pro:deepcoin': { 'parsePositionSide': [ 0 ], 'parseWsOrderStatus': [ 0 ], 'unWatchTrades': [ 0 ] },
+    'pro:derive': { 'unWatchTrades': [ 0 ] },
+    'pro:dydx': { 'unWatchTrades': [ 0 ] },
+    'pro:gate': { 'unWatchTrades': [ 0 ] },
+    'pro:gemini': { 'parseWsOrderStatus': [ 0 ], 'parseWsOrderType': [ 0 ] },
+    'pro:htx': { 'unWatchTrades': [ 0 ] },
+    'pro:hyperliquid': { 'unWatchMyTrades': [ 0 ], 'unWatchOrders': [ 0 ], 'unWatchTrades': [ 0 ] },
+    'pro:kraken': { 'orderRequestWs': [ 1 ], 'watchPrivate': [ 0, 1 ] },
+    'pro:krakenfutures': { 'subscribePublic': [ 1 ] },
+    'pro:kucoin': { 'parseWsOrderStatus': [ 0 ], 'unWatchFundingRate': [ 0 ], 'unWatchMarkPrice': [ 0 ], 'unWatchTrades': [ 0 ] },
+    'pro:lbank': { 'parseWsOrderStatus': [ 0 ] },
+    'pro:lighter': { 'unWatchMarkPrice': [ 0 ], 'unWatchMyTrades': [ 0 ], 'unWatchOrders': [ 0 ], 'unWatchTrades': [ 0 ] },
+    'pro:mexc': { 'parseWsOrderStatus': [ 0 ], 'parseWsOrderType': [ 0 ], 'unWatchFundingRate': [ 0 ], 'unWatchTrades': [ 0 ] },
+    'pro:nado': { 'unWatchMyTrades': [ 0 ], 'unWatchOrders': [ 0 ], 'unWatchTrades': [ 0 ], 'watchPrivate': [ 0 ] },
+    'pro:okx': { 'unWatchTrades': [ 0 ] },
+    'pro:onetrading': { 'parseTradingOrderStatus': [ 0 ], 'parseWsOrderStatus': [ 0 ] },
+    'pro:pacifica': { 'unWatchMyTrades': [ 0 ], 'unWatchOrders': [ 0 ], 'unWatchTrades': [ 0 ] },
+    'pro:poloniex': { 'parseStatus': [ 0 ] },
+    'pro:upbit': { 'parseWsOrderStatus': [ 0 ] },
+    'pro:weex': { 'unWatchMyTrades': [ 0 ], 'unWatchOrders': [ 0 ], 'unWatchTrades': [ 0 ] },
+    'pro:whitebit': { 'parseWsOrderType': [ 0 ] },
+    'pro:woo': { 'unWatchTrades': [ 0 ] },
+    'pro:xt': { 'subscribe': [ 1, 2 ], 'unSubscribe': [ 2, 3 ], 'unWatchFundingRate': [ 0 ], 'unWatchTrades': [ 0 ] },
+    'revolutx': { 'parseOrderStatus': [ 0 ] },
+    'tokocrypto': { 'parseOrderStatus': [ 0 ], 'parseOrderType': [ 0 ], 'parseTransactionStatusByType': [ 0 ] },
+    'toobit': { 'FetchDepositsOrWithdrawalsHelper': [ 0, 1 ], 'createContractOrderRequest': [ 0 ], 'createOrderRequest': [ 0 ], 'parseLedgerType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseOrderType': [ 0 ], 'parseTransactionStatus': [ 0 ] },
+    'upbit': { 'calcOrderPrice': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseTransactionStatus': [ 0 ] },
+    'weex': { 'CreateContractOrder': [ 0 ], 'CreateSpotOrder': [ 0 ], 'FetchFundingHistory': [ 0 ], 'modifyMarginHelper': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseOrderType': [ 0 ], 'parseTransferStatus': [ 0 ] },
+    'whitebit': { 'FetchFundingHistory': [ 0 ], 'isFiat': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseOrderType': [ 0 ], 'parseTransactionStatus': [ 0 ] },
+    'woo': { 'FetchFundingHistory': [ 0 ], 'defaultNetworkCodeForCurrency': [ 0 ], 'modifyMarginHelper': [ 0, 2 ], 'parseLedgerEntryType': [ 0 ], 'parseTimeInForce': [ 0 ], 'parseTransactionStatus': [ 0 ], 'repayMargin': [ 2 ] },
+    'woofipro': { 'FetchFundingHistory': [ 0 ], 'createOrderRequest': [ 0 ], 'modifyMarginHelper': [ 0, 2 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderType': [ 0 ], 'parseTimeInForce': [ 0 ], 'parseTransactionStatus': [ 0 ] },
+    'xt': { 'FetchFundingHistory': [ 0 ], 'FetchOrdersByStatus': [ 0, 1 ], 'modifyMarginHelper': [ 0, 2 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseTransactionStatus': [ 0 ] },
+    'zebpay': { 'orderRequest': [ 0 ] },
+};
+
+// U53: `object since/limit/until/amount/price` parameters on generated NON-core helpers (venue
+// request builders, parse*/filter* helper families, the prediction precision helpers) narrowed to
+// the box every caller already passes.  Keyed by method name -> position: C# overrides are
+// invariant on parameter types, so every declaration of the name at that position in the whole
+// generated tree is rewritten by the same pass, and the parameter NAME at that position must be
+// one of VENUE_NUMERIC_ARG_NAMES (a same-name helper that spells the position differently -- e.g.
+// prediction hyperliquid's `calculatePricePrecision(object midPx)` -- is a different method and is
+// left alone).  Produced by campaigns/cs90/tools/U53/{census-num-params,census2,final_table}.py,
+// which admit a position only when
+//   * every call site of the name at that position in cs/ + examples/cs passes an argument whose
+//     STATIC type is exactly Int64/Int64? (for an Int64? target) or double/double? (double?) or
+//     `null` -- no literal, no int, no object: any conversion at the call site would change the
+//     boxed type the parameter holds (an int literal boxes Int32 where Int64? boxes Int64);
+//   * every declaration of the name at that position is `object <numeric-name>` and generated;
+//   * every use of the parameter inside the body is an identity under the narrowed type: an
+//     argument at a callee position whose every declaration is `object`, a cast to the target
+//     type or to `object`, an initializer element, a `Dictionary<string, object>` indexer write,
+//     an indexer key, or a `return` of an object-returning method -- and `arg_ok` requires NO
+//     numeric overload at that callee position (multiply/divide/mod/sum have Int64? twins whose
+//     binding would move);
+//   * no `this.<name>` method-group reference (`spawn(...)`, DynamicInvoker) anywhere.
+// A body that assigns to the parameter keeps the `object <name>Var = <name>;` shadow
+// `typeCoreArgs` inserts and its uses are renamed, so nothing inside such a body moves; positions
+// whose body needs that shadow are excluded here (they would ADD an object local).
+const VENUE_NUMERIC_ARG_NAMES = [ 'since', 'limit', 'until', 'amount', 'price' ];
+
+const VENUE_NUMERIC_ARGS: Record<string, Record<number, string>> = {
+    'amountToPredictionPrecision': { 1: 'double?' },
+    'borrowMargin': { 1: 'double?' },
+    'buildClobOrderBody': { 3: 'double?' },
+    'buildOrderbookOrder': { 3: 'double?', 4: 'double?' },
+    'calcOrderPrice': { 1: 'double?', 2: 'double?' },
+    'calculateFee': { 3: 'double?', 4: 'double?' },
+    'convertCurrencyNetwork': { 1: 'double?' },
+    'createEditOrderRequest': { 4: 'double?', 5: 'double?' },
+    'createTpslOrderRequest': { 3: 'double?', 4: 'double?' },
+    'editSpotOrderRequest': { 4: 'double?', 5: 'double?' },
+    'encodeWithdrawMessage': { 0: 'double?' },
+    'fetchPaginatedCallIncremental': { 2: 'Int64?', 3: 'Int64?' },
+    'filterByOutcomesSinceLimit': { 2: 'Int64?', 3: 'Int64?' },
+    'filterBySymbolsSinceLimit': { 2: 'Int64?', 3: 'Int64?' },
+    'getAssetHistoryRows': { 1: 'Int64?', 2: 'Int64?' },
+    'getClosestLimit': { 0: 'Int64?' },
+    'handlePaginationParams': { 1: 'Int64?' },
+    'internalFetchTransfers': { 2: 'Int64?', 3: 'Int64?' },
+    'opinionOrderRawAmounts': { 2: 'double?', 3: 'double?' },
+    'orderRequestWs': { 4: 'double?', 5: 'double?' },
+    'parseBorrowRateHistories': { 2: 'Int64?', 3: 'Int64?' },
+    'parseContractOrderBook': { 2: 'Int64?' },
+    'parseConversions': { 4: 'Int64?', 5: 'Int64?' },
+    'parseCreateEditOrderArgs': { 4: 'double?', 5: 'double?' },
+    'parseFundingHistories': { 2: 'Int64?', 3: 'Int64?' },
+    'parseFundingRateHistories': { 2: 'Int64?', 3: 'Int64?' },
+    'parseIncomes': { 2: 'Int64?', 3: 'Int64?' },
+    'parseLedger': { 2: 'Int64?', 3: 'Int64?' },
+    'parseLiquidations': { 2: 'Int64?', 3: 'Int64?' },
+    'parseLongShortRatioHistory': { 2: 'Int64?', 3: 'Int64?' },
+    'parsePredictionOrders': { 2: 'Int64?', 3: 'Int64?' },
+    'parsePredictionTrades': { 2: 'Int64?', 3: 'Int64?' },
+    'parseSettlements': { 2: 'Int64?', 3: 'Int64?' },
+    'parseTradingViewOHLCV': { 3: 'Int64?' },
+    'parseTransactionsByType': { 3: 'Int64?', 4: 'Int64?' },
+    'parseWsOHLCVs': { 3: 'Int64?', 4: 'Int64?' },
+    'parseWsTrades': { 2: 'Int64?', 3: 'Int64?' },
+    'prepareAccountRequest': { 0: 'Int64?' },
+    'prepareAccountRequestWithCurrencyCode': { 1: 'Int64?' },
+    'priceToPredictionPrecision': { 1: 'double?' },
+    'queryTransactionsByEventType': { 4: 'Int64?', 5: 'Int64?' },
+    'requestWalletHistoryRows': { 4: 'Int64?' },
+    'seedOrderBook': { 2: 'Int64?' },
+    'signAndCreateOrder': { 5: 'double?' },
+    'tokenizedConvertHistory': { 0: 'Int64?', 1: 'Int64?' },
+};
+
 // Uses of a `typeCoreArgs` shadow local (`object nameVar = name;`, inserted when the body assigns
 // to the narrowed parameter `name`) that cannot change the resolved C# code when the shadow is
 // declared with the parameter's own type: the copy is the same box (Nullable<T> boxes as T) and
@@ -844,16 +1175,47 @@ const COLLECTION_RETURN_DICT_METHODS: string[] = [
 // of them for `Int64?`: `Int64? x = 1000` converts the literal, so the box becomes an Int64 where
 // the `object` spelling boxes an Int32. Everything else keeps `object` -- notably `add (...)`,
 // whose add(string, string) overload would win and differs from add(object, object).
+// cs90 U23 census: the `limit` core-arg copies (`object limitVar = limit;`, 305 sites) keep
+// `object` -- each is reassigned an `object` producer (204 callDynamically(getLimit): CS0266 and an
+// Int32 box on the ArrayCache min path; 76 int literals; 9 mathMin; 10 ternaries; 6 others).
 const CORE_ARG_SHADOW_TYPES = [ 'string', 'Int64?', 'double?', 'bool?' ];
+
+// cs90 U65: the `limit` core-arg shadow (`object limitVar = limit;`). The escalation the user
+// approved (WAVE1 USER DECISIONS 2026-09-18 #1) admits two write forms for this ONE source --
+// the copy is the same box as the parameter, and both forms hand the copy an Int64 box:
+//
+//   * `limitVar = callDynamically (<cache>, "getLimit", new object[] { … })` -- the hand-written
+//     ws cache accessor. cs/ccxt/ws/ArrayCache.cs now declares `Int64? getLimit` (ArrayCache,
+//     ArrayCache.getLimit/_getLimit and ArrayCacheByTimestamp.getLimit; every getLimit in cs/**),
+//     so the `((Int64?)…)` unbox-cast names the box the value already has and null stays null.
+//   * `limitVar = <integer literal>` (`??=` included) -- `Int64? x = 100` converts the literal
+//     and boxes an Int64 where the `object` spelling boxed an Int32: the one deliberate box
+//     change of the unit, and the emitted cast keeps it visible at the site.
+//
+// Keyed by the SOURCE parameter name, so every sibling copy keeps the rules it had.
+const CORE_ARG_SHADOW_LIMIT_SOURCE = 'limit';
+const CORE_ARG_SHADOW_LIMIT_GETLIMIT_RE = /^callDynamically\s*\(\s*[A-Za-z_]\w*\s*,\s*"getLimit"\s*,/;
+const CORE_ARG_SHADOW_LIMIT_LITERAL_RE = /^-?\d+$/;
+
+// `castCoreArgCallSites` wraps an argument whenever its printed form does not already look like a
+// string literal or a `(string)` cast -- it has no type knowledge. A bare identifier the enclosing
+// generated declaration already types with the target (`string symbol` after `typeCoreArgs`
+// narrowed it, or a local declared `string`) makes that wrap a no-op: the callee receives the same
+// reference. Only the identifiers owned by THIS unit are listed, so a sibling family (`code`,
+// `type`/`side`/`id`, `timeframeVar`) keeps its casts and extends the list on its own branch.
+const CORE_ARG_CALL_SITE_TYPED_IDENTIFIERS = [ 'symbol' ];
 
 // Callees where every definition in cs/** (base, generated and ws tiers) declares `object` in the
 // position an argument lands in, so an `object` argument and a `string`/nullable-numeric argument
 // select the same overload and hand it the same box. `subtract`/`multiply`/`divide`/`sum` only add
 // int/Int64/double overloads, which no nullable numeric or string converts to implicitly.
+// `GetValue` is the typed twin of `getValue` (S63, one IDictionary<string, object> receiver
+// parameter plus a string key): a shadow alias is a string/nullable numeric, so it can only ever
+// reach the twin's key position, and both overloads read the same dictionary the same way.
 const CORE_ARG_SHADOW_CALLEES = [
     'parseTimeframe', 'safeString', 'safeString2', 'safeStringN', 'safeBool', 'safeInteger',
     'safeNumber', 'safeDict', 'safeValue', 'safeList', 'safeTicker', 'safeOrder', 'safeTrade',
-    'safeSymbol', 'getValue', 'isEqual', 'isTrue', 'isGreaterThan', 'isLessThan',
+    'safeSymbol', 'getValue', 'GetValue', 'isEqual', 'isTrue', 'isGreaterThan', 'isLessThan',
     'isGreaterThanOrEqual', 'isLessThanOrEqual', 'mathMin', 'mathMax', 'subtract', 'multiply',
     'divide', 'sum', 'filterBySymbolSinceLimit', 'filterBySinceLimit', 'filterBySymbol',
     'handleWithdrawTagAndParams', 'fetchPaginatedCallIncremental', 'fetchPaginatedCallCursor',
@@ -865,12 +1227,328 @@ const CORE_ARG_SHADOW_CALLEES = [
     'parseTrades', 'parseTransactions', 'findNearestCeiling',
 ];
 
-// parseOHLCVs/fetchPaginatedCallDeterministic carry a narrowed `string timeframe` inside an
-// otherwise `object` parameter list; a bare argument in those positions would not convert.
-const CORE_ARG_SHADOW_SKIP_POSITIONS: Record<string, number[]> = {
-    'parseOHLCVs': [ 2 ],
-    'fetchPaginatedCallDeterministic': [ 4 ],
+// Extension of the allowlist above: every definition of these names in cs/** (base, venue, ws,
+// prediction) types every position `object`, so a narrowed argument keeps the same overload and
+// box. Per-name and per-position proof: campaigns/cs-strict/tools/S32/callee-strict.py. Kept in
+// its own list so a unit that owns a family can switch the extension off (`newRules`).
+const CORE_ARG_SHADOW_NEW_CALLEES = [
+    'subscribe', 'subscribePublic', 'subscribePublicUta', 'watchPublic', 'watchMultipleSubscription',
+    'loadOutcome', 'iso8601', 'yyyymmdd', 'capitalize', 'numberToString', 'getMessageHash',
+    'getUrlByMarketType', 'marketOrNull', 'safeCurrency', 'filterBy', 'inOp', 'inArray',
+    'parseTransfers', 'parseOpenInterestsHistory', 'filterByOutcomeSinceLimit',
+    // `amountToPrecision` and `insertMissingCandles` type every position `object`; the three others
+    // carry one `string` position an `object` argument cannot reach today (no implicit object ->
+    // string), so every reachable position is `object`.
+    'amountToPrecision', 'currencyToPrecision', 'insertMissingCandles', 'parseBorrowRateHistory',
+    'withdrawRequest',
+];
+
+// `add` is admissible only as the RIGHT operand of a two-argument call: an `object` left keeps
+// add(object, object) and a `string` left moves add(string, object) -> add(string, string), which
+// the base declares identical. Index 0 would rebind to add(string, *) and differ on a null left.
+const CORE_ARG_SHADOW_CALLEE_ONLY_POSITIONS: Record<string, number[]> = {
+    'add': [ 1 ],
 };
+
+// cs90 U24: the shadow copies of the string core args the roster assigns to this unit
+// (`symbol`, `timeframe`, `since`, `currency`, `tag` -- U23 owns `limit`). A copy is typed with
+// the parameter's own type when every use is an identity. Two WRITES below become identities
+// once the unboxing cast the typed declaration implies sits in the line, and this unit emits it:
+//
+//   * `symbolVar = GetValue (market, "symbol")` -- a market row read by a string key. The
+//     classifier already emits the same cast for the read form (`string? symbol =
+//     ((string)GetValue (market, "symbol"));`, see MARKET_ROW_STRING_KEYS in
+//     build/csharp-local-types.js), so the cast names the box the row already holds and a null
+//     value unboxes to null through it. The receiver must be a local this body binds ONLY from
+//     `this.market / this.safeMarket / this.safeMarketStructure` (or the `null` init).
+//   * `tagVar = tagparametersVariable[0]` -- element 0 of `handleWithdrawTagAndParams`, a
+//     string-or-null on every return path of the hand-written helper (Exchange.BaseMethods.cs),
+//     reached through the `IList<object>` local the body binds from that one call.
+//
+// Keyed by the SOURCE parameter name, so a sibling unit's copy keeps the rules it had.
+const CORE_ARG_SHADOW_OWNED_SOURCES = [ 'symbol', 'timeframe', 'since', 'currency', 'tag' ];
+
+const CORE_ARG_SHADOW_MARKET_ROW_READ_RE = /^(?:this\.)?(?:GetValue|getValue)\s*\(\s*([A-Za-z_]\w*)\s*,\s*"([^"]+)"\s*\)$/;
+const CORE_ARG_SHADOW_MARKET_ROW_BIND_RE = /^\s*(?:I?Dictionary<string, object>\s+)?([A-Za-z_]\w*)\s*=\s*(?:this\.)?(?:market|safeMarket|safeMarketStructure)\s*\(/;
+const CORE_ARG_SHADOW_ELEMENT0_READ_RE = /^([A-Za-z_]\w*)\[\s*0\s*\]$/;
+// Tuple helpers whose element 0 is a string-or-null box at every call site in cs/**. Each is
+// declared once (`Exchange.BaseMethods.cs`: `object tag, object parameters` -> `List<object>`,
+// no venue or pro override) and called only from the generated `Withdraw`/`WithdrawWs` bodies,
+// which pass the copy of their own `string tag = null` parameter: slot 0 is that box, or
+// `safeString(parameters, "tag")` after the dictionary branch nulled it. Both are string-or-null,
+// so the `(string)` element cast the destructured write gets names the box the slot already
+// holds -- null passes a reference cast unchanged.
+// (cs90 U24 added this table for its own tag element-0 rule; U25 owns the alias fence.)
+const CORE_ARG_SHADOW_STRING_ELEMENT0_HELPERS = [ 'handleWithdrawTagAndParams' ];
+const CORE_ARG_SHADOW_STRING_ELEMENT0_BIND_RE = /^\s*IList<object>\s+([A-Za-z_]\w*)\s*=\s*\(IList<object>\)\s*(?:this\.)?(?:handleWithdrawTagAndParams)\s*\(/;
+
+// U25 owns the withdraw `tag` core arg: `Withdraw`/`WithdrawWs` narrow the parameter to
+// `string tag = null` and every body reassigns it from `handleWithdrawTagAndParams`, so the 49
+// sites carry an `object tagVar = tag;` seed. The widenings below are keyed to that alias and to
+// the helper's holder, so the sibling shadow families (symbol / timeframe / since / currency /
+// limit -- U23/U24) keep the base behaviour.
+const CORE_ARG_SHADOW_TAG_ALIASES = [ 'tagVar' ];
+
+
+// Declarations the scanned body carries for the family above: element-0 holders of the audited
+// helpers, dictionary locals and plain `object` locals.
+type CoreArgShadowTagContext = {
+    stringHolders: Set<string>;
+    dictNames: Set<string>;
+    objectNames: Set<string>;
+};
+
+// cs90 U42: the declared types `retypeIdentifierCopies` may name for a plain identifier copy
+// (`object x = <typed param or local>;`). Every entry is a type the emitted tree already
+// carries on a declaration line, so the copy names what the box already is.
+const U42_COPY_TYPES = [ 'string', 'string?', 'Int64?', 'double?', 'bool?', 'IList<object>', 'List<object>', 'Dictionary<string, object>', 'IDictionary<string, object>' ];
+
+// The sources (parameter names) and copies the roster assigns to U23 (`limit`) and U24/U25
+// (`symbol`, `timeframe`, `since`, `currency`, `tag`): a sibling unit owns those sites, so this
+// unit never retypes them.
+const U42_COPY_OWNED_SOURCES = [ 'limit', 'symbol', 'timeframe', 'since', 'currency', 'tag' ];
+const U42_COPY_OWNED_ALIASES = [ 'limitVar', 'symbolVar', 'timeframeVar', 'sinceVar', 'currencyVar', 'tagVar', 'startTime', 'tag' ];
+
+// Callees every definition of which declares `object` in the position an argument lands in
+// (`currency`, `networkIdToCode`, `safeCurrencyCode`, `safeOutcome`, `safeOutcomeSymbol`,
+// `filterByValueSinceLimit`), plus `getArrayLength`, whose List/IList twins are identity copies
+// of the `object` overload's IList branch (null -> 0). Definitions: cs/ccxt/base/*.cs.
+const U42_COPY_CALLEES = [ 'currency', 'networkIdToCode', 'safeCurrencyCode', 'safeOutcome', 'safeOutcomeSymbol', 'filterByValueSinceLimit', 'getArrayLength' ];
+
+// Box-identical widening edges a write may cross: `List<object>` implements `IList<object>`, and
+// `string?` is the same C# type as `string` (a CS86xx warning is all the annotation adds).
+const U42_COPY_WIDENING: Record<string, boolean> = {
+    'List<object>->IList<object>': true,
+    'Dictionary<string, object>->IDictionary<string, object>': true,
+    'string?->string': true,
+};
+
+// cs-strict S01: the `code` core-arg. CORE_STRING_ARGS narrows the positions `code` is passed to,
+// and castCoreArgCallSites wraps every argument at those call sites -- including the ones that
+// already pass the narrowed type, which is what the caller cores do: `withdraw (code: Str)` prints
+// `string code = null`, so `this.currency(((string)code))` casts a value that is already a string.
+// The wrap is skipped when the argument is one of these identifiers and its nearest in-scope
+// declaration inside the enclosing public method is exactly the narrowed type. A `string?`
+// declaration (the cast does assert non-null there) and an `object` declaration (an unproven box,
+// TS `any`) keep their cast. Identifier-keyed, so sibling units (symbol / timeframe / type / side /
+// id / status) keep owning their own call sites. U25 adds the withdraw `tag` core arg: the
+// narrowed `tag` parameter of every `Withdraw`/`WithdrawWs` core and the `tagVar` shadow the
+// body assigns it to are declared exactly `string`, so the wrap `castCoreArgCallSites` inserts
+// for `withdrawRequest(... , tagVar, ...)` names the box those bindings already hold.
+const CORE_ARG_CAST_EXEMPT_NAMES = [ 'code', 'codeVar', 'tag', 'tagVar' ];
+
+// U47: hand-written / base-emitted C# producers whose DECLARED return type is `string`/`string?`,
+// read off the declaration named in each value. A `((string)this.<name>(...))` wrap on one of
+// them is an identity conversion (reference type: `string?` and `string` are one runtime type,
+// the annotation is not part of a signature, null stays null, nothing unboxes), so the cast can
+// go. A name the processed content itself declares wins over this table: an override that prints
+// another type (or a `new`-hidden twin) then decides the call site's static type, not the base.
+// Census of the surviving `((string)` casts on the base tree: campaigns/cs90/tools/U47.
+const STRING_PRODUCER_HELPERS: Record<string, string> = {
+    safeString: 'cs/ccxt/base/Exchange.SafeMethods.cs:129 string?',
+    safeString2: 'cs/ccxt/base/Exchange.SafeMethods.cs:131 string?',
+    safeStringUpper: 'cs/ccxt/base/Exchange.SafeMethods.cs:139 string?',
+    safeStringLower: 'cs/ccxt/base/Exchange.SafeMethods.cs:157 string?',
+    safeStringLower2: 'cs/ccxt/base/Exchange.SafeMethods.cs:163 string?',
+    safeCurrencyCode: 'cs/ccxt/base/Exchange.BaseMethods.cs:5916 string?',
+    amountToPrecision: 'cs/ccxt/base/Exchange.BaseMethods.cs:5718 string?',
+    findTimeframe: 'cs/ccxt/base/Exchange.BaseMethods.cs:630 string?',
+    json: 'cs/ccxt/base/Exchange.Functions.cs:325 string',
+    ethGetAddressFromPrivateKey: 'cs/ccxt/base/Exchange.ETH.cs:322 string',
+    numberToString: 'cs/ccxt/base/Exchange.Number.cs:427 string',
+    intToBase16: 'cs/ccxt/base/Exchange.Encode.cs:265 string',
+    urlencode: 'cs/ccxt/base/Exchange.Encode.cs:364 string',
+};
+
+// the `public string <name> { get; set; }` block of cs/ccxt/base/Exchange.Options.cs (partial
+// class BaseExchange, lines 89-96) -- every tier inherits them, no venue declares a twin.
+// `token` in the same block is `public object` and is deliberately absent.
+const STRING_PRODUCER_FIELDS = [
+    'secret', 'apiKey', 'password', 'uid', 'accountId', 'login', 'privateKey', 'walletAddress', 'twofa',
+];
+
+// parse* cores whose `market` parameter is only ever a market row: every call site passes null, a
+// Dictionary<string, object> / IDictionary<string, object> value, or an admitted name's own `market`
+// parameter, and every body use is a dict use (census: campaigns/cs-strict/tools/S37).
+const PARSE_MARKET_PARAM_DICTS: string[] = [
+    'parseADLRank', 'parseAccountPosition', 'parseBorrowInterest', 'parseBorrowInterests',
+    'parseEmulatedLeverageTiers', 'parseFeeTiers', 'parseFundingFeeToPrecision',
+    'parseFundingRate', 'parseFundingRateHistories', 'parseFundingRateHistory',
+    'parseFundingRateWs', 'parseGreeks', 'parseIncome', 'parseIncomes', 'parseIsolatedBorrowRate',
+    'parseLastPrice', 'parseLeverage', 'parseLiquidation', 'parseLiquidations',
+    'parseLongShortRatio', 'parseLongShortRatioHistory', 'parseMarginLoan', 'parseMarginMode',
+    'parseMarginModification', 'parseMarketLeverageTiers', 'parseMyTrade', 'parseOpenInterest',
+    'parseOpenInterestsHistory', 'parseOpenOrders', 'parseOption', 'parseOptionPosition',
+    'parseOrderTrade', 'parseOrders', 'parsePerpetualTicker', 'parsePositionRisk',
+    'parseSettlement', 'parseSettlements', 'parseSpotOrUtaTicker', 'parseSwapTicker',
+    'parseTradingFee', 'parseTradingOrder', 'parseTradingViewOHLCV', 'parseWSSwapOrder',
+    'parseWSTicker', 'parseWsBidAsk', 'parseWsFundingRate', 'parseWsInstrument',
+    'parseWsLiquidation', 'parseWsMyLiquidation', 'parseWsMyTrade', 'parseWsOHLCVs',
+    'parseWsOldTrade', 'parseWsOptionsPosition', 'parseWsOrder', 'parseWsOrderStatus',
+    'parseWsOrderTrade', 'parseWsOrderUpdate', 'parseWsPosition', 'parseWsTrades',
+    'parseWsUpdatedTicker', 'parseWsUtaOrder', 'parseWsUtaPosition', 'parseWsUtaTicker',
+    'parseWsUtaTrade',
+    // cs90 U51: the `object market` parameters S37 left. Same admission rule (every call site
+    // passes null / a Dictionary / IDictionary value / an admitted name's own `market` parameter
+    // -- fixed point over both lists -- and every body use is a dict use); the transitive closure
+    // is derived by campaigns/cs90/tools/U51/{market-census4,admission-verdict}.py.
+    'CreateSpotOrder', 'CreateSwapOrder', 'checkContractMarket', 'createOrderRequest',
+    'createPublicRequest', 'createSpotOrderRequest', 'customHandleDelta', 'customHandleDeltas',
+    'customParseBidAsk', 'customParseOrderBook', 'editOrderRequest', 'findOutcomeInMarket',
+    'futuresRequestId', 'getBybitType', 'getDexFromHip3Symbol', 'getGen2MarketId', 'getInstType',
+    'getMarketIdByType', 'getMarketType', 'getOrderChannelAndMessageHash',
+    'getProductGroupFromMarket', 'getTypeByMarket', 'getUrlByMarket',
+    'getV5LinearChannelAndMessageHash', 'handleOrderBookMessage', 'handleProductTypeAndParams',
+    'handleSubTypeAndParams', 'isNativeMarket', 'multiOrderSpotPrepareRequest', 'orderBookSuffix',
+    'orderMessage', 'orderToTrade', 'parseAmmEventToOrder', 'parseFundingHistories',
+    'parseFundingHistory', 'parseLeverageFromMarket', 'parsePosition', 'parseTradingFees',
+    'prepareRequest', 'resolveAuthType', 'safeLiquidation', 'safeMarketStructure',
+    'spotOrderPrepareRequest',
+    'subscribe', 'toEp', 'toEv', 'toSandboxMarketId', 'unSubscribe', 'unWatch', 'unWatchPublic',
+    'unsubscribePublic', 'watchPublic', 'wathPublic',
+];
+
+// the emitted declaration line the pass rewrites, and the `market` parameter inside it (with and
+// without the null default -- some venues declare the parameter required)
+const PARSE_MARKET_SIG_RE = /^(\s*)public (async )?(virtual|override) ([\w<>., ?]+) (\w+)\((.*)\)\s*$/;
+const PARSE_MARKET_PARAM_RE = /([(,]\s*)object(\s+market\s*=\s*null)(?=[,)])/g;
+const PARSE_MARKET_PARAM_REQUIRED_RE = /([(,]\s*)object(\s+market)(?=[,)])/g;
+
+// S40 (cs-strict): ws handler parameter `object message` -> `Dictionary<string, object>`.
+//
+// A handler's `message` is the parsed frame: `Client.TryHandleMessage` hands the result of
+// `JsonHelper.Deserialize` (a `Dictionary<string, object>` for every JSON object, see
+// Exchange.JSONHelper.ToObject) to the venue dispatcher, which forwards it to the channel
+// handlers.  A parameter is retyped here only where EVERY reference in the whole C# tree
+// passes a dict at runtime:
+//   * the handler is a `{ "key", this.handleX }` entry of a dispatch table invoked through
+//     `DynamicInvoker.InvokeMethod(method, new object[] { client, message })` whose key was
+//     read off the message with `safeString`/`safeValue` (`method` non-null), so a list, a
+//     string or a scalar frame never reaches the handler -- and the argument is boxed, so the
+//     reflective call itself needs no cast; or
+//   * every direct call passes a value already proven a dict: a `safeString`/`safeValue` read
+//     off the argument (or off a `safeDict(arg, ...)` copy of it) in a guard that dominates
+//     the call, or the same retyped parameter of another handler of this venue.
+// A call site whose argument is still statically `object` gets the `(Dictionary<string, object>)`
+// assertion the new parameter requires -- the same shape `castCoreArgCallSites` emits for a
+// narrowed core parameter (a null argument stays null through the cast).
+// Handlers the file's dispatcher can hand a JSON array (`x is IList<object>`), a bare string
+// (`isEqual (message, "pong")`) or a rewritten message stay `object`; the per (venue, handler)
+// proof and the rejected list are in campaigns/cs-strict tools/S40 + the unit report.
+const WS_HANDLER_DICT_MESSAGE: Record<string, string[]> = {
+    alpaca: [ 'handleMyTrade', 'handleOrder', 'handleTradeUpdate' ],
+    apex: [ 'handleAccount', 'handleAuthenticate', 'handleOHLCV', 'handleOrderBook', 'handlePong', 'handleSubscriptionStatus', 'handleTicker', 'handleTrades' ],
+    backpack: [ 'handleBidAsk', 'handleOHLCV', 'handleOrder', 'handleOrderBook', 'handlePositions', 'handleTicker', 'handleTrades' ],
+    binance: [ 'handleOptionsOrderUpdate', 'handleWsError' ],
+    bingx: [ 'handleBalance', 'handleMyTrades', 'handleOHLCV', 'handleOrder', 'handleOrderBook', 'handlePositions', 'handleSubscriptionStatus', 'handleTrades' ],
+    bitget: [ 'handleAuthenticate', 'handleOHLCVUnSubscription', 'handleOrderBookUnSubscription', 'handleSubscriptionStatus', 'handleTickerUnSubscription', 'handleTradesUnSubscription', 'handleUnSubscriptionStatus' ],
+    bithumb: [ 'handleBalance', 'handleOrderBook', 'handleOrders', 'handleTicker', 'handleTrades' ],
+    bitmex: [ 'handleAuthenticationMessage', 'handleBalance', 'handleLiquidation', 'handleMyTrades', 'handleOHLCV', 'handleOrderBook', 'handleOrders', 'handlePositions', 'handleSubscriptionStatus', 'handleSystemStatus', 'handleTicker', 'handleTrades' ],
+    bitopro: [ 'handleBalance', 'handleMyTrade', 'handleOrderBook', 'handleTicker', 'handleTrade' ],
+    bitrue: [ 'handleBalance', 'handleOHLCV', 'handleOrder', 'handleOrderBook', 'handleTicker', 'handleTrades' ],
+    bitstamp: [ 'handleFundingRate', 'handleMyTrades', 'handleOrderBook', 'handleOrderBookSubscription', 'handleOrders', 'handleSubscriptionStatus', 'handleTrade', 'handleUnsubscriptionStatus' ],
+    bittrade: [ 'handleSystemStatus' ],
+    bitvavo: [ 'handleAuthenticationMessage', 'handleBidAsk', 'handleDeposits', 'handleErrorMessage', 'handleFetchBalance', 'handleFetchCurrencies', 'handleFetchOHLCV', 'handleMarkets', 'handleMultipleOrders', 'handleMyTrade', 'handleMyTrades', 'handleOHLCV', 'handleOrder', 'handleOrderBook', 'handleOrderBookSnapshot', 'handleOrderBookSubscriptions', 'handleSingleOrder', 'handleSubscriptionStatus', 'handleTicker', 'handleTrade', 'handleTradingFees', 'handleUnsubscriptionStatus', 'handleWithdraw', 'handleWithdraws' ],
+    blockchaincom: [ 'handleAuthenticationMessage', 'handleBalance', 'handleOHLCV', 'handleOrderBook', 'handleOrders', 'handleTicker', 'handleTrades' ],
+    blofin: [ 'handleBalance', 'handleBidAsk', 'handleFundingRate', 'handleOHLCV', 'handleOrderBook', 'handleOrders', 'handlePong', 'handlePositions', 'handleTicker', 'handleTrades' ],
+    bullish: [ 'handleBalance', 'handleErrorMessage', 'handleMyTrades', 'handleOrderBook', 'handleOrders', 'handlePong', 'handlePositions', 'handleTicker', 'handleTrades' ],
+    bybit: [ 'handleAuthenticate', 'handleBalance', 'handleLiquidation', 'handleMyTrades', 'handleOHLCV', 'handleOrder', 'handleOrderBook', 'handleOrderWs', 'handlePong', 'handlePositions', 'handleSubscriptionStatus', 'handleTicker', 'handleTrades', 'handleUnSubscribe' ],
+    bydfi: [ 'handleBalance', 'handleErrorMessage', 'handleOHLCV', 'handleOrder', 'handleOrderBook', 'handlePong', 'handlePositions', 'handleSubscriptionStatus', 'handleTicker' ],
+    cex: [ 'handleAuthenticationMessage', 'handleBalance', 'handleConnected', 'handleErrorMessage', 'handleInitOHLCV', 'handleMyTrades', 'handleOHLCV', 'handleOHLCV1m', 'handleOHLCV24', 'handleOrderBookSnapshot', 'handleOrderBookUpdate', 'handleOrderUpdate', 'handleOrdersSnapshot', 'handleTicker', 'handleTrade', 'handleTradesInner', 'handleTradesSnapshot', 'handleTransaction' ],
+    coinbase: [ 'handleHeartbeats', 'handleOrder', 'handleOrderBook', 'handleSubscriptionStatus', 'handleTickers', 'handleTrade' ],
+    coinbaseexchange: [ 'handleErrorMessage', 'handleMyTrade', 'handleOrder', 'handleOrderBook', 'handleSubscriptionStatus', 'handleTicker', 'handleTrade' ],
+    coinbaseinternational: [ 'handleFundingRate', 'handleInstrument', 'handleOHLCV', 'handleOrderBook', 'handleSubscriptionStatus', 'handleTicker', 'handleTrade' ],
+    coinex: [ 'handleAuthenticationMessage', 'handleBalance', 'handleBidAsk', 'handleMyTrades', 'handleOrderBook', 'handleOrders', 'handleSubscriptionStatus', 'handleTicker', 'handleTrades' ],
+    coinone: [ 'handleOrderBook', 'handlePong', 'handleTicker', 'handleTrades' ],
+    cryptocom: [ 'handleAuthenticate', 'handleCancelAllOrders', 'handleOrder', 'handlePing', 'handleSubscribe', 'handleUnsubscribe' ],
+    deepcoin: [ 'handleErrorMessage', 'handleMyTrade', 'handleOHLCV', 'handleOrder', 'handleOrderBook', 'handleOrderBookSnapshot', 'handlePosition', 'handleSubscriptionStatus', 'handleTicker', 'handleTrades' ],
+    dydx: [ 'handleErrorMessage', 'handleOHLCV', 'handleOrderBook', 'handleTrades' ],
+    extended: [ 'handleBalance', 'handleMarkPrice', 'handleMyTrades', 'handleOrders', 'handlePositions' ],
+    gate: [ 'handleAuthenticationMessage', 'handleBalanceSubscription', 'handleOrderBookSubscription', 'handleSubscriptionStatus', 'handleUnSubscribe' ],
+    grvt: [ 'handleMyTrade', 'handleOHLCV', 'handleOrder', 'handleOrderBook', 'handlePosition', 'handleTicker', 'handleTrades' ],
+    hitbtc: [ 'handleBalance', 'handleBidAsk', 'handleNotification', 'handleOHLCV', 'handleOrder', 'handleOrderBook', 'handleOrderHelper', 'handleTicker', 'handleTrades' ],
+    hollaex: [ 'handlePong' ],
+    htx: [ 'handlePositions', 'handleSystemStatus' ],
+    hyperliquid: [ 'handleActiveAssetCtx', 'handleBalance', 'handleMyTrades', 'handleOHLCV', 'handleOrder', 'handleOrderBook', 'handlePong', 'handlePositions', 'handleSubscriptionResponse', 'handleTrades', 'handleWsPost', 'handleWsTickers' ],
+    kraken: [ 'handleBalance', 'handleCancelAllOrders', 'handleCancelOrder', 'handleCreateEditOrder', 'handleErrorMessage', 'handleHeartbeat', 'handleMyTrades', 'handleOHLCV', 'handleOrderBook', 'handleOrders', 'handlePong', 'handleSubscriptionStatus', 'handleSystemStatus', 'handleTicker', 'handleTrades' ],
+    krakenfutures: [ 'handleAuthenticate', 'handleBalance', 'handleBidAsk', 'handleErrorMessage', 'handleMyTrades', 'handleOrder', 'handleOrderBook', 'handleOrderBookSnapshot', 'handleOrderSnapshot', 'handlePositions', 'handleTicker', 'handleTrade' ],
+    kucoin: [ 'handleBalance', 'handleBidAsk', 'handleContractTicker', 'handleErrorMessage', 'handleMyTrade', 'handleOHLCV', 'handleOrder', 'handleOrderBook', 'handlePong', 'handlePosition', 'handleSubject', 'handleSubscriptionStatus', 'handleSystemStatus', 'handleTicker', 'handleTrade', 'handleUtaBalance', 'handleUtaFundingRate', 'handleUtaMyTrade', 'handleUtaOHLCV', 'handleUtaOrder', 'handleUtaOrderBook', 'handleUtaPosition', 'handleUtaTicker', 'handleUtaTrade' ],
+    lbank: [ 'handleBalance', 'handleErrorMessage', 'handleOHLCV', 'handleOrderBook', 'handleOrders', 'handlePing', 'handleTicker', 'handleTrades' ],
+    lighter: [ 'handleBalance', 'handleLiquidation', 'handleMyTrades', 'handleOrderBook', 'handleOrderBookMessage', 'handleOrders', 'handlePing', 'handleSubscriptionStatus', 'handleTicker', 'handleTrades', 'handleWsSendtxApi' ],
+    mexc: [ 'handleOrderBookSubscription' ],
+    mudrex: [ 'handleOHLCV', 'handleTicker' ],
+    nado: [ 'handleAllBidsAsks', 'handleAuthentication', 'handleBidAsk', 'handleExecuteResponse', 'handleMyTrade', 'handleOHLCV', 'handleOrder', 'handleOrderBook', 'handlePosition', 'handleSubscription', 'handleTrade', 'handleUnsubscription' ],
+    okx: [ 'handleAuthenticate', 'handleBalance', 'handleBalanceAndPosition', 'handleBidAsk', 'handleCancelAllOrders', 'handleFundingRate', 'handleLiquidation', 'handleMyLiquidation', 'handleMyTrades', 'handleOHLCV', 'handleOrderBook', 'handleOrders', 'handlePlaceOrders', 'handlePositions', 'handleSubscriptionStatus', 'handleTicker', 'handleTrades', 'handleUnsubscription' ],
+    opinion: [ 'handleMyTrade', 'handleOrder', 'handleOrderBook', 'handleTicker', 'handleTrades' ],
+    p2b: [ 'handleOHLCV', 'handleOrderBook', 'handlePong', 'handleTicker', 'handleTrade' ],
+    pacifica: [ 'handleMyTrades', 'handleOHLCV', 'handleOrder', 'handleOrderBook', 'handlePong', 'handleSubscriptionResponse', 'handleTrades', 'handleWsPost', 'handleWsTickers' ],
+    phemex: [ 'handleOHLCV', 'handleOrderBook', 'handleTicker', 'handleTrades' ],
+    upbit: [ 'handleMyTrade' ],
+    weex: [ 'handleBalance', 'handleBidAsk', 'handleMyTrades', 'handleOHLCV', 'handleOrderBook', 'handleOrders', 'handlePing', 'handlePositions', 'handleSubscriptionStatus', 'handleTicker', 'handleTrade' ],
+    whitebit: [ 'handlePong', 'handleSubscriptionStatus' ],
+    woo: [ 'handleAuth', 'handleBalance', 'handleBidAsk', 'handleFundingRate', 'handleOHLCV', 'handleOrderBook', 'handleOrderUpdate', 'handlePing', 'handlePong', 'handlePositions', 'handleSubscribe', 'handleTicker', 'handleTickers', 'handleTrade', 'handleUnSubscription' ],
+    woofipro: [ 'handleAuth', 'handleBalance', 'handleBidAsk', 'handleOHLCV', 'handleOrderBook', 'handleOrderUpdate', 'handlePing', 'handlePong', 'handlePositions', 'handleSubscribe', 'handleTicker', 'handleTickers', 'handleTrade' ],
+    xt: [ 'handleBalance', 'handleErrorMessage', 'handleFundingRate', 'handleMyTrades', 'handleOHLCV', 'handleOrder', 'handleOrderBook', 'handlePosition', 'handleTicker', 'handleTickers', 'handleTrade' ],
+};
+
+// U52: the ws handlers of S40's table that stayed `object` because their dispatcher hands them an
+// `IDictionary<string, object>` -- retyped to the INTERFACE spelling, which is exactly the box the
+// argument already has, so no call site changes and the tree gains no conversion.  Admission
+// (campaigns/cs90/tools/U52/admit5.py, verify_U52.py) requires, per (venue, handler):
+//   * every reference is a dispatch-table method group whose reflective invoke is selected by a
+//     key read off the message (`string? k = this.safeString (message, …)` ->
+//     `this.safeValue (methods, k)`, the invoke guarded by `method != null`), so a non-dict frame
+//     selects no entry and never reaches the handler; or
+//   * a direct call whose 2nd argument is ALREADY statically a dict type in the emitted text (a
+//     `Dictionary<string, object>` / `IDictionary<string, object>` local, parameter, or another
+//     handler of this table -- the same-file chain), so the retype needs no
+//     `(Dictionary<string, object>)arg` assertion: the concrete spelling S40 uses would have to
+//     downcast the interface-typed argument at runtime (rejected there, see its report);
+//   * the handler body compiles unchanged under the interface parameter: no `(string)param` /
+//     `param as T` conversion the interface cannot make, no `ref`/`out` sink, no reassignment of
+//     the parameter (a reassignment site is a counter-proof: the value stops being the message).
+// A handler whose emitted text stops satisfying the call-site rule stays `object` whole -- the
+// pass is self-gating, it never guesses.
+const WS_HANDLER_IDICT_MESSAGE: Record<string, string[]> = {
+    aster: [ 'handleBalanceAndPosition', 'handleBidAsk', 'handleOHLCV', 'handleOrder', 'handleOrderBook', 'handlePositions', 'handleTicker', 'handleTrade' ],
+    bingx: [ 'handleUnSubscription' ],
+    bydfi: [ 'handleUnSubscription' ],
+    deepcoin: [ 'handleUnSubscription' ],
+    htx: [ 'handleUnSubscription' ],
+    hyperliquid: [ 'handleMyTradesUnsubscription', 'handleOHLCVUnsubscription', 'handleOrderBookUnsubscription', 'handleOrderUnsubscription', 'handlePositionsUnsubscription', 'handleSpotBalanceUnsubscription', 'handleTickerUnsubscription', 'handleTickersUnsubscription', 'handleTradesUnsubscription' ],
+    independentreserve: [ 'handleHeartbeat', 'handleOrderBook', 'handleSubscriptions', 'handleTrades' ],
+    modetrade: [ 'handleAuth', 'handleBalance', 'handleBidAsk', 'handleOHLCV', 'handleOrderBook', 'handleOrderUpdate', 'handlePing', 'handlePong', 'handlePositions', 'handleSubscribe', 'handleTicker', 'handleTickers', 'handleTrade' ],
+    myriad: [ 'handleOrder', 'handleOrderBook', 'handlePosition', 'handleTicker', 'handleTrades' ],
+    ndax: [ 'handleOHLCV', 'handleOrderBook', 'handleSubscriptionStatus', 'handleTicker', 'handleTrades' ],
+    pacifica: [ 'handleMyTradesUnsubscription', 'handleOHLCVUnsubscription', 'handleOrderBookUnsubscription', 'handleOrderUnsubscription', 'handleTickersUnsubscription', 'handleTradesUnsubscription' ],
+    poloniex: [ 'handleBalance', 'handleMyTrades', 'handleOHLCV', 'handleOrder', 'handleOrderBook', 'handleTicker', 'handleTrade' ],
+    upbit: [ 'handleBalance', 'handleMyOrder', 'handleOHLCV', 'handleOrder', 'handleOrderBook', 'handleTicker', 'handleTrades' ],
+    xt: [ 'handleUnSubscription' ],
+};
+
+// `sign()` / `handleErrors()` parameter types, keyed by POSITION (the venue overrides rename the
+// parameters: path/section, code/httpCode/statusCode, headers/responseHeaders, so only the
+// position carries the type; C# overrides are invariant on types, not names). The hand-written
+// base cs/ccxt/base/Exchange.cs already declares these positions concretely (`sign(object path,
+// object api, string method, dict headers, …)`, `handleErrors(int, string, string, string, dict,
+// …)`); the generated base virtual and its 101 venue overrides are the ones that lag. Positions
+// stay `object` where the call-site census rejects them (see campaigns/cs-strict REPORT.md S41).
+// No `object <name>Var` shadow (unlike typeCoreArgs): every write in the 202 bodies is a literal
+// or a `Dictionary<string, object>` producer, so the narrowed declaration keeps the bodies
+// byte-identical, and the 8 `add (method, …)` sites pass a static string or a literal.
+const SIGNATURE_ARG_TYPES: Record<string, Record<number, string>> = {
+    'sign': { 2: 'string', 4: 'Dictionary<string, object>' },
+    'handleErrors': { 1: 'string', 2: 'string', 3: 'string', 7: 'Dictionary<string, object>' },
+};
+
+// S43 pilot: method names whose trailing `parameters` argument is retyped to
+// `Dictionary<string, object> parameters = null`. C# overrides are invariant on parameter types,
+// so a name may only be admitted while EVERY declaration of it (generated base + the venue
+// override) is rewritten by the same pass. The two names below are the closed subset that has a
+// single venue: `isUTAEnabled` (BaseMethods + kucoin), `WatchPosition` (TradingMethods + pro/kucoin);
+// both have no body assignment a Dictionary cannot take and no call site passing a non-dict
+// argument (census: campaigns/cs-strict/tools/S43/flow.py on the b01e9230 tree).
+const PARAMETERS_ARG_TYPED_METHODS: string[] = [ 'WatchPosition', 'isUTAEnabled' ];
 
 const CORE_STRING_ARGS: Record<string, number[]> = {
     'addMargin': [ 0 ],
@@ -959,6 +1637,10 @@ const CORE_STRING_ARGS: Record<string, number[]> = {
     'fetchBorrowInterest': [ 0 ],
     'fetchBorrowRate': [ 0 ],
     'fetchBorrowRateHistory': [ 0 ],
+    // cs-strict S02: `symbol` positions proven offline per declaration (tools/S02/body-use-proof.py):
+    // every use is a bare argument to an `object`-there callee, to a core already narrowed to
+    // `string`, an identity `((string)…)`/`(object)` cast, or a collection-initializer element.
+    'fetchCanceledAndClosedOrders': [ 0 ],
     'fetchCanceledOrders': [ 0 ],
     'fetchClosedOrder': [ 0, 1 ],
     'fetchClosedOrders': [ 0 ],
@@ -1038,6 +1720,7 @@ const CORE_STRING_ARGS: Record<string, number[]> = {
     'fetchOrderWs': [ 0, 1 ],
     'fetchOrders': [ 0 ],
     'fetchOrdersByIds': [ 1 ],
+    'fetchOrdersByState': [ 1 ],
     'fetchOrdersByStatusWs': [ 0, 1 ],
     'fetchOrdersWs': [ 0 ],
     'fetchPaginatedCallDeterministic': [ 4 ],
@@ -1094,7 +1777,7 @@ const CORE_STRING_ARGS: Record<string, number[]> = {
     'repayIsolatedMargin': [ 1 ],
     'repayMargin': [ 0 ],
     'requestWalletHistoryRows': [ 2 ],
-    'safeDeterministicCall': [ 4 ],
+    'safeDeterministicCall': [ 1, 4 ],
     'setLeverage': [ 1 ],
     'setMargin': [ 0 ],
     'setMarginMode': [ 0, 1 ],
@@ -1124,7 +1807,7 @@ const CORE_STRING_ARGS: Record<string, number[]> = {
     'watchTicker': [ 0 ],
     'watchTrades': [ 0 ],
     'withdraw': [ 0, 2, 3 ],
-    'withdrawRequest': [ 0 ],
+    'withdrawRequest': [ 0, 3 ],
     'withdrawWs': [ 0, 2, 3 ],
     // fetchRestOrderBookSafe omitted: TS declares `symbol: any`, so the wrapper and the
     // hand-written WsBridge caller both pass `object` and cannot be narrowed here
@@ -1190,6 +1873,27 @@ const SAFE_COLLECTION_HELPER_TYPES: Record<string, string> = {
     'safeList2': 'List<object>',
     'safeListN': 'List<object>',
 };
+
+// S15 — native C# members for the list wrappers the printer emits (`getArrayLength(x)` for a TS
+// `.length`, `((IList<object>)x).ToArray()/.First()/.Last()` for a list call). The receiver counts
+// only when its own declaration in the same method is a list type; see nativeListHelperCalls().
+const CSHARP_MEMBER_SIGNATURE = /^\s*(?:public|private|protected|internal)\b/;
+const CSHARP_TYPE_TOKEN = '[A-Za-z_][\\w.]*(?:<[^<>]*(?:<[^<>]*>)?[^<>]*>)?(?:\\?)?(?:\\[\\])?';
+const CSHARP_TYPED_BINDING = new RegExp ('^\\s*(' + CSHARP_TYPE_TOKEN + ')\\s+([A-Za-z_]\\w*)\\s*(?:=\\s*(.*))?$');
+const CSHARP_BARE_DECLARATION = new RegExp ('^\\s*(' + CSHARP_TYPE_TOKEN + ')\\s+([A-Za-z_]\\w*)\\s*;\\s*$');
+const CSHARP_NON_TYPES = new Set ([ 'return', 'if', 'else', 'for', 'foreach', 'while', 'using', 'new',
+    'lock', 'case', 'break', 'throw', 'await', 'yield', 'switch', 'do', 'try', 'catch', 'finally',
+    'continue', 'goto', 'in', 'is', 'static', 'public', 'private', 'protected', 'internal', 'class',
+    'namespace', 'delegate', 'event', 'params', 'checked', 'unchecked', 'from', 'where', 'select' ]);
+const CSHARP_LIST_TYPE_RECEIVER = /^(?:IList|List)</;
+const CSHARP_LIST_RECEIVER_CALL = /getArrayLength\(([A-Za-z_]\w*)\)|\(\(IList<object>\)([A-Za-z_]\w*)\)\.(ToArray|First|Last)\(\)/g;
+// U48 — `((IList<object>)x)` is an identity conversion when x's emitted static type already IS
+// List<object>/IList<object>. Dropped only in front of the accesses that resolve identically there
+// (indexer, Add, ToArray, First, Last); `.Reverse()/.Sort()` are void List INSTANCE methods.
+const CSHARP_IDENTITY_LIST_CAST = /\(\(IList<object>\)\s*([A-Za-z_]\w*)\s*\)(\.Add\(|\[|\.ToArray\(\)|\.First\(\)|\.Last\(\))/g;
+// the same identity around the hand-written ws cache: `ccxt.pro.OrderBook.cache` is declared
+// `IList<object>` (cs/ccxt/ws/OrderBook.cs:22/:33), so the cast is a no-op on that member read
+const CSHARP_ORDERBOOK_CACHE_CAST = /\(\(IList<object>\)(?:\(IList<object>\))?\(+([A-Za-z_]\w*) as ccxt\.pro\.OrderBook\)\.cache\)+\.Add\(/g;
 
 // locate a whole transpiled C# method (plus a preceding /** */ doc-comment block, if any)
 // by name — the span stripCSharpMethod() cuts out, kept addressable so a rewritten method
@@ -1328,8 +2032,7 @@ class NewTranspiler {
             [/(\w+)(\.reject.+)/gm, '((WebSocketClient)$1)$2'],
             [/(client)(\.reset.+)/gm, '((WebSocketClient)$1)$2'],
             [/\(client,/g, '(client as WebSocketClient,'],
-            [/\(object client,/gm, '(WebSocketClient client,'],
-            [/\(object client\)/gm, '(WebSocketClient client)'],
+            [/([(,]\s*)object client\b/g, '$1WebSocketClient client'],
             [/object client =/gm, 'var client ='],
             [/object future =/gm, 'var future ='],
         ]
@@ -2362,7 +3065,7 @@ class NewTranspiler {
     }
 
     // right hand side whose C# static type is exactly the shadow's type
-    coreArgShadowRhsIsTyped (rhs: string, targetType: string): boolean {
+    coreArgShadowRhsIsTyped (rhs: string, targetType: string, newRules = true, tagContext?: CoreArgShadowTagContext): boolean {
         if (targetType === 'string') {
             if (/^"(?:[^"\\]|\\.)*"$/.test (rhs)) {
                 return true;
@@ -2370,8 +3073,25 @@ class NewTranspiler {
             if (/^this\.(?:safeString|symbol)\s*\(/.test (rhs)) {
                 return true;
             }
+            // `safeSymbol` returns `string?`, exactly like `safeString`
+            if (newRules && /^this\.safeSymbol\s*\(/.test (rhs)) {
+                return true;
+            }
+            // `capitalize` returns `string`; `((object)x).ToString()` is a string for any non-null x
+            if (newRules && (/^this\.capitalize\s*\(/.test (rhs) || /^\(\(object\)[\w.]+\)\.ToString\s*\(\s*\)$/.test (rhs))) {
+                return true;
+            }
             if (/^\(\(string\)[\w.]+\)\.(?:ToLower|ToUpper|Trim)\s*\(\s*\)$/.test (rhs)) {
                 return true;
+            }
+            // the destructured seed of a `tagVar` shadow: `<holder>[0]` of an audited helper
+            // (CORE_ARG_SHADOW_STRING_ELEMENT0_HELPERS) holds a string or null, and the write
+            // gets the `(string)` cast back to that box (insertCoreArgShadowElementCasts)
+            if (tagContext !== undefined) {
+                const element = /^([A-Za-z_]\w*)\s*\[\s*0\s*\]$/.exec (rhs);
+                if (element !== null && tagContext.stringHolders.has (element[1])) {
+                    return true;
+                }
             }
         } else if (targetType === 'bool?') {
             if (/^(?:true|false)$/.test (rhs)) {
@@ -2437,26 +3157,45 @@ class NewTranspiler {
         return null;
     }
 
-    coreArgShadowCalleeAllows (callee: string, line: string, at: number, openParen: number): boolean {
+    // A callee outside the table keeps its argument untyped. No position exception is needed for
+    // a narrowed parameter: castCoreArgCallSites wraps every argument there with `((string)…)`/
+    // To*Arg, and coreArgShadowUseKind answers at that cast before asking about the callee.
+    coreArgShadowCalleeAllows (callee: string, line: string, at: number, openParen: number, newRules = true): boolean {
         const name = callee.split ('.').pop () as string;
-        if (CORE_ARG_SHADOW_CALLEES.indexOf (name) === -1) {
+        const only = newRules ? CORE_ARG_SHADOW_CALLEE_ONLY_POSITIONS[name] : undefined;
+        const extra = newRules ? CORE_ARG_SHADOW_NEW_CALLEES.indexOf (name) !== -1 : false;
+        if (CORE_ARG_SHADOW_CALLEES.indexOf (name) === -1 && !extra && only === undefined) {
             return false;
         }
-        const skips = CORE_ARG_SHADOW_SKIP_POSITIONS[name];
-        if (skips === undefined) {
+        if (only === undefined) {
             return true;
         }
+        const [ index, count ] = this.coreArgShadowArgIndex (line, openParen, at);
+        if (only !== undefined) {
+            return count === 2 && only.indexOf (index) !== -1;
+        }
+    }
+
+    // [ index of the argument holding `at`, number of top-level arguments ] of the call at `open`
+    coreArgShadowArgIndex (line: string, open: number, at: number): [ number, number ] {
         let depth = 0;
         let index = 0;
-        for (let i = openParen + 1; i < at; i++) {
+        let count = 1;
+        for (let i = open + 1; i < line.length; i++) {
             const ch = line[i];
-            if (ch === '(') { depth += 1; } else if (ch === ')') { depth -= 1; } else if (ch === ',' && depth === 0) { index += 1; }
+            if (ch === '(') { depth += 1; } else if (ch === ')') {
+                if (depth === 0) { break; }
+                depth -= 1;
+            } else if (ch === ',' && depth === 0) {
+                count += 1;
+                if (i < at) { index += 1; }
+            }
         }
-        return skips.indexOf (index) === -1;
+        return [ index, count ];
     }
 
     // classification of one occurrence: 'write', 'read', or '' when not provable
-    coreArgShadowUseKind (line: string, at: number, alias: string, targetType: string, methodReturnType: string, inDictInit: boolean): string {
+    coreArgShadowUseKind (line: string, at: number, alias: string, targetType: string, methodReturnType: string, inDictInit: boolean, newRules = true, tagContext?: CoreArgShadowTagContext): string {
         const pre = line.slice (0, at);
         const post = line.slice (at + alias.length);
         const postl = post.replace (/^\s+/, '');
@@ -2468,7 +3207,7 @@ class NewTranspiler {
             if (m !== null) {
                 const op = m[1];
                 const rhs = m[2].trim ();
-                if ((op === '??=' || op === '=') && this.coreArgShadowRhsIsTyped (rhs, targetType)) {
+                if ((op === '??=' || op === '=') && this.coreArgShadowRhsIsTyped (rhs, targetType, newRules, tagContext)) {
                     return 'write';
                 }
                 return '';
@@ -2485,15 +3224,44 @@ class NewTranspiler {
         if (postl.trim () === ';' && /[\}\]]\s*=\s*$/.test (pre) && /I?Dictionary<string,\s*object>/.test (pre)) {
             return 'read';
         }
+        // the same object-slot write with the cast already dropped, which the [AST] dict-write
+        // rule does for a `request` receiver: the cast named the slot, so its absence proves
+        // the declaration is a dictionary and the value is boxed into an `object` entry
+        if (postl.trim () === ';' && /request\s*\[[^\]]*\]\s*=\s*$/.test (pre)) {
+            return 'read';
+        }
+        // U25: the `tagVar` shadow written into an object-valued slot the same body declares --
+        // an `object` local (`destinationRequest = tagVar;`) or a dictionary's `object` indexer
+        // (`transaction["tag"] = tagVar;` where `transaction` is declared `Dictionary<string,
+        // object>` / `IDictionary<string, object>` in this method). Either slot boxes the same
+        // string reference the `object` spelling boxes.
+        if (tagContext !== undefined && postl.trim () === ';') {
+            const intoDict = /(?:^|[^\w.])([A-Za-z_]\w*)\s*\[[^\]]*\]\s*=\s*$/.exec (pre);
+            if (intoDict !== null && tagContext.dictNames.has (intoDict[1])) {
+                return 'read';
+            }
+            const intoObject = /(?:^|[^\w.])([A-Za-z_]\w*)\s*=\s*$/.exec (pre);
+            if (intoObject !== null && tagContext.objectNames.has (intoObject[1])) {
+                return 'read';
+            }
+        }
         if (/[{,]\s*$/.test (pre) && /(?:new List<object>|new object\[\]|new Dictionary<string, object>)\s*\(?\s*\)?\s*\{[^{}]*$/.test (pre)) {
             return 'read';
         }
         if (inDictInit && /^\s*\{\s*"(?:[^"\\]|\\.)*"\s*,\s*$/.test (pre)) {
             return 'read';
         }
+        // U57 prints a native `(a + b)` for `add (a, b)`: an operand of the `+` operator reads
+        // the alias exactly the way an argument of the helper call did (the operator consumes
+        // the value), and the concat only exists where the printer proved the operands strings.
+        // Gated on newRules: a `timeframe` copy belongs to campaign unit S04 (contested sites go
+        // to the lower unit number), so only the rules already on the base fire for it.
+        if (newRules && (/\+\s*$/.test (pre) || /^\s*\+/.test (postl))) {
+            return 'read';
+        }
         if (postl.charAt (0) === ',' || postl.charAt (0) === ')') {
             const callee = this.coreArgShadowCallee (line, at);
-            if (callee !== null && this.coreArgShadowCalleeAllows (callee[0], line, at, callee[1])) {
+            if (callee !== null && this.coreArgShadowCalleeAllows (callee[0], line, at, callee[1], newRules)) {
                 return 'read';
             }
             return '';
@@ -2504,9 +3272,110 @@ class NewTranspiler {
         return '';
     }
 
+    // U24: the locals this body binds ONLY from `producer` (a `null` init is allowed), i.e. every
+    // assignment of the name in the body is the producer or null. The name is what the producer
+    // regex captures in group 1.
+    coreArgShadowProducerLocals (bodyLines: string[], producer: RegExp): string[] {
+        const names: string[] = [];
+        for (const line of bodyLines) {
+            const m = producer.exec (line);
+            if (m !== null && names.indexOf (m[1]) === -1) {
+                names.push (m[1]);
+            }
+        }
+        const out: string[] = [];
+        for (const name of names) {
+            if (this.coreArgShadowOnlyBinds (bodyLines, name, producer)) {
+                out.push (name);
+            }
+        }
+        return out;
+    }
+
+    coreArgShadowOnlyBinds (bodyLines: string[], name: string, producer: RegExp): boolean {
+        const target = new RegExp ('^\\s*(?:I?Dictionary<string, object>\\s+|IList<object>\\s+)?' + name + '\\s*=\\s*(.*)$');
+        let seen = false;
+        for (const line of bodyLines) {
+            const m = target.exec (line);
+            if (m === null) {
+                continue;
+            }
+            const rhs = m[1].trim ();
+            if (rhs === 'null' || rhs === 'null;') {
+                continue;
+            }
+            if (producer.test (line)) {
+                seen = true;
+                continue;
+            }
+            return false;
+        }
+        return seen;
+    }
+
+    // U24: the cast an owned source's copy needs when it is written from `rhs`, or null when
+    // `rhs` is not one of the two proven string producers. See CORE_ARG_SHADOW_OWNED_SOURCES
+    // for the proof of each shape.
+    coreArgShadowWriteCastType (rhs: string, targetType: string, marketRows: string[], holders: string[]): string | null {
+        if (targetType !== 'string') {
+            return null;
+        }
+        const row = CORE_ARG_SHADOW_MARKET_ROW_READ_RE.exec (rhs);
+        if (row !== null && MARKET_ROW_STRING_KEYS.indexOf (row[2]) !== -1 && marketRows.indexOf (row[1]) !== -1) {
+            return 'string';
+        }
+        const element = CORE_ARG_SHADOW_ELEMENT0_READ_RE.exec (rhs);
+        if (element !== null && holders.indexOf (element[1]) !== -1) {
+            return 'string';
+        }
+        return null;
+    }
+
+    // U24: the `alias = <producer>;` write with the `((T)…)` cast its typed declaration needs, or
+    // null when the raw line does not carry the shape the analysis proved (a trailing comment, a
+    // different print). The caller keeps the declaration `object` on a null.
+    coreArgShadowCastWrite (line: string, alias: string, targetType: string, bodyLines: string[]): string | null {
+        const m = new RegExp ('^(\\s*)' + alias + '\\s*=\\s*([^;]+?)\\s*;\\s*$').exec (line);
+        if (m === null) {
+            return null;
+        }
+        const cast = this.coreArgShadowWriteCastType (m[2].trim (), targetType,
+            this.coreArgShadowProducerLocals (bodyLines, CORE_ARG_SHADOW_MARKET_ROW_BIND_RE),
+            this.coreArgShadowProducerLocals (bodyLines, CORE_ARG_SHADOW_STRING_ELEMENT0_BIND_RE));
+        return cast === null ? null : m[1] + alias + ' = ((' + cast + ')' + m[2].trim () + ');';
+    }
+
+    // U65: the `limit` shadow's two admitted write forms (getLimit / integer literal), or null
+    // when the RHS is not one of them. `coreArgShadowLimitCastWrite` is the same predicate on a
+    // whole line, with the `((T)…)` cast the typed declaration needs; it reproduces the raw line
+    // byte-for-byte (a trailing `//` comment included), so the caller can bail out -- and keep
+    // the declaration `object` -- whenever the printed line is not the shape the scan proved.
+    coreArgShadowLimitWriteRhs (rhs: string): string | null {
+        if (CORE_ARG_SHADOW_LIMIT_GETLIMIT_RE.test (rhs) || CORE_ARG_SHADOW_LIMIT_LITERAL_RE.test (rhs)) {
+            return rhs;
+        }
+        return null;
+    }
+
+    coreArgShadowLimitCastWrite (line: string, alias: string, targetType: string): string | null {
+        const m = new RegExp ('^(\\s*)' + alias + '\\s*(\\?\\?=|=)\\s*(.*?)\\s*;(\\s*(?://.*)?)$').exec (line);
+        if (m === null) {
+            return null;
+        }
+        const rhs = this.coreArgShadowLimitWriteRhs (m[3]);
+        return rhs === null ? null : m[1] + alias + ' ' + m[2] + ' ((' + targetType + ')' + rhs + ');' + m[4];
+    }
+
     // True when the shadow `alias` (copy of the narrowed parameter, targetType its type) is used
     // only in the proven ways above and is read at least once (a write-only local is CS0219).
-    coreArgShadowIsProvable (bodyLines: string[], alias: string, targetType: string, methodReturnType: string, skipLine = -1): boolean {
+    // `newRules` is false for a `timeframe` copy: that shadow belongs to campaign unit S04
+    // (contested sites go to the lower unit number), so only the rules already on the base fire.
+    // `castCasts` (U24) enables the write forms above and collects the line index of every write
+    // that needs the `((T)…)` cast the typed declaration implies; the caller re-inserts it and
+    // only then retypes the declaration.
+    // `limitCasts` (U65) is the `limit` twin: the `getLimit` read and the integer literals, whose
+    // cast is `((Int64?)…)`; only the caller's `source === 'limit'` step offers it.
+    coreArgShadowIsProvable (bodyLines: string[], alias: string, targetType: string, methodReturnType: string, skipLine = -1, newRules = true, castCasts?: number[], limitCasts?: number[]): boolean {
         if (CORE_ARG_SHADOW_TYPES.indexOf (targetType) === -1) {
             return false;
         }
@@ -2544,14 +3413,38 @@ class NewTranspiler {
             lines.push (line);
         }
         let reads = 0;
+        // U24: the receivers the write forms below are proven through (only when the caller asks
+        // for the casts -- an owned source's copy)
+        const castWrites = castCasts !== undefined;
+        const marketRows = castWrites ? this.coreArgShadowProducerLocals (lines, CORE_ARG_SHADOW_MARKET_ROW_BIND_RE) : [];
+        const stringHolders = castWrites ? this.coreArgShadowProducerLocals (lines, CORE_ARG_SHADOW_STRING_ELEMENT0_BIND_RE) : [];
+        const tagContext = CORE_ARG_SHADOW_TAG_ALIASES.indexOf (alias) !== -1 ? this.coreArgShadowTagContext (lines) : undefined;
+        // U65: only the `limit` copy offers its write forms (the caller passes the collector);
+        // they are re-checked on the RAW line by coreArgShadowLimitCastWrite before anything is
+        // retyped, so a line the rewrite cannot reproduce keeps the whole site `object`.
+        const limitWrites = limitCasts !== undefined;
         for (let k = 0; k < lines.length; k++) {
             if (k === skipLine) {
                 continue;
             }
             const line = lines[k];
             for (const at of this.coreArgShadowOccurrences (line, alias)) {
-                const kind = this.coreArgShadowUseKind (line, at, alias, targetType, methodReturnType, dictInits[k]);
+                const kind = this.coreArgShadowUseKind (line, at, alias, targetType, methodReturnType, dictInits[k], newRules, tagContext);
                 if (kind === '') {
+                    if (castWrites && line.slice (0, at).trim () === '') {
+                        const post = /^\s*=\s*([^;]+?)\s*;\s*$/.exec (line.slice (at + alias.length));
+                        if (post !== null && this.coreArgShadowWriteCastType (post[1].trim (), targetType, marketRows, stringHolders) !== null) {
+                            castCasts.push (k);
+                            continue;
+                        }
+                    }
+                    if (limitWrites && line.slice (0, at).trim () === '') {
+                        const post = /^\s*(?:\?\?=|=)\s*(.*?)\s*;(\s*(?:\/\/.*)?)$/.exec (line.slice (at + alias.length));
+                        if (post !== null && this.coreArgShadowLimitWriteRhs (post[1]) !== null) {
+                            limitCasts.push (k);
+                            continue;
+                        }
+                    }
                     return false;
                 }
                 if (kind === 'read') {
@@ -2560,6 +3453,33 @@ class NewTranspiler {
             }
         }
         return reads > 0;
+    }
+
+    // Names the scanned body declares for the U25 `tag` family (see the table above the class
+    // fields): element-0 holders of an audited destructuring helper, dictionary locals and plain
+    // `object` locals. Body-scoped on purpose -- C# forbids a local from shadowing a parameter,
+    // and a name declared with any other type simply never enters the sets.
+    coreArgShadowTagContext (lines: string[]): CoreArgShadowTagContext {
+        const stringHolders = new Set<string> ();
+        const dictNames = new Set<string> ();
+        const objectNames = new Set<string> ();
+        const holderRe = new RegExp ('^\\s*IList<object> ([A-Za-z_]\\w*) = \\(IList<object>\\)this\\.('
+            + CORE_ARG_SHADOW_STRING_ELEMENT0_HELPERS.join ('|') + ')\\s*\\(');
+        for (const line of lines) {
+            const holder = holderRe.exec (line);
+            if (holder !== null) {
+                stringHolders.add (holder[1]);
+            }
+            const dict = /^\s*I?Dictionary<string, object>\s+([A-Za-z_]\w*)\s*=/.exec (line);
+            if (dict !== null) {
+                dictNames.add (dict[1]);
+            }
+            const obj = /^\s*object\s+([A-Za-z_]\w*)\s*=/.exec (line);
+            if (obj !== null) {
+                objectNames.add (obj[1]);
+            }
+        }
+        return { stringHolders, dictNames, objectNames };
     }
 
     // index of the `//` comment start outside string/char literals, or -1
@@ -2641,7 +3561,8 @@ class NewTranspiler {
     coreArgTypes (methodName: string): Record<number, string> | undefined {
         const strings = CORE_STRING_ARGS[methodName];
         const numerics = CORE_NUMERIC_ARGS[methodName];
-        if (strings === undefined && numerics === undefined) {
+        const lists = CORE_LIST_ARGS[methodName];
+        if (strings === undefined && numerics === undefined && lists === undefined) {
             return undefined;
         }
         const merged: Record<number, string> = {};
@@ -2650,6 +3571,30 @@ class NewTranspiler {
         }
         for (const pos of Object.keys (numerics || {})) {
             merged[Number (pos)] = (numerics as any)[pos];
+        }
+        for (const pos of Object.keys (lists || {})) {
+            merged[Number (pos)] = (lists as any)[pos];
+        }
+        return merged;
+    }
+
+    // Declaration rewrite view: the string/numeric positions plus the dictionary-row positions
+    // (Dictionary where every caller passes a Dictionary, its interface where one caller holds an
+    // IDictionary). Only `typeCoreArgs` uses this -- `castCoreArgCallSites` keeps reading
+    // `coreArgTypes`, so a dict position is never wrapped (the callers already pass a Dictionary).
+    coreArgTypesAll (methodName: string): Record<number, string> | undefined {
+        const base = this.coreArgTypes (methodName);
+        const dicts = CORE_DICT_ARGS[methodName];
+        const idicts = CORE_IDICT_ARGS[methodName];
+        if (dicts === undefined && idicts === undefined) {
+            return base;
+        }
+        const merged: Record<number, string> = Object.assign ({}, base || {});
+        for (const pos of dicts || []) {
+            merged[pos] = 'Dictionary<string, object>';
+        }
+        for (const pos of idicts || []) {
+            merged[pos] = 'IDictionary<string, object>';
         }
         return merged;
     }
@@ -2691,8 +3636,71 @@ class NewTranspiler {
         return out;
     }
 
+    // `object market = null` -> `IDictionary<string, object> market = null` on the parse* names in
+    // PARSE_MARKET_PARAM_DICTS. Name-keyed and applied to every declaration of the name (C# overrides
+    // are invariant on parameter types), so base / venue / ws / prediction stay in sync.
+    retypeParseMarketParams (content: string): string {
+        if (!PARSE_MARKET_PARAM_DICTS.some (name => content.includes (name + '('))) {
+            return content;
+        }
+        const lines = content.split ('\n');
+        for (let i = 0; i < lines.length; i++) {
+            const sig = PARSE_MARKET_SIG_RE.exec (lines[i]);
+            if (sig === null || PARSE_MARKET_PARAM_DICTS.indexOf (sig[5]) === -1) {
+                continue;
+            }
+            lines[i] = lines[i].replace (PARSE_MARKET_PARAM_RE, '$1IDictionary<string, object>$2')
+                                 .replace (PARSE_MARKET_PARAM_REQUIRED_RE, '$1IDictionary<string, object>$2');
+        }
+        return lines.join ('\n');
+    }
+
+    // True when every `name = ...` write inside a body is a producer whose C# type is a list the
+    // CORE_LIST_ARGS target accepts (IList<object>). The set is the writers the S39 census found
+    // tree-wide (build/csharpTranspiler.ts CORE_LIST_ARGS comment); anything else -- a compound
+    // assignment, a call, an `object` local -- keeps the old `object` shadow. Comments are
+    // stripped first: a body comment such as `// ... if you define symbols = [ 'A/B' ] ...` is
+    // prose, not a write (and the shadow's rename pass would rewrite that prose).
+    bodyWritesAreListTyped (body: string, name: string): boolean {
+        let code = '';
+        let i = 0;
+        while (i < body.length) {
+            const ch = body[i];
+            if (ch === '"' || ch === '\'') {
+                const start = i;
+                i += 1;
+                while (i < body.length && body[i] !== ch) {
+                    i += body[i] === '\\' ? 2 : 1;
+                }
+                i += 1;
+                code += body.substring (start, i);
+                continue;
+            }
+            if (ch === '/' && body[i + 1] === '/') {
+                while (i < body.length && body[i] !== '\n') { i += 1; }
+                continue;
+            }
+            if (ch === '/' && body[i + 1] === '*') {
+                const end = body.indexOf ('*/', i + 2);
+                i = end === -1 ? body.length : end + 2;
+                continue;
+            }
+            code += ch;
+            i += 1;
+        }
+        const writes = new RegExp ('(?<![\\w.])' + name + '\\s*(?:[+\\-*/%]|\\?\\?)?=(?!=)', 'g');
+        let match: RegExpExecArray | null;
+        while ((match = writes.exec (code)) !== null) {
+            const rhs = code.substring (match.index + match[0].length);
+            if (!/^\s*(?:this\.marketSymbols\s*\(|new List<object>|this\.getActiveSymbols\s*\(|this\.symbols\s*[;)])/.test (rhs)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     typeCoreArgs (content: string): string {
-        const names = Object.keys (CORE_STRING_ARGS).concat (Object.keys (CORE_NUMERIC_ARGS));
+        const names = Object.keys (CORE_STRING_ARGS).concat (Object.keys (CORE_NUMERIC_ARGS)).concat (Object.keys (CORE_DICT_ARGS)).concat (Object.keys (CORE_IDICT_ARGS)).concat (Object.keys (CORE_LIST_ARGS));
         if (!names.some (name => content.includes (' ' + name + '('))) {
             return content;
         }
@@ -2704,7 +3712,7 @@ class NewTranspiler {
                 continue;
             }
             const [ , indent, asyncKw, modifier, returnType, methodName, plist ] = sig;
-            const positions = this.coreArgTypes (methodName);
+            const positions = this.coreArgTypesAll (methodName);
             if (positions === undefined) {
                 continue;
             }
@@ -2740,6 +3748,177 @@ class NewTranspiler {
                 const reassigned = new RegExp ('(?<![\\w.])' + paramName + '\\s*(?:\\?\\?)?=(?!=)').test (body)
                     || new RegExp ('(?<![\\w.])(?:ref|out)\\s+' + paramName + '(?![\\w])').test (body);
                 params[pos] = param.replace ('object ' + paramName, targetType + ' ' + paramName);
+                // a list target keeps the parameter's own type when every write already produces
+                // that type (see CORE_LIST_ARGS): the body's reads are the same calls either way
+                // because every callee position a `symbols` argument lands in takes `object`, so
+                // no shadow -- and no renamed body -- is needed for the list itself.
+                const listTarget = CORE_LIST_TARGET_TYPES.indexOf (targetType) !== -1;
+                if (reassigned && (!listTarget || !this.bodyWritesAreListTyped (body, paramName))) {
+                    const alias = paramName + 'Var';
+                    shadows.push (`${indent}    object ${alias} = ${paramName};`);
+                    renames.push ([ paramName, alias ]);
+                }
+                changed = true;
+            }
+            if (!changed) {
+                continue;
+            }
+            if (renames.length) {
+                for (let k = bodyStart + 1; k < bodyEnd; k++) {
+                    for (const [ name, alias ] of renames) {
+                        lines[k] = this.renameLocalInBody (lines[k], name, alias);
+                    }
+                }
+            }
+            lines[i] = `${indent}public ${asyncKw || ''}${modifier} ${returnType} ${methodName}(${params.join (',')})`;
+            if (shadows.length) {
+                lines[bodyStart] = lines[bodyStart] + '\n' + shadows.join ('\n');
+            }
+            i = bodyEnd;
+        }
+        return lines.join ('\n');
+    }
+
+    // U53: narrows the `object` parameters listed in VENUE_NUMERIC_ARGS to Int64?/double?.
+    // Keyed by method name + position (not by venue): C# overrides are invariant on parameter
+    // types, so a narrowed base declaration forces every override -- the pass therefore rewrites
+    // every declaration of the name at that position in the file it is handed.  Only a parameter
+    // whose NAME is one of VENUE_NUMERIC_ARG_NAMES is touched, so a same-name helper that spells
+    // the position differently keeps its `object` slot.  A body that assigns to (or refs) the
+    // parameter gets the same `object <name>Var = <name>;` shadow `typeCoreArgs` inserts, with the
+    // body renamed to it, so the body keeps the object-typed slot it has today.
+    typeVenueNumericArgs (content: string): string {
+        const names = Object.keys (VENUE_NUMERIC_ARGS);
+        if (!names.some (name => content.includes (' ' + name + '('))) {
+            return content;
+        }
+        const sigRe = /^(\s*)public (async )?(virtual|override) ([\w<>., ?]+) (\w+)\((.*)\)\s*$/;
+        const lines = content.split ('\n');
+        for (let i = 0; i < lines.length; i++) {
+            const sig = sigRe.exec (lines[i]);
+            if (!sig) {
+                continue;
+            }
+            const [ , indent, asyncKw, modifier, returnType, methodName, plist ] = sig;
+            const positions = VENUE_NUMERIC_ARGS[methodName];
+            if (positions === undefined) {
+                continue;
+            }
+            let bodyStart = i + 1;
+            while (bodyStart < lines.length && lines[bodyStart].trim () !== '{') {
+                bodyStart++;
+            }
+            if (bodyStart >= lines.length) {
+                continue;
+            }
+            let bodyEnd = lines.length - 1;
+            for (let j = bodyStart + 1; j < lines.length; j++) {
+                if (lines[j] === indent + '}') { bodyEnd = j; break; }
+            }
+            const body = lines.slice (bodyStart + 1, bodyEnd).join ('\n');
+            const params = this.splitCsharpParams (plist);
+            const shadows: string[] = [];
+            const renames: string[][] = [];
+            let changed = false;
+            for (const posKey of Object.keys (positions)) {
+                const pos = Number (posKey);
+                const targetType = positions[pos];
+                const param = params[pos];
+                if (param === undefined || !param.trimStart ().startsWith ('object ')) {
+                    continue;
+                }
+                const paramName = param.split ('=')[0].trim ().split (/\s+/).pop () as string;
+                if (VENUE_NUMERIC_ARG_NAMES.indexOf (paramName) === -1) {
+                    continue;
+                }
+                const reassigned = new RegExp ('(?<![\\w.])' + paramName + '\\s*(?:\\?\\?)?=(?!=)').test (body)
+                    || new RegExp ('(?<![\\w.])(?:ref|out)\\s+' + paramName + '(?![\\w])').test (body);
+                params[pos] = param.replace ('object ' + paramName, targetType + ' ' + paramName);
+                if (reassigned) {
+                    const alias = paramName + 'Var';
+                    shadows.push (`${indent}    object ${alias} = ${paramName};`);
+                    renames.push ([ paramName, alias ]);
+                }
+                changed = true;
+            }
+            if (!changed) {
+                continue;
+            }
+            if (renames.length) {
+                for (let k = bodyStart + 1; k < bodyEnd; k++) {
+                    for (const [ name, alias ] of renames) {
+                        lines[k] = this.renameLocalInBody (lines[k], name, alias);
+                    }
+                }
+            }
+            lines[i] = `${indent}public ${asyncKw || ''}${modifier} ${returnType} ${methodName}(${params.join (',')})`;
+            if (shadows.length) {
+                lines[bodyStart] = lines[bodyStart] + '\n' + shadows.join ('\n');
+            }
+            i = bodyEnd;
+        }
+        return lines.join ('\n');
+    }
+
+    // Narrows the `object` parameters listed in VENUE_STRING_ARGS[venueKey] to `string?`.
+    // The table was produced by campaigns/cs-strict/tools/S45/admit_groups.py, which admits a
+    // (venue, name, position) only when
+    //   * every call site of `name` at that position in the subtree of the declaring class
+    //     passes an argument that is statically `string`/`string?` (the subtree is what C#
+    //     resolves the call against: an inherited declaration is narrowed for descendants),
+    //   * every declaration of `name` at that position in the override chain is still `object`
+    //     (so the narrowed spelling is what C# invariance checks), and
+    //   * every use of the parameter inside every body is an identity under `string?`
+    //     (`((string)name)`, `((object)name)`, a bare argument at a callee position declared
+    //     `object` or stringy with no string overload, a return, an initializer element, an
+    //     object-typed value slot) -- unless the body assigns to the parameter, in which case
+    //     this pass inserts the same `object <name>Var = <name>;` shadow `typeCoreArgs` uses
+    //     and renames the body, so the body keeps the object-typed slot it has today.
+    typeVenueStringArgs (content: string, venueKey: string): string {
+        const table = VENUE_STRING_ARGS[venueKey];
+        if (table === undefined) {
+            return content;
+        }
+        const names = Object.keys (table);
+        if (!names.some (name => content.includes (' ' + name + '('))) {
+            return content;
+        }
+        const sigRe = /^(\s*)public (async )?(virtual|override) ([\w<>., ?]+) (\w+)\((.*)\)\s*$/;
+        const lines = content.split ('\n');
+        for (let i = 0; i < lines.length; i++) {
+            const sig = sigRe.exec (lines[i]);
+            if (!sig) {
+                continue;
+            }
+            const [ , indent, asyncKw, modifier, returnType, methodName, plist ] = sig;
+            const positions = table[methodName];
+            if (positions === undefined) {
+                continue;
+            }
+            let bodyStart = i + 1;
+            while (bodyStart < lines.length && lines[bodyStart].trim () !== '{') {
+                bodyStart++;
+            }
+            if (bodyStart >= lines.length) {
+                continue;
+            }
+            let bodyEnd = lines.length - 1;
+            for (let j = bodyStart + 1; j < lines.length; j++) {
+                if (lines[j] === indent + '}') { bodyEnd = j; break; }
+            }
+            const body = lines.slice (bodyStart + 1, bodyEnd).join ('\n');
+            const params = this.splitCsharpParams (plist);
+            const shadows: string[] = [];
+            const renames: string[][] = [];
+            let changed = false;
+            for (const pos of positions) {
+                const param = params[pos];
+                if (param === undefined || !param.trimStart ().startsWith ('object ')) {
+                    continue;
+                }
+                const paramName = param.split ('=')[0].trim ().split (/\s+/).pop () as string;
+                const reassigned = new RegExp ('(?<![\\w.])' + paramName + '\\s*(?:\\?\\?)?=(?!=)').test (body);
+                params[pos] = param.replace ('object ' + paramName, 'string? ' + paramName);
                 if (reassigned) {
                     const alias = paramName + 'Var';
                     shadows.push (`${indent}    object ${alias} = ${paramName};`);
@@ -2772,7 +3951,8 @@ class NewTranspiler {
     // copy stays a reference). Runs after typeCoreArgs so the narrowed signature is visible;
     // coreArgShadowIsProvable then decides from the printed body whether every other use of the
     // local keeps the same overload resolution, box and control flow. Only the declaration line
-    // changes.
+    // changes -- plus, for the U25 `tagVar` shadow, the `(string)` the destructured seed write
+    // needs in the slot (insertCoreArgShadowElementCasts).
     retypeCoreArgCopies (content: string): string {
         if (!/^\s*object \w+ = \w+;/m.test (content)) {
             return content;
@@ -2815,9 +3995,52 @@ class NewTranspiler {
                 if (type === undefined || type === 'object' || CORE_ARG_SHADOW_TYPES.indexOf (type) === -1) {
                     continue;
                 }
-                if (this.coreArgShadowIsProvable (bodyLines, alias, type, returnType, k)) {
-                    bodyLines[k] = dindent + type + ' ' + alias + ' = ' + source + ';';
-                    changed = true;
+                // cs90 U24: the extended (callee / RHS) rules were withheld only from the
+                // `timeframe` copy (the S04 ownership gate, a lower-numbered unit in the previous
+                // round); this unit owns that copy now, so every source gets them. `castCasts` is
+                // offered only for the sources this unit owns, so a sibling copy (`limit` -- U23)
+                // keeps its write forms untyped.
+                // cs90 U65: that sibling is resolved -- `limitCasts` offers the `getLimit` read +
+                // integer-literal write forms (the `((Int64?)...)` cast), keyed on
+                // source === 'limit' alone, so no other source's rules move. All-or-nothing per
+                // source: a write line the cast insertion cannot reproduce keeps the declaration
+                // `object`.
+                const owned = CORE_ARG_SHADOW_OWNED_SOURCES.indexOf (source) !== -1;
+                const limitOwned = source === CORE_ARG_SHADOW_LIMIT_SOURCE;
+                const casts: number[] = [];
+                const limitCasts: number[] = [];
+                if (this.coreArgShadowIsProvable (bodyLines, alias, type, returnType, k, true, owned ? casts : undefined, limitOwned ? limitCasts : undefined)) {
+                    const rewrites: Array<[ number, string ]> = [];
+                    let ok = true;
+                    for (const li of casts) {
+                        const rewritten = this.coreArgShadowCastWrite (bodyLines[li], alias, type, bodyLines);
+                        if (rewritten === null) {
+                            ok = false;
+                            break;
+                        }
+                        rewrites.push ([ li, rewritten ]);
+                    }
+                    for (const li of limitCasts) {
+                        const rewritten = this.coreArgShadowLimitCastWrite (bodyLines[li], alias, type);
+                        if (rewritten === null) {
+                            ok = false;
+                            break;
+                        }
+                        rewrites.push ([ li, rewritten ]);
+                    }
+                    if (ok && rewrites.length === casts.length + limitCasts.length) {
+                        bodyLines[k] = dindent + type + ' ' + alias + ' = ' + source + ';';
+                        for (const [ li, rewritten ] of rewrites) {
+                            bodyLines[li] = rewritten;
+                        }
+                        // cs90 U25: the `tag` aliases carry element reads of the shadow local
+                        // (the withdraw tag core arg), so the string element casts go in after
+                        // the write casts above -- both units' passes run on the same body.
+                        if (CORE_ARG_SHADOW_TAG_ALIASES.indexOf (alias) !== -1 && type === 'string') {
+                            this.insertCoreArgShadowElementCasts (bodyLines, alias);
+                        }
+                        changed = true;
+                    }
                 }
             }
             if (changed) {
@@ -2826,6 +4049,490 @@ class NewTranspiler {
                 }
             }
             i = bodyEnd;
+        }
+        return lines.join ('\n');
+    }
+
+    // `tagVar = tagparametersVariable[0];` -- the destructured write the proof above admitted
+    // (CORE_ARG_SHADOW_STRING_ELEMENT0_HELPERS). The retyped `string tagVar` needs the box named
+    // in the slot, and `(string)` IS that box: an identity reference conversion, null included.
+    // The holder is what scopes the rewrite -- only the audited helper's own holder matches.
+    insertCoreArgShadowElementCasts (bodyLines: string[], alias: string) {
+        const { stringHolders } = this.coreArgShadowTagContext (bodyLines);
+        if (stringHolders.size === 0) {
+            return;
+        }
+        for (let j = 0; j < bodyLines.length; j++) {
+            const write = /^(\s*)([A-Za-z_]\w*) = ([A-Za-z_]\w*)\[0\];\s*$/.exec (bodyLines[j]);
+            if (write !== null && write[2] === alias && stringHolders.has (write[3])) {
+                bodyLines[j] = write[1] + write[2] + ' = (string)' + write[3] + '[0];';
+            }
+        }
+    }
+
+    // cs-strict S01: the two passes the pipeline needs in this order. retypeCoreArgCopies is what
+    // gives a narrowed parameter's copy (`object codeVar = code;`) the parameter's own type, and
+    // only afterwards can dropRedundantCoreArgCasts prove that a `((string)code)` /
+    // `((string)codeVar)` wrap inserted at an earlier stage names what the box already is.
+    finalizeCoreArgTypes (content: string): string {
+        return this.dropRedundantCoreArgCasts (this.retypeCoreArgCopies (content));
+    }
+
+    // ===== cs90 U42: plain identifier copies of typed params / typed locals =====
+    // Rules and every rejected sub-case: campaigns/cs90/U42/REPORT.md. The source's type is read
+    // off the EMITTED text (the signature line / the local's declaration) -- the printer answers
+    // `object` for every parameter at print time, so this proof cannot live in the classifier --
+    // and the copy names it only when every other use is an identity by `coreArgShadowUseKind`
+    // plus the extra shapes below. Ownership: U23/U24/U25 sources and aliases are skipped.
+    retypeIdentifierCopies (content: string): string {
+        if (!/^\s*object \w+ = \w+;\s*$/m.test (content)) {
+            return content;
+        }
+        const lines = content.split ('\n');
+        const sigRe = /^(\s*)(?:public|private|protected|internal)\s+(?:static\s+)?(?:async\s+)?(?:virtual\s+|override\s+|sealed\s+|new\s+)*([\w<>., ?\[\]]+)\s+(\w+)\s*\((.*)\)\s*$/;
+        for (let i = 0; i < lines.length; i++) {
+            const sig = sigRe.exec (lines[i]);
+            if (sig === null || lines[i + 1] !== sig[1] + '{') {
+                continue; // only a method with its body block on the next line
+            }
+            const [ , indent, returnType, , plist ] = sig;
+            const params: Record<string, string> = {};
+            for (const param of this.splitCsharpParams (plist)) {
+                const decl = param.split ('=')[0].trim ().split (/\s+/);
+                if (decl.length >= 2) {
+                    params[decl[decl.length - 1]] = decl.slice (0, -1).join (' ');
+                }
+            }
+            let bodyEnd = lines.length - 1;
+            for (let j = i + 2; j < lines.length; j++) {
+                if (lines[j] === indent + '}') { bodyEnd = j; break; }
+            }
+            const bodyLines = lines.slice (i + 2, bodyEnd);
+            // local declarations of the body: a type the printer or a retype pass already
+            // emitted. A name declared twice (two sibling blocks) proves nothing.
+            const locals: Record<string, string> = {};
+            const localCounts: Record<string, number> = {};
+            for (const line of bodyLines) {
+                const decl = /^\s*([A-Za-z_][\w<>, ?\[\]]*?)\s+(\w+)\s*=/.exec (line);
+                if (decl !== null) {
+                    locals[decl[2]] = decl[1].trim ();
+                    localCounts[decl[2]] = (localCounts[decl[2]] ?? 0) + 1;
+                }
+            }
+            // declared types visible to the proof: the method's parameters and its own single
+            // local declarations. A name bound by both (a local shadowing a parameter) is dropped.
+            const declared: Record<string, string> = {};
+            for (const name of Object.keys (params)) {
+                if ((localCounts[name] ?? 0) === 0) {
+                    declared[name] = params[name];
+                }
+            }
+            for (const name of Object.keys (locals)) {
+                if ((localCounts[name] ?? 0) === 1 && params[name] === undefined) {
+                    declared[name] = locals[name];
+                }
+            }
+            let changed = false;
+            for (let k = 0; k < bodyLines.length; k++) {
+                const decl = /^(\s*)object (\w+) = (\w+);\s*$/.exec (bodyLines[k]);
+                if (decl === null) {
+                    continue;
+                }
+                const [ , dindent, alias, source ] = decl;
+                if (U42_COPY_OWNED_ALIASES.indexOf (alias) !== -1 || U42_COPY_OWNED_SOURCES.indexOf (source) !== -1) {
+                    continue;
+                }
+                const type = declared[source];
+                if (type === undefined || U42_COPY_TYPES.indexOf (type) === -1) {
+                    continue;
+                }
+                if (this.u42CopyIsProvable (bodyLines, alias, type, returnType, k, declared)) {
+                    bodyLines[k] = dindent + type + ' ' + alias + ' = ' + source + ';';
+                    changed = true;
+                }
+            }
+            if (changed) {
+                for (let k = 0; k < bodyLines.length; k++) {
+                    lines[i + 2 + k] = bodyLines[k];
+                }
+            }
+            i = bodyEnd;
+        }
+        return lines.join ('\n');
+    }
+
+    // True when `alias` (declared type `targetType` by retypeIdentifierCopies) is used only in
+    // the proven shapes of `coreArgShadowIsProvable` plus this unit's own extensions, and is
+    // read at least once (a write-only local is CS0219).
+    u42CopyIsProvable (bodyLines: string[], alias: string, targetType: string, methodReturnType: string, skipLine: number, declared: Record<string, string>): boolean {
+        const lines: string[] = [];
+        const dictInits: boolean[] = [];
+        const frames: number[][] = [];
+        let inBlock = false;
+        let depth = 0;
+        for (const raw of bodyLines) {
+            let line = raw;
+            if (inBlock) {
+                const end = line.indexOf ('*/');
+                if (end === -1) { line = ''; } else { line = line.slice (end + 2); inBlock = false; }
+            }
+            const open = line.indexOf ('/*');
+            if (open !== -1) {
+                const end = line.indexOf ('*/', open);
+                if (end === -1) { line = line.slice (0, open); inBlock = true; } else { line = line.slice (0, open) + line.slice (end + 2); }
+            }
+            const slash = this.coreArgShadowCommentAt (line);
+            if (slash !== -1) {
+                line = line.slice (0, slash);
+            }
+            while (frames.length > 0 && frames[frames.length - 1][0] > depth) {
+                frames.pop ();
+            }
+            dictInits.push (frames.some ((frame) => frame[1] === 1));
+            if (/(?:new Dictionary<string, object>|new List<object>|new object\[\])\s*\(?\s*\)?\s*\{/.test (line)) {
+                const isDict = /new Dictionary<string, object>\s*\(?\s*\)?\s*\{/.test (line);
+                frames.push ([ depth + this.coreArgShadowBraceDelta (line), isDict ? 1 : 0 ]);
+            }
+            depth += this.coreArgShadowBraceDelta (line);
+            lines.push (line);
+        }
+        let reads = 0;
+        for (let k = 0; k < lines.length; k++) {
+            if (k === skipLine) {
+                continue;
+            }
+            const line = lines[k];
+            for (const at of this.coreArgShadowOccurrences (line, alias)) {
+                const kind = this.u42CopyUseKind (line, at, alias, targetType, methodReturnType, dictInits[k], declared);
+                if (kind === '') {
+                    return false;
+                }
+                if (kind === 'read') {
+                    reads += 1;
+                }
+            }
+        }
+        return reads > 0;
+    }
+
+    // One occurrence of a U42 copy: `coreArgShadowUseKind`'s rules for the type it knows (`string?`
+    // is the same C# type as `string`), then this unit's extra write / read / callee shapes.
+    u42CopyUseKind (line: string, at: number, alias: string, targetType: string, methodReturnType: string, inDictInit: boolean, declared: Record<string, string>): string {
+        const bare = (targetType === 'string?') ? 'string' : targetType;
+        const known = this.coreArgShadowUseKind (line, at, alias, bare, methodReturnType, inDictInit, true);
+        if (known !== '') {
+            return known;
+        }
+        const pre = line.slice (0, at);
+        const post = line.slice (at + alias.length);
+        if (/(?:ref|out)\s+$/.test (pre)) {
+            return '';
+        }
+        if (pre.trim () === '') {
+            const m = /^\s*(?:\?\?=|=)\s*(.*?);?\s*$/.exec (post);
+            if (m !== null && this.u42CopyRhsIsTyped (m[1].trim (), targetType, declared)) {
+                return 'write';
+            }
+            return '';
+        }
+        const postl = post.replace (/^\s+/, '');
+        // `alias.ToString ()`: `object.ToString ()` and `string.ToString ()` are the same virtual
+        // call (a null throws either way), so the receiver's static type moves nothing
+        if ((targetType === 'string' || targetType === 'string?') && /^\.ToString\s*\(\s*\)/.test (postl)) {
+            return 'read';
+        }
+        if (postl.charAt (0) === ',' || postl.charAt (0) === ')') {
+            const callee = this.coreArgShadowCallee (line, at);
+            if (callee !== null && U42_COPY_CALLEES.indexOf (callee[0].split ('.').pop () as string) !== -1) {
+                return 'read';
+            }
+        }
+        // `<other> = alias;` where `other` is a local the body declares with a type the copy's
+        // own type converts to implicitly: the assignment stores the same reference / box the
+        // `object` spelling stored, and the target's own declaration (and every later use of it)
+        // is untouched by this pass.
+        const assign = /^(\w+)\s*=\s*$/.exec (pre.trim ());
+        if (assign !== null && postl.trim () === ';') {
+            const target = declared[assign[1]];
+            if (target === 'object' || target === targetType || U42_COPY_WIDENING[targetType + '->' + target] === true) {
+                return 'read';
+            }
+        }
+        // `<dict>["key"] = alias;` on a receiver this body declares Dictionary<string, object> /
+        // IDictionary<string, object>: the slot is `object`, so the value boxes the same either
+        // way (the `coreArgShadowUseKind` rule of the same shape needs the cast spelling in the
+        // line, which a typed local does not carry)
+        const element = /^(\w+)\s*\[[^\]]*\]\s*=\s*$/.exec (pre.trim ());
+        if (element !== null && postl.trim () === ';') {
+            const receiver = declared[element[1]];
+            if (receiver === 'Dictionary<string, object>' || receiver === 'IDictionary<string, object>') {
+                return 'read';
+            }
+        }
+        return '';
+    }
+
+    // One arm of a conditional write: a string literal, or a local the method declares with the
+    // string box (`string` / `string?`).
+    u42StringArmIsTyped (arm: string, declared: Record<string, string>): boolean {
+        if (/^"(?:[^"\\]|\\.)*"$/.test (arm)) {
+            return true;
+        }
+        if (/^\w+$/.test (arm)) {
+            const type = declared[arm];
+            return type === 'string' || type === 'string?';
+        }
+        return false;
+    }
+
+    // Right hand side whose C# static type is exactly `targetType` (or, for a `string?` target,
+    // any nullable string producer): the write stores the same box either way.
+    u42CopyRhsIsTyped (rhs: string, targetType: string, declared: Record<string, string>): boolean {
+        if (targetType === 'string' || targetType === 'string?') {
+            if (this.coreArgShadowRhsIsTyped (rhs, 'string', true)) {
+                return true;
+            }
+            // `this.safeOutcomeSymbol (...)` => string? (Exchange.PredictionAliases.cs /
+            // prediction tier), `x.ToString ()` => string for any non-null x, and the
+            // `(x as String).PadLeft (...)`: string
+            if (/^this\.safeOutcomeSymbol\s*\(/.test (rhs) || /^\w+\.ToString\s*\(\s*\)$/.test (rhs)
+                || /^\(\w+ as String\)\.PadLeft\s*\(/.test (rhs)) {
+                return true;
+            }
+            // `(cond) ? "a" : "b"` / `(cond) ? strLocal : strLocal2`: the conditional's value is
+            // the selected string (or null), so the declaration stores the same reference. Both
+            // arms must be a string literal or a local the method declares string / string?.
+            const arms = /^.*?\)\s*\?\s*(.*?)\s*:\s*(.*?)\s*$/.exec (rhs);
+            if (arms !== null && arms[0].indexOf ('?') !== -1 && this.u42StringArmIsTyped (arms[1], declared)
+                && this.u42StringArmIsTyped (arms[2], declared)) {
+                return true;
+            }
+        } else if (targetType === 'double?' || targetType === 'double') {
+            if (/^this\.(?:parseNumber|safeNumber)\s*\(/.test (rhs)) {
+                return true;
+            }
+            if (/^-?\d+\.\d*(?:[eE][-+]?\d+)?$/.test (rhs) || /^-?\d+[eE][-+]?\d+$/.test (rhs)) {
+                return true;
+            }
+        }
+        // a read of a local the method declares with the same box (`List<object>` into an
+        // `IList<object>` copy, `string?` into a `string?` copy): the compiler already proves
+        // every write to that local produces it.
+        if (/^\w+$/.test (rhs)) {
+            const source = declared[rhs];
+            if (source !== undefined && source !== 'object' && source !== 'var') {
+                if (source === targetType) {
+                    return true;
+                }
+                if (U42_COPY_WIDENING[source + '->' + targetType] === true) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    // S04: `((string)timeframe)` / `((string)timeframeVar)` names the type the binding already has
+    // once `typeCoreArgs` narrowed the `timeframe` parameter to `string` (or the body holds a
+    // `string timeframe = ...` local) and `retypeCoreArgCopies` typed the `timeframeVar` shadow the
+    // same way. Two producers wrap such a binding anyway: the printer, for a TS `(timeframe as
+    // string)`, and castCoreArgCallSites, for the narrowed core positions. Both casts are the
+    // identity -- an annotation-only `string?` operand included, `(string)x` and `x` are the same
+    // expression for the compiler -- so the cast is dropped. Keyed to the `timeframe` bindings:
+    // sibling units own their own names. A name the method declares `object`/`var` keeps its cast
+    // (there the cast is load-bearing, and a bare use would rebind `add`, `throw`, ...).
+    dropStringTimeframeCasts (content: string): string {
+        if (!content.includes ('(string)timeframe')) {
+            return content;
+        }
+        const names = [ 'timeframe', 'timeframeVar' ];
+        const lines = content.split ('\n');
+        const sigRe = /^(\s*)public (async )?(virtual|override) ([\w<>., ?]+) (\w+)\((.*)\)\s*$/;
+        for (let i = 0; i < lines.length; i++) {
+            const sig = sigRe.exec (lines[i]);
+            if (sig === null) {
+                continue;
+            }
+            const [ , indent, , , , , plist ] = sig;
+            let bodyStart = i + 1;
+            while (bodyStart < lines.length && lines[bodyStart].trim () !== '{') {
+                bodyStart++;
+            }
+            if (bodyStart >= lines.length) {
+                continue;
+            }
+            let bodyEnd = lines.length - 1;
+            for (let j = bodyStart + 1; j < lines.length; j++) {
+                if (lines[j] === indent + '}') { bodyEnd = j; break; }
+            }
+            const bodyLines = lines.slice (bodyStart + 1, bodyEnd);
+            if (!bodyLines.some ((line) => line.includes ('(string)timeframe'))) {
+                i = bodyEnd;
+                continue;
+            }
+            const declared: Record<string, string> = {};
+            for (const param of this.splitCsharpParams (plist)) {
+                const parts = param.split ('=')[0].trim ().split (/\s+/);
+                if (parts.length >= 2) {
+                    declared[parts[parts.length - 1]] = parts.slice (0, -1).join (' ');
+                }
+            }
+            for (const line of bodyLines) {
+                for (const name of names) {
+                    const decl = new RegExp ('^\\s*([A-Za-z_][\\w<>,?\\[\\] .]*)\\s+' + name + '\\s*[=;]').exec (line);
+                    if (decl !== null) {
+                        declared[name] = decl[1].trim ();
+                    }
+                }
+            }
+            let changed = false;
+            for (const name of names) {
+                const type = declared[name];
+                if (type !== 'string' && type !== 'string?') {
+                    continue;
+                }
+                for (let k = 0; k < bodyLines.length; k++) {
+                    let line = bodyLines[k];
+                    for (;;) {
+                        // a removal can expose another cast on the same binding (`[(string)((string)t)]`
+                        // leaves the indexer-key wrapper sitting directly on it), so settle the line
+                        const rewritten = this.dropStringCastToken (line, name);
+                        if (rewritten === line) {
+                            break;
+                        }
+                        line = rewritten;
+                        changed = true;
+                    }
+                    bodyLines[k] = line;
+                }
+            }
+            if (changed) {
+                for (let k = 0; k < bodyLines.length; k++) {
+                    lines[bodyStart + 1 + k] = bodyLines[k];
+                }
+            }
+            i = bodyEnd;
+        }
+        return lines.join ('\n');
+    }
+
+    // Removes the `(string)name` cast token (and, when the enclosing `(` is the cast's own grouping
+    // paren, that pair) from one line. `f((string)x)` keeps the call paren (`f(x)`), `,((string)x),`
+    // loses the redundant pair, `[(string)x]` loses the token. A member access or a longer name after
+    // the operand, and any `)` that does not close the cast, leave the line untouched.
+    dropStringCastToken (line: string, name: string): string {
+        const token = '(string)' + name;
+        let out = line;
+        let from = 0;
+        for (;;) {
+            const at = out.indexOf (token, from);
+            if (at === -1) {
+                return out;
+            }
+            const after = out[at + token.length];
+            if (after !== undefined && /[\w.]/.test (after)) {
+                from = at + token.length;
+                continue;
+            }
+            const before = at > 0 ? out[at - 1] : undefined;
+            const beforeBefore = at > 1 ? out[at - 2] : undefined;
+            // a `(` preceded by a word character or `)` is a call's paren, not the cast's grouping
+            // paren; with any other predecessor it groups the cast and the pair is redundant
+            const outerCast = before === '(' && beforeBefore === ')' && out.slice (0, at - 1).endsWith ('(string)');
+            const groups = outerCast || (before === '(' && beforeBefore !== undefined && !/[\w)]/.test (beforeBefore));
+            if (groups && after === ')') {
+                out = out.slice (0, at - 1) + name + out.slice (at + token.length + 1);
+                from = at - 1 + name.length;
+                continue;
+            }
+            out = out.slice (0, at) + name + out.slice (at + token.length);
+            from = at + name.length;
+        }
+    }
+
+    // S43 pilot: `..., object parameters = null)` -> `..., Dictionary<string, object> parameters = null)`
+    // on the names in PARAMETERS_ARG_TYPED_METHODS. Pure declaration change: the value is a
+    // Dictionary on every path (the `??= new Dictionary<string, object>()` entry fix), a Dictionary
+    // argument converts to `object` at every use inside the body, and `extend(parameters, ...)` /
+    // `omit(parameters, ...)` now bind their dict-receiver overloads, which hand back the same fresh
+    // dictionary the object path built (Exchange.Functions.cs / Exchange.Generic.cs) -- no runtime
+    // path changes. Runs last in each chain so it sees the final signature text.
+    retypeParameterArgs (content: string): string {
+        const names = PARAMETERS_ARG_TYPED_METHODS;
+        const signature = /^\s+(?:public|protected|private|internal)\s+(?:static\s+)?(?:async\s+)?(?:virtual\s+|override\s+|new\s+)*[^()]+?\s+([A-Za-z_]\w*)\s*\(/;
+        const lines = content.split ('\n');
+        for (let i = 0; i < lines.length; i++) {
+            if (lines[i].indexOf ('object parameters = null)') === -1) {
+                continue;
+            }
+            const match = signature.exec (lines[i]);
+            if (match === null || names.indexOf (match[1]) === -1) {
+                continue;
+            }
+            lines[i] = lines[i].replace ('object parameters = null)', 'Dictionary<string, object> parameters = null)');
+        }
+        return lines.join ('\n');
+    }
+
+    // S46: `client` is WebSocketClient by declaration in the ws tree (handler param, or
+    // `var client = this.client(url)` — client() returns WebSocketClient), so the ws regexes'
+    // ((WebSocketClient)client) / (client as WebSocketClient) wrappers are identity conversions.
+    removeRedundantClientCasts (content: string): string {
+        if (!/\(\(WebSocketClient\)client\)|\(client as WebSocketClient[,)]/.test (content)) {
+            return content;
+        }
+        const lines = content.split ('\n');
+        const sigRe = /^(\s*)public (async )?(virtual|override) ([\w<>., ?]+) (\w+)\((.*)\)\s*$/;
+        const redeclRe = /^\s*(var|object|WebSocketClient)\s+client\s*=/;
+        for (let i = 0; i < lines.length; i++) {
+            const sig = sigRe.exec (lines[i]);
+            if (sig === null) {
+                continue;
+            }
+            const [ , indent, , , , , plist ] = sig;
+            let typed = this.splitCsharpParams (plist).some ((param) => {
+                const decl = param.split ('=')[0].trim ().split (/\s+/);
+                return decl.length >= 2 && decl[decl.length - 1] === 'client' && /WebSocketClient$/.test (decl[decl.length - 2]);
+            });
+            let bodyStart = i + 1;
+            while (bodyStart < lines.length && lines[bodyStart].trim () !== '{') {
+                bodyStart++;
+            }
+            if (bodyStart >= lines.length) {
+                continue;
+            }
+            let bodyEnd = lines.length - 1;
+            for (let j = bodyStart + 1; j < lines.length; j++) {
+                if (lines[j] === indent + '}') { bodyEnd = j; break; }
+            }
+            let changed = false;
+            for (let k = bodyStart + 1; k < bodyEnd; k++) {
+                const line = lines[k];
+                if (line.trim ().startsWith ('//')) {
+                    continue;
+                }
+                const redecl = redeclRe.exec (line);
+                if (redecl !== null) {
+                    const declared = redecl[1];
+                    const init = line.substring (line.indexOf ('=') + 1).trim ();
+                    typed = (declared === 'WebSocketClient') || (declared === 'var' && /^this\.client\s*\(/.test (init));
+                    continue;
+                }
+                if (!typed) {
+                    continue;
+                }
+                const fixed = line
+                    .split ('((WebSocketClient)client)').join ('client')
+                    .split ('(client as WebSocketClient,').join ('(client,')
+                    .split ('(client as WebSocketClient)').join ('client');
+                if (fixed !== line) {
+                    lines[k] = fixed;
+                    changed = true;
+                }
+            }
+            if (changed) {
+                i = bodyEnd;
+            }
         }
         return lines.join ('\n');
     }
@@ -2911,14 +4618,328 @@ class NewTranspiler {
         return lines.join ('\n');
     }
 
+    // The C# type the nearest in-scope declaration of `name` at or before `at` gives it, or '' when
+    // no declaration is in scope. Walks back line by line to the enclosing public method signature
+    // (the shape typeCoreArgs rewrites) and rejects a declaration whose block has already closed
+    // before the site (delta + after < 0), so a same-named local of a sibling block is never used.
+    // A trailing `//` comment is cut: the generated tree carries whole commented-out bodies whose
+    // declarations must not be read.
+    coreArgCastDeclaredType (content: string, at: number, name: string): string {
+        const declRe = new RegExp ('(?<![\\w.])(string\\?|string|object|Int64\\?|Int64|double\\?|double|bool\\?|bool)\\s+' + name + '\\b(?!\\s*\\()', 'g');
+        const sigRe = /^(\s*)public (async )?(virtual|override) ([\w<>., ?]+) (\w+)\((.*)\)\s*$/;
+        let offset = at;
+        let delta = 0;
+        for (;;) {
+            const lineStart = content.lastIndexOf ('\n', offset - 1) + 1;
+            let text = content.slice (lineStart, offset);
+            const comment = this.coreArgShadowCommentAt (text);
+            if (comment !== -1) {
+                text = text.slice (0, comment);
+            }
+            let last: RegExpExecArray | null = null;
+            declRe.lastIndex = 0;
+            for (;;) {
+                const m = declRe.exec (text);
+                if (m === null) {
+                    break;
+                }
+                last = m;
+                declRe.lastIndex = m.index + m[0].length;
+            }
+            if (last !== null) {
+                const after = this.coreArgShadowBraceDelta (text.slice (last.index + last[0].length));
+                if (delta + after >= 0) {
+                    return last[1];
+                }
+            }
+            if (sigRe.test (text)) {
+                return '';
+            }
+            delta += this.coreArgShadowBraceDelta (text);
+            if (lineStart === 0) {
+                return '';
+            }
+            offset = lineStart - 1;
+        }
+    }
+
+    // true when the `((string)…)` wrap around this argument would only re-name the type the
+    // argument already has (CORE_ARG_CAST_EXEMPT_NAMES); the call then compiles unchanged.
+    coreArgCastExempt (content: string, at: number, arg: string): boolean {
+        if (CORE_ARG_CAST_EXEMPT_NAMES.indexOf (arg) === -1) {
+            return false;
+        }
+        return this.coreArgCastDeclaredType (content, at, arg) === 'string';
+    }
+
+    // cs-strict S01: drops the `((string)name)` wrap castCoreArgCallSites left on a `code`/
+    // `codeVar` argument that is already exactly `string` at that point -- 619 sites pass a plain
+    // `string code = null` parameter, and retypeCoreArgCopies turns `object codeVar = code;` into
+    // `string codeVar = code;` only after the wrap was inserted. Same nearest-declaration proof as
+    // the insertion pass; the wrap only names what the box already is, so the argument's static
+    // type, overload and box are identical without it. Runs after retypeCoreArgCopies.
+    dropRedundantCoreArgCasts (content: string): string {
+        for (const name of CORE_ARG_CAST_EXEMPT_NAMES) {
+            const needle = '((string)' + name + ')';
+            let from = 0;
+            for (;;) {
+                const at = content.indexOf (needle, from);
+                if (at === -1) {
+                    break;
+                }
+                const before = content[at - 1];
+                const after = content[at + needle.length];
+                const free = (before === undefined || !/[\w.]/.test (before)) && (after === undefined || !/\w/.test (after));
+                if (free && this.coreArgCastExempt (content, at, name)) {
+                    content = content.slice (0, at) + name + content.slice (at + needle.length);
+                    from = at + name.length;
+                    continue;
+                }
+                from = at + needle.length;
+            }
+        }
+        return content;
+    }
+
+    // Declared C# type of the bare identifier `ident` at offset `at` of `content`, read off the
+    // enclosing generated method's parameter list, falling back to the last local declaration
+    // before `at` (C# forbids a local from shadowing a parameter, so the two cannot disagree).
+    // Null when the enclosing declaration cannot be resolved -- then the caller keeps the cast.
+    coreArgCallSiteDeclaredType (content: string, at: number, ident: string): string | null {
+        const lines = content.split ('\n');
+        let lineIndex = 0;
+        for (let i = 0, off = 0; i < lines.length; i++) {
+            if (off + lines[i].length >= at) { lineIndex = i; break; }
+            off += lines[i].length + 1;
+        }
+        const sigRe = /^\s*public (async )?(virtual|override) ([\w<>., ?]+) (\w+)\((.*)\)\s*$/;
+        let sig = -1;
+        for (let i = lineIndex; i >= 0; i--) {
+            if (sigRe.test (lines[i])) { sig = i; break; }
+        }
+        if (sig === -1) {
+            return null;
+        }
+        const sigMatch = sigRe.exec (lines[sig]) as RegExpExecArray;
+        const types: Record<string, string> = {};
+        for (const param of this.splitCsharpParams (sigMatch[5])) {
+            const parts = param.split ('=')[0].trim ().split (/\s+/);
+            if (parts.length >= 2) {
+                types[parts[parts.length - 1]] = parts.slice (0, -1).join (' ');
+            }
+        }
+        for (let i = sig + 1; i <= lineIndex; i++) {
+            const decl = /^\s*(string|object|Int64\??|double\??|bool\??|I?List<[^>]*>|Dictionary<[^>]*>|[\w.]+)\s+(\w+)\s*(?:=[^=]|;\s*$)/.exec (lines[i]);
+            if (decl !== null && decl[2] === ident) {
+                types[ident] = decl[1];
+            }
+        }
+        return types[ident] === undefined ? null : types[ident];
+    }
+
+    // `((string)x).Split/.ToUpper/.ToLower/.Replace/.Trim/.Length` where `x` IS declared
+    // `string`/`string?` in the same method: the cast names the box the value already is, so
+    // it is dropped. The ast printer (csharpStringReceiverType) drops it at print time for
+    // the locals it and the classifier type; a `typeCoreArgs`-narrowed core parameter and a
+    // copy retyped by retypeCoreArgCopies only become visible in the printed text, so those
+    // receivers are unboxed here, after both. A name with any other binding in the method
+    // (a declaration of another type, a lambda/foreach/catch/for variable) stays cast.
+    retypeStringReceiverCasts (content: string): string {
+        if (!content.includes ('((string)')) {
+            return content;
+        }
+        const sigRe = /^(\s*)public\s+(?:async\s+|virtual\s+|override\s+)+[\w<>., ?]+\s+\w+\s*\((.*)\)\s*$/;
+        const declRe = /^\s*(object|string\??|bool\??|Int64\??|double\??|int\??|long\??|var|byte\[\]|List<[^>]*>|IList<[^>]*>|Dictionary<[^>]*>|IDictionary<[^>]*>|ccxt\.[\w.<>?]+|Future\??|WebSocketClient\??)\s+([A-Za-z_][A-Za-z0-9_]*)\s*=/;
+        const lines = content.split ('\n');
+        for (let i = 0; i < lines.length; i++) {
+            const sig = sigRe.exec (lines[i]);
+            if (sig === null) {
+                continue;
+            }
+            let bodyStart = i + 1;
+            while (bodyStart < lines.length && lines[bodyStart].trim () !== '{') {
+                bodyStart++;
+            }
+            if (bodyStart >= lines.length) {
+                continue;
+            }
+            let bodyEnd = lines.length - 1;
+            for (let j = bodyStart + 1; j < lines.length; j++) {
+                if (lines[j] === sig[1] + '}') { bodyEnd = j; break; }
+            }
+            const candidates = new Set<string> ();
+            for (const param of this.splitCsharpParams (sig[2])) {
+                const declaredString = /^(string\??)\s+([A-Za-z_][A-Za-z0-9_]*)/.exec (param.trim ());
+                if (declaredString !== null) {
+                    candidates.add (declaredString[2]);
+                }
+            }
+            const blocked = new Set<string> ();
+            for (let j = bodyStart + 1; j < bodyEnd; j++) {
+                const declaration = declRe.exec (lines[j]);
+                if (declaration === null) {
+                    continue;
+                }
+                if (declaration[1] === 'string' || declaration[1] === 'string?') {
+                    candidates.add (declaration[2]);
+                } else {
+                    blocked.add (declaration[2]);
+                }
+            }
+            const body = lines.slice (bodyStart + 1, bodyEnd);
+            const text = body.join ('\n');
+            let rewritten = text;
+            for (const name of candidates) {
+                if (blocked.has (name)) {
+                    continue; // another binding of the name exists in this method
+                }
+                if (new RegExp ('\\b' + name + '\\b\\s*=>').test (text)) {
+                    continue; // a lambda parameter of the same name would shadow it
+                }
+                if (new RegExp ('(?:\\bforeach|\\bcatch|\\bfor|\\busing|\\bfixed)\\s*\\([^)]*\\b' + name + '\\b').test (text)) {
+                    continue; // a loop/catch variable of the same name would shadow it
+                }
+                rewritten = rewritten.replace (new RegExp ('\\(\\(string\\)' + name + '\\)\\.(Split|ToUpper|ToLower|Replace|Trim|Length)\\b', 'g'), name + '.$1');
+            }
+            if (rewritten !== text) {
+                const rewrittenBody = rewritten.split ('\n');
+                lines.splice (bodyStart + 1, body.length, ...rewrittenBody);
+                i = bodyStart + rewrittenBody.length;
+            }
+        }
+        return lines.join ('\n');
+    }
+
+    // `((IDictionary<string,object>)x)` around a PARAMETER whose emitted signature declares a
+    // concrete dictionary: the cast only names the box that declaration carries, so it is an
+    // identity conversion and the receiver's own indexer/member does the same work. A
+    // parameter's type exists nowhere at print time — ccxt prints every parameter `object` and
+    // retypes the ones its passes own (typeCoreArgs, retypeParseMarketParams, the ws message
+    // handler) — so the proof is read here, from the emitted signature, exactly like the string
+    // receivers above. Only casts whose receiver really is the parameter are dropped: a name the
+    // body also binds as a non-dictionary (a local, a lambda/foreach/catch variable) is skipped.
+    retypeDictReceiverCasts (content: string): string {
+        if (!content.includes ('((IDictionary<string,object>)')) {
+            return content;
+        }
+        const sigRe = /^(\s*)public\s+(?:async\s+|virtual\s+|override\s+)+[\w<>., ?]+\s+\w+\s*\((.*)\)\s*$/;
+        const declRe = /^\s*(object|string\??|bool\??|Int64\??|double\??|int\??|long\??|var|byte\[\]|List<[^>]*>|IList<[^>]*>|Dictionary<[^>]*>|IDictionary<[^>]*>|ccxt\.[\w.<>?]+|Future\??|WebSocketClient\??)\s+([A-Za-z_][A-Za-z0-9_]*)\s*=/;
+        const lines = content.split ('\n');
+        for (let i = 0; i < lines.length; i++) {
+            const sig = sigRe.exec (lines[i]);
+            if (sig === null) {
+                continue;
+            }
+            let bodyStart = i + 1;
+            while (bodyStart < lines.length && lines[bodyStart].trim () !== '{') {
+                bodyStart++;
+            }
+            if (bodyStart >= lines.length) {
+                continue;
+            }
+            let bodyEnd = lines.length - 1;
+            for (let j = bodyStart + 1; j < lines.length; j++) {
+                if (lines[j] === sig[1] + '}') { bodyEnd = j; break; }
+            }
+            const candidates = new Set<string> ();
+            for (const param of this.splitCsharpParams (sig[2])) {
+                const declaredDict = /^(Dictionary<string, object>|IDictionary<string, object>)\s+([A-Za-z_][A-Za-z0-9_]*)/.exec (param.trim ());
+                if (declaredDict !== null) {
+                    candidates.add (declaredDict[2]);
+                }
+            }
+            if (candidates.size === 0) {
+                continue;
+            }
+            const blocked = new Set<string> ();
+            for (let j = bodyStart + 1; j < bodyEnd; j++) {
+                const declaration = declRe.exec (lines[j]);
+                if (declaration === null) {
+                    continue;
+                }
+                if ((declaration[1] !== 'Dictionary<string, object>') && (declaration[1] !== 'IDictionary<string, object>')) {
+                    blocked.add (declaration[2]);
+                }
+            }
+            const body = lines.slice (bodyStart + 1, bodyEnd);
+            const text = body.join ('\n');
+            let rewritten = text;
+            for (const name of candidates) {
+                if (blocked.has (name)) {
+                    continue; // another binding of the name exists in this method
+                }
+                if (new RegExp ('\\b' + name + '\\b\\s*=>').test (text)) {
+                    continue; // a lambda parameter of the same name would shadow it
+                }
+                if (new RegExp ('(?:\\bforeach|\\bcatch|\\bfor|\\busing|\\bfixed)\\s*\\([^)]*\\b' + name + '\\b').test (text)) {
+                    continue; // a loop/catch variable of the same name would shadow it
+                }
+                rewritten = rewritten.replace (new RegExp ('\\(\\(IDictionary<string,object>\\)' + name + '\\)', 'g'), name);
+            }
+            if (rewritten !== text) {
+                const rewrittenBody = rewritten.split ('\n');
+                lines.splice (bodyStart + 1, body.length, ...rewrittenBody);
+                i = bodyStart + rewrittenBody.length;
+            }
+        }
+        return lines.join ('\n');
+    }
+
+    // the two post-print passes that drop a cast proven by the EMITTED declaration text: the
+    // string receivers (S10) and the dictionary receivers above. Independent, one entry point so
+    // the pass chains stay a single call
+    retypePrintedReceiverCasts (content: string): string {
+        return this.retypeStringReceiverCasts (this.retypeDictReceiverCasts (content));
+    }
+
+    // `sign()` / `handleErrors()`: retype the SIGNATURE_ARG_TYPES positions on every declaration
+    // (the base virtual and all 101 venue overrides — C# overrides are invariant). The body is
+    // left byte-identical; a position whose body assigns to the parameter keeps the narrowed
+    // declaration because every write is a literal or a `Dictionary<string, object>` producer.
+    retypeSignatureArgs (content: string): string {
+        const names = Object.keys (SIGNATURE_ARG_TYPES);
+        if (!names.some (name => content.includes (' object ' + name + '('))) {
+            return content;
+        }
+        const sigRe = /^(\s*)public (virtual|override) object (sign|handleErrors)\((.*)\)\s*$/;
+        const lines = content.split ('\n');
+        for (let i = 0; i < lines.length; i++) {
+            const sig = sigRe.exec (lines[i]);
+            if (sig === null) {
+                continue;
+            }
+            const [ , indent, modifier, methodName, plist ] = sig;
+            const positions = SIGNATURE_ARG_TYPES[methodName];
+            const params = this.splitCsharpParams (plist);
+            let changed = false;
+            for (const posKey of Object.keys (positions)) {
+                const pos = Number (posKey);
+                const param = params[pos];
+                if (param === undefined || !param.trimStart ().startsWith ('object ')) {
+                    continue;
+                }
+                const paramName = param.split ('=')[0].trim ().split (/\s+/).pop () as string;
+                params[pos] = param.replace ('object ' + paramName, positions[pos] + ' ' + paramName);
+                changed = true;
+            }
+            if (changed) {
+                lines[i] = `${indent}public ${modifier} object ${methodName}(${params.join (',')})`;
+            }
+        }
+        return lines.join ('\n');
+    }
+
     // narrowing a core parameter to `string` breaks every intra-core call site that still
     // holds the value in an `object` local, so each such argument gets an explicit
     // `((string)expr)`. The value is a string by contract (the TS signature says so); the
     // cast only makes the existing assumption explicit to the C# compiler.
     castCoreArgCallSites (content: string, receivers = [ 'this.', 'base.' ]): string {
-        const allNames = Object.keys (CORE_STRING_ARGS).concat (Object.keys (CORE_NUMERIC_ARGS).filter ((n) => !(n in CORE_STRING_ARGS)));
+        const allNames = Object.keys (CORE_STRING_ARGS)
+            .concat (Object.keys (CORE_NUMERIC_ARGS).filter ((n) => !(n in CORE_STRING_ARGS)))
+            .concat (Object.keys (CORE_LIST_ARGS).filter ((n) => !(n in CORE_STRING_ARGS) && !(n in CORE_NUMERIC_ARGS)))
+            .concat (Object.keys (SIGNATURE_ARG_TYPES));
         for (const methodName of allNames) {
-            const positions = this.coreArgTypes (methodName) as Record<number, string>;
+            const positions = Object.assign ({}, this.coreArgTypes (methodName), SIGNATURE_ARG_TYPES[methodName]);
             for (const receiver of receivers) {
                 const needle = receiver + methodName + '(';
                 let from = 0;
@@ -2940,6 +4961,12 @@ class NewTranspiler {
                 }
                 const args = this.splitCsharpParams (content.substring (open + 1, close));
                 let changed = false;
+                // content offset of each argument, so the skip below can look up the enclosing scope
+                const argOffsets: number[] = [];
+                for (let q = 0, off = open + 1; q < args.length; q++) {
+                    argOffsets.push (off);
+                    off += args[q].length + 1;
+                }
                 for (const posKey of Object.keys (positions)) {
                     const pos = Number (posKey);
                     const targetType = positions[pos];
@@ -2955,7 +4982,32 @@ class NewTranspiler {
                         if (trimmed.startsWith ('(string)') || trimmed.startsWith ('((string)') || trimmed.startsWith ('"')) {
                             continue;
                         }
+                        // the argument already carries the target type: `string symbol` (a
+                        // `typeCoreArgs`-narrowed parameter or a `string` local) needs no cast --
+                        // the callee receives the identical reference
+                        if (CORE_ARG_CALL_SITE_TYPED_IDENTIFIERS.indexOf (trimmed) !== -1
+                                && this.coreArgCallSiteDeclaredType (content, argOffsets[pos] + (arg.length - arg.trimStart ().length), trimmed) === 'string') {
+                            continue;
+                        }
                         args[pos] = '((string)' + trimmed + ')';
+                        changed = true;
+                        continue;
+                    }
+                    // a list target adds no wrap: every admitted caller already passes a list,
+                    // `this.symbols`, null or nothing (see CORE_LIST_ARGS), and `((IList<object>)x)`
+                    // on an `object` argument would be a new runtime type check
+                    if (CORE_LIST_TARGET_TYPES.indexOf (targetType) !== -1) {
+                        continue;
+                    }
+                    // reference type (the sign()/handleErrors() dictionaries): the argument is that
+                    // dictionary by contract, so an explicit cast only spells the assumption out; a
+                    // `new Dictionary<string, object>` literal and a bare `null` already convert
+                    if (targetType.endsWith ('Dictionary<string, object>')) {
+                        if (trimmed.startsWith ('((' + targetType + ')') || trimmed.startsWith ('(' + targetType + ')')
+                            || trimmed.startsWith ('new Dictionary<string, object>') || trimmed === 'null') {
+                            continue;
+                        }
+                        args[pos] = '((' + targetType + ')' + trimmed + ')';
                         changed = true;
                         continue;
                     }
@@ -2978,6 +5030,1267 @@ class NewTranspiler {
         return content;
     }
 
+    // S03 — drop `((string)x)` when the enclosing method declares `x` as `string`/`string?`.
+    //
+    // The printer wraps EVERY string-method receiver and every `as string` assertion in
+    // `((string)…)` unconditionally (`x.toUpperCase()` always prints `((string)x).ToUpper()`,
+    // whatever `x` is — ast-transpiler printAsExpression / printCallExpression), so a site
+    // whose operand is already that type keeps a redundant cast. String → string is a
+    // reference conversion: null stays null, no unboxing, no overload-resolution change
+    // (nullability is not part of a C# signature), so the removal is identity-preserving;
+    // the nullable-flow warnings the bare form can raise (CS8602/CS8604) are in
+    // ccxt.csproj's NoWarn.
+    //
+    // Scope is the METHOD: parameters, locals and foreach bindings, one binding per name
+    // (C# forbids same-name locals in nested scopes). A name the same method declares with
+    // any other type — or with `var`, whose type is unknown here — is left untouched, so
+    // the `object` operands keep the cast that unboxes them.
+    stripRedundantStringCasts (content: string): string {
+        const targets = [ 'type', 'side', 'status', 'id', 'marketId' ];
+        const lines = content.split ('\n');
+        // A method's region runs from its signature line to the next signature line, so the
+        // scan is delimited without counting braces: braces inside comments (`{@link …}`,
+        // `// {` example blocks) are not code and a brace count would drift on them. A body
+        // never contains a second indent-4 `public|…` `…)` line.
+        const sigLines: number[] = [];
+        for (let i = 0; i < lines.length; i++) {
+            if (this.isCsharpMethodSignature (lines[i])) {
+                sigLines.push (i);
+            }
+        }
+        const declRe = new RegExp ('(?:^|[\\s(,])(string\\?|string|object|var|bool\\?|bool|Int64\\?|Int64|double\\?|double|int\\?|int|Dictionary<string, object>|List<object>|IList<object>|IDictionary<string, object>)\\s+(' + targets.join ('|') + ')(?![\\w])\\s*(?==|,|\\))', 'g');
+        const foreachRe = new RegExp ('foreach\\s*\\(\\s*([^\\s]+)\\s+(' + targets.join ('|') + ')\\s+in\\b', 'g');
+        for (let k = 0; k < sigLines.length; k++) {
+            const sig = sigLines[k];
+            const start = sig + 1;
+            const end = (k + 1 < sigLines.length) ? sigLines[k + 1] : lines.length;
+            // declarations are read from the code only: a doc-comment line inside the body
+            // (`* @param {string} type …`) must never widen the allowed set
+            const body = [];
+            for (let j = start; j < end; j++) {
+                if (this.isCsharpCommentLine (lines[j])) {
+                    continue;
+                }
+                body.push (lines[j]);
+            }
+            const text = [ lines[sig] ].concat (body).join ('\n');
+            const allowed = new Set ();
+            const blocked = new Set ();
+            let m;
+            while ((m = declRe.exec (text)) !== null) {
+                if (m[1] === 'string' || m[1] === 'string?') {
+                    allowed.add (m[2]);
+                } else {
+                    blocked.add (m[2]);
+                }
+            }
+            while ((m = foreachRe.exec (text)) !== null) {
+                if (m[1] === 'string' || m[1] === 'string?') {
+                    allowed.add (m[2]);
+                } else {
+                    blocked.add (m[2]);
+                }
+            }
+            const names = [ ...allowed ].filter ((n) => !blocked.has (n));
+            if (names.length === 0) {
+                continue;
+            }
+            for (let j = start; j < end; j++) {
+                if (this.isCsharpCommentLine (lines[j])) {
+                    continue;
+                }
+                lines[j] = this.dropStringCastsOnLine (lines[j], names);
+            }
+        }
+        return lines.join ('\n');
+    }
+
+    isCsharpCommentLine (line: string): boolean {
+        const trimmed = line.trim ();
+        return trimmed.startsWith ('*') || trimmed.startsWith ('//')
+            || trimmed.startsWith ('/*') || trimmed.endsWith ('*/');
+    }
+
+    // `((string)name)` → `name`, repeatedly (a nested `((string)((string)x))` needs two
+    // rounds), only in the code part of the line: double-quoted literals and `//` comments
+    // are copied through untouched.
+    dropStringCastsOnLine (line: string, names: string[]): string {
+        const commentAt = this.csharpCommentIndex (line);
+        const code = (commentAt === -1) ? line : line.substring (0, commentAt);
+        const tail = (commentAt === -1) ? '' : line.substring (commentAt);
+        let out = '';
+        let i = 0;
+        while (i < code.length) {
+            const quote = code.indexOf ('"', i);
+            if (quote === -1) {
+                out += this.dropStringCasts (code.substring (i), names);
+                break;
+            }
+            out += this.dropStringCasts (code.substring (i, quote), names);
+            const close = this.csharpLiteralEnd (code, quote);
+            out += code.substring (quote, close);
+            i = close;
+        }
+        return out + tail;
+    }
+
+    dropStringCasts (span: string, names: string[]): string {
+        let out = span;
+        for (let round = 0; round < 3; round++) {
+            let changed = false;
+            for (const name of names) {
+                const re = new RegExp ('\\(\\(string\\)' + name + '\\)', 'g');
+                out = out.replace (re, (match: string, ...rest: any[]) => {
+                    const offset = rest[rest.length - 2] as number;
+                    const input = rest[rest.length - 1] as string;
+                    const before = (offset > 0) ? input[offset - 1] : '';
+                    const after = input[offset + match.length] || '';
+                    // `((string)NAME)` is textually the same string in two shapes: the cast
+                    // wrapper the printer emits (`x as string`, `x.toUpperCase()` receivers)
+                    // and a CALL's paren followed by the printer's single-paren cast
+                    // (`Remove((string)id)`, `throw new X((string)m)`). Deleting the wrapper is
+                    // only safe in the first shape: in the second the match's leading paren
+                    // belongs to the call (`…Removeid;`). The two are told apart by the
+                    // character before the match — a method name never precedes a wrapper
+                    // (`f(((string)x))` is a wrapper as the sole argument, `f((string)x)` is
+                    // the call's paren plus a single cast) — so a match preceded by an
+                    // identifier is left untouched and its cast stays correct.
+                    if (/[A-Za-z0-9_]/.test (before)) {
+                        return match;
+                    }
+                    changed = true;
+                    return name;
+                });
+            }
+            if (!changed) {
+                break;
+            }
+        }
+        return out;
+    }
+
+    // U47 -- `((string)X)` where X's C# static type already IS the cast's target `string`: the
+    // wrap is an identity conversion (reference type: `string?` and `string` are one runtime
+    // type, nullability is not part of a signature, null stays null, nothing unboxes), so the
+    // cast can be dropped without moving the box. Four proven subject families:
+    //   * a STRING LITERAL -- its static type is `string` by definition (the printer's
+    //     `Remove((string)"k")` / `Replace((string)"%", (string)"")` argument wraps);
+    //   * a nested `(string)X` / `((string)X)` -- the inner cast's result type IS `string`;
+    //   * `this.<m>(...)` whose declared return type is `string`/`string?` -- read off the
+    //     processed content's own declaration of `<m>` (authoritative: a per-venue override
+    //     prints its own declaration; a name declared twice with two types is vetoed) or, for a
+    //     helper the content does not declare, STRING_PRODUCER_HELPERS above;
+    //   * a bare identifier the SAME METHOD declares `string`/`string?` (parameter, local or
+    //     `foreach` binding -- S09's region scan, extended from its five target names to every
+    //     name). A name the method also declares with any other type, a lambda parameter of that
+    //     name, or a `foreach|catch|for|using|fixed` variable of that name vetoes the site.
+    // Both printed shapes are handled: the printer's wrapper `((string)X)` (the pair is dropped)
+    // and a CALL's paren plus the printer's single cast `f((string)X)` (only the cast token is
+    // dropped -- deleting the pair there would eat the call's paren; the two are told apart by
+    // the character before the match, exactly as dropStringCasts does).
+    dropIdentityStringCasts (content: string): string {
+        if (!content.includes ('((string)')) {
+            return content;
+        }
+        const fields = new Set<string> (STRING_PRODUCER_FIELDS);
+        // every `public ... <name>(` in the content: the emitted declaration decides the type of
+        // a `this.<name>(...)` call. Two declarations that disagree (overloads cannot, but a
+        // `new`-hidden twin can) answer `*`, which vetoes the name.
+        const declared = new Map<string, string> ();
+        const methodRe = /^\s*public\s+(?:static\s+|virtual\s+|override\s+|async\s+|new\s+)*([A-Za-z_][\w<>.,?\[\]]*)\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(/gm;
+        let m: RegExpExecArray | null;
+        while ((m = methodRe.exec (content)) !== null) {
+            const previous = declared.get (m[2]);
+            if (previous === undefined) {
+                declared.set (m[2], m[1]);
+            } else if (previous !== m[1]) {
+                declared.set (m[2], '*');
+            }
+        }
+        const stringProducer = (name: string): boolean => {
+            if (declared.has (name)) {
+                const ret = declared.get (name);
+                return (ret === 'string') || (ret === 'string?');
+            }
+            return STRING_PRODUCER_HELPERS[name] !== undefined;
+        };
+        const lines = content.split ('\n');
+        // a method's region runs from its signature line to the next signature line (the S09
+        // delimitation -- a brace count would drift on braces inside comments)
+        const sigLines: number[] = [];
+        for (let i = 0; i < lines.length; i++) {
+            if (this.isCsharpMethodSignature (lines[i])) {
+                sigLines.push (i);
+            }
+        }
+        for (let k = 0; k < sigLines.length; k++) {
+            const sig = sigLines[k];
+            const start = sig + 1;
+            const end = (k + 1 < sigLines.length) ? sigLines[k + 1] : lines.length;
+            const code: string[] = [];
+            for (let j = start; j < end; j++) {
+                if (this.isCsharpCommentLine (lines[j])) {
+                    continue;
+                }
+                code.push (lines[j]);
+            }
+            const text = [ lines[sig] ].concat (code).join ('\n');
+            const allowed = new Set<string> ();
+            const blocked = new Set<string> ();
+            const declRe = new RegExp ('(?:^|[\\s(,])(string\\?|string|object|var|bool\\?|bool|Int64\\?|Int64|double\\?|double|int\\?|int|Dictionary<string, object>|IDictionary<string, object>|List<object>|IList<object>|ccxt\\.[\\w.<>?]+|[A-Z][\\w.]*)\\s+([A-Za-z_][A-Za-z0-9_]*)(?![\\w])\\s*(?==|,|\\))', 'g');
+            while ((m = declRe.exec (text)) !== null) {
+                if ((m[1] === 'string') || (m[1] === 'string?')) {
+                    allowed.add (m[2]);
+                } else {
+                    blocked.add (m[2]);
+                }
+            }
+            const foreachRe = new RegExp ('foreach\\s*\\(\\s*([^\\s]+)\\s+([A-Za-z_][A-Za-z0-9_]*)\\s+in\\b', 'g');
+            while ((m = foreachRe.exec (text)) !== null) {
+                if ((m[1] === 'string') || (m[1] === 'string?')) {
+                    allowed.add (m[2]);
+                } else {
+                    blocked.add (m[2]);
+                }
+            }
+            const body = lines.slice (start, end).join ('\n');
+            const veto = (name: string): boolean => {
+                if (blocked.has (name)) {
+                    return true;
+                }
+                // a lambda parameter of that name would shadow the binding (`x => ...` and `(a, x) => ...`)
+                if (new RegExp ('\\b' + name + '\\b\\s*=>').test (body)) {
+                    return true;
+                }
+                if (new RegExp ('\\([^()]*\\b' + name + '\\b[^()]*\\)\\s*=>').test (body)) {
+                    return true;
+                }
+                if (new RegExp ('(?:\\bforeach|\\bcatch|\\bfor|\\busing|\\bfixed)\\s*\\([^)]*\\b' + name + '\\b').test (body)) {
+                    return true;
+                }
+                return false;
+            };
+            for (let j = start; j < end; j++) {
+                if (this.isCsharpCommentLine (lines[j])) {
+                    continue;
+                }
+                lines[j] = this.dropIdentityStringCastsOnLine (lines[j], allowed, veto, stringProducer, fields);
+            }
+        }
+        return lines.join ('\n');
+    }
+
+    // one line of the pass above: scan the code part (a `//` comment and the inside of string
+    // literals are never touched -- maskCsharpLiterals blanks the literals, so a `((string)` and
+    // a paren inside one can neither match nor shift the paren depth), drop every removable cast
+    // that does not overlap another one on the same line, and repeat: a removal can expose the
+    // next wrapper (`((string)((string)x))` -> `((string)x)` -> `x`).
+    dropIdentityStringCastsOnLine (line: string, allowed: Set<string>, veto: (name: string) => boolean,
+                                  stringProducer: (name: string) => boolean, fields: Set<string>): string {
+        let out = line;
+        for (let round = 0; round < 6; round++) {
+            const commentAt = this.csharpCommentIndex (out);
+            const masked = this.maskCsharpLiterals ((commentAt === -1) ? out : out.substring (0, commentAt));
+            const removals: number[][][] = [];
+            let from = 0;
+            let lastEnd = -1;
+            for (;;) {
+                const at = masked.indexOf ('((string)', from);
+                if (at === -1) {
+                    break;
+                }
+                from = at + 9;
+                if (at < lastEnd) {
+                    continue; // nested in a removal already accepted on this line -- next round
+                }
+                const removal = this.identityStringCastRemoval (out, masked, at, allowed, veto, stringProducer, fields);
+                if (removal !== null) {
+                    removals.push (removal);
+                    lastEnd = removal[removal.length - 1][1];
+                }
+            }
+            if (removals.length === 0) {
+                break;
+            }
+            for (let i = removals.length - 1; i >= 0; i--) {
+                const ranges = removals[i];
+                for (let r = ranges.length - 1; r >= 0; r--) {
+                    const [ a, b ] = ranges[r];
+                    out = out.substring (0, a) + out.substring (b);
+                }
+            }
+        }
+        return out;
+    }
+
+    // index of the `(` matching the `)` at `close` (the input is masked, so no literal can hide a
+    // paren), or -1 when the group is unbalanced
+    matchingParenBackwards (masked: string, close: number): number {
+        let depth = 0;
+        for (let i = close; i >= 0; i--) {
+            const ch = masked[i];
+            if (ch === ')') {
+                depth++;
+            } else if (ch === '(') {
+                depth--;
+                if (depth === 0) {
+                    return i;
+                }
+            }
+        }
+        return -1;
+    }
+
+
+    // the [from, to) range(s) to delete for the cast at `at` (index of the `((string)` in the
+    // masked line), or null when the operand's static type is not provably `string`. The first
+    // range is the cast token; a wrapper adds a second range for its closing `)`.
+    identityStringCastRemoval (line: string, masked: string, at: number, allowed: Set<string>,
+                               veto: (name: string) => boolean, stringProducer: (name: string) => boolean,
+                               fields: Set<string>): number[][] | null {
+        const open = at + 9;
+        // the operand ends at the first `,` `)` `;` `}` `]` at paren depth 0 -- for the wrapper
+        // that `)` is the cast's own, for `f((string)X, y)` the argument's separator
+        let depth = 0;
+        let term = -1;
+        for (let i = open; i < masked.length; i++) {
+            const ch = masked[i];
+            if (ch === '(') {
+                depth++;
+            } else if (ch === ')') {
+                if (depth === 0) { term = i; break; }
+                depth--;
+            } else if ((depth === 0) && ((ch === ',') || (ch === ';') || (ch === '}') || (ch === ']'))) {
+                term = i;
+                break;
+            }
+        }
+        if (term === -1) {
+            return null;
+        }
+        const operand = line.substring (open, term).trim ();
+        if (!this.identityStringOperand (operand, allowed, veto, stringProducer, fields)) {
+            return null;
+        }
+        // Is the `(` at `at` the cast's own paren (the wrapper `((string)X)`, delete the pair)
+        // or a CALL's paren followed by the printer's single cast (`f((string)X)`, delete only
+        // the cast token -- deleting the pair there would eat the call's paren)? A word character
+        // immediately before it is a callee (`Remove((string)k)`), and a non-keyword word before
+        // whitespace is a callee the printer spaced off (`new ExchangeError ((string)m)`); a `)`
+        // or `]` is resolved by the group it closes -- an expression group is the cast's own
+        // paren (`[(string)((string)code)]`), a call/indexer group is a call's.
+        const before = (at > 0) ? masked[at - 1] : '';
+        const prevWord = /([A-Za-z_][A-Za-z0-9_]*)\s*$/.exec (masked.substring (0, at));
+        let callParen = /[A-Za-z0-9_\]]/.test (before);
+        if (!callParen && (before === ')')) {
+            const group = this.matchingParenBackwards (masked, at - 1);
+            const beforeGroup = (group > 0) ? masked[group - 1] : '';
+            callParen = /[A-Za-z0-9_\]]/.test (beforeGroup);
+        }
+        if (!callParen && (prevWord !== null) && !CALL_PRECEDING_KEYWORDS.has (prevWord[1])) {
+            callParen = true;
+        }
+        if (callParen) {
+            return [ [ at + 1, at + 9 ] ];
+        }
+        // the wrapper `((string)X)`: the `(` at `at` must close exactly at `term`, which is the
+        // invariant that makes the removal a balanced-pair delete
+        if ((masked[term] !== ')') || (this.matchingParen (masked, at) !== term)) {
+            return null;
+        }
+        return [ [ at, at + 9 ], [ term, term + 1 ] ];
+    }
+
+    identityStringOperand (operand: string, allowed: Set<string>, veto: (name: string) => boolean,
+                           stringProducer: (name: string) => boolean, fields: Set<string>): boolean {
+        if (operand.startsWith ('"') || operand.startsWith ('@"') || operand.startsWith ('$"')) {
+            return true; // a string literal IS a string
+        }
+        if (operand.startsWith ('((string)') || operand.startsWith ('(string)')) {
+            return true; // a nested cast to `string` already yields a `string`
+        }
+        const call = /^this\.([A-Za-z_][A-Za-z0-9_]*)\s*\(/.exec (operand);
+        if (call !== null) {
+            return stringProducer (call[1]);
+        }
+        const field = /^this\.([A-Za-z_][A-Za-z0-9_]*)$/.exec (operand);
+        if (field !== null) {
+            return fields.has (field[1]);
+        }
+        const ident = /^([A-Za-z_][A-Za-z0-9_]*)$/.exec (operand);
+        if (ident !== null) {
+            return allowed.has (ident[1]) && !veto (ident[1]);
+        }
+        return false;
+    }
+
+    isCsharpMethodSignature (line: string): boolean {
+        return /^    (?:public|private|protected|internal)\b.*\)\s*$/.test (line);
+    }
+
+    // index of the `"` closing the literal opened at `open` (both indices exclusive of the
+    // closing quote position; returns line.length when unterminated)
+    csharpLiteralEnd (line: string, open: number): number {
+        let i = open + 1;
+        while (i < line.length) {
+            if (line[i] === '\\') {
+                i += 2;
+                continue;
+            }
+            if (line[i] === '"') {
+                return i + 1;
+            }
+            i++;
+        }
+        return line.length;
+    }
+
+    // index of the `//` that starts a comment outside a string literal, or -1
+    csharpCommentIndex (line: string): number {
+        let i = 0;
+        while (i < line.length) {
+            const ch = line[i];
+            if (ch === '"') {
+                i = this.csharpLiteralEnd (line, i);
+                continue;
+            }
+            if (ch === '/' && line[i + 1] === '/') {
+                return i;
+            }
+            i++;
+        }
+        return -1;
+    }
+
+    // S10: `((string)X)` where X's C# static type already IS the cast's own target
+    // `string` — the wrap is an identity, so it can be dropped without moving the box.
+    // Only three subject families qualify, each proven against its C# declaration:
+    //   * a STRING LITERAL (`"…"`): its static type is `string` by definition. The
+    //     printer's string-method rewrites wrap the literal arguments
+    //     (`Split(new [] {((string)"-")}, …)`, `StartsWith(((string)"https://"))`,
+    //     `Replace((string)" ", (string)"")`, `throw new X ((string)"…")`).
+    //   * this.numberToString (cs/ccxt/base/Exchange.Number.cs
+    //     `public virtual string numberToString(object number)`), this.json
+    //     (Exchange.Functions.cs `public string json(object obj)`), this.intToBase16 and
+    //     this.urlencode (Exchange.Encode.cs `public string …`) — every one declares the
+    //     non-nullable `string` the `as string` assertion in ts/src asks for.
+    //   * the Precise.string* statics (Exchange.Precise.cs, every one
+    //     `static public string …`).
+    // Everything else keeps its cast: a `string?` producer (amountToPrecision, parseUnits,
+    // customUrlencode, …) is NOT the cast's target, an `object` local/parameter is not
+    // either, and the `((string)this.secret).Length`-style string-method RECEIVER casts
+    // (the S09 family) are not touched here.
+    foldIdentityStringCasts (content: string): string {
+        const CALLEES = [ 'this.numberToString(', 'this.json(', 'this.intToBase16(', 'this.urlencode(' ];
+        const STATIC_PRODUCER = /^Precise\.string[A-Za-z0-9_]*\(/;
+        let out = '';
+        let i = 0;
+        for (;;) {
+            const at = content.indexOf ('((string)', i);
+            if (at === -1) {
+                out += content.substring (i);
+                break;
+            }
+            // A call's argument list also starts with `((string)` when its first argument is a
+            // `(string)` cast — `Remove((string)key)`, and the printer's `throw new X ((string)arg)`
+            // which even puts a space before the `(`. Only an EXPRESSION-position `((string)` is a
+            // cast WRAP: the identifier token before it must not be a plain callable name (a
+            // keyword like `return` / `throw` / `new` still starts an expression).
+            const prevWord = /([A-Za-z_][\w]*)\s*$/.exec (content.substring (0, at));
+            if (prevWord !== null && !CALL_PRECEDING_KEYWORDS.has (prevWord[1])) {
+                out += content.substring (i, at + 9);
+                i = at + 9;
+                continue;
+            }
+            const rest = content.substring (at + 9);
+            let end = -1; // index just past the cast's own closing `)`
+            const literal = /^"(?:[^"\\]|\\.)*"/.exec (rest);
+            if (literal !== null) {
+                end = (rest[literal[0].length] === ')') ? at + 9 + literal[0].length + 1 : -1;
+            } else {
+                const callee = CALLEES.find ((c) => rest.startsWith (c));
+                const isStatic = STATIC_PRODUCER.test (rest);
+                if (callee !== undefined || isStatic) {
+                    // `head` = index of the call's own `(` inside `rest`
+                    const head = (callee !== undefined) ? callee.length - 1 : (STATIC_PRODUCER.exec (rest) as RegExpExecArray)[0].length - 1;
+                    const open = at + 9 + head;
+                    const close = this.matchingParen (content, open);
+                    if (close !== -1 && content[close + 1] === ')') {
+                        end = close + 2;
+                    }
+                }
+            }
+            if (end === -1) {
+                out += content.substring (i, at + 9);
+                i = at + 9;
+                continue;
+            }
+            // the outer `(` at `at` must close exactly at the cast's own `)` — the invariant
+            // that makes the removal a balanced-pair delete (`((string)X)` -> `X`)
+            if (this.matchingParen (content, at) !== end - 1) {
+                out += content.substring (i, at + 9);
+                i = at + 9;
+                continue;
+            }
+            out += content.substring (i, at) + content.substring (at + 9, end - 1);
+            i = end;
+        }
+        return out;
+    }
+
+    // S15: `getArrayLength(x)` is the printer's wrapper for a TS `.length` and
+    // `((IList<object>)x).ToArray()/.First()/.Last()` its cast around a Linq call. Once the
+    // receiver's own C# declaration in the same method is a List<>/IList<>, both are the list's
+    // own member: `x.Count` and the cast-less Linq call. A nullable receiver keeps the helper's
+    // null->0 with `x?.Count ?? 0`; an `object` receiver keeps the helper and the cast untouched.
+    nativeListHelperCalls (content: string): string {
+        content = this.csharpOrderbookCacheCasts (content);
+        const masked = this.maskCsharpLiterals (content);
+        const lines = content.split ('\n');
+        const maskedLines = masked.split ('\n');
+        const returns = this.csharpFileReturnTypes (maskedLines);
+        const starts: number[] = [];
+        let offset = 0;
+        for (const line of lines) {
+            starts.push (offset);
+            offset += line.length + 1;
+        }
+        const depth: number[] = [];
+        let braces = 0;
+        for (const line of maskedLines) {
+            depth.push (braces);
+            braces += this.csharpBraceDelta (line);
+        }
+        const pieces: string[] = [];
+        let cursor = 0;
+        let line = 0;
+        while (line < lines.length) {
+            if ((depth[line] > 1) || !CSHARP_MEMBER_SIGNATURE.test (maskedLines[line]) || (maskedLines[line].indexOf ('(') < 0)) {
+                line++;
+                continue;
+            }
+            const span = this.csharpMethodBodySpan (maskedLines, line);
+            if (span === undefined) {
+                line++;
+                continue;
+            }
+            const [ a, b ] = span;
+            if (starts[a] < cursor) {
+                line = b + 1;
+                continue;
+            }
+            const { lists, nonNull } = this.csharpTypedListReceivers (maskedLines.slice (a, b + 1));
+            const temps = this.csharpTempHolderListTypes (maskedLines.slice (a, b + 1), returns);
+            const end = starts[b] + lines[b].length;
+            const region = content.substring (starts[a], end);
+            if ((lists.size > 0) || (temps.size > 0)) {
+                let rewritten = (lists.size > 0) ? this.csharpNativeListCalls (region, lists, nonNull) : region;
+                rewritten = this.csharpIdentityListCasts (rewritten, lists, temps);
+                if (rewritten !== region) {
+                    pieces.push (content.substring (cursor, starts[a]));
+                    pieces.push (rewritten);
+                    cursor = end;
+                }
+            }
+            line = b + 1;
+        }
+        if (cursor === 0) {
+            return content;
+        }
+        pieces.push (content.substring (cursor));
+        return pieces.join ('');
+    }
+
+    // same-length copy of `content` with string/char literals and comments blanked out (a brace or
+    // a `getArrayLength(` inside a literal must not move any structural scan)
+    maskCsharpLiterals (content: string): string {
+        const out: string[] = content.split ('');
+        const blank = (at: number) => { out[at] = (content[at] === '\n') ? '\n' : ' '; };
+        let i = 0;
+        while (i < content.length) {
+            const ch = content[i];
+            const verbatim = (ch === '@') && (content[i + 1] === '"');
+            if (verbatim || (ch === '"') || (ch === "'")) {
+                const quote = verbatim ? '"' : ch;
+                blank (i);
+                i += verbatim ? 2 : 1;
+                while (i < content.length) {
+                    if (!verbatim && (content[i] === '\\') && (i + 1 < content.length)) {
+                        blank (i);
+                        blank (i + 1);
+                        i += 2;
+                        continue;
+                    }
+                    if (verbatim && (content[i] === '"') && (content[i + 1] === '"')) {
+                        blank (i);
+                        blank (i + 1);
+                        i += 2;
+                        continue;
+                    }
+                    if (content[i] === quote) {
+                        blank (i);
+                        i++;
+                        break;
+                    }
+                    if (content[i] === '\n') {
+                        i++;
+                        break;
+                    }
+                    blank (i);
+                    i++;
+                }
+                continue;
+            }
+            if ((ch === '/') && (content[i + 1] === '/')) {
+                while ((i < content.length) && (content[i] !== '\n')) {
+                    blank (i);
+                    i++;
+                }
+                continue;
+            }
+            if ((ch === '/') && (content[i + 1] === '*')) {
+                blank (i);
+                blank (i + 1);
+                i += 2;
+                while ((i < content.length) && !((content[i] === '*') && (content[i + 1] === '/'))) {
+                    blank (i);
+                    i++;
+                }
+                if (i < content.length) {
+                    blank (i);
+                    blank (i + 1);
+                    i += 2;
+                }
+                continue;
+            }
+            i++;
+        }
+        return out.join ('');
+    }
+
+    csharpBraceDelta (maskedLine: string): number {
+        return (maskedLine.match (/\{/g) ?? []).length - (maskedLine.match (/\}/g) ?? []).length;
+    }
+
+    // `[start, end]` line range of the method body whose signature line is `start` (the signature
+    // may wrap, so the body opens at the first line carrying `{`)
+    csharpMethodBodySpan (maskedLines: string[], start: number): [ number, number ] | undefined {
+        let open = start;
+        while ((open < maskedLines.length) && (open - start < 40) && (maskedLines[open].indexOf ('{') < 0)) {
+            open++;
+        }
+        if (open >= maskedLines.length) {
+            return undefined;
+        }
+        let braces = 0;
+        for (let k = open; k < maskedLines.length; k++) {
+            braces += this.csharpBraceDelta (maskedLines[k]);
+            if (braces <= 0) {
+                return [ start, k ];
+            }
+        }
+        return undefined;
+    }
+
+    csharpMatching (text: string, open: number): number {
+        let depth = 0;
+        for (let i = open; i < text.length; i++) {
+            const ch = text[i];
+            if ((ch === '(') || (ch === '[') || (ch === '{')) {
+                depth++;
+            } else if ((ch === ')') || (ch === ']') || (ch === '}')) {
+                depth--;
+                if (depth === 0) {
+                    return i;
+                }
+            }
+        }
+        return -1;
+    }
+
+    // receivers of this method body: `lists` holds the names whose only C# declaration here is a
+    // list type, `nonNull` the subset whose every write is a non-null producer. Parameters,
+    // initializer-less declarations, `ref`/`out` sinks and compound assignments are never
+    // non-null (the caller of a method can hand it a null list).
+    csharpTypedListReceivers (maskedLines: string[]) {
+        const declTypes = new Map<string, Set<string>>();
+        const writes = new Map<string, string[]> ();
+        const unsafe = new Set<string> ();
+        const declare = (name: string, type: string) => {
+            const types = declTypes.get (name) ?? new Set<string> ();
+            types.add (type);
+            declTypes.set (name, types);
+        };
+        let signatureEnd = maskedLines.length - 1;
+        for (let k = 0; k < maskedLines.length; k++) {
+            if (maskedLines[k].indexOf ('{') >= 0) {
+                signatureEnd = k;
+                break;
+            }
+        }
+        const signature = maskedLines.slice (0, signatureEnd + 1).join (' ');
+        const open = signature.indexOf ('(');
+        if (open >= 0) {
+            const close = this.csharpMatching (signature, open);
+            if (close > 0) {
+                for (const arg of this.splitCsharpParams (signature.substring (open + 1, close))) {
+                    const param = CSHARP_TYPED_BINDING.exec (arg);
+                    if (param && !CSHARP_NON_TYPES.has (param[1])) {
+                        declare (param[2], param[1]);
+                        unsafe.add (param[2]);
+                    }
+                }
+            }
+        }
+        for (let k = signatureEnd + 1; k < maskedLines.length; k++) {
+            const line = maskedLines[k];
+            // a `ref`/`out` sink or a compound assignment can rewrite any name at any statement
+            const sink = /^\s*([A-Za-z_]\w*)\s*(?:\+=|-=|\*=|\/=|\?\?=|&=|\|=|\^=|<<=|>>=)/.exec (line);
+            if (sink) {
+                unsafe.add (sink[1]);
+            }
+            if (/\b(?:ref|out)\s+[A-Za-z_]\w*/.test (line)) {
+                for (const m of line.matchAll (/\b(?:ref|out)\s+([A-Za-z_]\w*)/g)) {
+                    unsafe.add (m[1]);
+                }
+            }
+            const declaration = CSHARP_TYPED_BINDING.exec (line);
+            if (declaration && !CSHARP_NON_TYPES.has (declaration[1])) {
+                declare (declaration[2], declaration[1]);
+                writes.set (declaration[2], [ declaration[3].trim () ].concat (writes.get (declaration[2]) ?? []));
+                continue;
+            }
+            const bare = CSHARP_BARE_DECLARATION.exec (line);
+            if (bare && !CSHARP_NON_TYPES.has (bare[1])) {
+                declare (bare[2], bare[1]);
+                unsafe.add (bare[2]);
+                continue;
+            }
+            const foreach = /\bforeach\s*\(\s*([A-Za-z_][\w.]*(?:<[^<>]*>)?)\s+([A-Za-z_]\w*)\s+in\b/.exec (line);
+            if (foreach && !CSHARP_NON_TYPES.has (foreach[1])) {
+                declare (foreach[2], foreach[1]);
+                continue;
+            }
+            const assignment = /^\s*([A-Za-z_]\w*)\s*=(?!=)(.*)$/.exec (line);
+            if (assignment && declTypes.has (assignment[1])) {
+                writes.set (assignment[1], [].concat (writes.get (assignment[1]) ?? [], [ assignment[2].trim () ]));
+            }
+        }
+        const lists = new Map<string, string> ();
+        for (const [ name, types ] of declTypes) {
+            if (types.size === 1) {
+                const type = types.values ().next ().value as string;
+                if (CSHARP_LIST_TYPE_RECEIVER.test (type)) {
+                    lists.set (name, type);
+                }
+            }
+        }
+        const nonNull = new Set<string> ();
+        for (let round = 0; round < 4; round++) {
+            let changed = false;
+            for (const name of lists.keys ()) {
+                if (nonNull.has (name) || unsafe.has (name)) {
+                    continue;
+                }
+                const list = writes.get (name);
+                if ((list === undefined) || (list.length === 0)) {
+                    continue;
+                }
+                if (list.every ((rhs) => this.csharpListWriteIsNonNull (rhs, nonNull))) {
+                    nonNull.add (name);
+                    changed = true;
+                }
+            }
+            if (!changed) {
+                break;
+            }
+        }
+        return { lists, nonNull };
+    }
+
+    // non-null producers for a list receiver: `new …`, a Linq `.ToList()`, and the safe* helpers —
+    // which return `defaultValue` whenever the key misses, so a non-null *list* default proves it
+    csharpListWriteIsNonNull (rhs: string, nonNull: Set<string>, depth = 0): boolean {
+        if (depth > 4) {
+            return false;
+        }
+        const text = rhs.replace (/;\s*$/, '').trim ();
+        if (text.startsWith ('new ')) {
+            return true;
+        }
+        if (/\.ToList(?:<[^<>]*>)?\(\)$/.test (text)) {
+            return true;
+        }
+        const safe = /\bthis\.(?:safeList[2N]?|safeValue[2N]?)\s*\(/.exec (text);
+        if (safe !== null) {
+            const open = text.indexOf ('(', safe.index);
+            const close = this.csharpMatching (text, open);
+            if (close < 0) {
+                return false;
+            }
+            const args = this.splitCsharpParams (text.substring (open + 1, close));
+            if (args.length < 3) {
+                return false; // no default: the helper hands back null
+            }
+            const fallback = args[args.length - 1].trim ();
+            if (!fallback.startsWith ('new List')) {
+                return false; // `defaultValue as List<object>` is null for a non-list default
+            }
+            return this.csharpListWriteIsNonNull (fallback, nonNull, depth + 1);
+        }
+        if (/^[A-Za-z_]\w*$/.test (text)) {
+            return nonNull.has (text);
+        }
+        return false;
+    }
+
+    csharpNativeListCalls (region: string, lists: Map<string, string>, nonNull: Set<string>): string {
+        const masked = this.maskCsharpLiterals (region);
+        let out = '';
+        let cursor = 0;
+        let match: RegExpExecArray | null;
+        CSHARP_LIST_RECEIVER_CALL.lastIndex = 0;
+        while ((match = CSHARP_LIST_RECEIVER_CALL.exec (region)) !== null) {
+            const at = match.index;
+            if (masked[at] !== region[at]) {
+                continue; // inside a literal or a comment
+            }
+            if ((at > 0) && /[\w.]/.test (region[at - 1])) {
+                continue; // tail of a longer name
+            }
+            const name = match[1] ?? match[2];
+            if (!lists.has (name)) {
+                continue;
+            }
+            out += region.substring (cursor, at);
+            const replacement = (match[1] !== undefined)
+                ? (nonNull.has (name) ? name + '.Count' : name + '?.Count ?? 0')
+                : name + '.' + match[3] + '()';
+            // `??` binds looser than every binary operator, so an operand position needs the
+            // grouping: `((getArrayLength (symbols) == 1))` -> `((symbols?.Count ?? 0) == 1)`
+            // (unparenthesised it is `symbols?.Count ?? (0 == 1)`, CS0019). Every other emitted
+            // site ends at `;`, `,` or `)` -- census: 424 sites, 0 with an operator after.
+            const following = region.substring (at + match[0].length).replace (/^\s+/, '').charAt (0);
+            out += (following !== '' && '=<>!&|+-*/%^?:'.indexOf (following) !== -1)
+                ? '(' + replacement + ')'
+                : replacement;
+            cursor = at + match[0].length;
+        }
+        if (cursor === 0) {
+            return region;
+        }
+        out += region.substring (cursor);
+        return out;
+    }
+
+    // U48: drop the identity `((IList<object>)x)` cast for a receiver the enclosing method declares
+    // List<object>/IList<object> (csharpTypedListReceivers) or a destructuring holder whose `var` is
+    // inferred from a list producer (csharpTempHolderListTypes). The emitted value never changes.
+    csharpIdentityListCasts (region: string, lists: Map<string, string>, temps: Map<string, string>): string {
+        const names = new Map<string, string> (temps);
+        for (const [ name, type ] of lists) {
+            if (!names.has (name)) {
+                names.set (name, type);
+            }
+        }
+        if (names.size === 0) {
+            return region;
+        }
+        const masked = this.maskCsharpLiterals (region);
+        let out = '';
+        let cursor = 0;
+        let match: RegExpExecArray | null;
+        CSHARP_IDENTITY_LIST_CAST.lastIndex = 0;
+        while ((match = CSHARP_IDENTITY_LIST_CAST.exec (region)) !== null) {
+            const at = match.index;
+            if (masked[at] !== region[at]) {
+                continue; // inside a literal or a comment
+            }
+            if ((at > 0) && /[\w.]/.test (region[at - 1])) {
+                continue; // tail of a longer name
+            }
+            if (!names.has (match[1])) {
+                continue;
+            }
+            out += region.substring (cursor, at) + match[1] + match[2];
+            cursor = at + match[0].length;
+        }
+        if (cursor === 0) {
+            return region;
+        }
+        out += region.substring (cursor);
+        return out;
+    }
+
+    // U48: `((IList<object>)(x as ccxt.pro.OrderBook).cache).Add(v)` — `cache` is declared
+    // `IList<object>` on the hand-written ws cache (cs/ccxt/ws/OrderBook.cs:22/:33), so the cast
+    // (and the printer's doubly-cast spelling of it) is an identity conversion on the member read.
+    csharpOrderbookCacheCasts (content: string): string {
+        const masked = this.maskCsharpLiterals (content);
+        let out = '';
+        let cursor = 0;
+        let match: RegExpExecArray | null;
+        CSHARP_ORDERBOOK_CACHE_CAST.lastIndex = 0;
+        while ((match = CSHARP_ORDERBOOK_CACHE_CAST.exec (content)) !== null) {
+            const at = match.index;
+            if (masked[at] !== content[at]) {
+                continue; // inside a literal or a comment
+            }
+            out += content.substring (cursor, at) + '(' + match[1] + ' as ccxt.pro.OrderBook).cache.Add(';
+            cursor = at + match[0].length;
+        }
+        if (cursor === 0) {
+            return content;
+        }
+        out += content.substring (cursor);
+        return out;
+    }
+
+    // U48: the static C# type of a destructuring holder (`var <name> = <initializer>`) — the return
+    // type the SAME file declares for `this.<method>` (the awaited `Task<T>` result under `await`),
+    // or a `new List<object>` / `.ToList<object>()` producer. Anything else keeps the cast.
+    csharpTempHolderListType (initializer: string, returns: Map<string, string>): string | undefined {
+        let text = initializer.trim ().replace (/;\s*$/, '').trim ();
+        const awaited = text.startsWith ('await ');
+        if (awaited) {
+            text = text.slice (6).trim ();
+        }
+        const call = /^this\.([A-Za-z_]\w*)\s*\(/.exec (text);
+        if (call !== null) {
+            const declared = returns.get (call[1]);
+            if (declared === undefined) {
+                return undefined;
+            }
+            const type = awaited ? this.csharpAwaitedType (declared) : declared;
+            return ((type === 'List<object>') || (type === 'IList<object>')) ? type : undefined;
+        }
+        if (awaited) {
+            return undefined;
+        }
+        if (/^new List<object>\s*[({]/.test (text) || /\.ToList<object>\(\)$/.test (text)) {
+            return 'List<object>';
+        }
+        return undefined;
+    }
+
+    // the static type of `await expr` for an expression declared `Task<T>` (undefined otherwise)
+    csharpAwaitedType (declared: string): string | undefined {
+        const m = /^Task<(.+)>$/.exec (declared.trim ());
+        return (m === null) ? undefined : m[1].trim ();
+    }
+
+    // U48: the destructuring holders of one method region whose static type is a list. A name the
+    // region declares with two different producers answers nothing — exactly one proof is required.
+    csharpTempHolderListTypes (maskedLines: string[], returns: Map<string, string>): Map<string, string> {
+        const types = new Map<string, Set<string>> ();
+        for (const line of maskedLines) {
+            const m = /^\s*var\s+([A-Za-z_]\w*)\s*=\s*(.*)$/.exec (line);
+            if (m === null) {
+                continue;
+            }
+            const type = this.csharpTempHolderListType (m[2], returns);
+            let seen = types.get (m[1]);
+            if (seen === undefined) {
+                seen = new Set<string> ();
+                types.set (m[1], seen);
+            }
+            seen.add (type ?? '?');
+        }
+        const out = new Map<string, string> ();
+        for (const [ name, seen ] of types) {
+            if (seen.size === 1) {
+                const type = seen.values ().next ().value as string;
+                if ((type === 'List<object>') || (type === 'IList<object>')) {
+                    out.set (name, type);
+                }
+            }
+        }
+        return out;
+    }
+
+    // U48: method name -> declared return type, from the emitted signatures of ONE file. A name the
+    // file declares twice with different return types (an overload family) answers nothing.
+    csharpFileReturnTypes (maskedLines: string[]): Map<string, string> {
+        const found = new Map<string, string | null> ();
+        for (const line of maskedLines) {
+            if (!CSHARP_MEMBER_SIGNATURE.test (line) || (line.indexOf ('(') < 0)) {
+                continue;
+            }
+            const m = /^\s*(?:public|private|protected|internal)\s+(?:(?:static|virtual|async|override|new|sealed|partial)\s+)*([A-Za-z_][\w<>,?.\[\]]*)\s+([A-Za-z_]\w*)\s*\(/.exec (line);
+            if (m === null) {
+                continue;
+            }
+            if (found.has (m[2])) {
+                if (found.get (m[2]) !== m[1]) {
+                    found.set (m[2], null);
+                }
+            } else {
+                found.set (m[2], m[1]);
+            }
+        }
+        const out = new Map<string, string> ();
+        for (const [ name, type ] of found) {
+            if (type !== null) {
+                out.set (name, type);
+            }
+        }
+        return out;
+    }
+
+    // S40: top-level comma split of an emitted argument list, with each argument kept as its
+    // own trimmed text so a call site can be rewritten argument-by-argument (unlike
+    // splitCsharpParams, which returns the arguments only).
+    wsArgSpans (content: string, from: number, to: number): { start: number, text: string }[] {
+        const out: { start: number, text: string }[] = [];
+        let depth = 0;
+        let start = from;
+        let i = from;
+        const push = (end: number) => {
+            out.push ({ start: start - from, text: content.substring (start, end) });
+        };
+        while (i < to) {
+            const ch = content[i];
+            if (ch === '"' || ch === '\'') {
+                const quote = ch;
+                i += 1;
+                while (i < to) {
+                    if (content[i] === '\\') {
+                        i += 2;
+                        continue;
+                    }
+                    if (content[i] === quote) {
+                        break;
+                    }
+                    i += 1;
+                }
+            } else if (ch === '(' || ch === '[' || ch === '{') {
+                depth += 1;
+            } else if (ch === ')' || ch === ']' || ch === '}') {
+                depth -= 1;
+            } else if (ch === ',' && depth === 0) {
+                push (i);
+                start = i + 1;
+            }
+            i += 1;
+        }
+        push (to);
+        return out;
+    }
+
+    // S40: see WS_HANDLER_DICT_MESSAGE.  Retypes this venue's admitted ws handler parameters
+    // and wraps the arguments the retype leaves statically `object`.  Self-gating: a handler
+    // with a call site the pass cannot name stays `object` whole.
+    retypeWsHandlerMessages (content: string): string {
+        const venueMatch = /public partial class (\w+)\s*:/.exec (content);
+        if (venueMatch === null) {
+            return content;
+        }
+        const names = WS_HANDLER_DICT_MESSAGE[venueMatch[1]];
+        if (names === undefined) {
+            return content;
+        }
+        const membership = new Set (names);
+        const sigRe = /^ {4}(?:public|protected|private|internal)[^\n]*?\b(\w+)\s*\(([^()]*)\)\s*$/gm;
+        const sigs: { at: number, name: string }[] = [];
+        let signature;
+        while ((signature = sigRe.exec (content)) !== null) {
+            sigs.push ({ at: signature.index, name: signature[1] });
+        }
+        const enclosingName = (at: number) => {
+            let found = '';
+            for (const sig of sigs) {
+                if (sig.at >= at) {
+                    break;
+                }
+                found = sig.name;
+            }
+            return found;
+        };
+        const declarations: { index: number, text: string, param: string }[] = [];
+        const declRe = /^(\s*)(public|protected)((?:\s+(?:static|virtual|override|async|partial))*)\s+(?:[\w<>?,\[\] .]+?)\s+(\w+)\s*\(\s*WebSocketClient\s+client\s*,\s*object\s+([A-Za-z_]\w*)/gm;
+        let decl;
+        while ((decl = declRe.exec (content)) !== null) {
+            if (membership.has (decl[4])) {
+                declarations.push ({ index: decl.index, text: decl[0], param: decl[5] });
+            }
+        }
+        const edits: { start: number, end: number, text: string }[] = [];
+        for (const declaration of declarations) {
+            const name = declaration.text.match (/handle\w+/)![0];
+            const needle = 'object ' + declaration.param;
+            const rel = declaration.text.lastIndexOf (needle);
+            if (rel === -1) {
+                continue;
+            }
+            const declLineStart = content.lastIndexOf ('\n', declaration.index) + 1;
+            const callRe = /(?<![\w.])(?:this\.|base\.)?(\w+)\s*\(/g;
+            const sites: { start: number, end: number, arg: string, pad: string, chain: boolean }[] = [];
+            let call;
+            while ((call = callRe.exec (content)) !== null) {
+                if (call[1] !== name) {
+                    continue;
+                }
+                const open = call.index + call[0].length - 1;
+                const close = this.matchingParen (content, open);
+                if (close === -1) {
+                    continue;
+                }
+                const lineStart = content.lastIndexOf ('\n', call.index) + 1;
+                const trimmed = content.substring (lineStart, content.indexOf ('\n', call.index)).trim ();
+                if (trimmed.startsWith ('//') || trimmed.startsWith ('*') || lineStart === declLineStart) {
+                    continue;
+                }
+                const spans = this.wsArgSpans (content, open + 1, close);
+                if (spans.length < 2) {
+                    continue;
+                }
+                const arg = spans[1].text.trim ();
+                if (arg.startsWith ('(Dictionary<string, object>)') || arg.startsWith ('(IDictionary<string, object>)')) {
+                    continue;
+                }
+                const offset = open + 1 + spans[1].start;
+                const raw = spans[1].text;
+                const pad = raw.substring (0, raw.length - raw.trimStart ().length);
+                sites.push ({ start: offset, end: offset + raw.length, arg, pad, chain: membership.has (enclosingName (call.index)) });
+            }
+            if (sites.some (site => !site.chain && !/^[A-Za-z_]\w*$/.test (site.arg))) {
+                continue;
+            }
+            edits.push ({ start: declaration.index + rel, end: declaration.index + rel + needle.length, text: 'Dictionary<string, object> ' + declaration.param });
+            for (const site of sites) {
+                if (site.chain) {
+                    continue;
+                }
+                edits.push ({ start: site.start, end: site.end, text: site.pad + '(Dictionary<string, object>)' + site.arg });
+            }
+        }
+        edits.sort ((a, b) => b.start - a.start);
+        for (const edit of edits) {
+            content = content.substring (0, edit.start) + edit.text + content.substring (edit.end);
+        }
+        return content;
+    }
+    // U52: see WS_HANDLER_IDICT_MESSAGE.  Retypes this venue's admitted ws handler parameters to
+    // the interface spelling and edits NO call site -- every direct call already passes a
+    // statically dict-typed value, which the interface parameter accepts unchanged.  Self-gating:
+    // a handler with a call the gate cannot clear stays `object` whole.
+    retypeWsHandlerMessagesToInterface (content: string): string {
+        const venueMatch = /public partial class (\w+)\s*:/.exec (content);
+        if (venueMatch === null) {
+            return content;
+        }
+        const names = WS_HANDLER_IDICT_MESSAGE[venueMatch[1]];
+        if (names === undefined) {
+            return content;
+        }
+        const membership = new Set (names);
+        const sigRe = /^ {4}(?:public|protected|private|internal)[^\n]*?\b(\w+)\s*\(([^()]*)\)\s*$/gm;
+        const sigs: { at: number, name: string }[] = [];
+        let signature;
+        while ((signature = sigRe.exec (content)) !== null) {
+            sigs.push ({ at: signature.index, name: signature[1] });
+        }
+        const enclosingName = (at: number) => {
+            let found = '';
+            for (const sig of sigs) {
+                if (sig.at >= at) {
+                    break;
+                }
+                found = sig.name;
+            }
+            return found;
+        };
+        // does the method enclosing `at` declare `name` with a dict type?  (a local, a parameter,
+        // or a value an earlier pass already asserted to the concrete spelling)
+        const dictTypedInMethod = (at: number, name: string) => {
+            let start = 0;
+            let end = content.length;
+            for (const sig of sigs) {
+                if (sig.at < at) {
+                    start = sig.at;
+                } else {
+                    end = sig.at;
+                    break;
+                }
+            }
+            for (const line of content.substring (start, end).split ('\n')) {
+                const trimmed = line.trim ();
+                if (trimmed.startsWith ('//') || trimmed.startsWith ('*')) {
+                    continue;
+                }
+                if (new RegExp ('(?:Dictionary<string, object>|IDictionary<string, object>)\\s+' + name + '\\b').test (line)) {
+                    return true;
+                }
+            }
+            return false;
+        };
+        const declRe = /^(\s*)(public|protected)((?:\s+(?:static|virtual|override|async|partial))*)\s+(?:[\w<>?,\[\] .]+?)\s+(\w+)\s*\(\s*WebSocketClient\s+client\s*,\s*object\s+([A-Za-z_]\w*)/gm;
+        const declarations: { index: number, text: string, param: string }[] = [];
+        let decl;
+        while ((decl = declRe.exec (content)) !== null) {
+            if (membership.has (decl[4])) {
+                declarations.push ({ index: decl.index, text: decl[0], param: decl[5] });
+            }
+        }
+        const edits: { start: number, end: number, text: string }[] = [];
+        for (const declaration of declarations) {
+            const name = declaration.text.match (/handle\w+/)![0];
+            const needle = 'object ' + declaration.param;
+            const rel = declaration.text.lastIndexOf (needle);
+            if (rel === -1) {
+                continue;
+            }
+            const declLineStart = content.lastIndexOf ('\n', declaration.index) + 1;
+            const callRe = /(?<![\w.])(?:this\.|base\.)?(\w+)\s*\(/g;
+            let clear = true;
+            let call;
+            while ((call = callRe.exec (content)) !== null) {
+                if (call[1] !== name) {
+                    continue;
+                }
+                const open = call.index + call[0].length - 1;
+                const close = this.matchingParen (content, open);
+                if (close === -1) {
+                    clear = false;
+                    break;
+                }
+                const lineStart = content.lastIndexOf ('\n', call.index) + 1;
+                const trimmed = content.substring (lineStart, content.indexOf ('\n', call.index)).trim ();
+                if (trimmed.startsWith ('//') || trimmed.startsWith ('*') || lineStart === declLineStart) {
+                    continue;
+                }
+                const spans = this.wsArgSpans (content, open + 1, close);
+                if (spans.length < 2) {
+                    clear = false;
+                    break;
+                }
+                const arg = spans[1].text.trim ();
+                if (arg.startsWith ('(Dictionary<string, object>)') || arg.startsWith ('(IDictionary<string, object>)')) {
+                    continue;
+                }
+                if (!/^[A-Za-z_]\w*$/.test (arg)) {
+                    clear = false;
+                    break;
+                }
+                if (membership.has (enclosingName (call.index))) {
+                    continue;
+                }
+                if (!dictTypedInMethod (call.index, arg)) {
+                    clear = false;
+                    break;
+                }
+            }
+            if (!clear) {
+                continue;
+            }
+            edits.push ({ start: declaration.index + rel, end: declaration.index + rel + needle.length, text: 'IDictionary<string, object> ' + declaration.param });
+        }
+        edits.sort ((a, b) => b.start - a.start);
+        for (const edit of edits) {
+            content = content.substring (0, edit.start) + edit.text + content.substring (edit.end);
+        }
+        return content;
+    }
     // index of the `)` closing the `(` at `open`, skipping string literals and comments
     matchingParen (text: string, open: number): number {
         let depth = 0;
@@ -3059,6 +6372,304 @@ class NewTranspiler {
 
     unwrapDictionaryIfNeeded(type: string): string {
         return type.startsWith('Dictionary<string,') && type.endsWith('>') ? type.substring(19, type.length - 1) : type;
+    }
+
+    // -------------------------------------------------------------------------------------------
+    // S20 — the redundant `((object)…)` boxes. Two shapes are removed:
+    //   F1 `((object)X).ToString()` -> `X.ToString()`  (ast printToStringCall emits the box for
+    //      every `<x>.toString ()` because it cannot know x's static type)
+    //   F2 `object N = ((object)X);` -> `object N = X;`  (the target is already `object`, so the
+    //      cast is an identity conversion — reference upcast or box — and pure noise)
+    // The F1 box is load-bearing for exactly ONE static type: a nullable value type, where
+    // `((object)x)` is a null box while `x.ToString ()` is "" (Nullable<T>.ToString). For every
+    // other type the two spellings are identical: a non-nullable value type boxes to itself, a
+    // reference type is unaffected, and a null receiver throws NullReferenceException either way.
+    // So the cast goes only where the receiver's static type is provable from THIS file:
+    //   * `this.X (`/`base.X (` -> the file's own declaration of X (every declaration of that name
+    //     must be safe), else the hand-written base table below (proof: file:line);
+    //   * a bare identifier -> the enclosing method's parameters/locals/foreach|for variables,
+    //     else this file's fields; a use with no declaration in method or file is a base member
+    //     this pass cannot see and is left alone;
+    //   * `(T)x` with T a scalar keyword names its own type; a literal is safe.
+    // Rejected (cast kept): nullable value types, `var`, unprovable/not-file-local types, a name
+    // that is a lambda parameter anywhere in the file, and a name carrying a declaration-shaped
+    // prefix this pass cannot type (tuple / unknown spelling), so a declaration it misses can
+    // never resolve to a wrong type.
+    dropRedundantObjectBoxCasts (content: string): string {
+        const valueNullable = new Set<string> ([ 'Int64?', 'int?', 'Int32?', 'long?', 'double?', 'bool?',
+            'float?', 'decimal?', 'byte?', 'sbyte?', 'short?', 'ushort?', 'uint?', 'UInt32?', 'UInt64?', 'char?' ]);
+        const scalars = new Set<string> ([ 'var', 'string', 'string?', 'object', 'bool', 'bool?', 'double',
+            'double?', 'int', 'int?', 'long', 'long?', 'decimal', 'float', 'Int64', 'Int64?', 'char', 'byte',
+            'byte[]', 'uint', 'Int32', 'Int32?' ]);
+        const keywords = new Set<string> ([ 'return', 'throw', 'await', 'new', 'else', 'if', 'while', 'switch',
+            'case', 'using', 'yield', 'is', 'as', 'out', 'ref', 'not', 'in', 'do', 'try', 'catch', 'for',
+            'foreach', 'lock', 'get', 'set', 'typeof', 'default', 'var' ]);
+        // venue files derive from Exchange : BaseExchange, so these inherited signatures decide the
+        // receiver type where the venue does not declare the name itself
+        const baseReturnTypes: { [name: string]: string } = {
+            'nonce': 'Int64',           // cs/ccxt/base/Exchange.BaseMethods.cs:4203 public virtual Int64 nonce ()
+            'milliseconds': 'Int64',    // cs/ccxt/base/Exchange.Time.cs:6 public Int64 milliseconds ()
+            'seconds': 'Int64',         // cs/ccxt/base/Exchange.cs:529 public Int64 seconds ()
+            'microseconds': 'long',     // cs/ccxt/base/Exchange.Time.cs:41 public long microseconds ()
+            'randNumber': 'int',        // cs/ccxt/base/Exchange.cs:490 public int randNumber (int size)
+            'getValue': 'object',       // TranspileHelpers: object getValue (object, object)
+            'sum': 'object',            // TranspileHelpers: object sum (object)
+        };
+        const methodDecl = /^\s*(?:public|protected|private|internal)\s+(?:static\s+|virtual\s+|override\s+|async\s+|new\s+|sealed\s+)*([\w<>,?\[\]. ]+?)\s+(\w+)\s*\(/;
+        const localDecl = /^\s+([\w<>,?\[\].]+(?:<[^>]*>)?)\s+(\w+)\s*=\s*[^=]/;
+        const varDecl = /^\s+var\s+(\w+)\s*=\s*[^=]/;
+        const fieldDecl = /^\s*(?:private|protected|public|internal)\s+(?:static\s+|readonly\s+|new\s+)*([\w<>,?\[\].]+(?:<[^>]*>)?)\s+(\w+)\s*[;=]/;
+        const foreachDecl = /foreach\s*\(\s*([\w<>,?\[\].]+(?:<[^>]*>)?)\s+(\w+)\s+in\s/;
+        const forDecl = /for\s*\(\s*([\w<>,?\[\].]+)\s+(\w+)\s*=/;
+        const declPrefix = /(?:^|\s)(\([^()]*\)|[A-Za-z_][\w<>?\[\].]*)\s+(\w+)\s*(?:=|;|\)|,)/g;
+        const lambdaArrow = /\(([^()]*)\)\s*=>/g;
+        const lambdaBare = /(?:^|[^\w>.,])(\w+)\s*=>/g;
+        const spaceSplit = /\s+/;
+        const methodTypes = new Map<string, Set<string>> ();
+        const fieldTypes = new Map<string, Set<string>> ();
+        const lambdaNames = new Set<string> ();
+        const unparsedNames = new Set<string> ();
+        const addType = (map: Map<string, Set<string>>, name: string, type: string) => {
+            const set = map.get (name) ?? new Set<string> ();
+            set.add (type);
+            map.set (name, set);
+        };
+        const safeType = (types: Set<string> | undefined): string | undefined => {
+            if (types === undefined || types.size === 0) {
+                return undefined;
+            }
+            for (const type of types) {
+                if (type === 'var' || valueNullable.has (type)) {
+                    return undefined;
+                }
+            }
+            return Array.from (types)[0];
+        };
+        const paramTypes = (plist: string): string[][] => this.splitCsharpParams (plist)
+            .map ((param: string) => param.split ('=')[0].trim ().split (spaceSplit).filter ((p: string) => p !== ''))
+            .filter ((parts: string[]) => parts.length >= 2);
+        // ---- type knowledge: one pass over the file, no cross-file inference
+        const lines = content.split ('\n');
+        interface BoxScope { params: Map<string, Set<string>>, locals: Map<string, Set<string>> }
+        const scopes: (BoxScope | undefined)[] = new Array (lines.length).fill (undefined);
+        let scope: BoxScope | undefined = undefined;
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            const indent = line.length - line.trimStart ().length;
+            const method = methodDecl.exec (line);
+            if (method !== null) {
+                const open = line.indexOf ('(');
+                let text = line;
+                let j = i;
+                while (open >= 0 && this.matchingParen (text, open) < 0 && j + 1 < lines.length) {
+                    j++;
+                    text += ' ' + lines[j].trim ();
+                }
+                addType (methodTypes, method[2], method[1].trim ());
+                scope = { params: new Map<string, Set<string>> (), locals: new Map<string, Set<string>> () };
+                if (open >= 0) {
+                    const close = this.matchingParen (text, open);
+                    if (close > open) {
+                        for (const parts of paramTypes (text.substring (open + 1, close))) {
+                            const type = parts.slice (0, parts.length - 1).join (' ')
+                                .replace (/^(?:ref|out|params|this)\s+/, '');
+                            addType (scope.params, parts[parts.length - 1], type);
+                        }
+                    }
+                }
+                for (let k = i; k <= j && k < lines.length; k++) {
+                    scopes[k] = scope;
+                }
+            } else if (indent <= 4) {
+                const trimmed = line.trim ();
+                if (trimmed !== '' && '{})]'.indexOf (trimmed[0]) < 0
+                        && !trimmed.startsWith ('//') && !trimmed.startsWith ('#')) {
+                    scope = undefined;
+                    const field = fieldDecl.exec (line);
+                    if (field !== null) {
+                        addType (fieldTypes, field[2], field[1]);
+                    }
+                }
+            }
+            if (scope !== undefined && method === null) {
+                scopes[i] = scope;
+                const local = localDecl.exec (line);
+                if (local !== null) {
+                    addType (scope.locals, local[2], local[1]);
+                }
+                const variable = varDecl.exec (line);
+                if (variable !== null) {
+                    addType (scope.locals, variable[1], 'var');
+                }
+                const each = foreachDecl.exec (line);
+                if (each !== null) {
+                    addType (scope.locals, each[2], each[1]);
+                }
+                const loop = forDecl.exec (line);
+                if (loop !== null) {
+                    addType (scope.locals, loop[2], loop[1]);
+                }
+            }
+            // comment text ("* @param {string} tag ... payment id") is not code: it must neither
+            // declare a type for the audit nor poison a name
+            const codeOnly = line.trimStart ();
+            const skipLine = codeOnly.startsWith ('*') || codeOnly.startsWith ('//') || codeOnly.startsWith ('/*');
+            declPrefix.lastIndex = 0;
+            let prefix = skipLine ? null : declPrefix.exec (line);
+            while (prefix !== null) {
+                const kind = prefix[1];
+                const name = prefix[2];
+                if (!keywords.has (name) && !keywords.has (kind)) {
+                    if (scalars.has (kind) || /^[A-Z][\w<>,?\[\]]*$/.test (kind)) {
+                        if (scope !== undefined && method === null) {
+                            addType (scope.locals, name, kind);
+                        }
+                        addType (fieldTypes, name, kind);
+                    } else {
+                        unparsedNames.add (name);
+                    }
+                }
+                prefix = declPrefix.exec (line);
+            }
+            lambdaArrow.lastIndex = 0;
+            let lambda = skipLine ? null : lambdaArrow.exec (line);
+            while (lambda !== null) {
+                for (const parts of paramTypes (lambda[1])) {
+                    lambdaNames.add (parts[parts.length - 1]);
+                }
+                lambda = lambdaArrow.exec (line);
+            }
+            lambdaBare.lastIndex = 0;
+            lambda = skipLine ? null : lambdaBare.exec (line);
+            while (lambda !== null) {
+                lambdaNames.add (lambda[1]);
+                lambda = lambdaBare.exec (line);
+            }
+        }
+        // ---- receiver -> static type, or undefined when the file cannot prove it
+        const receiverType = (operand: string, lineScope: BoxScope | undefined): string | undefined => {
+            const scopeHas = (name: string): Set<string> | undefined => {
+                if (lineScope === undefined) {
+                    return undefined;
+                }
+                const types = new Set<string> ();
+                const params = lineScope.params.get (name);
+                const locals = lineScope.locals.get (name);
+                if (params === undefined && locals === undefined) {
+                    return undefined;
+                }
+                for (const type of params ?? []) {
+                    types.add (type);
+                }
+                for (const type of locals ?? []) {
+                    types.add (type);
+                }
+                return types;
+            };
+            let text = operand.trim ();
+            while (text.startsWith ('(') && this.matchingParen (text, 0) === text.length - 1) {
+                text = text.substring (1, text.length - 1).trim ();
+            }
+            const cast = /^\((string|bool|Int64|double|int|object)\)([\s\S]+)$/.exec (text);
+            if (cast !== null) {
+                return cast[1];
+            }
+            if (/^[\d"\-]/.test (text) || text === 'true' || text === 'false') {
+                return 'literal';
+            }
+            const memberCall = /^(?:this|base)\.(\w+)\s*\(/.exec (text);
+            if (memberCall !== null) {
+                const own = methodTypes.get (memberCall[1]);
+                return own !== undefined && own.size > 0 ? safeType (own) : baseReturnTypes[memberCall[1]];
+            }
+            const bareCall = /^(\w+)\s*\(/.exec (text);
+            if (bareCall !== null) {
+                const name = bareCall[1];
+                if (scopeHas (name) === undefined && !fieldTypes.has (name)) {
+                    const own = methodTypes.get (name);
+                    return own !== undefined && own.size > 0 ? safeType (own) : baseReturnTypes[name];
+                }
+                return undefined;
+            }
+            const identifier = /^([\w.]+)$/.exec (text);
+            if (identifier !== null) {
+                const name = identifier[1].split ('.').pop () as string;
+                if (lambdaNames.has (name) || unparsedNames.has (name)) {
+                    return undefined;
+                }
+                const own = scopeHas (name);
+                if (own !== undefined) {
+                    return safeType (own);
+                }
+                return fieldTypes.has (name) ? safeType (fieldTypes.get (name)) : undefined;
+            }
+            return undefined;
+        };
+        // ---- rewrite
+        const sites: number[] = [];
+        const output = lines.map ((line: string, index: number) => {
+            const declaration = /^(\s*object\s+[A-Za-z_]\w*\s*=\s*)\(\(object\)/.exec (line);
+            if (declaration !== null) {
+                const open = declaration[1].length;
+                const close = this.matchingParen (line, open);
+                if (close > 0 && line.substring (close + 1).trim () === ';') {
+                    return declaration[1] + line.substring (open + 9, close) + ';';
+                }
+            }
+            sites.length = 0;
+            for (const at of this.objectBoxSites (line)) {
+                sites.push (at);
+            }
+            let out = line;
+            for (let k = sites.length - 1; k >= 0; k--) {
+                const at = sites[k];
+                const close = this.matchingParen (out, at);
+                if (close < 0) {
+                    continue;
+                }
+                const before = out.substring (0, at);
+                const operand = out.substring (at + 9, close);
+                const after = out.substring (close + 1);
+                if (/\(\([\w<>,?\[\]. ]+\)$/.test (before) || !after.startsWith ('.ToString()')) {
+                    continue;
+                }
+                if (receiverType (operand, scopes[index]) === undefined) {
+                    continue;
+                }
+                out = before + operand + after;
+            }
+            return out;
+        });
+        return output.join ('\n');
+    }
+
+    // positions of `((object)` in one line, skipping string/char literals and line comments
+    objectBoxSites (line: string): number[] {
+        const sites: number[] = [];
+        for (let i = 0; i < line.length; i++) {
+            const ch = line[i];
+            if (ch === '"' || ch === '\'') {
+                i++;
+                while (i < line.length) {
+                    if (line[i] === '\\') {
+                        i += 2;
+                        continue;
+                    }
+                    if (line[i] === ch) {
+                        break;
+                    }
+                    i++;
+                }
+                continue;
+            }
+            if (ch === '/' && line[i + 1] === '/') {
+                return sites;
+            }
+            if (ch === '(' && line.startsWith ('((object)', i)) {
+                sites.push (i);
+            }
+        }
+        return sites;
     }
 
     createReturnStatement(methodName: string,  unwrappedType:string ) {
@@ -3380,6 +6991,55 @@ class NewTranspiler {
         return baseMethods;
     }
 
+    // `this.orders` / `this.myTrades` are declared `ccxt.pro.ArrayCache` and the locals
+    // initialised from their reads print the same type (build/csharp-local-types.js#
+    // CSHARP_LOCAL_WS_MEMBER_TYPES). The printer's element WRITE always casts its receiver to
+    // `List<object>` (transpiler.js ARRAY_KEYWORD), and that class cast is CS0030 on an
+    // ArrayCache (BaseCache implements IList<object> but does not derive from List<object>).
+    // The write through `((IList<object>)name)` is the identical indexer call, so retarget
+    // only that cast, only for a receiver declared `ccxt.pro.ArrayCache` in the same method.
+    retypeCacheElementWriteCasts (content: string): string {
+        if (!content.includes ('ccxt.pro.ArrayCache ') || !content.includes ('((List<object>)')) {
+            return content;
+        }
+        const memberStart = /^    (?:public|private|protected|internal|static)\b/;
+        const declaration = /^\s*ccxt\.pro\.ArrayCache ([A-Za-z_][A-Za-z0-9_]*) = /;
+        const lines = content.split ('\n');
+        let declared = new Set<string> ();
+        let changed = 0;
+        for (let i = 0; i < lines.length; i++) {
+            if (memberStart.test (lines[i])) {
+                declared = new Set<string> (); // a new member: locals do not cross methods
+                continue;
+            }
+            const match = declaration.exec (lines[i]);
+            if (match) {
+                declared.add (match[1]);
+                continue;
+            }
+            if (declared.size === 0 || !lines[i].includes ('((List<object>)')) {
+                continue;
+            }
+            for (const name of declared) {
+                const token = '((List<object>)' + name + ')';
+                if (!lines[i].includes (token)) {
+                    continue;
+                }
+                const rewritten = lines[i].split (token).join ('((IList<object>)' + name + ')');
+                // the retarget must be a pure cast-token substitution on this line
+                if (rewritten.replaceAll ('((IList<object>)' + name + ')', token) !== lines[i]) {
+                    throw new Error (`[csharp] retypeCacheElementWriteCasts: rewrite is not a cast substitution: ${lines[i]}`);
+                }
+                lines[i] = rewritten;
+                changed++;
+            }
+        }
+        if (changed === 0) {
+            return content;
+        }
+        return lines.join ('\n');
+    }
+
     transpileBaseMethods(baseExchangeFile: string, force = true) {
         // the four generated base files all come out of this one pass; `exchanges.json`
         // is a real input too — createExchangesWrappers() emits one `public class <Id>`
@@ -3490,7 +7150,7 @@ class NewTranspiler {
                 this.createGeneratedHeader().join('\n'),
                 "public partial class BaseExchange\n{\n\n"
             ]).join("\n");
-            const file = fileHeader + this.retypeSafeCollectionHelpers (this.pascalizeTypedCores (this.retypeCoreArgCopies (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (baseMethods), false))))), false)) + "\n";
+            const file = fileHeader + this.dropIdentityStringCasts (this.retypeIdentifierCopies (this.stripRedundantStringCasts (this.retypePrintedReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams (this.retypeParameterArgs (this.typeVenueNumericArgs (this.typeVenueStringArgs (this.retypeSafeCollectionHelpers (this.pascalizeTypedCores (this.dropStringTimeframeCasts (this.retypeSignatureArgs (this.finalizeCoreArgTypes (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (baseMethods), false))))))), false)), 'BaseExchange')))))))))) + "\n";
             fs.writeFileSync (csharpExchangeBase, file);
             log.green ('Transpiled base methods to', (csharpExchangeBase as any).yellow)
             if (exchangeClassMatch) {
@@ -3498,7 +7158,7 @@ class NewTranspiler {
                     this.createGeneratedHeader().join('\n'),
                     "public partial class Exchange\n{\n\n"
                 ]).join("\n");
-                const tradingFile = tradingHeader + this.pascalizeTypedCores (this.retypeCoreArgCopies (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (exchangeBody), false))))), false) + "\n}\n";
+                const tradingFile = tradingHeader + this.dropIdentityStringCasts (this.retypeIdentifierCopies (this.stripRedundantStringCasts (this.retypePrintedReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams (this.retypeParameterArgs (this.typeVenueNumericArgs (this.typeVenueStringArgs (this.pascalizeTypedCores (this.dropStringTimeframeCasts (this.retypeSignatureArgs (this.finalizeCoreArgTypes (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (exchangeBody), false))))))), false), 'Exchange')))))))))) + "\n}\n";
                 fs.writeFileSync (BASE_TRADING_METHODS_FILE, tradingFile);
                 log.green ('Transpiled trading methods to', (BASE_TRADING_METHODS_FILE as any).yellow)
             }
@@ -3546,7 +7206,7 @@ class NewTranspiler {
                 "public partial class PredictionExchange : BaseExchange\n{\n\n"
             ]).join("\n");
             // method wrappers retired: PascalCase cores on PredictionExchange are the public API
-            const file = fileHeader + fields + this.pascalizeTypedCores (this.retypeCoreArgCopies (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (baseMethods), true))))), true) + "\n";
+            const file = fileHeader + fields + this.dropIdentityStringCasts (this.retypeIdentifierCopies (this.retypePrintedReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams (this.typeVenueNumericArgs (this.typeVenueStringArgs (this.pascalizeTypedCores (this.dropStringTimeframeCasts (this.retypeSignatureArgs (this.finalizeCoreArgTypes (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (baseMethods), true))))))), true), 'PredictionExchange')))))))) + "\n";
             fs.writeFileSync (predictionBase, file);
             this._predictionBaseWritten = true;
             log.green ('Transpiled prediction base methods to', (predictionBase as any).yellow)
@@ -3867,6 +7527,7 @@ class NewTranspiler {
         if (ws) {
             const wsRegexes = this.getWsRegexes();
             content = this.regexAll (content, wsRegexes);
+            content = this.removeRedundantClientCasts (content);
             content = this.replaceImportedRestClasses (content, csharpVersion.imports);
             const classNameRegex = /public\spartial\sclass\s(\w+)\s:\s(\w+)/gm;
             const classNameExec = classNameRegex.exec(content);
@@ -3877,6 +7538,7 @@ class NewTranspiler {
             // prediction exchanges merge REST + WS in one class, so the WS transforms
             // (client → WebSocketClient, orderbook casts, append/resolve, ...) apply here too
             content = this.regexAll (content, this.getWsRegexes());
+            content = this.removeRedundantClientCasts (content);
         }
         const classDecl = /public partial class (\w+) : ([\w.]+)/.exec (content);
         if (classDecl) {
@@ -3886,7 +7548,15 @@ class NewTranspiler {
                 this.venueParents[this.currentVenue] = parent;
             }
         }
-        content = this.pascalizeTypedCores (this.retypeCoreArgCopies (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (content)))))));
+        // the prediction REST driver calls createCSharpClass with `prediction` unset, so the
+        // tier flag has to come from `this.isPrediction` (set by every prediction pass) --
+        // otherwise a prediction file would look up the REST venue's table and skip its own
+        const venueKey = (this.isPrediction ? 'prediction:' : ws ? 'pro:' : '') + this.currentVenue;
+        content = this.typeVenueNumericArgs (this.typeVenueStringArgs (this.stripRedundantStringCasts (this.retypePrintedReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams (this.retypeWsHandlerMessagesToInterface (this.retypeWsHandlerMessages (this.retypeParameterArgs (this.pascalizeTypedCores (this.dropStringTimeframeCasts (this.retypeSignatureArgs (this.finalizeCoreArgTypes (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (content))))))))))))))))), venueKey));
+        content = this.dropRedundantObjectBoxCasts (content);
+        content = this.retypeCacheElementWriteCasts (content);
+        content = this.retypeIdentifierCopies (content);
+        content = this.dropIdentityStringCasts (content);
         this.currentVenue = '';
         content = this.createGeneratedHeader().join('\n') + '\n' + content;
         return csharpImports + content;

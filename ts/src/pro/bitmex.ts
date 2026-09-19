@@ -1407,7 +1407,7 @@ export default class bitmex extends bitmexRest {
         };
         const trades = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), topics);
         if (this.newUpdates) {
-            const first = this.safeValue (trades, 0);
+            const first = this.safeDict (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
             limit = trades.getLimit (tradeSymbol, limit);
         }
@@ -1732,7 +1732,7 @@ export default class bitmex extends bitmexRest {
         //
         const error = this.safeString (message, 'error');
         if (error !== undefined) {
-            const request = this.safeValue (message, 'request', {});
+            const request = this.safeDict (message, 'request', {});
             const args = this.safeList (request, 'args', []);
             const numArgs = args.length;
             if (numArgs > 0) {
@@ -1807,7 +1807,7 @@ export default class bitmex extends bitmexRest {
             };
             const method = this.safeValue (methods, table);
             if (method === undefined) {
-                const request = this.safeValue (message, 'request', {});
+                const request = this.safeDict (message, 'request', {});
                 const op = this.safeValue (request, 'op');
                 if (op === 'authKeyExpires') {
                     this.handleAuthenticationMessage (client, message);

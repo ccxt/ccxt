@@ -1433,7 +1433,7 @@ export default class krakenfutures extends Exchange {
         //         }
         //     }
         //
-        const sendStatus = this.safeValue (response, 'sendStatus');
+        const sendStatus = this.safeDict (response, 'sendStatus') as Dict;
         const status = this.safeString (sendStatus, 'status');
         this.verifyOrderActionSuccess (status, 'createOrder', [ 'filled' ]);
         return this.parseOrder (sendStatus, market);
@@ -1460,7 +1460,7 @@ export default class krakenfutures extends Exchange {
             const side = this.safeString (rawOrder, 'side');
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
-            const orderParams = this.safeValue (rawOrder, 'params', {});
+            const orderParams = this.safeDict (rawOrder, 'params', {});
             const extendedParams = this.extend (orderParams, params); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             if (!('order_tag' in extendedParams)) {
                 // order tag is mandatory so we will generate one if not provided
@@ -2349,7 +2349,7 @@ export default class krakenfutures extends Exchange {
                         fixed = true;
                     } else if (!fixed) {
                         const executedPrice = this.safeString (item, 'price');
-                        const orderPriorExecution = this.safeValue (item, 'orderPriorExecution');
+                        const orderPriorExecution = this.safeDict (item, 'orderPriorExecution');
                         details = this.safeValue2 (item, 'orderPriorExecution', 'orderPriorEdit');
                         if (executedPrice === undefined) {
                             price = this.safeString (orderPriorExecution, 'limitPrice');
@@ -3015,7 +3015,7 @@ export default class krakenfutures extends Exchange {
                 account['used'] = '0.0';
                 account['total'] = balance;
             } else {
-                const auxiliary = this.safeValue (response, 'auxiliary');
+                const auxiliary = this.safeDict (response, 'auxiliary');
                 account['free'] = this.safeString (auxiliary, 'af');
                 account['total'] = this.safeString (auxiliary, 'pv');
             }
@@ -3656,7 +3656,7 @@ export default class krakenfutures extends Exchange {
             throw new DDoSProtection (this.id + ' ' + body);
         }
         const errors = this.safeValue (response, 'errors');
-        const firstError = this.safeValue (errors, 0);
+        const firstError = this.safeDict (errors, 0);
         const firtErrorMessage = this.safeString (firstError, 'message');
         const message = this.safeString (response, 'error', firtErrorMessage);
         if (message === undefined) {

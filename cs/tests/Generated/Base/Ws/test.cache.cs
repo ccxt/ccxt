@@ -644,11 +644,11 @@ public partial class BaseTest
                 { "side", "long" },
                 { "contracts", 4 },
             }); // update first position
-            Assert(isTrue(isEqual(getValue(getValue(cacheSymbolSide4, 0), "contracts"), 1)) && isTrue(isEqual(getValue(getValue(cacheSymbolSide4, 0), "symbol"), symbol)));
-            Assert(isTrue(isEqual(getValue(getValue(cacheSymbolSide4, 1), "contracts"), 3)) && isTrue(isEqual(getValue(getValue(cacheSymbolSide4, 1), "symbol"), symbol3)));
-            Assert(isTrue(isEqual(getValue(getValue(cacheSymbolSide4, 2), "contracts"), 4)) && isTrue(isEqual(getValue(getValue(cacheSymbolSide4, 2), "symbol"), symbol2)));
+            Assert(isEqual(getValue(getValue(cacheSymbolSide4, 0), "contracts"), 1) && isEqual(getValue(getValue(cacheSymbolSide4, 0), "symbol"), symbol));
+            Assert(isEqual(getValue(getValue(cacheSymbolSide4, 1), "contracts"), 3) && isEqual(getValue(getValue(cacheSymbolSide4, 1), "symbol"), symbol3));
+            Assert(isEqual(getValue(getValue(cacheSymbolSide4, 2), "contracts"), 4) && isEqual(getValue(getValue(cacheSymbolSide4, 2), "symbol"), symbol2));
             int arrayLength = getArrayLength(cacheSymbolSide4);
-            Assert(isEqual(arrayLength, 3));
+            Assert((arrayLength == 3));
             
         // ----------------------------------------------------------------------------
         
@@ -667,7 +667,7 @@ public partial class BaseTest
                 { "i", 2 },
             });
             cacheClearById.clear();
-            Assert(isEqual(getArrayLength(cacheClearById), 0));
+            Assert((getArrayLength(cacheClearById) == 0));
             Assert(isEqual(cacheClearById.getLimit(null, 10), 0)); // no phantom updates
             cacheClearById.append(new Dictionary<string, object>() {
                 { "symbol", "BTC/USDT" },
@@ -698,7 +698,7 @@ public partial class BaseTest
             cacheClearTimestamp.append(new List<object>() {100, 1, 2, 3});
             cacheClearTimestamp.append(new List<object>() {200, 4, 5, 6});
             cacheClearTimestamp.clear();
-            Assert(isEqual(getArrayLength(cacheClearTimestamp), 0));
+            Assert((getArrayLength(cacheClearTimestamp) == 0));
             Assert(isEqual(cacheClearTimestamp.getLimit(null, 10), 0)); // no phantom updates
             cacheClearTimestamp.append(new List<object>() {100, 7, 8, 9});
             Assert(equals(cacheClearTimestamp, new List<object>() {new List<object>() {100, 7, 8, 9}}));
@@ -719,7 +719,7 @@ public partial class BaseTest
             });
             cacheClearBySide.clear();
             int clearedBySideLength = getArrayLength(cacheClearBySide);
-            Assert(isEqual(clearedBySideLength, 0));
+            Assert((clearedBySideLength == 0));
             cacheClearBySide.append(new Dictionary<string, object>() {
                 { "symbol", "BTC/USDT" },
                 { "side", "long" },
@@ -731,7 +731,7 @@ public partial class BaseTest
                 { "contracts", 4 },
             });
             int reappendedBySideLength = getArrayLength(cacheClearBySide);
-            Assert(isEqual(reappendedBySideLength, 2));
+            Assert((reappendedBySideLength == 2));
             Assert(isEqual(getValue(getValue(cacheClearBySide, 0), "contracts"), 3));
             Assert(isEqual(getValue(getValue(cacheClearBySide, 1), "contracts"), 4));
             
@@ -751,7 +751,7 @@ public partial class BaseTest
                 { "symbol", "BTC/USDT" },
                 { "data", 3 },
             });
-            Assert(isEqual(getArrayLength(cacheUnbounded), 3));
+            Assert((getArrayLength(cacheUnbounded) == 3));
             
         // ----------------------------------------------------------------------------
         
@@ -770,7 +770,7 @@ public partial class BaseTest
                 { "id", "a1" },
                 { "status", "closed" },
             });
-            Assert(isEqual(getArrayLength(cachePartial), 1));
+            Assert((getArrayLength(cachePartial) == 1));
             Assert(isEqual(getValue(getValue(cachePartial, 0), "status"), "closed"));
             Assert(isEqual(getValue(getValue(cachePartial, 0), "amount"), 5));
             Assert(isEqual(getValue(getValue(cachePartial, 0), "fee"), 7));
@@ -790,7 +790,7 @@ public partial class BaseTest
                 { "id", "12" },
                 { "i", 2 },
             });
-            Assert(isEqual(getArrayLength(cacheColliding), 2));
+            Assert((getArrayLength(cacheColliding) == 2));
             Assert(isEqual(getValue(getValue(cacheColliding, 0), "i"), 1));
             Assert(isEqual(getValue(getValue(cacheColliding, 1), "i"), 2));
             
@@ -845,7 +845,7 @@ public partial class BaseTest
             var cacheShortOhlcv = new ArrayCacheByTimestamp();
             cacheShortOhlcv.append(new List<object>() {100, 1, 2, 3, 4, 5});
             cacheShortOhlcv.append(new List<object>() {100, 9, 9});
-            Assert(isEqual(getArrayLength(cacheShortOhlcv), 1));
+            Assert((getArrayLength(cacheShortOhlcv) == 1));
             Assert(equals(cacheShortOhlcv, new List<object>() {new List<object>() {100, 9, 9}}));
             
         // ----------------------------------------------------------------------------
@@ -902,7 +902,7 @@ public partial class BaseTest
                 { "id", 1 },
                 { "status", "closed" },
             });
-            Assert(isEqual(getArrayLength(cacheNumericId), 1));
+            Assert((getArrayLength(cacheNumericId) == 1));
             Assert(isEqual(getValue(getValue(cacheNumericId, 0), "status"), "closed"));
             Assert(isEqual(getValue(getValue(cacheNumericId, 0), "amount"), 5));
             
@@ -915,16 +915,16 @@ public partial class BaseTest
             for (int i = 0; isLessThan(i, 10); postFixIncrement(ref i))
             {
                 cacheEvictBuckets.append(new Dictionary<string, object>() {
-                    { "symbol", add(add("S", ((object)i).ToString()), "/USDT") },
+                    { "symbol", (("S" + ((object)i).ToString()) + "/USDT") },
                     { "id", "x" },
                     { "i", i },
                 });
             }
             int evictedLength = getArrayLength(cacheEvictBuckets);
-            Assert(isEqual(evictedLength, 3));
+            Assert((evictedLength == 3));
             List<object> bucketKeys = new List<object>(((IDictionary<string,object>)cacheEvictBuckets.hashmap).Keys);
-            int bucketCount = getArrayLength(bucketKeys);
-            Assert(isEqual(bucketCount, 3)); // no empty leftover buckets
+            int bucketCount = bucketKeys.Count;
+            Assert((bucketCount == 3)); // no empty leftover buckets
             
         // ----------------------------------------------------------------------------
         

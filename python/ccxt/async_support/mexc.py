@@ -2713,7 +2713,7 @@ class mexc(Exchange, ImplicitAPI):
             #         }
             #     }
             #
-            data = self.safe_value(response, 'data')
+            data = self.safe_dict(response, 'data')
         return self.parse_order(data, market)
 
     async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
@@ -2864,7 +2864,7 @@ class mexc(Exchange, ImplicitAPI):
                 #          ]
                 #     }
                 #
-                ordersOfRegular = self.safe_value(response, 'data')
+                ordersOfRegular = self.safe_list(response, 'data')
             else:
                 # the Planorder endpoints work not only for stop-market orders, but also for stop-limit orders that were supposed to have a separate endpoint
                 response = await self.contractPrivateGetPlanorderListOrders(self.extend(request, query))
@@ -2894,7 +2894,7 @@ class mexc(Exchange, ImplicitAPI):
                 #         ]
                 #     }
                 #
-                ordersOfTrigger = self.safe_value(response, 'data')
+                ordersOfTrigger = self.safe_list(response, 'data')
             merged = self.array_concat(ordersOfTrigger, ordersOfRegular)
             return self.parse_orders(merged, market, since, limit, params)
 
@@ -5267,7 +5267,7 @@ class mexc(Exchange, ImplicitAPI):
                 request['page_size'] = limit
             response = await self.contractPrivateGetAccountTransferRecord(self.extend(request, params))
             data = self.safe_value(response, 'data')
-            resultList = self.safe_value(data, 'resultList')
+            resultList = self.safe_list(data, 'resultList')
             #
             #     {
             #         "success": true,

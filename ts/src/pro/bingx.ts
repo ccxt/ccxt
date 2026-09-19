@@ -1825,14 +1825,14 @@ export default class bingx extends bingxRest {
         }
         if (e === 'ORDER_TRADE_UPDATE') {
             this.handleOrder (client, message);
-            const data = this.safeValue (message, 'o', {});
+            const data = this.safeDict (message, 'o', {});
             const type = this.safeString (data, 'x');
             const status = this.safeString (data, 'X');
             if ((type === 'TRADE') && (status === 'FILLED')) {
                 this.handleMyTrades (client, message);
             }
         }
-        const msgData = this.safeValue (message, 'data');
+        const msgData = this.safeDict (message, 'data');
         const msgEvent = this.safeString (msgData, 'e');
         if (msgEvent === '24hTicker') {
             this.handleTicker (client, message);
