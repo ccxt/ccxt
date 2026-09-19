@@ -3596,10 +3596,10 @@ impl PoloniexCore {
 }));
         self.load_markets(&[]).await;
         let mut requestextraParamscurrencynetworkEntryVariable = self.prepare_request_for_deposit_address(code.clone(), &[params.clone()]);
-        let mut request: Value = get_value(&requestextraParamscurrencynetworkEntryVariable, &Value::Int(0));
-        let mut extraParams: Value = get_value(&requestextraParamscurrencynetworkEntryVariable, &Value::Int(1));
-        let mut currency: Value = get_value(&requestextraParamscurrencynetworkEntryVariable, &Value::Int(2));
-        let mut networkEntry: Value = get_value(&requestextraParamscurrencynetworkEntryVariable, &Value::Int(3));
+        let mut request: Value = requestextraParamscurrencynetworkEntryVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut extraParams: Value = requestextraParamscurrencynetworkEntryVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+        let mut currency: Value = requestextraParamscurrencynetworkEntryVariable.as_array().and_then(|__arr| __arr.get(2)).cloned().unwrap_or(Value::Null);
+        let mut networkEntry: Value = requestextraParamscurrencynetworkEntryVariable.as_array().and_then(|__arr| __arr.get(3)).cloned().unwrap_or(Value::Null);
         params = extraParams.clone();
         let __ws_arg_29 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_wallets_address(&[__ws_arg_29]).await;
@@ -3624,10 +3624,10 @@ impl PoloniexCore {
 }));
         self.load_markets(&[]).await;
         let mut requestextraParamscurrencynetworkEntryVariable = self.prepare_request_for_deposit_address(code.clone(), &[params.clone()]);
-        let mut request: Value = get_value(&requestextraParamscurrencynetworkEntryVariable, &Value::Int(0));
-        let mut extraParams: Value = get_value(&requestextraParamscurrencynetworkEntryVariable, &Value::Int(1));
-        let mut currency: Value = get_value(&requestextraParamscurrencynetworkEntryVariable, &Value::Int(2));
-        let mut networkEntry: Value = get_value(&requestextraParamscurrencynetworkEntryVariable, &Value::Int(3));
+        let mut request: Value = requestextraParamscurrencynetworkEntryVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut extraParams: Value = requestextraParamscurrencynetworkEntryVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+        let mut currency: Value = requestextraParamscurrencynetworkEntryVariable.as_array().and_then(|__arr| __arr.get(2)).cloned().unwrap_or(Value::Null);
+        let mut networkEntry: Value = requestextraParamscurrencynetworkEntryVariable.as_array().and_then(|__arr| __arr.get(3)).cloned().unwrap_or(Value::Null);
         params = extraParams.clone();
         let __ws_arg_30 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_wallets_addresses(&[__ws_arg_30]).await;
@@ -3782,7 +3782,7 @@ impl PoloniexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        { let __destr_tmp = self.handle_withdraw_tag_and_params(tag.clone(), params.clone()); tag = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_withdraw_tag_and_params(tag.clone(), params.clone()); tag = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         self.check_address(&[address.clone()]);
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({

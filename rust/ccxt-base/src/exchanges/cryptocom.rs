@@ -3137,7 +3137,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut tag: Value = Value::Null;
         let mut rawTag: Value = Value::Null;
         if get_index_of(&addressString, &Value::Str("?".to_string())).as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
-            { let __destr_tmp = split(&addressString, &Value::Str("?".to_string())); address = get_value(&__destr_tmp, &Value::Int(0)); rawTag = get_value(&__destr_tmp, &Value::Int(1)); }
+            { let __destr_tmp = split(&addressString, &Value::Str("?".to_string())); address = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); rawTag = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
             let mut splitted: Value = split(&rawTag, &Value::Str("=".to_string()));
             tag = splitted.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         }  else {
@@ -3166,7 +3166,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        { let __destr_tmp = self.handle_withdraw_tag_and_params(tag.clone(), params.clone()); tag = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_withdraw_tag_and_params(tag.clone(), params.clone()); tag = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
