@@ -907,7 +907,7 @@ impl BitrueCore {
                 stored = ArrayCache::new(limit.clone());
                 add_element_to_object(&mut self.trades, &symbol, stored.clone());
             }
-            let mut trade: Value = self.parse_ws_trade(get_value(&data, &i), &[market.clone()]);
+            let mut trade: Value = self.parse_ws_trade(data.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[market.clone()]);
             stored.append(trade.clone());
             appended = true;
         }
