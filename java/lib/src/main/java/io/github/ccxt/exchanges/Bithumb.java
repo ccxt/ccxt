@@ -694,7 +694,7 @@ public class Bithumb extends BithumbApi
             } else
             {
                 Map<String, Object> quoteCurrencies = (Map<String, Object>) this.safeDict(this.options, "quoteCurrencies", new HashMap<String, Object>() {{}});
-                Object quotes = new ArrayList<Object>(((Map<String, Object>)quoteCurrencies).keySet());
+                List<Object> quotes = new ArrayList<Object>(quoteCurrencies.keySet());
                 List<Object> promises = new ArrayList<Object>(Arrays.asList());
                 for (var i = 0; i < ((List<?>)quotes).size(); i++)
                 {
@@ -709,7 +709,7 @@ public class Bithumb extends BithumbApi
                     Object response = Helpers.GetValue(results, i);
                     Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                     Map<String, Object> extension = (Map<String, Object>) this.safeDict(quoteCurrencies, quote, new HashMap<String, Object>() {{}});
-                    Object currencyIds = new ArrayList<Object>(((Map<String, Object>)data).keySet());
+                    List<Object> currencyIds = new ArrayList<Object>(data.keySet());
                     for (var j = 0; j < ((List<?>)currencyIds).size(); j++)
                     {
                         Object currencyId = Helpers.GetValue(currencyIds, j);
@@ -1319,7 +1319,7 @@ public class Bithumb extends BithumbApi
             } else
             {
                 Map<String, Object> quoteCurrencies = (Map<String, Object>) this.safeDict(this.options, "quoteCurrencies", new HashMap<String, Object>() {{}});
-                Object quotes = new ArrayList<Object>(((Map<String, Object>)quoteCurrencies).keySet());
+                Object quotes = new ArrayList<Object>(quoteCurrencies.keySet());
                 if (!java.util.Objects.equals(symbols, null))
                 {
                     Map<String, Object> requiredQuotes = new HashMap<String, Object>() {{}};
@@ -1333,7 +1333,7 @@ public class Bithumb extends BithumbApi
                             ((Map<String, Object>)requiredQuotes).put((String)quoteId, true);
                         }
                     }
-                    Object requiredQuoteIds = new ArrayList<Object>(((Map<String, Object>)requiredQuotes).keySet());
+                    List<Object> requiredQuoteIds = new ArrayList<Object>(requiredQuotes.keySet());
                     String populatedQuotes = this.safeString(requiredQuoteIds, 0);
                     if (!java.util.Objects.equals(populatedQuotes, null))
                     {
@@ -3908,7 +3908,7 @@ public class Bithumb extends BithumbApi
 
     public Object urlencodeWithArrayBrackets(Object query)
     {
-        Object keys = new ArrayList<Object>(((Map<String, Object>)query).keySet());
+        List<Object> keys = new ArrayList<Object>(((Map<String, Object>)query).keySet());
         Object result = "";
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {

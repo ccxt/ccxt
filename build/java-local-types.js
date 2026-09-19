@@ -1460,7 +1460,7 @@ function receiverMethodLocalType (initializer) {
 // is NOT in this family: the helper hands back whatever the row holds (list, map, scalar,
 // null), so its locals keep the Object declaration.
 const JAVA_LIST_PRODUCER_LOCAL_TYPES = {
-    'objectKeys': { type: JAVA_ARRAY_TYPE, valuePrefix: 'Helpers.objectKeys(' },
+    'objectKeys': { type: JAVA_ARRAY_TYPE, valuePrefixes: ['Helpers.objectKeys(', 'new java.util.ArrayList<Object>('] },
     'split': { type: JAVA_ARRAY_TYPE, cast: JAVA_ARRAY_CAST, valuePrefix: 'Helpers.split(' },
 };
 

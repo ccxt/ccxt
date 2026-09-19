@@ -916,7 +916,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             }
             Object channel = "books";
             Long limit = this.safeInteger(parameters, "limit");
-            if ((Helpers.isEqual(limit, 1)) || (Helpers.isEqual(limit, 5)) || (Helpers.isEqual(limit, 15)) || (Helpers.isEqual(limit, 50)))
+            if (((limit != null && limit == 1)) || ((limit != null && limit == 5)) || ((limit != null && limit == 15)) || ((limit != null && limit == 50)))
             {
                 parameters = this.omit(parameters, "limit");
                 channel = Helpers.add(channel, String.valueOf(limit));
@@ -2133,7 +2133,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 ((Map<String, Object>)marketSymbols).put((String)symbol, true);
             }
         }
-        Object keys = new ArrayList<Object>(((Map<String, Object>)marketSymbols).keySet());
+        List<Object> keys = new ArrayList<Object>(marketSymbols.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object symbol = Helpers.GetValue(keys, i);

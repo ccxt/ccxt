@@ -1823,7 +1823,7 @@ public class Digifinex extends DigifinexApi
             //     }
             //
             Long code = this.safeInteger(response, "code");
-            String status = (((Helpers.isEqual(code, 0)))) ? "ok" : "maintenance";
+            String status = ((((code != null && code == 0)))) ? "ok" : "maintenance";
             return new HashMap<String, Object>() {{
                 put( "status", status );
                 put( "updated", null );
@@ -2715,17 +2715,17 @@ public class Digifinex extends DigifinexApi
             Long orderType = this.safeInteger(order, "order_type");
             if (!java.util.Objects.equals(orderType, null))
             {
-                if ((Helpers.isEqual(orderType, 9)) || (Helpers.isEqual(orderType, 10)) || (Helpers.isEqual(orderType, 11)) || (Helpers.isEqual(orderType, 12)) || (Helpers.isEqual(orderType, 15)))
+                if (((orderType != null && orderType == 9)) || ((orderType != null && orderType == 10)) || ((orderType != null && orderType == 11)) || ((orderType != null && orderType == 12)) || ((orderType != null && orderType == 15)))
                 {
                     timeInForce = "FOK";
-                } else if ((Helpers.isEqual(orderType, 1)) || (Helpers.isEqual(orderType, 2)) || (Helpers.isEqual(orderType, 3)) || (Helpers.isEqual(orderType, 4)) || (Helpers.isEqual(orderType, 13)))
+                } else if (((orderType != null && orderType == 1)) || ((orderType != null && orderType == 2)) || ((orderType != null && orderType == 3)) || ((orderType != null && orderType == 4)) || ((orderType != null && orderType == 13)))
                 {
                     timeInForce = "IOC";
-                } else if ((Helpers.isEqual(orderType, 6)) || (Helpers.isEqual(orderType, 7)) || (Helpers.isEqual(orderType, 8)) || (Helpers.isEqual(orderType, 14)))
+                } else if (((orderType != null && orderType == 6)) || ((orderType != null && orderType == 7)) || ((orderType != null && orderType == 8)) || ((orderType != null && orderType == 14)))
                 {
                     timeInForce = "GTC";
                 }
-                if ((Helpers.isEqual(orderType, 0)) || (Helpers.isEqual(orderType, 1)) || (Helpers.isEqual(orderType, 4)) || (Helpers.isEqual(orderType, 5)) || (Helpers.isEqual(orderType, 9)) || (Helpers.isEqual(orderType, 10)))
+                if (((orderType != null && orderType == 0)) || ((orderType != null && orderType == 1)) || ((orderType != null && orderType == 4)) || ((orderType != null && orderType == 5)) || ((orderType != null && orderType == 9)) || ((orderType != null && orderType == 10)))
                 {
                     type = "limit";
                 } else
@@ -3803,11 +3803,11 @@ public class Digifinex extends DigifinexApi
         String toAccount = null;
         Object data = this.safeDict(transfer, "data", transfer);
         Long type = this.safeInteger(data, "type");
-        if (Helpers.isEqual(type, 1))
+        if ((type != null && type == 1))
         {
             fromAccount = "spot";
             toAccount = "swap";
-        } else if (Helpers.isEqual(type, 2))
+        } else if ((type != null && type == 2))
         {
             fromAccount = "swap";
             toAccount = "spot";
@@ -5252,7 +5252,7 @@ final Object finalI = i;
                 }
             }
         }
-        Object depositWithdrawCodes = new ArrayList<Object>(((Map<String, Object>)depositWithdrawFees).keySet());
+        List<Object> depositWithdrawCodes = new ArrayList<Object>(depositWithdrawFees.keySet());
         for (var i = 0; i < ((List<?>)depositWithdrawCodes).size(); i++)
         {
             Object code = Helpers.GetValue(depositWithdrawCodes, i);
@@ -5341,7 +5341,7 @@ final Object finalI = i;
             //     }
             //
             Long code = this.safeInteger(response, "code");
-            String status = (((Helpers.isEqual(code, 0)))) ? "ok" : "failed";
+            String status = ((((code != null && code == 0)))) ? "ok" : "failed";
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.extend(this.parseMarginModification(data, market), new HashMap<String, Object>() {{
                 put( "status", status );

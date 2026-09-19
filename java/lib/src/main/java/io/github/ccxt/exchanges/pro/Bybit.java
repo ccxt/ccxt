@@ -1834,7 +1834,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             ((Map<String, Object>)symbols).put((String)symbol, true);
             Helpers.callDynamically(trades, "append", new Object[]{parsed});
         }
-        Object keys = new ArrayList<Object>(((Map<String, Object>)symbols).keySet());
+        List<Object> keys = new ArrayList<Object>(symbols.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             String currentMessageHash = ("myTrades:" + Helpers.GetValue(keys, i));
@@ -1949,7 +1949,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 }
             }
             // don't remove the future from the .futures cache
-            if (Helpers.inOp(client.futures, messageHash))
+            if ((messageHash != null && ((Map<?, ?>)client.futures).containsKey(messageHash)))
             {
                 io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, messageHash);
                 ((io.github.ccxt.ws.Future)future).resolve(cache);
@@ -2468,7 +2468,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             ((Map<String, Object>)symbols).put((String)symbol, true);
             Helpers.callDynamically(orders, "append", new Object[]{parsed});
         }
-        Object symbolsArray = new ArrayList<Object>(((Map<String, Object>)symbols).keySet());
+        List<Object> symbolsArray = new ArrayList<Object>(symbols.keySet());
         for (var i = 0; i < ((List<?>)symbolsArray).size(); i++)
         {
             String currentMessageHash = ("orders:" + Helpers.GetValue(symbolsArray, i));
@@ -2847,7 +2847,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 for (var i = 0; Helpers.isLessThan(i, topicsLength); i++)
                 {
                     Object messageHash = Helpers.GetValue(messageHashes, i);
-                    if (!(Helpers.inOp(client.subscriptions, messageHash)))
+                    if (!((messageHash != null && ((Map<?, ?>)client.subscriptions).containsKey(messageHash))))
                     {
                         ((List<Object>)newTopics).add(Helpers.GetValue(topics, i));
                     }
@@ -2872,7 +2872,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 for (var i = 0; Helpers.isLessThan(i, topicsLength); i++)
                 {
                     Object topic = Helpers.GetValue(topics, i);
-                    if (!(Helpers.inOp(subscribedTopics, topic)))
+                    if (!((topic != null && subscribedTopics.containsKey(topic))))
                     {
                         ((List<Object>)newTopics).add(topic);
                     }
@@ -3153,7 +3153,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             this.handleOrderBook(client, message);
             return;
         }
-        Object keys = new ArrayList<Object>(((Map<String, Object>)methods).keySet());
+        List<Object> keys = new ArrayList<Object>(methods.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);
@@ -3231,7 +3231,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         Boolean success = (Boolean) this.safeBool(message, "success");
         Long code = this.safeInteger(message, "retCode");
         String messageHash = "authenticated";
-        if ((java.util.Objects.equals(success, true)) || (Helpers.isEqual(code, 0)))
+        if ((java.util.Objects.equals(success, true)) || ((code != null && code == 0)))
         {
             Object future = this.safeValue(client.futures, messageHash);
             ((io.github.ccxt.ws.Future)future).resolve(true);

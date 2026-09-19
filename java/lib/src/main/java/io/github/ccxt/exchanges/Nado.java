@@ -2380,7 +2380,7 @@ public class Nado extends NadoApi
             //         }
             //     }
             //
-            Object tickers = new ArrayList<Object>(((Map<String, Object>)response).keySet());
+            List<Object> tickers = new ArrayList<Object>(response.keySet());
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)tickers).size(); i++)
             {
@@ -2488,7 +2488,7 @@ public class Nado extends NadoApi
             //         }
             //     }
             //
-            Object tickers = new ArrayList<Object>(((Map<String, Object>)response).keySet());
+            List<Object> tickers = new ArrayList<Object>(response.keySet());
             List<Object> interests = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)tickers).size(); i++)
             {
@@ -3545,7 +3545,7 @@ public class Nado extends NadoApi
             subaccount = "default";
         }
         Object address = ((String)this.remove0xPrefix(walletAddress)).toLowerCase();
-        if (!Helpers.isEqual(Helpers.getArrayLength(address), 40))
+        if ((Helpers.getArrayLength(address) != 40))
         {
             throw new BadRequest((this.id + " createOrder() requires a 20-byte walletAddress")) ;
         }

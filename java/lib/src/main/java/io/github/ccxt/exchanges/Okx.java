@@ -7159,7 +7159,7 @@ public class Okx extends OkxApi
                 return Helpers.GetValue(response, codeNetwork);
             }
             // if the network is not specified, return the first address
-            Object keys = new ArrayList<Object>(((Map<String, Object>)response).keySet());
+            List<Object> keys = new ArrayList<Object>(((Map<String, Object>)response).keySet());
             String first = this.safeString(keys, 0, "");
             return this.safeDict(response, first);
         }).thenApply(DepositAddress::new);
@@ -9317,7 +9317,7 @@ public class Okx extends OkxApi
                 ((List<Object>)borrrowRateCode).add(borrowRateStructure);
             }
         }
-        Object keys = new ArrayList<Object>(((Map<String, Object>)borrowRateHistories).keySet());
+        List<Object> keys = new ArrayList<Object>(borrowRateHistories.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object code = Helpers.GetValue(keys, i);
@@ -10422,7 +10422,7 @@ public class Okx extends OkxApi
                 }
             }
         }
-        Object depositWithdrawCodes = new ArrayList<Object>(((Map<String, Object>)depositWithdrawFees).keySet());
+        List<Object> depositWithdrawCodes = new ArrayList<Object>(depositWithdrawFees.keySet());
         for (var i = 0; i < ((List<?>)depositWithdrawCodes).size(); i++)
         {
             Object code = Helpers.GetValue(depositWithdrawCodes, i);

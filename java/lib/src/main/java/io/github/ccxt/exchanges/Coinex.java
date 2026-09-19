@@ -3154,7 +3154,7 @@ public class Coinex extends CoinexApi
                 Long code = this.safeInteger(entry, "code");
                 if (!java.util.Objects.equals(code, null))
                 {
-                    if (!Helpers.isEqual(code, 0))
+                    if ((code == null || code != 0))
                     {
                         status = "rejected";
                     } else

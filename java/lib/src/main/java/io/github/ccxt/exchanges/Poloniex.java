@@ -3312,7 +3312,7 @@ public class Poloniex extends PoloniexApi
             //         "USDTTRON" : "Txxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxp"
             //     }
             //
-            Object keys = new ArrayList<Object>(((Map<String, Object>)response).keySet());
+            List<Object> keys = new ArrayList<Object>(response.keySet());
             Object length = ((List<?>)keys).size();
             if (Helpers.isLessThan(length, 1))
             {

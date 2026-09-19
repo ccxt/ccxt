@@ -1676,16 +1676,16 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             Long limit = this.safeInteger(parameters, "limit");
             if (!java.util.Objects.equals(limit, null))
             {
-                if (Helpers.isEqual(limit, 1))
+                if ((limit != null && limit == 1))
                 {
                     depth = "bbo-tbt";
                 } else if (Helpers.isGreaterThan(limit, 1) && Helpers.isLessThanOrEqual(limit, 5))
                 {
                     depth = "books5";
-                } else if (Helpers.isEqual(limit, 50))
+                } else if ((limit != null && limit == 50))
                 {
                     depth = "books50-l2-tbt"; // Make sure you have VIP4 and above
-                } else if (Helpers.isEqual(limit, 400))
+                } else if ((limit != null && limit == 400))
                 {
                     depth = "books";
                 }
@@ -1795,7 +1795,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         Long prevSeqId = this.safeInteger(message, "prevSeqId");
         Object nonce = Helpers.GetValue(orderbook, "nonce");
         Object error = null;
-        if (!java.util.Objects.equals(prevSeqId, null) && !Helpers.isEqual(prevSeqId, -1) && !Helpers.isEqual(nonce, prevSeqId))
+        if (!java.util.Objects.equals(prevSeqId, null) && (prevSeqId == null || prevSeqId != -1) && !Helpers.isEqual(nonce, prevSeqId))
         {
             error = new InvalidNonce((this.id + " watchOrderBook received invalid nonce"));
         }
@@ -2688,7 +2688,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         }
         Object messageHash = Helpers.add(channel, "::myTrades");
         client.resolve(this.myTrades, messageHash);
-        Object tradeSymbols = new ArrayList<Object>(((Map<String, Object>)symbols).keySet());
+        List<Object> tradeSymbols = new ArrayList<Object>(symbols.keySet());
         for (var i = 0; i < ((List<?>)tradeSymbols).size(); i++)
         {
             String symbolMessageHash = ((messageHash + "::") + Helpers.GetValue(tradeSymbols, i));
@@ -3233,7 +3233,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             Object method = this.safeValue(methods, channel);
             if (java.util.Objects.equals(method, null))
             {
-                if (Helpers.isEqual(((String)channel).indexOf("candle"), 0))
+                if ((((String)channel).indexOf("candle") == 0))
                 {
                     this.handleOHLCV(client, message);
                 }

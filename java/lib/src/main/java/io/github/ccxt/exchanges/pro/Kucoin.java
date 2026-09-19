@@ -220,7 +220,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             }};
             Map<String, Object> message = this.extend(request, parameters);
             Client client = this.client(url);
-            if (!(Helpers.inOp(client.subscriptions, subscriptionHash)))
+            if (!((subscriptionHash != null && ((Map<?, ?>)client.subscriptions).containsKey(subscriptionHash))))
             {
                 Helpers.addElementToObject(client.subscriptions, requestId, subscriptionHash);
             }
@@ -257,7 +257,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Map<String, Object> message = this.extend(request, parameters);
             String url = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), urlType);
             Client client = this.client(url);
-            if (!(Helpers.inOp(client.subscriptions, messageHash)))
+            if (!((messageHash != null && ((Map<?, ?>)client.subscriptions).containsKey(messageHash))))
             {
                 Helpers.addElementToObject(client.subscriptions, requestId, messageHash);
             }
@@ -296,7 +296,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Map<String, Object> message = this.extend(request, parameters);
             Object url = (this.getUtaUrl()).join();
             Client client = this.client(url);
-            if (!(Helpers.inOp(client.subscriptions, subscribeHash)))
+            if (!((subscribeHash != null && ((Map<?, ?>)client.subscriptions).containsKey(subscribeHash))))
             {
                 Helpers.addElementToObject(client.subscriptions, requestId, subscribeHash);
             }
@@ -394,7 +394,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             for (var i = 0; i < Helpers.getArrayLength(subscriptionHashes); i++)
             {
                 Object subscriptionHash = Helpers.GetValue(subscriptionHashes, i);
-                if (!(Helpers.inOp(client.subscriptions, subscriptionHash)))
+                if (!((subscriptionHash != null && ((Map<?, ?>)client.subscriptions).containsKey(subscriptionHash))))
                 {
                     Helpers.addElementToObject(client.subscriptions, requestId, subscriptionHash);
                 }
@@ -427,7 +427,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             for (var i = 0; i < Helpers.getArrayLength(subscriptionHashes); i++)
             {
                 Object subscriptionHash = Helpers.GetValue(subscriptionHashes, i);
-                if (!(Helpers.inOp(client.subscriptions, subscriptionHash)))
+                if (!((subscriptionHash != null && ((Map<?, ?>)client.subscriptions).containsKey(subscriptionHash))))
                 {
                     Helpers.addElementToObject(client.subscriptions, requestId, subscriptionHash);
                 }
@@ -1948,7 +1948,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             parameters = ((List<Object>) methodparametersVariable).get(1);
             if (((String)method).indexOf("Depth") < 0)
             {
-                if ((Helpers.isEqual(limit, 5)) || (Helpers.isEqual(limit, 50)))
+                if (((limit != null && limit == 5)) || ((limit != null && limit == 50)))
                 {
                     if (!Boolean.TRUE.equals(isFuturesMethod))
                     {
@@ -2301,7 +2301,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
                     Object symbol = Helpers.GetValue(symbols, i);
-                    if (Helpers.inOp(this.fundingRates, symbol))
+                    if ((symbol != null && ((Map<?, ?>)this.fundingRates).containsKey(symbol)))
                     {
                         ((Map<String,Object>)this.fundingRates).remove((String)symbol);
                     }
@@ -3164,7 +3164,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
 
     public void setBalanceCache(Client client, Object type)
     {
-        if ((Helpers.inOp(client.subscriptions, type)) && (Helpers.inOp(this.balance, type)))
+        if (((type != null && ((Map<?, ?>)client.subscriptions).containsKey(type))) && (Helpers.inOp(this.balance, type)))
         {
             return;
         }
@@ -3200,7 +3200,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Object response = (this.fetchBalance((Object)(parameters))).join();
             Helpers.addElementToObject(this.balance, type, this.extend(response, this.safeDict(this.balance, type, new HashMap<String, Object>() {{}})));
             // don't remove the future from the .futures cache
-            if (Helpers.inOp(client.futures, messageHash))
+            if ((messageHash != null && ((Map<?, ?>)client.futures).containsKey(messageHash)))
             {
                 io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, messageHash);
                 future.resolve();
@@ -3534,7 +3534,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 }
             }
             // don't remove the future from the .futures cache
-            if (Helpers.inOp(client.futures, messageHash))
+            if ((messageHash != null && ((Map<?, ?>)client.futures).containsKey(messageHash)))
             {
                 io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, messageHash);
                 ((io.github.ccxt.ws.Future)future).resolve(cache);
@@ -3569,7 +3569,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Object cache = this.positions;
             Helpers.callDynamically(cache, "append", new Object[]{position});
             // don't remove the future from the .futures cache
-            if (Helpers.inOp(client.futures, messageHash))
+            if ((messageHash != null && ((Map<?, ?>)client.futures).containsKey(messageHash)))
             {
                 io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, messageHash);
                 ((io.github.ccxt.ws.Future)future).resolve(cache);
@@ -3683,7 +3683,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         String messageHash = ("position:" + symbol);
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Object newPosition = this.parsePosition(data);
-        Object keys = new ArrayList<Object>(((Map<String, Object>)newPosition).keySet());
+        List<Object> keys = new ArrayList<Object>(((Map<String, Object>)newPosition).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);
@@ -3734,7 +3734,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         Object cache = this.positions;
         Object currentPosition = this.getCurrentPosition(symbol);
         Object newPosition = this.parseWsUtaPosition(data);
-        Object keys = new ArrayList<Object>(((Map<String, Object>)newPosition).keySet());
+        List<Object> keys = new ArrayList<Object>(((Map<String, Object>)newPosition).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);

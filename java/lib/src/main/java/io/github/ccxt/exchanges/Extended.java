@@ -2006,7 +2006,7 @@ public class Extended extends ExtendedApi
         String type = null;
         if (!java.util.Objects.equals(accountIndex, null))
         {
-            type = (((Helpers.isEqual(accountIndex, 0)))) ? "main" : "subaccount";
+            type = ((((accountIndex != null && accountIndex == 0)))) ? "main" : "subaccount";
         }
         final Object finalType = type;
         return new HashMap<String, Object>() {{
@@ -4314,14 +4314,14 @@ public class Extended extends ExtendedApi
     {
         if ((signature instanceof String))
         {
-            if (Helpers.isEqual(((String)signature).indexOf("0x"), 0))
+            if ((((String)signature).indexOf("0x") == 0))
             {
                 return signature;
             }
             return ("0x" + this.getExtendedDecimalToBase16(signature));
         }
         Object signatureString = this.numberToString(signature);
-        if (Helpers.isEqual(((String)signatureString).indexOf("0x"), 0))
+        if ((((String)signatureString).indexOf("0x") == 0))
         {
             return signatureString;
         }

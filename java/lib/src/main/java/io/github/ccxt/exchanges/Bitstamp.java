@@ -1693,14 +1693,14 @@ public class Bitstamp extends BitstampApi
             return currencyId;
         }
         transaction = this.omit(transaction, new ArrayList<Object>(Arrays.asList("fee", "price", "datetime", "type", "status", "id")));
-        Object ids = new ArrayList<Object>(((Map<String, Object>)transaction).keySet());
+        List<Object> ids = new ArrayList<Object>(((Map<String, Object>)transaction).keySet());
         for (var i = 0; i < ((List<?>)ids).size(); i++)
         {
             Object id = Helpers.GetValue(ids, i);
             if (((String)id).indexOf("_") < 0)
             {
                 Long value = this.safeInteger(transaction, id);
-                if ((!java.util.Objects.equals(value, null)) && (!Helpers.isEqual(value, 0)))
+                if ((!java.util.Objects.equals(value, null)) && ((value == null || value != 0)))
                 {
                     return id;
                 }
@@ -1712,7 +1712,7 @@ public class Bitstamp extends BitstampApi
     public Object getMarketFromTrade(Object trade)
     {
         trade = this.omit(trade, new ArrayList<Object>(Arrays.asList("fee", "price", "datetime", "tid", "type", "order_id", "side")));
-        Object currencyIds = new ArrayList<Object>(((Map<String, Object>)trade).keySet());
+        List<Object> currencyIds = new ArrayList<Object>(((Map<String, Object>)trade).keySet());
         Object numCurrencyIds = ((List<?>)currencyIds).size();
         if (Helpers.isGreaterThan(numCurrencyIds, 2))
         {
@@ -1787,7 +1787,7 @@ public class Bitstamp extends BitstampApi
         Object rawMarketId = null;
         if (java.util.Objects.equals(market, null))
         {
-            Object keys = new ArrayList<Object>(((Map<String, Object>)trade).keySet());
+            List<Object> keys = new ArrayList<Object>(((Map<String, Object>)trade).keySet());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 Object currentKey = Helpers.GetValue(keys, i);
@@ -2276,7 +2276,7 @@ public class Bitstamp extends BitstampApi
         Object codes = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         Map<String, Object> currencies = this.indexBy(response, "currency");
-        Object ids = new ArrayList<Object>(((Map<String, Object>)currencies).keySet());
+        List<Object> ids = new ArrayList<Object>(currencies.keySet());
         for (var i = 0; i < ((List<?>)ids).size(); i++)
         {
             Object id = Helpers.GetValue(ids, i);
@@ -3272,7 +3272,7 @@ public class Bitstamp extends BitstampApi
         {
             Object parsedTrade = this.parseTrade(item);
             Object market = null;
-            Object keys = new ArrayList<Object>(((Map<String, Object>)item).keySet());
+            List<Object> keys = new ArrayList<Object>(((Map<String, Object>)item).keySet());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 if (((String)Helpers.GetValue(keys, i)).indexOf("_") >= 0)

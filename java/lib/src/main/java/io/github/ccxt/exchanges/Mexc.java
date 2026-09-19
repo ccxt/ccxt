@@ -1413,7 +1413,7 @@ public class Mexc extends MexcApi
                 //
                 //     {}
                 //
-                Object keys = new ArrayList<Object>(((Map<String, Object>)response).keySet());
+                List<Object> keys = new ArrayList<Object>(response.keySet());
                 Object length = ((List<?>)keys).size();
                 status = (((Helpers.isGreaterThan(length, 0)))) ? this.json(response) : "ok";
             } else if (java.util.Objects.equals(marketType, "swap"))
@@ -3168,7 +3168,7 @@ public class Mexc extends MexcApi
             Double triggerPrice = this.safeNumber2(parameters, "triggerPrice", "stopPrice");
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "externalOid", "postOnly", "stopPrice", "triggerPrice", "hedged")));
             Object response = null;
-            if ((!java.util.Objects.equals(triggerPrice, null)) && (!Helpers.isEqual(triggerPrice, 0)))
+            if ((!java.util.Objects.equals(triggerPrice, null)) && ((triggerPrice == null || triggerPrice != 0)))
             {
                 ((Map<String, Object>)request).put("triggerPrice", this.priceToPrecision(symbol, triggerPrice));
                 ((Map<String, Object>)request).put("triggerType", this.safeInteger(parameters, "triggerType", 1));
@@ -5815,7 +5815,7 @@ final Object finalRiskIncrVol = riskIncrVol;
                     result = this.safeDict(addressStructures, defaultNetworkForCurrency);
                 } else
                 {
-                    Object keys = new ArrayList<Object>(((Map<String, Object>)addressStructures).keySet());
+                    List<Object> keys = new ArrayList<Object>(((Map<String, Object>)addressStructures).keySet());
                     String key = this.safeString(keys, 0);
                     result = this.safeDict(addressStructures, key);
                 }
@@ -6555,12 +6555,12 @@ final Object finalRiskIncrVol = riskIncrVol;
             String toId = this.safeString(accounts, toAccount, toAccount);
             if (java.util.Objects.equals(fromId, null))
             {
-                Object keys = new ArrayList<Object>(((Map<String, Object>)accounts).keySet());
+                Object keys = new ArrayList<Object>(accounts.keySet());
                 throw new ExchangeError(((this.id + " fromAccount must be one of ") + String.join(", ", (List<String>)keys))) ;
             }
             if (java.util.Objects.equals(toId, null))
             {
-                Object keys = new ArrayList<Object>(((Map<String, Object>)accounts).keySet());
+                Object keys = new ArrayList<Object>(accounts.keySet());
                 throw new ExchangeError(((this.id + " toAccount must be one of ") + String.join(", ", (List<String>)keys))) ;
             }
             final Object finalFromId = fromId;
@@ -7148,14 +7148,14 @@ final Object finalRiskIncrVol = riskIncrVol;
             Object entry = Helpers.GetValue(leverage, i);
             Long openType = this.safeInteger(entry, "openType");
             Long positionType = this.safeInteger(entry, "positionType");
-            if (Helpers.isEqual(positionType, 1))
+            if ((positionType != null && positionType == 1))
             {
                 longLeverage = this.safeInteger(entry, "leverage");
-            } else if (Helpers.isEqual(positionType, 2))
+            } else if ((positionType != null && positionType == 2))
             {
                 shortLeverage = this.safeInteger(entry, "leverage");
             }
-            marginMode = (((Helpers.isEqual(openType, 1)))) ? "isolated" : "cross";
+            marginMode = ((((openType != null && openType == 1)))) ? "isolated" : "cross";
         }
         final Object finalMarginMode = marginMode;
         final Object finalLongLeverage = longLeverage;

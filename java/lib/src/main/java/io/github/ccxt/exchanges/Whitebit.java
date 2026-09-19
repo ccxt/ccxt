@@ -1130,7 +1130,7 @@ public class Whitebit extends WhitebitApi
             //           {...}
             //      }
             //
-            Object currenciesIds = new ArrayList<Object>(((Map<String, Object>)response).keySet());
+            List<Object> currenciesIds = new ArrayList<Object>(response.keySet());
             Map<String, Object> withdrawFees = new HashMap<String, Object>() {{}};
             Map<String, Object> depositFees = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)currenciesIds).size(); i++)
@@ -1324,7 +1324,7 @@ public class Whitebit extends WhitebitApi
                 }
             }
         }
-        Object depositWithdrawCodes = new ArrayList<Object>(((Map<String, Object>)depositWithdrawFees).keySet());
+        List<Object> depositWithdrawCodes = new ArrayList<Object>(depositWithdrawFees.keySet());
         for (var i = 0; i < ((List<?>)depositWithdrawCodes).size(); i++)
         {
             Object code = Helpers.GetValue(depositWithdrawCodes, i);
@@ -1468,7 +1468,7 @@ public class Whitebit extends WhitebitApi
             {
                 throw new ExchangeError((this.id + " markets not loaded")) ;
             }
-            Object marketIds = new ArrayList<Object>(((Map<String, Object>)markets).keySet());
+            List<Object> marketIds = new ArrayList<Object>(((Map<String, Object>)markets).keySet());
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
@@ -1617,7 +1617,7 @@ public class Whitebit extends WhitebitApi
             //     }
             //
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            Object currencyKeys = new ArrayList<Object>(((Map<String, Object>)currenciesData).keySet());
+            List<Object> currencyKeys = new ArrayList<Object>(((Map<String, Object>)currenciesData).keySet());
             for (var i = 0; i < ((List<?>)currencyKeys).size(); i++)
             {
                 Object code = Helpers.GetValue(currencyKeys, i);
@@ -1632,7 +1632,7 @@ public class Whitebit extends WhitebitApi
                 }
                 // Find corresponding fee data for this currency
                 Map<String, Object> feeData = null;
-                Object feeKeys = new ArrayList<Object>(((Map<String, Object>)feesData).keySet());
+                List<Object> feeKeys = new ArrayList<Object>(((Map<String, Object>)feesData).keySet());
                 for (var j = 0; j < ((List<?>)feeKeys).size(); j++)
                 {
                     Object feeKey = Helpers.GetValue(feeKeys, j);
@@ -1946,7 +1946,7 @@ public class Whitebit extends WhitebitApi
                 {
                     Map<String, Object> response = (this.v4PrivatePostTradeAccountOrderHistory(this.extend(request, parameters))).join();
                     // Search for order in executed orders response (object format)
-                    Object marketIds = new ArrayList<Object>(((Map<String, Object>)response).keySet());
+                    List<Object> marketIds = new ArrayList<Object>(response.keySet());
                     for (var i = 0; i < ((List<?>)marketIds).size(); i++)
                     {
                         Object marketId = Helpers.GetValue(marketIds, i);
@@ -2100,7 +2100,7 @@ public class Whitebit extends WhitebitApi
             {
                 return this.parseTickers(resultList, symbols);
             }
-            Object marketIds = new ArrayList<Object>(((Map<String, Object>)response).keySet());
+            List<Object> marketIds = new ArrayList<Object>(((Map<String, Object>)response).keySet());
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
@@ -2290,7 +2290,7 @@ public class Whitebit extends WhitebitApi
             } else
             {
                 Object results = new ArrayList<Object>(Arrays.asList());
-                Object keys = new ArrayList<Object>(((Map<String, Object>)response).keySet());
+                List<Object> keys = new ArrayList<Object>(((Map<String, Object>)response).keySet());
                 for (var i = 0; i < ((List<?>)keys).size(); i++)
                 {
                     Object marketId = Helpers.GetValue(keys, i);
@@ -2365,7 +2365,7 @@ public class Whitebit extends WhitebitApi
         String takerOrMaker = null;
         if (!java.util.Objects.equals(role, null))
         {
-            takerOrMaker = (((Helpers.isEqual(role, 1)))) ? "maker" : "taker";
+            takerOrMaker = ((((role != null && role == 1)))) ? "maker" : "taker";
         }
         Object fee = null;
         String feeCost = this.safeString(trade, "fee");
@@ -3265,7 +3265,7 @@ public class Whitebit extends WhitebitApi
             //         ],
             //     }
             //
-            Object marketIds = new ArrayList<Object>(((Map<String, Object>)response).keySet());
+            List<Object> marketIds = new ArrayList<Object>(response.keySet());
             Object results = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
@@ -5412,7 +5412,7 @@ public class Whitebit extends WhitebitApi
                 } else
                 {
                     Map<String, Object> errorObject = (Map<String, Object>) this.safeDict(response, "errors", new HashMap<String, Object>() {{}});
-                    Object errorKeys = new ArrayList<Object>(((Map<String, Object>)errorObject).keySet());
+                    List<Object> errorKeys = new ArrayList<Object>(errorObject.keySet());
                     Object errorsLength = ((List<?>)errorKeys).size();
                     if (Helpers.isGreaterThan(errorsLength, 0))
                     {
@@ -5431,7 +5431,7 @@ public class Whitebit extends WhitebitApi
             if (!java.util.Objects.equals(success, true))
             {
                 Map<String, Object> errMsg = (Map<String, Object>) this.safeDict(response, "message", new HashMap<String, Object>() {{}});
-                Object errKeys = new ArrayList<Object>(((Map<String, Object>)errMsg).keySet());
+                List<Object> errKeys = new ArrayList<Object>(errMsg.keySet());
                 Object errKeysLength = ((List<?>)errKeys).size();
                 Object errorInfo = body;
                 if (Helpers.isGreaterThan(errKeysLength, 0))

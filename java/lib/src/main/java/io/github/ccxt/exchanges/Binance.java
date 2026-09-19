@@ -5103,7 +5103,7 @@ public class Binance extends BinanceApi
                 Object res = this.safeValue(results, i);
                 if ((java.util.Objects.equals(fetchMargins, true)) && (res instanceof List))
                 {
-                    Object keysList = new ArrayList<Object>(((Map<String, Object>)this.indexBy(res, "symbol")).keySet());
+                    List<Object> keysList = new ArrayList<Object>(((Map<String, Object>)this.indexBy(res, "symbol")).keySet());
                     Object length = Helpers.getArrayLength(((Map<String, Object>)this.options).get("crossMarginPairsData"));
                     // first one is the cross-margin promise
                     if (Helpers.isEqual(length, 0))
@@ -5402,7 +5402,7 @@ public class Binance extends BinanceApi
         Boolean contract = (((Map<?, ?>)market).containsKey("contractType"));
         Long expiry = (Long) this.safeInteger2(market, "deliveryDate", "expiryDate");
         String settleId = this.safeString(market, "marginAsset");
-        if ((java.util.Objects.equals(contractType, "PERPETUAL")) || (Helpers.isEqual(expiry, 4133404800000L)))
+        if ((java.util.Objects.equals(contractType, "PERPETUAL")) || ((expiry != null && expiry == 4133404800000L)))
         {
             expiry = null;
             swap = true;
@@ -5772,7 +5772,7 @@ public class Binance extends BinanceApi
                 Object balance = Helpers.GetValue(balances, i);
                 // skip stale/uninitialized assets, whose updateTime is 0, their balances are not valid (see https://github.com/ccxt/ccxt/issues/27997)
                 Long updateTime = this.safeInteger(balance, "updateTime");
-                if (Helpers.isEqual(updateTime, 0))
+                if ((updateTime != null && updateTime == 0))
                 {
                     continue;
                 }
@@ -12247,7 +12247,7 @@ public class Binance extends BinanceApi
         Object intern = null;
         if (!java.util.Objects.equals(internalInteger, null))
         {
-            intern = (((!Helpers.isEqual(internalInteger, 0)))) ? true : false;
+            intern = ((((internalInteger == null || internalInteger != 0)))) ? true : false;
         }
         String networkId = this.safeString(transaction, "network");
         Object network = this.networkIdToCode(networkId, code);
@@ -12491,8 +12491,8 @@ public class Binance extends BinanceApi
                     }
                 }
                 Map<String, Object> accountsById = (Map<String, Object>) this.safeDict(this.options, "accountsById", new HashMap<String, Object>() {{}});
-                Boolean fromIsolated = !(Helpers.inOp(accountsById, fromId));
-                Boolean toIsolated = !(Helpers.inOp(accountsById, toId));
+                Boolean fromIsolated = !((fromId != null && accountsById.containsKey(fromId)));
+                Boolean toIsolated = !((toId != null && accountsById.containsKey(toId)));
                 if (Boolean.TRUE.equals(fromIsolated) && (java.util.Objects.equals(market, null)))
                 {
                     isolatedSymbol = fromId; // allow user provide symbol as the from/to account
@@ -12618,12 +12618,12 @@ public class Binance extends BinanceApi
                 {
                     if (java.util.Objects.equals(fromId, null))
                     {
-                        Object keys = new ArrayList<Object>(((Map<String, Object>)accountsByType).keySet());
+                        Object keys = new ArrayList<Object>(accountsByType.keySet());
                         throw new ExchangeError(((this.id + " fromAccount parameter must be one of ") + String.join(", ", (List<String>)keys))) ;
                     }
                     if (java.util.Objects.equals(toId, null))
                     {
-                        Object keys = new ArrayList<Object>(((Map<String, Object>)accountsByType).keySet());
+                        Object keys = new ArrayList<Object>(accountsByType.keySet());
                         throw new ExchangeError(((this.id + " toAccount parameter must be one of ") + String.join(", ", (List<String>)keys))) ;
                     }
                     type = ((fromId + "_") + toId);
@@ -13359,7 +13359,7 @@ public class Binance extends BinanceApi
                 {
                     throw new ExchangeError((this.id + " markets not loaded")) ;
                 }
-                Object symbols = new ArrayList<Object>(((Map<String, Object>)markets).keySet());
+                List<Object> symbols = new ArrayList<Object>(((Map<String, Object>)markets).keySet());
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
                 Object feeTier = this.safeInteger(response, "feeTier");
                 Object feeTiers = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.fees).get("linear"), "trading"), "tiers");
@@ -13399,7 +13399,7 @@ public class Binance extends BinanceApi
                 {
                     throw new ExchangeError((this.id + " markets not loaded")) ;
                 }
-                Object symbols = new ArrayList<Object>(((Map<String, Object>)markets).keySet());
+                List<Object> symbols = new ArrayList<Object>(((Map<String, Object>)markets).keySet());
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
                 Object feeTier = this.safeInteger(response, "feeTier");
                 Object feeTiers = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.fees).get("inverse"), "trading"), "tiers");
@@ -13949,7 +13949,7 @@ public class Binance extends BinanceApi
         String unrealizedPnlString = this.safeString(position, "unrealizedProfit");
         Object unrealizedPnl = this.parseNumber(unrealizedPnlString);
         Long timestamp = this.safeInteger(position, "updateTime");
-        if (Helpers.isEqual(timestamp, 0))
+        if ((timestamp != null && timestamp == 0))
         {
             timestamp = null;
         }
@@ -14278,7 +14278,7 @@ public class Binance extends BinanceApi
         Object collateral = this.parseNumber(collateralString);
         Object markPrice = this.parseNumber(this.omitZero(this.safeString(position, "markPrice")));
         Long timestamp = this.safeInteger(position, "updateTime");
-        if (Helpers.isEqual(timestamp, 0))
+        if ((timestamp != null && timestamp == 0))
         {
             timestamp = null;
         }
@@ -16100,7 +16100,7 @@ final Object finalMarket = market;
         Object networkCode = null;
         Map<String, Object> currency = (Map<String, Object>) this.currency(currencyCode);
         Map<String, Object> networks = (Map<String, Object>) this.safeDict(currency, "networks", new HashMap<String, Object>() {{}});
-        Object networkCodes = new ArrayList<Object>(((Map<String, Object>)networks).keySet());
+        List<Object> networkCodes = new ArrayList<Object>(networks.keySet());
         for (var i = 0; i < ((List<?>)networkCodes).size(); i++)
         {
             Object currentNetworkCode = Helpers.GetValue(networkCodes, i);
@@ -16144,7 +16144,7 @@ final Object finalMarket = market;
         Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
         Object urls = this.urls;
-        if (!(Helpers.inOp(((Map<String, Object>)urls).get("api"), api)))
+        if (!((api != null && ((Map<?, ?>)((Map<String, Object>)urls).get("api")).containsKey(api))))
         {
             throw new NotSupported((Helpers.add((this.id + " does not have a testnet/sandbox URL for "), api) + " endpoints")) ;
         }
@@ -17447,7 +17447,7 @@ final Object finalMarket = market;
             Long until = this.safeInteger(parameters, "until"); // unified in milliseconds
             Long endTime = this.safeInteger(parameters, "endTime", until); // exchange-specific in milliseconds
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("endTime", "until")));
-            if ((!java.util.Objects.equals(endTime, null)) && (!Helpers.isEqual(endTime, 0)))
+            if ((!java.util.Objects.equals(endTime, null)) && ((endTime == null || endTime != 0)))
             {
                 ((Map<String, Object>)request).put("endTime", endTime);
             } else if ((!java.util.Objects.equals(since, null)) && (!Helpers.isEqual(since, 0)))
