@@ -1575,10 +1575,11 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
         }
         const readType = wsMapReadType (initializer);
         if (readType !== undefined) {
-            // `this.<map>[key]` prints Helpers.GetValue(this.<map>, key);
-            // `this.safeValue*(this.<map>, key)` prints itself
+            // `this.<map>[key]` prints Helpers.GetValue(this.<map>, key), or the native
+            // `((java.util.Map<?, ?>)this.<map>).get(key)` shape when the field is one of
+            // javaTranspiler's JAVA_FIELD_TYPES; `this.safeValue*(this.<map>, key)` prints itself
             const prefixes = ts.isElementAccessExpression (initializer)
-                ? [ 'Helpers.' ] : [ 'this.' ];
+                ? [ 'Helpers.', '((java.util.Map<?, ?>)this.', '((Map<?, ?>)this.' ] : [ 'this.' ];
             return { type: readType, cast: '(' + readType + ')', valuePrefixes: prefixes, skipInheritedAsyncGuard: true };
         }
         if (/^messageHash\d*$/.test (declaration.name.escapedText)
