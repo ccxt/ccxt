@@ -3708,8 +3708,6 @@ impl OrderRouter {
         Ok(())
     }
 
-    /// Renders balance entries as the router's `[exchangeId.]ASSET:amount`
-    /// comma-separated form.
     //  NO markets_of HERE, and it is not an omission. The other five ports offer one because
     //  their venues expose their markets; `RouterVenue` deliberately does not — it is narrowed
     //  to the operations the money path performs — so Rust's execute reads `options.markets`

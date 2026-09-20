@@ -2176,7 +2176,7 @@ public class OrderRouterTest
         await Rejects<BadRequest>(async () => await router.Execute(plan, Venues(venue), new dict() { { "strategy", "sequential" }, { "usdRates", rates } }), "a live plan with no identity is refused");
         EqualCalls(venue.calls, new List<string>(), "refused before a single call reached the venue");
         //  a rehearsal needs no identity: it places nothing
-        var dry = await router.Execute(plan, Venues(venue), new dict() { { "strategy", "sequential" }, { "usdRates", rates } });
+        var dry = await router.Execute(plan, Venues(venue), new dict() { { "strategy", "sequential" }, { "dryRun", true }, { "usdRates", rates } });
         EqualBool((bool)dry["dryRun"], true, "a dry run needs no identity");
         //  ...and a HAND-ASSEMBLED plan is a supported input: Execute takes any dictionary of
         //  the plan shape, and such a plan never went through a routing request, so requestId
@@ -2260,7 +2260,7 @@ public class OrderRouterTest
         var router = NewRouter();
         var rates = new dict() { { "USDT", 1.0 } };
         var plan = router.BuildExecutionPlan(OneLegRoute("buy", "BTC", "USDT", 0.2, 100), new dict());
-        await router.Execute(plan, Venues(new StubVenue("stub")), new dict() { { "strategy", "sequential" }, { "usdRates", rates } });
+        await router.Execute(plan, Venues(new StubVenue("stub")), new dict() { { "strategy", "sequential" }, { "dryRun", true }, { "usdRates", rates } });
         var real = new StubVenue("stub");
         var report = await router.Execute(plan, Venues(real), new dict() { { "strategy", "sequential" }, { "usdRates", rates } });
         EqualString((string)ToDict(ToList(report["steps"])[0])["status"], "filled", "the rehearsal did not burn the plan");
