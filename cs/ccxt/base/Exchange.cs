@@ -19,6 +19,8 @@ public partial class BaseExchange
 
     protected readonly object idLock = new object();
 
+    protected readonly object lastNonceLock = new object();
+
     public BaseExchange(object userConfig2 = null)
     {
         var userConfig = (dict)userConfig2;
@@ -1498,6 +1500,16 @@ public partial class BaseExchange
     public void unlockId()
     {
         Monitor.Exit(this.idLock);
+    }
+
+    public void lockLastNonce()
+    {
+        Monitor.Enter(this.lastNonceLock);
+    }
+
+    public void unlockLastNonce()
+    {
+        Monitor.Exit(this.lastNonceLock);
     }
 
 

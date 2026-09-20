@@ -3048,6 +3048,14 @@ class BaseExchange {
         return true;
     }
 
+    public function lock_last_nonce() {
+        return true;
+    }
+
+    public function unlock_last_nonce() {
+        return true;
+    }
+
     public function set_last_rest_request_timestamp() {
         $this->lastRestRequestTimestamp = $this->milliseconds();
     }
@@ -6512,6 +6520,21 @@ class BaseExchange {
 
     public function nonce() {
         return $this->seconds();
+    }
+
+    public function incrementing_nonce() {
+        /**
+         * @ignore
+         * returns the current timestamp in milliseconds, bumped past the previously issued value when both land in the same millisecond — for venues that reject duplicate nonces per signer; the counter is per exchange instance, so it narrows the duplicate-nonce race but does not remove it across instances or processes
+         * @return {int} a strictly-increasing millisecond nonce
+         */
+        $this->lock_last_nonce();
+        $currentMilliseconds = $this->milliseconds();
+        $lastNonce = $this->safe_integer($this->options, 'lastNonce', 0);
+        $result = ($currentMilliseconds > $lastNonce) ? $currentMilliseconds : $lastNonce + 1;
+        $this->options['lastNonce'] = $result;
+        $this->unlock_last_nonce();
+        return $result;
     }
 
     public function set_headers(mixed $headers) {
