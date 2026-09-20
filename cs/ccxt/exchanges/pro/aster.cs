@@ -1486,7 +1486,7 @@ public partial class aster : ccxt.aster
         }
     }
 
-    public async virtual Task<object> keepAliveListenKey(object parameters = null)
+    public async virtual Task keepAliveListenKey(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? type = this.safeString(parameters, "type", "spot");
@@ -1593,7 +1593,7 @@ public partial class aster : ccxt.aster
         }
     }
 
-    public async virtual Task<object> loadBalanceSnapshot(WebSocketClient client, object messageHash, object type)
+    public async virtual Task loadBalanceSnapshot(WebSocketClient client, object messageHash, object type)
     {
         Dictionary<string, object> parameters = new Dictionary<string, object>() {
             { "type", type },
@@ -1769,7 +1769,7 @@ public partial class aster : ccxt.aster
         }
     }
 
-    public async virtual Task<object> loadPositionsSnapshot(WebSocketClient client, object messageHash)
+    public async virtual Task loadPositionsSnapshot(WebSocketClient client, object messageHash)
     {
         object positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions());
         this.positions = new ArrayCacheBySymbolBySide();

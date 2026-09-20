@@ -1037,7 +1037,7 @@ public partial class bydfi : ccxt.bydfi
         }
     }
 
-    public async virtual Task<object> loadBalanceSnapshot(WebSocketClient client, object messageHash)
+    public async virtual Task loadBalanceSnapshot(WebSocketClient client, object messageHash)
     {
         Dictionary<string, object> parameters = new Dictionary<string, object>() {
             { "type", "swap" },

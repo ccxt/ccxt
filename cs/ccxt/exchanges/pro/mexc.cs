@@ -2220,7 +2220,7 @@ public partial class mexc : ccxt.mexc
         return listenKey;
     }
 
-    public async virtual Task<object> keepAliveListenKey(object listenKey, object parameters = null)
+    public async virtual Task keepAliveListenKey(object listenKey, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((listenKey == null))

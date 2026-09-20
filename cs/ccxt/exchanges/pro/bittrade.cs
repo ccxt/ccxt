@@ -652,7 +652,7 @@ public partial class bittrade : ccxt.bittrade
         }
     }
 
-    public async virtual Task<object> pong(WebSocketClient client, Dictionary<string, object> message)
+    public async virtual Task pong(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     { ping: 1583491673714 }

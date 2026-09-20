@@ -1089,7 +1089,7 @@ public partial class bitget : ccxt.bitget
         (client as WebSocketClient).resolve(this.getOrderBook(this.orderbooks, symbol), messageHash);
     }
 
-    public async virtual Task<object> handleCheckSumError(WebSocketClient client, object symbol, object messageHash)
+    public async virtual Task handleCheckSumError(WebSocketClient client, object symbol, object messageHash)
     {
         await this.unWatchOrderBook(symbol);
         var error = new ChecksumError(((this.id + " ") + (this.orderbookChecksumMessage(symbol))));

@@ -852,7 +852,7 @@ public partial class hashkey : ccxt.hashkey
         ((IDictionary<string,object>)this.balance)[(string)type] = new Dictionary<string, object>() {};
     }
 
-    public async virtual Task<object> loadBalanceSnapshot(WebSocketClient client, object messageHash, object type)
+    public async virtual Task loadBalanceSnapshot(WebSocketClient client, object messageHash, object type)
     {
         object response = ccxt.BaseExchange.FromBalances(await this.FetchBalance(new Dictionary<string, object>() { { "type", type }, }));
         ((IDictionary<string,object>)this.balance)[(string)type] = this.extend(response, this.safeDict(this.balance, type, new Dictionary<string, object>() {}));
@@ -969,7 +969,7 @@ public partial class hashkey : ccxt.hashkey
         return listenKey;
     }
 
-    public async virtual Task<object> keepAliveListenKey(object listenKey, object parameters = null)
+    public async virtual Task keepAliveListenKey(object listenKey, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((listenKey == null))

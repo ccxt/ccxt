@@ -986,7 +986,7 @@ public partial class lbank : ccxt.lbank
         ((WebSocketClient)client).reject(error);
     }
 
-    public async virtual Task<object> handlePing(WebSocketClient client, object message)
+    public async virtual Task handlePing(WebSocketClient client, object message)
     {
         //
         //  { ping: 'a13a939c-5f25-4e06-9981-93cb3b890707', action: 'ping' }

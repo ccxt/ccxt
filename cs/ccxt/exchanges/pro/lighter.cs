@@ -1795,7 +1795,7 @@ public partial class lighter : ccxt.lighter
         this.spawn(this.pong, new object[] { client, message});
     }
 
-    public async virtual Task<object> pong(WebSocketClient client, object message)
+    public async virtual Task pong(WebSocketClient client, object message)
     {
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "pong" },

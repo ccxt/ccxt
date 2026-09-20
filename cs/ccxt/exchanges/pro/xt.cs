@@ -860,7 +860,7 @@ public partial class xt : ccxt.xt
         }
     }
 
-    public async virtual Task<object> loadPositionsSnapshot(WebSocketClient client, object messageHash)
+    public async virtual Task loadPositionsSnapshot(WebSocketClient client, object messageHash)
     {
         object positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions());
         this.positions = new ArrayCacheBySymbolBySide();
