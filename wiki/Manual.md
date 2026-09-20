@@ -658,7 +658,7 @@ Here's an overview of generic exchange properties with values added for example:
     },
     'timeout':           10000,          // number in milliseconds
     'rateLimit':         2000,           // number in milliseconds
-    'userAgent':        'ccxt/1.1.1 ...' // string, HTTP User-Agent header
+    'userAgent':       'ccxt/1.1.1 ...', // string, HTTP User-Agent header
     'verbose':           false,          // boolean, output error details
     'markets':          { ... },         // dictionary of markets/pairs by symbol
     'symbols':          [ ... ],         // sorted list of string symbols (traded pairs)
@@ -666,7 +666,7 @@ Here's an overview of generic exchange properties with values added for example:
     'markets_by_id':    { ... },         // dictionary of array of dictionaries (markets) by id
     'currencies_by_id': { ... },         // dictionary of dictionaries (markets) by id
     'apiKey':   '92560ffae9b8a0421...',  // string public apiKey (ASCII, hex, Base64, ...)
-    'secret':   '9aHjPmW+EtRRKN/Oi...'   // string private secret key
+    'secret':   '9aHjPmW+EtRRKN/Oi...',  // string private secret key
     'password': '6kszf4aci8r',           // string password
     'uid':      '123456',                // string user id
     'options':          { ... },         // exchange-specific options
