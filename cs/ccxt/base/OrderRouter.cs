@@ -3416,7 +3416,9 @@ public class OrderRouter
     public bool IsOutcomeUnknownError(string errorCode)
     {
         return errorCode == "RequestTimeout" || errorCode == "ExchangeNotAvailable"
-            || errorCode == "NetworkError" || errorCode == "OnMaintenance";
+            || errorCode == "NetworkError" || errorCode == "OnMaintenance"
+            || errorCode == "OperationFailed" || errorCode == "BadResponse"
+            || errorCode == "NullResponse";
     }
 
     /// <summary>

@@ -2402,7 +2402,7 @@ impl OrderRouter {
     /// Reports whether a thrown error leaves a placement's outcome genuinely
     /// unknown.
     fn is_outcome_unknown_error(&self, error: &ExchangeError) -> bool {
-        // Four names, matched exactly — the same list the other five ports use.
+        // Seven names, matched exactly — the same list the other five ports use.
         //
         // NOT `error.is("NetworkError")`: that walks the hierarchy, and in
         // ccxt's tree DDoSProtection, RateLimitExceeded and InvalidNonce are
@@ -2411,9 +2411,23 @@ impl OrderRouter {
         // walk reported every throttled request as a possibly-live order,
         // halting a route the other five ports complete and sending an
         // operator hunting for an order that never existed.
+        //
+        // OperationFailed, BadResponse and NullResponse are the other
+        // direction of the same mistake: the call came back with NO usable
+        // answer, so an order may well be live. binance maps -1006 — "An
+        // unexpected response was received from the message bus. Execution
+        // status unknown." — to OperationFailed on one endpoint and
+        // BadResponse on another, and both were read as a definite rejection
+        // and RETRIED under retryFailedSteps.
         matches!(
             error.kind.as_str(),
-            "RequestTimeout" | "ExchangeNotAvailable" | "NetworkError" | "OnMaintenance"
+            "RequestTimeout"
+                | "ExchangeNotAvailable"
+                | "NetworkError"
+                | "OnMaintenance"
+                | "OperationFailed"
+                | "BadResponse"
+                | "NullResponse"
         )
     }
 

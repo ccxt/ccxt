@@ -2803,10 +2803,14 @@ class OrderRouter {
     }
 
     public function isOutcomeUnknownError($errorCode) {
-        // ccxt's NetworkError family: the request failed in a way that does not tell us whether
-        // the venue processed it. Everything else in the hierarchy is the venue ANSWERING.
+        // Names matched exactly. IN: the call came back without an answer, so an order may be
+        // live — binance maps -1006 "Execution status unknown" to OperationFailed on one endpoint
+        // and BadResponse on another, and both were previously retried under retryFailedSteps.
+        // OUT: DDoSProtection, RateLimitExceeded, InvalidNonce are the venue ANSWERING.
         return $errorCode === 'RequestTimeout' || $errorCode === 'ExchangeNotAvailable'
-            || $errorCode === 'NetworkError' || $errorCode === 'OnMaintenance';
+            || $errorCode === 'NetworkError' || $errorCode === 'OnMaintenance'
+            || $errorCode === 'OperationFailed' || $errorCode === 'BadResponse'
+            || $errorCode === 'NullResponse';
     }
 
     public function recordUnconfirmedPlacement(&$report, $exchangeId, $symbol, $reason) {

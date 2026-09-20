@@ -2681,12 +2681,16 @@ func routerNoteUnconfirmed(sink *orderRouterSink, result map[string]any, exchang
 }
 
 // routerIsOutcomeUnknownError reports whether an error leaves a placement's outcome unknown.
-// ccxt's NetworkError family means the request failed without telling us whether the venue
-// processed it; everything else is the venue ANSWERING. Matched by class name so the six ports
-// agree without depending on each language's type-assertion mechanics.
+// Matched by class name so the six ports agree without depending on each language's
+// type-assertion mechanics. IN: the call came back without an answer, so an order may be live —
+// binance maps -1006 "Execution status unknown" to OperationFailed on one endpoint and
+// BadResponse on another, and both were previously retried under retryFailedSteps.
+// OUT: DDoSProtection, RateLimitExceeded, InvalidNonce are the venue ANSWERING.
 func routerIsOutcomeUnknownError(errorCode string) bool {
 	return errorCode == "RequestTimeout" || errorCode == "ExchangeNotAvailable" ||
-		errorCode == "NetworkError" || errorCode == "OnMaintenance"
+		errorCode == "NetworkError" || errorCode == "OnMaintenance" ||
+		errorCode == "OperationFailed" || errorCode == "BadResponse" ||
+		errorCode == "NullResponse"
 }
 
 // placeStepInner does the work of one order and fills in result on success.

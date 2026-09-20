@@ -3115,14 +3115,28 @@ class OrderRouter {
      * @returns {bool} true when the request may or may not have reached the venue
      */
     isOutcomeUnknownError (errorCode: string): boolean {
-        //  ccxt's NetworkError family: the request failed in a way that does not tell us whether
-        //  the venue processed it. Everything else in the hierarchy is the venue ANSWERING, which
-        //  means no order exists. Matched by class name so the six ports agree without depending
-        //  on each language's instanceof/isa mechanics.
+        //  Names matched exactly, so the six ports agree without depending on each language's
+        //  instanceof/isa mechanics. The list is NOT the whole OperationFailed subtree, and the
+        //  exclusions are as deliberate as the inclusions.
+        //
+        //  IN: the call came back without an answer, so an order may be live. binance maps
+        //  -1006 — literally "An unexpected response was received from the message bus.
+        //  Execution status unknown." — to OperationFailed on one endpoint and BadResponse on
+        //  another. Both were previously read as "the venue said no" and RETRIED under
+        //  retryFailedSteps, which is the double-fill this class exists to prevent.
+        //
+        //  OUT: DDoSProtection, RateLimitExceeded, InvalidNonce. Those are the venue ANSWERING —
+        //  a throttled request is a definite "no order was placed" — and marking them unknown
+        //  halts a route the other ports complete and sends an operator hunting for an order
+        //  that never existed. That was measured once already; do not widen this to a subtree
+        //  walk without re-measuring it.
         return errorCode === 'RequestTimeout'
             || errorCode === 'ExchangeNotAvailable'
             || errorCode === 'NetworkError'
-            || errorCode === 'OnMaintenance';
+            || errorCode === 'OnMaintenance'
+            || errorCode === 'OperationFailed'
+            || errorCode === 'BadResponse'
+            || errorCode === 'NullResponse';
     }
 
     /**

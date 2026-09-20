@@ -27,7 +27,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { test } from 'node:test';
 import OrderRouter from '../../base/OrderRouter.js';
-import { BadRequest, ExchangeError, NotSupported, ArgumentsRequired, RequestTimeout } from '../../base/errors.js';
+import { BadRequest, ExchangeError, NotSupported, ArgumentsRequired, RequestTimeout, OperationFailed, BadResponse } from '../../base/errors.js';
 
 const here = path.dirname (fileURLToPath (import.meta.url));
 //  The fixture lives in the TypeScript tree and is read from there by all six
@@ -539,6 +539,9 @@ class StubVenue {
     createdStatus: string;
     //  createOrder throws a NETWORK error: the order may or may not have reached the venue
     timeoutCreate: boolean;
+    //  createOrder throws exactly this error, so a test can name the ccxt class a real
+    //  venue would raise (binance maps -1006 "Execution status unknown" to OperationFailed)
+    createErrorToThrow: any;
     //  answers createOrder WITHOUT filled/average/cost, as several real venues do
     omitFillFields: boolean;
     //  {cost, currency} attached to the created order, as real venues do
@@ -567,6 +570,7 @@ class StubVenue {
         this.cancelThrows = false;
         this.createdStatus = '';
         this.timeoutCreate = false;
+        this.createErrorToThrow = undefined;
         this.omitFillFields = false;
         this.feeToCharge = undefined;
         this.tradeFeesToCharge = [];
@@ -624,6 +628,9 @@ class StubVenue {
         this.inFlight = this.inFlight - 1;
         if (this.timeoutCreate) {
             throw new RequestTimeout ('stub timed out');
+        }
+        if (this.createErrorToThrow !== undefined) {
+            throw this.createErrorToThrow;
         }
         if (this.failCreateTimes > 0) {
             this.failCreateTimes = this.failCreateTimes - 1;
@@ -1810,6 +1817,79 @@ test ('two legs of one hop combine their shortfalls instead of compounding them'
     assert.ok (Math.abs (steps[2]['amount'] - truth) < 1e-9, 'next hop sized to ' + steps[2]['amount'].toString () + ', should be ' + truth.toString ());
 });
 
+test ('a limit buy reserves more than the plan says it costs, by exactly the slippage', async () => {
+    //  CHARACTERISATION of a funding gap that is arithmetic, not chance.
+    //
+    //  A buy's limit sits ABOVE the expected price — that is the point of slippage — but the
+    //  amount is not reduced and notionalQuote is still priced at expectedPrice. An exchange
+    //  that reserves against the LIMIT price therefore holds amount x limitPrice, which is
+    //  notionalQuote x (1 + slippage). At the 25 bps default, a route sized to spend exactly
+    //  the 100 USDT you hold submits an order reserving 100.25, and the venue rejects it for
+    //  insufficient funds even though the market never moved.
+    //
+    //  The notional CAP is not affected: checkExecutionPlanSafety already prices the cap at
+    //  the worst of expected and limit. What is unguarded is FUNDING — the caller's balance
+    //  on hop 0, and the previous hop's output on every hop after it.
+    const plan = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 1, 100), {});
+    const step = plan['steps'][0];
+    const declared = step['notionalQuote'];
+    const reserved = step['amount'] * step['limitPrice'];
+    assert.ok (Math.abs (declared - 100) < 1e-9, 'the plan declares the expected cost: ' + declared.toString ());
+    assert.ok (Math.abs (reserved - 100.25) < 1e-9,
+        'a venue reserving at the limit price holds 100.25 for a 100 order; got ' + reserved.toString ());
+    assert.ok (reserved > declared, 'the gap is the slippage, and nothing in the plan funds it');
+    //  and it scales with the setting, so a wider slippage widens the shortfall
+    const wider = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 1, 100), { 'slippageBps': 100 });
+    const widerStep = wider['steps'][0];
+    assert.ok (Math.abs (widerStep['amount'] * widerStep['limitPrice'] - 101) < 1e-9,
+        '100 bps reserves 101 against a declared 100');
+    //  the SELL side is safe: its limit sits below, so it can only ever receive less, never
+    //  need more funding than the asset it is already holding to sell
+    const sellPlan = router.buildExecutionPlan (oneLegRoute ('sell', 'BTC', 'USDT', 1, 100), {});
+    const sellStep = sellPlan['steps'][0];
+    assert.ok (sellStep['limitPrice'] < sellStep['expectedPrice'], 'a sell limit sits below expected');
+});
+
+test ('a split hop pools its venues: reconciliation scales on the HOP total, not per wallet', async () => {
+    //  CHARACTERISATION, and a hazard worth naming rather than discovering in production.
+    //
+    //  Reconciliation computes one scale from the hop TOTAL and applies it to every downstream
+    //  step. Venue A filling 98 and venue B filling 100 averages to 99, so a downstream order on
+    //  A is sized at 99 against the 98 that actually landed there. Exchanges do not share a
+    //  wallet, so on a real venue that is an insufficient-funds rejection — and a 1% hop-wide
+    //  miss clears the 2% default tolerance, so nothing halts first.
+    //
+    //  This is NOT fixable in reconciliation alone, and the fixture proves why: the router's own
+    //  splitMultiHop route sells DOGE across mexc AND gate, then buys SOL on mexc with the whole
+    //  44.43 USDT — of which only ~26.7 was ever produced on mexc. The PLAN already assumes the
+    //  bridge asset is fungible across venues. Scaling per-venue here would contradict how the
+    //  plan was sized and would resize that fixture's order against a fraction of its funding.
+    //
+    //  So the pooled scale is internally consistent, and the exposure is real. Closing it means
+    //  either a per-venue funding check at plan time (checkExecutionPlanSafety), or routes whose
+    //  hops are funded per venue — a design decision, not a patch. Until then, callers who hold
+    //  balances per venue should use fetchRouteWithBalances with balanceMode 'require'.
+    const steps = [
+        { 'stepIndex': 0, 'hopIndex': 0, 'legIndex': 0, 'exchangeId': 'venueA', 'amount': 1, 'expectedPrice': 100, 'side': 'sell', 'base': 'BTC', 'quote': 'USDT' },
+        { 'stepIndex': 1, 'hopIndex': 0, 'legIndex': 1, 'exchangeId': 'venueB', 'amount': 1, 'expectedPrice': 100, 'side': 'sell', 'base': 'BTC', 'quote': 'USDT' },
+        { 'stepIndex': 2, 'hopIndex': 1, 'legIndex': 0, 'exchangeId': 'venueA', 'amount': 100, 'expectedPrice': 1, 'side': 'buy', 'base': 'ETH', 'quote': 'USDT' },
+    ];
+    //  the DEFAULT tolerance, because the point is that nothing stops this in normal use
+    const plan = { 'steps': steps };
+    const first = router.reconcileExecutionStep (plan, 0, 98);
+    router.applyResize (steps, first);
+    const second = router.reconcileExecutionStep (plan, 1, 100);
+    router.applyResize (steps, second);
+    assert.ok (Math.abs (steps[2]['amount'] - 99) < 1e-9,
+        'today the downstream order is sized at the hop mean of 99, not venueA\'s own 98; '
+        + 'if this number changes, the pooling assumption changed with it — got '
+        + steps[2]['amount'].toString ());
+    //  and nothing halts: venueA's 2% miss sits exactly ON the default tolerance, so the route
+    //  proceeds and the insufficient-funds rejection arrives later, with capital already converted
+    assert.strictEqual (first['verdict'], 'proceed', 'the route is waved onward');
+    assert.strictEqual (second['verdict'], 'proceed');
+});
+
 test ('a single-leg hop reconciles exactly as it did before', async () => {
     //  The combined-scale change must be arithmetically inert when there is nothing to combine,
     //  which is every case the shared fixture covers.
@@ -2255,4 +2335,38 @@ test ('retryFailedSteps re-places a rejected step as a fresh order, and never re
     assert.strictEqual (second['steps'][0]['status'], 'outcome_unknown');
     assert.strictEqual (unknown.calls.length, 1,
         'an order whose outcome is unknown may already be live; it is never re-placed');
+});
+
+test ('an ambiguous venue error is never retried, whatever its ccxt class', async () => {
+    //  The retry gate asks isOutcomeUnknownError, which matched four class names by
+    //  string. ccxt's ambiguity is not four names, it is a SUBTREE: everything under
+    //  OperationFailed failed without the venue answering. binance maps -1006 —
+    //  literally "An unexpected response was received from the message bus. Execution
+    //  status unknown." — to OperationFailed, and another of its endpoints maps the
+    //  same code to BadResponse. Both mean the order may already be live, so retrying
+    //  either is the double-fill this class exists to prevent.
+    const ambiguous = [
+        new OperationFailed ('binance -1006: execution status unknown'),
+        new BadResponse ('binance -1006: unexpected response from the message bus'),
+        new BadResponse ('null response'),
+    ];
+    for (let i = 0; i < ambiguous.length; i++) {
+        const err = ambiguous[i];
+        const name = err.constructor.name;
+        const venue = new StubVenue ('stub');
+        venue.createErrorToThrow = err;
+        const plan = router.buildExecutionPlan ({ ...oneLegRoute ('buy', 'BTC', 'USDT', 0.2, 100), 'requestId': 'ambiguous-' + i.toString () }, {});
+        const report = await router.execute (plan, { 'stub': venue }, {
+            'strategy': 'sequential', 'live': true, 'usdRates': { 'USDT': 1 },
+            'retryFailedSteps': 5, 'retryDelayMs': 0,
+        });
+        assert.strictEqual (venue.calls.length, 1,
+            name + ' may already be a live position: it must be placed exactly once, never retried');
+        assert.strictEqual (report['steps'][0]['status'], 'outcome_unknown',
+            name + ' leaves the outcome unknown, not definitively failed');
+        assert.strictEqual (report['haltReason'], 'outcome_unknown',
+            name + ' halts the route naming the ambiguity');
+        assert.ok (report['openOrders'].length >= 1,
+            name + ' must leave an openOrders entry for an operator to reconcile');
+    }
 });
