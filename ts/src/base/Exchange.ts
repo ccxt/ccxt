@@ -1709,7 +1709,7 @@ export class BaseExchange {
         return new CountedOrderBook (snapshot, depth);
     }
 
-    handleMessage (client: Client, message: any) {} // stub to override
+    handleMessage (client: any, message: any) {} // stub to override
 
     // ping (client: Client) {} // stub to override
 
@@ -1952,18 +1952,18 @@ export class BaseExchange {
         return future;
     }
 
-    onConnected (client: Client, message: any = undefined) {
+    onConnected (client: any, message: any = undefined) {
         // for user hooks
         // console.log ('Connected to', client.url)
     }
 
-    onError (client: Client, error: any) {
+    onError (client: any, error: any) {
         if ((client.url in this.clients) && (this.clients[client.url].error !== undefined)) {
             delete this.clients[client.url];
         }
     }
 
-    onClose (client: Client, error: any) {
+    onClose (client: any, error: any) {
         if (client.error !== undefined) {
             // connection closed due to an error, do nothing
         } else {
@@ -3529,7 +3529,7 @@ export class BaseExchange {
         return address;
     }
 
-    findMessageHashes (client: Client, element: string): string[] {
+    findMessageHashes (client: any, element: string): string[] {
         const result: string[] = [];
         const messageHashes = Object.keys (client.futures);
         for (let i = 0; i < messageHashes.length; i++) {
@@ -9098,7 +9098,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' unWatchBidsAsks () is not supported yet');
     }
 
-    cleanUnsubscription (client: Client, subHash: Str, unsubHash: Str, subHashIsPrefix = false) {
+    cleanUnsubscription (client: any, subHash: Str, unsubHash: Str, subHashIsPrefix = false) {
         if ((unsubHash !== undefined) && (unsubHash in client.subscriptions)) {
             delete client.subscriptions[unsubHash];
         }
@@ -9739,7 +9739,7 @@ export default class Exchange extends BaseExchange {
         throw new NotSupported (this.id + ' fetchTradesWs() is not supported yet');
     }
 
-    async loadOrderBook (client: Client, messageHash: string, symbol: string, limit: Int = undefined, params: Dict = {}): Promise<any> {
+    async loadOrderBook (client: any, messageHash: string, symbol: string, limit: Int = undefined, params = {}) {
         if (!(symbol in this.orderbooks)) {
             client.reject (new ExchangeError (this.id + ' loadOrderBook() orderbook is not initiated'), messageHash);
             return;
