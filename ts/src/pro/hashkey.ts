@@ -52,7 +52,7 @@ export default class hashkey extends hashkeyRest {
         });
     }
 
-    async wathPublic (market: Market, topic: string, messageHash: string, params: Dict = {}): Promise<any> {
+    async wathPublic (market: Market, topic: string, messageHash: string, params: Dict = {}) {
         const request: Dict = {
             'symbol': (market as Dict)['id'],
             'topic': topic,
@@ -62,7 +62,7 @@ export default class hashkey extends hashkeyRest {
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
     }
 
-    async watchPrivate (messageHash: any): Promise<any> {
+    async watchPrivate (messageHash: any) {
         const listenKey = await this.authenticate ();
         const url = this.getPrivateUrl (listenKey);
         return await this.watch (url, messageHash, undefined, messageHash);
@@ -558,7 +558,6 @@ export default class hashkey extends hashkeyRest {
         client.resolve (tradesArray, symbolSpecificMessageHash);
     }
 
-
     override parseWsTrade (trade: any, market: Market = undefined): Trade {
         //
         // watchTrades
@@ -771,7 +770,7 @@ export default class hashkey extends hashkeyRest {
         // without this comment, transpilation breaks for some reason...
     }
 
-    async loadBalanceSnapshot (client: Client, messageHash: string, type: string): Promise<any> {
+    async loadBalanceSnapshot (client: Client, messageHash: string, type: string) {
         const response = await this.fetchBalance ({ 'type': type });
         this.balance[type] = this.extend (response, this.safeDict (this.balance, type, {}));
         // don't remove the future from the .futures cache
@@ -878,7 +877,7 @@ export default class hashkey extends hashkeyRest {
         return listenKey;
     }
 
-    async keepAliveListenKey (listenKey: Str, params: Dict = {}): Promise<any> {
+    async keepAliveListenKey (listenKey: Str, params: Dict = {}) {
         if (listenKey === undefined) {
             return;
         }

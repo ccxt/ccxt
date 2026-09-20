@@ -244,7 +244,7 @@ export default class apex extends apexRest {
         return orderbook.limit ();
     }
 
-    async watchTopics (url: string, messageHashes: string[], topics: string[], params: Dict = {}): Promise<any> {
+    async watchTopics (url: string, messageHashes: string[], topics: string[], params: Dict = {}) {
         // apex's server rejects a subscribe whose args include any
         // already-subscribed topic ("topic:already subscribed ..."). Since the
         // connection is now reused across watch* calls, filter to only the
@@ -803,7 +803,7 @@ export default class apex extends apexRest {
         }
     }
 
-    async loadPositionsSnapshot (client: Client, messageHash: string): Promise<any> {
+    async loadPositionsSnapshot (client: Client, messageHash: string) {
         // as only one ws channel gives positions for all types, for snapshot must load all positions
         const fetchFunctions = [
             this.fetchPositions (),
@@ -888,7 +888,7 @@ export default class apex extends apexRest {
         client.resolve (newPositions, 'positions');
     }
 
-    async authenticate (url: string, params: Dict = {}): Promise<any> {
+    async authenticate (url: string, params: Dict = {}) {
         this.checkRequiredCredentials ();
         const timestamp = this.milliseconds ().toString ();
         const request_path = '/ws/accounts';
@@ -1064,7 +1064,7 @@ export default class apex extends apexRest {
         };
     }
 
-    async pong (client: Client, message: Dict): Promise<any> {
+    async pong (client: Client, message: Dict) {
         //
         //     {"op": "ping", "args": ["1761069137485"]}
         //

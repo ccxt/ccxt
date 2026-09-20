@@ -632,7 +632,7 @@ export default class delta extends Exchange {
         });
     }
 
-    override async loadMarkets (reload: any = false, params: Dict = {}) {
+    override async loadMarkets (reload = false, params = {}) {
         const markets = await super.loadMarkets (reload, params);
         const currenciesByNumericId = this.safeDict (this.options, 'currenciesByNumericId');
         if ((currenciesByNumericId === undefined) || reload) {
@@ -2805,7 +2805,6 @@ export default class delta extends Exchange {
         const rates = this.safeList (response, 'result', []);
         return this.parseFundingRates (rates, symbols);
     }
-
 
     override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //

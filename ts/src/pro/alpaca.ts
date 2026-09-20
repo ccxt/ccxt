@@ -621,7 +621,7 @@ export default class alpaca extends alpacaRest {
         }, market);
     }
 
-    async authenticate (url: string, params: Dict = {}): Promise<any> {
+    async authenticate (url: string, params: Dict = {}) {
         this.checkRequiredCredentials ();
         const messageHash = 'authenticated';
         const client = this.client (url);

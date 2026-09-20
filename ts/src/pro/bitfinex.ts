@@ -49,7 +49,7 @@ export default class bitfinex extends bitfinexRest {
         });
     }
 
-    async subscribe (channel: any, symbol: any, params: Dict = {}): Promise<any> {
+    async subscribe (channel: any, symbol: any, params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -78,7 +78,7 @@ export default class bitfinex extends bitfinexRest {
         return result;
     }
 
-    async unSubscribe (channel: any, topic: any, symbol: any, params: Dict = {}): Promise<any> {
+    async unSubscribe (channel: any, topic: any, symbol: any, params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -106,7 +106,7 @@ export default class bitfinex extends bitfinexRest {
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash, subscription);
     }
 
-    async subscribePrivate (messageHash: any): Promise<any> {
+    async subscribePrivate (messageHash: any) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -159,7 +159,7 @@ export default class bitfinex extends bitfinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {bool} true if successfully unsubscribed, false otherwise
      */
-    override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params: Dict = {}): Promise<any> {
+    override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -298,7 +298,7 @@ export default class bitfinex extends bitfinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override unWatchTrades (symbol: string, params: Dict = {}): Promise<any> {
+    override unWatchTrades (symbol: string, params = {}): Promise<any> {
         return this.unSubscribe ('trades', 'trades', symbol, params);
     }
 
@@ -348,7 +348,7 @@ export default class bitfinex extends bitfinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override unWatchTicker (symbol: string, params: Dict = {}): Promise<any> {
+    override unWatchTicker (symbol: string, params = {}): Promise<any> {
         return this.unSubscribe ('ticker', 'ticker', symbol, params);
     }
 
@@ -460,7 +460,6 @@ export default class bitfinex extends bitfinexRest {
         }
         client.resolve (stored, messageHash);
     }
-
 
     override parseWsTrade (trade: any, market: Market = undefined) {
         //
@@ -1028,7 +1027,7 @@ export default class bitfinex extends bitfinexRest {
         return message;
     }
 
-    async authenticate (params: Dict = {}): Promise<any> {
+    async authenticate (params: Dict = {}) {
         const url = this.urls['api']['ws']['private'];
         const client = this.client (url);
         const messageHash = 'authenticated';

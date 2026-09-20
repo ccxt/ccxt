@@ -9209,7 +9209,6 @@ export default class bitget extends Exchange {
         return await this.fetchFundingRates (symbols, params);
     }
 
-
     override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //
         // fetchFundingRate: publicMixGetV2MixMarketCurrentFundRate, publicUtaGetV3MarketCurrentFundRate

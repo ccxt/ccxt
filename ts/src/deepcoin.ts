@@ -2841,7 +2841,6 @@ export default class deepcoin extends Exchange {
         return this.parseFundingRate (entry, market);
     }
 
-
     override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //
         //     {

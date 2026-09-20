@@ -93,7 +93,7 @@ export default class bitstamp extends bitstampRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    override async unWatchOrderBook (symbol: string, params: Dict = {}): Promise<any> {
+    override async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -115,7 +115,7 @@ export default class bitstamp extends bitstampRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    async unWatchChannel (channel: string, subHash: string, topic: string, symbols: string[], params: Dict = {}): Promise<any> {
+    async unWatchChannel (channel: string, subHash: string, topic: string, symbols: string[], params = {}): Promise<any> {
         const url = this.urls['api']['ws'];
         const unsubHash = 'unsubscribe:' + channel;
         const request: Dict = {
@@ -271,7 +271,7 @@ export default class bitstamp extends bitstampRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    override async unWatchTrades (symbol: string, params: Dict = {}): Promise<any> {
+    override async unWatchTrades (symbol: string, params = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -467,7 +467,7 @@ export default class bitstamp extends bitstampRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    override async unWatchOrders (symbol: Str = undefined, params: Dict = {}): Promise<any> {
+    override async unWatchOrders (symbol: Str = undefined, params = {}): Promise<any> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' unWatchOrders() requires a symbol argument');
         }
@@ -525,7 +525,7 @@ export default class bitstamp extends bitstampRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    override async unWatchMyTrades (symbol: Str = undefined, params: Dict = {}): Promise<any> {
+    override async unWatchMyTrades (symbol: Str = undefined, params = {}): Promise<any> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' unWatchMyTrades() requires a symbol argument');
         }
@@ -1038,7 +1038,7 @@ export default class bitstamp extends bitstampRest {
         }
     }
 
-    async subscribePrivate (subscription: Dict, messageHash: string, params: Dict = {}): Promise<any> {
+    async subscribePrivate (subscription: Dict, messageHash: string, params: Dict = {}) {
         const url = this.urls['api']['ws'];
         await this.authenticate ();
         messageHash += '-' + this.options['userId'];

@@ -461,7 +461,7 @@ export default class blockchaincom extends Exchange {
         return this.parseOrderBook (response, market['symbol'], undefined, 'bids', 'asks', 'px', 'qty');
     }
 
-    override async fetchL2OrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<any> {
+    override async fetchL2OrderBook (symbol: string, limit: Int = undefined, params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

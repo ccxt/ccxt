@@ -1176,7 +1176,6 @@ export default class derive extends Exchange {
         return this.parseFundingRate (data);
     }
 
-
     override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         const symbol = this.safeString (contract, 'symbol');
         const fundingTimestamp = this.safeInteger (contract, 'timestamp');

@@ -89,7 +89,7 @@ export default class hitbtc extends hitbtcRest {
      * @see https://api.hitbtc.com/#socket-authentication
      * @returns {object} response from exchange
      */
-    async authenticate (): Promise<any> {
+    async authenticate () {
         this.checkRequiredCredentials ();
         const url = this.urls['api']['ws']['private'];
         const messageHash = 'authenticated';
@@ -140,7 +140,7 @@ export default class hitbtc extends hitbtcRest {
      * @param {string[]} [symbols] unified CCXT symbol(s)
      * @param {object} [params] extra parameters specific to the hitbtc api
      */
-    async subscribePublic (name: string, messageHashPrefix: string, symbols: Strings = undefined, params: Dict = {}): Promise<any> {
+    async subscribePublic (name: string, messageHashPrefix: string, symbols: Strings = undefined, params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -171,7 +171,7 @@ export default class hitbtc extends hitbtcRest {
      * @param {string} [symbol] unified CCXT symbol
      * @param {object} [params] extra parameters specific to the hitbtc api
      */
-    async subscribePrivate (name: string, symbol: Str = undefined, params: Dict = {}): Promise<any> {
+    async subscribePrivate (name: string, symbol: Str = undefined, params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -196,7 +196,7 @@ export default class hitbtc extends hitbtcRest {
      * @param {string} name websocket endpoint name
      * @param {object} [params] extra parameters specific to the hitbtc api
      */
-    async tradeRequest (name: string, params: Dict = {}): Promise<any> {
+    async tradeRequest (name: string, params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

@@ -506,7 +506,7 @@ export default class mexc extends mexcRest {
         }, market);
     }
 
-    async watchSpotPublic (channel: string, messageHash: string, params: Dict = {}): Promise<any> {
+    async watchSpotPublic (channel: string, messageHash: string, params: Dict = {}) {
         const unsubscribed = this.safeBool (params, 'unsubscribed', false);
         params = this.omit (params, [ 'unsubscribed' ]);
         const url = this.urls['api']['ws']['spot'];
@@ -518,7 +518,7 @@ export default class mexc extends mexcRest {
         return await this.watch (url, messageHash, this.extend (request, params), messageHash);
     }
 
-    async watchSpotPrivate (channel: string, messageHash: string, params: Dict = {}): Promise<any> {
+    async watchSpotPrivate (channel: string, messageHash: string, params: Dict = {}) {
         this.checkRequiredCredentials ();
         const listenKey = await this.authenticate (channel);
         const url = this.urls['api']['ws']['spot'] + '?listenKey=' + listenKey;
@@ -529,7 +529,7 @@ export default class mexc extends mexcRest {
         return await this.watch (url, messageHash, this.extend (request, params), channel);
     }
 
-    async watchSwapPublic (channel: string, messageHash: string, requestParams: Dict, params: Dict = {}): Promise<any> {
+    async watchSwapPublic (channel: string, messageHash: string, requestParams: Dict, params: Dict = {}) {
         const url = this.urls['api']['ws']['swap'];
         const request: Dict = {
             'method': channel,
@@ -539,7 +539,7 @@ export default class mexc extends mexcRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    async watchSwapPrivate (messageHash: string, params: Dict = {}): Promise<any> {
+    async watchSwapPrivate (messageHash: string, params: Dict = {}) {
         this.checkRequiredCredentials ();
         const channel = 'login';
         const url = this.urls['api']['ws']['swap'];
@@ -1186,7 +1186,6 @@ export default class mexc extends mexcRest {
         client.resolve (trades, symbolSpecificMessageHash);
     }
 
-
     override parseWsTrade (trade: any, market: Market = undefined) {
         //
         // public trade (protobuf)
@@ -1412,7 +1411,6 @@ export default class mexc extends mexcRest {
         const symbolSpecificMessageHash = messageHash + ':' + symbol;
         client.resolve (orders, symbolSpecificMessageHash);
     }
-
 
     override parseWsOrder (order: any, market: Market = undefined) {
         //
@@ -1760,7 +1758,7 @@ export default class mexc extends mexcRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async unWatchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
+    override async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1823,7 +1821,7 @@ export default class mexc extends mexcRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async unWatchBidsAsks (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
+    override async unWatchBidsAsks (symbols: Strings = undefined, params = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2019,7 +2017,7 @@ export default class mexc extends mexcRest {
         }
     }
 
-    async authenticate (subscriptionHash: Str, params: Dict = {}): Promise<any> {
+    async authenticate (subscriptionHash: Str, params: Dict = {}) {
         // we only need one listenKey since ccxt shares connections
         let listenKey = this.safeString (this.options, 'listenKey');
         if (listenKey !== undefined) {
@@ -2060,7 +2058,7 @@ export default class mexc extends mexcRest {
         return listenKey;
     }
 
-    async keepAliveListenKey (listenKey: Str, params: Dict = {}): Promise<any> {
+    async keepAliveListenKey (listenKey: Str, params: Dict = {}) {
         if (listenKey === undefined) {
             return;
         }

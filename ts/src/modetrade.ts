@@ -883,7 +883,6 @@ export default class modetrade extends Exchange {
         return this.parseTrades (rows, market, since, limit);
     }
 
-
     override parseFundingRate (fundingRate: any, market: Market = undefined): FundingRate {
         //
         //         {
@@ -2414,7 +2413,7 @@ export default class modetrade extends Exchange {
         return this.parseBalance (data);
     }
 
-    async getAssetHistoryRows (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<any> {
+    async getAssetHistoryRows (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

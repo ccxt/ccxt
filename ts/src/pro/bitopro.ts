@@ -49,7 +49,7 @@ export default class bitopro extends bitoproRest {
         });
     }
 
-    async watchPublic (path: string, messageHash: string, marketId: Str): Promise<any> {
+    async watchPublic (path: string, messageHash: string, marketId: Str) {
         const url = this.urls['ws']['public'] + '/' + path + '/' + marketId;
         return await this.watch (url, messageHash, undefined, messageHash);
     }

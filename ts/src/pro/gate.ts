@@ -471,7 +471,7 @@ export default class gate extends gateRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async unWatchOrderBook (symbol: string, params: Dict = {}): Promise<any> {
+    override async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -950,7 +950,7 @@ export default class gate extends gateRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async unWatchTradesForSymbols (symbols: string[], params: Dict = {}): Promise<any> {
+    override async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -978,7 +978,7 @@ export default class gate extends gateRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override unWatchTrades (symbol: string, params: Dict = {}): Promise<any> {
+    override unWatchTrades (symbol: string, params = {}): Promise<any> {
         return this.unWatchTradesForSymbols ([ symbol ], params);
     }
 
@@ -2233,7 +2233,7 @@ export default class gate extends gateRest {
         return reqid;
     }
 
-    async subscribePublic (url: Str, messageHash: string, payload: any[], channel: Str, params: Dict = {}, subscription: Dict | undefined = undefined): Promise<any> {
+    async subscribePublic (url: Str, messageHash: string, payload: any[], channel: Str, params: Dict = {}, subscription: Dict | undefined = undefined) {
         const requestId = this.requestId ();
         const time = this.seconds ();
         const request: Dict = {
@@ -2254,7 +2254,7 @@ export default class gate extends gateRest {
         return await this.watch (url, messageHash, message, messageHash, subscription);
     }
 
-    async subscribePublicMultiple (url: Str, messageHashes: string[], payload: any[], channel: Str, params: Dict = {}): Promise<any> {
+    async subscribePublicMultiple (url: Str, messageHashes: string[], payload: any[], channel: Str, params: Dict = {}) {
         const requestId = this.requestId ();
         const time = this.seconds ();
         const request: Dict = {
@@ -2268,7 +2268,7 @@ export default class gate extends gateRest {
         return await this.watchMultiple (url, messageHashes, message, messageHashes);
     }
 
-    async unSubscribePublicMultiple (url: Str, topic: string, symbols: string[], messageHashes: string[], subMessageHashes: string[], payload: any, channel: Str, params: Dict = {}): Promise<any> {
+    async unSubscribePublicMultiple (url: Str, topic: string, symbols: string[], messageHashes: string[], subMessageHashes: string[], payload: any, channel: Str, params: Dict = {}) {
         const requestId = this.requestId ();
         const time = this.seconds ();
         const request: Dict = {
@@ -2290,7 +2290,7 @@ export default class gate extends gateRest {
         return await this.watchMultiple (url, messageHashes, message, messageHashes, sub);
     }
 
-    async authenticate (url: Str, messageType: Str): Promise<any> {
+    async authenticate (url: Str, messageType: Str) {
         const channel = messageType + '.login';
         const client = this.client (url);
         const messageHash = 'authenticated';
@@ -2308,7 +2308,7 @@ export default class gate extends gateRest {
         future.resolve (true);
     }
 
-    async requestPrivate (url: Str, reqParams: Dict, channel: Str, requestId: Str = undefined): Promise<any> {
+    async requestPrivate (url: Str, reqParams: Dict, channel: Str, requestId: Str = undefined) {
         this.checkRequiredCredentials ();
         // uid is required for some subscriptions only so it's not a part of required credentials
         const event = 'api';
@@ -2343,7 +2343,7 @@ export default class gate extends gateRest {
         return await this.watch (url, messageHash, request, messageHash, requestId);
     }
 
-    async subscribePrivate (url: Str, messageHash: string, payload: any, channel: Str, params: Dict, requiresUid: Bool = false): Promise<any> {
+    async subscribePrivate (url: Str, messageHash: string, payload: any, channel: Str, params: Dict, requiresUid: Bool = false) {
         this.checkRequiredCredentials ();
         // uid is required for some subscriptions only so it's not a part of required credentials
         if (requiresUid) {

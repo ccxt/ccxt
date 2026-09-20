@@ -1072,7 +1072,6 @@ export default class bydfi extends Exchange {
         return this.parseFundingRate (data, market);
     }
 
-
     override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //
         //     {

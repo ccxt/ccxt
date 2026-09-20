@@ -351,7 +351,7 @@ export default class extended extends Exchange {
         });
     }
 
-    override async loadMarkets (reload: any = false, params: Dict = {}) {
+    override async loadMarkets (reload = false, params = {}) {
         const markets = await super.loadMarkets (reload, params);
         const currenciesByNumericId = this.safeDict (this.options, 'currenciesByNumericId');
         if ((currenciesByNumericId === undefined) || reload) {
@@ -2507,7 +2507,7 @@ export default class extended extends Exchange {
         return result;
     }
 
-    async fetchExtendedAccount (params: Dict = {}): Promise<any> {
+    async fetchExtendedAccount (params = {}): Promise<any> {
         let account = this.safeDict (this.options, 'account');
         if (account !== undefined) {
             return account;

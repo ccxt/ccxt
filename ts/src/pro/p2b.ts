@@ -71,7 +71,7 @@ export default class p2b extends p2bRest {
      * @param {object} [params] extra parameters specific to the p2b api
      * @returns {object} data from the websocket stream
      */
-    async subscribe (name: string, messageHash: string, request: any[], params: Dict = {}): Promise<any> {
+    async subscribe (name: string, messageHash: string, request: any[], params: Dict = {}) {
         const url = this.urls['api']['ws'];
         const subscribe: Dict = {
             'method': name,

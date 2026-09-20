@@ -456,7 +456,7 @@ export default class hollaex extends hollaexRest {
         client.resolve (this.balance, messageHash);
     }
 
-    async watchPublic (messageHash: string, params: Dict = {}): Promise<any> {
+    async watchPublic (messageHash: string, params: Dict = {}) {
         const url = this.urls['api']['ws'];
         const request: Dict = {
             'op': 'subscribe',
@@ -466,7 +466,7 @@ export default class hollaex extends hollaexRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    async watchPrivate (messageHash: string, params: Dict = {}): Promise<any> {
+    async watchPrivate (messageHash: string, params: Dict = {}) {
         this.checkRequiredCredentials ();
         let expires = this.safeString (this.options, 'ws-expires');
         if (expires === undefined) {

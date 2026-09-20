@@ -112,7 +112,7 @@ export default class nado extends nadoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the exchange response
      */
-    override async unWatchTrades (symbol: string, params: Dict = {}): Promise<any> {
+    override async unWatchTrades (symbol: string, params = {}): Promise<any> {
         await this.loadMarkets ();
         return await this.unWatchTradesForSymbols ([ symbol ], params);
     }
@@ -160,7 +160,7 @@ export default class nado extends nadoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the exchange response
      */
-    override async unWatchTradesForSymbols (symbols: string[], params: Dict = {}): Promise<any> {
+    override async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
         await this.loadMarkets ();
         const symbolsLength = symbols.length;
         if (symbolsLength === 0) {
@@ -208,7 +208,7 @@ export default class nado extends nadoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the exchange response
      */
-    override async unWatchOrderBook (symbol: string, params: Dict = {}): Promise<any> {
+    override async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
         await this.loadMarkets ();
         return await this.unWatchOrderBookForSymbols ([ symbol ], params);
     }
@@ -256,7 +256,7 @@ export default class nado extends nadoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the exchange response
      */
-    override async unWatchOrderBookForSymbols (symbols: string[], params: Dict = {}): Promise<any> {
+    override async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
         await this.loadMarkets ();
         const symbolsLength = symbols.length;
         if (symbolsLength === 0) {
@@ -349,7 +349,7 @@ export default class nado extends nadoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the exchange response
      */
-    override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params: Dict = {}): Promise<any> {
+    override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<any> {
         await this.loadMarkets ();
         return await this.unWatchOHLCVForSymbols ([ [ symbol, timeframe ] ], params);
     }
@@ -363,7 +363,7 @@ export default class nado extends nadoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the exchange response
      */
-    override async unWatchOHLCVForSymbols (symbolsAndTimeframes: string[][], params: Dict = {}): Promise<any> {
+    override async unWatchOHLCVForSymbols (symbolsAndTimeframes: string[][], params = {}): Promise<any> {
         const symbolsLength = symbolsAndTimeframes.length;
         if (symbolsLength === 0 || !Array.isArray (symbolsAndTimeframes[0])) {
             throw new ArgumentsRequired (this.id + " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT0:USDT0', '1m'], ['ETH/USDT0:USDT0', '5m']]");
@@ -411,7 +411,7 @@ export default class nado extends nadoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the exchange response
      */
-    override async unWatchTicker (symbol: string, params: Dict = {}): Promise<any> {
+    override async unWatchTicker (symbol: string, params = {}): Promise<any> {
         await this.loadMarkets ();
         return await this.unWatchTickers ([ symbol ], params);
     }
@@ -460,7 +460,7 @@ export default class nado extends nadoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the exchange response
      */
-    override async unWatchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
+    override async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true, true, true);
         let market: Market = undefined;
@@ -521,7 +521,7 @@ export default class nado extends nadoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the exchange response
      */
-    override async unWatchBidsAsks (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
+    override async unWatchBidsAsks (symbols: Strings = undefined, params = {}): Promise<any> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true, true, true);
         let market: Market = undefined;
@@ -589,7 +589,7 @@ export default class nado extends nadoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the exchange response
      */
-    override async unWatchOrders (symbol: Str = undefined, params: Dict = {}): Promise<any> {
+    override async unWatchOrders (symbol: Str = undefined, params = {}): Promise<any> {
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
         await this.authenticate (this.extend ({}, params));
@@ -664,7 +664,7 @@ export default class nado extends nadoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the exchange response
      */
-    override async unWatchMyTrades (symbol: Str = undefined, params: Dict = {}): Promise<any> {
+    override async unWatchMyTrades (symbol: Str = undefined, params = {}): Promise<any> {
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
         await this.authenticate (this.extend ({}, params));
@@ -741,7 +741,7 @@ export default class nado extends nadoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the exchange response
      */
-    override async unWatchPositions (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
+    override async unWatchPositions (symbols: Strings = undefined, params = {}): Promise<any> {
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
         await this.authenticate (this.extend ({}, params));
@@ -981,7 +981,7 @@ export default class nado extends nadoRest {
         return result;
     }
 
-    async watchExecuteRequest (requestIdString: Str, request: Dict): Promise<any> {
+    async watchExecuteRequest (requestIdString: Str, request: Dict) {
         // the v2 gateway dispatches requests concurrently, so responses arrive
         // in completion order, not send order — every execute carries a unique
         // request id and its response is correlated by the echoed id
@@ -993,7 +993,7 @@ export default class nado extends nadoRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    async watchPublic (streamType: Str, market: Market, messageHash: string, params: Dict = {}): Promise<any> {
+    async watchPublic (streamType: Str, market: Market, messageHash: string, params: Dict = {}) {
         const url = this.urls['api']['ws']['subscriptions'];
         const stream: Dict = {
             'type': streamType,
@@ -1023,7 +1023,7 @@ export default class nado extends nadoRest {
         return await this.watch (url, messageHash);
     }
 
-    async watchPrivate (streamType: Str, stream: Dict, messageHash: string, params: Dict = {}): Promise<any> {
+    async watchPrivate (streamType: Str, stream: Dict, messageHash: string, params: Dict = {}) {
         const url = this.urls['api']['ws']['subscriptions'];
         const client = this.client (url);
         const clientSubscription = this.safeValue (client.subscriptions, messageHash);
@@ -1047,7 +1047,7 @@ export default class nado extends nadoRest {
         return await this.watch (url, messageHash);
     }
 
-    async unWatchPrivate (stream: Dict, messageHash: string, params: Dict = {}): Promise<any> {
+    async unWatchPrivate (stream: Dict, messageHash: string, params: Dict = {}) {
         const url = this.urls['api']['ws']['subscriptions'];
         const id = this.requestId ();
         const unsubscribeHash = 'unsubscribe:' + messageHash;
@@ -1068,7 +1068,7 @@ export default class nado extends nadoRest {
         return await this.watch (url, unsubscribeHash, request, unsubscribeHash, subscription);
     }
 
-    async authenticate (params: Dict = {}): Promise<any> {
+    async authenticate (params: Dict = {}) {
         this.checkRequiredCredentials ();
         const url = this.urls['api']['ws']['subscriptions'];
         const client = this.client (url);
@@ -1141,7 +1141,7 @@ export default class nado extends nadoRest {
         };
     }
 
-    async watchPublicMultiple (streamType: Str, markets: Market[], messageHashes: string[], params: Dict = {}, subscriptionParams: Dict[] | undefined = undefined): Promise<any> {
+    async watchPublicMultiple (streamType: Str, markets: Market[], messageHashes: string[], params: Dict = {}, subscriptionParams: Dict[] | undefined = undefined) {
         const url = this.urls['api']['ws']['subscriptions'];
         const client = this.client (url);
         for (let i = 0; i < messageHashes.length; i++) {
@@ -1169,7 +1169,7 @@ export default class nado extends nadoRest {
         return await this.watchMultiple (url, messageHashes, undefined, messageHashes);
     }
 
-    async unWatchPublic (streamType: Str, market: Market, messageHash: string, params: Dict = {}): Promise<any> {
+    async unWatchPublic (streamType: Str, market: Market, messageHash: string, params: Dict = {}) {
         const url = this.urls['api']['ws']['subscriptions'];
         const id = this.requestId ();
         const request = this.createPublicSubscriptionRequest ('unsubscribe', streamType, market, id, params);
@@ -1186,7 +1186,7 @@ export default class nado extends nadoRest {
         return await this.watch (url, unsubscribeHash, request, unsubscribeHash, subscription);
     }
 
-    async unWatchPublicMultiple (streamType: Str, markets: Market[], messageHashes: string[], params: Dict = {}, subscriptionParams: Dict[] | undefined = undefined): Promise<any> {
+    async unWatchPublicMultiple (streamType: Str, markets: Market[], messageHashes: string[], params: Dict = {}, subscriptionParams: Dict[] | undefined = undefined) {
         const url = this.urls['api']['ws']['subscriptions'];
         const client = this.client (url);
         const results: any[] = [];

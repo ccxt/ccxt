@@ -4498,7 +4498,6 @@ export default class mexc extends Exchange {
         return result as FundingHistory[];
     }
 
-
     override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //
         //     {

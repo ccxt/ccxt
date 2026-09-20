@@ -141,7 +141,7 @@ export default class extended extends extendedRest {
         }
     }
 
-    async watchPrivate (messageHash: string, subscription: NullableDict = undefined): Promise<any> {
+    async watchPrivate (messageHash: string, subscription: NullableDict = undefined) {
         this.checkRequiredCredentials ();
         const url = this.urls['api']['ws'] + '/account';
         if ((this.clients === undefined) || !(url in this.clients)) {

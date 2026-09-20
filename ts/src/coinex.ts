@@ -4858,7 +4858,6 @@ export default class coinex extends Exchange {
         return await this.fetchFundingRate (symbol, params);
     }
 
-
     override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //
         // fetchFundingRate, fetchFundingRates, fetchFundingInterval

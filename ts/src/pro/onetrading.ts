@@ -1205,7 +1205,6 @@ export default class onetrading extends onetradingRest {
         client.resolve (stored, channel);
     }
 
-
     override findTimeframe (timeframe: any, timeframes: any = undefined) {
         if (timeframes === undefined) {
             timeframes = this.timeframes;
@@ -1338,7 +1337,7 @@ export default class onetrading extends onetradingRest {
         return message;
     }
 
-    async watchMany (messageHash: string, request: Dict, subscriptionHash: string, symbols: Strings = [], params: Dict = {}): Promise<any> {
+    async watchMany (messageHash: string, request: Dict, subscriptionHash: string, symbols: Strings = [], params: Dict = {}) {
         let marketIds: string[] = [];
         const numSymbols = symbols.length;
         if (numSymbols === 0) {
@@ -1378,7 +1377,7 @@ export default class onetrading extends onetradingRest {
         return await this.watch (url, messageHash, this.deepExtend (request, params), subscriptionHash, subscription);
     }
 
-    async authenticate (params: Dict = {}): Promise<any> {
+    async authenticate (params: Dict = {}) {
         const url = this.urls['api']['ws'];
         const client = this.client (url);
         const messageHash = 'authenticated';

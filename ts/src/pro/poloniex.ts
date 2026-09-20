@@ -84,7 +84,7 @@ export default class poloniex extends poloniexRest {
      * @see https://api-docs.poloniex.com/spot/websocket/authentication
      * @returns {object} response from exchange
      */
-    async authenticate (params: Dict = {}): Promise<any> {
+    async authenticate (params: Dict = {}) {
         this.checkRequiredCredentials ();
         const timestamp = this.numberToString (this.milliseconds ());
         const url = this.urls['api']['ws']['private'];
@@ -144,7 +144,7 @@ export default class poloniex extends poloniexRest {
      * @param {object} [params] extra parameters specific to the poloniex api
      * @returns {object} data from the websocket stream
      */
-    async subscribe (name: string, messageHash: string, isPrivate: boolean, symbols: Strings = undefined, params: Dict = {}): Promise<any> {
+    async subscribe (name: string, messageHash: string, isPrivate: boolean, symbols: Strings = undefined, params: Dict = {}) {
         const publicOrPrivate = isPrivate ? 'private' : 'public';
         const url = this.urls['api']['ws'][publicOrPrivate];
         const subscribe: Dict = {
@@ -179,7 +179,7 @@ export default class poloniex extends poloniexRest {
      * @param {object} [params] extra parameters specific to the poloniex api
      * @returns {object} data from the websocket stream
      */
-    async tradeRequest (name: string, params: Dict = {}): Promise<any> {
+    async tradeRequest (name: string, params: Dict = {}) {
         const url = this.urls['api']['ws']['private'];
         const messageHash = this.nonce ().toString ();
         const subscribe: Dict = {
@@ -683,7 +683,6 @@ export default class poloniex extends poloniexRest {
         return message;
     }
 
-
     override parseWsTrade (trade: any, market: Market = undefined) {
         //
         // handleTrade
@@ -764,12 +763,6 @@ export default class poloniex extends poloniexRest {
         };
         return this.safeString (statuses, status, status);
     }
-
-
-
-
-
-
 
     override parseWsOrderTrade (trade: Dict, market: Market = undefined) {
         //
@@ -950,7 +943,6 @@ export default class poloniex extends poloniexRest {
         client.resolve (orders, 'orders');
         return message;
     }
-
 
     override parseWsOrder (order: any, market: Market = undefined) {
         //

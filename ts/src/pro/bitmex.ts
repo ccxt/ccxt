@@ -701,7 +701,7 @@ export default class bitmex extends bitmexRest {
         return this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
-    async authenticate (params: Dict = {}): Promise<any> {
+    async authenticate (params: Dict = {}) {
         const url = this.urls['api']['ws'];
         const client = this.client (url);
         const messageHash = 'authenticated';
@@ -1551,7 +1551,7 @@ export default class bitmex extends bitmexRest {
         }
     }
 
-    async watchHeartbeat (params: Dict = {}): Promise<any> {
+    async watchHeartbeat (params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

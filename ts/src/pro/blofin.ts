@@ -702,7 +702,7 @@ export default class blofin extends blofinRest {
         client.resolve (fundingRate, messageHash);
     }
 
-    async watchMultipleWrapper (isPublic: boolean, channelName: string, callerMethodName: string, symbolsArray: any = undefined, params: Dict = {}): Promise<any> {
+    async watchMultipleWrapper (isPublic: boolean, channelName: string, callerMethodName: string, symbolsArray: any = undefined, params: Dict = {}) {
         // underlier method for all watch-multiple symbols
         if (this.markets === undefined) {
             await this.loadMarkets ();

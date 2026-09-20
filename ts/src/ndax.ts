@@ -680,7 +680,6 @@ export default class ndax extends Exchange {
         });
     }
 
-
     override parseOrderBook (orderbook: any, symbol: any, timestamp: Int = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey:IndexType = 6, amountKey:IndexType = 8, countOrIdKey: IndexType = 2) {
         let nonce: Int = undefined;
         const result: Dict = {

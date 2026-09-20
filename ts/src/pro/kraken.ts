@@ -857,7 +857,7 @@ export default class kraken extends krakenRest {
         return message;
     }
 
-    async watchHeartbeat (params: Dict = {}): Promise<any> {
+    async watchHeartbeat (params: Dict = {}) {
         await this.loadMarkets ();
         const event = 'heartbeat';
         const url = (this.urls['api'] as Dict)['ws']['publicV2'];
@@ -1132,7 +1132,7 @@ export default class kraken extends krakenRest {
         return this.safeString (subscription, 'token');
     }
 
-    async watchPrivate (name: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<any> {
+    async watchPrivate (name: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}) {
         await this.loadMarkets ();
         const token = await this.authenticate ();
         const subscriptionHash = 'executions';
@@ -1452,7 +1452,7 @@ export default class kraken extends krakenRest {
         });
     }
 
-    async watchMultiHelper (unifiedName: string, channelName: string, symbols: Strings = undefined, subscriptionArgs: Dict | undefined = undefined, params: Dict = {}): Promise<any> {
+    async watchMultiHelper (unifiedName: string, channelName: string, symbols: Strings = undefined, subscriptionArgs: Dict | undefined = undefined, params: Dict = {}) {
         await this.loadMarkets ();
         // symbols are required
         symbols = this.marketSymbols (symbols, undefined, false, true, false);

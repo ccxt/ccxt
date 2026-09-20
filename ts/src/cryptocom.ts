@@ -3137,7 +3137,6 @@ export default class cryptocom extends Exchange {
         return this.parseFundingRate (entry, market);
     }
 
-
     override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //
         //                 {

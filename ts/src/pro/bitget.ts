@@ -166,7 +166,7 @@ export default class bitget extends bitgetRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    override unWatchTicker (symbol: string, params: Dict = {}): Promise<any> {
+    override unWatchTicker (symbol: string, params = {}): Promise<any> {
         return this.unWatchChannel (symbol, 'ticker', 'ticker', 'watchTicker', params);
     }
 
@@ -761,7 +761,7 @@ export default class bitget extends bitgetRest {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async unWatchOrderBook (symbol: string, params: Dict = {}): Promise<any> {
+    override async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -774,7 +774,7 @@ export default class bitget extends bitgetRest {
         return await this.unWatchChannel (symbol, channel, 'orderbook', 'watchOrderBook', params);
     }
 
-    async unWatchChannel (symbol: string, channel: string, messageHashTopic: string, methodName: string, params: Dict = {}): Promise<any> {
+    async unWatchChannel (symbol: string, channel: string, messageHashTopic: string, methodName: string, params = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -978,7 +978,7 @@ export default class bitget extends bitgetRest {
         client.resolve (this.orderbooks[symbol], messageHash);
     }
 
-    async handleCheckSumError (client: Client, symbol: string, messageHash: string): Promise<any> {
+    async handleCheckSumError (client: Client, symbol: string, messageHash: string) {
         await this.unWatchOrderBook (symbol);
         const error = new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
         client.reject (error, messageHash);
@@ -1088,7 +1088,7 @@ export default class bitget extends bitgetRest {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {any} status of the unwatch request
      */
-    override async unWatchTrades (symbol: string, params: Dict = {}): Promise<any> {
+    override async unWatchTrades (symbol: string, params = {}): Promise<any> {
         const values = this.handleOptionAndParams (params, 'watchTrades', 'uta', false);
         const uta: Bool = values[0];
         const channelTopic = uta ? 'publicTrade' : 'trade';
@@ -2481,7 +2481,7 @@ export default class bitget extends bitgetRest {
         client.resolve (this.balance, messageHash);
     }
 
-    async watchPublic (uta: boolean, messageHash: string, args: Dict, params: Dict = {}): Promise<any> {
+    async watchPublic (uta: boolean, messageHash: string, args: Dict, params: Dict = {}) {
         let url = (uta === true) ? this.urls['api']['ws']['utaPublic'] : this.urls['api']['ws']['public'];
         const sandboxMode = this.safeBool2 (this.options, 'sandboxMode', 'sandbox', false);
         if (sandboxMode === true) {
@@ -2502,7 +2502,7 @@ export default class bitget extends bitgetRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    async unWatchPublic (uta: boolean, messageHash: string, args: Dict, params: Dict = {}): Promise<any> {
+    async unWatchPublic (uta: boolean, messageHash: string, args: Dict, params: Dict = {}) {
         let url = (uta === true) ? this.urls['api']['ws']['utaPublic'] : this.urls['api']['ws']['public'];
         const sandboxMode = this.safeBool2 (this.options, 'sandboxMode', 'sandbox', false);
         if (sandboxMode === true) {
@@ -2523,7 +2523,7 @@ export default class bitget extends bitgetRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    async watchPublicMultiple (uta: boolean, messageHashes: string[], argsArray: any[], params: Dict = {}): Promise<any> {
+    async watchPublicMultiple (uta: boolean, messageHashes: string[], argsArray: any[], params: Dict = {}) {
         let url = (uta === true) ? this.urls['api']['ws']['utaPublic'] : this.urls['api']['ws']['public'];
         const sandboxMode = this.safeBool2 (this.options, 'sandboxMode', 'sandbox', false);
         if (sandboxMode === true) {
@@ -2541,7 +2541,7 @@ export default class bitget extends bitgetRest {
         return await this.watchMultiple (url, messageHashes, message, messageHashes);
     }
 
-    async authenticate (params: Dict = {}): Promise<any> {
+    async authenticate (params: Dict = {}) {
         this.checkRequiredCredentials ();
         const url = this.safeString (params, 'url', '');
         const client = this.client (url);
@@ -2570,7 +2570,7 @@ export default class bitget extends bitgetRest {
         return await future;
     }
 
-    async watchPrivate (uta: boolean, messageHash: string, subscriptionHash: string, args: Dict, params: Dict = {}): Promise<any> {
+    async watchPrivate (uta: boolean, messageHash: string, subscriptionHash: string, args: Dict, params: Dict = {}) {
         let url = (uta === true) ? this.urls['api']['ws']['utaPrivate'] : this.urls['api']['ws']['private'];
         const sandboxMode = this.safeBool2 (this.options, 'sandboxMode', 'sandbox', false);
         if (sandboxMode === true) {

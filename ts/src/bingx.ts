@@ -1805,7 +1805,6 @@ export default class bingx extends Exchange {
         return this.parseFundingRates (data, symbols);
     }
 
-
     override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //
         //     {

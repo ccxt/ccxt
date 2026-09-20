@@ -3439,7 +3439,6 @@ export default class digifinex extends Exchange {
         return await this.fetchFundingRate (symbol, params);
     }
 
-
     override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //
         //     {

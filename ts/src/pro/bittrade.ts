@@ -367,7 +367,7 @@ export default class bittrade extends bittradeRest {
         client.resolve (orderbook, messageHash);
     }
 
-    async watchOrderBookSnapshot (client: Client, message: Dict, subscription: Dict): Promise<any> {
+    async watchOrderBookSnapshot (client: Client, message: Dict, subscription: Dict) {
         const messageHash = this.safeString (subscription, 'messageHash');
         try {
             const symbol = this.safeString (subscription, 'symbol');
@@ -585,7 +585,7 @@ export default class bittrade extends bittradeRest {
         }
     }
 
-    async pong (client: Client, message: Dict): Promise<any> {
+    async pong (client: Client, message: Dict) {
         //
         //     { ping: 1583491673714 }
         //

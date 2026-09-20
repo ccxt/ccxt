@@ -6797,7 +6797,6 @@ export default class okx extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-
     override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //
         //    {

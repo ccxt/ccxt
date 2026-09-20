@@ -179,7 +179,7 @@ export default class htx extends htxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async unWatchTicker (symbol: string, params: Dict = {}): Promise<any> {
+    override async unWatchTicker (symbol: string, params = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -286,7 +286,7 @@ export default class htx extends htxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async unWatchTrades (symbol: string, params: Dict = {}): Promise<any> {
+    override async unWatchTrades (symbol: string, params = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -609,7 +609,7 @@ export default class htx extends htxRest {
         }
     }
 
-    async watchOrderBookSnapshot (client: Client, message: Dict, subscription: Dict): Promise<any> {
+    async watchOrderBookSnapshot (client: Client, message: Dict, subscription: Dict) {
         const messageHash = this.safeString (subscription, 'messageHash');
         const symbol = this.safeString (subscription, 'symbol');
         const limit = this.safeInteger (subscription, 'limit');
@@ -2858,7 +2858,7 @@ export default class htx extends htxRest {
         return url;
     }
 
-    async subscribePublic (url: Str, symbol: Str, messageHash: Str, method: any = undefined, params: Dict = {}): Promise<any> {
+    async subscribePublic (url: Str, symbol: Str, messageHash: Str, method: any = undefined, params: Dict = {}) {
         const requestId = this.requestId ();
         const request: Dict = {
             'sub': messageHash,
@@ -2876,7 +2876,7 @@ export default class htx extends htxRest {
         return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
     }
 
-    async unsubscribePublic (market: Market, subMessageHash: string, topic: string, params: Dict = {}): Promise<any> {
+    async unsubscribePublic (market: Market, subMessageHash: string, topic: string, params: Dict = {}) {
         const requestId = this.requestId ();
         const request: Dict = {
             'unsub': subMessageHash,
@@ -2904,7 +2904,7 @@ export default class htx extends htxRest {
         return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
     }
 
-    async subscribePrivate (channel: Str, messageHash: Str, type: Str, subtype: Str, params: Dict = {}, subscriptionParams: Dict = {}): Promise<any> {
+    async subscribePrivate (channel: Str, messageHash: Str, type: Str, subtype: Str, params: Dict = {}, subscriptionParams: Dict = {}) {
         const requestId = this.requestId ();
         const subscription: Dict = {
             'id': requestId,
@@ -2938,7 +2938,7 @@ export default class htx extends htxRest {
         return await this.watch (url, messageHash, this.extend (request, params), channel, extendedSubsription);
     }
 
-    async authenticate (params: Dict = {}): Promise<any> {
+    async authenticate (params: Dict = {}) {
         const url = this.safeString (params, 'url');
         const hostname = this.safeString (params, 'hostname');
         const type = this.safeString (params, 'type');

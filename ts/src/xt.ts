@@ -4885,7 +4885,6 @@ export default class xt extends Exchange {
         return this.parseFundingRate (result, market);
     }
 
-
     override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //
         //     {
@@ -5845,7 +5844,6 @@ export default class xt extends Exchange {
         }
         return undefined;
     }
-
 
     override sign (path: any, api: any = [], method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
         const signed = api[0] === 'private';

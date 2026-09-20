@@ -37,7 +37,7 @@ export default class upbit extends upbitRest {
         });
     }
 
-    async watchPublicMultiple (symbols: Strings, channel: Str, params: Dict = {}): Promise<any> {
+    async watchPublicMultiple (symbols: Strings, channel: Str, params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -342,7 +342,7 @@ export default class upbit extends upbitRest {
         client.resolve (ohlcv, messageHash);
     }
 
-    async authenticate (params: Dict = {}): Promise<any> {
+    async authenticate (params: Dict = {}) {
         this.checkRequiredCredentials ();
         const wsOptions = this.safeDict (this.options, 'ws', {});
         const authenticated = this.safeString (wsOptions, 'token');
@@ -365,7 +365,7 @@ export default class upbit extends upbitRest {
         return client;
     }
 
-    async watchPrivate (symbol: Str, channel: string, messageHash: string, params: Dict = {}): Promise<any> {
+    async watchPrivate (symbol: Str, channel: string, messageHash: string, params: Dict = {}) {
         await this.authenticate ();
         const request: Dict = {
             'type': channel,

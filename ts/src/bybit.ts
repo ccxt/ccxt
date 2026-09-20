@@ -1581,7 +1581,7 @@ export default class bybit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} nothing
      */
-    async upgradeUnifiedTradeAccount (params: Dict = {}): Promise<any> {
+    async upgradeUnifiedTradeAccount (params: Dict = {}) {
         return await this.privatePostV5AccountUpgradeToUta (params);
     }
 
@@ -2920,7 +2920,6 @@ export default class bybit extends Exchange {
         const ohlcvs = this.safeList (result, 'list', []);
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
-
 
     override parseFundingRate (ticker: any, market: Market = undefined): FundingRate {
         //

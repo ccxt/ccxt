@@ -2268,7 +2268,6 @@ export default class gate extends Exchange {
         return this.parseFundingRates (response, symbols);
     }
 
-
     override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //
         //    {

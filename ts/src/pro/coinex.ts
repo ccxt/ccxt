@@ -1438,7 +1438,7 @@ export default class coinex extends coinexRest {
         }
     }
 
-    async authenticate (type: string): Promise<any> {
+    async authenticate (type: string) {
         const url = this.urls['api']['ws'][type];
         const client = this.client (url);
         const time = this.milliseconds ();

@@ -85,7 +85,7 @@ export default class bullish extends bullishRest {
         return message; // current line is for transpilation compatibility
     }
 
-    async watchPublic (url: string, messageHash: string, request: Dict = {}, params: Dict = {}): Promise<any> {
+    async watchPublic (url: string, messageHash: string, request = {}, params = {}): Promise<any> {
         const id = this.requestId ().toString ();
         const message: Dict = {
             'jsonrpc': '2.0',
@@ -98,7 +98,7 @@ export default class bullish extends bullishRest {
         return await this.watch (fullUrl, messageHash, this.deepExtend (message, params), messageHash);
     }
 
-    async watchPrivate (messageHash: string, subscribeHash: string, request: Dict = {}, params: Dict = {}): Promise<any> {
+    async watchPrivate (messageHash: string, subscribeHash: string, request = {}, params = {}): Promise<any> {
         const url = this.urls['api']['ws']['private'];
         const token = await this.handleToken ();
         const cookies: Dict = {

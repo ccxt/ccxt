@@ -57,7 +57,7 @@ export default class derive extends deriveRest {
         return newValue;
     }
 
-    async watchPublic (messageHash: string, message: Dict, subscription: Dict): Promise<any> {
+    async watchPublic (messageHash: string, message: Dict, subscription: Dict) {
         const url = this.urls['api']['ws'];
         const requestId = this.requestId (url);
         const request = this.extend (message, {
@@ -287,7 +287,7 @@ export default class derive extends deriveRest {
      * @param {int} [params.limit] orderbook limit, default is undefined
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async unWatchOrderBook (symbol: string, params: Dict = {}): Promise<any> {
+    override async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -320,7 +320,7 @@ export default class derive extends deriveRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    override async unWatchTrades (symbol: string, params: Dict = {}): Promise<any> {
+    override async unWatchTrades (symbol: string, params = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -341,7 +341,7 @@ export default class derive extends deriveRest {
         return await this.unWatchPublic (messageHah, request, subscription);
     }
 
-    async unWatchPublic (messageHash: string, message: Dict, subscription: Dict): Promise<any> {
+    async unWatchPublic (messageHash: string, message: Dict, subscription: Dict) {
         const url = this.urls['api']['ws'];
         const requestId = this.requestId (url);
         const request = this.extend (message, {
@@ -472,7 +472,7 @@ export default class derive extends deriveRest {
         client.resolve (tradesArray, topic);
     }
 
-    async authenticate (params: Dict = {}): Promise<any> {
+    async authenticate (params: Dict = {}) {
         this.checkRequiredCredentials ();
         const url = this.urls['api']['ws'];
         const client = this.client (url);
@@ -504,7 +504,7 @@ export default class derive extends deriveRest {
         return await future;
     }
 
-    async watchPrivate (messageHash: string, message: Dict, subscription: Dict): Promise<any> {
+    async watchPrivate (messageHash: string, message: Dict, subscription: Dict) {
         await this.authenticate ();
         const url = this.urls['api']['ws'];
         const requestId = this.requestId (url);

@@ -1206,7 +1206,6 @@ export default class bitflyer extends Exchange {
         return this.parseFundingRate (response, market);
     }
 
-
     override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //
         //    {

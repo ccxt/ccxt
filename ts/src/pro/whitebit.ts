@@ -881,7 +881,7 @@ export default class whitebit extends whitebitRest {
         client.resolve (this.balance, messageHash);
     }
 
-    async watchPublic (messageHash: string , method: string , reqParams: any[] = [], params: Dict = {}): Promise<any> {
+    async watchPublic (messageHash: string , method: string , reqParams: any[] = [], params: Dict = {}) {
         const url = this.urls['api']['ws'];
         const id = this.nonce ();
         const request: Dict = {
@@ -893,7 +893,7 @@ export default class whitebit extends whitebitRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    async watchMultipleSubscription (messageHash: string, method: string, symbol: Str, isNested: boolean = false, params: Dict = {}): Promise<any> {
+    async watchMultipleSubscription (messageHash: string, method: string, symbol: Str, isNested: boolean = false, params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -955,7 +955,7 @@ export default class whitebit extends whitebitRest {
         }
     }
 
-    async watchPrivate (messageHash: string , method: string , reqParams: any[] = [], params: Dict = {}): Promise<any> {
+    async watchPrivate (messageHash: string , method: string , reqParams: any[] = [], params: Dict = {}) {
         this.checkRequiredCredentials ();
         await this.authenticate ();
         const url = this.urls['api']['ws'];
@@ -969,7 +969,7 @@ export default class whitebit extends whitebitRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    async authenticate (params: Dict = {}): Promise<any> {
+    async authenticate (params: Dict = {}) {
         this.checkRequiredCredentials ();
         const url = this.urls['api']['ws'];
         const client = this.client (url);

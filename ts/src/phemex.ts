@@ -4386,7 +4386,6 @@ export default class phemex extends Exchange {
         return this.parseFundingRate (result, market);
     }
 
-
     override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //
         //     {

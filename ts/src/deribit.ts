@@ -3381,7 +3381,6 @@ export default class deribit extends Exchange {
         return this.filterBySymbolSinceLimit (rates, symbol, since, limit) as FundingRateHistory[];
     }
 
-
     override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //
         //   {

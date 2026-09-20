@@ -1506,7 +1506,6 @@ export default class btse extends Exchange {
         return this.parseFundingRates (rows, symbols);
     }
 
-
     override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //
         // ticker/24hr contract rows
@@ -3772,7 +3771,6 @@ export default class btse extends Exchange {
         }
         return undefined;
     }
-
 
     override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         const baseUrl = this.urls['api'][api];

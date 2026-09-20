@@ -590,11 +590,6 @@ export default class coinmate extends Exchange {
         return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
-
-
-
-
-
     override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //     {

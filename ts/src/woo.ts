@@ -2914,7 +2914,7 @@ export default class woo extends Exchange {
         } as DepositAddress;
     }
 
-    async getAssetHistoryRows (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<any> {
+    async getAssetHistoryRows (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3682,7 +3682,6 @@ export default class woo extends Exchange {
         const rows = this.safeList (data, 'rows', []);
         return this.parseIncomes (rows, market, since, limit);
     }
-
 
     override parseFundingRate (fundingRate: any, market: Market = undefined): FundingRate {
         //

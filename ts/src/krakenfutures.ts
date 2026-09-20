@@ -3447,7 +3447,6 @@ export default class krakenfutures extends Exchange {
         };
     }
 
-
     override parseAccount (account: any) {
         const accountByType: Dict = {
             'main': 'cash',
@@ -3484,7 +3483,7 @@ export default class krakenfutures extends Exchange {
      * @param {dict} [params] Exchange specific parameters
      * @returns a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    async transferOut (code: string, amount: number, params: Dict = {}): Promise<any> {
+    async transferOut (code: string, amount: number, params: Dict = {}) {
         return await this.transfer (code, amount, 'future', 'spot', params);
     }
 

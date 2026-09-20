@@ -78,7 +78,7 @@ export default class woofipro extends woofiproRest {
         return newValue;
     }
 
-    async watchPublic (messageHash: string, message: Dict): Promise<any> {
+    async watchPublic (messageHash: string, message: Dict) {
         // the default id
         let id = 'OqdphuyCtYWxwzhxyLLjOWNdFP7sQt8RPWzmb5xY';
         if (this.accountId !== undefined && this.accountId !== '') {
@@ -621,7 +621,7 @@ export default class woofipro extends woofiproRest {
         }
     }
 
-    async authenticate (params: Dict = {}): Promise<any> {
+    async authenticate (params: Dict = {}) {
         this.checkRequiredCredentials ();
         const url = this.urls['api']['ws']['private'] + '/' + this.accountId;
         const client = this.client (url);
@@ -652,7 +652,7 @@ export default class woofipro extends woofiproRest {
         return await future;
     }
 
-    async watchPrivate (messageHash: string, message: Dict, params: Dict = {}): Promise<any> {
+    async watchPrivate (messageHash: string, message: Dict, params: Dict = {}) {
         await this.authenticate (params);
         const url = this.urls['api']['ws']['private'] + '/' + this.accountId;
         const requestId = this.requestId (url);
@@ -663,7 +663,7 @@ export default class woofipro extends woofiproRest {
         return await this.watch (url, messageHash, request, messageHash, subscribe);
     }
 
-    async watchPrivateMultiple (messageHashes: string[], message: Dict, params: Dict = {}): Promise<any> {
+    async watchPrivateMultiple (messageHashes: string[], message: Dict, params: Dict = {}) {
         await this.authenticate (params);
         const url = this.urls['api']['ws']['private'] + '/' + this.accountId;
         const requestId = this.requestId (url);
@@ -1064,7 +1064,7 @@ export default class woofipro extends woofiproRest {
         }
     }
 
-    async loadPositionsSnapshot (client: Client, messageHash: string): Promise<any> {
+    async loadPositionsSnapshot (client: Client, messageHash: string) {
         const positions = await this.fetchPositions ();
         this.positions = new ArrayCacheBySymbolBySide ();
         const cache = this.positions;
@@ -1380,7 +1380,7 @@ export default class woofipro extends woofiproRest {
         return { 'event': 'ping' };
     }
 
-    async pong (client: Client, message: Dict): Promise<any> {
+    async pong (client: Client, message: Dict) {
         await client.send ({ 'event': 'pong' });
     }
 

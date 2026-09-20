@@ -1146,7 +1146,6 @@ export default class blofin extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit) as FundingRateHistory[];
     }
 
-
     override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //
         //    {

@@ -1841,7 +1841,7 @@ export default class hyperliquid extends Exchange {
         return this.signUserSignedAction (messageTypes, message);
     }
 
-    async setRef (): Promise<any> {
+    async setRef () {
         if (this.safeBool (this.options, 'refSet', false)) {
             return true;
         }
@@ -1867,7 +1867,7 @@ export default class hyperliquid extends Exchange {
         return response;
     }
 
-    async approveBuilderFee (builder: string, maxFeeRate: string): Promise<any> {
+    async approveBuilderFee (builder: string, maxFeeRate: string) {
         const nonce = this.milliseconds ();
         const isSandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         const payload: Dict = {
@@ -1994,7 +1994,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.type] 'userSetAbstraction' or 'agentSetAbstraction' default is 'userSetAbstraction'
      * @returns dictionary response from the exchange
      */
-    async setUserAbstraction (abstraction: string, params: Dict = {}): Promise<any> {
+    async setUserAbstraction (abstraction: string, params: Dict = {}) {
         let userAddress: Str = undefined;
         [ userAddress, params ] = this.handlePublicAddress ('setUserAbstraction', params);
         const nonce = this.milliseconds ();
@@ -2042,7 +2042,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.type] 'userDexAbstraction' or 'agentEnableDexAbstraction' default is 'userDexAbstraction'
      * @returns dictionary response from the exchange
      */
-    async enableUserDexAbstraction (enabled: boolean, params: Dict = {}): Promise<any> {
+    async enableUserDexAbstraction (enabled: boolean, params: Dict = {}) {
         let userAddress: Str = undefined;
         [ userAddress, params ] = this.handlePublicAddress ('enableUserDexAbstraction', params);
         const nonce = this.milliseconds ();
@@ -2089,7 +2089,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params]
      * @returns dictionary response from the exchange
      */
-    async setAgentAbstraction (abstraction: string, params: Dict = {}): Promise<any> {
+    async setAgentAbstraction (abstraction: string, params: Dict = {}) {
         const nonce = this.milliseconds ();
         const request: Dict = {
             'nonce': nonce,
@@ -3010,7 +3010,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api result
      */
-    async createVault (name: string, description: string, initialUsd: int, params: Dict = {}): Promise<any> {
+    async createVault (name: string, description: string, initialUsd: int, params: Dict = {}) {
         this.checkRequiredCredentials ();
         if (this.markets === undefined) {
             await this.loadMarkets ();

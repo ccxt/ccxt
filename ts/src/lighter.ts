@@ -3384,7 +3384,6 @@ export default class lighter extends Exchange {
         };
     }
 
-
     override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
         let url: Str = undefined;
         if (api === 'root') {

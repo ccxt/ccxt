@@ -3417,7 +3417,6 @@ export default class hitbtc extends Exchange {
         return this.parseFundingRate (response, market);
     }
 
-
     override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //
         //     {

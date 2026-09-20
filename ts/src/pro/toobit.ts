@@ -790,7 +790,7 @@ export default class toobit extends toobitRest {
         client.resolve (this.balance[type], type + ':balance');
     }
 
-    async loadBalanceSnapshot (client: Client, messageHash: string, marketType: Str): Promise<any> {
+    async loadBalanceSnapshot (client: Client, messageHash: string, marketType: Str) {
         const response = await this.fetchBalance ({ 'type': marketType });
         const type = (marketType === 'spot') ? 'spot' : 'contract';
         this.balance[type] = this.extend (response, this.safeDict (this.balance, type, {}));
@@ -1069,7 +1069,7 @@ export default class toobit extends toobitRest {
         }
     }
 
-    async loadPositionsSnapshot (client: Client, messageHash: string, type: string): Promise<any> {
+    async loadPositionsSnapshot (client: Client, messageHash: string, type: string) {
         const params: Dict = {
             'type': type,
         };
@@ -1184,7 +1184,7 @@ export default class toobit extends toobitRest {
         });
     }
 
-    async authenticate (params: Dict = {}): Promise<any> {
+    async authenticate (params: Dict = {}) {
         const time = this.milliseconds ();
         const lastAuthenticatedTime = this.safeInteger (this.options['ws'], 'lastAuthenticatedTime', 0);
         const listenKeyRefreshRate = this.safeInteger (this.options['ws'], 'listenKeyRefreshRate', 1200000);
@@ -1233,7 +1233,7 @@ export default class toobit extends toobitRest {
         }
     }
 
-    async keepAliveListenKey (params: Dict = {}): Promise<any> {
+    async keepAliveListenKey (params: Dict = {}) {
         const options = this.safeDict (this.options, 'ws', {});
         const listenKey = this.safeString (options, 'listenKey');
         if (listenKey === undefined) {

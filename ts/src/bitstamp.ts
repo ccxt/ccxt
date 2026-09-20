@@ -2509,7 +2509,6 @@ export default class bitstamp extends Exchange {
         return this.parseFundingRate (response, market);
     }
 
-
     override parseFundingRate (fundingRate: any, market: Market = undefined): FundingRate {
         //
         //     {

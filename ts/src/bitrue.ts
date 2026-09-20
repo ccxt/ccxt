@@ -3195,7 +3195,6 @@ export default class bitrue extends Exchange {
         return response;
     }
 
-
     override parseMarginModification (data: any, market: Market = undefined): MarginModification {
         //
         // setMargin

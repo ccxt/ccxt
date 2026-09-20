@@ -1566,7 +1566,7 @@ export default class phemex extends phemexRest {
         }
     }
 
-    async subscribePrivate (type: Str, messageHash: string, params: Dict = {}): Promise<any> {
+    async subscribePrivate (type: Str, messageHash: string, params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1591,7 +1591,7 @@ export default class phemex extends phemexRest {
         return await this.watch (url, messageHash, request, channel);
     }
 
-    async authenticate (params: Dict = {}): Promise<any> {
+    async authenticate (params: Dict = {}) {
         this.checkRequiredCredentials ();
         const url = this.urls['api']['ws'];
         const client = this.client (url);
