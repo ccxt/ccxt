@@ -182,6 +182,7 @@ pub mod shared {
     pub fn assert_fee_structure<E: AsValue>(_e: E, _args: &[Value]) {}
     pub fn assert_valid_currency_id_and_code<E: AsValue>(_e: E, _args: &[Value]) {}
     pub fn assert_timestamp_order<E: AsValue>(_e: E, _args: &[Value]) {}
+    pub fn assert_amount_price_cost<E: AsValue>(_e: E, _args: &[Value]) {}
     pub fn assert_order_state<E: AsValue>(_e: E, _args: &[Value]) {}
     pub fn assert_type<E: AsValue>(_e: E, _args: &[Value]) {}
     pub fn check_precision_accuracy<E: AsValue>(_e: E, _args: &[Value]) {}
