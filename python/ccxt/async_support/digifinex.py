@@ -3163,14 +3163,13 @@ class digifinex(Exchange, ImplicitAPI):
         #         "currency": "USDT"
         #     }
         #
-        timestamp = self.milliseconds()
         currencyId = self.safe_string(info, 'currency')
         return {
             'currency': self.safe_currency_code(currencyId, currency),
             'rate': 0.001,  # all interest rates on digifinex are 0.1%
             'period': 86400000,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
             'info': info,
         }
 
