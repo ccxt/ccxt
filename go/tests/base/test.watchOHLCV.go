@@ -15,9 +15,9 @@ func testWatchOHLCVBody(ch chan any, exchange ccxt.ICoreExchange, skippedPropert
 	defer ReturnPanicError(ch)
 	var method string = "watchOHLCV"
 	var now int64 = exchange.Milliseconds()
-	var ends any = now + 15000
+	var ends any = Add(now, 15000)
 	var timeframeKeys []string = ObjectKeys(exchange.GetTimeframes())
-	Assert((len(timeframeKeys) > 0), Add(Add(Add(exchange.GetId(), " "), method), " - no timeframes found"))
+	Assert(IsGreaterThan(GetArrayLength(timeframeKeys), 0), Add(Add(Add(exchange.GetId(), " "), method), " - no timeframes found"))
 	// prefer 1m timeframe if available, otherwise return the first one
 	var chosenTimeframeKey any = "1m"
 	if !EvalTruthy(exchange.InArray(chosenTimeframeKey, timeframeKeys)) {
@@ -64,10 +64,10 @@ func testWatchOHLCVBody(ch chan any, exchange ccxt.ICoreExchange, skippedPropert
 		now = exchange.Milliseconds()
 		if (success == true) && (!IsEqual(response, nil)) {
 			AssertNonEmtpyArray(exchange, skippedProperties, method, response, symbol)
-			for i := 0; i < GetArrayLength(response); i++ {
+			for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
 				TestOHLCV(exchange, skippedProperties, method, GetValue(response, i), symbol, now)
 			}
-			if IsGreaterThan((now - startTime), maxIdleTime) {
+			if IsGreaterThan((Subtract(now, startTime)), maxIdleTime) {
 				idle = true
 			}
 		}

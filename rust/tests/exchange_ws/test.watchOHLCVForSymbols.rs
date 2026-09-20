@@ -10,29 +10,29 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testWatchOHLCVForSymbols(mut exchange: Value, mut skippedProperties: Value, mut symbol: Value) -> Value {
-    let mut method: Value = Value::Str("watchOHLCVForSymbols".into());
+    let mut method: Value = Value::Str("watchOHLCVForSymbols".to_string());
     let mut now: Value = exchange.milliseconds();
-    let mut ends: Value = (match (&(now), &(Value::Int(15000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-    let mut timeframeKeys: Value = object_keys(&get_value(&exchange, &Value::Str("timeframes".into())));
-    assert!(ccxt::runtime::is_true(&((Value::Int(timeframeKeys.len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)))));
+    let mut ends: Value = add(&now, &Value::Int(15000));
+    let mut timeframeKeys: Value = object_keys(&get_value(&exchange, &Value::Str("timeframes".to_string())));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_greater_than(&get_array_length(&timeframeKeys), &Value::Int(0))))));
     // prefer 1m timeframe if available, otherwise return the first one
-    let mut chosenTimeframeKey: Value = Value::Str("1m".into());
+    let mut chosenTimeframeKey: Value = Value::Str("1m".to_string());
     if !is_true(&exchange.in_array(chosenTimeframeKey.clone(), timeframeKeys.clone())) {
-        chosenTimeframeKey = timeframeKeys.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        chosenTimeframeKey = get_value(&timeframeKeys, &Value::Int(0));
     }
     let mut limit: Value = Value::Int(10);
     let mut duration: Value = exchange.parse_timeframe(chosenTimeframeKey.clone());
-    let mut since: Value = (match (&((match (&(exchange.milliseconds()), &((match (&((match (&(duration), &(limit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+    let mut since: Value = subtract(&subtract(&exchange.milliseconds(), &multiply(&multiply(&duration, &limit), &Value::Int(1000))), &Value::Int(1000));
     let mut maxIdleTime: Value = Value::Int(5000);
     let mut idle: Value = Value::Bool(false);
-    while (now.as_f64().unwrap_or(f64::NAN) < ends.as_f64().unwrap_or(f64::NAN)) && !is_true(&idle) {
+    while is_true(&(is_less_than(&now, &ends))) && !is_true(&idle) {
         let mut response: Value = Value::Null;
         let mut success: Value = Value::Bool(true);
         let mut startTime: Value = exchange.milliseconds();
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            response = crate::live_dispatch::dispatch(&mut exchange, "watch_ohlcv_for_symbols", vec![Value::from(vec![Value::from(vec![symbol.clone(), chosenTimeframeKey.clone()])]), since.clone(), limit.clone()]).await;
-            if (response == Value::Null) {
-                panic!("{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" watch returned undefined response".into())).into()));
+            response = crate::live_dispatch::dispatch(&mut exchange, "watch_ohlcv_for_symbols", vec![Value::List(vec![Value::List(vec![symbol.clone(), chosenTimeframeKey.clone()])]), since.clone(), limit.clone()]).await;
+            if is_equal(&response, &Value::Null) {
+                panic!("{}", add(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str(" watch returned undefined response".to_string())));
             }
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
@@ -42,23 +42,23 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             success = Value::Bool(false);
         }
         now = exchange.milliseconds();
-        if (success.as_bool() == Some(true)) && (response != Value::Null) {
-            let mut assertionMessage: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" ".into())).into()), method).into()), Value::Str(" ".into())).into()), symbol).into()), Value::Str(" ".into())).into()), chosenTimeframeKey).into()), Value::Str(" | ".into())).into()), exchange.json(response.clone())).into());
+        if is_true(&(is_equal(&success, &Value::Bool(true)))) && is_true(&(!is_equal(&response, &Value::Null))) {
+            let mut assertionMessage: Value = add(&add(&add(&add(&add(&add(&add(&add(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str(" ".to_string())), &method), &Value::Str(" ".to_string())), &symbol), &Value::Str(" ".to_string())), &chosenTimeframeKey), &Value::Str(" | ".to_string())), &exchange.json(response.clone()));
             assert!(ccxt::runtime::is_true(&(exchange.is_dictionary(response.clone()))));
-            assert!(ccxt::runtime::is_true(&((in_op(&response, &symbol)))));
+            assert!(ccxt::runtime::is_true(&(Value::Bool(in_op(&response, &symbol)))));
             let mut symbolObj: Value = get_value(&response, &symbol);
             assert!(ccxt::runtime::is_true(&(exchange.is_dictionary(symbolObj.clone()))));
-            assert!(ccxt::runtime::is_true(&((in_op(&symbolObj, &chosenTimeframeKey)))));
+            assert!(ccxt::runtime::is_true(&(Value::Bool(in_op(&symbolObj, &chosenTimeframeKey)))));
             let mut ohlcvs: Value = get_value(&symbolObj, &chosenTimeframeKey);
-            assert!(ccxt::runtime::is_true(&((matches!(&ohlcvs, Value::Arr(_))))));
+            assert!(ccxt::runtime::is_true(&(Value::Bool(is_array(&ohlcvs)))));
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1486: bool = true;
-                while { if !__for_first_1486 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1486 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(ohlcvs.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                testOHLCV(exchange.clone(), skippedProperties.clone(), method.clone(), ohlcvs.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), symbol.clone(), now.clone());
+                while { if !__for_first_1486 { i = add(&i, &Value::Int(1)); } __for_first_1486 = false; is_less_than(&i, &get_array_length(&ohlcvs)) } {
+                testOHLCV(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&ohlcvs, &i), symbol.clone(), now.clone());
             }
             }
-            if ((match (&(now), &(startTime)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })).as_f64().unwrap_or(f64::NAN) > maxIdleTime.as_f64().unwrap_or(f64::NAN) {
+            if is_greater_than(&(subtract(&now, &startTime)), &maxIdleTime) {
                 idle = Value::Bool(true);
             }
         }

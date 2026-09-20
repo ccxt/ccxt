@@ -193,17 +193,17 @@ impl BybitidCore {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.parent.describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str("bybitid".into()));
-        m.insert("name".to_string(), Value::Str("Bybit Indonesia".into()));
-        m.insert("countries".to_string(), Value::from(vec![Value::Str("ID".into())]));
-        m.insert("hostname".to_string(), Value::Str("bybit.id".into()));
+        m.insert("id".to_string(), Value::Str("bybitid".to_string()));
+        m.insert("name".to_string(), Value::Str("Bybit Indonesia".to_string()));
+        m.insert("countries".to_string(), Value::List(vec![Value::Str("ID".to_string())]));
+        m.insert("hostname".to_string(), Value::Str("bybit.id".to_string()));
         m.insert("certified".to_string(), Value::Bool(false));
         m.insert("urls".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("logo".to_string(), Value::Str("https://github.com/user-attachments/assets/97a5d0b3-de10-423d-90e1-6620960025ed".into()));
-        m.insert("www".to_string(), Value::Str("https://www.bybit.id".into()));
-        m.insert("doc".to_string(), Value::from(vec![Value::Str("https://bybit-exchange.github.io/docs/v5/intro".into()), Value::Str("https://github.com/bybit-exchange".into())]));
-        m.insert("fees".to_string(), Value::Str("https://help.bybit.com/hc/en-us/articles/360039261154".into()));
+        m.insert("logo".to_string(), Value::Str("https://github.com/user-attachments/assets/97a5d0b3-de10-423d-90e1-6620960025ed".to_string()));
+        m.insert("www".to_string(), Value::Str("https://www.bybit.id".to_string()));
+        m.insert("doc".to_string(), Value::List(vec![Value::Str("https://bybit-exchange.github.io/docs/v5/intro".to_string()), Value::Str("https://github.com/bybit-exchange".to_string())]));
+        m.insert("fees".to_string(), Value::Str("https://help.bybit.com/hc/en-us/articles/360039261154".to_string()));
         m.insert("referral".to_string(), Value::Null);
     m
 }));

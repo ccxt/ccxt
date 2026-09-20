@@ -194,29 +194,29 @@ impl MyokxCore {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.parent.describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str("myokx".into()));
-        m.insert("name".to_string(), Value::Str("MyOKX (EEA)".into()));
-        m.insert("hostname".to_string(), Value::Str("eea.okx.com".into()));
+        m.insert("id".to_string(), Value::Str("myokx".to_string()));
+        m.insert("name".to_string(), Value::Str("MyOKX (EEA)".to_string()));
+        m.insert("hostname".to_string(), Value::Str("eea.okx.com".to_string()));
         m.insert("urls".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("api".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("rest".to_string(), Value::Str("https://{hostname}".into()));
-        m.insert("ws".to_string(), Value::Str("wss://wseea.okx.com:8443/ws/v5".into()));
+        m.insert("rest".to_string(), Value::Str("https://{hostname}".to_string()));
+        m.insert("ws".to_string(), Value::Str("wss://wseea.okx.com:8443/ws/v5".to_string()));
     m
 }));
-        m.insert("www".to_string(), Value::Str("https://my.okx.com".into()));
-        m.insert("doc".to_string(), Value::Str("https://my.okx.com/docs-v5/en/#overview".into()));
-        m.insert("fees".to_string(), Value::Str("https://my.okx.com/pages/products/fees.html".into()));
+        m.insert("www".to_string(), Value::Str("https://my.okx.com".to_string()));
+        m.insert("doc".to_string(), Value::Str("https://my.okx.com/docs-v5/en/#overview".to_string()));
+        m.insert("fees".to_string(), Value::Str("https://my.okx.com/pages/products/fees.html".to_string()));
         m.insert("referral".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), Value::Str("https://www.my.okx.com/join/CCXT2023".into()));
+        m.insert("url".to_string(), Value::Str("https://www.my.okx.com/join/CCXT2023".to_string()));
         m.insert("discount".to_string(), Value::Float(0.2));
     m
 }));
         m.insert("test".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("ws".to_string(), Value::Str("wss://wseeapap.okx.com:8443/ws/v5".into()));
+        m.insert("ws".to_string(), Value::Str("wss://wseeapap.okx.com:8443/ws/v5".to_string()));
     m
 }));
     m

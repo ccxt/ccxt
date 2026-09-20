@@ -62,11 +62,11 @@ async fn main() -> ExitCode {
     // `--prediction` makes the `hyperliquid` id resolve to its prediction-market
     // Core (it also exists as a regular exchange). Prediction-only venues
     // (kalshi/…) resolve unambiguously and need no flag.
-    live_dispatch::set_prediction_mode(is_true(&getCliArgValue(Value::Str("--prediction".into()))));
-    let run_base_tests = is_true(&getCliArgValue(Value::Str("--baseTests".into())));
-    let ws_tests       = is_true(&getCliArgValue(Value::Str("--ws".into())));
-    let verbose        = is_true(&getCliArgValue(Value::Str("--verbose".into())))
-                      || is_true(&getCliArgValue(Value::Str("-v".into())));
+    live_dispatch::set_prediction_mode(is_true(&getCliArgValue(Value::Str("--prediction".to_string()))));
+    let run_base_tests = is_true(&getCliArgValue(Value::Str("--baseTests".to_string())));
+    let ws_tests       = is_true(&getCliArgValue(Value::Str("--ws".to_string())));
+    let verbose        = is_true(&getCliArgValue(Value::Str("--verbose".to_string())))
+                      || is_true(&getCliArgValue(Value::Str("-v".to_string())));
 
     // ── base tests ──────────────────────────────────────────────────
     // Mirrors `go/tests/main.go`: run the transpiled `baseTestsInit()`

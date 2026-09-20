@@ -100,7 +100,7 @@ class apex extends apex$1["default"] {
         }
         const trades = await this.watchTopics(url, messageHashes, topics, params);
         if (this.newUpdates) {
-            const first = this.safeDict(trades, 0);
+            const first = this.safeValue(trades, 0);
             const tradeSymbol = this.safeString(first, 'symbol');
             limit = trades.getLimit(tradeSymbol, limit);
         }
@@ -127,7 +127,7 @@ class apex extends apex$1["default"] {
         //         ]
         //     }
         //
-        const data = this.safeList(message, 'data', []);
+        const data = this.safeValue(message, 'data', {});
         const topic = this.safeString(message, 'topic');
         const trades = data;
         const parts = topic.split('.');
@@ -531,7 +531,7 @@ class apex extends apex$1["default"] {
         //         "type": "snapshot"
         //     }
         //
-        const data = this.safeList(message, 'data', []);
+        const data = this.safeValue(message, 'data', {});
         const topic = this.safeString(message, 'topic');
         const topicParts = topic.split('.');
         const topicLength = topicParts.length;
@@ -946,10 +946,10 @@ class apex extends apex$1["default"] {
                 this.throwBroadlyMatchedException(this.exceptions['broad'], msg, feedback);
                 throw new errors.ExchangeError(feedback);
             }
-            const success = this.safeBool(message, 'success');
+            const success = this.safeValue(message, 'success');
             if ((success !== undefined) && (success !== true)) {
                 const ret_msg = this.safeString(message, 'ret_msg');
-                const request = this.safeDict(message, 'request', {});
+                const request = this.safeValue(message, 'request', {});
                 const op = this.safeString(request, 'op');
                 // Benign re-subscribe notice (same shape as bitmart 90008 /
                 // krakenfutures "Already subscribed"): the original subscription
@@ -1092,7 +1092,7 @@ class apex extends apex$1["default"] {
         //        "conn_id": "ce3dpomvha7dha97tvp0-2xh"
         //    }
         //
-        const success = this.safeBool(message, 'success');
+        const success = this.safeValue(message, 'success');
         const code = this.safeInteger(message, 'retCode');
         const messageHash = 'authenticated';
         if ((success === true) || (code === 0)) {

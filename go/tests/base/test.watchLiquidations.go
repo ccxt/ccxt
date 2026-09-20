@@ -67,7 +67,7 @@ func testWatchLiquidationsBody(ch chan any, exchange ccxt.ICoreExchange, skipped
 				fmt.Println(m3)
 				// log.noLocate (asTable (response))
 
-				for i := 0; i < GetArrayLength(response); i++ {
+				for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
 					TestLiquidation(exchange, skippedProperties, method, GetValue(response, i), symbol)
 				}
 				return nil

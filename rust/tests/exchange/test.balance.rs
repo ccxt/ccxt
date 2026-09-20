@@ -33,36 +33,36 @@ pub fn testBalance(mut exchange: Value, mut skippedProperties: Value, mut method
     crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format.clone()]);
     let mut logText: Value = crate::tests_support::shared::log_template(exchange.clone(), method.clone(), entry.clone());
     //
-    let mut codesTotal: Value = object_keys(&entry.as_map().and_then(|__m| __m.get("total")).cloned().unwrap_or(Value::Null));
-    let mut codesFree: Value = object_keys(&entry.as_map().and_then(|__m| __m.get("free")).cloned().unwrap_or(Value::Null));
-    let mut codesUsed: Value = object_keys(&entry.as_map().and_then(|__m| __m.get("used")).cloned().unwrap_or(Value::Null));
-    crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), codesTotal.clone(), Value::Str("total".into()).clone()]);
-    crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), codesFree.clone(), Value::Str("free".into()).clone()]);
-    crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), codesUsed.clone(), Value::Str("used".into()).clone()]);
+    let mut codesTotal: Value = object_keys(&get_value(&entry, &Value::Str("total".to_string())));
+    let mut codesFree: Value = object_keys(&get_value(&entry, &Value::Str("free".to_string())));
+    let mut codesUsed: Value = object_keys(&get_value(&entry, &Value::Str("used".to_string())));
+    crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), codesTotal.clone(), Value::Str("total".to_string()).clone()]);
+    crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), codesFree.clone(), Value::Str("free".to_string()).clone()]);
+    crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), codesUsed.clone(), Value::Str("used".to_string()).clone()]);
     let mut allCodes: Value = exchange.array_concat(codesTotal.clone(), codesFree.clone());
     allCodes = exchange.array_concat(allCodes.clone(), codesUsed.clone());
-    let mut codesLength: Value = Value::Int(codesTotal.len() as i64);
-    let mut freeLength: Value = Value::Int(codesFree.len() as i64);
-    let mut usedLength: Value = Value::Int(codesUsed.len() as i64);
-    assert!(ccxt::runtime::is_true(&(((codesLength.as_f64() == freeLength.as_f64()) || (codesLength.as_f64() == usedLength.as_f64())))));
+    let mut codesLength: Value = get_array_length(&codesTotal);
+    let mut freeLength: Value = get_array_length(&codesFree);
+    let mut usedLength: Value = get_array_length(&codesUsed);
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_true(&(is_equal(&codesLength, &freeLength))) || is_true(&(is_equal(&codesLength, &usedLength)))))));
     {
                 let mut i: Value = Value::Int(0);
         let mut __for_first_1432: bool = true;
-        while { if !__for_first_1432 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1432 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(allCodes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-        let mut code: Value = allCodes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+        while { if !__for_first_1432 { i = add(&i, &Value::Int(1)); } __for_first_1432 = false; is_less_than(&i, &get_array_length(&allCodes)) } {
+        let mut code: Value = get_value(&allCodes, &i);
         // testSharedMethods.assertCurrencyCode (exchange, skippedProperties, method, entry, code);
-        assert!(ccxt::runtime::is_true(&((in_op(&entry.as_map().and_then(|__m| __m.get("total")).cloned().unwrap_or(Value::Null), &code)))));
-        assert!(ccxt::runtime::is_true(&((in_op(&entry.as_map().and_then(|__m| __m.get("free")).cloned().unwrap_or(Value::Null), &code)))));
-        assert!(ccxt::runtime::is_true(&((in_op(&entry.as_map().and_then(|__m| __m.get("used")).cloned().unwrap_or(Value::Null), &code)))));
-        let mut total: Value = exchange.safe_string(entry.as_map().and_then(|__m| __m.get("total")).cloned().unwrap_or(Value::Null), code.clone(), &[]);
-        let mut free: Value = exchange.safe_string(entry.as_map().and_then(|__m| __m.get("free")).cloned().unwrap_or(Value::Null), code.clone(), &[]);
-        let mut used: Value = exchange.safe_string(entry.as_map().and_then(|__m| __m.get("used")).cloned().unwrap_or(Value::Null), code.clone(), &[]);
-        assert!(ccxt::runtime::is_true(&((total != Value::Null))));
-        assert!(ccxt::runtime::is_true(&((free != Value::Null))));
-        assert!(ccxt::runtime::is_true(&((used != Value::Null))));
-        assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringGe(&total, &Value::Str("0".into())))));
-        assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringGe(&free, &Value::Str("0".into())))));
-        assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringGe(&used, &Value::Str("0".into())))));
+        assert!(ccxt::runtime::is_true(&(Value::Bool(in_op(&get_value(&entry, &Value::Str("total".to_string())), &code)))));
+        assert!(ccxt::runtime::is_true(&(Value::Bool(in_op(&get_value(&entry, &Value::Str("free".to_string())), &code)))));
+        assert!(ccxt::runtime::is_true(&(Value::Bool(in_op(&get_value(&entry, &Value::Str("used".to_string())), &code)))));
+        let mut total: Value = exchange.safe_string(get_value(&entry, &Value::Str("total".to_string())), code.clone(), &[]);
+        let mut free: Value = exchange.safe_string(get_value(&entry, &Value::Str("free".to_string())), code.clone(), &[]);
+        let mut used: Value = exchange.safe_string(get_value(&entry, &Value::Str("used".to_string())), code.clone(), &[]);
+        assert!(ccxt::runtime::is_true(&(Value::Bool(!is_equal(&total, &Value::Null)))));
+        assert!(ccxt::runtime::is_true(&(Value::Bool(!is_equal(&free, &Value::Null)))));
+        assert!(ccxt::runtime::is_true(&(Value::Bool(!is_equal(&used, &Value::Null)))));
+        assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringGe(&total, &Value::Str("0".to_string())))));
+        assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringGe(&free, &Value::Str("0".to_string())))));
+        assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringGe(&used, &Value::Str("0".to_string())))));
         let mut sumFreeUsed: Value = ccxt::precise::Precise::stringAdd(&free, &used);
         assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringEq(&total, &sumFreeUsed))));
     }

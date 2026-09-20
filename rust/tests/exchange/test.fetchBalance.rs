@@ -10,7 +10,7 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testFetchBalance(mut exchange: Value, mut skippedProperties: Value) -> Value {
-    let mut method: Value = Value::Str("fetchBalance".into());
+    let mut method: Value = Value::Str("fetchBalance".to_string());
     let mut response: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_balance", vec![]).await;
     testBalance(exchange.clone(), skippedProperties.clone(), method.clone(), response.clone());
     return Value::Bool(true);

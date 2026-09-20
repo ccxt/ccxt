@@ -1,5 +1,5 @@
 import bitmexRest from '../bitmex.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict, Liquidation, Bool } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Liquidation, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bitmex extends bitmexRest {
     describe(): any;
@@ -12,7 +12,7 @@ export default class bitmex extends bitmexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTicker(symbol: string, params?: Dict): Promise<Ticker>;
+    watchTicker(symbol: string, params?: {}): Promise<Ticker>;
     /**
      * @method
      * @name bitmex#watchTickers
@@ -22,8 +22,8 @@ export default class bitmex extends bitmexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
-    handleTicker(client: Client, message: Dict): Dict;
+    watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    handleTicker(client: Client, message: any): any;
     /**
      * @method
      * @name bitmex#watchLiquidations
@@ -35,7 +35,7 @@ export default class bitmex extends bitmexRest {
      * @param {object} [params] exchange specific parameters for the bitmex api endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    watchLiquidations(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Liquidation[]>;
+    watchLiquidations(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
     /**
      * @method
      * @name bitmex#watchLiquidationsForSymbols
@@ -47,8 +47,8 @@ export default class bitmex extends bitmexRest {
      * @param {object} [params] exchange specific parameters for the bitmex api endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    watchLiquidationsForSymbols(symbols: string[], since?: Int, limit?: Int, params?: Dict): Promise<Liquidation[]>;
-    handleLiquidation(client: Client, message: Dict): void;
+    watchLiquidationsForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
+    handleLiquidation(client: Client, message: any): void;
     /**
      * @method
      * @name bitmex#watchBalance
@@ -57,9 +57,9 @@ export default class bitmex extends bitmexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    watchBalance(params?: Dict): Promise<Balances>;
-    handleBalance(client: Client, message: Dict): void;
-    handleTrades(client: Client, message: Dict): void;
+    watchBalance(params?: {}): Promise<Balances>;
+    handleBalance(client: Client, message: any): void;
+    handleTrades(client: Client, message: any): void;
     /**
      * @method
      * @name bitmex#watchTrades
@@ -71,9 +71,9 @@ export default class bitmex extends bitmexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
-    authenticate(params?: Dict): Promise<any>;
-    handleAuthenticationMessage(client: Client, message: Dict): void;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    authenticate(params?: {}): Promise<any>;
+    handleAuthenticationMessage(client: Client, message: any): void;
     /**
      * @method
      * @name bitmex#watchPositions
@@ -85,8 +85,8 @@ export default class bitmex extends bitmexRest {
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<Position[]>;
-    handlePositions(client: Client, message: Dict): void;
+    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
+    handlePositions(client: any, message: any): void;
     /**
      * @method
      * @name bitmex#watchOrders
@@ -98,8 +98,8 @@ export default class bitmex extends bitmexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
-    handleOrders(client: Client, message: Dict): void;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    handleOrders(client: Client, message: any): void;
     /**
      * @method
      * @name bitmex#watchMyTrades
@@ -111,8 +111,8 @@ export default class bitmex extends bitmexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
-    handleMyTrades(client: Client, message: Dict): void;
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    handleMyTrades(client: Client, message: any): void;
     /**
      * @method
      * @name bitmex#watchOrderBook
@@ -123,7 +123,7 @@ export default class bitmex extends bitmexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
+    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     /**
      * @method
      * @name bitmex#watchOrderBookForSymbols
@@ -134,7 +134,7 @@ export default class bitmex extends bitmexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: Dict): Promise<OrderBook>;
+    watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
     /**
      * @method
      * @name bitmex#watchTradesForSymbols
@@ -146,7 +146,7 @@ export default class bitmex extends bitmexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
+    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     /**
      * @method
      * @name bitmex#watchOHLCV
@@ -159,12 +159,12 @@ export default class bitmex extends bitmexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
-    handleOHLCV(client: Client, message: Dict): void;
-    watchHeartbeat(params?: Dict): Promise<any>;
-    handleOrderBook(client: Client, message: Dict): void;
-    handleSystemStatus(client: Client, message: Dict): Dict;
-    handleSubscriptionStatus(client: Client, message: Dict): Dict;
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    handleOHLCV(client: Client, message: any): void;
+    watchHeartbeat(params?: {}): Promise<any>;
+    handleOrderBook(client: Client, message: any): void;
+    handleSystemStatus(client: Client, message: any): any;
+    handleSubscriptionStatus(client: Client, message: any): any;
     handleErrorMessage(client: Client, message: any): Bool;
-    handleMessage(client: Client, message: Dict): void;
+    handleMessage(client: Client, message: any): void;
 }

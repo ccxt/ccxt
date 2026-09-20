@@ -20,7 +20,7 @@ func testFetchPositionsBody(ch chan any, exchange ccxt.ICoreExchange, skippedPro
 	positions := (<-exchange.(ccxt.IFetchPositions).FetchPositionsAsync())
 	PanicOnError(positions)
 	AssertNonEmtpyArray(exchange, skippedProperties, method, positions, symbol)
-	for i := 0; i < GetArrayLength(positions); i++ {
+	for i := 0; IsLessThan(i, GetArrayLength(positions)); i++ {
 		TestPosition(exchange, skippedProperties, method, GetValue(positions, i), nil, now)
 	}
 	// AssertTimestampOrder (exchange, method, undefined, positions); // currently order of positions does not make sense
@@ -30,8 +30,8 @@ func testFetchPositionsBody(ch chan any, exchange ccxt.ICoreExchange, skippedPro
 	PanicOnError(positionsForSymbol)
 	Assert(IsArray(positionsForSymbol), Add(Add(Add(Add(exchange.GetId(), " "), method), " must return an array, returned "), exchange.Json(positionsForSymbol)))
 	var positionsForSymbolLength int = GetArrayLength(positionsForSymbol)
-	Assert((positionsForSymbolLength <= 4), Add(Add(Add(Add(exchange.GetId(), " "), method), " positions length for particular symbol should be less than 4, returned "), exchange.Json(positionsForSymbol)))
-	for i := 0; i < GetArrayLength(positionsForSymbol); i++ {
+	Assert(IsLessThanOrEqual(positionsForSymbolLength, 4), Add(Add(Add(Add(exchange.GetId(), " "), method), " positions length for particular symbol should be less than 4, returned "), exchange.Json(positionsForSymbol)))
+	for i := 0; IsLessThan(i, GetArrayLength(positionsForSymbol)); i++ {
 		TestPosition(exchange, skippedProperties, method, GetValue(positionsForSymbol, i), symbol, now)
 	}
 

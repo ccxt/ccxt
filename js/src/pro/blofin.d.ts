@@ -28,8 +28,8 @@ export default class blofin extends blofinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
-    handleTrades(client: Client, message: Dict): void;
+    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    handleTrades(client: Client, message: any): void;
     parseWsTrade(trade: any, market?: Market): Trade;
     /**
      * @method
@@ -53,8 +53,8 @@ export default class blofin extends blofinRest {
      * @param {string} [params.depth] the type of order book to subscribe to, default is 'depth/increase100', also accepts 'depth5' or 'depth20' or depth50
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: Dict): Promise<OrderBook>;
-    handleOrderBook(client: Client, message: Dict): void;
+    watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
+    handleOrderBook(client: Client, message: any): void;
     /**
      * @method
      * @name blofin#watchTicker
@@ -74,8 +74,8 @@ export default class blofin extends blofinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
-    handleTicker(client: Client, message: Dict): void;
+    watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    handleTicker(client: Client, message: any): void;
     parseWsTicker(ticker: Dict, market?: Market): Ticker;
     /**
      * @method
@@ -86,9 +86,9 @@ export default class blofin extends blofinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchBidsAsks(symbols?: Strings, params?: Dict): Promise<Tickers>;
-    handleBidAsk(client: Client, message: Dict): void;
-    parseWsBidAsk(ticker: Dict, market?: Market): Ticker;
+    watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
+    handleBidAsk(client: Client, message: any): void;
+    parseWsBidAsk(ticker: any, market?: Market): Ticker;
     /**
      * @method
      * @name blofin#watchOHLCV
@@ -112,8 +112,8 @@ export default class blofin extends blofinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    watchOHLCVForSymbols(symbolsAndTimeframes: string[][], since?: Int, limit?: Int, params?: Dict): Promise<import("../base/types.js").Dictionary<import("../base/types.js").Dictionary<OHLCV[]>>>;
-    handleOHLCV(client: Client, message: Dict): void;
+    watchOHLCVForSymbols(symbolsAndTimeframes: string[][], since?: Int, limit?: Int, params?: {}): Promise<import("../base/types.js").Dictionary<import("../base/types.js").Dictionary<OHLCV[]>>>;
+    handleOHLCV(client: Client, message: any): void;
     /**
      * @method
      * @name blofin#watchBalance
@@ -122,9 +122,9 @@ export default class blofin extends blofinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    watchBalance(params?: Dict): Promise<Balances>;
-    handleBalance(client: Client, message: Dict): void;
-    parseWsBalance(message: Dict): Balances;
+    watchBalance(params?: {}): Promise<Balances>;
+    handleBalance(client: Client, message: any): void;
+    parseWsBalance(message: any): Balances;
     /**
      * @method
      * @name biofin#watchOrders
@@ -152,8 +152,8 @@ export default class blofin extends blofinRest {
      * @param {boolean} [params.trigger] set to true for trigger orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure
      */
-    watchOrdersForSymbols(symbols: string[], since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
-    handleOrders(client: Client, message: Dict): void;
+    watchOrdersForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    handleOrders(client: Client, message: any): void;
     parseWsOrder(order: any, market?: Market): Order;
     /**
      * @method
@@ -166,8 +166,8 @@ export default class blofin extends blofinRest {
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<Position[]>;
-    handlePositions(client: Client, message: Dict): void;
+    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
+    handlePositions(client: Client, message: any): void;
     parseWsPosition(position: any, market?: Market): Position;
     /**
      * @method
@@ -178,10 +178,13 @@ export default class blofin extends blofinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    watchFundingRate(symbol: string, params?: Dict): Promise<FundingRate>;
-    handleFundingRate(client: Client, message: Dict): void;
-    watchMultipleWrapper(isPublic: boolean, channelName: string, callerMethodName: string, symbolsArray?: any, params?: Dict): Promise<any>;
-    getSubscriptionRequest(args: any): Dict;
+    watchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
+    handleFundingRate(client: Client, message: any): void;
+    watchMultipleWrapper(isPublic: boolean, channelName: string, callerMethodName: string, symbolsArray?: any, params?: {}): Promise<any>;
+    getSubscriptionRequest(args: any): {
+        op: string;
+        args: any;
+    };
     handleMessage(client: Client, message: any): void;
-    authenticate(params?: Dict): Promise<void>;
+    authenticate(params?: {}): Promise<void>;
 }

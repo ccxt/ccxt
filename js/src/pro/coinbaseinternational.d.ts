@@ -13,7 +13,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} subscription to a websocket channel
      */
-    subscribe(name: string, symbols?: Strings, params?: Dict): Promise<any>;
+    subscribe(name: string, symbols?: Strings, params?: {}): Promise<any>;
     /**
      * @ignore
      * @method
@@ -24,7 +24,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} subscription to a websocket channel
      */
-    subscribeMultiple(name: string, symbols?: Strings, params?: Dict): Promise<any>;
+    subscribeMultiple(name: string, symbols?: Strings, params?: {}): Promise<any>;
     /**
      * @method
      * @name coinbaseinternational#watchFundingRate
@@ -34,7 +34,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    watchFundingRate(symbol: string, params?: Dict): Promise<FundingRate>;
+    watchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
     /**
      * @method
      * @name coinbaseinternational#watchFundingRates
@@ -44,7 +44,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexe by market symbols
      */
-    watchFundingRates(symbols?: Strings, params?: Dict): Promise<FundingRates>;
+    watchFundingRates(symbols?: Strings, params?: {}): Promise<FundingRates>;
     /**
      * @method
      * @name coinbaseinternational#watchTicker
@@ -55,8 +55,8 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.channel] the channel to watch, 'LEVEL1' or 'INSTRUMENTS', default is 'LEVEL1'
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTicker(symbol: string, params?: Dict): Promise<Ticker>;
-    getActiveSymbols(): string[];
+    watchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    getActiveSymbols(): any[];
     /**
      * @method
      * @name coinbaseinternational#watchTickers
@@ -67,10 +67,10 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.channel] the channel to watch, 'LEVEL1' or 'INSTRUMENTS', default is 'INSTLEVEL1UMENTS'
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
-    handleInstrument(client: Client, message: Dict): void;
+    watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    handleInstrument(client: Client, message: any): void;
     parseWsInstrument(ticker: Dict, market?: Market): Ticker;
-    handleTicker(client: Client, message: Dict): void;
+    handleTicker(client: Client, message: any): void;
     parseWsTicker(ticker: object, market?: Market): Ticker;
     /**
      * @method
@@ -84,8 +84,8 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
-    handleOHLCV(client: Client, message: Dict): void;
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    handleOHLCV(client: Client, message: any): void;
     /**
      * @method
      * @name coinbaseinternational#watchTrades
@@ -97,7 +97,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     /**
      * @method
      * @name coinbaseinternational#watchTradesForSymbols
@@ -108,8 +108,8 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
-    handleTrade(client: Client, message: Dict): Dict;
+    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    handleTrade(client: any, message: any): any;
     parseWsTrade(trade: any, market?: Market): Trade;
     /**
      * @method
@@ -121,7 +121,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
+    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     /**
      * @method
      * @name coinbaseinternational#watchOrderBook
@@ -132,12 +132,12 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: Dict): Promise<OrderBook>;
-    handleOrderBook(client: Client, message: Dict): void;
+    watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
+    handleOrderBook(client: any, message: any): void;
     handleDelta(orderbook: any, delta: any): void;
     handleDeltas(orderbook: any, deltas: any): void;
-    handleSubscriptionStatus(client: Client, message: Dict): Dict;
-    handleFundingRate(client: Client, message: Dict): void;
-    handleErrorMessage(client: Client, message: Dict): Bool;
-    handleMessage(client: Client, message: Dict): void;
+    handleSubscriptionStatus(client: Client, message: any): any;
+    handleFundingRate(client: Client, message: any): void;
+    handleErrorMessage(client: Client, message: any): Bool;
+    handleMessage(client: any, message: any): void;
 }

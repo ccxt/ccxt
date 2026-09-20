@@ -4,14 +4,14 @@ import lighterRest from '../lighter.js';
 export default class lighter extends lighterRest {
     describe(): any;
     getMessageHash(unifiedChannel: string, symbol?: Str, extra?: Str): string;
-    subscribePublic(messageHash: string, params?: Dict): Promise<any>;
-    subscribePublicMultiple(messageHashes: string[], params?: Dict): Promise<any>;
-    unsubscribe(messageHash: string, params?: Dict): Promise<any>;
-    subscribePrivate(messageHash: string, params?: Dict): Promise<any>;
+    subscribePublic(messageHash: any, params?: {}): Promise<any>;
+    subscribePublicMultiple(messageHashes: any, params?: {}): Promise<any>;
+    unsubscribe(messageHash: any, params?: {}): Promise<any>;
+    subscribePrivate(messageHash: any, params?: Dict): Promise<any>;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
-    handleOrderBookMessage(client: Client, message: Dict, orderbook: Dict): Dict;
-    handleOrderBook(client: Client, message: Dict): void;
+    handleOrderBookMessage(client: Client, message: any, orderbook: any): any;
+    handleOrderBook(client: Client, message: any): void;
     /**
      * @method
      * @name lighter#watchOrderBook
@@ -22,7 +22,7 @@ export default class lighter extends lighterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
+    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     /**
      * @method
      * @name lighter#unWatchOrderBook
@@ -32,8 +32,8 @@ export default class lighter extends lighterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    unWatchOrderBook(symbol: string, params?: Dict): Promise<any>;
-    handleTicker(client: Client, message: Dict): void;
+    unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
+    handleTicker(client: Client, message: any): void;
     /**
      * @method
      * @name lighter#watchTicker
@@ -43,7 +43,7 @@ export default class lighter extends lighterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTicker(symbol: string, params?: Dict): Promise<Ticker>;
+    watchTicker(symbol: string, params?: {}): Promise<Ticker>;
     /**
      * @method
      * @name lighter#unWatchTicker
@@ -53,7 +53,7 @@ export default class lighter extends lighterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchTicker(symbol: string, params?: Dict): Promise<any>;
+    unWatchTicker(symbol: string, params?: {}): Promise<any>;
     /**
      * @method
      * @name lighter#watchTickers
@@ -63,7 +63,7 @@ export default class lighter extends lighterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
+    watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     /**
      * @method
      * @name lighter#unWatchTickers
@@ -73,7 +73,7 @@ export default class lighter extends lighterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchTickers(symbols?: Strings, params?: Dict): Promise<any>;
+    unWatchTickers(symbols?: Strings, params?: {}): Promise<any>;
     /**
      * @method
      * @name lighter#watchMarkPrice
@@ -83,7 +83,7 @@ export default class lighter extends lighterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchMarkPrice(symbol: string, params?: Dict): Promise<Ticker>;
+    watchMarkPrice(symbol: string, params?: {}): Promise<Ticker>;
     /**
      * @method
      * @name lighter#watchMarkPrices
@@ -93,7 +93,7 @@ export default class lighter extends lighterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchMarkPrices(symbols?: Strings, params?: Dict): Promise<Tickers>;
+    watchMarkPrices(symbols?: Strings, params?: {}): Promise<Tickers>;
     /**
      * @method
      * @name lighter#unWatchMarkPrice
@@ -103,7 +103,7 @@ export default class lighter extends lighterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchMarkPrice(symbol: string, params?: Dict): Promise<any>;
+    unWatchMarkPrice(symbol: string, params?: {}): Promise<any>;
     /**
      * @method
      * @name lighter#unWatchMarkPrices
@@ -113,9 +113,9 @@ export default class lighter extends lighterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchMarkPrices(symbols?: Strings, params?: Dict): Promise<any>;
-    parseWsTrade(trade: Dict, market?: Market): Trade;
-    handleTrades(client: Client, message: Dict): void;
+    unWatchMarkPrices(symbols?: Strings, params?: {}): Promise<any>;
+    parseWsTrade(trade: any, market?: Market): Trade;
+    handleTrades(client: Client, message: any): void;
     /**
      * @method
      * @name lighter#watchTrades
@@ -127,7 +127,7 @@ export default class lighter extends lighterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     /**
      * @method
      * @name lighter#unWatchTrades
@@ -137,7 +137,7 @@ export default class lighter extends lighterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    unWatchTrades(symbol: string, params?: Dict): Promise<any>;
+    unWatchTrades(symbol: string, params?: {}): Promise<any>;
     parseWsOrderTrade(trade: Dict, market?: Market): Trade;
     handleMyTrades(client: Client, message: any): boolean;
     /**
@@ -151,7 +151,7 @@ export default class lighter extends lighterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     /**
      * @method
      * @name lighter#unWatchMyTrades
@@ -162,9 +162,9 @@ export default class lighter extends lighterRest {
      * @param {string} [params.accountIndex] account index
      * @returns {any} status of the unwatch request
      */
-    unWatchMyTrades(symbol?: Str, params?: Dict): Promise<any>;
-    parseWsLiquidation(liquidation: Dict, market?: Market): Liquidation | undefined;
-    handleLiquidation(client: Client, message: Dict): void;
+    unWatchMyTrades(symbol?: Str, params?: {}): Promise<any>;
+    parseWsLiquidation(liquidation: any, market?: Market): Liquidation | undefined;
+    handleLiquidation(client: Client, message: any): void;
     /**
      * @method
      * @name lighter#watchLiquidations
@@ -176,7 +176,7 @@ export default class lighter extends lighterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchLiquidations(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Liquidation[]>;
+    watchLiquidations(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
     /**
      * @method
      * @name lighter#watchBalance
@@ -186,7 +186,7 @@ export default class lighter extends lighterRest {
      * @param {string} [params.type] 'spot' or 'swap', default is 'swap'
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    watchBalance(params?: Dict): Promise<Balances>;
+    watchBalance(params?: {}): Promise<Balances>;
     handleBalance(client: Client, message: any): boolean;
     /**
      * @name lighter#watchOrders
@@ -198,7 +198,7 @@ export default class lighter extends lighterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     /**
      * @method
      * @name lighter#unWatchOrders
@@ -208,7 +208,7 @@ export default class lighter extends lighterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    unWatchOrders(symbol?: Str, params?: Dict): Promise<any>;
+    unWatchOrders(symbol?: Str, params?: {}): Promise<any>;
     requestId(url: string): string;
     /**
      * @method
@@ -244,7 +244,7 @@ export default class lighter extends lighterRest {
      * @param {string} [params.apiKeyIndex] api key index
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    cancelOrderWs(id: string, symbol?: Str, params?: Dict): Promise<Order>;
+    cancelOrderWs(id: string, symbol?: Str, params?: {}): Promise<Order>;
     /**
      * @method
      * @name lighter#cancelAllOrdersWs
@@ -256,13 +256,13 @@ export default class lighter extends lighterRest {
      * @param {string} [params.apiKeyIndex] api key index
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    cancelAllOrdersWs(symbol?: Str, params?: Dict): Promise<Order[]>;
-    handleWsSendtxApi(client: Client, message: Dict): void;
+    cancelAllOrdersWs(symbol?: Str, params?: {}): Promise<Order[]>;
+    handleWsSendtxApi(client: Client, message: any): void;
     handleOrders(client: Client, message: any): boolean;
     handleErrorMessage(client: Client, message: any): boolean;
-    handleMessage(client: Client, message: Dict): void;
-    handleSubscriptionStatus(client: Client, message: Dict): Dict;
-    handleUnSubscription(client: Client, message: Dict): void;
+    handleMessage(client: Client, message: any): void;
+    handleSubscriptionStatus(client: Client, message: any): any;
+    handleUnSubscription(client: Client, message: any): void;
     handleOrderBookUnSubscription(client: Client, marketId: Str): void;
     handleTickerUnSubscription(client: Client, marketId: Str): void;
     handleTradesUnSubscription(client: Client, marketId: Str): void;

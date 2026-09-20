@@ -6,7 +6,7 @@ import type { TransferEntry, Balances, Currency, Int, Market, OrderBook, OrderSi
  */
 export default class paymium extends Exchange {
     describe(): any;
-    parseBalance(response: Dict): Balances;
+    parseBalance(response: any): Balances;
     /**
      * @method
      * @name paymium#fetchBalance
@@ -15,7 +15,7 @@ export default class paymium extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    fetchBalance(params?: Dict): Promise<Balances>;
+    fetchBalance(params?: {}): Promise<Balances>;
     /**
      * @method
      * @name paymium#fetchOrderBook
@@ -26,7 +26,7 @@ export default class paymium extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    fetchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     /**
      * @method
@@ -37,7 +37,7 @@ export default class paymium extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    fetchTicker(symbol: string, params?: Dict): Promise<Ticker>;
+    fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     parseTrade(trade: Dict, market?: Market): Trade;
     /**
      * @method
@@ -50,7 +50,7 @@ export default class paymium extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
+    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     /**
      * @method
      * @name paymium#createDepositAddress
@@ -60,7 +60,7 @@ export default class paymium extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    createDepositAddress(code: string, params?: Dict): Promise<DepositAddress>;
+    createDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
     /**
      * @method
      * @name paymium#fetchDepositAddress
@@ -70,7 +70,7 @@ export default class paymium extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    fetchDepositAddress(code: string, params?: Dict): Promise<DepositAddress>;
+    fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
     /**
      * @method
      * @name paymium#fetchDepositAddresses
@@ -80,8 +80,8 @@ export default class paymium extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    fetchDepositAddresses(codes?: Strings, params?: Dict): Promise<DepositAddress[]>;
-    parseDepositAddress(depositAddress: Dict, currency?: Currency): DepositAddress;
+    fetchDepositAddresses(codes?: Strings, params?: {}): Promise<DepositAddress[]>;
+    parseDepositAddress(depositAddress: any, currency?: Currency): DepositAddress;
     /**
      * @method
      * @name paymium#createOrder
@@ -95,7 +95,7 @@ export default class paymium extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<import("./base/types.js").Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<import("./base/types.js").Order>;
     /**
      * @method
      * @name paymium#cancelOrder
@@ -106,7 +106,7 @@ export default class paymium extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    cancelOrder(id: string, symbol?: Str, params?: Dict): Promise<import("./base/types.js").Order>;
+    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<import("./base/types.js").Order>;
     /**
      * @method
      * @name paymium#transfer
@@ -119,9 +119,14 @@ export default class paymium extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: Dict): Promise<TransferEntry>;
+    transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
     parseTransferStatus(status: Str): Str;
-    sign(path: any, api?: any, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
+        url: string;
+        method: string;
+        body: Str;
+        headers: NullableDict;
+    };
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

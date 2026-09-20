@@ -11,11 +11,11 @@ use ccxt::exchange_generated::ExchangeBase;
 pub fn testParsePrecision() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("id".to_string(), Value::Str("sampleexchange".into()));
+            m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
         m
     }));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.parse_precision(&[Value::Str("15".into())]).as_str() == Some("0.000000000000001")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.parse_precision(&[Value::Str("1".into())]).as_str() == Some("0.1")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.parse_precision(&[Value::Str("0".into())]).as_str() == Some("1")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.parse_precision(&[Value::Str("-5".into())]).as_str() == Some("100000")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.parse_precision(&[Value::Str("15".to_string())]), &Value::Str("0.000000000000001".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.parse_precision(&[Value::Str("1".to_string())]), &Value::Str("0.1".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.parse_precision(&[Value::Str("0".to_string())]), &Value::Str("1".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.parse_precision(&[Value::Str("-5".to_string())]), &Value::Str("100000".to_string()))))));
 }

@@ -9,440 +9,440 @@ package ccxt
 
 // PublicSpotGetMarketSymbols returns a channel that yields a JSON object.
 func (this *Digifinex) PublicSpotGetMarketSymbols(args ...any) <-chan any {
-	return this.Fetch2Async("{market}/symbols", []string{"public", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("publicSpotGetMarketSymbols", args...)
 }
 
 // PublicSpotGetKline returns a channel that yields a JSON object.
 func (this *Digifinex) PublicSpotGetKline(args ...any) <-chan any {
-	return this.Fetch2Async("kline", []string{"public", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("publicSpotGetKline", args...)
 }
 
 // PublicSpotGetMarginCurrencies returns a channel that yields a JSON object.
 func (this *Digifinex) PublicSpotGetMarginCurrencies(args ...any) <-chan any {
-	return this.Fetch2Async("margin/currencies", []string{"public", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("publicSpotGetMarginCurrencies", args...)
 }
 
 // PublicSpotGetMarginSymbols returns a channel that yields a JSON object.
 func (this *Digifinex) PublicSpotGetMarginSymbols(args ...any) <-chan any {
-	return this.Fetch2Async("margin/symbols", []string{"public", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("publicSpotGetMarginSymbols", args...)
 }
 
 // PublicSpotGetMarkets returns a channel that yields a JSON object.
 func (this *Digifinex) PublicSpotGetMarkets(args ...any) <-chan any {
-	return this.Fetch2Async("markets", []string{"public", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("publicSpotGetMarkets", args...)
 }
 
 // PublicSpotGetOrderBook returns a channel that yields a JSON object.
 func (this *Digifinex) PublicSpotGetOrderBook(args ...any) <-chan any {
-	return this.Fetch2Async("order_book", []string{"public", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("publicSpotGetOrderBook", args...)
 }
 
 // PublicSpotGetPing returns a channel that yields a JSON object.
 func (this *Digifinex) PublicSpotGetPing(args ...any) <-chan any {
-	return this.Fetch2Async("ping", []string{"public", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("publicSpotGetPing", args...)
 }
 
 // PublicSpotGetSpotSymbols returns a channel that yields a JSON object.
 func (this *Digifinex) PublicSpotGetSpotSymbols(args ...any) <-chan any {
-	return this.Fetch2Async("spot/symbols", []string{"public", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("publicSpotGetSpotSymbols", args...)
 }
 
 // PublicSpotGetTime returns a channel that yields a JSON object.
 func (this *Digifinex) PublicSpotGetTime(args ...any) <-chan any {
-	return this.Fetch2Async("time", []string{"public", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("publicSpotGetTime", args...)
 }
 
 // PublicSpotGetTrades returns a channel that yields a JSON object.
 func (this *Digifinex) PublicSpotGetTrades(args ...any) <-chan any {
-	return this.Fetch2Async("trades", []string{"public", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("publicSpotGetTrades", args...)
 }
 
 // PublicSpotGetTradesSymbols returns a channel that yields a JSON object.
 func (this *Digifinex) PublicSpotGetTradesSymbols(args ...any) <-chan any {
-	return this.Fetch2Async("trades/symbols", []string{"public", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("publicSpotGetTradesSymbols", args...)
 }
 
 // PublicSpotGetTicker returns a channel that yields a JSON object.
 func (this *Digifinex) PublicSpotGetTicker(args ...any) <-chan any {
-	return this.Fetch2Async("ticker", []string{"public", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("publicSpotGetTicker", args...)
 }
 
 // PublicSpotGetCurrencies returns a channel that yields a JSON object.
 func (this *Digifinex) PublicSpotGetCurrencies(args ...any) <-chan any {
-	return this.Fetch2Async("currencies", []string{"public", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("publicSpotGetCurrencies", args...)
 }
 
 // PublicSwapGetPublicApiWeight returns a channel that yields a JSON object.
 func (this *Digifinex) PublicSwapGetPublicApiWeight(args ...any) <-chan any {
-	return this.Fetch2Async("public/api_weight", []string{"public", "swap"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("publicSwapGetPublicApiWeight", args...)
 }
 
 // PublicSwapGetPublicCandles returns a channel that yields a JSON object.
 func (this *Digifinex) PublicSwapGetPublicCandles(args ...any) <-chan any {
-	return this.Fetch2Async("public/candles", []string{"public", "swap"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("publicSwapGetPublicCandles", args...)
 }
 
 // PublicSwapGetPublicCandlesHistory returns a channel that yields a JSON object.
 func (this *Digifinex) PublicSwapGetPublicCandlesHistory(args ...any) <-chan any {
-	return this.Fetch2Async("public/candles_history", []string{"public", "swap"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("publicSwapGetPublicCandlesHistory", args...)
 }
 
 // PublicSwapGetPublicDepth returns a channel that yields a JSON object.
 func (this *Digifinex) PublicSwapGetPublicDepth(args ...any) <-chan any {
-	return this.Fetch2Async("public/depth", []string{"public", "swap"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("publicSwapGetPublicDepth", args...)
 }
 
 // PublicSwapGetPublicFundingRate returns a channel that yields a JSON object.
 func (this *Digifinex) PublicSwapGetPublicFundingRate(args ...any) <-chan any {
-	return this.Fetch2Async("public/funding_rate", []string{"public", "swap"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("publicSwapGetPublicFundingRate", args...)
 }
 
 // PublicSwapGetPublicFundingRateHistory returns a channel that yields a JSON object.
 func (this *Digifinex) PublicSwapGetPublicFundingRateHistory(args ...any) <-chan any {
-	return this.Fetch2Async("public/funding_rate_history", []string{"public", "swap"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("publicSwapGetPublicFundingRateHistory", args...)
 }
 
 // PublicSwapGetPublicInstrument returns a channel that yields a JSON object.
 func (this *Digifinex) PublicSwapGetPublicInstrument(args ...any) <-chan any {
-	return this.Fetch2Async("public/instrument", []string{"public", "swap"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("publicSwapGetPublicInstrument", args...)
 }
 
 // PublicSwapGetPublicInstruments returns a channel that yields a JSON object.
 func (this *Digifinex) PublicSwapGetPublicInstruments(args ...any) <-chan any {
-	return this.Fetch2Async("public/instruments", []string{"public", "swap"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("publicSwapGetPublicInstruments", args...)
 }
 
 // PublicSwapGetPublicTicker returns a channel that yields a JSON object.
 func (this *Digifinex) PublicSwapGetPublicTicker(args ...any) <-chan any {
-	return this.Fetch2Async("public/ticker", []string{"public", "swap"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("publicSwapGetPublicTicker", args...)
 }
 
 // PublicSwapGetPublicTickers returns a channel that yields a JSON object.
 func (this *Digifinex) PublicSwapGetPublicTickers(args ...any) <-chan any {
-	return this.Fetch2Async("public/tickers", []string{"public", "swap"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("publicSwapGetPublicTickers", args...)
 }
 
 // PublicSwapGetPublicTime returns a channel that yields a JSON object.
 func (this *Digifinex) PublicSwapGetPublicTime(args ...any) <-chan any {
-	return this.Fetch2Async("public/time", []string{"public", "swap"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("publicSwapGetPublicTime", args...)
 }
 
 // PublicSwapGetPublicTrades returns a channel that yields a JSON object.
 func (this *Digifinex) PublicSwapGetPublicTrades(args ...any) <-chan any {
-	return this.Fetch2Async("public/trades", []string{"public", "swap"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("publicSwapGetPublicTrades", args...)
 }
 
 // PrivateSpotGetMarketFinancelog returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSpotGetMarketFinancelog(args ...any) <-chan any {
-	return this.Fetch2Async("{market}/financelog", []string{"private", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSpotGetMarketFinancelog", args...)
 }
 
 // PrivateSpotGetMarketMytrades returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSpotGetMarketMytrades(args ...any) <-chan any {
-	return this.Fetch2Async("{market}/mytrades", []string{"private", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSpotGetMarketMytrades", args...)
 }
 
 // PrivateSpotGetMarketOrder returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSpotGetMarketOrder(args ...any) <-chan any {
-	return this.Fetch2Async("{market}/order", []string{"private", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSpotGetMarketOrder", args...)
 }
 
 // PrivateSpotGetMarketOrderDetail returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSpotGetMarketOrderDetail(args ...any) <-chan any {
-	return this.Fetch2Async("{market}/order/detail", []string{"private", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSpotGetMarketOrderDetail", args...)
 }
 
 // PrivateSpotGetMarketOrderCurrent returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSpotGetMarketOrderCurrent(args ...any) <-chan any {
-	return this.Fetch2Async("{market}/order/current", []string{"private", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSpotGetMarketOrderCurrent", args...)
 }
 
 // PrivateSpotGetMarketOrderHistory returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSpotGetMarketOrderHistory(args ...any) <-chan any {
-	return this.Fetch2Async("{market}/order/history", []string{"private", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSpotGetMarketOrderHistory", args...)
 }
 
 // PrivateSpotGetMarginAssets returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSpotGetMarginAssets(args ...any) <-chan any {
-	return this.Fetch2Async("margin/assets", []string{"private", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSpotGetMarginAssets", args...)
 }
 
 // PrivateSpotGetMarginFinancelog returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSpotGetMarginFinancelog(args ...any) <-chan any {
-	return this.Fetch2Async("margin/financelog", []string{"private", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSpotGetMarginFinancelog", args...)
 }
 
 // PrivateSpotGetMarginMytrades returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSpotGetMarginMytrades(args ...any) <-chan any {
-	return this.Fetch2Async("margin/mytrades", []string{"private", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSpotGetMarginMytrades", args...)
 }
 
 // PrivateSpotGetMarginOrder returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSpotGetMarginOrder(args ...any) <-chan any {
-	return this.Fetch2Async("margin/order", []string{"private", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSpotGetMarginOrder", args...)
 }
 
 // PrivateSpotGetMarginOrderCurrent returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSpotGetMarginOrderCurrent(args ...any) <-chan any {
-	return this.Fetch2Async("margin/order/current", []string{"private", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSpotGetMarginOrderCurrent", args...)
 }
 
 // PrivateSpotGetMarginOrderHistory returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSpotGetMarginOrderHistory(args ...any) <-chan any {
-	return this.Fetch2Async("margin/order/history", []string{"private", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSpotGetMarginOrderHistory", args...)
 }
 
 // PrivateSpotGetMarginPositions returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSpotGetMarginPositions(args ...any) <-chan any {
-	return this.Fetch2Async("margin/positions", []string{"private", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSpotGetMarginPositions", args...)
 }
 
 // PrivateSpotGetOtcFinancelog returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSpotGetOtcFinancelog(args ...any) <-chan any {
-	return this.Fetch2Async("otc/financelog", []string{"private", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSpotGetOtcFinancelog", args...)
 }
 
 // PrivateSpotGetSpotAssets returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSpotGetSpotAssets(args ...any) <-chan any {
-	return this.Fetch2Async("spot/assets", []string{"private", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSpotGetSpotAssets", args...)
 }
 
 // PrivateSpotGetSpotFinancelog returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSpotGetSpotFinancelog(args ...any) <-chan any {
-	return this.Fetch2Async("spot/financelog", []string{"private", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSpotGetSpotFinancelog", args...)
 }
 
 // PrivateSpotGetSpotMytrades returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSpotGetSpotMytrades(args ...any) <-chan any {
-	return this.Fetch2Async("spot/mytrades", []string{"private", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSpotGetSpotMytrades", args...)
 }
 
 // PrivateSpotGetSpotOrder returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSpotGetSpotOrder(args ...any) <-chan any {
-	return this.Fetch2Async("spot/order", []string{"private", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSpotGetSpotOrder", args...)
 }
 
 // PrivateSpotGetSpotOrderCurrent returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSpotGetSpotOrderCurrent(args ...any) <-chan any {
-	return this.Fetch2Async("spot/order/current", []string{"private", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSpotGetSpotOrderCurrent", args...)
 }
 
 // PrivateSpotGetSpotOrderHistory returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSpotGetSpotOrderHistory(args ...any) <-chan any {
-	return this.Fetch2Async("spot/order/history", []string{"private", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSpotGetSpotOrderHistory", args...)
 }
 
 // PrivateSpotGetDepositAddress returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSpotGetDepositAddress(args ...any) <-chan any {
-	return this.Fetch2Async("deposit/address", []string{"private", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSpotGetDepositAddress", args...)
 }
 
 // PrivateSpotGetDepositHistory returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSpotGetDepositHistory(args ...any) <-chan any {
-	return this.Fetch2Async("deposit/history", []string{"private", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSpotGetDepositHistory", args...)
 }
 
 // PrivateSpotGetWithdrawHistory returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSpotGetWithdrawHistory(args ...any) <-chan any {
-	return this.Fetch2Async("withdraw/history", []string{"private", "spot"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSpotGetWithdrawHistory", args...)
 }
 
 // PrivateSpotPostMarketOrderCancel returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSpotPostMarketOrderCancel(args ...any) <-chan any {
-	return this.Fetch2Async("{market}/order/cancel", []string{"private", "spot"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSpotPostMarketOrderCancel", args...)
 }
 
 // PrivateSpotPostMarketOrderNew returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSpotPostMarketOrderNew(args ...any) <-chan any {
-	return this.Fetch2Async("{market}/order/new", []string{"private", "spot"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSpotPostMarketOrderNew", args...)
 }
 
 // PrivateSpotPostMarketOrderBatchNew returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSpotPostMarketOrderBatchNew(args ...any) <-chan any {
-	return this.Fetch2Async("{market}/order/batch_new", []string{"private", "spot"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSpotPostMarketOrderBatchNew", args...)
 }
 
 // PrivateSpotPostMarginOrderCancel returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSpotPostMarginOrderCancel(args ...any) <-chan any {
-	return this.Fetch2Async("margin/order/cancel", []string{"private", "spot"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSpotPostMarginOrderCancel", args...)
 }
 
 // PrivateSpotPostMarginOrderNew returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSpotPostMarginOrderNew(args ...any) <-chan any {
-	return this.Fetch2Async("margin/order/new", []string{"private", "spot"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSpotPostMarginOrderNew", args...)
 }
 
 // PrivateSpotPostMarginPositionClose returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSpotPostMarginPositionClose(args ...any) <-chan any {
-	return this.Fetch2Async("margin/position/close", []string{"private", "spot"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSpotPostMarginPositionClose", args...)
 }
 
 // PrivateSpotPostSpotOrderCancel returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSpotPostSpotOrderCancel(args ...any) <-chan any {
-	return this.Fetch2Async("spot/order/cancel", []string{"private", "spot"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSpotPostSpotOrderCancel", args...)
 }
 
 // PrivateSpotPostSpotOrderNew returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSpotPostSpotOrderNew(args ...any) <-chan any {
-	return this.Fetch2Async("spot/order/new", []string{"private", "spot"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSpotPostSpotOrderNew", args...)
 }
 
 // PrivateSpotPostTransfer returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSpotPostTransfer(args ...any) <-chan any {
-	return this.Fetch2Async("transfer", []string{"private", "spot"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSpotPostTransfer", args...)
 }
 
 // PrivateSpotPostWithdrawNew returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSpotPostWithdrawNew(args ...any) <-chan any {
-	return this.Fetch2Async("withdraw/new", []string{"private", "spot"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSpotPostWithdrawNew", args...)
 }
 
 // PrivateSpotPostWithdrawCancel returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSpotPostWithdrawCancel(args ...any) <-chan any {
-	return this.Fetch2Async("withdraw/cancel", []string{"private", "spot"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSpotPostWithdrawCancel", args...)
 }
 
 // PrivateSwapGetAccountBalance returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSwapGetAccountBalance(args ...any) <-chan any {
-	return this.Fetch2Async("account/balance", []string{"private", "swap"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSwapGetAccountBalance", args...)
 }
 
 // PrivateSwapGetAccountPositions returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSwapGetAccountPositions(args ...any) <-chan any {
-	return this.Fetch2Async("account/positions", []string{"private", "swap"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSwapGetAccountPositions", args...)
 }
 
 // PrivateSwapGetAccountFinanceRecord returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSwapGetAccountFinanceRecord(args ...any) <-chan any {
-	return this.Fetch2Async("account/finance_record", []string{"private", "swap"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSwapGetAccountFinanceRecord", args...)
 }
 
 // PrivateSwapGetAccountTradingFeeRate returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSwapGetAccountTradingFeeRate(args ...any) <-chan any {
-	return this.Fetch2Async("account/trading_fee_rate", []string{"private", "swap"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSwapGetAccountTradingFeeRate", args...)
 }
 
 // PrivateSwapGetAccountTransferRecord returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSwapGetAccountTransferRecord(args ...any) <-chan any {
-	return this.Fetch2Async("account/transfer_record", []string{"private", "swap"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSwapGetAccountTransferRecord", args...)
 }
 
 // PrivateSwapGetAccountFundingFee returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSwapGetAccountFundingFee(args ...any) <-chan any {
-	return this.Fetch2Async("account/funding_fee", []string{"private", "swap"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSwapGetAccountFundingFee", args...)
 }
 
 // PrivateSwapGetTradeHistoryOrders returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSwapGetTradeHistoryOrders(args ...any) <-chan any {
-	return this.Fetch2Async("trade/history_orders", []string{"private", "swap"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSwapGetTradeHistoryOrders", args...)
 }
 
 // PrivateSwapGetTradeHistoryTrades returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSwapGetTradeHistoryTrades(args ...any) <-chan any {
-	return this.Fetch2Async("trade/history_trades", []string{"private", "swap"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSwapGetTradeHistoryTrades", args...)
 }
 
 // PrivateSwapGetTradeOpenOrders returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSwapGetTradeOpenOrders(args ...any) <-chan any {
-	return this.Fetch2Async("trade/open_orders", []string{"private", "swap"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSwapGetTradeOpenOrders", args...)
 }
 
 // PrivateSwapGetTradeOrderInfo returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSwapGetTradeOrderInfo(args ...any) <-chan any {
-	return this.Fetch2Async("trade/order_info", []string{"private", "swap"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSwapGetTradeOrderInfo", args...)
 }
 
 // PrivateSwapPostAccountTransfer returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSwapPostAccountTransfer(args ...any) <-chan any {
-	return this.Fetch2Async("account/transfer", []string{"private", "swap"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSwapPostAccountTransfer", args...)
 }
 
 // PrivateSwapPostAccountLeverage returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSwapPostAccountLeverage(args ...any) <-chan any {
-	return this.Fetch2Async("account/leverage", []string{"private", "swap"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSwapPostAccountLeverage", args...)
 }
 
 // PrivateSwapPostAccountPositionMode returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSwapPostAccountPositionMode(args ...any) <-chan any {
-	return this.Fetch2Async("account/position_mode", []string{"private", "swap"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSwapPostAccountPositionMode", args...)
 }
 
 // PrivateSwapPostAccountPositionMargin returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSwapPostAccountPositionMargin(args ...any) <-chan any {
-	return this.Fetch2Async("account/position_margin", []string{"private", "swap"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSwapPostAccountPositionMargin", args...)
 }
 
 // PrivateSwapPostTradeBatchCancelOrder returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSwapPostTradeBatchCancelOrder(args ...any) <-chan any {
-	return this.Fetch2Async("trade/batch_cancel_order", []string{"private", "swap"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSwapPostTradeBatchCancelOrder", args...)
 }
 
 // PrivateSwapPostTradeBatchOrder returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSwapPostTradeBatchOrder(args ...any) <-chan any {
-	return this.Fetch2Async("trade/batch_order", []string{"private", "swap"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSwapPostTradeBatchOrder", args...)
 }
 
 // PrivateSwapPostTradeCancelOrder returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSwapPostTradeCancelOrder(args ...any) <-chan any {
-	return this.Fetch2Async("trade/cancel_order", []string{"private", "swap"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSwapPostTradeCancelOrder", args...)
 }
 
 // PrivateSwapPostTradeOrderPlace returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSwapPostTradeOrderPlace(args ...any) <-chan any {
-	return this.Fetch2Async("trade/order_place", []string{"private", "swap"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSwapPostTradeOrderPlace", args...)
 }
 
 // PrivateSwapPostFollowSponsorOrder returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSwapPostFollowSponsorOrder(args ...any) <-chan any {
-	return this.Fetch2Async("follow/sponsor_order", []string{"private", "swap"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSwapPostFollowSponsorOrder", args...)
 }
 
 // PrivateSwapPostFollowCloseOrder returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSwapPostFollowCloseOrder(args ...any) <-chan any {
-	return this.Fetch2Async("follow/close_order", []string{"private", "swap"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSwapPostFollowCloseOrder", args...)
 }
 
 // PrivateSwapPostFollowCancelOrder returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSwapPostFollowCancelOrder(args ...any) <-chan any {
-	return this.Fetch2Async("follow/cancel_order", []string{"private", "swap"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSwapPostFollowCancelOrder", args...)
 }
 
 // PrivateSwapPostFollowUserCenterCurrent returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSwapPostFollowUserCenterCurrent(args ...any) <-chan any {
-	return this.Fetch2Async("follow/user_center_current", []string{"private", "swap"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSwapPostFollowUserCenterCurrent", args...)
 }
 
 // PrivateSwapPostFollowUserCenterHistory returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSwapPostFollowUserCenterHistory(args ...any) <-chan any {
-	return this.Fetch2Async("follow/user_center_history", []string{"private", "swap"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSwapPostFollowUserCenterHistory", args...)
 }
 
 // PrivateSwapPostFollowExpertCurrentOpenOrder returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSwapPostFollowExpertCurrentOpenOrder(args ...any) <-chan any {
-	return this.Fetch2Async("follow/expert_current_open_order", []string{"private", "swap"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSwapPostFollowExpertCurrentOpenOrder", args...)
 }
 
 // PrivateSwapPostFollowAddAlgo returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSwapPostFollowAddAlgo(args ...any) <-chan any {
-	return this.Fetch2Async("follow/add_algo", []string{"private", "swap"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSwapPostFollowAddAlgo", args...)
 }
 
 // PrivateSwapPostFollowCancelAlgo returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSwapPostFollowCancelAlgo(args ...any) <-chan any {
-	return this.Fetch2Async("follow/cancel_algo", []string{"private", "swap"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSwapPostFollowCancelAlgo", args...)
 }
 
 // PrivateSwapPostFollowAccountAvailable returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSwapPostFollowAccountAvailable(args ...any) <-chan any {
-	return this.Fetch2Async("follow/account_available", []string{"private", "swap"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSwapPostFollowAccountAvailable", args...)
 }
 
 // PrivateSwapPostFollowPlanTask returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSwapPostFollowPlanTask(args ...any) <-chan any {
-	return this.Fetch2Async("follow/plan_task", []string{"private", "swap"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSwapPostFollowPlanTask", args...)
 }
 
 // PrivateSwapPostFollowInstrumentList returns a channel that yields a JSON object.
 func (this *Digifinex) PrivateSwapPostFollowInstrumentList(args ...any) <-chan any {
-	return this.Fetch2Async("follow/instrument_list", []string{"private", "swap"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateSwapPostFollowInstrumentList", args...)
 }

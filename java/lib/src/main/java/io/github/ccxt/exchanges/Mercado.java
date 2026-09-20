@@ -20,7 +20,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 public class Mercado extends MercadoApi
 {
@@ -356,7 +355,7 @@ public class Mercado extends MercadoApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             List<Object> response = (this.publicGetCoins(parameters)).join();
             //
             //     [
@@ -380,25 +379,25 @@ public class Mercado extends MercadoApi
             //     ]
             //
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            Map<String, Object> amountLimits = (Map<String, Object>) this.safeDict(this.options, "limits", new HashMap<String, Object>() {{}});
+            Object amountLimits = this.safeValue(this.options, "limits", new HashMap<String, Object>() {{}});
             List<Object> coins = this.toArray(response);
-            for (var i = 0; i < ((List<?>)coins).size(); i++)
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(coins)); i++)
             {
-                Object coin = (coins == null || i < 0 || i >= coins.size() ? null : coins.get(i));
+                Object coin = Helpers.GetValue(coins, i);
                 Object baseId = coin;
                 String quoteId = "BRL";
-                String base = this.safeCurrencyCode((String) (baseId));
+                String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
-                if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+                if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(base, null))) || Helpers.isTrue((Helpers.isEqual(quote, null)))))
                 {
                     continue;
                 }
-                String id = (quote + base);
+                Object id = Helpers.add(quote, base);
     final Object finalBase = base;
                 final Object finalQuote = quote;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", id );
-                    put( "symbol", ((finalBase + "/") + finalQuote) );
+                    put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), finalQuote) );
                     put( "base", finalBase );
                     put( "quote", finalQuote );
                     put( "settle", null );
@@ -465,23 +464,23 @@ public class Mercado extends MercadoApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object limit = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "coin", ((Map<String, Object>)market).get("base") );
+                put( "coin", Helpers.GetValue(market, "base") );
             }};
             Map<String, Object> response = (this.publicGetCoinOrderbook(this.extend(request, parameters))).join();
-            return this.parseOrderBook(response, ((Map<String, Object>)market).get("symbol"));
+            return this.parseOrderBook(response, Helpers.GetValue(market, "symbol"));
         }).thenApply(OrderBook::new);
 
     }
 
-    public Object parseTicker(Map<String, Object> ticker, Object... optionalArgs)
+    public Object parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         //     {
@@ -495,7 +494,7 @@ public class Mercado extends MercadoApi
         //         "date":1643382606
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        Object market = Helpers.getArg(optionalArgs, 0, null);
         String symbol = this.safeSymbol(null, market);
         Object timestamp = this.safeTimestamp(ticker, "date");
         String last = this.safeString(ticker, "last");
@@ -536,17 +535,17 @@ public class Mercado extends MercadoApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "coin", ((Map<String, Object>)market).get("base") );
+                put( "coin", Helpers.GetValue(market, "base") );
             }};
             Map<String, Object> response = (this.publicGetCoinTicker(this.extend(request, parameters))).join();
-            Map<String, Object> ticker = (Map<String, Object>) this.safeDict(response, "ticker", new HashMap<String, Object>() {{}});
+            Object ticker = this.safeValue(response, "ticker", new HashMap<String, Object>() {{}});
             //
             //     {
             //         "ticker": {
@@ -561,14 +560,14 @@ public class Mercado extends MercadoApi
             //         }
             //     }
             //
-            return this.parseTicker((Map<String, Object>) (ticker), market);
+            return this.parseTicker(ticker, market);
         }).thenApply(Ticker::new);
 
     }
 
     public Object parseTrade(Object trade, Object... optionalArgs)
     {
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeTimestamp2(trade, "date", "executed_timestamp");
         market = this.safeMarket(null, market);
         String id = this.safeString2(trade, "tid", "operation_id");
@@ -578,7 +577,7 @@ public class Mercado extends MercadoApi
         String amount = this.safeString2(trade, "amount", "quantity");
         String feeCost = this.safeString(trade, "fee_rate");
         Object fee = null;
-        if (!java.util.Objects.equals(feeCost, null))
+        if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
             final Object finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
@@ -588,12 +587,12 @@ public class Mercado extends MercadoApi
         }
         final Object finalMarket = market;
         final Object finalFee = fee;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "id", id );
             put( "info", trade );
             put( "timestamp", timestamp );
             put( "datetime", Mercado.this.iso8601(timestamp) );
-            put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
+            put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "order", null );
             put( "type", type );
             put( "side", side );
@@ -602,7 +601,7 @@ public class Mercado extends MercadoApi
             put( "amount", amount );
             put( "cost", null );
             put( "fee", finalFee );
-        }}), market);
+        }}, market);
     }
 
     /**
@@ -620,27 +619,27 @@ public class Mercado extends MercadoApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object since = Helpers.getArg(optionalArgs, 0, null);
+            Object limit = Helpers.getArg(optionalArgs, 1, null);
+            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "coin", ((Map<String, Object>)market).get("base") );
+                put( "coin", Helpers.GetValue(market, "base") );
             }};
-            if (!java.util.Objects.equals(since, null))
+            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
-                ((Map<String, Object>)request).put("from", this.parseToInt(Helpers.divide(since, 1000)));
+                Helpers.addElementToObject(request, "from", this.parseToInt(Helpers.divide(since, 1000)));
             }
             Long to = this.safeInteger(parameters, "to");
             Object response = null;
-            if ((!java.util.Objects.equals(since, null)) && (!java.util.Objects.equals(to, null)))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(since, null))) && Helpers.isTrue((!Helpers.isEqual(to, null)))))
             {
                 response = (this.publicGetCoinTradesFromTo(this.extend(request, parameters))).join();
-            } else if (!java.util.Objects.equals(since, null))
+            } else if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
                 response = (this.publicGetCoinTradesFrom(this.extend(request, parameters))).join();
             } else
@@ -648,31 +647,31 @@ public class Mercado extends MercadoApi
                 response = (this.publicGetCoinTrades(this.extend(request, parameters))).join();
             }
             return this.parseTrades(response, market, since, limit);
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
     public Object parseBalance(Object response)
     {
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "response_data", new HashMap<String, Object>() {{}});
-        Map<String, Object> balances = (Map<String, Object>) this.safeDict(data, "balance", new HashMap<String, Object>() {{}});
+        Object data = this.safeValue(response, "response_data", new HashMap<String, Object>() {{}});
+        Object balances = this.safeDict(data, "balance", new HashMap<String, Object>() {{}});
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        List<Object> currencyIds = new ArrayList<Object>(balances.keySet());
-        for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
+        Object currencyIds = Helpers.objectKeys(balances);
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencyIds)); i++)
         {
-            Object currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
-            String code = this.safeCurrencyCode((String) (currencyId));
-            if (balances.containsKey(currencyId))
+            Object currencyId = Helpers.GetValue(currencyIds, i);
+            String code = this.safeCurrencyCode(currencyId);
+            if (Helpers.isTrue(Helpers.inOp(balances, currencyId)))
             {
-                Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, currencyId, new HashMap<String, Object>() {{}});
+                Object balance = this.safeValue(balances, currencyId, new HashMap<String, Object>() {{}});
                 Object account = this.account();
-                ((Map<String, Object>)account).put("free", this.safeString(balance, "available"));
-                ((Map<String, Object>)account).put("total", this.safeString(balance, "total"));
-                if (!java.util.Objects.equals(code, null))
+                Helpers.addElementToObject(account, "free", this.safeString(balance, "available"));
+                Helpers.addElementToObject(account, "total", this.safeString(balance, "total"));
+                if (Helpers.isTrue(!Helpers.isEqual(code, null)))
                 {
-                    ((Map<String, Object>)result).put((String)code, account);
+                    Helpers.addElementToObject(result, code, account);
                 }
             }
         }
@@ -691,8 +690,8 @@ public class Mercado extends MercadoApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
@@ -721,22 +720,22 @@ public class Mercado extends MercadoApi
         return BaseExchange.supplyAsync(() -> {
             Object type = type3;
             Object side = side3;
-            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object price = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "coin_pair", ((Map<String, Object>)market).get("id") );
+                put( "coin_pair", Helpers.GetValue(market, "id") );
             }};
             Object response = null;
-            if (java.util.Objects.equals(type, "limit"))
+            if (Helpers.isTrue(Helpers.isEqual(type, "limit")))
             {
-                ((Map<String, Object>)request).put("limit_price", this.priceToPrecision(((Map<String, Object>)market).get("symbol"), price));
-                ((Map<String, Object>)request).put("quantity", this.amountToPrecision(((Map<String, Object>)market).get("symbol"), amount));
-                if (java.util.Objects.equals(side, "buy"))
+                Helpers.addElementToObject(request, "limit_price", this.priceToPrecision(Helpers.GetValue(market, "symbol"), price));
+                Helpers.addElementToObject(request, "quantity", this.amountToPrecision(Helpers.GetValue(market, "symbol"), amount));
+                if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
                 {
                     response = (this.privatePostPlaceBuyOrder(this.extend(request, parameters))).join();
                 } else
@@ -745,29 +744,29 @@ public class Mercado extends MercadoApi
                 }
             } else
             {
-                if (java.util.Objects.equals(side, "buy"))
+                if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
                 {
-                    if (java.util.Objects.equals(price, null))
+                    if (Helpers.isTrue(Helpers.isEqual(price, null)))
                     {
-                        throw new InvalidOrder((this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount")) ;
+                        throw new InvalidOrder(Helpers.add(this.id, " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount")) ;
                     }
                     Object amountString = this.numberToString(amount);
                     Object priceString = this.numberToString(price);
                     Object cost = this.parseToNumeric(Precise.stringMul(amountString, priceString));
-                    ((Map<String, Object>)request).put("cost", this.priceToPrecision(((Map<String, Object>)market).get("symbol"), cost));
+                    Helpers.addElementToObject(request, "cost", this.priceToPrecision(Helpers.GetValue(market, "symbol"), cost));
                     response = (this.privatePostPlaceMarketBuyOrder(this.extend(request, parameters))).join();
                 } else
                 {
-                    ((Map<String, Object>)request).put("quantity", this.amountToPrecision(((Map<String, Object>)market).get("symbol"), amount));
+                    Helpers.addElementToObject(request, "quantity", this.amountToPrecision(Helpers.GetValue(market, "symbol"), amount));
                     response = (this.privatePostPlaceMarketSellOrder(this.extend(request, parameters))).join();
                 }
             }
             // TODO: replace this with a call to parseOrder for unification
             final Object finalResponse = response;
-            return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+            return this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", finalResponse );
-                put( "id", String.valueOf(Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)finalResponse).get("response_data"), "order"), "order_id")) );
-            }}), market);
+                put( "id", String.valueOf(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(finalResponse, "response_data"), "order"), "order_id")) );
+            }}, market);
         }).thenApply(Order::new);
 
     }
@@ -786,19 +785,19 @@ public class Mercado extends MercadoApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(symbol, null))
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((this.id + " cancelOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
-            if (java.util.Objects.equals(this.markets, null))
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "coin_pair", ((Map<String, Object>)market).get("id") );
+                put( "coin_pair", Helpers.GetValue(market, "id") );
                 put( "order_id", id );
             }};
             Map<String, Object> response = (this.privatePostCancelOrder(this.extend(request, parameters))).join();
@@ -825,14 +824,14 @@ public class Mercado extends MercadoApi
             //         "server_unix_timestamp": "1536956499"
             //     }
             //
-            Map<String, Object> responseData = (Map<String, Object>) this.safeDict(response, "response_data", new HashMap<String, Object>() {{}});
-            Map<String, Object> order = (Map<String, Object>) this.safeDict(responseData, "order", new HashMap<String, Object>() {{}});
+            Object responseData = this.safeValue(response, "response_data", new HashMap<String, Object>() {{}});
+            Object order = this.safeDict(responseData, "order", new HashMap<String, Object>() {{}});
             return this.parseOrder(order, market);
         }).thenApply(Order::new);
 
     }
 
-    public String parseOrderStatus(String status)
+    public String parseOrderStatus(Object status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "2", "open" );
@@ -869,13 +868,13 @@ public class Mercado extends MercadoApi
         //         ],
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        Object market = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString(order, "order_id");
         String order_type = this.safeString(order, "order_type");
         String side = null;
-        if (((Map<?, ?>)order).containsKey("order_type"))
+        if (Helpers.isTrue(Helpers.inOp(order, "order_type")))
         {
-            side = (((java.util.Objects.equals(order_type, "1")))) ? "buy" : "sell";
+            side = ((Helpers.isTrue((Helpers.isEqual(order_type, "1"))))) ? "buy" : "sell";
         }
         String status = this.parseOrderStatus(this.safeString(order, "status"));
         String marketId = this.safeString(order, "coin_pair");
@@ -884,7 +883,7 @@ public class Mercado extends MercadoApi
         final Object finalMarket = market;
         Map<String, Object> fee = new HashMap<String, Object>() {{
             put( "cost", Mercado.this.safeString(order, "fee") );
-            put( "currency", ((Map<String, Object>)finalMarket).get("quote") );
+            put( "currency", Helpers.GetValue(finalMarket, "quote") );
         }};
         String price = this.safeString(order, "limit_price");
         // price = this.safeNumber (order, 'executed_price_avg', price);
@@ -892,10 +891,10 @@ public class Mercado extends MercadoApi
         String amount = this.safeString(order, "quantity");
         String filled = this.safeString(order, "executed_quantity");
         Object lastTradeTimestamp = this.safeTimestamp(order, "updated_timestamp");
-        List<Object> rawTrades = (List<Object>) this.safeList(order, "operations", new ArrayList<Object>(Arrays.asList()));
-        Object symbol = ((Map<String, Object>)market).get("symbol");
+        Object rawTrades = this.safeValue(order, "operations", new ArrayList<Object>(Arrays.asList()));
+        Object symbol = Helpers.GetValue(market, "symbol");
         final Object finalSide = side;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", id );
             put( "clientOrderId", null );
@@ -917,7 +916,7 @@ public class Mercado extends MercadoApi
             put( "status", status );
             put( "fee", fee );
             put( "trades", rawTrades );
-        }}), market);
+        }}, market);
     }
 
     /**
@@ -934,24 +933,24 @@ public class Mercado extends MercadoApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(symbol, null))
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((this.id + " fetchOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
             }
-            if (java.util.Objects.equals(this.markets, null))
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "coin_pair", ((Map<String, Object>)market).get("id") );
+                put( "coin_pair", Helpers.GetValue(market, "id") );
                 put( "order_id", Helpers.parseInt(id) );
             }};
             Map<String, Object> response = (this.privatePostGetOrder(this.extend(request, parameters))).join();
-            Map<String, Object> responseData = (Map<String, Object>) this.safeDict(response, "response_data", new HashMap<String, Object>() {{}});
-            Map<String, Object> order = (Map<String, Object>) this.safeDict(responseData, "order");
+            Object responseData = this.safeValue(response, "response_data", new HashMap<String, Object>() {{}});
+            Object order = this.safeDict(responseData, "order");
             return this.parseOrder(order, market);
         }).thenApply(Order::new);
 
@@ -973,47 +972,47 @@ public class Mercado extends MercadoApi
         final Object code3 = code2;
         return BaseExchange.supplyAsync(() -> {
             Object code = code3;
-            Object tag = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object tag = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
             tag = ((List<Object>) tagparametersVariable).get(0);
             parameters = ((List<Object>) tagparametersVariable).get(1);
             this.checkAddress(address);
-            if (java.util.Objects.equals(this.markets, null))
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "coin", ((Map<String, Object>)currency).get("id") );
+                put( "coin", Helpers.GetValue(currency, "id") );
                 put( "quantity", toFixed(amount, 10) );
                 put( "address", address );
             }};
-            if (java.util.Objects.equals(code, "BRL"))
+            if (Helpers.isTrue(Helpers.isEqual(code, "BRL")))
             {
-                Boolean account_ref = (((Map<?, ?>)parameters).containsKey("account_ref"));
-                if (!Boolean.TRUE.equals(account_ref))
+                Boolean account_ref = (Helpers.inOp(parameters, "account_ref"));
+                if (!Helpers.isTrue(account_ref))
                 {
-                    throw new ArgumentsRequired(((this.id + " withdraw() requires account_ref parameter to withdraw ") + code)) ;
+                    throw new ArgumentsRequired(Helpers.add(Helpers.add(this.id, " withdraw() requires account_ref parameter to withdraw "), code)) ;
                 }
-            } else if (!java.util.Objects.equals(code, "LTC"))
+            } else if (Helpers.isTrue(!Helpers.isEqual(code, "LTC")))
             {
-                Boolean tx_fee = (((Map<?, ?>)parameters).containsKey("tx_fee"));
-                if (!Boolean.TRUE.equals(tx_fee))
+                Boolean tx_fee = (Helpers.inOp(parameters, "tx_fee"));
+                if (!Helpers.isTrue(tx_fee))
                 {
-                    throw new ArgumentsRequired(((this.id + " withdraw() requires tx_fee parameter to withdraw ") + code)) ;
+                    throw new ArgumentsRequired(Helpers.add(Helpers.add(this.id, " withdraw() requires tx_fee parameter to withdraw "), code)) ;
                 }
-                if (java.util.Objects.equals(code, "XRP"))
+                if (Helpers.isTrue(Helpers.isEqual(code, "XRP")))
                 {
-                    if (java.util.Objects.equals(tag, null))
+                    if (Helpers.isTrue(Helpers.isEqual(tag, null)))
                     {
-                        if (!(((Map<?, ?>)parameters).containsKey("destination_tag")))
+                        if (!Helpers.isTrue((Helpers.inOp(parameters, "destination_tag"))))
                         {
-                            throw new ArgumentsRequired(((this.id + " withdraw() requires a tag argument or destination_tag parameter to withdraw ") + code)) ;
+                            throw new ArgumentsRequired(Helpers.add(Helpers.add(this.id, " withdraw() requires a tag argument or destination_tag parameter to withdraw "), code)) ;
                         }
                     } else
                     {
-                        ((Map<String, Object>)request).put("destination_tag", tag);
+                        Helpers.addElementToObject(request, "destination_tag", tag);
                     }
                 }
             }
@@ -1037,14 +1036,14 @@ public class Mercado extends MercadoApi
             //         "server_unix_timestamp": "1453912088"
             //     }
             //
-            Map<String, Object> responseData = (Map<String, Object>) this.safeDict(response, "response_data", new HashMap<String, Object>() {{}});
-            Map<String, Object> withdrawal = (Map<String, Object>) this.safeDict(responseData, "withdrawal");
-            return this.parseTransaction((Map<String, Object>) (withdrawal), currency);
+            Object responseData = this.safeValue(response, "response_data", new HashMap<String, Object>() {{}});
+            Object withdrawal = this.safeDict(responseData, "withdrawal");
+            return this.parseTransaction(withdrawal, currency);
         }).thenApply(Transaction::new);
 
     }
 
-    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
+    public Object parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         //     {
@@ -1059,8 +1058,8 @@ public class Mercado extends MercadoApi
         //         "updated_timestamp": "1453912088"
         //     }
         //
-        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        currency = this.safeCurrency((String) (null), currency);
+        Object currency = Helpers.getArg(optionalArgs, 0, null);
+        currency = this.safeCurrency(null, currency);
         final Object finalCurrency = currency;
         return new HashMap<String, Object>() {{
             put( "id", Mercado.this.safeString(transaction, "id") );
@@ -1073,7 +1072,7 @@ public class Mercado extends MercadoApi
             put( "addressTo", null );
             put( "amount", null );
             put( "type", null );
-            put( "currency", ((Map<String, Object>)finalCurrency).get("code") );
+            put( "currency", Helpers.GetValue(finalCurrency, "code") );
             put( "status", null );
             put( "updated", null );
             put( "tagFrom", null );
@@ -1088,7 +1087,7 @@ public class Mercado extends MercadoApi
 
     public Object parseOHLCV(Object ohlcv, Object... optionalArgs)
     {
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        Object market = Helpers.getArg(optionalArgs, 0, null);
         return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 5)));
     }
 
@@ -1108,37 +1107,37 @@ public class Mercado extends MercadoApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "15m";
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object timeframe = Helpers.getArg(optionalArgs, 0, "15m");
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "resolution", Mercado.this.safeString(Mercado.this.timeframes, timeframe, timeframe) );
-                put( "symbol", ((((Map<String, Object>)market).get("base") + "-") + ((Map<String, Object>)market).get("quote")) );
+                put( "symbol", Helpers.add(Helpers.add(Helpers.GetValue(market, "base"), "-"), Helpers.GetValue(market, "quote")) );
             }};
-            if (java.util.Objects.equals(limit, null))
+            if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
                 limit = 100; // set some default limit, as it's required if user doesn't provide it
             }
-            if (!java.util.Objects.equals(since, null))
+            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
-                ((Map<String, Object>)request).put("from", this.parseToInt(Helpers.divide(since, 1000)));
-                ((Map<String, Object>)request).put("to", this.sum(((Map<String, Object>)request).get("from"), Helpers.multiply(limit, this.parseTimeframe(timeframe))));
+                Helpers.addElementToObject(request, "from", this.parseToInt(Helpers.divide(since, 1000)));
+                Helpers.addElementToObject(request, "to", this.sum(Helpers.GetValue(request, "from"), Helpers.multiply(limit, this.parseTimeframe(timeframe))));
             } else
             {
-                ((Map<String, Object>)request).put("to", this.seconds());
-                ((Map<String, Object>)request).put("from", Helpers.subtract(((Map<String, Object>)request).get("to"), (Helpers.multiply(limit, this.parseTimeframe(timeframe)))));
+                Helpers.addElementToObject(request, "to", this.seconds());
+                Helpers.addElementToObject(request, "from", Helpers.subtract(Helpers.GetValue(request, "to"), (Helpers.multiply(limit, this.parseTimeframe(timeframe)))));
             }
             Map<String, Object> response = (this.v4PublicNetGetCandles(this.extend(request, parameters))).join();
             // parseTradingViewOHLCV applies the same default 't','o','h','l','c','v' column names and
             // then parseOHLCVs, and takes the raw response without narrowing it to a candle matrix
             return this.parseTradingViewOHLCV(response, market, timeframe, since, limit);
-        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -1157,27 +1156,27 @@ public class Mercado extends MercadoApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(symbol, null))
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((this.id + " fetchOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrders() requires a symbol argument")) ;
             }
-            if (java.util.Objects.equals(this.markets, null))
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "coin_pair", ((Map<String, Object>)market).get("id") );
+                put( "coin_pair", Helpers.GetValue(market, "id") );
             }};
             Map<String, Object> response = (this.privatePostListOrders(this.extend(request, parameters))).join();
-            Map<String, Object> responseData = (Map<String, Object>) this.safeDict(response, "response_data", new HashMap<String, Object>() {{}});
-            List<Object> orders = (List<Object>) this.safeList(responseData, "orders", new ArrayList<Object>(Arrays.asList()));
+            Object responseData = this.safeValue(response, "response_data", new HashMap<String, Object>() {{}});
+            Object orders = this.safeList(responseData, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1196,28 +1195,28 @@ public class Mercado extends MercadoApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(symbol, null))
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((this.id + " fetchOpenOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
             }
-            if (java.util.Objects.equals(this.markets, null))
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "coin_pair", ((Map<String, Object>)market).get("id") );
+                put( "coin_pair", Helpers.GetValue(market, "id") );
                 put( "status_list", "[2]" );
             }};
             Map<String, Object> response = (this.privatePostListOrders(this.extend(request, parameters))).join();
-            Map<String, Object> responseData = (Map<String, Object>) this.safeDict(response, "response_data", new HashMap<String, Object>() {{}});
-            List<Object> orders = (List<Object>) this.safeList(responseData, "orders", new ArrayList<Object>(Arrays.asList()));
+            Object responseData = this.safeValue(response, "response_data", new HashMap<String, Object>() {{}});
+            Object orders = this.safeList(responseData, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1236,42 +1235,42 @@ public class Mercado extends MercadoApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(symbol, null))
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((this.id + " fetchMyTrades() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
             }
-            if (java.util.Objects.equals(this.markets, null))
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "coin_pair", ((Map<String, Object>)market).get("id") );
+                put( "coin_pair", Helpers.GetValue(market, "id") );
                 put( "has_fills", true );
             }};
             Map<String, Object> response = (this.privatePostListOrders(this.extend(request, parameters))).join();
-            Map<String, Object> responseData = (Map<String, Object>) this.safeDict(response, "response_data", new HashMap<String, Object>() {{}});
-            List<Object> ordersRaw = (List<Object>) this.safeList(responseData, "orders", new ArrayList<Object>(Arrays.asList()));
+            Object responseData = this.safeValue(response, "response_data", new HashMap<String, Object>() {{}});
+            Object ordersRaw = this.safeValue(responseData, "orders", new ArrayList<Object>(Arrays.asList()));
             List<Object> orders = this.parseOrders(ordersRaw, market, since, limit);
             Object trades = this.ordersToTrades(orders);
-            return this.filterBySymbolSinceLimit(trades, ((Map<String, Object>)market).get("symbol"), since, limit);
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+            return this.filterBySymbolSinceLimit(trades, Helpers.GetValue(market, "symbol"), since, limit);
+        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
     public Object ordersToTrades(Object orders)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)orders).size(); i++)
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
         {
-            List<Object> trades = (List<Object>) this.safeList((orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i)), "trades", new ArrayList<Object>(Arrays.asList()));
-            for (var y = 0; y < ((List<?>)trades).size(); y++)
+            Object trades = this.safeList(Helpers.GetValue(orders, i), "trades", new ArrayList<Object>(Arrays.asList()));
+            for (var y = 0; Helpers.isLessThan(y, Helpers.getArrayLength(trades)); y++)
             {
-                ((List<Object>)result).add((trades == null || y < 0 || y >= trades.size() ? null : trades.get(y)));
+                ((List<Object>)result).add(Helpers.GetValue(trades, y));
             }
         }
         return result;
@@ -1279,30 +1278,30 @@ public class Mercado extends MercadoApi
 
     public Object sign(Object path, Object... optionalArgs)
     {
-        Object api = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "public";
-        Object method = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET";
-        Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
-        Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
-        Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
-        Object url = Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), "/");
+        Object api = Helpers.getArg(optionalArgs, 0, "public");
+        Object method = Helpers.getArg(optionalArgs, 1, "GET");
+        Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
+        Object headers = Helpers.getArg(optionalArgs, 3, null);
+        Object body = Helpers.getArg(optionalArgs, 4, null);
+        Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api), "/");
         Object query = this.omit(parameters, this.extractParams(path));
-        if ((java.util.Objects.equals(api, "public")) || (java.util.Objects.equals(api, "v4Public")) || (java.util.Objects.equals(api, "v4PublicNet")))
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(api, "public"))) || Helpers.isTrue((Helpers.isEqual(api, "v4Public")))) || Helpers.isTrue((Helpers.isEqual(api, "v4PublicNet")))))
         {
             url = Helpers.add(url, this.implodeParams(path, parameters));
-            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)query).keySet())).size() > 0)
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
-                url = (url + ("?" + this.urlencode(query)));
+                url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
             }
         } else
         {
             this.checkRequiredCredentials();
-            url = Helpers.add(url, (this.version + "/"));
+            url = Helpers.add(url, Helpers.add(this.version, "/"));
             Object nonce = this.nonce();
             body = this.urlencode(this.extend(new HashMap<String, Object>() {{
                 put( "tapi_method", path );
                 put( "tapi_nonce", nonce );
             }}, parameters));
-            String auth = (((("/tapi/" + this.version) + "/") + "?") + body);
+            Object auth = Helpers.add(Helpers.add(Helpers.add(Helpers.add("/tapi/", this.version), "/"), "?"), body);
             headers = new HashMap<String, Object>() {{
                 put( "Content-Type", "application/x-www-form-urlencoded" );
                 put( "TAPI-ID", Mercado.this.apiKey );
@@ -1322,7 +1321,7 @@ public class Mercado extends MercadoApi
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
     {
-        if (java.util.Objects.equals(response, null))
+        if (Helpers.isTrue(Helpers.isEqual(response, null)))
         {
             return null;
         }
@@ -1332,9 +1331,9 @@ public class Mercado extends MercadoApi
         //     {"status":503,"message":"Maintenancing, try again later","result":null}
         //
         Object errorMessage = this.safeValue(response, "error_message");
-        if (!java.util.Objects.equals(errorMessage, null))
+        if (Helpers.isTrue(!Helpers.isEqual(errorMessage, null)))
         {
-            throw new ExchangeError(((this.id + " ") + this.json(response))) ;
+            throw new ExchangeError(Helpers.add(Helpers.add(this.id, " "), this.json(response))) ;
         }
         return null;
     }

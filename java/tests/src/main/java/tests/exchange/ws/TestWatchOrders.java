@@ -28,9 +28,9 @@ public class TestWatchOrders extends BaseTest {
             try
             {
                 response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchOrders", new Object[]{symbol})).join();
-                if (java.util.Objects.equals(response, null))
+                if (Helpers.isTrue(Helpers.isEqual(response, null)))
                 {
-                    throw new RuntimeException((String)(exchange.id + " watch returned undefined response")) ;
+                    throw new RuntimeException((String)Helpers.add(exchange.id, " watch returned undefined response")) ;
                 }
             } catch(Exception e)
             {
@@ -42,15 +42,15 @@ public class TestWatchOrders extends BaseTest {
                 // continue;
                 success = false;
             }
-            if (java.util.Objects.equals(success, true))
+            if (Helpers.isTrue(Helpers.isEqual(success, true)))
             {
-                if (java.util.Objects.equals(response, null))
+                if (Helpers.isTrue(Helpers.isEqual(response, null)))
                 {
-                    throw new RuntimeException((String)(exchange.id + " watch returned undefined response")) ;
+                    throw new RuntimeException((String)Helpers.add(exchange.id, " watch returned undefined response")) ;
                 }
                 TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, response, symbol);
                 now = exchange.milliseconds();
-                for (var i = 0; i < Helpers.getArrayLength(response); i++)
+                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
                 {
                     TestOrder.testOrder(exchange, skippedProperties, method, Helpers.GetValue(response, i), symbol, now);
                 }

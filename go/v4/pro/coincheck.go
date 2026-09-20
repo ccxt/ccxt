@@ -77,7 +77,7 @@ func (this *Coincheck) watchOrderBookBody(ch chan any, symbol any, optionalArgs 
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes6012 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes6012)
@@ -119,7 +119,7 @@ func (this *Coincheck) HandleOrderBook(client any, message any) {
 	//     ]
 	//
 	var symbol any = this.Symbol(this.SafeString(message, 0))
-	var data any = this.SafeDict(message, 1, map[string]any{})
+	var data any = this.SafeValue(message, 1, map[string]any{})
 	var timestamp *int64 = this.SafeTimestamp(data, "last_update_at")
 	var snapshot any = this.ParseOrderBook(data, symbol, timestamp)
 	var orderbook any = this.SafeValue(this.Orderbooks, symbol)
@@ -159,7 +159,7 @@ func (this *Coincheck) watchTradesBody(ch chan any, symbol any, optionalArgs ...
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes12412 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes12412)
@@ -176,7 +176,7 @@ func (this *Coincheck) watchTradesBody(ch chan any, symbol any, optionalArgs ...
 
 	trades := (<-this.Watch(url, messageHash, message, messageHash))
 	ccxt.PanicOnError(trades)
-	if this.NewUpdates {
+	if ccxt.EvalTruthy(this.NewUpdates) {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
 
@@ -198,7 +198,7 @@ func (this *Coincheck) HandleTrades(client any, message any) {
 	//         ]
 	//     ]
 	//
-	var first any = this.SafeList(message, 0, []any{})
+	var first any = this.SafeValue(message, 0, []any{})
 	var symbol any = this.Symbol(this.SafeString(first, 2))
 	var stored any = this.SafeValue(this.Trades, symbol)
 	if ccxt.IsEqual(stored, nil) {
@@ -206,7 +206,7 @@ func (this *Coincheck) HandleTrades(client any, message any) {
 		stored = ccxt.NewArrayCache(limit)
 		ccxt.AddElementToObject(this.Trades, symbol, stored)
 	}
-	for i := 0; i < ccxt.GetArrayLength(message); i++ {
+	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(message)); i++ {
 		var data any = this.SafeValue(message, i)
 		var trade any = this.ParseWsTrade(data)
 		stored.(ccxt.Appender).Append(trade)

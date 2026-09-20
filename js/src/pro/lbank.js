@@ -86,8 +86,8 @@ export default class lbank extends lbankRest {
         const market = this.market(symbol);
         this.checkContractMarket(market, 'fetchOHLCVWs');
         const url = this.urls['api']['ws'];
-        const watchOHLCVOptions = this.safeDict(this.options, 'watchOHLCV', {});
-        const timeframes = this.safeDict(watchOHLCVOptions, 'timeframes', {});
+        const watchOHLCVOptions = this.safeValue(this.options, 'watchOHLCV', {});
+        const timeframes = this.safeValue(watchOHLCVOptions, 'timeframes', {});
         const timeframeId = this.safeString(timeframes, timeframe, timeframe);
         const messageHash = 'fetchOHLCV:' + market['symbol'] + ':' + timeframeId;
         const message = {
@@ -124,8 +124,8 @@ export default class lbank extends lbankRest {
         }
         const market = this.market(symbol);
         this.checkContractMarket(market, 'watchOHLCV');
-        const watchOHLCVOptions = this.safeDict(this.options, 'watchOHLCV', {});
-        const timeframes = this.safeDict(watchOHLCVOptions, 'timeframes', {});
+        const watchOHLCVOptions = this.safeValue(this.options, 'watchOHLCV', {});
+        const timeframes = this.safeValue(watchOHLCVOptions, 'timeframes', {});
         const timeframeId = this.safeString(timeframes, timeframe, timeframe);
         const messageHash = 'ohlcv:' + market['symbol'] + ':' + timeframeId;
         const url = this.urls['api']['ws'];
@@ -196,11 +196,11 @@ export default class lbank extends lbankRest {
         //
         const marketId = this.safeString(message, 'pair');
         const symbol = this.safeSymbol(marketId, undefined, '_');
-        const watchOHLCVOptions = this.safeDict(this.options, 'watchOHLCV', {});
-        const timeframes = this.safeDict(watchOHLCVOptions, 'timeframes', {});
-        const records = this.safeList(message, 'records');
+        const watchOHLCVOptions = this.safeValue(this.options, 'watchOHLCV', {});
+        const timeframes = this.safeValue(watchOHLCVOptions, 'timeframes', {});
+        const records = this.safeValue(message, 'records');
         if (records !== undefined) { // from request
-            const rawOHLCV = this.safeList(records, 0, []);
+            const rawOHLCV = this.safeValue(records, 0, []);
             const parsed = [
                 this.safeInteger(rawOHLCV, 0),
                 this.safeNumber(rawOHLCV, 1),
@@ -211,7 +211,7 @@ export default class lbank extends lbankRest {
             ];
             const timeframeId = this.safeString(message, 'kbar');
             const timeframe = this.findTimeframe(timeframeId, timeframes);
-            this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
+            this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
             let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
@@ -223,7 +223,7 @@ export default class lbank extends lbankRest {
             client.resolve(stored, messageHash);
         }
         else { // from subscription
-            const rawOHLCV = this.safeDict(message, 'kbar', {});
+            const rawOHLCV = this.safeValue(message, 'kbar', {});
             const timeframeId = this.safeString(rawOHLCV, 'slot');
             const datetime = this.safeString(rawOHLCV, 't');
             const parsed = [
@@ -235,7 +235,7 @@ export default class lbank extends lbankRest {
                 this.safeNumber(rawOHLCV, 'v'),
             ];
             const timeframe = this.findTimeframe(timeframeId, timeframes);
-            this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
+            this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
             let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
@@ -355,7 +355,7 @@ export default class lbank extends lbankRest {
         const marketId = this.safeString(ticker, 'pair');
         const symbol = this.safeSymbol(marketId, market);
         const datetime = this.safeString(ticker, 'TS');
-        const tickerData = this.safeDict(ticker, 'tick');
+        const tickerData = this.safeValue(ticker, 'tick');
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': this.parse8601(datetime),
@@ -477,7 +477,7 @@ export default class lbank extends lbankRest {
             this.trades[symbol] = stored;
         }
         const rawTrade = this.safeValue(message, 'trade');
-        const rawTrades = this.safeList(message, 'trades', [rawTrade]);
+        const rawTrades = this.safeValue(message, 'trades', [rawTrade]);
         for (let i = 0; i < rawTrades.length; i++) {
             const trade = this.parseWsTrade(rawTrades[i], market);
             trade['symbol'] = symbol;
@@ -648,7 +648,7 @@ export default class lbank extends lbankRest {
         //         "TS": "2024-01-19T23:05:18.548"
         //     }
         //
-        const orderUpdate = this.safeDict(order, 'orderUpdate', {});
+        const orderUpdate = this.safeValue(order, 'orderUpdate', {});
         const rawType = this.safeString(orderUpdate, 'type', '');
         const typeParts = rawType.split('_');
         const side = this.safeString(typeParts, 0);
@@ -967,13 +967,13 @@ export default class lbank extends lbankRest {
         }
         const future = client.reusableFuture(messageHash);
         try {
-            const authenticated = this.safeDict(client.subscriptions, 'authenticated');
+            const authenticated = this.safeValue(client.subscriptions, 'authenticated');
             if (authenticated === undefined) {
                 const response = await this.spotPrivatePostSubscribeGetKey(params);
                 //
                 // {"result":true,"data":"4e9958623e6006bd7b13ff9f36c03b36132f0f8da37f70b14ff2c4eab1fe0c97","error_code":0,"ts":1705602277198}
                 //
-                const result = this.safeBool(response, 'result');
+                const result = this.safeValue(response, 'result');
                 if (result !== true) {
                     throw new ExchangeError(this.id + ' failed to get subscribe key');
                 }

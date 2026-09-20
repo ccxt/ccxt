@@ -313,9 +313,9 @@ export default class bullish extends Exchange {
      */
     withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
-    parseTransactionType(type: any): Str;
+    parseTransactionType(type: any): string;
     parseTransactionStatus(status: Str): Str;
-    loadAccount(params?: Dict): Promise<string>;
+    loadAccount(params?: {}): Promise<string>;
     /**
      * @method
      * @name bullish#fetchAccounts
@@ -417,7 +417,7 @@ export default class bullish extends Exchange {
      * @param {string} params.tradingAccountId the trading account id
      * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
-    fetchBorrowRateHistory(code: string, since?: Int, limit?: Int, params?: Dict): Promise<Dict[]>;
+    fetchBorrowRateHistory(code: string, since?: Int, limit?: Int, params?: {}): Promise<Dict[]>;
     parseBorrowRate(info: any, currency?: Currency): {
         currency: Str;
         rate: Num;
@@ -453,6 +453,6 @@ export default class bullish extends Exchange {
      * @returns response from exchange
      */
     signIn(params?: {}): Promise<string>;
-    handleToken(params?: Dict): Promise<string>;
+    handleToken(params?: {}): Promise<string>;
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

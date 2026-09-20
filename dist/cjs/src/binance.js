@@ -2931,7 +2931,7 @@ class binance extends binance$1["default"] {
                 // end diff
                 for (let i = 0; i < markets.length; i++) {
                     const market = markets[i];
-                    if (this.safeBool(market, defaultType) === true) {
+                    if (this.safeValue(market, defaultType) === true) {
                         return market;
                     }
                 }
@@ -4411,7 +4411,7 @@ class binance extends binance$1["default"] {
             response = await this.eapiPublicGetDepth(this.extend(request, params));
         }
         else if (market['linear'] === true) {
-            const rpi = this.safeBool(params, 'rpi', false);
+            const rpi = this.safeValue(params, 'rpi', false);
             params = this.omit(params, 'rpi');
             if (rpi === true) {
                 // rpi limit only supports 1000
@@ -5896,7 +5896,7 @@ class binance extends binance$1["default"] {
         else {
             request['newClientOrderId'] = clientOrderId;
         }
-        request['newOrderRespType'] = this.safeString(this.options['newOrderRespType'], type, 'RESULT'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+        request['newOrderRespType'] = this.safeValue(this.options['newOrderRespType'], type, 'RESULT'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
         let timeInForceIsRequired = false;
         let priceIsRequired = false;
         let triggerPriceIsRequired = false;
@@ -7374,7 +7374,7 @@ class binance extends binance$1["default"] {
         if (uppercaseType === 'MARKET') {
             if (stock === true) {
                 if (upperCaseSide === 'BUY') {
-                    const precision = this.safeNumber(market['precision'], 'price');
+                    const precision = this.safeValue(market['precision'], 'price');
                     const quoteOrderQtyNew = this.safeString2(params, 'quoteOrderQty', 'cost');
                     let notional = undefined;
                     if (quoteOrderQtyNew !== undefined) {
@@ -7412,7 +7412,7 @@ class binance extends binance$1["default"] {
                 const quoteOrderQty = this.handleOption('createOrder', 'quoteOrderQty', true);
                 if (quoteOrderQty === true) {
                     const quoteOrderQtyNew = this.safeString2(params, 'quoteOrderQty', 'cost');
-                    const precision = this.safeNumber(market['precision'], 'price');
+                    const precision = this.safeValue(market['precision'], 'price');
                     if (quoteOrderQtyNew !== undefined) {
                         request['quoteOrderQty'] = this.decimalToPrecision(quoteOrderQtyNew, number.TRUNCATE, precision, this.precisionMode);
                     }
@@ -10014,8 +10014,8 @@ class binance extends binance$1["default"] {
         const accountsById = this.safeDict(this.options, 'accountsById', {});
         if (type !== undefined) {
             const parts = type.split('_');
-            fromAccount = this.safeString(parts, 0);
-            toAccount = this.safeString(parts, 1);
+            fromAccount = this.safeValue(parts, 0);
+            toAccount = this.safeValue(parts, 1);
             fromAccount = this.safeString(accountsById, fromAccount, fromAccount);
             toAccount = this.safeString(accountsById, toAccount, toAccount);
         }
@@ -11447,7 +11447,7 @@ class binance extends binance$1["default"] {
         let percentage = undefined;
         let liquidationPriceStringRaw = undefined;
         let liquidationPrice = undefined;
-        const contractSize = this.safeNumber(market, 'contractSize');
+        const contractSize = this.safeValue(market, 'contractSize');
         const contractSizeString = this.numberToString(contractSize);
         if (Precise["default"].stringEquals(notionalString, '0')) {
             entryPrice = undefined;
@@ -11662,7 +11662,7 @@ class binance extends binance$1["default"] {
         }
         const entryPriceString = this.safeString(position, 'entryPrice');
         const entryPrice = this.parseNumber(entryPriceString);
-        const contractSize = this.safeNumber(market, 'contractSize');
+        const contractSize = this.safeValue(market, 'contractSize');
         const contractSizeString = this.numberToString(contractSize);
         // as oppose to notionalValue
         const linear = ('notional' in position);
@@ -13584,7 +13584,7 @@ class binance extends binance$1["default"] {
                 }
             }
         }
-        return this.safeNumber(config, 'cost', 1);
+        return this.safeValue(config, 'cost', 1);
     }
     async request(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}) {
         const response = await this.fetch2(path, api, method, params, headers, body, config);

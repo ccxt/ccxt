@@ -19,10 +19,10 @@ public partial class testMainClass : BaseTest
         argParams ??= new Dictionary<string, object>();
         string method = "watchTickers";
         Int64 now = exchange.milliseconds();
-        object ends = (now + 15000);
+        object ends = add(now, 15000);
         int maxIdleTime = 5000;
         bool idle = false;
-        while ((isLessThan(now, ends)) && !idle)
+        while (isTrue((isLessThan(now, ends))) && !isTrue(idle))
         {
             object response = new Dictionary<string, object>() {};
             bool success = true;
@@ -37,7 +37,7 @@ public partial class testMainClass : BaseTest
                 // to "all tickers" itself, and it requires symbols to be set
                 // so, in such case, if it's arguments-required exception, we don't
                 // mark tests as failed, but just skip them
-                if ((e is ArgumentsRequired) && ((argSymbols == null) || (getArrayLength(argSymbols) == 0)))
+                if (isTrue(isTrue((e is ArgumentsRequired)) && isTrue((isTrue(isEqual(argSymbols, null)) || isTrue(isEqual(getArrayLength(argSymbols), 0))))))
                 {
                     // todo: provide random symbols to try
                     // return;
@@ -50,23 +50,23 @@ public partial class testMainClass : BaseTest
                 success = false;
             }
             now = exchange.milliseconds();
-            if (shouldReturn)
+            if (isTrue(shouldReturn))
             {
                 return false;
             }
-            if ((success == true))
+            if (isTrue(isEqual(success, true)))
             {
                 assert(exchange.isDictionary(response), add(add(add(add(add(add(exchange.id, " "), method), " "), exchange.json(argSymbols)), " must return a dictionary. "), exchange.json(response)));
                 List<object> values = new List<object>(((IDictionary<string,object>)response).Values);
                 object checkedSymbol = null;
-                if ((argSymbols != null) && (getArrayLength(argSymbols) == 1))
+                if (isTrue(isTrue(!isEqual(argSymbols, null)) && isTrue(isEqual(getArrayLength(argSymbols), 1))))
                 {
                     checkedSymbol = getValue(argSymbols, 0);
                 }
                 testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol);
-                for (int i = 0; i < values.Count; i++)
+                for (int i = 0; isLessThan(i, getArrayLength(values)); postFixIncrement(ref i))
                 {
-                    object ticker = values[i];
+                    object ticker = getValue(values, i);
                     try
                     {
                         testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);
@@ -74,14 +74,14 @@ public partial class testMainClass : BaseTest
                     {
                         object ohlcv = null;
                         object tickerSymbol = getValue(ticker, "symbol");
-                        if (((tickerSymbol != null)) && isTrue(testSharedMethods.tickerExceptionNeedsOhlcv(ex, exchange, ticker)))
+                        if (isTrue(isTrue((!isEqual(tickerSymbol, null))) && isTrue(testSharedMethods.tickerExceptionNeedsOhlcv(ex, exchange, ticker))))
                         {
                             ohlcv = detypeForComparison(await exchange.FetchOHLCV(((string)tickerSymbol), "1d",ccxt.BaseExchange.ToInt64Arg(null),ccxt.BaseExchange.ToInt64Arg(5)));
                         }
                         testSharedMethods.validateTickerExceptionForPercentage(ex, exchange, ticker, ohlcv);
                     }
                 }
-                if (isGreaterThan(((now - startTime)), maxIdleTime))
+                if (isTrue(isGreaterThan((subtract(now, startTime)), maxIdleTime)))
                 {
                     idle = true;
                 }

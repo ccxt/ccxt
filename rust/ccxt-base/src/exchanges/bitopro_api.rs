@@ -14,132 +14,132 @@ use crate::exchange::ExchangeRuntime;
 impl BitoproCore {
     /// Auto-generated wrapper for the `publicGetOrderBookPair` implicit endpoint.
     pub async fn public_get_order_book_pair(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_order_book_pair".into()), optional_args).await
+        self.call_method(Value::Str("public_get_order_book_pair".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetTickers` implicit endpoint.
     pub async fn public_get_tickers(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_tickers".into()), optional_args).await
+        self.call_method(Value::Str("public_get_tickers".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetTickersPair` implicit endpoint.
     pub async fn public_get_tickers_pair(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_tickers_pair".into()), optional_args).await
+        self.call_method(Value::Str("public_get_tickers_pair".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetTradesPair` implicit endpoint.
     pub async fn public_get_trades_pair(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_trades_pair".into()), optional_args).await
+        self.call_method(Value::Str("public_get_trades_pair".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetProvisioningCurrencies` implicit endpoint.
     pub async fn public_get_provisioning_currencies(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_provisioning_currencies".into()), optional_args).await
+        self.call_method(Value::Str("public_get_provisioning_currencies".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetProvisioningTradingPairs` implicit endpoint.
     pub async fn public_get_provisioning_trading_pairs(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_provisioning_trading_pairs".into()), optional_args).await
+        self.call_method(Value::Str("public_get_provisioning_trading_pairs".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetProvisioningLimitationsAndFees` implicit endpoint.
     pub async fn public_get_provisioning_limitations_and_fees(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_provisioning_limitations_and_fees".into()), optional_args).await
+        self.call_method(Value::Str("public_get_provisioning_limitations_and_fees".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetTradingHistoryPair` implicit endpoint.
     pub async fn public_get_trading_history_pair(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_trading_history_pair".into()), optional_args).await
+        self.call_method(Value::Str("public_get_trading_history_pair".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetPriceOtcCurrency` implicit endpoint.
     pub async fn public_get_price_otc_currency(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_get_price_otc_currency".into()), optional_args).await
+        self.call_method(Value::Str("public_get_price_otc_currency".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetAccountsBalance` implicit endpoint.
     pub async fn private_get_accounts_balance(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_accounts_balance".into()), optional_args).await
+        self.call_method(Value::Str("private_get_accounts_balance".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetOrdersHistory` implicit endpoint.
     pub async fn private_get_orders_history(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_orders_history".into()), optional_args).await
+        self.call_method(Value::Str("private_get_orders_history".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetOrdersAllPair` implicit endpoint.
     pub async fn private_get_orders_all_pair(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_orders_all_pair".into()), optional_args).await
+        self.call_method(Value::Str("private_get_orders_all_pair".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetOrdersTradesPair` implicit endpoint.
     pub async fn private_get_orders_trades_pair(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_orders_trades_pair".into()), optional_args).await
+        self.call_method(Value::Str("private_get_orders_trades_pair".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetOrdersPairOrderId` implicit endpoint.
     pub async fn private_get_orders_pair_order_id(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_orders_pair_order_id".into()), optional_args).await
+        self.call_method(Value::Str("private_get_orders_pair_order_id".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetWalletWithdrawCurrencySerial` implicit endpoint.
     pub async fn private_get_wallet_withdraw_currency_serial(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_wallet_withdraw_currency_serial".into()), optional_args).await
+        self.call_method(Value::Str("private_get_wallet_withdraw_currency_serial".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetWalletWithdrawCurrencyIdId` implicit endpoint.
     pub async fn private_get_wallet_withdraw_currency_id_id(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_wallet_withdraw_currency_id_id".into()), optional_args).await
+        self.call_method(Value::Str("private_get_wallet_withdraw_currency_id_id".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetWalletDepositHistoryCurrency` implicit endpoint.
     pub async fn private_get_wallet_deposit_history_currency(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_wallet_deposit_history_currency".into()), optional_args).await
+        self.call_method(Value::Str("private_get_wallet_deposit_history_currency".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetWalletWithdrawHistoryCurrency` implicit endpoint.
     pub async fn private_get_wallet_withdraw_history_currency(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_wallet_withdraw_history_currency".into()), optional_args).await
+        self.call_method(Value::Str("private_get_wallet_withdraw_history_currency".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetOrdersOpen` implicit endpoint.
     pub async fn private_get_orders_open(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_orders_open".into()), optional_args).await
+        self.call_method(Value::Str("private_get_orders_open".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostOrdersPair` implicit endpoint.
     pub async fn private_post_orders_pair(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_orders_pair".into()), optional_args).await
+        self.call_method(Value::Str("private_post_orders_pair".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostOrdersBatch` implicit endpoint.
     pub async fn private_post_orders_batch(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_orders_batch".into()), optional_args).await
+        self.call_method(Value::Str("private_post_orders_batch".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostWalletWithdrawCurrency` implicit endpoint.
     pub async fn private_post_wallet_withdraw_currency(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_wallet_withdraw_currency".into()), optional_args).await
+        self.call_method(Value::Str("private_post_wallet_withdraw_currency".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePutOrders` implicit endpoint.
     pub async fn private_put_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_put_orders".into()), optional_args).await
+        self.call_method(Value::Str("private_put_orders".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateDeleteOrdersPairId` implicit endpoint.
     pub async fn private_delete_orders_pair_id(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_delete_orders_pair_id".into()), optional_args).await
+        self.call_method(Value::Str("private_delete_orders_pair_id".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateDeleteOrdersAll` implicit endpoint.
     pub async fn private_delete_orders_all(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_delete_orders_all".into()), optional_args).await
+        self.call_method(Value::Str("private_delete_orders_all".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateDeleteOrdersPair` implicit endpoint.
     pub async fn private_delete_orders_pair(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_delete_orders_pair".into()), optional_args).await
+        self.call_method(Value::Str("private_delete_orders_pair".to_string()), optional_args).await
     }
 
 }

@@ -21,7 +21,7 @@ func testWatchOrderBookBody(ch chan any, exchange ccxt.ICoreExchange, skippedPro
 	// keep arriving quickly and stop once the book goes quiet.
 	var maxIdleTime int = 5000
 	var now int64 = exchange.Milliseconds()
-	var ends any = now + 15000
+	var ends any = Add(now, 15000)
 	var idle bool = false
 	for (IsLessThan(now, ends)) && !idle {
 		var response any = nil
@@ -58,7 +58,7 @@ func testWatchOrderBookBody(ch chan any, exchange ccxt.ICoreExchange, skippedPro
 		now = exchange.Milliseconds()
 		if (success == true) && (!IsEqual(response, nil)) {
 			TestOrderBook(exchange, skippedProperties, method, response, symbol)
-			var elapsed any = now - startTime
+			var elapsed int64 = Subtract(now, startTime).(int64)
 			if IsGreaterThan(elapsed, maxIdleTime) {
 				// this market updates slower than the remaining test window, so
 				// awaiting another delta would only end in a harness timeout

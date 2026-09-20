@@ -16,21 +16,21 @@ pub fn testMarginModification(mut exchange: Value, mut skippedProperties: Value,
     let mut m = indexmap::IndexMap::new();
     m
 }));
-            m.insert("type".to_string(), Value::Str("add".into()));
-            m.insert("amount".to_string(), exchange.parse_number(Value::Str("0.1".into()), &[]));
-            m.insert("total".to_string(), exchange.parse_number(Value::Str("0.29934828".into()), &[]));
-            m.insert("code".to_string(), Value::Str("USDT".into()));
-            m.insert("symbol".to_string(), Value::Str("ADA/USDT:USDT".into()));
-            m.insert("status".to_string(), Value::Str("ok".into()));
+            m.insert("type".to_string(), Value::Str("add".to_string()));
+            m.insert("amount".to_string(), exchange.parse_number(Value::Str("0.1".to_string()), &[]));
+            m.insert("total".to_string(), exchange.parse_number(Value::Str("0.29934828".to_string()), &[]));
+            m.insert("code".to_string(), Value::Str("USDT".to_string()));
+            m.insert("symbol".to_string(), Value::Str("ADA/USDT:USDT".to_string()));
+            m.insert("status".to_string(), Value::Str("ok".to_string()));
         m
     });
-    let mut emptyAllowedFor: Value = Value::from(vec![Value::Str("status".into()), Value::Str("symbol".into()), Value::Str("code".into()), Value::Str("total".into()), Value::Str("amount".into())]);
+    let mut emptyAllowedFor: Value = Value::List(vec![Value::Str("status".to_string()), Value::Str("symbol".to_string()), Value::Str("code".to_string()), Value::Str("total".to_string()), Value::Str("amount".to_string())]);
     crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format.clone(), emptyAllowedFor.clone()]);
-    crate::tests_support::shared::assert_currency_code(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), entry.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null).clone()]);
+    crate::tests_support::shared::assert_currency_code(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), get_value(&entry, &Value::Str("code".to_string())).clone()]);
     //
-    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("amount".into()).clone(), Value::Str("0".into()).clone()]);
-    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("total".into()).clone(), Value::Str("0".into()).clone()]);
-    crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("type".into()).clone(), Value::from(vec![Value::Str("add".into()), Value::Str("reduce".into()), Value::Str("set".into())]).clone()]);
-    crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("status".into()).clone(), Value::from(vec![Value::Str("ok".into()), Value::Str("pending".into()), Value::Str("canceled".into()), Value::Str("failed".into())]).clone()]);
-    crate::tests_support::shared::assert_symbol(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("symbol".into()).clone()]);
+    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("amount".to_string()).clone(), Value::Str("0".to_string()).clone()]);
+    crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("total".to_string()).clone(), Value::Str("0".to_string()).clone()]);
+    crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("type".to_string()).clone(), Value::List(vec![Value::Str("add".to_string()), Value::Str("reduce".to_string()), Value::Str("set".to_string())]).clone()]);
+    crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("status".to_string()).clone(), Value::List(vec![Value::Str("ok".to_string()), Value::Str("pending".to_string()), Value::Str("canceled".to_string()), Value::Str("failed".to_string())]).clone()]);
+    crate::tests_support::shared::assert_symbol(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("symbol".to_string()).clone()]);
 }

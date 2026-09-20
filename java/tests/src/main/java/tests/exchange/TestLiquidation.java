@@ -44,16 +44,16 @@ public class TestLiquidation extends BaseTest {
         String contractSize = exchange.safeString(entry, "contractSize");
         String price = exchange.safeString(entry, "price");
         String baseValue = exchange.safeString(entry, "baseValue");
-        if ((!java.util.Objects.equals(contracts, null)) && (!java.util.Objects.equals(contracts, "")) && (!java.util.Objects.equals(contractSize, null)) && (!java.util.Objects.equals(contractSize, "")))
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(contracts, null))) && Helpers.isTrue((!Helpers.isEqual(contracts, "")))) && Helpers.isTrue((!Helpers.isEqual(contractSize, null)))) && Helpers.isTrue((!Helpers.isEqual(contractSize, "")))))
         {
-            Assert(Precise.stringEq(baseValue, Precise.stringMul(contracts, contractSize)), ("baseValue == contracts * contractSize" + logText));
-            if ((!java.util.Objects.equals(price, null)) && (!java.util.Objects.equals(price, "")))
+            Assert(Precise.stringEq(baseValue, Precise.stringMul(contracts, contractSize)), Helpers.add("baseValue == contracts * contractSize", logText));
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(price, null))) && Helpers.isTrue((!Helpers.isEqual(price, "")))))
             {
-                Assert(Precise.stringEq(baseValue, Precise.stringMul(Precise.stringMul(contracts, contractSize), price)), ("quoteValue == contracts * contractSize * price" + logText));
+                Assert(Precise.stringEq(baseValue, Precise.stringMul(Precise.stringMul(contracts, contractSize), price)), Helpers.add("quoteValue == contracts * contractSize * price", logText));
             }
         }
         // if singular was called, then symbol needs to be Asserted
-        if (java.util.Objects.equals(method, "watchLiquidations") || java.util.Objects.equals(method, "fetchLiquidations"))
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(method, "watchLiquidations")) || Helpers.isTrue(Helpers.isEqual(method, "fetchLiquidations"))))
         {
             TestSharedMethods.AssertSymbol(exchange, skippedProperties, method, entry, "symbol", symbol);
         }

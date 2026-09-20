@@ -23,45 +23,45 @@ public class TestLoadMarkets extends BaseTest {
         String method = "loadMarkets";
         Object markets = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "loadMarkets", new Object[]{})).join();
         Assert(exchange.isDictionary(exchange.markets), ".markets is not a dict");
-        Assert((exchange.symbols instanceof List), ".symbols is not an array");
-        Object symbolsLength = ((List<?>)exchange.symbols).size();
-        Assert(!java.util.Objects.equals(exchange.markets, null), ".markets is undefined");
-        List<Object> marketKeys = Helpers.objectKeys(exchange.markets);
-        Object marketKeysLength = ((List<?>)marketKeys).size();
+        Assert(Helpers.isArray(exchange.symbols), ".symbols is not an array");
+        Object symbolsLength = Helpers.getArrayLength(exchange.symbols);
+        Assert(!Helpers.isEqual(exchange.markets, null), ".markets is undefined");
+        Object marketKeys = Helpers.objectKeys(exchange.markets);
+        Object marketKeysLength = Helpers.getArrayLength(marketKeys);
         Assert(Helpers.isGreaterThan(symbolsLength, 0), ".symbols count <= 0 (less than or equal to zero)");
         Assert(Helpers.isGreaterThan(marketKeysLength, 0), ".markets objects keys length <= 0 (less than or equal to zero)");
-        Assert(java.util.Objects.equals(symbolsLength, marketKeysLength), "number of .symbols is not equal to the number of .markets");
+        Assert(Helpers.isEqual(symbolsLength, marketKeysLength), "number of .symbols is not equal to the number of .markets");
         Object marketValues = Helpers.objectValues(markets);
-        for (var i = 0; i < ((List<?>)marketValues).size(); i++)
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketValues)); i++)
         {
-            TestMarket.testMarket(exchange, skippedProperties, method, (marketValues == null || i < 0 || i >= ((List<?>)marketValues).size() ? null : ((List<?>)marketValues).get(i)));
+            TestMarket.testMarket(exchange, skippedProperties, method, Helpers.GetValue(marketValues, i));
         }
         // market-type coverage (inlined: a nested helper breaks Java emit into a missing TestLoadedMarketTypes class)
         List<Object> marketTypes = new ArrayList<Object>(Arrays.asList("spot", "swap", "future", "option", "index"));
         List<Object> collectedTypes = new ArrayList<Object>(Arrays.asList());
         Object allMarkets = Helpers.objectValues(exchange.markets);
-        for (var i = 0; i < ((List<?>)allMarkets).size(); i++)
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(allMarkets)); i++)
         {
-            Object market = (allMarkets == null || i < 0 || i >= ((List<?>)allMarkets).size() ? null : ((List<?>)allMarkets).get(i));
+            Object market = Helpers.GetValue(allMarkets, i);
             if (!Helpers.isTrue(exchange.inArray(Helpers.GetValue(market, "type"), collectedTypes)))
             {
                 ((List<Object>)collectedTypes).add(Helpers.GetValue(market, "type"));
             }
         }
-        for (var i = 0; i < ((List<?>)marketTypes).size(); i++)
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketTypes)); i++)
         {
             Object mType = Helpers.GetValue(marketTypes, i);
-            if (!java.util.Objects.equals(Helpers.GetValue(exchange.has, mType), null) && !java.util.Objects.equals(Helpers.GetValue(exchange.has, mType), false))
+            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(exchange.has, mType), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(exchange.has, mType), false))))
             {
-                Boolean skipMarketTypes = (Helpers.inOp(skippedProperties, "optionsNotLoadedByDefault")) && java.util.Objects.equals(mType, "option");
-                Assert(Helpers.isTrue(exchange.inArray(mType, collectedTypes)) || Boolean.TRUE.equals(skipMarketTypes), (((("exchange.has[" + mType) + "] is true, but no markets of type ") + mType) + " were found in exchange.markets"));
-            } else if (java.util.Objects.equals(Helpers.GetValue(exchange.has, mType), false))
+                Boolean skipMarketTypes = Helpers.isTrue((Helpers.inOp(skippedProperties, "optionsNotLoadedByDefault"))) && Helpers.isTrue(Helpers.isEqual(mType, "option"));
+                Assert(Helpers.isTrue(exchange.inArray(mType, collectedTypes)) || Helpers.isTrue(skipMarketTypes), Helpers.add(Helpers.add(Helpers.add(Helpers.add("exchange.has[", mType), "] is true, but no markets of type "), mType), " were found in exchange.markets"));
+            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(exchange.has, mType), false)))
             {
                 // some exchanges might have a couple of markets of a certain type loaded even though 'has[type]' is
                 // marked as false (e.g. a legacy/edge-case market); such known exceptions can be whitelisted per-exchange
                 // in skip-tests.json by adding a key matching the market type (e.g. "swap") under that method's skips
                 Boolean isKnownException = (Helpers.inOp(skippedProperties, mType));
-                Assert(!Helpers.isTrue(exchange.inArray(mType, collectedTypes)) || Boolean.TRUE.equals(isKnownException), (((("exchange.has[" + mType) + "] is false, but markets of type ") + mType) + " were found in exchange.markets"));
+                Assert(!Helpers.isTrue(exchange.inArray(mType, collectedTypes)) || Helpers.isTrue(isKnownException), Helpers.add(Helpers.add(Helpers.add(Helpers.add("exchange.has[", mType), "] is false, but markets of type "), mType), " were found in exchange.markets"));
             }
         }
         return true;

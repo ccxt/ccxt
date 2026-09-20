@@ -38,7 +38,7 @@ public partial class testMainClass : BaseTest
         testSharedMethods.assertInArray(exchange, skippedProperties, method, entry, "type", new List<object>() {"deposit", "withdrawal"});
         testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, "amount", "0");
         testSharedMethods.assertFeeStructure(exchange, skippedProperties, method, entry, "fee");
-        if (isEqual(getValue(entry, "type"), "deposit"))
+        if (isTrue(isEqual(getValue(entry, "type"), "deposit")))
         {
             testSharedMethods.assertType(exchange, skippedProperties, entry, "addressFrom", format);
         } else

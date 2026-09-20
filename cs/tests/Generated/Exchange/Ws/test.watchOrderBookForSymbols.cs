@@ -16,9 +16,9 @@ public partial class testMainClass : BaseTest
         // symbol to be seen would hang forever whenever one of them stays idle.
         int maxIdleTime = 5000;
         Int64 currentTime = exchange.milliseconds();
-        object deadline = (currentTime + 15000);
+        object deadline = add(currentTime, 15000);
         bool idle = false;
-        while ((isLessThan(currentTime, deadline)) && !idle)
+        while (isTrue((isLessThan(currentTime, deadline))) && !isTrue(idle))
         {
             object response = null;
             bool succeeded = true;
@@ -29,19 +29,19 @@ public partial class testMainClass : BaseTest
             } catch(Exception e)
             {
                 // interim workaround for InvalidNonce raised by the c# runtime
-                if (!isTrue(testSharedMethods.isTemporaryFailure(e)) && !(e is InvalidNonce))
+                if (isTrue(!isTrue(testSharedMethods.isTemporaryFailure(e)) && !isTrue((e is InvalidNonce))))
                 {
                     throw e;
                 }
                 succeeded = false;
             }
             currentTime = exchange.milliseconds();
-            if (((succeeded == true)) && ((response != null)))
+            if (isTrue(isTrue((isEqual(succeeded, true))) && isTrue((!isEqual(response, null)))))
             {
                 testOrderBook(exchange, skippedProperties, method, response, null);
                 testSharedMethods.assertInArray(exchange, skippedProperties, method, response, "symbol", symbols);
-                Int64 elapsed = (currentTime - startTime);
-                if (elapsed > maxIdleTime)
+                Int64 elapsed = subtract(currentTime, startTime);
+                if (isTrue(isGreaterThan(elapsed, maxIdleTime)))
                 {
                     idle = true;
                 }

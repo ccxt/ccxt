@@ -1,5 +1,5 @@
 import Exchange from './abstract/gate.js';
-import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Leverage, Leverages, Num, NullableDict, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, Dict, LeverageTier, LeverageTiers, int, CancellationRequest, LedgerEntry, FundingRate, FundingRates, DepositAddress, Bool, BorrowInterest, BalanceAccount, CurrencyInterface, DepositWithdrawFees, MarginLoan, DepositAddresses } from './base/types.js';
+import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Leverage, Leverages, Num, NullableDict, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, Dict, LeverageTier, LeverageTiers, int, CancellationRequest, LedgerEntry, FundingRate, FundingRates, DepositAddress, Bool, BorrowInterest, CurrencyInterface, DepositWithdrawFees, MarginLoan, DepositAddresses } from './base/types.js';
 /**
  * @class gate
  * @augments Exchange
@@ -15,8 +15,8 @@ export default class gate extends Exchange {
      * @see https://www.gate.com/docs/developers/apiv4/#retrieve-user-account-information
      * @returns {boolean} true or false if the enabled unified account is enabled or not and sets the unifiedAccount option if it is undefined
      */
-    loadUnifiedStatus(params?: Dict): Promise<boolean>;
-    upgradeUnifiedTradeAccount(params?: Dict): Promise<Dict>;
+    loadUnifiedStatus(params?: {}): Promise<any>;
+    upgradeUnifiedTradeAccount(params?: {}): Promise<Dict>;
     /**
      * @method
      * @name gate#fetchTime
@@ -41,17 +41,67 @@ export default class gate extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     fetchMarkets(params?: {}): Promise<Market[]>;
-    fetchSpotMarkets(params?: Dict): Promise<Market[]>;
-    fetchSwapMarkets(params?: Dict): Promise<Market[]>;
-    fetchFutureMarkets(params?: Dict): Promise<Market[]>;
-    parseContractMarket(market: Dict, settleId: Str): Dict;
-    fetchOptionMarkets(params?: Dict): Promise<Market[]>;
+    fetchSpotMarkets(params?: any): Promise<Market[]>;
+    fetchSwapMarkets(params?: any): Promise<Market[]>;
+    fetchFutureMarkets(params?: {}): Promise<Market[]>;
+    parseContractMarket(market: any, settleId: any): {
+        id: Str;
+        symbol: string;
+        base: Str;
+        quote: Str;
+        settle: Str;
+        baseId: Str;
+        quoteId: Str;
+        settleId: any;
+        type: string;
+        spot: boolean;
+        margin: boolean;
+        swap: boolean;
+        future: boolean;
+        option: boolean;
+        active: boolean;
+        contract: boolean;
+        linear: boolean;
+        inverse: boolean;
+        taker: number;
+        maker: number;
+        contractSize: number;
+        expiry: Int;
+        expiryDatetime: string | undefined;
+        strike: undefined;
+        optionType: undefined;
+        precision: {
+            amount: number;
+            price: Num;
+        };
+        limits: {
+            leverage: {
+                min: Num;
+                max: Num;
+            };
+            amount: {
+                min: Num;
+                max: Num;
+            };
+            price: {
+                min: number;
+                max: number;
+            };
+            cost: {
+                min: undefined;
+                max: undefined;
+            };
+        };
+        created: Int;
+        info: any;
+    };
+    fetchOptionMarkets(params?: any): Promise<Market[]>;
     fetchOptionUnderlyings(): Promise<Str[]>;
-    prepareRequest(market?: Market, type?: Str, params?: Dict): [Dict, Dict];
-    spotOrderPrepareRequest(market?: Market, trigger?: Bool, params?: Dict): [Dict, Dict];
-    multiOrderSpotPrepareRequest(market?: Market, trigger?: Bool, params?: Dict): [Dict, Dict];
-    getMarginMode(trigger: Bool, params: Dict): [Str, Dict];
-    getSettlementCurrencies(type: Str, method: Str): string[];
+    prepareRequest(market?: Market, type?: Str, params?: Dict): Dict[];
+    spotOrderPrepareRequest(market?: Market, trigger?: Bool, params?: Dict): any[];
+    multiOrderSpotPrepareRequest(market?: Market, trigger?: Bool, params?: Dict): any[];
+    getMarginMode(trigger: any, params: any): any[];
+    getSettlementCurrencies(type: any, method: any): any;
     /**
      * @method
      * @name gate#fetchCurrencies
@@ -83,8 +133,8 @@ export default class gate extends Exchange {
      */
     fetchFundingRates(symbols?: Strings, params?: {}): Promise<FundingRates>;
     parseFundingRate(contract: any, market?: Market): FundingRate;
-    parseFundingInterval(interval: Str): Str;
-    fetchNetworkDepositAddress(code: string, params?: Dict): Promise<Dict>;
+    parseFundingInterval(interval: any): string;
+    fetchNetworkDepositAddress(code: string, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name gate#fetchDepositAddressesByNetwork
@@ -126,8 +176,15 @@ export default class gate extends Exchange {
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     fetchTradingFees(params?: {}): Promise<TradingFees>;
-    parseTradingFees(response: Dict): TradingFees;
-    parseTradingFee(info: Dict, market?: Market): TradingFeeInterface;
+    parseTradingFees(response: any): Dict;
+    parseTradingFee(info: any, market?: Market): {
+        info: any;
+        symbol: Str;
+        maker: Num;
+        taker: Num;
+        percentage: undefined;
+        tierBased: undefined;
+    };
     /**
      * @method
      * @name gate#fetchTransactionFees
@@ -164,7 +221,15 @@ export default class gate extends Exchange {
      */
     fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingHistory[]>;
     parseFundingHistories(response: any, symbol: any, since: Int, limit: Int): FundingHistory[];
-    parseFundingHistory(info: Dict, market?: Market): FundingHistory;
+    parseFundingHistory(info: any, market?: Market): {
+        info: any;
+        symbol: Str;
+        code: Str;
+        timestamp: Int;
+        datetime: string | undefined;
+        id: undefined;
+        amount: Num;
+    };
     /**
      * @method
      * @name gate#fetchOrderBook
@@ -206,7 +271,7 @@ export default class gate extends Exchange {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
-    parseBalanceHelper(entry: Dict): BalanceAccount;
+    parseBalanceHelper(entry: any): import("./base/types.js").BalanceAccount;
     /**
      * @method
      * @name gate#fetchBalance
@@ -245,7 +310,7 @@ export default class gate extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume (units in quote currency)
      */
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
-    fetchOptionOHLCV(symbol: string, timeframe?: Str, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
+    fetchOptionOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     /**
      * @method
      * @name gate#fetchFundingRateHistory
@@ -362,8 +427,8 @@ export default class gate extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
-    parseTransactionStatus(status: Str): Str;
-    parseTransactionType(type: Str): Str;
+    parseTransactionStatus(status: Str): string;
+    parseTransactionType(type: any): string;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     /**
      * @method
@@ -402,7 +467,7 @@ export default class gate extends Exchange {
      * @returns {object|undefined} [An order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    createOrdersRequest(orders: OrderRequest[], params?: Dict): Dict[];
+    createOrdersRequest(orders: OrderRequest[], params?: {}): Dict[];
     /**
      * @method
      * @name gate#createOrders
@@ -414,7 +479,7 @@ export default class gate extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
-    createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: Dict): Dict;
+    createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): any;
     /**
      * @method
      * @name gate#createMarketBuyOrderWithCost
@@ -427,7 +492,7 @@ export default class gate extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createMarketBuyOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
-    editOrderRequest(id: string, symbol: Str, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: Dict): Dict;
+    editOrderRequest(id: string, symbol: Str, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): any;
     /**
      * @method
      * @name gate#editOrder
@@ -445,9 +510,9 @@ export default class gate extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
-    parseOrderStatus(status: Str): Str;
+    parseOrderStatus(status: Str): string;
     parseOrder(order: Dict, market?: Market): Order;
-    fetchOrderRequest(id: string, symbol?: Str, params?: Dict): [Dict, Dict];
+    fetchOrderRequest(id: string, symbol?: Str, params?: {}): any[];
     /**
      * @method
      * @name gate#fetchOrder
@@ -511,8 +576,8 @@ export default class gate extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    prepareOrdersByStatusRequest(status: Str, symbol?: Str, since?: Int, limit?: Int, params?: Dict): [Dict, Dict];
-    fetchOrdersByStatus(status: Str, symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
+    prepareOrdersByStatusRequest(status: any, symbol?: Str, since?: Int, limit?: Int, params?: {}): object[];
+    fetchOrdersByStatus(status: any, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     /**
      * @method
      * @name gate#cancelOrder
@@ -730,7 +795,7 @@ export default class gate extends Exchange {
         body: Str;
         headers: NullableDict;
     };
-    modifyMarginHelper(symbol: string, amount: Num, params?: Dict): Promise<MarginModification>;
+    modifyMarginHelper(symbol: string, amount: any, params?: {}): Promise<MarginModification>;
     parseMarginModification(data: Dict, market?: Market): MarginModification;
     /**
      * @method
@@ -782,7 +847,7 @@ export default class gate extends Exchange {
      * @param {object} [params] exchange specific params
      * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
      */
-    fetchSettlementHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Dict[]>;
+    fetchSettlementHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Dict[]>;
     /**
      * @method
      * @name gate#fetchMySettlementHistory
@@ -795,9 +860,15 @@ export default class gate extends Exchange {
      * @param {object} [params] exchange specific params
      * @returns {object[]} a list of [settlement history objects]
      */
-    fetchMySettlementHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Dict[]>;
-    parseSettlement(settlement: Dict, market?: Market): Dict;
-    parseSettlements(settlements: any[], market?: Market): Dict[];
+    fetchMySettlementHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Dict[]>;
+    parseSettlement(settlement: any, market: any): {
+        info: any;
+        symbol: string;
+        price: Num;
+        timestamp: Int;
+        datetime: string | undefined;
+    };
+    parseSettlements(settlements: any, market: any): object[];
     /**
      * @method
      * @name gate#fetchLedger
@@ -817,7 +888,7 @@ export default class gate extends Exchange {
      */
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
-    parseLedgerEntryType(type: Str): Str;
+    parseLedgerEntryType(type: any): string;
     /**
      * @method
      * @name gate#setPositionMode
@@ -839,7 +910,7 @@ export default class gate extends Exchange {
      * @param {string} [params.type] the contract market type, 'option', 'swap' or 'future', the default is 'option'
      * @returns {object[]} a list of [underlying assets]{@link https://docs.ccxt.com/?id=underlying-assets-structure}
      */
-    fetchUnderlyingAssets(params?: Dict): Promise<string[]>;
+    fetchUnderlyingAssets(params?: {}): Promise<string[]>;
     /**
      * @method
      * @name gate#fetchLiquidations

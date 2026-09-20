@@ -32,7 +32,7 @@ func testWatchTickersHelperBody(ch chan any, exchange ccxt.ICoreExchange, skippe
 	_ = argParams
 	var method string = "watchTickers"
 	var now int64 = exchange.Milliseconds()
-	var ends any = now + 15000
+	var ends any = Add(now, 15000)
 	var maxIdleTime int = 5000
 	var idle bool = false
 	for (IsLessThan(now, ends)) && !idle {
@@ -54,7 +54,7 @@ func testWatchTickersHelperBody(ch chan any, exchange ccxt.ICoreExchange, skippe
 							// to "all tickers" itself, and it requires symbols to be set
 							// so, in such case, if it's arguments-required exception, we don't
 							// mark tests as failed, but just skip them
-							if (IsInstance(e, ArgumentsRequired)) && ((argSymbols == nil) || (GetArrayLength(argSymbols) == 0)) {
+							if (IsInstance(e, ArgumentsRequired)) && (IsEqual(argSymbols, nil) || (GetArrayLength(argSymbols) == 0)) {
 								// todo: provide random symbols to try
 								// return;
 								// return false;
@@ -85,17 +85,12 @@ func testWatchTickersHelperBody(ch chan any, exchange ccxt.ICoreExchange, skippe
 			Assert(exchange.IsDictionary(response), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), exchange.Json(argSymbols)), " must return a dictionary. "), exchange.Json(response)))
 			var values []any = ObjectValues(response)
 			var checkedSymbol any = nil
-			if (argSymbols != nil) && (GetArrayLength(argSymbols) == 1) {
+			if !IsEqual(argSymbols, nil) && (GetArrayLength(argSymbols) == 1) {
 				checkedSymbol = GetValue(argSymbols, 0)
 			}
 			AssertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol)
-			for i := 0; i < len(values); i++ {
-				var ticker any = func() any {
-					if i >= 0 && i < len(values) {
-						return DerefScalar(values[i])
-					}
-					return nil
-				}()
+			for i := 0; IsLessThan(i, GetArrayLength(values)); i++ {
+				var ticker any = GetValue(values, i)
 
 				{
 					func() (ret_ any) {
@@ -108,7 +103,7 @@ func testWatchTickersHelperBody(ch chan any, exchange ccxt.ICoreExchange, skippe
 									// catch block:
 									var ohlcv any = nil
 									var tickerSymbol any = GetValue(ticker, "symbol")
-									if (tickerSymbol != nil) && EvalTruthy(TickerExceptionNeedsOhlcv(ex, exchange, ticker)) {
+									if (!IsEqual(tickerSymbol, nil)) && EvalTruthy(TickerExceptionNeedsOhlcv(ex, exchange, ticker)) {
 
 										ohlcv = (<-exchange.FetchOHLCVAsync(tickerSymbol, "1d", nil, 5))
 										PanicOnError(ohlcv)
@@ -125,7 +120,7 @@ func testWatchTickersHelperBody(ch chan any, exchange ccxt.ICoreExchange, skippe
 
 				}
 			}
-			if IsGreaterThan((now - startTime), maxIdleTime) {
+			if IsGreaterThan((Subtract(now, startTime)), maxIdleTime) {
 				idle = true
 			}
 		}

@@ -7,7 +7,6 @@ import io.github.ccxt.errors.*;
 import tests.exchange.*;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -54,7 +53,7 @@ public class TestUnWatchPositions extends BaseTest {
             return false;
         }
         // Verify that we have a subscription
-        Assert((positionsSubscription instanceof List), (((exchange.id + " ") + method) + " requires a valid positions subscription to test unsubscribe"));
+        Assert(Helpers.isArray(positionsSubscription), Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " requires a valid positions subscription to test unsubscribe"));
         // Assert unWatchPositions for one symbol is not supported
         Object errorResponse = null;
         try
@@ -64,7 +63,7 @@ public class TestUnWatchPositions extends BaseTest {
         {
             errorResponse = e;
         }
-        Assert(!java.util.Objects.equals(errorResponse, null), ((((exchange.id + " ") + method) + " must throw an error when unwatching a specific symbol, returned ") + exchange.json(errorResponse)));
+        Assert(!Helpers.isEqual(errorResponse, null), Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " must throw an error when unwatching a specific symbol, returned "), exchange.json(errorResponse)));
         // Test unwatching all positions (without specific symbols)
         Object responseAll = null;
         try
@@ -79,7 +78,7 @@ public class TestUnWatchPositions extends BaseTest {
             throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
         }
         // Verify the response for unwatching all positions
-        Assert(!java.util.Objects.equals(responseAll, null), ((((exchange.id + " ") + method) + " must return a response when unwatching all positions, returned ") + exchange.json(responseAll)));
+        Assert(!Helpers.isEqual(responseAll, null), Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " must return a response when unwatching all positions, returned "), exchange.json(responseAll)));
         // Test that we can resubscribe after unwatching (to ensure cleanup was proper)
         Object resubscribeResponse = null;
         try
@@ -93,10 +92,10 @@ public class TestUnWatchPositions extends BaseTest {
             {
                 throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
             }
-            throw new RuntimeException((String)(((exchange.id + " ") + method) + " failed to resubscribe after unwatch, indicating potential cleanup issues")) ;
+            throw new RuntimeException((String)Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " failed to resubscribe after unwatch, indicating potential cleanup issues")) ;
         }
         // Verify resubscription works
-        Assert((resubscribeResponse instanceof List), ((((exchange.id + " ") + method) + " must allow resubscription after unwatch, returned ") + exchange.json(resubscribeResponse)));
+        Assert(Helpers.isArray(resubscribeResponse), Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " must allow resubscription after unwatch, returned "), exchange.json(resubscribeResponse)));
         return true;
         });
 

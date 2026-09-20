@@ -11,18 +11,18 @@ use ccxt::exchange_generated::ExchangeBase;
 pub async fn testSleep() -> Value {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("id".to_string(), Value::Str("sampleexchange".into()));
+            m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
         m
     }));
     let mut start: Value = exchange.milliseconds();
     let mut sleepAmount: Value = Value::Int(100); // milliseconds
     exchange.sleep(sleepAmount.clone()).await;
     let mut end: Value = exchange.milliseconds();
-    let mut elapsed: Value = (match (&(end), &(start)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+    let mut elapsed: Value = subtract(&end, &start);
     // Allow a small margin of error due to execution time and timer jitter
     // (some runtimes, e.g. .NET Task.Delay, may return a few ms early)
     let mut marginOfError: Value = Value::Int(20);
-    let mut minElapsed: Value = (match (&(sleepAmount), &(marginOfError)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+    let mut minElapsed: Value = subtract(&sleepAmount, &marginOfError);
     // The ceiling is deliberately far looser than the floor. sleep () promises
     // a MINIMUM delay in every language, never a maximum: the OS is free to
     // reschedule late, so a busy machine or a parallel CI runner overshoots by
@@ -31,9 +31,9 @@ pub async fn testSleep() -> Value {
     // load. Keep a ceiling only to catch a sleep that is genuinely broken — a
     // seconds/milliseconds mix-up, or one that never returns.
     let mut maxOvershoot: Value = Value::Int(2000);
-    let mut maxElapsed: Value = (match (&(sleepAmount), &(maxOvershoot)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-    let mut elapsedBiggerThanSleep: Value = Value::Bool(elapsed.as_f64().unwrap_or(f64::NAN) >= minElapsed.as_f64().unwrap_or(f64::NAN));
-    let mut elapsedLessThanMax: Value = Value::Bool(elapsed.as_f64().unwrap_or(f64::NAN) <= maxElapsed.as_f64().unwrap_or(f64::NAN));
+    let mut maxElapsed: Value = add(&sleepAmount, &maxOvershoot);
+    let mut elapsedBiggerThanSleep: Value = Value::Bool(is_greater_than_or_equal(&elapsed, &minElapsed));
+    let mut elapsedLessThanMax: Value = Value::Bool(is_less_than_or_equal(&elapsed, &maxElapsed));
     assert!(ccxt::runtime::is_true(&(elapsedBiggerThanSleep.clone())));
     assert!(ccxt::runtime::is_true(&(elapsedLessThanMax.clone())));
     return Value::Bool(true);

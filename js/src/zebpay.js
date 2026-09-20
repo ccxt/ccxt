@@ -484,7 +484,7 @@ export default class zebpay extends Exchange {
         }
         const market = this.market(symbol);
         let response = undefined;
-        let data = undefined;
+        let data;
         const request = {
             'symbol': market['id'],
         };

@@ -725,7 +725,7 @@ export default class coinbase extends coinbaseRest {
         if (events === undefined) {
             return;
         }
-        const event = this.safeDict(events, 0);
+        const event = this.safeValue(events, 0);
         const trades = this.safeList(event, 'trades');
         const trade = this.safeDict(trades, 0);
         const marketId = this.safeString(trade, 'product_id');
@@ -922,7 +922,7 @@ export default class coinbase extends coinbaseRest {
             const market = this.safeMarket(marketId);
             const symbol = market['symbol'];
             const messageHash = 'level2::' + symbol;
-            const subscription = this.safeDict(client.subscriptions, messageHash, {});
+            const subscription = this.safeValue(client.subscriptions, messageHash, {});
             const limit = this.safeInteger(subscription, 'limit');
             const type = this.safeString(event, 'type');
             if (type === 'snapshot') {

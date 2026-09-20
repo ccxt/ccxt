@@ -19,7 +19,7 @@ public partial class testMainClass : BaseTest
             Console.WriteLine(m1);
             return false;
         }
-        if (isEqual(getValue(exchange.has, method), null) || isEqual(getValue(exchange.has, method), false))
+        if (isTrue(isTrue(isEqual(getValue(exchange.has, method), null)) || isTrue(isEqual(getValue(exchange.has, method), false))))
         {
             object m2 = (add(add(add(exchange.id, " does not support "), method), "() method"));
             Console.WriteLine(m2);
@@ -27,7 +27,7 @@ public partial class testMainClass : BaseTest
         }
         object response = null;
         Int64 now = (new DateTimeOffset(DateTime.UtcNow)).ToUnixTimeMilliseconds();
-        object ends = (now + 10000);
+        object ends = add(now, 10000);
         while (isLessThan(now, ends))
         {
             try
@@ -39,13 +39,13 @@ public partial class testMainClass : BaseTest
                 object m3 = (add(add(add(add(add(exchange.id, " "), method), "() returned "), getArrayLength(response)), " liquidations"));
                 Console.WriteLine(m3);
                 // log.noLocate (asTable (response))
-                for (int i = 0; i < getArrayLength(response); i++)
+                for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
                 {
                     testLiquidation(exchange, skippedProperties, method, getValue(response, i), symbol);
                 }
             } catch(Exception e)
             {
-                if (!(e is NetworkError))
+                if (!isTrue((e is NetworkError)))
                 {
                     throw e;
                 }

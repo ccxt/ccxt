@@ -9,145 +9,145 @@ package ccxt
 
 // PublicPostGetServerTime returns a channel that yields a JSON object.
 func (this *Cex) PublicPostGetServerTime(args ...any) <-chan any {
-	return this.Fetch2Async("get_server_time", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("publicPostGetServerTime", args...)
 }
 
 // PublicPostGetPairsInfo returns a channel that yields a JSON object.
 func (this *Cex) PublicPostGetPairsInfo(args ...any) <-chan any {
-	return this.Fetch2Async("get_pairs_info", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("publicPostGetPairsInfo", args...)
 }
 
 // PublicPostGetCurrenciesInfo returns a channel that yields a JSON object.
 func (this *Cex) PublicPostGetCurrenciesInfo(args ...any) <-chan any {
-	return this.Fetch2Async("get_currencies_info", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("publicPostGetCurrenciesInfo", args...)
 }
 
 // PublicPostGetProcessingInfo returns a channel that yields a JSON object.
 func (this *Cex) PublicPostGetProcessingInfo(args ...any) <-chan any {
-	return this.Fetch2Async("get_processing_info", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+	return this.callEndpointAsync("publicPostGetProcessingInfo", args...)
 }
 
 // PublicPostGetTicker returns a channel that yields a JSON object.
 func (this *Cex) PublicPostGetTicker(args ...any) <-chan any {
-	return this.Fetch2Async("get_ticker", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("publicPostGetTicker", args...)
 }
 
 // PublicPostGetTradeHistory returns a channel that yields a JSON object.
 func (this *Cex) PublicPostGetTradeHistory(args ...any) <-chan any {
-	return this.Fetch2Async("get_trade_history", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("publicPostGetTradeHistory", args...)
 }
 
 // PublicPostGetOrderBook returns a channel that yields a JSON object.
 func (this *Cex) PublicPostGetOrderBook(args ...any) <-chan any {
-	return this.Fetch2Async("get_order_book", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("publicPostGetOrderBook", args...)
 }
 
 // PublicPostGetCandles returns a channel that yields a JSON object.
 func (this *Cex) PublicPostGetCandles(args ...any) <-chan any {
-	return this.Fetch2Async("get_candles", "public", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("publicPostGetCandles", args...)
 }
 
 // PrivatePostGetMyCurrentFee returns a channel that yields a JSON object.
 func (this *Cex) PrivatePostGetMyCurrentFee(args ...any) <-chan any {
-	return this.Fetch2Async("get_my_current_fee", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+	return this.callEndpointAsync("privatePostGetMyCurrentFee", args...)
 }
 
 // PrivatePostGetFeeStrategy returns a channel that yields a JSON object.
 func (this *Cex) PrivatePostGetFeeStrategy(args ...any) <-chan any {
-	return this.Fetch2Async("get_fee_strategy", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privatePostGetFeeStrategy", args...)
 }
 
 // PrivatePostGetMyVolume returns a channel that yields a JSON object.
 func (this *Cex) PrivatePostGetMyVolume(args ...any) <-chan any {
-	return this.Fetch2Async("get_my_volume", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+	return this.callEndpointAsync("privatePostGetMyVolume", args...)
 }
 
 // PrivatePostDoCreateAccount returns a channel that yields a JSON object.
 func (this *Cex) PrivatePostDoCreateAccount(args ...any) <-chan any {
-	return this.Fetch2Async("do_create_account", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privatePostDoCreateAccount", args...)
 }
 
 // PrivatePostGetMyAccountStatusV3 returns a channel that yields a JSON object.
 func (this *Cex) PrivatePostGetMyAccountStatusV3(args ...any) <-chan any {
-	return this.Fetch2Async("get_my_account_status_v3", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+	return this.callEndpointAsync("privatePostGetMyAccountStatusV3", args...)
 }
 
 // PrivatePostGetMyWalletBalance returns a channel that yields a JSON object.
 func (this *Cex) PrivatePostGetMyWalletBalance(args ...any) <-chan any {
-	return this.Fetch2Async("get_my_wallet_balance", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+	return this.callEndpointAsync("privatePostGetMyWalletBalance", args...)
 }
 
 // PrivatePostGetMyOrders returns a channel that yields a JSON object.
 func (this *Cex) PrivatePostGetMyOrders(args ...any) <-chan any {
-	return this.Fetch2Async("get_my_orders", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+	return this.callEndpointAsync("privatePostGetMyOrders", args...)
 }
 
 // PrivatePostDoMyNewOrder returns a channel that yields a JSON object.
 func (this *Cex) PrivatePostDoMyNewOrder(args ...any) <-chan any {
-	return this.Fetch2Async("do_my_new_order", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privatePostDoMyNewOrder", args...)
 }
 
 // PrivatePostDoCancelMyOrder returns a channel that yields a JSON object.
 func (this *Cex) PrivatePostDoCancelMyOrder(args ...any) <-chan any {
-	return this.Fetch2Async("do_cancel_my_order", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privatePostDoCancelMyOrder", args...)
 }
 
 // PrivatePostDoCancelAllOrders returns a channel that yields a JSON object.
 func (this *Cex) PrivatePostDoCancelAllOrders(args ...any) <-chan any {
-	return this.Fetch2Async("do_cancel_all_orders", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+	return this.callEndpointAsync("privatePostDoCancelAllOrders", args...)
 }
 
 // PrivatePostGetOrderBook returns a channel that yields a JSON object.
 func (this *Cex) PrivatePostGetOrderBook(args ...any) <-chan any {
-	return this.Fetch2Async("get_order_book", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privatePostGetOrderBook", args...)
 }
 
 // PrivatePostGetTicker returns a channel that yields a JSON object.
 func (this *Cex) PrivatePostGetTicker(args ...any) <-chan any {
-	return this.Fetch2Async("get_ticker", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privatePostGetTicker", args...)
 }
 
 // PrivatePostGetCandles returns a channel that yields a JSON object.
 func (this *Cex) PrivatePostGetCandles(args ...any) <-chan any {
-	return this.Fetch2Async("get_candles", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privatePostGetCandles", args...)
 }
 
 // PrivatePostGetTradeHistory returns a channel that yields a JSON object.
 func (this *Cex) PrivatePostGetTradeHistory(args ...any) <-chan any {
-	return this.Fetch2Async("get_trade_history", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privatePostGetTradeHistory", args...)
 }
 
 // PrivatePostGetMyTransactionHistory returns a channel that yields a JSON object.
 func (this *Cex) PrivatePostGetMyTransactionHistory(args ...any) <-chan any {
-	return this.Fetch2Async("get_my_transaction_history", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privatePostGetMyTransactionHistory", args...)
 }
 
 // PrivatePostGetMyFundingHistory returns a channel that yields a JSON object.
 func (this *Cex) PrivatePostGetMyFundingHistory(args ...any) <-chan any {
-	return this.Fetch2Async("get_my_funding_history", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+	return this.callEndpointAsync("privatePostGetMyFundingHistory", args...)
 }
 
 // PrivatePostDoMyInternalTransfer returns a channel that yields a JSON object.
 func (this *Cex) PrivatePostDoMyInternalTransfer(args ...any) <-chan any {
-	return this.Fetch2Async("do_my_internal_transfer", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privatePostDoMyInternalTransfer", args...)
 }
 
 // PrivatePostGetProcessingInfo returns a channel that yields a JSON object.
 func (this *Cex) PrivatePostGetProcessingInfo(args ...any) <-chan any {
-	return this.Fetch2Async("get_processing_info", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+	return this.callEndpointAsync("privatePostGetProcessingInfo", args...)
 }
 
 // PrivatePostGetDepositAddress returns a channel that yields a JSON object.
 func (this *Cex) PrivatePostGetDepositAddress(args ...any) <-chan any {
-	return this.Fetch2Async("get_deposit_address", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+	return this.callEndpointAsync("privatePostGetDepositAddress", args...)
 }
 
 // PrivatePostDoDepositFundsFromWallet returns a channel that yields a JSON object.
 func (this *Cex) PrivatePostDoDepositFundsFromWallet(args ...any) <-chan any {
-	return this.Fetch2Async("do_deposit_funds_from_wallet", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privatePostDoDepositFundsFromWallet", args...)
 }
 
 // PrivatePostDoWithdrawalFundsToWallet returns a channel that yields a JSON object.
 func (this *Cex) PrivatePostDoWithdrawalFundsToWallet(args ...any) <-chan any {
-	return this.Fetch2Async("do_withdrawal_funds_to_wallet", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privatePostDoWithdrawalFundsToWallet", args...)
 }

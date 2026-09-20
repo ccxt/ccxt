@@ -61,9 +61,9 @@ func (this *Binanceusdm) transferInBody(ch chan any, code any, amount any, optio
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes5715 := (<-this.FuturesTransferAsync(code, amount, 1, params))
-	PanicOnError(retRes5715)
-	ch <- retRes5715
+	retRes5615 := (<-this.FuturesTransferAsync(code, amount, 1, params))
+	PanicOnError(retRes5615)
+	ch <- retRes5615
 	return nil
 }
 func (this *Binanceusdm) TransferOutAsync(code any, amount any, optionalArgs ...any) <-chan any {
@@ -78,9 +78,9 @@ func (this *Binanceusdm) transferOutBody(ch chan any, code any, amount any, opti
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes6215 := (<-this.FuturesTransferAsync(code, amount, 2, params))
-	PanicOnError(retRes6215)
-	ch <- retRes6215
+	retRes6115 := (<-this.FuturesTransferAsync(code, amount, 2, params))
+	PanicOnError(retRes6115)
+	ch <- retRes6115
 	return nil
 }
 
@@ -97,7 +97,7 @@ func (this *Binanceusdm) Init(userConfig map[string]any) {
 }
 
 // typed methods
-func (this *Binanceusdm) TransferIn(code string, amount float64, options ...TransferInOptions) (TransferEntry, error) {
+func (this *Binanceusdm) TransferIn(code string, amount any, options ...TransferInOptions) (TransferEntry, error) {
 
 	opts := TransferInOptionsStruct{}
 
@@ -110,7 +110,7 @@ func (this *Binanceusdm) TransferIn(code string, amount float64, options ...Tran
 	}
 	return NewTransferEntry(res), nil
 }
-func (this *Binanceusdm) TransferOut(code string, amount float64, options ...TransferOutOptions) (TransferEntry, error) {
+func (this *Binanceusdm) TransferOut(code string, amount any, options ...TransferOutOptions) (TransferEntry, error) {
 
 	opts := TransferOutOptionsStruct{}
 

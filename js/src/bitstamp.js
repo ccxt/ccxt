@@ -793,7 +793,7 @@ export default class bitstamp extends Exchange {
     async fetchMarketsFromCache(params = {}) {
         // this method is now redundant
         // currencies are now fetched before markets
-        const options = this.safeDict(this.options, 'fetchMarkets', {});
+        const options = this.safeValue(this.options, 'fetchMarkets', {});
         const timestamp = this.safeInteger(options, 'timestamp');
         const expires = this.safeInteger(options, 'expires', 1000);
         const now = this.milliseconds();
@@ -1393,7 +1393,7 @@ export default class bitstamp extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeDict(response, 'data', {});
+        const data = this.safeValue(response, 'data', {});
         const ohlc = this.safeList(data, 'ohlc', []);
         return this.parseOHLCVs(ohlc, market, timeframe, since, limit);
     }
@@ -1571,7 +1571,7 @@ export default class bitstamp extends Exchange {
         const ids = Object.keys(currencies);
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            const fees = this.safeDict(response, i, {});
+            const fees = this.safeValue(response, i, {});
             const code = this.safeCurrencyCode(id);
             if ((codes !== undefined) && !this.inArray(code, codes)) {
                 continue;
@@ -1972,7 +1972,7 @@ export default class bitstamp extends Exchange {
         //         ]
         //     }
         //
-        const values = this.safeList(response, 'funding_rate_history', []);
+        const values = this.safeValue(response, 'funding_rate_history', []);
         return this.parseFundingRateHistories(values, market, since, limit);
     }
     parseFundingRateHistory(contract, market = undefined) {
@@ -2309,7 +2309,7 @@ export default class bitstamp extends Exchange {
         const symbol = this.safeSymbol(marketId, market, '/');
         const status = this.parseOrderStatus(this.safeString(order, 'status'));
         const amount = this.safeString(order, 'amount');
-        const transactions = this.safeList(order, 'transactions', []);
+        const transactions = this.safeValue(order, 'transactions', []);
         const price = this.safeString(order, 'price');
         return this.safeOrder({
             'id': id,

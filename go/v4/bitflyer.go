@@ -315,7 +315,7 @@ func (this *Bitflyer) ParseExpiryDate(expiry any) any {
 		"DEC": "12",
 	}
 	var month *string = this.SafeString(months, monthName)
-	return this.Parse8601(Add(Add(Add(Add(year+"-", month), "-"), day), "T00:00:00Z"))
+	return this.Parse8601(Add(Add(Add(Add(Add(year, "-"), month), "-"), day), "T00:00:00Z"))
 }
 func (this *Bitflyer) SafeMarket(optionalArgs ...any) any {
 	// Bitflyer has a different type of conflict in markets, because
@@ -389,14 +389,9 @@ func (this *Bitflyer) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//
 	var markets []any = this.ArrayConcat(this.ToArray(jp_markets), this.ToArray(us_markets))
 	markets = this.ArrayConcat(markets, this.ToArray(eu_markets))
-	var result []any = []any{}
-	for i := 0; i < len(markets); i++ {
-		var market any = func() any {
-			if i >= 0 && i < len(markets) {
-				return DerefScalar(markets[i])
-			}
-			return nil
-		}()
+	var result any = []any{}
+	for i := 0; IsLessThan(i, GetArrayLength(markets)); i++ {
+		var market any = GetValue(markets, i)
 		var id *string = this.SafeString(market, "product_code")
 		var currencies []string = Split(id, "_")
 		var marketType *string = this.SafeString(market, "market_type")
@@ -421,46 +416,16 @@ func (this *Bitflyer) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 				// no alias:
 				// { product_code: 'BTCJPY11MAR2022', market_type: 'Futures' }
 				// TODO this will break if there are products with 4 chars
-				baseId = func() string {
-					if id == nil {
-						return ""
-					}
-					str := *id
-					return str[0:min(3, len(str))]
-				}()
-				quoteId = func() string {
-					if id == nil {
-						return ""
-					}
-					str := *id
-					return str[3:min(6, len(str))]
-				}()
+				baseId = Slice(id, 0, 3)
+				quoteId = Slice(id, 3, 6)
 				// last 9 chars are expiry date
-				var expiryDate string = func() string {
-					if id == nil {
-						return ""
-					}
-					str := *id
-					return str[max(len(str) - 9, 0):]
-				}()
+				var expiryDate string = Slice(id, OpNeg(9), nil)
 				expiry = this.ParseExpiryDate(expiryDate)
 			} else {
 				var splitAlias []string = Split(alias, "_")
 				var currencyIds *string = this.SafeString(splitAlias, 0)
-				baseId = func() string {
-					if currencyIds == nil {
-						return ""
-					}
-					str := *currencyIds
-					return str[0:len(str) - 3]
-				}()
-				quoteId = func() string {
-					if currencyIds == nil {
-						return ""
-					}
-					str := *currencyIds
-					return str[max(len(str) - 3, 0):]
-				}()
+				baseId = Slice(currencyIds, 0, OpNeg(3))
+				quoteId = Slice(currencyIds, OpNeg(3), nil)
 				var splitId []string = Split(id, currencyIds)
 				var expiryDate *string = this.SafeString(splitId, 1)
 				expiry = this.ParseExpiryDate(expiryDate)
@@ -470,8 +435,8 @@ func (this *Bitflyer) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
 		var symbol any = Add(Add(base, "/"), quote)
-		var taker any = GetValue(this.Fees["trading"], "taker")
-		var maker any = GetValue(this.Fees["trading"], "maker")
+		var taker any = GetValue(GetValue(this.Fees, "trading"), "taker")
+		var maker any = GetValue(GetValue(this.Fees, "trading"), "maker")
 		var contract bool = swap || future
 		if contract {
 			maker = 0
@@ -482,35 +447,25 @@ func (this *Bitflyer) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 				symbol = Add(Add(symbol, "-"), this.Yymmdd(expiry))
 			}
 		}
-		result = append(result, map[string]any{
-			"id":       id,
-			"symbol":   symbol,
-			"base":     base,
-			"quote":    quote,
-			"settle":   settle,
-			"baseId":   baseId,
-			"quoteId":  quoteId,
-			"settleId": nil,
-			"type":     typeVar,
-			"spot":     spot,
-			"margin":   false,
-			"swap":     swap,
-			"future":   future,
-			"option":   false,
-			"active":   true,
-			"contract": contract,
-			"linear": func() any {
-				if spot {
-					return nil
-				}
-				return true
-			}(),
-			"inverse": func() any {
-				if spot {
-					return nil
-				}
-				return false
-			}(),
+		AppendToArray(&result, map[string]any{
+			"id":             id,
+			"symbol":         symbol,
+			"base":           base,
+			"quote":          quote,
+			"settle":         settle,
+			"baseId":         baseId,
+			"quoteId":        quoteId,
+			"settleId":       nil,
+			"type":           typeVar,
+			"spot":           spot,
+			"margin":         false,
+			"swap":           swap,
+			"future":         future,
+			"option":         false,
+			"active":         true,
+			"contract":       contract,
+			"linear":         Ternary(spot, nil, true),
+			"inverse":        Ternary(spot, nil, false),
 			"taker":          taker,
 			"maker":          maker,
 			"contractSize":   nil,
@@ -552,7 +507,7 @@ func (this *Bitflyer) ParseBalance(response any) any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	for i := 0; i < GetArrayLength(response); i++ {
+	for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
 		var balance any = GetValue(response, i)
 		var currencyId *string = this.SafeString(balance, "currency_code")
 		var code *string = this.SafeCurrencyCode(currencyId)
@@ -584,7 +539,7 @@ func (this *Bitflyer) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
 		retRes43812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes43812)
@@ -638,20 +593,20 @@ func (this *Bitflyer) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	_ = limit
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
 		retRes47512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes47512)
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
-		"product_code": market["id"],
+		"product_code": GetValue(market, "id"),
 	}
 
 	orderbook := (<-this.PublicGetGetboard(this.Extend(request, params)))
 	PanicOnError(orderbook)
 
-	ch <- this.ParseOrderBook(orderbook, market["symbol"], nil, "bids", "asks", "price", "size")
+	ch <- this.ParseOrderBook(orderbook, GetValue(market, "symbol"), nil, "bids", "asks", "price", "size")
 	return nil
 }
 func (this *Bitflyer) ParseTicker(ticker any, optionalArgs ...any) any {
@@ -703,14 +658,14 @@ func (this *Bitflyer) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
 		retRes52412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes52412)
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
-		"product_code": market["id"],
+		"product_code": GetValue(market, "id"),
 	}
 
 	response := (<-this.PublicGetGetticker(this.Extend(request, params)))
@@ -750,7 +705,7 @@ func (this *Bitflyer) ParseTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var side any = this.SafeStringLower(trade, "side")
 	if !IsEqual(side, nil) {
-		if GetLength(side) < 1 {
+		if IsLessThan(GetLength(side), 1) {
 			side = nil
 		}
 	}
@@ -811,17 +766,17 @@ func (this *Bitflyer) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	_ = limit
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
 		retRes61212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes61212)
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
-		"product_code": market["id"],
+		"product_code": GetValue(market, "id"),
 	}
-	if limit != nil {
-		request["count"] = limit
+	if !IsEqual(limit, nil) {
+		AddElementToObject(request, "count", limit)
 	}
 
 	response := (<-this.PublicGetGetexecutions(this.Extend(request, params)))
@@ -863,14 +818,14 @@ func (this *Bitflyer) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs 
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
 		retRes64912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes64912)
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
-		"product_code": market["id"],
+		"product_code": GetValue(market, "id"),
 	}
 
 	response := (<-this.PrivateGetGettradingcommission(this.Extend(request, params)))
@@ -884,7 +839,7 @@ func (this *Bitflyer) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs 
 
 	ch <- map[string]any{
 		"info":       response,
-		"symbol":     market["symbol"],
+		"symbol":     GetValue(market, "symbol"),
 		"maker":      fee,
 		"taker":      fee,
 		"percentage": nil,
@@ -918,7 +873,7 @@ func (this *Bitflyer) createOrderBody(ch chan any, symbol any, typeVar any, side
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
 		retRes68712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes68712)
@@ -965,10 +920,10 @@ func (this *Bitflyer) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if symbol == nil {
-		panic(ArgumentsRequired(this.Id + " cancelOrder() requires a symbol argument"))
+	if IsEqual(symbol, nil) {
+		panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
 	}
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
 		retRes72012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes72012)
@@ -989,7 +944,7 @@ func (this *Bitflyer) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 	})
 	return nil
 }
-func (this *Bitflyer) ParseOrderStatus(status *string) *string {
+func (this *Bitflyer) ParseOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"ACTIVE":    "open",
 		"COMPLETED": "closed",
@@ -1074,24 +1029,24 @@ func (this *Bitflyer) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if symbol == nil {
-		panic(ArgumentsRequired(this.Id + " fetchOrders() requires a symbol argument"))
+	if IsEqual(symbol, nil) {
+		panic(ArgumentsRequired(Add(this.Id, " fetchOrders() requires a symbol argument")))
 	}
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
 		retRes80812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes80812)
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
-		"product_code": market["id"],
+		"product_code": GetValue(market, "id"),
 		"count":        limit,
 	}
 
 	response := (<-this.PrivateGetGetchildorders(this.Extend(request, params)))
 	PanicOnError(response)
 	var orders any = this.ParseOrders(response, market, since, limit)
-	if symbol != nil {
+	if !IsEqual(symbol, nil) {
 		orders = this.FilterBy(orders, "symbol", symbol)
 	}
 
@@ -1195,8 +1150,8 @@ func (this *Bitflyer) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if symbol == nil {
-		panic(ArgumentsRequired(this.Id + " fetchOrder() requires a symbol argument"))
+	if IsEqual(symbol, nil) {
+		panic(ArgumentsRequired(Add(this.Id, " fetchOrder() requires a symbol argument")))
 	}
 
 	orders := (<-this.FetchOrdersAsync(symbol))
@@ -1207,7 +1162,7 @@ func (this *Bitflyer) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 		ch <- GetValue(ordersById, id)
 		return nil
 	}
-	panic(OrderNotFound(Add(this.Id+" No order found with id ", id)))
+	panic(OrderNotFound(Add(Add(this.Id, " No order found with id "), id)))
 }
 
 /**
@@ -1237,20 +1192,20 @@ func (this *Bitflyer) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if symbol == nil {
-		panic(ArgumentsRequired(this.Id + " fetchMyTrades() requires a symbol argument"))
+	if IsEqual(symbol, nil) {
+		panic(ArgumentsRequired(Add(this.Id, " fetchMyTrades() requires a symbol argument")))
 	}
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
 		retRes89712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes89712)
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
-		"product_code": market["id"],
+		"product_code": GetValue(market, "id"),
 	}
-	if limit != nil {
-		request["count"] = limit
+	if !IsEqual(limit, nil) {
+		AddElementToObject(request, "count", limit)
 	}
 
 	response := (<-this.PrivateGetGetexecutions(this.Extend(request, params)))
@@ -1295,10 +1250,10 @@ func (this *Bitflyer) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	_ = symbols
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if symbols == nil {
-		panic(ArgumentsRequired(this.Id + " fetchPositions() requires a `symbols` argument, exactly one symbol in an array"))
+	if IsEqual(symbols, nil) {
+		panic(ArgumentsRequired(Add(this.Id, " fetchPositions() requires a `symbols` argument, exactly one symbol in an array")))
 	}
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
 		retRes93812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes93812)
@@ -1357,17 +1312,17 @@ func (this *Bitflyer) withdrawBody(ch chan any, code any, amount any, address an
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 	this.CheckAddress(address)
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
 		retRes98012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes98012)
 	}
 	if (!IsEqual(code, "JPY")) && (!IsEqual(code, "USD")) && (!IsEqual(code, "EUR")) {
-		panic(ExchangeError(Add(Add(this.Id+" allows withdrawing JPY, USD, EUR only, ", code), " is not supported")))
+		panic(ExchangeError(Add(Add(Add(this.Id, " allows withdrawing JPY, USD, EUR only, "), code), " is not supported")))
 	}
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency any = this.Currency(code)
 	var request map[string]any = map[string]any{
-		"currency_code": currency["id"],
+		"currency_code": GetValue(currency, "id"),
 		"amount":        amount,
 	}
 
@@ -1410,18 +1365,18 @@ func (this *Bitflyer) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
 		retRes101312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes101312)
 	}
 	var currency any = nil
 	var request map[string]any = map[string]any{}
-	if code != nil {
+	if !IsEqual(code, nil) {
 		currency = this.Currency(code)
 	}
-	if limit != nil {
-		request["count"] = limit // default 100
+	if !IsEqual(limit, nil) {
+		AddElementToObject(request, "count", limit) // default 100
 	}
 
 	response := (<-this.PrivateGetGetcoinins(this.Extend(request, params)))
@@ -1472,18 +1427,18 @@ func (this *Bitflyer) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
 		retRes105412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes105412)
 	}
 	var currency any = nil
 	var request map[string]any = map[string]any{}
-	if code != nil {
+	if !IsEqual(code, nil) {
 		currency = this.Currency(code)
 	}
-	if limit != nil {
-		request["count"] = limit // default 100
+	if !IsEqual(limit, nil) {
+		AddElementToObject(request, "count", limit) // default 100
 	}
 
 	response := (<-this.PrivateGetGetcoinouts(this.Extend(request, params)))
@@ -1508,14 +1463,14 @@ func (this *Bitflyer) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 	ch <- this.ParseTransactions(response, currency, since, limit)
 	return nil
 }
-func (this *Bitflyer) ParseDepositStatus(status *string) *string {
+func (this *Bitflyer) ParseDepositStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"PENDING":   "pending",
 		"COMPLETED": "ok",
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bitflyer) ParseWithdrawalStatus(status *string) *string {
+func (this *Bitflyer) ParseWithdrawalStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"PENDING":   "pending",
 		"COMPLETED": "ok",
@@ -1627,14 +1582,14 @@ func (this *Bitflyer) fetchFundingRateBody(ch chan any, symbol any, optionalArgs
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
 		retRes119212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes119212)
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
-		"product_code": market["id"],
+		"product_code": GetValue(market, "id"),
 	}
 
 	response := (<-this.PublicGetGetfundingrate(this.Extend(request, params)))
@@ -1692,14 +1647,14 @@ func (this *Bitflyer) Sign(path any, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var request any = "/" + this.Version + "/"
+	var request any = Add(Add("/", this.Version), "/")
 	if IsEqual(api, "private") {
 		request = Add(request, "me/")
 	}
 	request = Add(request, path)
 	if IsEqual(method, "GET") {
-		if len(ObjectKeys(params)) > 0 {
-			request = Add(request, "?"+this.Urlencode(params))
+		if IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0) {
+			request = Add(request, Add("?", this.Urlencode(params)))
 		}
 	}
 	var baseUrl any = this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), "rest"))
@@ -1709,7 +1664,7 @@ func (this *Bitflyer) Sign(path any, optionalArgs ...any) any {
 		var nonce string = ToString(this.Nonce())
 		var content []any = []any{nonce, method, request}
 		var auth any = Join(content, "")
-		if len(ObjectKeys(params)) > 0 {
+		if IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0) {
 			if !IsEqual(method, "GET") {
 				body = this.Json(params)
 				auth = Add(auth, body)
@@ -1733,12 +1688,12 @@ func (this *Bitflyer) HandleErrors(code any, reason any, url any, method any, he
 	if IsEqual(response, nil) {
 		return nil // fallback to the default error handler
 	}
-	var feedback any = Add(this.Id+" ", body)
+	var feedback any = Add(Add(this.Id, " "), body)
 	// i.e. {"status":-2,"error_message":"Under maintenance","data":null}
 	var errorMessage *string = this.SafeString(response, "error_message")
 	var statusCode *int64 = this.SafeInteger(response, "status")
 	if errorMessage != nil {
-		this.ThrowExactlyMatchedException(this.Exceptions["exact"], statusCode, feedback)
+		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), statusCode, feedback)
 		panic(ExchangeError(feedback))
 	}
 	return nil

@@ -1,5 +1,5 @@
 import alpacaRest from '../alpaca.js';
-import type { Int, Str, Ticker, OrderBook, Order, Trade, OHLCV, Dict, Bool, Market } from '../base/types.js';
+import type { Int, Str, Ticker, OrderBook, Order, Trade, OHLCV, Bool, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class alpaca extends alpacaRest {
     describe(): any;
@@ -12,9 +12,9 @@ export default class alpaca extends alpacaRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTicker(symbol: string, params?: Dict): Promise<Ticker>;
-    handleTicker(client: Client, message: Dict): void;
-    parseTicker(ticker: Dict, market?: Market): Ticker;
+    watchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    handleTicker(client: Client, message: any): void;
+    parseTicker(ticker: any, market?: Market): Ticker;
     /**
      * @method
      * @name alpaca#watchOHLCV
@@ -27,8 +27,8 @@ export default class alpaca extends alpacaRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
-    handleOHLCV(client: Client, message: Dict): void;
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    handleOHLCV(client: Client, message: any): void;
     /**
      * @method
      * @name alpaca#watchOrderBook
@@ -39,10 +39,10 @@ export default class alpaca extends alpacaRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
-    handleOrderBook(client: Client, message: Dict): void;
-    handleDelta(bookside: any, delta: Dict): void;
-    handleDeltas(bookside: any, deltas: any[]): void;
+    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    handleOrderBook(client: Client, message: any): void;
+    handleDelta(bookside: any, delta: any): void;
+    handleDeltas(bookside: any, deltas: any): void;
     /**
      * @method
      * @name alpaca#watchTrades
@@ -54,8 +54,8 @@ export default class alpaca extends alpacaRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    watchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
-    handleTrades(client: Client, message: Dict): void;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    handleTrades(client: Client, message: any): void;
     /**
      * @method
      * @name alpaca#watchMyTrades
@@ -68,7 +68,7 @@ export default class alpaca extends alpacaRest {
      * @param {boolean} [params.unifiedMargin] use unified margin account
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     /**
      * @method
      * @name alpaca#watchOrders
@@ -79,17 +79,17 @@ export default class alpaca extends alpacaRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
-    handleTradeUpdate(client: Client, message: Dict): void;
-    handleOrder(client: Client, message: Dict): void;
-    handleMyTrade(client: Client, message: Dict): void;
-    parseMyTrade(trade: Dict, market?: Market): Trade | undefined;
-    authenticate(url: string, params?: Dict): Promise<any>;
-    handleErrorMessage(client: Client, message: Dict): Bool;
-    handleConnected(client: Client, message: Dict): Dict;
-    handleCryptoMessage(client: Client, message: any[]): void;
-    handleTradingMessage(client: Client, message: Dict): void;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    handleTradeUpdate(client: Client, message: any): void;
+    handleOrder(client: Client, message: any): void;
+    handleMyTrade(client: Client, message: any): void;
+    parseMyTrade(trade: any, market?: Market): Trade | undefined;
+    authenticate(url: any, params?: {}): Promise<any>;
+    handleErrorMessage(client: Client, message: any): Bool;
+    handleConnected(client: Client, message: any): any;
+    handleCryptoMessage(client: Client, message: any): void;
+    handleTradingMessage(client: Client, message: any): void;
     handleMessage(client: Client, message: any): void;
-    handleAuthenticate(client: Client, message: Dict): void;
-    handleSubscription(client: Client, message: Dict): Dict;
+    handleAuthenticate(client: Client, message: any): void;
+    handleSubscription(client: Client, message: any): any;
 }

@@ -355,7 +355,7 @@ export default class coinex extends coinexRest {
         }
         let messageHash = undefined;
         if (account !== undefined) {
-            if (this.safeDict(this.balance, account) === undefined) {
+            if (this.safeValue(this.balance, account) === undefined) {
                 this.balance[account] = {};
             }
             this.balance[account]['info'] = info;
@@ -394,7 +394,7 @@ export default class coinex extends coinexRest {
         account['free'] = this.safeString(balance, 'available');
         account['used'] = this.safeString(balance, 'frozen');
         if (accountType !== undefined) {
-            if (this.safeDict(this.balance, accountType) === undefined) {
+            if (this.safeValue(this.balance, accountType) === undefined) {
                 this.balance[accountType] = {};
             }
             if ((accountType !== undefined) && (code !== undefined)) {
@@ -1409,7 +1409,7 @@ export default class coinex extends coinexRest {
     }
     handleSubscriptionStatus(client, message) {
         const id = this.safeInteger(message, 'id');
-        const subscription = this.safeDict(client.subscriptions, id);
+        const subscription = this.safeValue(client.subscriptions, id);
         if (subscription !== undefined) {
             const futureIndex = this.safeString(subscription, 'future');
             const future = this.safeValue(client.futures, futureIndex);

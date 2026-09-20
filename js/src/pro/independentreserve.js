@@ -79,7 +79,7 @@ export default class independentreserve extends independentreserveRest {
         //        "Event": "Trade"
         //    }
         //
-        const data = this.safeDict(message, 'Data', {});
+        const data = this.safeValue(message, 'Data', {});
         const marketId = this.safeString(data, 'Pair');
         const symbol = this.safeSymbol(marketId, undefined, '-');
         const messageHash = 'trades:' + symbol;
@@ -189,7 +189,7 @@ export default class independentreserve extends independentreserveRest {
         const symbol = base + '/' + quote;
         const orderBook = this.safeDict(message, 'Data', {});
         const messageHash = 'orderbook:' + symbol + ':' + depth;
-        const subscription = this.safeDict(client.subscriptions, messageHash, {});
+        const subscription = this.safeValue(client.subscriptions, messageHash, {});
         const receivedSnapshot = this.safeBool(subscription, 'receivedSnapshot', false);
         const timestamp = this.safeInteger(message, 'Time');
         // let orderbook = this.safeValue (this.orderbooks, symbol);

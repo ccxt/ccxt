@@ -7,294 +7,292 @@
 
 package ccxtprediction
 
-import ccxt "github.com/ccxt/ccxt/go/v4"
-
 // LimitlessPublicGetMarketsActive returns a channel that yields a JSON object.
 func (this *Limitless) LimitlessPublicGetMarketsActive(args ...any) <-chan any {
-	return this.Fetch2Async("markets/active", []string{"limitless", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPublicGetMarketsActive", args...)
 }
 
 // LimitlessPublicGetMarketsActiveCategoryId returns a channel that yields a JSON object.
 func (this *Limitless) LimitlessPublicGetMarketsActiveCategoryId(args ...any) <-chan any {
-	return this.Fetch2Async("markets/active/{categoryId}", []string{"limitless", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPublicGetMarketsActiveCategoryId", args...)
 }
 
 // LimitlessPublicGetCategories returns a channel that yields a JSON array.
 func (this *Limitless) LimitlessPublicGetCategories(args ...any) <-chan any {
-	return this.Fetch2Async("categories", []string{"limitless", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPublicGetCategories", args...)
 }
 
 // LimitlessPublicGetMarketsAddressOrSlug returns a channel that yields a JSON object.
 func (this *Limitless) LimitlessPublicGetMarketsAddressOrSlug(args ...any) <-chan any {
-	return this.Fetch2Async("markets/{addressOrSlug}", []string{"limitless", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPublicGetMarketsAddressOrSlug", args...)
 }
 
 // LimitlessPublicGetMarketsCategoriesCount returns a channel that yields a JSON object.
 func (this *Limitless) LimitlessPublicGetMarketsCategoriesCount(args ...any) <-chan any {
-	return this.Fetch2Async("markets/categories/count", []string{"limitless", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPublicGetMarketsCategoriesCount", args...)
 }
 
 // LimitlessPublicGetMarketsActiveSlugs returns a channel that yields a JSON array.
 func (this *Limitless) LimitlessPublicGetMarketsActiveSlugs(args ...any) <-chan any {
-	return this.Fetch2Async("markets/active/slugs", []string{"limitless", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPublicGetMarketsActiveSlugs", args...)
 }
 
 // LimitlessPublicGetMarketsSearch returns a channel that yields a JSON object.
 func (this *Limitless) LimitlessPublicGetMarketsSearch(args ...any) <-chan any {
-	return this.Fetch2Async("markets/search", []string{"limitless", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPublicGetMarketsSearch", args...)
 }
 
 // LimitlessPublicGetMarketsSlugOrderbook returns a channel that yields a JSON object.
 func (this *Limitless) LimitlessPublicGetMarketsSlugOrderbook(args ...any) <-chan any {
-	return this.Fetch2Async("markets/{slug}/orderbook", []string{"limitless", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPublicGetMarketsSlugOrderbook", args...)
 }
 
 // LimitlessPublicGetMarketsSlugHistoricalPrice returns a channel that yields a JSON object.
 func (this *Limitless) LimitlessPublicGetMarketsSlugHistoricalPrice(args ...any) <-chan any {
-	return this.Fetch2Async("markets/{slug}/historical-price", []string{"limitless", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPublicGetMarketsSlugHistoricalPrice", args...)
 }
 
 // LimitlessPublicGetAuthSigningMessage returns a channel that yields a JSON scalar.
 func (this *Limitless) LimitlessPublicGetAuthSigningMessage(args ...any) <-chan any {
-	return this.Fetch2Async("auth/signing-message", []string{"limitless", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPublicGetAuthSigningMessage", args...)
 }
 
 // LimitlessPublicGetMarketsAddressOrSlugOracleCandles returns a channel that yields a JSON object.
 func (this *Limitless) LimitlessPublicGetMarketsAddressOrSlugOracleCandles(args ...any) <-chan any {
-	return this.Fetch2Async("markets/{addressOrSlug}/oracle-candles", []string{"limitless", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPublicGetMarketsAddressOrSlugOracleCandles", args...)
 }
 
 // LimitlessPublicGetMarketsSlugGetFeedEvents returns a channel that yields a JSON object.
 func (this *Limitless) LimitlessPublicGetMarketsSlugGetFeedEvents(args ...any) <-chan any {
-	return this.Fetch2Async("markets/{slug}/get-feed-events", []string{"limitless", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPublicGetMarketsSlugGetFeedEvents", args...)
 }
 
 // LimitlessPublicGetMarketsSlugEvents returns a channel that yields a JSON object.
 func (this *Limitless) LimitlessPublicGetMarketsSlugEvents(args ...any) <-chan any {
-	return this.Fetch2Async("markets/{slug}/events", []string{"limitless", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPublicGetMarketsSlugEvents", args...)
 }
 
 // LimitlessPublicGetMarketsTimeline returns a channel that yields a JSON object.
 func (this *Limitless) LimitlessPublicGetMarketsTimeline(args ...any) <-chan any {
-	return this.Fetch2Async("markets/timeline", []string{"limitless", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPublicGetMarketsTimeline", args...)
 }
 
 // LimitlessPublicGetMarketsSlugTimeline returns a channel that yields a JSON object.
 func (this *Limitless) LimitlessPublicGetMarketsSlugTimeline(args ...any) <-chan any {
-	return this.Fetch2Async("markets/{slug}/timeline", []string{"limitless", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPublicGetMarketsSlugTimeline", args...)
 }
 
 // LimitlessPublicGetNavigation returns a channel that yields a JSON array.
 func (this *Limitless) LimitlessPublicGetNavigation(args ...any) <-chan any {
-	return this.Fetch2Async("navigation", []string{"limitless", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPublicGetNavigation", args...)
 }
 
 // LimitlessPublicGetMarketPagesByPath returns a channel that yields a JSON object.
 func (this *Limitless) LimitlessPublicGetMarketPagesByPath(args ...any) <-chan any {
-	return this.Fetch2Async("market-pages/by-path", []string{"limitless", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPublicGetMarketPagesByPath", args...)
 }
 
 // LimitlessPublicGetMarketPagesIdMarkets returns a channel that yields a JSON object.
 func (this *Limitless) LimitlessPublicGetMarketPagesIdMarkets(args ...any) <-chan any {
-	return this.Fetch2Async("market-pages/{id}/markets", []string{"limitless", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPublicGetMarketPagesIdMarkets", args...)
 }
 
 // LimitlessPublicGetPropertyKeys returns a channel that yields a JSON array.
 func (this *Limitless) LimitlessPublicGetPropertyKeys(args ...any) <-chan any {
-	return this.Fetch2Async("property-keys", []string{"limitless", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPublicGetPropertyKeys", args...)
 }
 
 // LimitlessPublicGetPropertyKeysId returns a channel that yields a JSON object.
 func (this *Limitless) LimitlessPublicGetPropertyKeysId(args ...any) <-chan any {
-	return this.Fetch2Async("property-keys/{id}", []string{"limitless", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPublicGetPropertyKeysId", args...)
 }
 
 // LimitlessPublicGetPropertyKeysIdOptions returns a channel that yields a JSON array.
 func (this *Limitless) LimitlessPublicGetPropertyKeysIdOptions(args ...any) <-chan any {
-	return this.Fetch2Async("property-keys/{id}/options", []string{"limitless", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPublicGetPropertyKeysIdOptions", args...)
 }
 
 // LimitlessPublicGetPortfolioAccountTradedVolume returns a channel that yields a JSON object.
 func (this *Limitless) LimitlessPublicGetPortfolioAccountTradedVolume(args ...any) <-chan any {
-	return this.Fetch2Async("portfolio/{account}/traded-volume", []string{"limitless", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPublicGetPortfolioAccountTradedVolume", args...)
 }
 
 // LimitlessPublicGetPortfolioAccountPositions returns a channel that yields a JSON object.
 func (this *Limitless) LimitlessPublicGetPortfolioAccountPositions(args ...any) <-chan any {
-	return this.Fetch2Async("portfolio/{account}/positions", []string{"limitless", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPublicGetPortfolioAccountPositions", args...)
 }
 
 // LimitlessPublicGetPortfolioAccountPnlChart returns a channel that yields a JSON object.
 func (this *Limitless) LimitlessPublicGetPortfolioAccountPnlChart(args ...any) <-chan any {
-	return this.Fetch2Async("portfolio/{account}/pnl-chart", []string{"limitless", "public"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPublicGetPortfolioAccountPnlChart", args...)
 }
 
 // LimitlessPrivateGetAuthApiKeys returns a channel that yields a JSON object.
 func (this *Limitless) LimitlessPrivateGetAuthApiKeys(args ...any) <-chan any {
-	return this.Fetch2Async("auth/api-keys", []string{"limitless", "private"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPrivateGetAuthApiKeys", args...)
 }
 
 // LimitlessPrivateGetProfilesPartnerAccounts returns a channel that yields a JSON object.
 func (this *Limitless) LimitlessPrivateGetProfilesPartnerAccounts(args ...any) <-chan any {
-	return this.Fetch2Async("profiles/partner-accounts", []string{"limitless", "private"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPrivateGetProfilesPartnerAccounts", args...)
 }
 
 // LimitlessPrivateGetMarketsSlugUserOrders returns a channel that yields a JSON array.
 func (this *Limitless) LimitlessPrivateGetMarketsSlugUserOrders(args ...any) <-chan any {
-	return this.Fetch2Async("markets/{slug}/user-orders", []string{"limitless", "private"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPrivateGetMarketsSlugUserOrders", args...)
 }
 
 // LimitlessPrivateGetPortfolioPositions returns a channel that yields a JSON object.
 func (this *Limitless) LimitlessPrivateGetPortfolioPositions(args ...any) <-chan any {
-	return this.Fetch2Async("portfolio/positions", []string{"limitless", "private"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPrivateGetPortfolioPositions", args...)
 }
 
 // LimitlessPrivateGetPortfolioTrades returns a channel that yields a JSON object.
 func (this *Limitless) LimitlessPrivateGetPortfolioTrades(args ...any) <-chan any {
-	return this.Fetch2Async("portfolio/trades", []string{"limitless", "private"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPrivateGetPortfolioTrades", args...)
 }
 
 // LimitlessPrivateGetMarketsSlugLockedBalance returns a channel that yields a JSON object.
 func (this *Limitless) LimitlessPrivateGetMarketsSlugLockedBalance(args ...any) <-chan any {
-	return this.Fetch2Async("markets/{slug}/locked-balance", []string{"limitless", "private"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPrivateGetMarketsSlugLockedBalance", args...)
 }
 
 // LimitlessPrivateGetProfilesMe returns a channel that yields a JSON object.
 func (this *Limitless) LimitlessPrivateGetProfilesMe(args ...any) <-chan any {
-	return this.Fetch2Async("profiles/me", []string{"limitless", "private"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPrivateGetProfilesMe", args...)
 }
 
 // LimitlessPrivateGetProfilesAccount returns a channel that yields a JSON object.
 func (this *Limitless) LimitlessPrivateGetProfilesAccount(args ...any) <-chan any {
-	return this.Fetch2Async("profiles/{account}", []string{"limitless", "private"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPrivateGetProfilesAccount", args...)
 }
 
 // LimitlessPrivateGetPortfolioPnlChart returns a channel that yields a JSON object.
 func (this *Limitless) LimitlessPrivateGetPortfolioPnlChart(args ...any) <-chan any {
-	return this.Fetch2Async("portfolio/pnl-chart", []string{"limitless", "private"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPrivateGetPortfolioPnlChart", args...)
 }
 
 // LimitlessPrivateGetPortfolioHistory returns a channel that yields a JSON object.
 func (this *Limitless) LimitlessPrivateGetPortfolioHistory(args ...any) <-chan any {
-	return this.Fetch2Async("portfolio/history", []string{"limitless", "private"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPrivateGetPortfolioHistory", args...)
 }
 
 // LimitlessPrivateGetPortfolioPoints returns a channel that yields a JSON object.
 func (this *Limitless) LimitlessPrivateGetPortfolioPoints(args ...any) <-chan any {
-	return this.Fetch2Async("portfolio/points", []string{"limitless", "private"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPrivateGetPortfolioPoints", args...)
 }
 
 // LimitlessPrivateGetPortfolioTradingAllowance returns a channel that yields a JSON object.
 func (this *Limitless) LimitlessPrivateGetPortfolioTradingAllowance(args ...any) <-chan any {
-	return this.Fetch2Async("portfolio/trading/allowance", []string{"limitless", "private"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPrivateGetPortfolioTradingAllowance", args...)
 }
 
 // LimitlessPrivateGetAuthApiTokensCapabilities returns a channel that yields a JSON object.
 func (this *Limitless) LimitlessPrivateGetAuthApiTokensCapabilities(args ...any) <-chan any {
-	return this.Fetch2Async("auth/api-tokens/capabilities", []string{"limitless", "private"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPrivateGetAuthApiTokensCapabilities", args...)
 }
 
 // LimitlessPrivateGetAuthApiTokens returns a channel that yields a JSON array.
 func (this *Limitless) LimitlessPrivateGetAuthApiTokens(args ...any) <-chan any {
-	return this.Fetch2Async("auth/api-tokens", []string{"limitless", "private"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPrivateGetAuthApiTokens", args...)
 }
 
 // LimitlessPrivateGetProfilesPartnerAccountsProfileIdAllowances returns a channel that yields a JSON object.
 func (this *Limitless) LimitlessPrivateGetProfilesPartnerAccountsProfileIdAllowances(args ...any) <-chan any {
-	return this.Fetch2Async("profiles/partner-accounts/{profileId}/allowances", []string{"limitless", "private"}, "GET", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPrivateGetProfilesPartnerAccountsProfileIdAllowances", args...)
 }
 
 // LimitlessPrivatePostAuthLogout returns a channel that yields a JSON object.
 func (this *Limitless) LimitlessPrivatePostAuthLogout(args ...any) <-chan any {
-	return this.Fetch2Async("auth/logout", []string{"limitless", "private"}, "POST", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPrivatePostAuthLogout", args...)
 }
 
 // LimitlessPrivatePostAuthApiKeys returns a channel that yields a JSON object.
 func (this *Limitless) LimitlessPrivatePostAuthApiKeys(args ...any) <-chan any {
-	return this.Fetch2Async("auth/api-keys", []string{"limitless", "private"}, "POST", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPrivatePostAuthApiKeys", args...)
 }
 
 // LimitlessPrivatePostAuthLogin returns a channel that yields a JSON object.
 func (this *Limitless) LimitlessPrivatePostAuthLogin(args ...any) <-chan any {
-	return this.Fetch2Async("auth/login", []string{"limitless", "private"}, "POST", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPrivatePostAuthLogin", args...)
 }
 
 // LimitlessPrivatePostOrders returns a channel that yields a JSON object.
 func (this *Limitless) LimitlessPrivatePostOrders(args ...any) <-chan any {
-	return this.Fetch2Async("orders", []string{"limitless", "private"}, "POST", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPrivatePostOrders", args...)
 }
 
 // LimitlessPrivatePostOrdersCancel returns a channel that yields a JSON object.
 func (this *Limitless) LimitlessPrivatePostOrdersCancel(args ...any) <-chan any {
-	return this.Fetch2Async("orders/cancel", []string{"limitless", "private"}, "POST", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPrivatePostOrdersCancel", args...)
 }
 
 // LimitlessPrivatePostOrdersCancelBatch returns a channel that yields a JSON object.
 func (this *Limitless) LimitlessPrivatePostOrdersCancelBatch(args ...any) <-chan any {
-	return this.Fetch2Async("orders/cancel-batch", []string{"limitless", "private"}, "POST", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPrivatePostOrdersCancelBatch", args...)
 }
 
 // LimitlessPrivatePostOrdersBatchCancel returns a channel that yields a JSON object.
 func (this *Limitless) LimitlessPrivatePostOrdersBatchCancel(args ...any) <-chan any {
-	return this.Fetch2Async("orders/batch-cancel", []string{"limitless", "private"}, "POST", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPrivatePostOrdersBatchCancel", args...)
 }
 
 // LimitlessPrivatePostOrdersStatusBatch returns a channel that yields a JSON object.
 func (this *Limitless) LimitlessPrivatePostOrdersStatusBatch(args ...any) <-chan any {
-	return this.Fetch2Async("orders/status/batch", []string{"limitless", "private"}, "POST", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPrivatePostOrdersStatusBatch", args...)
 }
 
 // LimitlessPrivatePostPortfolioRedeem returns a channel that yields a JSON object.
 func (this *Limitless) LimitlessPrivatePostPortfolioRedeem(args ...any) <-chan any {
-	return this.Fetch2Async("portfolio/redeem", []string{"limitless", "private"}, "POST", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPrivatePostPortfolioRedeem", args...)
 }
 
 // LimitlessPrivatePostPortfolioWithdraw returns a channel that yields a JSON object.
 func (this *Limitless) LimitlessPrivatePostPortfolioWithdraw(args ...any) <-chan any {
-	return this.Fetch2Async("portfolio/withdraw", []string{"limitless", "private"}, "POST", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPrivatePostPortfolioWithdraw", args...)
 }
 
 // LimitlessPrivatePostPortfolioWithdrawalAddresses returns a channel that yields a JSON object.
 func (this *Limitless) LimitlessPrivatePostPortfolioWithdrawalAddresses(args ...any) <-chan any {
-	return this.Fetch2Async("portfolio/withdrawal-addresses", []string{"limitless", "private"}, "POST", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPrivatePostPortfolioWithdrawalAddresses", args...)
 }
 
 // LimitlessPrivatePostAuthApiTokensDerive returns a channel that yields a JSON object.
 func (this *Limitless) LimitlessPrivatePostAuthApiTokensDerive(args ...any) <-chan any {
-	return this.Fetch2Async("auth/api-tokens/derive", []string{"limitless", "private"}, "POST", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPrivatePostAuthApiTokensDerive", args...)
 }
 
 // LimitlessPrivatePostProfilesPartnerAccounts returns a channel that yields a JSON object.
 func (this *Limitless) LimitlessPrivatePostProfilesPartnerAccounts(args ...any) <-chan any {
-	return this.Fetch2Async("profiles/partner-accounts", []string{"limitless", "private"}, "POST", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPrivatePostProfilesPartnerAccounts", args...)
 }
 
 // LimitlessPrivatePostProfilesPartnerAccountsProfileIdAllowancesRetry returns a channel that yields a JSON object.
 func (this *Limitless) LimitlessPrivatePostProfilesPartnerAccountsProfileIdAllowancesRetry(args ...any) <-chan any {
-	return this.Fetch2Async("profiles/partner-accounts/{profileId}/allowances/retry", []string{"limitless", "private"}, "POST", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPrivatePostProfilesPartnerAccountsProfileIdAllowancesRetry", args...)
 }
 
 // LimitlessPrivateDeleteAuthApiKeys returns a channel that yields a JSON object.
 func (this *Limitless) LimitlessPrivateDeleteAuthApiKeys(args ...any) <-chan any {
-	return this.Fetch2Async("auth/api-keys", []string{"limitless", "private"}, "DELETE", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPrivateDeleteAuthApiKeys", args...)
 }
 
 // LimitlessPrivateDeleteOrdersOrderId returns a channel that yields a JSON object.
 func (this *Limitless) LimitlessPrivateDeleteOrdersOrderId(args ...any) <-chan any {
-	return this.Fetch2Async("orders/{order_id}", []string{"limitless", "private"}, "DELETE", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPrivateDeleteOrdersOrderId", args...)
 }
 
 // LimitlessPrivateDeleteOrdersAllSlug returns a channel that yields a JSON object.
 func (this *Limitless) LimitlessPrivateDeleteOrdersAllSlug(args ...any) <-chan any {
-	return this.Fetch2Async("orders/all/{slug}", []string{"limitless", "private"}, "DELETE", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPrivateDeleteOrdersAllSlug", args...)
 }
 
 // LimitlessPrivateDeleteAuthApiTokensTokenId returns a channel that yields a JSON object.
 func (this *Limitless) LimitlessPrivateDeleteAuthApiTokensTokenId(args ...any) <-chan any {
-	return this.Fetch2Async("auth/api-tokens/{tokenId}", []string{"limitless", "private"}, "DELETE", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPrivateDeleteAuthApiTokensTokenId", args...)
 }
 
 // LimitlessPrivateDeletePortfolioWithdrawalAddressesAddress returns a channel that yields a JSON object.
 func (this *Limitless) LimitlessPrivateDeletePortfolioWithdrawalAddressesAddress(args ...any) <-chan any {
-	return this.Fetch2Async("portfolio/withdrawal-addresses/{address}", []string{"limitless", "private"}, "DELETE", ccxt.GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.CallEndpointAsync("limitlessPrivateDeletePortfolioWithdrawalAddressesAddress", args...)
 }

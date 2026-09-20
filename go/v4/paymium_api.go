@@ -9,125 +9,125 @@ package ccxt
 
 // PublicGetCountries returns a channel that yields a JSON array.
 func (this *Paymium) PublicGetCountries(args ...any) <-chan any {
-	return this.Fetch2Async("countries", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("publicGetCountries", args...)
 }
 
 // PublicGetCurrencies returns a channel that yields a JSON array.
 func (this *Paymium) PublicGetCurrencies(args ...any) <-chan any {
-	return this.Fetch2Async("currencies", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("publicGetCurrencies", args...)
 }
 
 // PublicGetDataCurrencyTicker returns a channel that yields a JSON object.
 func (this *Paymium) PublicGetDataCurrencyTicker(args ...any) <-chan any {
-	return this.Fetch2Async("data/{currency}/ticker", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("publicGetDataCurrencyTicker", args...)
 }
 
 // PublicGetDataCurrencyTrades returns a channel that yields a JSON array.
 func (this *Paymium) PublicGetDataCurrencyTrades(args ...any) <-chan any {
-	return this.Fetch2Async("data/{currency}/trades", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("publicGetDataCurrencyTrades", args...)
 }
 
 // PublicGetDataCurrencyDepth returns a channel that yields a JSON object.
 func (this *Paymium) PublicGetDataCurrencyDepth(args ...any) <-chan any {
-	return this.Fetch2Async("data/{currency}/depth", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("publicGetDataCurrencyDepth", args...)
 }
 
 // PublicGetBitcoinChartsIdTrades returns a channel that yields a JSON array.
 func (this *Paymium) PublicGetBitcoinChartsIdTrades(args ...any) <-chan any {
-	return this.Fetch2Async("bitcoin_charts/{id}/trades", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("publicGetBitcoinChartsIdTrades", args...)
 }
 
 // PublicGetBitcoinChartsIdDepth returns a channel that yields a JSON object.
 func (this *Paymium) PublicGetBitcoinChartsIdDepth(args ...any) <-chan any {
-	return this.Fetch2Async("bitcoin_charts/{id}/depth", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("publicGetBitcoinChartsIdDepth", args...)
 }
 
 // PrivateGetUser returns a channel that yields a JSON object.
 func (this *Paymium) PrivateGetUser(args ...any) <-chan any {
-	return this.Fetch2Async("user", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateGetUser", args...)
 }
 
 // PrivateGetUserAddresses returns a channel that yields a JSON array.
 func (this *Paymium) PrivateGetUserAddresses(args ...any) <-chan any {
-	return this.Fetch2Async("user/addresses", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateGetUserAddresses", args...)
 }
 
 // PrivateGetUserAddressesAddress returns a channel that yields a JSON object.
 func (this *Paymium) PrivateGetUserAddressesAddress(args ...any) <-chan any {
-	return this.Fetch2Async("user/addresses/{address}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateGetUserAddressesAddress", args...)
 }
 
 // PrivateGetUserOrders returns a channel that yields a JSON array.
 func (this *Paymium) PrivateGetUserOrders(args ...any) <-chan any {
-	return this.Fetch2Async("user/orders", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateGetUserOrders", args...)
 }
 
 // PrivateGetUserOrdersUuid returns a channel that yields a JSON object.
 func (this *Paymium) PrivateGetUserOrdersUuid(args ...any) <-chan any {
-	return this.Fetch2Async("user/orders/{uuid}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateGetUserOrdersUuid", args...)
 }
 
 // PrivateGetUserPriceAlerts returns a channel that yields a JSON array.
 func (this *Paymium) PrivateGetUserPriceAlerts(args ...any) <-chan any {
-	return this.Fetch2Async("user/price_alerts", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateGetUserPriceAlerts", args...)
 }
 
 // PrivateGetUserWithdrawals returns a channel that yields a JSON array.
 func (this *Paymium) PrivateGetUserWithdrawals(args ...any) <-chan any {
-	return this.Fetch2Async("user/withdrawals", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateGetUserWithdrawals", args...)
 }
 
 // PrivateGetMerchantGetPaymentUuid returns a channel that yields a JSON object.
 func (this *Paymium) PrivateGetMerchantGetPaymentUuid(args ...any) <-chan any {
-	return this.Fetch2Async("merchant/get_payment/{uuid}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateGetMerchantGetPaymentUuid", args...)
 }
 
 // PrivatePostUserAddresses returns a channel that yields a JSON object.
 func (this *Paymium) PrivatePostUserAddresses(args ...any) <-chan any {
-	return this.Fetch2Async("user/addresses", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privatePostUserAddresses", args...)
 }
 
 // PrivatePostUserOrders returns a channel that yields a JSON object.
 func (this *Paymium) PrivatePostUserOrders(args ...any) <-chan any {
-	return this.Fetch2Async("user/orders", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privatePostUserOrders", args...)
 }
 
 // PrivatePostUserWithdrawals returns a channel that yields a JSON object.
 func (this *Paymium) PrivatePostUserWithdrawals(args ...any) <-chan any {
-	return this.Fetch2Async("user/withdrawals", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privatePostUserWithdrawals", args...)
 }
 
 // PrivatePostUserEmailTransfers returns a channel that yields a JSON object.
 func (this *Paymium) PrivatePostUserEmailTransfers(args ...any) <-chan any {
-	return this.Fetch2Async("user/email_transfers", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privatePostUserEmailTransfers", args...)
 }
 
 // PrivatePostUserPaymentRequests returns a channel that yields a JSON array.
 func (this *Paymium) PrivatePostUserPaymentRequests(args ...any) <-chan any {
-	return this.Fetch2Async("user/payment_requests", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privatePostUserPaymentRequests", args...)
 }
 
 // PrivatePostUserPriceAlerts returns a channel that yields a JSON object.
 func (this *Paymium) PrivatePostUserPriceAlerts(args ...any) <-chan any {
-	return this.Fetch2Async("user/price_alerts", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privatePostUserPriceAlerts", args...)
 }
 
 // PrivatePostMerchantCreatePayment returns a channel that yields a JSON object.
 func (this *Paymium) PrivatePostMerchantCreatePayment(args ...any) <-chan any {
-	return this.Fetch2Async("merchant/create_payment", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privatePostMerchantCreatePayment", args...)
 }
 
 // PrivateDeleteUserOrdersUuid returns a channel that yields a JSON object.
 func (this *Paymium) PrivateDeleteUserOrdersUuid(args ...any) <-chan any {
-	return this.Fetch2Async("user/orders/{uuid}", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateDeleteUserOrdersUuid", args...)
 }
 
 // PrivateDeleteUserOrdersUuidCancel returns a channel that yields a JSON object.
 func (this *Paymium) PrivateDeleteUserOrdersUuidCancel(args ...any) <-chan any {
-	return this.Fetch2Async("user/orders/{uuid}/cancel", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateDeleteUserOrdersUuidCancel", args...)
 }
 
 // PrivateDeleteUserPriceAlertsId returns a channel that yields a JSON object.
 func (this *Paymium) PrivateDeleteUserPriceAlertsId(args ...any) <-chan any {
-	return this.Fetch2Async("user/price_alerts/{id}", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateDeleteUserPriceAlertsId", args...)
 }

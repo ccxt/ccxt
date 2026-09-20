@@ -98,9 +98,9 @@ export default class cex extends cexRest {
         //         "ok": "ok"
         //     }
         //
-        const data = this.safeDict(message, 'data', {});
+        const data = this.safeValue(message, 'data', {});
         const freeBalance = this.safeDict(data, 'balance', {});
-        const usedBalance = this.safeDict(data, 'obalance', {});
+        const usedBalance = this.safeValue(data, 'obalance', {});
         const result = {
             'info': data,
         };
@@ -357,7 +357,7 @@ export default class cex extends cexRest {
         //         }
         //     }
         //
-        const data = this.safeDict(message, 'data', {});
+        const data = this.safeValue(message, 'data', {});
         const ticker = this.parseWsTicker(data);
         const symbol = ticker['symbol'];
         if (symbol === undefined) {
@@ -396,7 +396,7 @@ export default class cex extends cexRest {
         //        "priceChangePercentage": "0.23",
         //        "pair": ["BTC", "USDT"]
         //    }
-        const pair = this.safeList(ticker, 'pair', []);
+        const pair = this.safeValue(ticker, 'pair', []);
         let baseId = this.safeString(ticker, 'symbol1');
         if (baseId === undefined) {
             baseId = this.safeString(pair, 0);
@@ -534,7 +534,7 @@ export default class cex extends cexRest {
         return this.filterBySymbolSinceLimit(orders, market['symbol'], since, limit);
     }
     handleTransaction(client, message) {
-        const data = this.safeDict(message, 'data');
+        const data = this.safeValue(message, 'data');
         const symbol2 = this.safeString(data, 'symbol2');
         if (symbol2 === undefined) {
             return;
@@ -585,7 +585,7 @@ export default class cex extends cexRest {
         //             "id": "59091012962"
         //         }
         //     }
-        const data = this.safeDict(message, 'data', {});
+        const data = this.safeValue(message, 'data', {});
         let stored = this.myTrades;
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
@@ -728,13 +728,13 @@ export default class cex extends cexRest {
         //         }
         //     }
         //
-        const data = this.safeDict(message, 'data', {});
+        const data = this.safeValue(message, 'data', {});
         const isTransaction = this.safeString(message, 'e') === 'tx';
         const orderId = this.safeString2(data, 'id', 'order');
         let remains = this.safeString(data, 'remains');
         let baseId = this.safeString(data, 'symbol');
         let quoteId = this.safeString(data, 'symbol2');
-        const pair = this.safeDict(data, 'pair');
+        const pair = this.safeValue(data, 'pair');
         if (pair !== undefined) {
             baseId = this.safeString(pair, 'symbol1');
             quoteId = this.safeString(pair, 'symbol2');
@@ -749,7 +749,7 @@ export default class cex extends cexRest {
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         const storedOrders = this.orders;
-        const ordersBySymbol = this.safeDict(storedOrders.hashmap, symbol, {});
+        const ordersBySymbol = this.safeValue(storedOrders.hashmap, symbol, {});
         let order = this.safeValue(ordersBySymbol, orderId);
         if (order === undefined) {
             order = this.parseWsOrderUpdate(data, market);
@@ -815,7 +815,7 @@ export default class cex extends cexRest {
         //           "id": "59425993020"
         //       }
         //
-        const isTransaction = this.safeString(order, 'd') !== undefined;
+        const isTransaction = this.safeValue(order, 'd') !== undefined;
         const remainsPrecision = this.safeString(order, 'remains');
         let remaining = undefined;
         if (remainsPrecision !== undefined) {
@@ -833,7 +833,7 @@ export default class cex extends cexRest {
         }
         let baseId = this.safeString(order, 'symbol');
         let quoteId = this.safeString(order, 'symbol2');
-        const pair = this.safeDict(order, 'pair');
+        const pair = this.safeValue(order, 'pair');
         if (pair !== undefined) {
             baseId = this.safeString(order, 'symbol1');
             quoteId = this.safeString(order, 'symbol2');
@@ -1000,7 +1000,7 @@ export default class cex extends cexRest {
         //         "ok": "ok"
         //     }
         //
-        const data = this.safeDict(message, 'data', {});
+        const data = this.safeValue(message, 'data', {});
         const pair = this.safeString(data, 'pair');
         const symbol = this.pairToSymbol(pair);
         const messageHash = 'orderbook:' + symbol;
@@ -1040,7 +1040,7 @@ export default class cex extends cexRest {
         //         }
         //     }
         //
-        const data = this.safeDict(message, 'data', {});
+        const data = this.safeValue(message, 'data', {});
         const incrementalId = this.safeInteger(data, 'id');
         const pair = this.safeString(data, 'pair', '');
         const symbol = this.pairToSymbol(pair);
@@ -1052,8 +1052,8 @@ export default class cex extends cexRest {
             return;
         }
         const timestamp = this.safeInteger(data, 'time');
-        const asks = this.safeList(data, 'asks', []);
-        const bids = this.safeList(data, 'bids', []);
+        const asks = this.safeValue(data, 'asks', []);
+        const bids = this.safeValue(data, 'bids', []);
         this.handleDeltas(storedOrderBook['asks'], asks);
         this.handleDeltas(storedOrderBook['bids'], bids);
         storedOrderBook['timestamp'] = timestamp;
@@ -1133,7 +1133,7 @@ export default class cex extends cexRest {
         const symbol = base + '/' + quote;
         const market = this.safeMarket(symbol);
         const messageHash = 'ohlcv:' + symbol;
-        const data = this.safeList(message, 'data', []);
+        const data = this.safeValue(message, 'data', []);
         const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
         const stored = new ArrayCacheByTimestamp(limit);
         const sorted = this.sortBy(data, 0);
@@ -1172,7 +1172,7 @@ export default class cex extends cexRest {
         //         }
         //     }
         //
-        const data = this.safeDict(message, 'data', {});
+        const data = this.safeValue(message, 'data', {});
         const pair = this.safeString(data, 'pair');
         const symbol = this.pairToSymbol(pair);
         const messageHash = 'ohlcv:' + symbol;
@@ -1438,7 +1438,7 @@ export default class cex extends cexRest {
         //        "placed-cancelled": []
         //    }
         //
-        const canceledOrders = this.safeList(response, 'cancel-orders');
+        const canceledOrders = this.safeValue(response, 'cancel-orders');
         return this.parseOrders(canceledOrders, undefined, undefined, undefined, params);
     }
     resolveData(client, message) {
@@ -1481,7 +1481,7 @@ export default class cex extends cexRest {
         //     }
         //
         try {
-            const data = this.safeDict(message, 'data', {});
+            const data = this.safeValue(message, 'data', {});
             const error = this.safeString(data, 'error');
             const event = this.safeString(message, 'e', '');
             const feedback = this.id + ' ' + event + ' ' + error;

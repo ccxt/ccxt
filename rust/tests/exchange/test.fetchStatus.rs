@@ -10,7 +10,7 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testFetchStatus(mut exchange: Value, mut skippedProperties: Value) -> Value {
-    let mut method: Value = Value::Str("fetchStatus".into());
+    let mut method: Value = Value::Str("fetchStatus".to_string());
     let mut status: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_status", vec![]).await;
     testStatus(exchange.clone(), skippedProperties.clone(), method.clone(), status.clone(), exchange.milliseconds());
     return Value::Bool(true);

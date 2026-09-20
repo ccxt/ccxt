@@ -711,7 +711,7 @@ class hibachi extends hibachi$1["default"] {
             remainingString = Precise["default"].stringSub(totalQuantity, filled);
         }
         let timeInForce = 'GTC';
-        const orderFlags = this.safeString(order, 'orderFlags');
+        const orderFlags = this.safeValue(order, 'orderFlags');
         let postOnly = false;
         let reduceOnly = false;
         if (orderFlags === 'POST_ONLY') {
@@ -978,8 +978,8 @@ class hibachi extends hibachi$1["default"] {
             const symbol = this.safeString(rawOrder, 'symbol');
             const type = this.safeString(rawOrder, 'type');
             const side = this.safeString(rawOrder, 'side');
-            const amount = this.safeNumber(rawOrder, 'amount');
-            const price = this.safeNumber(rawOrder, 'price');
+            const amount = this.safeValue(rawOrder, 'amount');
+            const price = this.safeValue(rawOrder, 'price');
             const orderParams = this.safeDict(rawOrder, 'params', {});
             const orderRequest = this.createOrderRequest(nonce + i, symbol, type, side, amount, price, orderParams);
             orderRequest['action'] = 'place';
@@ -1082,8 +1082,8 @@ class hibachi extends hibachi$1["default"] {
             const symbol = this.safeString(rawOrder, 'symbol');
             const type = this.safeString(rawOrder, 'type');
             const side = this.safeString(rawOrder, 'side');
-            const amount = this.safeNumber(rawOrder, 'amount');
-            const price = this.safeNumber(rawOrder, 'price');
+            const amount = this.safeValue(rawOrder, 'amount');
+            const price = this.safeValue(rawOrder, 'price');
             const orderParams = this.safeDict(rawOrder, 'params', {});
             const orderRequest = this.editOrderRequest(nonce + i, id, symbol, type, side, amount, price, orderParams);
             orderRequest['action'] = 'modify';

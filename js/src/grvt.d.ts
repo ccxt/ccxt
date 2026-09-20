@@ -1,12 +1,57 @@
 import Exchange from './abstract/grvt.js';
-import type { Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, NullableDict, FundingRateHistory, FundingHistory, Int, Leverage, Leverages, MarginMode, MarginModes, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry, int } from './base/types.js';
+import type { Balances, Currencies, Currency, CurrencyInterface, Dict, NullableDict, FundingRateHistory, FundingHistory, Int, Leverage, Leverages, MarginMode, MarginModes, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry, int } from './base/types.js';
 /**
  * @class grvt
  * @augments Exchange
  */
 export default class grvt extends Exchange {
     describe(): any;
-    eipDefinitions(): Dict;
+    eipDefinitions(): {
+        EIP712_ORDER_TYPE: {
+            Order: {
+                name: string;
+                type: string;
+            }[];
+            OrderLeg: {
+                name: string;
+                type: string;
+            }[];
+        };
+        EIP712_ORDER_WITH_BUILDER_TYPE: {
+            OrderWithBuilderFee: {
+                name: string;
+                type: string;
+            }[];
+            OrderLeg: {
+                name: string;
+                type: string;
+            }[];
+        };
+        EIP712_TRANSFER_TYPE: {
+            Transfer: {
+                name: string;
+                type: string;
+            }[];
+        };
+        EIP712_WITHDRAWAL_TYPE: {
+            Withdrawal: {
+                name: string;
+                type: string;
+            }[];
+        };
+        EIP712_BUILDER_APPROVAL_TYPE: {
+            AuthorizeBuilder: {
+                name: string;
+                type: string;
+            }[];
+        };
+        EIP712_WALLETLOGIN_TYPE: {
+            WalletLogin: {
+                name: string;
+                type: string;
+            }[];
+        };
+    };
     usesPrivateKey(): boolean;
     /**
      * @method
@@ -16,10 +61,10 @@ export default class grvt extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns response from exchange
      */
-    signIn(params?: Dict): Promise<boolean>;
-    signInWithApiKey(params?: Dict): Promise<Dict>;
-    signInWithPrivateKey(params?: Dict): Promise<Dict>;
-    initializeClient(params?: Dict): Promise<Bool>;
+    signIn(params?: {}): Promise<boolean>;
+    signInWithApiKey(params?: {}): Promise<Dict>;
+    signInWithPrivateKey(params?: {}): Promise<Dict>;
+    initializeClient(params?: {}): Promise<boolean | undefined>;
     /**
      * @method
      * @name grvt#fetchMarkets
@@ -28,7 +73,7 @@ export default class grvt extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    fetchMarkets(params?: Dict): Promise<Market[]>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
     parseMarket(market: Dict): Market;
     /**
      * @method
@@ -38,7 +83,7 @@ export default class grvt extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    fetchCurrencies(params?: Dict): Promise<Currencies>;
+    fetchCurrencies(params?: {}): Promise<Currencies>;
     parseCurrency(rawCurrency: Dict): CurrencyInterface;
     /**
      * @method
@@ -49,7 +94,7 @@ export default class grvt extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    fetchTicker(symbol: string, params?: Dict): Promise<Ticker>;
+    fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     /**
      * @method
@@ -62,7 +107,7 @@ export default class grvt extends Exchange {
      * @param {string} [params.loc] crypto location, default: us
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    fetchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     /**
      * @method
      * @name grvt#fetchTrades
@@ -75,7 +120,7 @@ export default class grvt extends Exchange {
      * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
+    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseTrade(trade: Dict, market?: Market): Trade;
     /**
      * @method
@@ -91,8 +136,8 @@ export default class grvt extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
-    parseOHLCV(ohlcv: Dict, market?: Market): OHLCV;
+    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     /**
      * @method
      * @name grvt#fetchFundingRateHistory
@@ -106,9 +151,15 @@ export default class grvt extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingRateHistory[]>;
-    parseFundingRateHistory(rawItem: Dict, market?: Market): FundingRateHistory;
-    getSubAccountId(params: Dict): string;
+    fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
+    parseFundingRateHistory(rawItem: any, market?: Market): {
+        info: any;
+        symbol: string;
+        fundingRate: number;
+        timestamp: Int;
+        datetime: string | undefined;
+    };
+    getSubAccountId(params: any): string;
     /**
      * @method
      * @name grvt#fetchBalance
@@ -117,7 +168,7 @@ export default class grvt extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    fetchBalance(params?: Dict): Promise<Balances>;
+    fetchBalance(params?: {}): Promise<Balances>;
     parseBalance(response: any): Balances;
     /**
      * @method
@@ -131,7 +182,7 @@ export default class grvt extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest item
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
+    fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     /**
      * @method
      * @name grvt#fetchWithdrawals
@@ -144,8 +195,8 @@ export default class grvt extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest item
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
-    internalFetchTransfers(req: Dict, currency?: Currency, since?: Int, limit?: Int): Promise<TransferEntry[]>;
+    fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    internalFetchTransfers(req: any, currency?: any, since?: Int, limit?: Int): Promise<TransferEntry[]>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     /**
      * @method
@@ -159,7 +210,7 @@ export default class grvt extends Exchange {
      * @param {boolean} [params.paginate] whether to paginate the results (default false)
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<TransferEntry[]>;
+    fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<TransferEntry[]>;
     filterTransfersByType(transfers: any, transferType: string, onlyMainAccount?: boolean): any;
     /**
      * @method
@@ -173,9 +224,9 @@ export default class grvt extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: Dict): Promise<TransferEntry>;
+    transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
-    loadAccountInfos(): Promise<Bool>;
+    loadAccountInfos(): Promise<boolean>;
     /**
      * @method
      * @name grvt#withdraw
@@ -189,7 +240,7 @@ export default class grvt extends Exchange {
      * @param {string} params.network the network to withdraw on (mandatory)
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: Str, params?: Dict): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
     /**
      * @method
      * @name grvt#createOrder
@@ -210,9 +261,9 @@ export default class grvt extends Exchange {
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     convertToBigIntCustom(x: any): number;
-    eipMessageForOrder(order: Dict, structureType: Str): Dict;
+    eipMessageForOrder(order: any, structureType: any): Dict;
     /**
      * @method
      * @name grvt#fetchMyTrades
@@ -226,7 +277,7 @@ export default class grvt extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
+    fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     /**
      * @method
      * @name grvt#fetchPositions
@@ -236,7 +287,7 @@ export default class grvt extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    fetchPositions(symbols?: Strings, params?: Dict): Promise<Position[]>;
+    fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
     parsePosition(position: Dict, market?: Market): Position;
     /**
      * @method
@@ -247,7 +298,7 @@ export default class grvt extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    fetchLeverages(symbols?: Strings, params?: Dict): Promise<Leverages>;
+    fetchLeverages(symbols?: Strings, params?: {}): Promise<Leverages>;
     /**
      * @method
      * @name grvt#setLeverage
@@ -258,7 +309,7 @@ export default class grvt extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    setLeverage(leverage: int, symbol?: Str, params?: Dict): Promise<Leverage>;
+    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<Leverage>;
     parseLeverage(leverage: Dict, market?: Market): Leverage;
     /**
      * @method
@@ -269,7 +320,7 @@ export default class grvt extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    fetchMarginModes(symbols?: Strings, params?: Dict): Promise<MarginModes>;
+    fetchMarginModes(symbols?: Strings, params?: {}): Promise<MarginModes>;
     parseMarginMode(marginMode: Dict, market?: Market): MarginMode;
     /**
      * @method
@@ -284,8 +335,16 @@ export default class grvt extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
-    fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingHistory[]>;
-    parseIncome(income: Dict, market?: Market): FundingHistory;
+    fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingHistory[]>;
+    parseIncome(income: any, market?: Market): {
+        info: any;
+        symbol: string;
+        code: Str;
+        timestamp: Int;
+        datetime: string | undefined;
+        id: Str;
+        amount: Num;
+    };
     /**
      * @method
      * @name grvt#fetchOrders
@@ -298,7 +357,7 @@ export default class grvt extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest item
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
+    fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     /**
      * @method
      * @name grvt#fetchOpenOrders
@@ -310,7 +369,7 @@ export default class grvt extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
+    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     /**
      * @method
      * @name grvt#fetchOrder
@@ -322,7 +381,7 @@ export default class grvt extends Exchange {
      * @param {string} [params.clientOrderId] client order id
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
+    fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     parseOrder(order: Dict, market?: Market): Order;
     parseTimeInForce(type: Str): Str;
     timeInForceToInt(timeInForce: Str): Int;
@@ -336,7 +395,7 @@ export default class grvt extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    cancelAllOrders(symbol?: Str, params?: Dict): Promise<Order[]>;
+    cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
     /**
      * @method
      * @name grvt#cancelOrder
@@ -348,15 +407,27 @@ export default class grvt extends Exchange {
      * @param {string} [params.clientOrderId] client order id
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    cancelOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
-    eipDomainData(): Dict;
+    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    eipDomainData(): {
+        name: string;
+        version: string;
+        chainId: number;
+    };
     feeAmountMultiplier(): number;
     createSignedRequest(request: any, structureType: string, currencyObj?: Dict | undefined, signerAddress?: Str): Dict;
     formatSignatureRS(value: string): string;
-    defaultSignature(): Dict;
-    handleUntilOptionString(key: string, request: Dict, params?: NullableDict, multiplier?: number): any[];
-    requestId(): number;
-    sign(path: any, api?: any, method?: string, params?: Dict, headers?: NullableDict, body?: any): {
+    defaultSignature(): {
+        signer: string;
+        r: string;
+        s: string;
+        v: number;
+        expiration: string;
+        nonce: number;
+        chain_id: string;
+    };
+    handleUntilOptionString(key: string, request: any, params: any, multiplier?: number): any[];
+    requestId(): any;
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: any): {
         url: any;
         method: string;
         body: any;

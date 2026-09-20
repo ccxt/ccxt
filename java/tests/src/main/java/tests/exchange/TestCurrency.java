@@ -18,7 +18,7 @@ import java.util.Map;
 public class TestCurrency extends BaseTest {
     public static void testCurrency(BaseExchange exchange, Object skippedProperties, Object method, Object entry)
     {
-        if (java.util.Objects.equals(entry, null))
+        if (Helpers.isTrue(Helpers.isEqual(entry, null)))
         {
             return;
         }
@@ -29,18 +29,18 @@ public class TestCurrency extends BaseTest {
         // todo: remove fee from empty
         List<Object> emptyAllowedFor = new ArrayList<Object>(Arrays.asList("name", "fee"));
         // todo: info key needs to be added in base, when exchange does not have fetchCurrencies
-        Boolean isNative = (!java.util.Objects.equals(((Map<String, Object>)exchange.has).get("fetchCurrencies"), null)) && (!java.util.Objects.equals(((Map<String, Object>)exchange.has).get("fetchCurrencies"), false)) && (!java.util.Objects.equals(((Map<String, Object>)exchange.has).get("fetchCurrencies"), "emulated"));
+        Boolean isNative = Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "fetchCurrencies"), null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "fetchCurrencies"), false)))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "fetchCurrencies"), "emulated")));
         String currencyType = exchange.safeString(entry, "type");
-        if (java.util.Objects.equals(isNative, true))
+        if (Helpers.isTrue(Helpers.isEqual(isNative, true)))
         {
-            ((Map<String, Object>)format).put("info", new HashMap<String, Object>() {{}});
+            Helpers.addElementToObject(format, "info", new HashMap<String, Object>() {{}});
             // todo: 'name': 'Bitcoin', // uppercase string, base currency, 2 or more letters
-            ((Map<String, Object>)format).put("withdraw", true); // withdraw enabled
-            ((Map<String, Object>)format).put("deposit", true); // deposit enabled
-            ((Map<String, Object>)format).put("precision", exchange.parseNumber("0.0001")); // in case of SIGNIFICANT_DIGITS it will be 4 - number of digits "after the dot"
-            ((Map<String, Object>)format).put("fee", exchange.parseNumber("0.001"));
-            ((Map<String, Object>)format).put("networks", new HashMap<String, Object>() {{}});
-            ((Map<String, Object>)format).put("limits", new HashMap<String, Object>() {{
+            Helpers.addElementToObject(format, "withdraw", true); // withdraw enabled
+            Helpers.addElementToObject(format, "deposit", true); // deposit enabled
+            Helpers.addElementToObject(format, "precision", exchange.parseNumber("0.0001")); // in case of SIGNIFICANT_DIGITS it will be 4 - number of digits "after the dot"
+            Helpers.addElementToObject(format, "fee", exchange.parseNumber("0.001"));
+            Helpers.addElementToObject(format, "networks", new HashMap<String, Object>() {{}});
+            Helpers.addElementToObject(format, "limits", new HashMap<String, Object>() {{
         put( "withdraw", new HashMap<String, Object>() {{
             put( "min", exchange.parseNumber("0.01") );
             put( "max", exchange.parseNumber("1000") );
@@ -50,29 +50,29 @@ public class TestCurrency extends BaseTest {
             put( "max", exchange.parseNumber("1000") );
         }} );
     }});
-            ((Map<String, Object>)format).put("type", "crypto"); // crypto, fiat, leverage, other
+            Helpers.addElementToObject(format, "type", "crypto"); // crypto, fiat, leverage, other
             TestSharedMethods.AssertInArray(exchange, skippedProperties, method, entry, "type", new ArrayList<Object>(Arrays.asList("fiat", "crypto", "leveraged", "other", null))); // todo: remove undefined
             // only require "deposit" & "withdraw" values, when currency is not fiat, or when it's fiat, but not skipped
-            if (!java.util.Objects.equals(currencyType, "crypto") && (Helpers.inOp(skippedProperties, "depositForNonCrypto")))
+            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(currencyType, "crypto")) && Helpers.isTrue((Helpers.inOp(skippedProperties, "depositForNonCrypto")))))
             {
                 ((List<Object>)emptyAllowedFor).add("deposit");
             }
-            if (!java.util.Objects.equals(currencyType, "crypto") && (Helpers.inOp(skippedProperties, "withdrawForNonCrypto")))
+            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(currencyType, "crypto")) && Helpers.isTrue((Helpers.inOp(skippedProperties, "withdrawForNonCrypto")))))
             {
                 ((List<Object>)emptyAllowedFor).add("withdraw");
             }
-            if (java.util.Objects.equals(currencyType, "leveraged") || java.util.Objects.equals(currencyType, "other"))
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(currencyType, "leveraged")) || Helpers.isTrue(Helpers.isEqual(currencyType, "other"))))
             {
                 ((List<Object>)emptyAllowedFor).add("precision");
             }
         }
         //
-        TestSharedMethods.AssertCurrencyCode(exchange, skippedProperties, method, entry, ((Map<String, Object>)entry).get("code"));
+        TestSharedMethods.AssertCurrencyCode(exchange, skippedProperties, method, entry, Helpers.GetValue(entry, "code"));
         // check if empty networks should be skipped
         Object networks = exchange.safeDict(entry, "networks", new HashMap<String, Object>() {{}});
-        List<Object> networkKeys = new ArrayList<Object>(((Map<String, Object>)networks).keySet());
-        Object networkKeysLength = ((List<?>)networkKeys).size();
-        if (java.util.Objects.equals(networkKeysLength, 0) && (Helpers.inOp(skippedProperties, "skipCurrenciesWithoutNetworks")))
+        Object networkKeys = Helpers.objectKeys(networks);
+        Object networkKeysLength = Helpers.getArrayLength(networkKeys);
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(networkKeysLength, 0)) && Helpers.isTrue((Helpers.inOp(skippedProperties, "skipCurrenciesWithoutNetworks")))))
         {
             return;
         }
@@ -83,20 +83,20 @@ public class TestCurrency extends BaseTest {
         {
             Object message = exchange.exceptionMessage(e);
             // check structure if key is numeric, not string
-            if (((String)message).indexOf("\"id\" key") >= 0)
+            if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(message, "\"id\" key"), 0)))
             {
                 // @ts-ignore
-                ((Map<String, Object>)format).put("id", 123);
+                Helpers.addElementToObject(format, "id", 123);
                 TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
             } else
             {
-                Assert(java.util.Objects.equals(message, ""), message);
+                Assert(Helpers.isEqual(message, ""), message);
             }
         }
         //
         TestSharedMethods.checkPrecisionAccuracy(exchange, skippedProperties, method, entry, "precision");
         TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "fee", "0");
-        if (!(Helpers.inOp(skippedProperties, "limits")))
+        if (!Helpers.isTrue((Helpers.inOp(skippedProperties, "limits"))))
         {
             Object limits = exchange.safeValue(entry, "limits", new HashMap<String, Object>() {{}});
             Object withdrawLimits = exchange.safeValue(limits, "withdraw", new HashMap<String, Object>() {{}});
@@ -107,18 +107,18 @@ public class TestCurrency extends BaseTest {
             TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, depositLimits, "max", "0");
             // max should be more than min (withdrawal limits)
             String minStringWithdrawal = exchange.safeString(withdrawLimits, "min");
-            if (!java.util.Objects.equals(minStringWithdrawal, null))
+            if (Helpers.isTrue(!Helpers.isEqual(minStringWithdrawal, null)))
             {
                 TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, withdrawLimits, "max", minStringWithdrawal);
             }
             // max should be more than min (deposit limits)
             String minStringDeposit = exchange.safeString(depositLimits, "min");
-            if (!java.util.Objects.equals(minStringDeposit, null))
+            if (Helpers.isTrue(!Helpers.isEqual(minStringDeposit, null)))
             {
                 TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, depositLimits, "max", minStringDeposit);
             }
             // check valid ID & CODE
-            TestSharedMethods.AssertValidCurrencyIdAndCode(exchange, skippedProperties, method, entry, ((Map<String, Object>)entry).get("id"), ((Map<String, Object>)entry).get("code"));
+            TestSharedMethods.AssertValidCurrencyIdAndCode(exchange, skippedProperties, method, entry, Helpers.GetValue(entry, "id"), Helpers.GetValue(entry, "code"));
         }
     }
 

@@ -3,7 +3,7 @@ import type { Int, OrderBook, Trade, Ticker, Balances, Market, Str, Dict } from 
 import Client from '../base/ws/Client.js';
 export default class bitopro extends bitoproRest {
     describe(): any;
-    watchPublic(path: string, messageHash: string, marketId: Str): Promise<any>;
+    watchPublic(path: any, messageHash: any, marketId: any): Promise<any>;
     /**
      * @method
      * @name bitopro#watchOrderBook
@@ -14,8 +14,8 @@ export default class bitopro extends bitoproRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
-    handleOrderBook(client: Client, message: Dict): void;
+    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    handleOrderBook(client: Client, message: any): void;
     /**
      * @method
      * @name bitopro#watchTrades
@@ -27,8 +27,8 @@ export default class bitopro extends bitoproRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
-    handleTrade(client: Client, message: Dict): void;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    handleTrade(client: Client, message: any): void;
     /**
      * @method
      * @name bitopro#watchMyTrades
@@ -40,8 +40,8 @@ export default class bitopro extends bitoproRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
-    handleMyTrade(client: Client, message: Dict): void;
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    handleMyTrade(client: Client, message: any): void;
     parseWsTrade(trade: Dict, market?: Market): Trade;
     /**
      * @method
@@ -52,9 +52,9 @@ export default class bitopro extends bitoproRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTicker(symbol: string, params?: Dict): Promise<Ticker>;
-    handleTicker(client: Client, message: Dict): void;
-    authenticate(url: string): void;
+    watchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    handleTicker(client: Client, message: any): void;
+    authenticate(url: any): void;
     /**
      * @method
      * @name bitopro#watchBalance
@@ -63,7 +63,7 @@ export default class bitopro extends bitoproRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    watchBalance(params?: Dict): Promise<Balances>;
-    handleBalance(client: Client, message: Dict): void;
-    handleMessage(client: Client, message: Dict): void;
+    watchBalance(params?: {}): Promise<Balances>;
+    handleBalance(client: Client, message: any): void;
+    handleMessage(client: Client, message: any): void;
 }

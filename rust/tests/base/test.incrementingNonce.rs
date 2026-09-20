@@ -11,16 +11,16 @@ use ccxt::exchange_generated::ExchangeBase;
 pub fn testIncrementingNonce() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("id".to_string(), Value::Str("sampleexchange".into()));
+            m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
         m
     }));
     // seed lastNonce above the current clock so two successive calls land in the same
     // tick and must return n and n + 1 deterministically (avoids a second-boundary flake)
     let mut seed: Value = Value::Int(9999999999999);
-    add_element_to_object(&mut exchange.options, &Value::Str("lastNonce".into()), seed.clone());
+    add_element_to_object(&mut exchange.options, &Value::Str("lastNonce".to_string()), seed.clone());
     let mut first: Value = exchange.incrementing_nonce();
     let mut second: Value = exchange.incrementing_nonce();
-    assert!(ccxt::runtime::is_true(&((first.as_f64().unwrap_or(f64::NAN) > seed.as_f64().unwrap_or(f64::NAN)))));
-    assert!(ccxt::runtime::is_true(&((second.as_f64() == (match (&(first), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }).as_f64()))));
-    assert!(ccxt::runtime::is_true(&((second.as_f64().unwrap_or(f64::NAN) > first.as_f64().unwrap_or(f64::NAN)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_greater_than(&first, &seed)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&second, &add(&first, &Value::Int(1)))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_greater_than(&second, &first)))));
 }

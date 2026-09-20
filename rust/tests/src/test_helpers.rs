@@ -22,7 +22,7 @@ pub const EXT:  &str = "rs";
 pub fn getCliArgValue(arg: Value) -> Value {
     let target = match &arg {
         Value::Str(s) => s.clone(),
-        other => ccxt::runtime::stringify_param(other).into(),
+        other => ccxt::runtime::stringify_param(other),
     };
     Value::Bool(std::env::args().any(|a| a == target))
 }
@@ -35,7 +35,7 @@ pub fn getCliPositionalArg(index: Value) -> Value {
         .filter(|a| !a.starts_with("--"))
         .collect();
     match positionals.get(idx) {
-        Some(s) => Value::Str(s.clone().into()),
+        Some(s) => Value::Str(s.clone()),
         None => Value::Null,
     }
 }
@@ -43,15 +43,15 @@ pub fn getCliPositionalArg(index: Value) -> Value {
 // ── environment / platform ──────────────────────────────────────────────────
 
 pub fn isSync()    -> Value { Value::Bool(false) }
-pub fn getLang()   -> Value { Value::Str(LANG.to_string().into()) }
-pub fn getExt()    -> Value { Value::Str(EXT.to_string().into()) }
+pub fn getLang()   -> Value { Value::Str(LANG.to_string()) }
+pub fn getExt()    -> Value { Value::Str(EXT.to_string()) }
 pub fn isWindows() -> Value { Value::Bool(cfg!(target_os = "windows")) }
 pub fn isLinux()   -> Value { Value::Bool(cfg!(target_os = "linux")) }
 pub fn isAmd64()   -> Value { Value::Bool(cfg!(target_arch = "x86_64")) }
 
 /// Repo root with a trailing slash (mirrors Go's `GetRootDir`).
 pub fn getRootDir() -> Value {
-    Value::Str(getRootDir_str().into())
+    Value::Str(getRootDir_str())
 }
 
 /// Plain-string variant used by hand-written helpers that don't need
@@ -66,7 +66,7 @@ pub fn getRootDir_str() -> String {
 pub fn getEnvVars() -> Value {
     let mut m = HashMap::new();
     for (k, v) in std::env::vars() {
-        m.insert(k, Value::Str(v.into()));
+        m.insert(k, Value::Str(v));
     }
     Value::Map(m)
 }
@@ -78,7 +78,7 @@ pub fn convertAscii(input: Value) -> Value { input }
 /// `dump(...)` — space-joined print, like `console.log`.
 pub fn dump(args: &[Value]) {
     let parts: Vec<String> = args.iter().map(|v| match v {
-        Value::Str(s) => s.to_string(),
+        Value::Str(s) => s.clone(),
         other => ccxt::runtime::stringify_param(other),
     }).collect();
     println!("{}", parts.join(" "));
@@ -93,7 +93,7 @@ pub fn jsonStringify(v: Value) -> Value { ccxt::runtime::json_stringify(&v) }
 
 pub fn ioFileExists(path: Value) -> Value {
     match &path {
-        Value::Str(p) => Value::Bool(std::path::Path::new(p.as_ref()).exists()),
+        Value::Str(p) => Value::Bool(std::path::Path::new(p).exists()),
         _ => Value::Bool(false),
     }
 }
@@ -101,8 +101,8 @@ pub fn ioFileExists(path: Value) -> Value {
 /// Reads a file and JSON-parses its contents.
 pub fn ioFileRead(path: Value, _optional_args: &[Value]) -> Value {
     let p = match &path { Value::Str(p) => p.clone(), _ => return Value::Null };
-    match std::fs::read_to_string(&*p) {
-        Ok(content) => ccxt::runtime::json_parse(&Value::Str(content.into())),
+    match std::fs::read_to_string(&p) {
+        Ok(content) => ccxt::runtime::json_parse(&Value::Str(content)),
         Err(_) => Value::Null,
     }
 }
@@ -110,11 +110,11 @@ pub fn ioFileRead(path: Value, _optional_args: &[Value]) -> Value {
 /// Lists the entries of a directory.
 pub fn ioDirRead(path: Value) -> Value {
     let p = match &path { Value::Str(p) => p.clone(), _ => return Value::Null };
-    match std::fs::read_dir(&*p) {
+    match std::fs::read_dir(&p) {
         Ok(rd) => Value::Array(
             rd.filter_map(|e| e.ok())
               .filter_map(|e| e.file_name().into_string().ok())
-              .map(|s| Value::Str(s.into()))
+              .map(Value::Str)
               .collect()
         ),
         Err(_) => Value::Null,
@@ -150,7 +150,7 @@ pub fn exitScript(code: Value) {
 pub fn exceptionMessage(exc: Value) -> Value {
     Value::Str(match &exc {
         Value::Str(s) => s.clone(),
-        other => ccxt::runtime::stringify_param(other).into(),
+        other => ccxt::runtime::stringify_param(other),
     })
 }
 
@@ -187,7 +187,7 @@ pub fn assert<T: Truthy>(condition: T, optional_args: &[Value]) {
     let message: String = optional_args.iter()
         .map(|v| match v {
             Value::Str(s) => s.clone(),
-            other => ccxt::runtime::stringify_param(other).into(),
+            other => ccxt::runtime::stringify_param(other),
         })
         .collect::<Vec<_>>()
         .join(" ");
@@ -221,15 +221,15 @@ pub fn setExchangeProp(_exchange: Value, _prop: Value, _value: Value) {
 /// response on the exchange value for static *response* tests.
 /// `Null` clears it.
 pub fn setFetchResponse(exchange: &mut Value, response: Value) -> Value {
-    ccxt::set_value(exchange, &Value::Str("__fetchResponse".into()), response);
-    ccxt::set_value(exchange, &Value::Str("__fetchResponseByUrl".into()), Value::Null);
+    ccxt::set_value(exchange, &Value::Str("__fetchResponse".to_string()), response);
+    ccxt::set_value(exchange, &Value::Str("__fetchResponseByUrl".to_string()), Value::Null);
     exchange.clone()
 }
 
 /// Serves a body per url fragment for methods that call several endpoints;
 /// one shared body cannot cover two endpoints of different declared shapes.
 pub fn setFetchResponseByUrl(exchange: &mut Value, responsesByUrl: Value) -> Value {
-    ccxt::set_value(exchange, &Value::Str("__fetchResponseByUrl".into()), responsesByUrl);
+    ccxt::set_value(exchange, &Value::Str("__fetchResponseByUrl".to_string()), responsesByUrl);
     exchange.clone()
 }
 
@@ -240,7 +240,7 @@ pub fn setFetchResponseByUrl(exchange: &mut Value, responsesByUrl: Value) -> Val
 /// through the exchange registry.
 pub fn initExchange(exchange_id: Value, optional_args: &[Value]) -> Value {
     let cfg = optional_args.get(0).cloned().unwrap_or(Value::Map(HashMap::new()));
-    let id = match &exchange_id { Value::Str(s) => s.to_string(), _ => String::new() };
+    let id = match &exchange_id { Value::Str(s) => s.clone(), _ => String::new() };
     // optional_args[1] is the wsTests flag (initExchange(id, cfg, ws)).
     let ws = matches!(optional_args.get(1), Some(Value::Bool(true)));
     // Always build the real exchange Core so `exchange.<method>(...)` in
@@ -270,7 +270,7 @@ pub fn initExchange(exchange_id: Value, optional_args: &[Value]) -> Value {
                             if let Some(v) = entry.get(key).and_then(|v| v.as_str()) {
                                 if !v.is_empty() {
                                     crate::live_dispatch::write_field_for_id(
-                                        &id, key, Value::Str(v.to_string().into()),
+                                        &id, key, Value::Str(v.to_string()),
                                     );
                                 }
                             }
@@ -388,7 +388,7 @@ pub fn callExchangeMethodDynamicallySync(
 // ── static-WS-test mock transport helpers (mirror tests.helpers.ts) ──────────
 // `url` arrives as a Value::Str; route to the url-keyed ClientState mock façade.
 fn ws_url(url: &Value) -> String {
-    match url { Value::Str(s) => s.to_string(), _ => String::new() }
+    match url { Value::Str(s) => s.clone(), _ => String::new() }
 }
 
 /// Register a connected, socket-less client whose sends are captured.
@@ -598,7 +598,7 @@ impl ExchangeOps for Value {
                 if !matches!(mkt, Value::Null) { return mkt; }
             }
         }
-        let markets = ccxt::get_value(self, &Value::Str("markets".into()));
+        let markets = ccxt::get_value(self, &Value::Str("markets".to_string()));
         ccxt::get_value(&markets, &symbol)
     }
     fn set_sandbox_mode(&self, _enabled: Value) { /* stub — no live exchange */ }
@@ -608,9 +608,9 @@ impl ExchangeOps for Value {
         // Record the delta so the static-WS dispatch can push per-case options
         // (e.g. okx watchOrderBook.depth) to the fresh Core — see live_dispatch.
         crate::live_dispatch::ws_test_options_accumulate(options.clone());
-        let current = ccxt::get_value(self, &Value::Str("options".into()));
+        let current = ccxt::get_value(self, &Value::Str("options".to_string()));
         let merged = with_base(|e| e.deep_extend(current, &[options]));
-        ccxt::set_value(self, &Value::Str("options".into()), merged.clone());
+        ccxt::set_value(self, &Value::Str("options".to_string()), merged.clone());
         merged
     }
     fn check_required_credentials(&self, _optional_args: &[Value]) -> Value { Value::Bool(true) }

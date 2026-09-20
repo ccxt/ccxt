@@ -15,8 +15,8 @@ export default class whitebit extends whitebitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
-    handleOHLCV(client: Client, message: Dict): Dict;
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    handleOHLCV(client: Client, message: any): any;
     /**
      * @method
      * @name whitebit#watchOrderBook
@@ -27,10 +27,10 @@ export default class whitebit extends whitebitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
-    handleOrderBook(client: Client, message: Dict): void;
+    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    handleOrderBook(client: Client, message: any): void;
     handleDelta(bookside: any, delta: any): void;
-    handleDeltas(bookside: any, deltas: any[]): void;
+    handleDeltas(bookside: any, deltas: any): void;
     /**
      * @method
      * @name whitebit#watchTicker
@@ -40,7 +40,7 @@ export default class whitebit extends whitebitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTicker(symbol: string, params?: Dict): Promise<Ticker>;
+    watchTicker(symbol: string, params?: {}): Promise<Ticker>;
     /**
      * @method
      * @name whitebit#watchTickers
@@ -50,8 +50,8 @@ export default class whitebit extends whitebitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
-    handleTicker(client: Client, message: Dict): Dict;
+    watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    handleTicker(client: Client, message: any): any;
     /**
      * @method
      * @name whitebit#watchTrades
@@ -63,8 +63,8 @@ export default class whitebit extends whitebitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
-    handleTrades(client: Client, message: Dict): void;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    handleTrades(client: Client, message: any): void;
     /**
      * @method
      * @name whitebit#watchMyTrades
@@ -76,9 +76,9 @@ export default class whitebit extends whitebitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
-    handleMyTrades(client: Client, message: Dict, subscription?: Dict | undefined): void;
-    parseWsTrade(trade: any[], market?: Market): Trade;
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    handleMyTrades(client: Client, message: any, subscription?: Dict | undefined): void;
+    parseWsTrade(trade: any, market?: Market): Trade;
     /**
      * @method
      * @name whitebit#watchOrders
@@ -90,10 +90,10 @@ export default class whitebit extends whitebitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
-    handleOrder(client: Client, message: Dict, subscription?: Dict | undefined): void;
-    parseWsOrder(order: Dict, market?: Market): Order;
-    parseWsOrderType(status: any): Str;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    handleOrder(client: Client, message: any, subscription?: Dict | undefined): void;
+    parseWsOrder(order: any, market?: Market): Order;
+    parseWsOrderType(status: any): string;
     /**
      * @method
      * @name whitebit#watchBalance
@@ -106,18 +106,22 @@ export default class whitebit extends whitebitRest {
      * @param {bool} [params.awaitBalanceSnapshot] whether to wait for the balance snapshot before providing updates, default is true
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    watchBalance(params?: Dict): Promise<Balances>;
+    watchBalance(params?: {}): Promise<Balances>;
     setBalanceCache(client: Client, type: any, subscriptionHash: any): void;
     loadBalanceSnapshot(client: any, messageHash: any, type: any, subscriptionHash: any): Promise<void>;
-    handleBalance(client: Client, message: Dict): void;
-    watchPublic(messageHash: string, method: string, reqParams?: any[], params?: Dict): Promise<any>;
-    watchMultipleSubscription(messageHash: string, method: string, symbol: Str, isNested?: boolean, params?: Dict): Promise<any>;
-    watchPrivate(messageHash: string, method: string, reqParams?: any[], params?: Dict): Promise<any>;
-    authenticate(params?: Dict): Promise<any>;
-    handleAuthenticate(client: Client, message: Dict): Dict;
+    handleBalance(client: Client, message: any): void;
+    watchPublic(messageHash: any, method: any, reqParams?: any[], params?: {}): Promise<any>;
+    watchMultipleSubscription(messageHash: any, method: any, symbol: any, isNested?: boolean, params?: {}): Promise<any>;
+    watchPrivate(messageHash: any, method: any, reqParams?: any[], params?: {}): Promise<any>;
+    authenticate(params?: {}): Promise<number>;
+    handleAuthenticate(client: Client, message: any): any;
     handleErrorMessage(client: Client, message: any): Bool;
-    handleMessage(client: Client, message: Dict): void;
-    handleSubscriptionStatus(client: Client, message: Dict, id: Int): void;
-    handlePong(client: Client, message: Dict): Dict;
-    ping(client: Client): Dict;
+    handleMessage(client: Client, message: any): void;
+    handleSubscriptionStatus(client: Client, message: any, id: any): void;
+    handlePong(client: Client, message: any): any;
+    ping(client: Client): {
+        id: number;
+        method: string;
+        params: never[];
+    };
 }

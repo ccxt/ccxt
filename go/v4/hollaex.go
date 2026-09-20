@@ -425,17 +425,17 @@ func (this *Hollaex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//         "status": true
 	//     }
 	//
-	var pairs map[string]any = SafeMapTyped(response, "pairs")
+	var pairs any = this.SafeDict(response, "pairs", map[string]any{})
 	var keys []string = ObjectKeys(pairs)
-	var result []any = []any{}
-	for i := 0; i < len(keys); i++ {
+	var result any = []any{}
+	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 		var key string = GetValue(keys, i).(string)
-		var market any = pairs[key]
+		var market any = GetValue(pairs, key)
 		var baseId *string = this.SafeString(market, "pair_base")
 		var quoteId *string = this.SafeString(market, "pair_2")
 		var base any = this.CommonCurrencyCode(ToUpper(baseId))
 		var quote any = this.CommonCurrencyCode(ToUpper(quoteId))
-		result = append(result, map[string]any{
+		AppendToArray(&result, map[string]any{
 			"id":             this.SafeString(market, "name"),
 			"symbol":         Add(Add(base, "/"), quote),
 			"base":           base,
@@ -450,7 +450,7 @@ func (this *Hollaex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			"swap":           false,
 			"future":         false,
 			"option":         false,
-			"active":         this.SafeBool(market, "active"),
+			"active":         this.SafeValue(market, "active"),
 			"contract":       false,
 			"linear":         nil,
 			"inverse":        nil,
@@ -588,20 +588,15 @@ func (this *Hollaex) ParseCurrency(rawCurrency any) any {
 	var code *string = this.SafeCurrencyCode(id)
 	var withdrawalLimits any = this.SafeList(rawCurrency, "withdrawal_limits", []any{})
 	var rawType *string = this.SafeString(rawCurrency, "type")
-	var typeVar string = func() string {
-		if rawType != nil && *rawType == "blockchain" {
-			return "crypto"
-		}
-		return "other"
-	}()
-	var rawNetworks map[string]any = SafeMapTyped(rawCurrency, "withdrawal_fees")
+	var typeVar string = Ternary((rawType != nil && *rawType == "blockchain"), "crypto", "other").(string)
+	var rawNetworks any = this.SafeDict(rawCurrency, "withdrawal_fees", map[string]any{})
 	var networks map[string]any = map[string]any{}
 	var networkIds []string = ObjectKeys(rawNetworks)
-	for j := 0; j < len(networkIds); j++ {
+	for j := 0; IsLessThan(j, GetArrayLength(networkIds)); j++ {
 		var networkId string = GetValue(networkIds, j).(string)
 		var networkEntry any = this.SafeDict(rawNetworks, networkId)
 		var networkCode any = this.NetworkIdToCode(networkId, code)
-		if networkCode != nil {
+		if !IsEqual(networkCode, nil) {
 			AddElementToObject(networks, networkCode, map[string]any{
 				"id":        networkId,
 				"network":   networkCode,
@@ -638,7 +633,7 @@ func (this *Hollaex) ParseCurrency(rawCurrency any) any {
 			},
 			"withdraw": map[string]any{
 				"min": nil,
-				"max": this.SafeNumber(withdrawalLimits, 0),
+				"max": this.SafeValue(withdrawalLimits, 0),
 			},
 		},
 		"networks": networks,
@@ -670,7 +665,7 @@ func (this *Hollaex) fetchOrderBooksBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
 		retRes57212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes57212)
@@ -680,7 +675,7 @@ func (this *Hollaex) fetchOrderBooksBody(ch chan any, optionalArgs ...any) any {
 	PanicOnError(response)
 	var result map[string]any = map[string]any{}
 	var marketIds []string = ObjectKeys(response)
-	for i := 0; i < len(marketIds); i++ {
+	for i := 0; IsLessThan(i, GetArrayLength(marketIds)); i++ {
 		var marketId string = GetValue(marketIds, i).(string)
 		var orderbook any = this.SafeDict(response, marketId, map[string]any{})
 		var symbol *string = this.SafeSymbol(marketId, nil, "-")
@@ -714,14 +709,14 @@ func (this *Hollaex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	_ = limit
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
 		retRes59912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes59912)
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": GetValue(market, "id"),
 	}
 
 	response := (<-this.PublicGetOrderbook(this.Extend(request, params)))
@@ -745,10 +740,10 @@ func (this *Hollaex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	//         // ...
 	//     }
 	//
-	var orderbook any = this.SafeDict(response, market["id"])
+	var orderbook any = this.SafeValue(response, GetValue(market, "id"))
 	var timestamp *int64 = this.Parse8601(this.SafeString(orderbook, "timestamp"))
 
-	ch <- this.ParseOrderBook(orderbook, market["symbol"], timestamp)
+	ch <- this.ParseOrderBook(orderbook, GetValue(market, "symbol"), timestamp)
 	return nil
 }
 
@@ -771,14 +766,14 @@ func (this *Hollaex) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
 		retRes64112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes64112)
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": GetValue(market, "id"),
 	}
 
 	response := (<-this.PublicGetTicker(this.Extend(request, params)))
@@ -820,7 +815,7 @@ func (this *Hollaex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = symbols
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
 		retRes67312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes67312)
@@ -855,7 +850,7 @@ func (this *Hollaex) ParseTickers(tickers any, optionalArgs ...any) any {
 	_ = params
 	var result map[string]any = map[string]any{}
 	var keys []string = ObjectKeys(tickers)
-	for i := 0; i < len(keys); i++ {
+	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 		var key string = GetValue(keys, i).(string)
 		var ticker any = GetValue(tickers, key)
 		var marketId *string = this.SafeString(ticker, "symbol", key)
@@ -948,14 +943,14 @@ func (this *Hollaex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	_ = limit
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
 		retRes77812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes77812)
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": GetValue(market, "id"),
 	}
 
 	response := (<-this.PublicGetTrades(this.Extend(request, params)))
@@ -973,7 +968,7 @@ func (this *Hollaex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	//         ]
 	//     }
 	//
-	var trades any = this.SafeList(response, market["id"], []any{})
+	var trades any = this.SafeList(response, GetValue(market, "id"), []any{})
 
 	ch <- this.ParseTrades(trades, market, since, limit)
 	return nil
@@ -1056,7 +1051,7 @@ func (this *Hollaex) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
 		retRes87012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes87012)
@@ -1092,16 +1087,16 @@ func (this *Hollaex) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 	//         ...
 	//     }
 	//
-	var firstTier map[string]any = SafeMapTyped(response, "1")
-	var fees any = this.SafeDict(firstTier, "fees", map[string]any{})
-	var makerFees map[string]any = SafeMapTyped(fees, "maker")
-	var takerFees map[string]any = SafeMapTyped(fees, "taker")
+	var firstTier any = this.SafeValue(response, "1", map[string]any{})
+	var fees any = this.SafeValue(firstTier, "fees", map[string]any{})
+	var makerFees any = this.SafeValue(fees, "maker", map[string]any{})
+	var takerFees any = this.SafeValue(fees, "taker", map[string]any{})
 	var result map[string]any = map[string]any{}
-	for i := 0; i < len(this.Symbols); i++ {
+	for i := 0; IsLessThan(i, GetArrayLength(this.Symbols)); i++ {
 		var symbol any = GetValue(this.Symbols, i)
-		var market map[string]any = MapTyped(this.Market(symbol))
-		var makerString *string = this.SafeString(makerFees, market["id"])
-		var takerString *string = this.SafeString(takerFees, market["id"])
+		var market any = this.Market(symbol)
+		var makerString *string = this.SafeString(makerFees, GetValue(market, "id"))
+		var takerString *string = this.SafeString(takerFees, GetValue(market, "id"))
 		AddElementToObject(result, symbol, map[string]any{
 			"info":       fees,
 			"symbol":     symbol,
@@ -1145,14 +1140,14 @@ func (this *Hollaex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
 		retRes93812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes93812)
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
-		"symbol":     market["id"],
+		"symbol":     GetValue(market, "id"),
 		"resolution": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
 	var paginate any = false
@@ -1160,14 +1155,14 @@ func (this *Hollaex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", paginate)
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	if paginate == true {
+	if EvalTruthy(paginate) {
 
 		retRes94919 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit))
 		PanicOnError(retRes94919)
 		ch <- retRes94919
 		return nil
 	}
-	var until any = this.SafeInteger(params, "until")
+	var until any = DerefScalar(this.SafeInteger(params, "until"))
 	var timeDelta any = Multiply(Multiply(this.ParseTimeframe(timeframe), maxLimit), 1000)
 	var start any = since
 	var now int64 = this.Milliseconds()
@@ -1177,8 +1172,8 @@ func (this *Hollaex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	if IsEqual(start, nil) {
 		start = Subtract(until, timeDelta)
 	}
-	request["from"] = this.ParseToInt(Divide(start, 1000)) // convert to seconds
-	request["to"] = this.ParseToInt(Divide(until, 1000))   // convert to seconds
+	AddElementToObject(request, "from", this.ParseToInt(Divide(start, 1000))) // convert to seconds
+	AddElementToObject(request, "to", this.ParseToInt(Divide(until, 1000)))   // convert to seconds
 	params = this.Omit(params, "until")
 
 	response := (<-this.PublicGetChart(this.Extend(request, params)))
@@ -1225,15 +1220,15 @@ func (this *Hollaex) ParseBalance(response any) any {
 	}
 	var currenciesById any = this.Currencies_by_id
 	if IsEqual(currenciesById, nil) {
-		panic(ExchangeError(this.Id + " currencies not loaded"))
+		panic(ExchangeError(Add(this.Id, " currencies not loaded")))
 	}
 	var currencyIds []string = ObjectKeys(currenciesById)
-	for i := 0; i < len(currencyIds); i++ {
+	for i := 0; IsLessThan(i, GetArrayLength(currencyIds)); i++ {
 		var currencyId string = GetValue(currencyIds, i).(string)
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()
-		AddElementToObject(account, "free", this.SafeString(response, currencyId+"_available"))
-		AddElementToObject(account, "total", this.SafeString(response, currencyId+"_balance"))
+		AddElementToObject(account, "free", this.SafeString(response, Add(currencyId, "_available")))
+		AddElementToObject(account, "total", this.SafeString(response, Add(currencyId, "_balance")))
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}
@@ -1259,7 +1254,7 @@ func (this *Hollaex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
 		retRes103812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes103812)
@@ -1306,7 +1301,7 @@ func (this *Hollaex) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
 		retRes106812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes106812)
@@ -1442,7 +1437,7 @@ func (this *Hollaex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
 		retRes114912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes114912)
@@ -1477,7 +1472,7 @@ func (this *Hollaex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 	//             }
 	var order any = response
 	if IsEqual(order, nil) {
-		panic(OrderNotFound(Add(this.Id+" fetchOrder() could not find order id ", id)))
+		panic(OrderNotFound(Add(Add(this.Id, " fetchOrder() could not find order id "), id)))
 	}
 
 	ch <- this.ParseOrder(order)
@@ -1511,22 +1506,22 @@ func (this *Hollaex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
 		retRes119712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes119712)
 	}
 	var market any = nil
 	var request map[string]any = map[string]any{}
-	if symbol != nil {
+	if !IsEqual(symbol, nil) {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		AddElementToObject(request, "symbol", GetValue(market, "id"))
 	}
-	if since != nil {
-		request["start_date"] = this.Iso8601(since)
+	if !IsEqual(since, nil) {
+		AddElementToObject(request, "start_date", this.Iso8601(since))
 	}
-	if limit != nil {
-		request["limit"] = limit // default 50, max 100
+	if !IsEqual(limit, nil) {
+		AddElementToObject(request, "limit", limit) // default 50, max 100
 	}
 
 	response := (<-this.PrivateGetOrders(this.Extend(request, params)))
@@ -1565,7 +1560,7 @@ func (this *Hollaex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseOrders(data, market, since, limit)
 	return nil
 }
-func (this *Hollaex) ParseOrderStatus(status *string) *string {
+func (this *Hollaex) ParseOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"new":      "open",
 		"pfilled":  "open",
@@ -1615,7 +1610,7 @@ func (this *Hollaex) ParseOrder(order any, optionalArgs ...any) any {
 	var amount *string = this.SafeString(order, "size")
 	var filled *string = this.SafeString(order, "filled")
 	var status *string = this.ParseOrderStatus(this.SafeString(order, "status"))
-	var meta map[string]any = SafeMapTyped(order, "meta")
+	var meta any = this.SafeValue(order, "meta", map[string]any{})
 	var postOnly *bool = this.SafeBool(meta, "post_only", false)
 	return this.SafeOrder(map[string]any{
 		"id":                 id,
@@ -1669,33 +1664,33 @@ func (this *Hollaex) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
 		retRes134912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes134912)
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": GetValue(market, "id"),
 		"side":   side,
 		"size":   this.AmountToPrecision(symbol, amount),
 		"type":   typeVar,
 	}
 	var triggerPrice *float64 = this.SafeNumberN(params, []any{"triggerPrice", "stopPrice", "stop"})
-	var meta map[string]any = SafeMapTyped(params, "meta")
+	var meta any = this.SafeValue(params, "meta", map[string]any{})
 	var exchangeSpecificParam *bool = this.SafeBool(meta, "post_only", false)
 	var isMarketOrder bool = (IsEqual(typeVar, "market"))
 	var postOnly bool = this.IsPostOnly(isMarketOrder, exchangeSpecificParam, params)
 	if !isMarketOrder {
-		request["price"] = this.PriceToPrecision(symbol, price)
+		AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
 	}
 	if triggerPrice != nil {
-		request["stop"] = this.PriceToPrecision(symbol, triggerPrice)
+		AddElementToObject(request, "stop", this.PriceToPrecision(symbol, triggerPrice))
 	}
 	if postOnly {
-		request["meta"] = map[string]any{
+		AddElementToObject(request, "meta", map[string]any{
 			"post_only": true,
-		}
+		})
 	}
 	params = this.Omit(params, []any{"postOnly", "timeInForce", "stopPrice", "triggerPrice", "stop"})
 
@@ -1751,7 +1746,7 @@ func (this *Hollaex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
 		retRes141412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes141412)
@@ -1801,10 +1796,10 @@ func (this *Hollaex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if symbol == nil {
-		panic(ArgumentsRequired(this.Id + " cancelAllOrders() requires a symbol argument"))
+	if IsEqual(symbol, nil) {
+		panic(ArgumentsRequired(Add(this.Id, " cancelAllOrders() requires a symbol argument")))
 	}
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
 		retRes145012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes145012)
@@ -1812,7 +1807,7 @@ func (this *Hollaex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	var market any = nil
 	market = this.Market(symbol)
-	request["symbol"] = GetValue(market, "id")
+	AddElementToObject(request, "symbol", GetValue(market, "id"))
 
 	response := (<-this.PrivateDeleteOrderAll(this.Extend(request, params)))
 	PanicOnError(response)
@@ -1863,22 +1858,22 @@ func (this *Hollaex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
 		retRes148812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes148812)
 	}
 	var request map[string]any = map[string]any{}
 	var market any = nil
-	if symbol != nil {
+	if !IsEqual(symbol, nil) {
 		market = this.Market(symbol)
-		request["symbol"] = GetValue(market, "id")
+		AddElementToObject(request, "symbol", GetValue(market, "id"))
 	}
-	if limit != nil {
-		request["limit"] = limit // default 50, max 100
+	if !IsEqual(limit, nil) {
+		AddElementToObject(request, "limit", limit) // default 50, max 100
 	}
-	if since != nil {
-		request["start_date"] = this.Iso8601(since)
+	if !IsEqual(since, nil) {
+		AddElementToObject(request, "start_date", this.Iso8601(since))
 	}
 
 	response := (<-this.PrivateGetUserTrades(this.Extend(request, params)))
@@ -1957,7 +1952,7 @@ func (this *Hollaex) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
 	_ = codes
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
 		retRes157212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes157212)
@@ -2012,13 +2007,8 @@ func (this *Hollaex) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
 	//         ]
 	//     }
 	//
-	var wallet any = this.SafeList(response, "wallet", []any{})
-	var addresses any = func() any {
-		if network == nil {
-			return wallet
-		}
-		return this.FilterBy(wallet, "network", network)
-	}()
+	var wallet any = this.SafeValue(response, "wallet", []any{})
+	var addresses any = Ternary((network == nil), wallet, this.FilterBy(wallet, "network", network))
 
 	ch <- this.ParseDepositAddresses(addresses, codes, false)
 	return nil
@@ -2051,22 +2041,22 @@ func (this *Hollaex) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
 		retRes164012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes164012)
 	}
 	var request map[string]any = map[string]any{}
 	var currency any = nil
-	if code != nil {
+	if !IsEqual(code, nil) {
 		currency = this.Currency(code)
-		request["currency"] = GetValue(currency, "id")
+		AddElementToObject(request, "currency", GetValue(currency, "id"))
 	}
-	if limit != nil {
-		request["limit"] = limit // default 50, max 100
+	if !IsEqual(limit, nil) {
+		AddElementToObject(request, "limit", limit) // default 50, max 100
 	}
-	if since != nil {
-		request["start_date"] = this.Iso8601(since)
+	if !IsEqual(since, nil) {
+		AddElementToObject(request, "start_date", this.Iso8601(since))
 	}
 
 	response := (<-this.PrivateGetUserDeposits(this.Extend(request, params)))
@@ -2122,7 +2112,7 @@ func (this *Hollaex) fetchWithdrawalBody(ch chan any, id any, optionalArgs ...an
 	_ = code
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
 		retRes170212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes170212)
@@ -2131,9 +2121,9 @@ func (this *Hollaex) fetchWithdrawalBody(ch chan any, id any, optionalArgs ...an
 		"transaction_id": id,
 	}
 	var currency any = nil
-	if code != nil {
+	if !IsEqual(code, nil) {
 		currency = this.Currency(code)
-		request["currency"] = GetValue(currency, "id")
+		AddElementToObject(request, "currency", GetValue(currency, "id"))
 	}
 
 	response := (<-this.PrivateGetUserWithdrawals(this.Extend(request, params)))
@@ -2161,7 +2151,7 @@ func (this *Hollaex) fetchWithdrawalBody(ch chan any, id any, optionalArgs ...an
 	//         ]
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
+	var data any = this.SafeValue(response, "data", []any{})
 	var transaction any = this.SafeDict(data, 0, map[string]any{})
 
 	ch <- this.ParseTransaction(transaction, currency)
@@ -2195,22 +2185,22 @@ func (this *Hollaex) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
 		retRes175412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes175412)
 	}
 	var request map[string]any = map[string]any{}
 	var currency any = nil
-	if code != nil {
+	if !IsEqual(code, nil) {
 		currency = this.Currency(code)
-		request["currency"] = GetValue(currency, "id")
+		AddElementToObject(request, "currency", GetValue(currency, "id"))
 	}
-	if limit != nil {
-		request["limit"] = limit // default 50, max 100
+	if !IsEqual(limit, nil) {
+		AddElementToObject(request, "limit", limit) // default 50, max 100
 	}
-	if since != nil {
-		request["start_date"] = this.Iso8601(since)
+	if !IsEqual(since, nil) {
+		AddElementToObject(request, "start_date", this.Iso8601(since))
 	}
 
 	response := (<-this.PrivateGetUserWithdrawals(this.Extend(request, params)))
@@ -2299,13 +2289,13 @@ func (this *Hollaex) ParseTransaction(transaction any, optionalArgs ...any) any 
 	var currencyId *string = this.SafeString(transaction, "currency")
 	currency = this.SafeCurrency(currencyId, currency)
 	var status any = this.SafeValue(transaction, "status")
-	var dismissed *bool = this.SafeBool(transaction, "dismissed")
-	var rejected *bool = this.SafeBool(transaction, "rejected")
-	if status == true {
+	var dismissed any = this.SafeValue(transaction, "dismissed")
+	var rejected any = this.SafeValue(transaction, "rejected")
+	if IsEqual(status, true) {
 		status = "ok"
-	} else if dismissed != nil && *dismissed == true {
+	} else if IsEqual(dismissed, true) {
 		status = "canceled"
-	} else if rejected != nil && *rejected == true {
+	} else if IsEqual(rejected, true) {
 		status = "failed"
 	} else {
 		status = "pending"
@@ -2372,22 +2362,22 @@ func (this *Hollaex) withdrawBody(ch chan any, code any, amount any, address any
 	tag = GetValue(tagparamsVariable, 0)
 	params = GetValue(tagparamsVariable, 1)
 	this.CheckAddress(address)
-	if this.Markets == nil {
+	if IsEqual(this.Markets, nil) {
 
 		retRes191912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes191912)
 	}
-	var currency map[string]any = MapTyped(this.Currency(code))
-	if tag != nil {
+	var currency any = this.Currency(code)
+	if !IsEqual(tag, nil) {
 		address = Add(address, Add(":", tag))
 	}
 	var network *string = this.SafeString(params, "network")
 	if network == nil {
-		panic(ArgumentsRequired(this.Id + " withdraw() requires a network parameter"))
+		panic(ArgumentsRequired(Add(this.Id, " withdraw() requires a network parameter")))
 	}
 	params = this.Omit(params, "network")
 	var request map[string]any = map[string]any{
-		"currency": currency["id"],
+		"currency": GetValue(currency, "id"),
 		"amount":   amount,
 		"address":  address,
 		"network":  this.NetworkCodeToId(network, code),
@@ -2454,29 +2444,29 @@ func (this *Hollaex) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 		},
 		"networks": map[string]any{},
 	}
-	var allowWithdrawal *bool = this.SafeBool(fee, "allow_withdrawal")
-	if allowWithdrawal != nil && *allowWithdrawal == true {
-		result["withdraw"] = map[string]any{
+	var allowWithdrawal any = this.SafeValue(fee, "allow_withdrawal")
+	if IsEqual(allowWithdrawal, true) {
+		AddElementToObject(result, "withdraw", map[string]any{
 			"fee":        this.SafeNumber(fee, "withdrawal_fee"),
 			"percentage": false,
-		}
+		})
 	}
-	var withdrawalFees any = this.SafeDict(fee, "withdrawal_fees")
+	var withdrawalFees any = this.SafeValue(fee, "withdrawal_fees")
 	if !IsEqual(withdrawalFees, nil) {
 		var keys []string = ObjectKeys(withdrawalFees)
-		var keysLength int = len(keys)
-		for i := 0; i < keysLength; i++ {
+		var keysLength int = GetArrayLength(keys)
+		for i := 0; IsLessThan(i, keysLength); i++ {
 			var key any = GetValue(keys, i)
 			var value any = GetValue(withdrawalFees, key)
 			var currencyId *string = this.SafeString(value, "symbol")
 			var currencyCode *string = this.SafeCurrencyCode(currencyId)
 			var networkCode any = this.NetworkIdToCode(key, currencyCode)
-			if networkCode == nil {
-				panic(ArgumentsRequired(this.Id + " requires a networkCode argument"))
+			if IsEqual(networkCode, nil) {
+				panic(ArgumentsRequired(Add(this.Id, " requires a networkCode argument")))
 			}
 			var networkCodeUpper string = ToUpper(networkCode) // default to the upper case network code
 			var withdrawalFee *float64 = this.SafeNumber(value, "value")
-			AddElementToObject(result["networks"], networkCodeUpper, map[string]any{
+			AddElementToObject(GetValue(result, "networks"), networkCodeUpper, map[string]any{
 				"deposit":  nil,
 				"withdraw": withdrawalFee,
 			})
@@ -2561,10 +2551,10 @@ func (this *Hollaex) Sign(path any, optionalArgs ...any) any {
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
 	var query any = this.Omit(params, this.ExtractParams(path))
-	path = Add("/"+this.Version+"/", this.ImplodeParams(path, params))
+	path = Add(Add(Add("/", this.Version), "/"), this.ImplodeParams(path, params))
 	if (IsEqual(method, "GET")) || (IsEqual(method, "DELETE")) {
-		if len(ObjectKeys(query)) > 0 {
-			path = Add(path, "?"+this.Urlencode(query))
+		if IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0) {
+			path = Add(path, Add("?", this.Urlencode(query)))
 		}
 	}
 	var url any = Add(GetValue(GetValue(this.Urls, "api"), "rest"), path)
@@ -2580,7 +2570,7 @@ func (this *Hollaex) Sign(path any, optionalArgs ...any) any {
 		}
 		if IsEqual(method, "POST") {
 			AddElementToObject(headers, "Content-type", "application/json")
-			if len(ObjectKeys(query)) > 0 {
+			if IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0) {
 				body = this.Json(query)
 				auth = Add(auth, body)
 			}
@@ -2610,11 +2600,11 @@ func (this *Hollaex) HandleErrors(code any, reason any, url any, method any, hea
 		//
 		//  { "message":"Error 1001 - POST ONLY order can not be of type market" }
 		//
-		var feedback any = Add(this.Id+" ", body)
+		var feedback any = Add(Add(this.Id, " "), body)
 		var message *string = this.SafeString(response, "message")
-		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
+		this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), message, feedback)
 		var status string = ToString(code)
-		this.ThrowExactlyMatchedException(this.Exceptions["exact"], status, feedback)
+		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), status, feedback)
 	}
 	return nil
 }

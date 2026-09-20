@@ -8,7 +8,6 @@ import tests.exchange.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -24,7 +23,7 @@ public class TestWatchBidsAsks extends BaseTest {
 
         Object withoutSymbol = testWatchBidsAsksHelper(exchange, skippedProperties, null);
         Object withSymbol = testWatchBidsAsksHelper(exchange, skippedProperties, new ArrayList<Object>(Arrays.asList(symbol)));
-        (CompletableFuture.allOf(((CompletableFuture<?>) withSymbol), ((CompletableFuture<?>) withoutSymbol))).join();
+        (Helpers.promiseAll(new ArrayList<Object>(Arrays.asList(withSymbol, withoutSymbol)))).join();
             return null;
         });
 
@@ -34,13 +33,13 @@ public class TestWatchBidsAsks extends BaseTest {
         final Object argSymbols3 = argSymbols2;
         return BaseExchange.supplyAsync(() -> {
             Object argSymbols = argSymbols3;
-        Object argParams = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+        Object argParams = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
         String method = "watchBidsAsks";
         Object now = exchange.milliseconds();
         Object ends = Helpers.add(now, 15000);
         Integer maxIdleTime = 5000;
         Boolean idle = false;
-        while ((Helpers.isLessThan(now, ends)) && !Boolean.TRUE.equals(idle))
+        while (Helpers.isTrue((Helpers.isLessThan(now, ends))) && !Helpers.isTrue(idle))
         {
             Boolean success = true;
             Boolean shouldReturn = false;
@@ -54,7 +53,7 @@ public class TestWatchBidsAsks extends BaseTest {
                 // for some exchanges, multi symbol methods might require symbols array to be present, so
                 // so, if method throws "arguments-required" exception, we don't fail test, but just skip silently,
                 // because tests will make a second call of this method with symbols array
-                if ((Helpers.isInstance(e, ArgumentsRequired.class)) && (java.util.Objects.equals(argSymbols, null) || (((List<?>)argSymbols).size() == 0)))
+                if (Helpers.isTrue(Helpers.isTrue((Helpers.isInstance(e, ArgumentsRequired.class))) && Helpers.isTrue((Helpers.isTrue(Helpers.isEqual(argSymbols, null)) || Helpers.isTrue(Helpers.isEqual(Helpers.getArrayLength(argSymbols), 0))))))
                 {
                     // todo: provide random symbols to try
                     // return false;
@@ -66,26 +65,26 @@ public class TestWatchBidsAsks extends BaseTest {
                 success = false;
             }
             now = exchange.milliseconds();
-            if (Boolean.TRUE.equals(shouldReturn))
+            if (Helpers.isTrue(shouldReturn))
             {
                 return false;
             }
-            if (java.util.Objects.equals(success, true))
+            if (Helpers.isTrue(Helpers.isEqual(success, true)))
             {
-                Assert(exchange.isDictionary(response), ((((((exchange.id + " ") + method) + " ") + exchange.json(argSymbols)) + " must return a dictionary. ") + exchange.json(response)));
+                Assert(exchange.isDictionary(response), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), exchange.json(argSymbols)), " must return a dictionary. "), exchange.json(response)));
                 Object values = Helpers.objectValues(response);
                 Object checkedSymbol = null;
-                if (!java.util.Objects.equals(argSymbols, null) && (((List<?>)argSymbols).size() == 1))
+                if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(argSymbols, null)) && Helpers.isTrue(Helpers.isEqual(Helpers.getArrayLength(argSymbols), 1))))
                 {
-                    checkedSymbol = (argSymbols == null || 0 >= ((List<?>)argSymbols).size() ? null : ((List<?>)argSymbols).get(0));
+                    checkedSymbol = Helpers.GetValue(argSymbols, 0);
                 }
                 TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol);
-                for (var i = 0; i < ((List<?>)values).size(); i++)
+                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(values)); i++)
                 {
-                    Object ticker = (values == null || i < 0 || i >= ((List<?>)values).size() ? null : ((List<?>)values).get(i));
+                    Object ticker = Helpers.GetValue(values, i);
                     TestTicker.testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);
                 }
-                if (Helpers.isGreaterThan((Helpers.subtract(now, startTime)), maxIdleTime))
+                if (Helpers.isTrue(Helpers.isGreaterThan((Helpers.subtract(now, startTime)), maxIdleTime)))
                 {
                     idle = true;
                 }

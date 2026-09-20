@@ -18,7 +18,7 @@ func testFetchBorrowInterestBody(ch chan any, exchange ccxt.ICoreExchange, skipp
 	borrowInterest := (<-exchange.FetchBorrowInterestAsync(code, symbol))
 	PanicOnError(borrowInterest)
 	AssertNonEmtpyArray(exchange, skippedProperties, method, borrowInterest, code)
-	for i := 0; i < GetArrayLength(borrowInterest); i++ {
+	for i := 0; IsLessThan(i, GetArrayLength(borrowInterest)); i++ {
 		TestBorrowInterest(exchange, skippedProperties, method, GetValue(borrowInterest, i), code, symbol)
 	}
 

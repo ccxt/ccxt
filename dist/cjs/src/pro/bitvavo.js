@@ -319,7 +319,7 @@ class bitvavo extends bitvavo$1["default"] {
         const message = this.extend(request, params);
         const trades = await this.watchMultiple(url, messageHashes, message, messageHashes);
         if (this.newUpdates) {
-            const first = this.safeDict(trades, 0);
+            const first = this.safeValue(trades, 0);
             const tradeSymbol = this.safeString(first, 'symbol');
             limit = trades.getLimit(tradeSymbol, limit);
         }
@@ -419,7 +419,7 @@ class bitvavo extends bitvavo$1["default"] {
         //        ]
         //    }
         //
-        const response = this.safeList(message, 'response');
+        const response = this.safeValue(message, 'response');
         const ohlcv = this.parseOHLCVs(response, undefined, undefined, undefined);
         const messageHash = this.safeString(message, 'requestId');
         client.resolve(ohlcv, messageHash);
@@ -450,7 +450,7 @@ class bitvavo extends bitvavo$1["default"] {
         // use a reverse lookup in a static map instead
         const timeframe = this.findTimeframe(interval);
         const messageHash = name + '@' + marketId + '_' + interval;
-        const candles = this.safeList(message, 'candle', []);
+        const candles = this.safeValue(message, 'candle');
         this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
         let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
@@ -736,8 +736,8 @@ class bitvavo extends bitvavo$1["default"] {
         //
         const nonce = this.safeInteger(message, 'nonce');
         if (nonce > orderbook['nonce']) {
-            this.handleDeltas(orderbook['asks'], this.safeList(message, 'asks', []));
-            this.handleDeltas(orderbook['bids'], this.safeList(message, 'bids', []));
+            this.handleDeltas(orderbook['asks'], this.safeValue(message, 'asks', []));
+            this.handleDeltas(orderbook['bids'], this.safeValue(message, 'bids', []));
             orderbook['nonce'] = nonce;
         }
         return orderbook;
@@ -770,11 +770,11 @@ class bitvavo extends bitvavo$1["default"] {
             // multi-symbol watches share one subscription object, so the
             // snapshot-in-flight flag must be tracked per market
             const flagKey = 'watchingOrderBookSnapshot@' + marketId;
-            const watchingOrderBookSnapshot = this.safeBool(subscription, flagKey);
+            const watchingOrderBookSnapshot = this.safeValue(subscription, flagKey);
             if (watchingOrderBookSnapshot === undefined) {
                 subscription[flagKey] = true;
                 client.subscriptions[messageHash] = subscription;
-                const options = this.safeDict(this.options, 'watchOrderBookSnapshot', {});
+                const options = this.safeValue(this.options, 'watchOrderBookSnapshot', {});
                 const delay = this.safeInteger(options, 'delay', this.rateLimit);
                 // fetch the snapshot in a separate async call after a warmup delay
                 this.delay(delay, this.watchOrderBookSnapshot, client, message, subscription);
@@ -787,7 +787,7 @@ class bitvavo extends bitvavo$1["default"] {
         }
     }
     async watchOrderBookSnapshot(client, message, subscription) {
-        const params = this.safeDict(subscription, 'params');
+        const params = this.safeValue(subscription, 'params');
         // multi-symbol watches share one subscription object without a marketId,
         // in that case the buffered delta message identifies the market
         const marketId = this.safeString2(subscription, 'marketId', 'market', this.safeString(message, 'market'));
@@ -827,7 +827,7 @@ class bitvavo extends bitvavo$1["default"] {
         //         }
         //     }
         //
-        const response = this.safeDict(message, 'response');
+        const response = this.safeValue(message, 'response');
         if (response === undefined) {
             return;
         }
@@ -1314,7 +1314,7 @@ class bitvavo extends bitvavo$1["default"] {
         // const action = this.safeString (message, 'action');
         // const messageHash = this.buildMessageHash (action, message);
         const messageHash = this.safeString(message, 'requestId');
-        const response = this.safeDict(message, 'response', {});
+        const response = this.safeValue(message, 'response');
         const withdraw = this.parseTransaction(response);
         client.resolve(withdraw, messageHash);
     }
@@ -1418,7 +1418,7 @@ class bitvavo extends bitvavo$1["default"] {
         //        ]
         //    }
         //
-        const response = this.safeList(message, 'response', []);
+        const response = this.safeValue(message, 'response');
         const deposits = this.parseTransactions(response, undefined, undefined, undefined, { 'type': 'deposit' });
         const messageHash = this.safeString(message, 'requestId');
         client.resolve(deposits, messageHash);
@@ -1485,7 +1485,7 @@ class bitvavo extends bitvavo$1["default"] {
         //    }
         //
         const messageHash = this.safeString(message, 'requestId');
-        const response = this.safeList(message, 'response');
+        const response = this.safeValue(message, 'response');
         const currencies = this.parseCurrencies(response);
         client.resolve(currencies, messageHash);
     }
@@ -1503,7 +1503,7 @@ class bitvavo extends bitvavo$1["default"] {
         //    }
         //
         const messageHash = this.safeString(message, 'requestId');
-        const response = this.safeDict(message, 'response');
+        const response = this.safeValue(message, 'response');
         const fees = this.parseTradingFees(response);
         client.resolve(fees, messageHash);
     }
@@ -1536,7 +1536,7 @@ class bitvavo extends bitvavo$1["default"] {
         //    }
         //
         const messageHash = this.safeString(message, 'requestId');
-        const response = this.safeList(message, 'response', []);
+        const response = this.safeValue(message, 'response', []);
         const balance = this.parseBalance(response);
         client.resolve(balance, messageHash);
     }
@@ -1569,7 +1569,7 @@ class bitvavo extends bitvavo$1["default"] {
         //        }
         //    }
         //
-        const response = this.safeDict(message, 'response', {});
+        const response = this.safeValue(message, 'response', {});
         const order = this.parseOrder(response);
         const messageHash = this.safeString(message, 'requestId');
         client.resolve(order, messageHash);
@@ -1594,7 +1594,7 @@ class bitvavo extends bitvavo$1["default"] {
         //        ]
         //    }
         //
-        const response = this.safeList(message, 'response', []);
+        const response = this.safeValue(message, 'response', {});
         const markets = this.parseMarkets(response);
         const messageHash = this.safeString(message, 'requestId');
         client.resolve(markets, messageHash);

@@ -16,12 +16,12 @@ pub fn testAccount(mut exchange: Value, mut skippedProperties: Value, mut method
     let mut m = indexmap::IndexMap::new();
     m
 }));
-            m.insert("code".to_string(), Value::Str("BTC".into()));
-            m.insert("type".to_string(), Value::Str("spot".into()));
-            m.insert("id".to_string(), Value::Str("12345".into()));
+            m.insert("code".to_string(), Value::Str("BTC".to_string()));
+            m.insert("type".to_string(), Value::Str("spot".to_string()));
+            m.insert("id".to_string(), Value::Str("12345".to_string()));
         m
     });
-    let mut emptyAllowedFor: Value = Value::from(vec![Value::Str("code".into()), Value::Str("id".into())]);
+    let mut emptyAllowedFor: Value = Value::List(vec![Value::Str("code".to_string()), Value::Str("id".to_string())]);
     crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format.clone(), emptyAllowedFor.clone()]);
-    crate::tests_support::shared::assert_currency_code(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), entry.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null).clone()]);
+    crate::tests_support::shared::assert_currency_code(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), get_value(&entry, &Value::Str("code".to_string())).clone()]);
 }

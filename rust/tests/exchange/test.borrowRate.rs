@@ -16,18 +16,18 @@ pub fn testBorrowRate(mut exchange: Value, mut skippedProperties: Value, mut met
     let mut m = indexmap::IndexMap::new();
     m
 }));
-            m.insert("currency".to_string(), Value::Str("USDT".into()));
+            m.insert("currency".to_string(), Value::Str("USDT".to_string()));
             m.insert("timestamp".to_string(), Value::Int(1638230400000));
-            m.insert("datetime".to_string(), Value::Str("2021-11-30T00:00:00.000Z".into()));
-            m.insert("rate".to_string(), exchange.parse_number(Value::Str("0.0006".into()), &[]));
+            m.insert("datetime".to_string(), Value::Str("2021-11-30T00:00:00.000Z".to_string()));
+            m.insert("rate".to_string(), exchange.parse_number(Value::Str("0.0006".to_string()), &[]));
             m.insert("period".to_string(), Value::Int(86400000));
         m
     });
     crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format.clone()]);
     crate::tests_support::shared::assert_timestamp_and_datetime(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone()]);
-    crate::tests_support::shared::assert_currency_code(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), entry.as_map().and_then(|__m| __m.get("currency")).cloned().unwrap_or(Value::Null).clone(), requestedCode.clone()]);
+    crate::tests_support::shared::assert_currency_code(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), get_value(&entry, &Value::Str("currency".to_string())).clone(), requestedCode.clone()]);
     //
     // assert!(ccxt::runtime::is_true(&(borrowRate['period'] === 86400000 || borrowRate['period'] === 3600000))) // Milliseconds in an hour or a day
-    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("period".into()).clone(), Value::Str("0".into()).clone()]);
-    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("rate".into()).clone(), Value::Str("0".into()).clone()]);
+    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("period".to_string()).clone(), Value::Str("0".to_string()).clone()]);
+    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("rate".to_string()).clone(), Value::Str("0".to_string()).clone()]);
 }

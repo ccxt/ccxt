@@ -196,13 +196,13 @@ impl BybiteuCore {
         let mut restInstance = crate::exchanges::bybiteu::BybiteuCore::new(None);
         let mut restDescribe: Value = restInstance.describe();
         let mut parentWsDescribe: Value = self.parent.describe_data();
-        let mut extended: Value = self.deep_extend(restDescribe, &[parentWsDescribe]);
-        return self.deep_extend(extended, &[Value::Map({
+        let mut extended: Value = self.deep_extend(restDescribe.clone(), &[parentWsDescribe.clone()]);
+        return self.deep_extend(extended.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str("bybiteu".into()));
-        m.insert("name".to_string(), Value::Str("Bybit EU".into()));
-        m.insert("countries".to_string(), Value::from(vec![Value::Str("EU".into())]));
-        m.insert("hostname".to_string(), Value::Str("bybit.eu".into()));
+        m.insert("id".to_string(), Value::Str("bybiteu".to_string()));
+        m.insert("name".to_string(), Value::Str("Bybit EU".to_string()));
+        m.insert("countries".to_string(), Value::List(vec![Value::Str("EU".to_string())]));
+        m.insert("hostname".to_string(), Value::Str("bybit.eu".to_string()));
         m.insert("certified".to_string(), Value::Bool(false));
         m.insert("urls".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -212,23 +212,23 @@ impl BybiteuCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("public".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("spot".to_string(), Value::Str("wss://stream.{hostname}/v5/public/spot".into()));
-        m.insert("inverse".to_string(), Value::Str("wss://stream.{hostname}/v5/public/inverse".into()));
-        m.insert("option".to_string(), Value::Str("wss://stream.{hostname}/v5/public/option".into()));
-        m.insert("linear".to_string(), Value::Str("wss://stream.{hostname}/v5/public/linear".into()));
+        m.insert("spot".to_string(), Value::Str("wss://stream.{hostname}/v5/public/spot".to_string()));
+        m.insert("inverse".to_string(), Value::Str("wss://stream.{hostname}/v5/public/inverse".to_string()));
+        m.insert("option".to_string(), Value::Str("wss://stream.{hostname}/v5/public/option".to_string()));
+        m.insert("linear".to_string(), Value::Str("wss://stream.{hostname}/v5/public/linear".to_string()));
     m
 }));
         m.insert("private".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("spot".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("unified".to_string(), Value::Str("wss://stream.{hostname}/v5/private".into()));
-        m.insert("nonUnified".to_string(), Value::Str("wss://stream.{hostname}/spot/private/v3".into()));
+        m.insert("unified".to_string(), Value::Str("wss://stream.{hostname}/v5/private".to_string()));
+        m.insert("nonUnified".to_string(), Value::Str("wss://stream.{hostname}/spot/private/v3".to_string()));
     m
 }));
-        m.insert("contract".to_string(), Value::Str("wss://stream.{hostname}/v5/private".into()));
-        m.insert("usdc".to_string(), Value::Str("wss://stream.{hostname}/trade/option/usdc/private/v1".into()));
-        m.insert("trade".to_string(), Value::Str("wss://stream.bybit.eu/v5/trade".into()));
+        m.insert("contract".to_string(), Value::Str("wss://stream.{hostname}/v5/private".to_string()));
+        m.insert("usdc".to_string(), Value::Str("wss://stream.{hostname}/trade/option/usdc/private/v1".to_string()));
+        m.insert("trade".to_string(), Value::Str("wss://stream.bybit.eu/v5/trade".to_string()));
     m
 }));
     m
@@ -241,23 +241,23 @@ impl BybiteuCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("public".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("spot".to_string(), Value::Str("wss://stream-testnet.{hostname}/v5/public/spot".into()));
-        m.insert("inverse".to_string(), Value::Str("wss://stream-testnet.{hostname}/v5/public/inverse".into()));
-        m.insert("linear".to_string(), Value::Str("wss://stream-testnet.{hostname}/v5/public/linear".into()));
-        m.insert("option".to_string(), Value::Str("wss://stream-testnet.{hostname}/v5/public/option".into()));
+        m.insert("spot".to_string(), Value::Str("wss://stream-testnet.{hostname}/v5/public/spot".to_string()));
+        m.insert("inverse".to_string(), Value::Str("wss://stream-testnet.{hostname}/v5/public/inverse".to_string()));
+        m.insert("linear".to_string(), Value::Str("wss://stream-testnet.{hostname}/v5/public/linear".to_string()));
+        m.insert("option".to_string(), Value::Str("wss://stream-testnet.{hostname}/v5/public/option".to_string()));
     m
 }));
         m.insert("private".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("spot".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("unified".to_string(), Value::Str("wss://stream-testnet.{hostname}/v5/private".into()));
-        m.insert("nonUnified".to_string(), Value::Str("wss://stream-testnet.{hostname}/spot/private/v3".into()));
+        m.insert("unified".to_string(), Value::Str("wss://stream-testnet.{hostname}/v5/private".to_string()));
+        m.insert("nonUnified".to_string(), Value::Str("wss://stream-testnet.{hostname}/spot/private/v3".to_string()));
     m
 }));
-        m.insert("contract".to_string(), Value::Str("wss://stream-testnet.{hostname}/v5/private".into()));
-        m.insert("usdc".to_string(), Value::Str("wss://stream-testnet.{hostname}/trade/option/usdc/private/v1".into()));
-        m.insert("trade".to_string(), Value::Str("wss://stream-testnet.bybit.eu/v5/trade".into()));
+        m.insert("contract".to_string(), Value::Str("wss://stream-testnet.{hostname}/v5/private".to_string()));
+        m.insert("usdc".to_string(), Value::Str("wss://stream-testnet.{hostname}/trade/option/usdc/private/v1".to_string()));
+        m.insert("trade".to_string(), Value::Str("wss://stream-testnet.bybit.eu/v5/trade".to_string()));
     m
 }));
     m
@@ -270,23 +270,23 @@ impl BybiteuCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("public".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("spot".to_string(), Value::Str("wss://stream.{hostname}/v5/public/spot".into()));
-        m.insert("inverse".to_string(), Value::Str("wss://stream.{hostname}/v5/public/inverse".into()));
-        m.insert("option".to_string(), Value::Str("wss://stream.{hostname}/v5/public/option".into()));
-        m.insert("linear".to_string(), Value::Str("wss://stream.{hostname}/v5/public/linear".into()));
+        m.insert("spot".to_string(), Value::Str("wss://stream.{hostname}/v5/public/spot".to_string()));
+        m.insert("inverse".to_string(), Value::Str("wss://stream.{hostname}/v5/public/inverse".to_string()));
+        m.insert("option".to_string(), Value::Str("wss://stream.{hostname}/v5/public/option".to_string()));
+        m.insert("linear".to_string(), Value::Str("wss://stream.{hostname}/v5/public/linear".to_string()));
     m
 }));
         m.insert("private".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("spot".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("unified".to_string(), Value::Str("wss://stream-demo.{hostname}/v5/private".into()));
-        m.insert("nonUnified".to_string(), Value::Str("wss://stream-demo.{hostname}/spot/private/v3".into()));
+        m.insert("unified".to_string(), Value::Str("wss://stream-demo.{hostname}/v5/private".to_string()));
+        m.insert("nonUnified".to_string(), Value::Str("wss://stream-demo.{hostname}/spot/private/v3".to_string()));
     m
 }));
-        m.insert("contract".to_string(), Value::Str("wss://stream-demo.{hostname}/v5/private".into()));
-        m.insert("usdc".to_string(), Value::Str("wss://stream-demo.{hostname}/trade/option/usdc/private/v1".into()));
-        m.insert("trade".to_string(), Value::Str("wss://stream-demo.bybit.eu/v5/trade".into()));
+        m.insert("contract".to_string(), Value::Str("wss://stream-demo.{hostname}/v5/private".to_string()));
+        m.insert("usdc".to_string(), Value::Str("wss://stream-demo.{hostname}/trade/option/usdc/private/v1".to_string()));
+        m.insert("trade".to_string(), Value::Str("wss://stream-demo.bybit.eu/v5/trade".to_string()));
     m
 }));
     m

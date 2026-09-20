@@ -820,9 +820,9 @@ class coinsph extends coinsph$1["default"] {
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
             const limits = this.indexBy(this.safeList(market, 'filters', []), 'filterType');
-            const amountLimits = this.safeDict(limits, 'LOT_SIZE', {});
-            const priceLimits = this.safeDict(limits, 'PRICE_FILTER', {});
-            const costLimits = this.safeDict(limits, 'NOTIONAL', {});
+            const amountLimits = this.safeValue(limits, 'LOT_SIZE', {});
+            const priceLimits = this.safeValue(limits, 'PRICE_FILTER', {});
+            const costLimits = this.safeValue(limits, 'NOTIONAL', {});
             result.push({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -1420,7 +1420,7 @@ class coinsph extends coinsph$1["default"] {
             'type': orderType,
             'side': orderSide,
         };
-        const options = this.safeDict(this.options, 'createOrder', {});
+        const options = this.safeValue(this.options, 'createOrder', {});
         let newOrderRespType = this.safeValue(options, 'newOrderRespType', {});
         // if limit order
         if (orderType === 'LIMIT' || orderType === 'STOP_LOSS_LIMIT' || orderType === 'TAKE_PROFIT_LIMIT' || orderType === 'LIMIT_MAKER') {
@@ -1923,7 +1923,7 @@ class coinsph extends coinsph$1["default"] {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
-        const options = this.safeDict(this.options, 'withdraw');
+        const options = this.safeValue(this.options, 'withdraw');
         const warning = this.safeBool(options, 'warning', true);
         if (warning === true) {
             throw new errors.InvalidAddress(this.id + " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account");

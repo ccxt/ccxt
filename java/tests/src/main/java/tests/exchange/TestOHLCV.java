@@ -22,14 +22,14 @@ public class TestOHLCV extends BaseTest {
         TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, method, entry, now, 0);
         Object logText = TestSharedMethods.logTemplate(exchange, method, entry);
         //
-        Assert(((List<?>)entry).size() >= 6, ("ohlcv array length should be >= 6;" + logText));
-        if (!(Helpers.inOp(skippedProperties, "roundTimestamp")))
+        Assert(Helpers.isGreaterThanOrEqual(Helpers.getArrayLength(entry), 6), Helpers.add("ohlcv array length should be >= 6;", logText));
+        if (!Helpers.isTrue((Helpers.inOp(skippedProperties, "roundTimestamp"))))
         {
             TestSharedMethods.AssertRoundMinuteTimestamp(exchange, skippedProperties, method, entry, 0);
         }
         String high = exchange.safeString(entry, 2);
         String low = exchange.safeString(entry, 3);
-        if (Helpers.inOp(skippedProperties, "compareOHLCV"))
+        if (Helpers.isTrue(Helpers.inOp(skippedProperties, "compareOHLCV")))
         {
             return;
         }
@@ -37,7 +37,7 @@ public class TestOHLCV extends BaseTest {
         TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "1", low);
         TestSharedMethods.AssertLessOrEqual(exchange, skippedProperties, method, entry, "4", high);
         TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "4", low);
-        Assert((java.util.Objects.equals(symbol, null)) || ((symbol instanceof String)), ((("symbol " + symbol) + " is incorrect") + logText)); // todo: check with standard symbol check
+        Assert(Helpers.isTrue((Helpers.isEqual(symbol, null))) || Helpers.isTrue(((symbol instanceof String))), Helpers.add(Helpers.add(Helpers.add("symbol ", symbol), " is incorrect"), logText)); // todo: check with standard symbol check
     }
 
 }

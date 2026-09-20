@@ -1426,7 +1426,7 @@ class luno extends luno$1["default"] {
             }
             currency = this.currency(code);
             const accountsByCurrencyCode = this.indexBy(this.accounts, 'currency');
-            const account = this.safeDict(accountsByCurrencyCode, code);
+            const account = this.safeValue(accountsByCurrencyCode, code);
             if (account === undefined) {
                 throw new errors.ExchangeError(this.id + ' fetchLedger() could not find account id for ' + code);
             }
@@ -1456,7 +1456,7 @@ class luno extends luno$1["default"] {
             'max_row': max_row,
         };
         const response = await this.privateGetAccountsIdTransactions(this.extend(params, request));
-        const entries = this.safeList(response, 'transactions', []);
+        const entries = this.safeValue(response, 'transactions', []);
         return this.parseLedger(entries, currency, since, limit);
     }
     parseLedgerComment(comment) {

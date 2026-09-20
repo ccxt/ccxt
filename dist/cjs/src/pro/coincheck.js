@@ -91,7 +91,7 @@ class coincheck extends coincheck$1["default"] {
         //     ]
         //
         const symbol = this.symbol(this.safeString(message, 0));
-        const data = this.safeDict(message, 1, {});
+        const data = this.safeValue(message, 1, {});
         const timestamp = this.safeTimestamp(data, 'last_update_at');
         const snapshot = this.parseOrderBook(data, symbol, timestamp);
         let orderbook = this.safeValue(this.orderbooks, symbol);
@@ -151,7 +151,7 @@ class coincheck extends coincheck$1["default"] {
         //         ]
         //     ]
         //
-        const first = this.safeList(message, 0, []);
+        const first = this.safeValue(message, 0, []);
         const symbol = this.symbol(this.safeString(first, 2));
         let stored = this.safeValue(this.trades, symbol);
         if (stored === undefined) {

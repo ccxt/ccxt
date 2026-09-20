@@ -622,7 +622,7 @@ class ndax extends ndax$1["default"] {
         const base = this.safeCurrencyCode(this.safeString(market, 'Product1Symbol'));
         const quote = this.safeCurrencyCode(this.safeString(market, 'Product2Symbol'));
         const sessionStatus = this.safeString(market, 'SessionStatus');
-        const isDisable = this.safeBool(market, 'IsDisable');
+        const isDisable = this.safeValue(market, 'IsDisable');
         const sessionRunning = (sessionStatus === 'Running');
         return this.safeMarketStructure({
             'id': id,
@@ -2478,7 +2478,7 @@ class ndax extends ndax$1["default"] {
                 'Confirmed2Fa': 'pending', // user has confirmed withdraw via 2-factor authentication.
             },
         };
-        const statuses = (type === undefined) ? {} : this.safeDict(statusesByType, type, {});
+        const statuses = (type === undefined) ? {} : this.safeValue(statusesByType, type, {});
         if (status === undefined) {
             return undefined;
         }
@@ -2632,8 +2632,8 @@ class ndax extends ndax$1["default"] {
         //         ]
         //     }
         //
-        const templateTypes = this.safeList(withdrawTemplateTypesResponse, 'TemplateTypes', []);
-        const firstTemplateType = this.safeDict(templateTypes, 0);
+        const templateTypes = this.safeValue(withdrawTemplateTypesResponse, 'TemplateTypes', []);
+        const firstTemplateType = this.safeValue(templateTypes, 0);
         if (firstTemplateType === undefined) {
             throw new errors.ExchangeError(this.id + ' withdraw() could not find a withdraw template type for ' + currency['code']);
         }

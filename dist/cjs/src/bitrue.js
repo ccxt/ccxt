@@ -856,7 +856,7 @@ class bitrue extends bitrue$1["default"] {
             }
         }
         const promises = await Promise.all(promisesRaw);
-        const spotMarkets = this.safeList(this.safeDict(promises, 0), 'symbols', []);
+        const spotMarkets = this.safeValue(this.safeValue(promises, 0), 'symbols', []);
         const futureMarkets = this.safeValue(promises, 1);
         const deliveryMarkets = this.safeValue(promises, 2);
         let markets = spotMarkets;
@@ -2124,7 +2124,7 @@ class bitrue extends bitrue$1["default"] {
                 request['volume'] = this.parseToNumeric(amount);
             }
             request['positionType'] = 1;
-            const reduceOnly = this.safeBool2(params, 'reduceOnly', 'reduce_only');
+            const reduceOnly = this.safeValue2(params, 'reduceOnly', 'reduce_only');
             request['open'] = (reduceOnly === true) ? 'CLOSE' : 'OPEN';
             const leverage = this.safeString(params, 'leverage', '1');
             request['leverage'] = this.parseToNumeric(leverage);
@@ -2149,7 +2149,7 @@ class bitrue extends bitrue$1["default"] {
                 params = this.omit(params, ['newClientOrderId', 'clientOrderId']);
                 request['newClientOrderId'] = clientOrderId;
             }
-            const triggerPrice = this.safeNumber2(params, 'triggerPrice', 'stopPrice');
+            const triggerPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
             if (triggerPrice !== undefined) {
                 params = this.omit(params, ['triggerPrice', 'stopPrice']);
                 request['stopPrice'] = this.priceToPrecision(symbol, triggerPrice);
@@ -2202,7 +2202,7 @@ class bitrue extends bitrue$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const origClientOrderId = this.safeString2(params, 'origClientOrderId', 'clientOrderId');
+        const origClientOrderId = this.safeValue2(params, 'origClientOrderId', 'clientOrderId');
         params = this.omit(params, ['origClientOrderId', 'clientOrderId']);
         let response = undefined;
         let data = {};
@@ -2451,7 +2451,7 @@ class bitrue extends bitrue$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const origClientOrderId = this.safeString2(params, 'origClientOrderId', 'clientOrderId');
+        const origClientOrderId = this.safeValue2(params, 'origClientOrderId', 'clientOrderId');
         params = this.omit(params, ['origClientOrderId', 'clientOrderId']);
         let response = undefined;
         let data = {};
@@ -3435,7 +3435,7 @@ class bitrue extends bitrue$1["default"] {
                 }
             }
         }
-        return this.safeNumber(config, 'cost', 1);
+        return this.safeValue(config, 'cost', 1);
     }
 }
 

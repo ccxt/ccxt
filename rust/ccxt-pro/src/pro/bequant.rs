@@ -196,32 +196,32 @@ impl BequantCore {
         let mut restInstance = crate::exchanges::bequant::BequantCore::new(None);
         let mut restDescribe: Value = restInstance.describe();
         let mut parentWsDescribe: Value = self.parent.describe_data();
-        let mut extended: Value = self.deep_extend(restDescribe, &[parentWsDescribe]);
-        return self.deep_extend(extended, &[Value::Map({
+        let mut extended: Value = self.deep_extend(restDescribe.clone(), &[parentWsDescribe.clone()]);
+        return self.deep_extend(extended.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str("bequant".into()));
-        m.insert("name".to_string(), Value::Str("Bequant".into()));
-        m.insert("countries".to_string(), Value::from(vec![Value::Str("MT".into())]));
+        m.insert("id".to_string(), Value::Str("bequant".to_string()));
+        m.insert("name".to_string(), Value::Str("Bequant".to_string()));
+        m.insert("countries".to_string(), Value::List(vec![Value::Str("MT".to_string())]));
         m.insert("pro".to_string(), Value::Bool(true));
         m.insert("urls".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("logo".to_string(), Value::Str("https://user-images.githubusercontent.com/1294454/55248342-a75dfe00-525a-11e9-8aa2-05e9dca943c6.jpg".into()));
+        m.insert("logo".to_string(), Value::Str("https://user-images.githubusercontent.com/1294454/55248342-a75dfe00-525a-11e9-8aa2-05e9dca943c6.jpg".to_string()));
         m.insert("api".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("public".to_string(), Value::Str("https://api.bequant.io/api/3".into()));
-        m.insert("private".to_string(), Value::Str("https://api.bequant.io/api/3".into()));
+        m.insert("public".to_string(), Value::Str("https://api.bequant.io/api/3".to_string()));
+        m.insert("private".to_string(), Value::Str("https://api.bequant.io/api/3".to_string()));
         m.insert("ws".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("public".to_string(), Value::Str("wss://api.bequant.io/api/3/ws/public".into()));
-        m.insert("private".to_string(), Value::Str("wss://api.bequant.io/api/3/ws/trading".into()));
+        m.insert("public".to_string(), Value::Str("wss://api.bequant.io/api/3/ws/public".to_string()));
+        m.insert("private".to_string(), Value::Str("wss://api.bequant.io/api/3/ws/trading".to_string()));
     m
 }));
     m
 }));
-        m.insert("www".to_string(), Value::Str("https://bequant.io".into()));
-        m.insert("doc".to_string(), Value::from(vec![Value::Str("https://api.bequant.io/".into())]));
-        m.insert("fees".to_string(), Value::from(vec![Value::Str("https://bequant.io/fees-and-limits".into())]));
-        m.insert("referral".to_string(), Value::Str("https://bequant.io".into()));
+        m.insert("www".to_string(), Value::Str("https://bequant.io".to_string()));
+        m.insert("doc".to_string(), Value::List(vec![Value::Str("https://api.bequant.io/".to_string())]));
+        m.insert("fees".to_string(), Value::List(vec![Value::Str("https://bequant.io/fees-and-limits".to_string())]));
+        m.insert("referral".to_string(), Value::Str("https://bequant.io".to_string()));
     m
 }));
     m

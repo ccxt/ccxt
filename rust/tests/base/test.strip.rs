@@ -11,15 +11,15 @@ use ccxt::exchange_generated::ExchangeBase;
 pub fn testStrip() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("id".to_string(), Value::Str("sampleexchange".into()));
+            m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
         m
     }));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.strip(Value::Str(" asd".into()), &[]).as_str() == Some("asd")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.strip(Value::Str("    asd".into()), &[]).as_str() == Some("asd")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.strip(Value::Str("asd ".into()), &[]).as_str() == Some("asd")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.strip(Value::Str("asd    ".into()), &[]).as_str() == Some("asd")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.strip(Value::Str(" asd ".into()), &[]).as_str() == Some("asd")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.strip(Value::Str("    asd    ".into()), &[]).as_str() == Some("asd")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.strip(Value::Str("asd".into()), &[]).as_str() == Some("asd")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.strip(Value::Str("".into()), &[]).as_str() == Some("")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.strip(Value::Str(" asd".to_string()), &[]), &Value::Str("asd".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.strip(Value::Str("    asd".to_string()), &[]), &Value::Str("asd".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.strip(Value::Str("asd ".to_string()), &[]), &Value::Str("asd".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.strip(Value::Str("asd    ".to_string()), &[]), &Value::Str("asd".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.strip(Value::Str(" asd ".to_string()), &[]), &Value::Str("asd".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.strip(Value::Str("    asd    ".to_string()), &[]), &Value::Str("asd".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.strip(Value::Str("asd".to_string()), &[]), &Value::Str("asd".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.strip(Value::Str("".to_string()), &[]), &Value::Str("".to_string()))))));
 }

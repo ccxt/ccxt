@@ -25,7 +25,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 public class Apex extends ApexApi
 {
@@ -406,9 +405,9 @@ public class Apex extends ApexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> response = (this.publicGetV3Time(parameters)).join();
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             //
             // {
             //    "data": {
@@ -443,9 +442,9 @@ public class Apex extends ApexApi
         }};
         String code = "USDT";
         Object account = this.account();
-        ((Map<String, Object>)account).put("free", this.safeString(response, "availableBalance"));
-        ((Map<String, Object>)account).put("total", this.safeString(response, "totalEquityValue"));
-        ((Map<String, Object>)result).put((String)code, account);
+        Helpers.addElementToObject(account, "free", this.safeString(response, "availableBalance"));
+        Helpers.addElementToObject(account, "total", this.safeString(response, "totalEquityValue"));
+        Helpers.addElementToObject(result, code, account);
         return this.safeBalance(result);
     }
 
@@ -462,13 +461,13 @@ public class Apex extends ApexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> response = (this.privateGetV3AccountBalance(parameters)).join();
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseBalance(data);
         }).thenApply(Balances::new);
 
@@ -498,13 +497,13 @@ public class Apex extends ApexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> response = (this.privateGetV3Account(parameters)).join();
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseAccount(data);
         });
 
@@ -523,11 +522,11 @@ public class Apex extends ApexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> response = (this.publicGetV3Symbols(parameters)).join();
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Map<String, Object> spotConfig = (Map<String, Object>) this.safeDict(data, "spotConfig", new HashMap<String, Object>() {{}});
-            Map<String, Object> multiChain = (Map<String, Object>) this.safeDict(spotConfig, "multiChain", new HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Object spotConfig = this.safeDict(data, "spotConfig", new HashMap<String, Object>() {{}});
+            Object multiChain = this.safeDict(spotConfig, "multiChain", new HashMap<String, Object>() {{}});
             // "spotConfig": {
             //     "assets": [
             //         {
@@ -617,8 +616,8 @@ public class Apex extends ApexApi
             //        }
             //     ]
             // }
-            List<Object> rows = (List<Object>) this.safeList(spotConfig, "assets", new ArrayList<Object>(Arrays.asList()));
-            List<Object> chains = (List<Object>) this.safeList(multiChain, "chains", new ArrayList<Object>(Arrays.asList()));
+            Object rows = this.safeList(spotConfig, "assets", new ArrayList<Object>(Arrays.asList()));
+            Object chains = this.safeList(multiChain, "chains", new ArrayList<Object>(Arrays.asList()));
             Helpers.addElementToObject(this.options, "_temp_currencies_chains", chains);
             Object result = this.parseCurrencies(rows);
             ((Map<String,Object>)this.options).remove("_temp_currencies_chains");
@@ -627,34 +626,34 @@ public class Apex extends ApexApi
 
     }
 
-    public Object parseCurrency(Map<String, Object> currency)
+    public Object parseCurrency(Object currency)
     {
         String currencyId = this.safeString(currency, "token");
         String code = this.safeCurrencyCode(currencyId);
         String name = this.safeString(currency, "displayName");
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
-        Object chains = ((Map<String, Object>)this.options).get("_temp_currencies_chains");
-        for (var j = 0; j < Helpers.getArrayLength(chains); j++)
+        Object chains = Helpers.GetValue(this.options, "_temp_currencies_chains");
+        for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(chains)); j++)
         {
             Object chain = Helpers.GetValue(chains, j);
-            List<Object> tokens = (List<Object>) this.safeList(chain, "tokens", new ArrayList<Object>(Arrays.asList()));
-            for (var f = 0; f < ((List<?>)tokens).size(); f++)
+            Object tokens = this.safeList(chain, "tokens", new ArrayList<Object>(Arrays.asList()));
+            for (var f = 0; Helpers.isLessThan(f, Helpers.getArrayLength(tokens)); f++)
             {
-                Object token = (tokens == null || f < 0 || f >= tokens.size() ? null : tokens.get(f));
+                Object token = Helpers.GetValue(tokens, f);
                 String tokenName = this.safeString(token, "token");
-                if (java.util.Objects.equals(tokenName, currencyId))
+                if (Helpers.isTrue(Helpers.isEqual(tokenName, currencyId)))
                 {
                     String networkId = this.safeString(chain, "chainId");
                     Object networkCode = this.networkIdToCode(networkId, code);
-                    if (!java.util.Objects.equals(networkCode, null))
+                    if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
                     {
                         final Object finalNetworkCode = networkCode;
-                        ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
+                        Helpers.addElementToObject(networks, networkCode, new HashMap<String, Object>() {{
     put( "info", chain );
     put( "id", networkId );
     put( "network", finalNetworkCode );
     put( "active", null );
-    put( "deposit", (!java.util.Objects.equals(Apex.this.safeBool(chain, "depositDisable"), true)) );
+    put( "deposit", (!Helpers.isEqual(Apex.this.safeBool(chain, "depositDisable"), true)) );
     put( "withdraw", Apex.this.safeBool(token, "withdrawEnable") );
     put( "fee", Apex.this.safeNumber(token, "minFee") );
     put( "precision", Apex.this.parseNumber(Apex.this.parsePrecision(Apex.this.safeString(token, "decimals"))) );
@@ -673,11 +672,11 @@ public class Apex extends ApexApi
                 }
             }
         }
-        List<Object> networkKeys = new ArrayList<Object>(networks.keySet());
-        Object networksLength = ((List<?>)networkKeys).size();
-        Boolean emptyChains = java.util.Objects.equals(networksLength, 0); // non-functional coins
-        Object valueForEmpty = ((Boolean.TRUE.equals(emptyChains))) ? false : null;
-        return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
+        Object networkKeys = Helpers.objectKeys(networks);
+        Object networksLength = Helpers.getArrayLength(networkKeys);
+        Boolean emptyChains = Helpers.isEqual(networksLength, 0); // non-functional coins
+        Object valueForEmpty = ((Helpers.isTrue(emptyChains))) ? false : null;
+        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
             put( "info", currency );
             put( "code", code );
             put( "id", currencyId );
@@ -703,7 +702,7 @@ public class Apex extends ApexApi
                 }} );
             }} );
             put( "networks", networks );
-        }}));
+        }});
     }
 
     /**
@@ -719,11 +718,11 @@ public class Apex extends ApexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> response = (this.publicGetV3Symbols(parameters)).join();
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Map<String, Object> contractConfig = (Map<String, Object>) this.safeDict(data, "contractConfig", new HashMap<String, Object>() {{}});
-            List<Object> perpetualContract = (List<Object>) this.safeList(contractConfig, "perpetualContract", new ArrayList<Object>(Arrays.asList()));
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Object contractConfig = this.safeDict(data, "contractConfig", new HashMap<String, Object>() {{}});
+            Object perpetualContract = this.safeList(contractConfig, "perpetualContract", new ArrayList<Object>(Arrays.asList()));
             // {
             //     "perpetualContract":[
             //         {
@@ -793,7 +792,7 @@ public class Apex extends ApexApi
         String base = this.safeCurrencyCode(baseId);
         String settleId = this.safeString(market, "settleAssetId");
         String settle = this.safeCurrencyCode(settleId);
-        Object symbol = ((((baseId + "/") + quote) + ":") + settle);
+        Object symbol = Helpers.add(Helpers.add(Helpers.add(Helpers.add(baseId, "/"), quote), ":"), settle);
         Object expiry = 0;
         Object takerFee = this.parseNumber("0.0002");
         Object makerFee = this.parseNumber("0.0005");
@@ -822,8 +821,8 @@ public class Apex extends ApexApi
             put( "taker", takerFee );
             put( "maker", makerFee );
             put( "contractSize", Apex.this.safeNumber(market, "minOrderSize") );
-            put( "expiry", (((java.util.Objects.equals(finalExpiry, 0)))) ? null : finalExpiry );
-            put( "expiryDatetime", (((java.util.Objects.equals(finalExpiry, 0)))) ? null : Apex.this.iso8601(finalExpiry) );
+            put( "expiry", ((Helpers.isTrue((Helpers.isEqual(finalExpiry, 0))))) ? null : finalExpiry );
+            put( "expiryDatetime", ((Helpers.isTrue((Helpers.isEqual(finalExpiry, 0))))) ? null : Apex.this.iso8601(finalExpiry) );
             put( "strike", null );
             put( "optionType", null );
             put( "precision", new HashMap<String, Object>() {{
@@ -853,7 +852,7 @@ public class Apex extends ApexApi
         }});
     }
 
-    public Object parseTicker(Map<String, Object> ticker, Object... optionalArgs)
+    public Object parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         // {
@@ -873,7 +872,7 @@ public class Apex extends ApexApi
         //     "tradeCount": 100
         // }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(ticker, "symbol");
         market = this.safeMarket(marketId, market);
         String symbol = this.safeSymbol(marketId, market);
@@ -923,8 +922,8 @@ public class Apex extends ApexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
@@ -933,9 +932,9 @@ public class Apex extends ApexApi
                 put( "symbol", Apex.this.safeString(market, "id2") );
             }};
             Map<String, Object> response = (this.publicGetV3Ticker(this.extend(request, parameters))).join();
-            List<Object> tickers = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> rawTicker = (Map<String, Object>) this.safeDict(tickers, 0, new HashMap<String, Object>() {{}});
-            return this.parseTicker((Map<String, Object>) (rawTicker), market);
+            Object tickers = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Object rawTicker = this.safeDict(tickers, 0, new HashMap<String, Object>() {{}});
+            return this.parseTicker(rawTicker, market);
         }).thenApply(Ticker::new);
 
     }
@@ -954,14 +953,14 @@ public class Apex extends ApexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object symbols = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> response = (this.publicGetV3DataAllTickerInfo(parameters)).join();
-            List<Object> tickers = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Object tickers = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTickers(tickers, symbols);
         }).thenApply(Tickers::new);
 
@@ -985,11 +984,11 @@ public class Apex extends ApexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
@@ -998,23 +997,23 @@ public class Apex extends ApexApi
                 put( "interval", Apex.this.safeString(Apex.this.timeframes, timeframe, timeframe) );
                 put( "symbol", Apex.this.safeString(market, "id2") );
             }};
-            if (java.util.Objects.equals(limit, null))
+            if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
                 limit = 200; // default is 200 when requested with `since`
             }
-            ((Map<String, Object>)request).put("limit", limit); // max 200, default 200
+            Helpers.addElementToObject(request, "limit", limit); // max 200, default 200
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", request, parameters, 0.001);
             request = ((List<Object>) requestparametersVariable).get(0);
             parameters = ((List<Object>) requestparametersVariable).get(1);
-            if (!java.util.Objects.equals(since, null))
+            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
-                ((Map<String, Object>)request).put("start", (Math.floor(Double.parseDouble(Helpers.toString(Helpers.divide(since, 1000))))));
+                Helpers.addElementToObject(request, "start", (Math.floor(Double.parseDouble(Helpers.toString(Helpers.divide(since, 1000))))));
             }
             Map<String, Object> response = (this.publicGetV3Klines(this.extend(request, parameters))).join();
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> OHLCVs = (List<Object>) this.safeList(data, this.safeString(market, "id2"), new ArrayList<Object>(Arrays.asList()));
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Object OHLCVs = this.safeList(data, this.safeString(market, "id2"), new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(OHLCVs, market, timeframe, since, limit);
-        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -1033,7 +1032,7 @@ public class Apex extends ApexApi
         //     "turnover": "3"
         //  } {"s":"BTCUSDT","i":"1","t":1741265880000,"c":"90235","h":"90235","l":"90156","o":"90156","v":"0.052","tr":"4690.4466"}
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        Object market = Helpers.getArg(optionalArgs, 0, null);
         return new ArrayList<Object>(Arrays.asList(this.safeInteger2(ohlcv, "start", "t"), this.safeNumber2(ohlcv, "open", "o"), this.safeNumber2(ohlcv, "high", "h"), this.safeNumber2(ohlcv, "low", "l"), this.safeNumber2(ohlcv, "close", "c"), this.safeNumber2(ohlcv, "volume", "v")));
     }
 
@@ -1052,9 +1051,9 @@ public class Apex extends ApexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object limit = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
@@ -1062,11 +1061,11 @@ public class Apex extends ApexApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Apex.this.safeString(market, "id2") );
             }};
-            if (java.util.Objects.equals(limit, null))
+            if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
                 limit = 100; // default is 200 when requested with `since`
             }
-            ((Map<String, Object>)request).put("limit", limit); // max 100, default 100
+            Helpers.addElementToObject(request, "limit", limit); // max 100, default 100
             Map<String, Object> response = (this.publicGetV3Depth(this.extend(request, parameters))).join();
             //
             // {
@@ -1094,10 +1093,10 @@ public class Apex extends ApexApi
             //     "u": 18665465
             // }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Long timestamp = this.milliseconds();
-            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(data, ((Map<String, Object>)market).get("symbol"), timestamp, "b", "a");
-            ((Map<String, Object>)orderbook).put("nonce", this.safeInteger(data, "u"));
+            Object orderbook = this.parseOrderBook(data, Helpers.GetValue(market, "symbol"), timestamp, "b", "a");
+            Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(data, "u"));
             return orderbook;
         }).thenApply(OrderBook::new);
 
@@ -1121,10 +1120,10 @@ public class Apex extends ApexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object since = Helpers.getArg(optionalArgs, 0, null);
+            Object limit = Helpers.getArg(optionalArgs, 1, null);
+            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
@@ -1132,11 +1131,11 @@ public class Apex extends ApexApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Apex.this.safeString(market, "id2") );
             }};
-            if (java.util.Objects.equals(limit, null))
+            if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
                 limit = 500; // default is 50
             }
-            ((Map<String, Object>)request).put("limit", limit);
+            Helpers.addElementToObject(request, "limit", limit);
             Map<String, Object> response = (this.publicGetV3Trades(this.extend(request, parameters))).join();
             //
             // [
@@ -1158,9 +1157,9 @@ public class Apex extends ApexApi
             //  }
             //  ]
             //
-            List<Object> trades = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Object trades = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1178,7 +1177,7 @@ public class Apex extends ApexApi
         //  }
         //  ]
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString2(trade, "s", "symbol");
         market = this.safeMarket(marketId, market);
         String id = this.safeString2(trade, "i", "id");
@@ -1189,13 +1188,13 @@ public class Apex extends ApexApi
         String type = this.safeString(trade, "type");
         String fee = this.safeString(trade, "fee");
         final Object finalMarket = market;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", id );
             put( "order", null );
             put( "timestamp", timestamp );
             put( "datetime", Apex.this.iso8601(timestamp) );
-            put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
+            put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "type", type );
             put( "takerOrMaker", null );
             put( "side", side );
@@ -1203,7 +1202,7 @@ public class Apex extends ApexApi
             put( "amount", amountString );
             put( "cost", null );
             put( "fee", fee );
-        }}), market);
+        }}, market);
     }
 
     /**
@@ -1220,8 +1219,8 @@ public class Apex extends ApexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
@@ -1230,8 +1229,8 @@ public class Apex extends ApexApi
                 put( "symbol", Apex.this.safeString(market, "id2") );
             }};
             Map<String, Object> response = (this.publicGetV3Ticker(this.extend(request, parameters))).join();
-            List<Object> tickers = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> rawTicker = (Map<String, Object>) this.safeDict(tickers, 0, new HashMap<String, Object>() {{}});
+            Object tickers = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Object rawTicker = this.safeDict(tickers, 0, new HashMap<String, Object>() {{}});
             return this.parseOpenInterest(rawTicker, market);
         }).thenApply(OpenInterest::new);
 
@@ -1257,7 +1256,7 @@ public class Apex extends ApexApi
         //     "tradeCount": 100
         // }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(interest, "symbol");
         market = this.safeMarket(marketId, market);
         String symbol = this.safeSymbol(marketId, market);
@@ -1289,38 +1288,38 @@ public class Apex extends ApexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(symbol, null))
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
             }
-            if (java.util.Objects.equals(this.markets, null))
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
-            if (!java.util.Objects.equals(since, null))
+            Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
+            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
-                ((Map<String, Object>)request).put("beginTimeInclusive", since);
+                Helpers.addElementToObject(request, "beginTimeInclusive", since);
             }
-            if (!java.util.Objects.equals(limit, null))
+            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                Helpers.addElementToObject(request, "limit", limit);
             }
             Long page = this.safeInteger(parameters, "page");
-            if (!java.util.Objects.equals(page, null))
+            if (Helpers.isTrue(!Helpers.isEqual(page, null)))
             {
-                ((Map<String, Object>)request).put("page", page);
+                Helpers.addElementToObject(request, "page", page);
             }
             Long endTimeExclusive = this.safeIntegerN(parameters, new ArrayList<Object>(Arrays.asList("endTime", "endTimeExclusive", "until")));
-            if (!java.util.Objects.equals(endTimeExclusive, null))
+            if (Helpers.isTrue(!Helpers.isEqual(endTimeExclusive, null)))
             {
-                ((Map<String, Object>)request).put("endTimeExclusive", endTimeExclusive);
+                Helpers.addElementToObject(request, "endTimeExclusive", endTimeExclusive);
             }
             Map<String, Object> response = (this.publicGetV3HistoryFunding(this.extend(request, parameters))).join();
             //
@@ -1338,11 +1337,11 @@ public class Apex extends ApexApi
             // }
             //
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> resultList = (List<Object>) this.safeList(data, "historyFunds", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < ((List<?>)resultList).size(); i++)
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Object resultList = this.safeList(data, "historyFunds", new ArrayList<Object>(Arrays.asList()));
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(resultList)); i++)
             {
-                Object entry = (resultList == null || i < 0 || i >= resultList.size() ? null : resultList.get(i));
+                Object entry = Helpers.GetValue(resultList, i);
                 Long timestamp = this.safeInteger(entry, "fundingTimestamp");
                 String marketId = this.safeString(entry, "symbol");
                 ((List<Object>)rates).add(new HashMap<String, Object>() {{
@@ -1355,7 +1354,7 @@ public class Apex extends ApexApi
             }
             List<Object> sorted = this.sortBy(rates, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
-        }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
 
     }
 
@@ -1415,13 +1414,13 @@ public class Apex extends ApexApi
         // }
         // }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        Object market = Helpers.getArg(optionalArgs, 0, null);
         Long timestamp = this.safeInteger(order, "createdAt");
         String orderId = this.safeString(order, "id");
         String clientOrderId = this.safeString(order, "clientId");
         String marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
-        Object symbol = ((Map<String, Object>)market).get("symbol");
+        Object symbol = Helpers.GetValue(market, "symbol");
         String price = this.safeString(order, "price");
         String amount = this.safeString(order, "size");
         String orderType = this.safeString(order, "type");
@@ -1431,7 +1430,7 @@ public class Apex extends ApexApi
         Object remaining = this.omitZero(this.safeString(order, "remainingSize"));
         Long lastUpdateTimestamp = this.safeInteger(order, "updatedTime");
         final Object finalMarket = market;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "id", orderId );
             put( "clientOrderId", clientOrderId );
             put( "timestamp", timestamp );
@@ -1457,13 +1456,13 @@ public class Apex extends ApexApi
             put( "trades", null );
             put( "fee", new HashMap<String, Object>() {{
                 put( "cost", Apex.this.safeString(order, "fee") );
-                put( "currency", ((Map<String, Object>)finalMarket).get("settleId") );
+                put( "currency", Helpers.GetValue(finalMarket, "settleId") );
             }} );
             put( "info", order );
-        }}), market);
+        }}, market);
     }
 
-    public String parseTimeInForce(String timeInForce)
+    public String parseTimeInForce(Object timeInForce)
     {
         Map<String, Object> timeInForces = new HashMap<String, Object>() {{
             put( "GOOD_TIL_CANCEL", "GOOD_TIL_CANCEL" );
@@ -1474,9 +1473,9 @@ public class Apex extends ApexApi
         return this.safeString(timeInForces, timeInForce);
     }
 
-    public String parseOrderStatus(String status)
+    public String parseOrderStatus(Object status)
     {
-        if (!java.util.Objects.equals(status, null))
+        if (Helpers.isTrue(!Helpers.isEqual(status, null)))
         {
             Map<String, Object> statuses = new HashMap<String, Object>() {{
                 put( "PENDING", "open" );
@@ -1491,7 +1490,7 @@ public class Apex extends ApexApi
         return null;
     }
 
-    public String parseOrderType(String type)
+    public String parseOrderType(Object type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "LIMIT", "limit" );
@@ -1506,32 +1505,32 @@ public class Apex extends ApexApi
 
     public Object safeMarket(Object... optionalArgs)
     {
-        Object marketId = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object market = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-        Object delimiter = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-        Object marketType = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
-        if (java.util.Objects.equals(market, null) && !java.util.Objects.equals(marketId, null))
+        Object marketId = Helpers.getArg(optionalArgs, 0, null);
+        Object market = Helpers.getArg(optionalArgs, 1, null);
+        Object delimiter = Helpers.getArg(optionalArgs, 2, null);
+        Object marketType = Helpers.getArg(optionalArgs, 3, null);
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(market, null)) && Helpers.isTrue(!Helpers.isEqual(marketId, null))))
         {
             Object marketsMap = this.markets;
             Map<String, Object> marketsById = this.markets_by_id;
-            if ((!java.util.Objects.equals(marketsMap, null)) && (((Map<?, ?>)marketsMap).containsKey(marketId)))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marketsMap, null))) && Helpers.isTrue((Helpers.inOp(marketsMap, marketId)))))
             {
                 market = Helpers.GetValue(marketsMap, marketId);
-            } else if ((!java.util.Objects.equals(marketsById, null)) && (marketsById.containsKey(marketId)))
+            } else if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marketsById, null))) && Helpers.isTrue((Helpers.inOp(marketsById, marketId)))))
             {
-                market = (marketsById == null || marketId == null ? null : marketsById.get(marketId));
+                market = Helpers.GetValue(marketsById, marketId);
             } else
             {
                 Object newMarketId = this.addHyphenBeforeUsdt(marketId);
-                if ((!java.util.Objects.equals(marketsById, null)) && (marketsById.containsKey(newMarketId)))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marketsById, null))) && Helpers.isTrue((Helpers.inOp(marketsById, newMarketId)))))
                 {
-                    Object markets = (marketsById == null || newMarketId == null ? null : marketsById.get(newMarketId));
+                    Object markets = Helpers.GetValue(marketsById, newMarketId);
                     Object numMarkets = Helpers.getArrayLength(markets);
-                    if (Helpers.isGreaterThan(numMarkets, 0))
+                    if (Helpers.isTrue(Helpers.isGreaterThan(numMarkets, 0)))
                     {
-                        if (java.util.Objects.equals(Helpers.GetValue(Helpers.GetValue((marketsById == null || newMarketId == null ? null : marketsById.get(newMarketId)), 0), "id2"), marketId))
+                        if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(marketsById, newMarketId), 0), "id2"), marketId)))
                         {
-                            market = Helpers.GetValue((marketsById == null || newMarketId == null ? null : marketsById.get(newMarketId)), 0);
+                            market = Helpers.GetValue(Helpers.GetValue(marketsById, newMarketId), 0);
                         }
                     }
                 }
@@ -1540,21 +1539,21 @@ public class Apex extends ApexApi
         return super.safeMarket(marketId, market, delimiter, marketType);
     }
 
-    public Object generateRandomClientIdOmni(String _accountId)
+    public Object generateRandomClientIdOmni(Object _accountId)
     {
-        Boolean hasAccountId = (!java.util.Objects.equals(_accountId, null)) && (!java.util.Objects.equals(_accountId, ""));
-        Object accountId = ((Boolean.TRUE.equals(hasAccountId))) ? _accountId : String.valueOf(this.randNumber(12));
-        return ((((("apexomni-" + accountId) + "-") + String.valueOf(this.milliseconds())) + "-") + String.valueOf(this.randNumber(6)));
+        Boolean hasAccountId = Helpers.isTrue((!Helpers.isEqual(_accountId, null))) && Helpers.isTrue((!Helpers.isEqual(_accountId, "")));
+        Object accountId = ((Helpers.isTrue(hasAccountId))) ? _accountId : String.valueOf(this.randNumber(12));
+        return Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("apexomni-", accountId), "-"), String.valueOf(this.milliseconds())), "-"), String.valueOf(this.randNumber(6)));
     }
 
     public Object addHyphenBeforeUsdt(Object symbol)
     {
         Object uppercaseSymbol = ((String)symbol).toUpperCase();
-        Object index = ((String)uppercaseSymbol).indexOf("USDT");
+        Object index = Helpers.getIndexOf(uppercaseSymbol, "USDT");
         String symbolChar = this.safeString(symbol, Helpers.subtract(index, 1));
-        if (Helpers.isGreaterThan(index, 0) && !java.util.Objects.equals(symbolChar, "-"))
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isGreaterThan(index, 0)) && Helpers.isTrue(!Helpers.isEqual(symbolChar, "-"))))
         {
-            return ((Helpers.slice(symbol, 0, index) + "-") + Helpers.slice(symbol, index, null));
+            return Helpers.add(Helpers.add(Helpers.slice(symbol, 0, index), "-"), Helpers.slice(symbol, index, null));
         }
         return symbol;
     }
@@ -1562,9 +1561,9 @@ public class Apex extends ApexApi
     public String getSeeds()
     {
         String seeds = this.safeString(this.options, "seeds");
-        if (java.util.Objects.equals(seeds, null))
+        if (Helpers.isTrue(Helpers.isEqual(seeds, null)))
         {
-            throw new ArgumentsRequired((this.id + " the \"seeds\" key is required in the options to access private endpoints. You can find it in API Management > Omni Key, and then set it as exchange.options[\"seeds\"] = XXXX")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " the \"seeds\" key is required in the options to access private endpoints. You can find it in API Management > Omni Key, and then set it as exchange.options[\"seeds\"] = XXXX")) ;
         }
         return seeds;
     }
@@ -1575,12 +1574,12 @@ public class Apex extends ApexApi
         return BaseExchange.supplyAsync(() -> {
 
             String accountId = this.safeString(this.options, "accountId", "0");
-            if (java.util.Objects.equals(accountId, "0"))
+            if (Helpers.isTrue(Helpers.isEqual(accountId, "0")))
             {
                 Object accountData = (this.fetchAccount()).join();
                 Helpers.addElementToObject(this.options, "accountId", this.safeString(accountData, "id", "0"));
             }
-            return ((Map<String, Object>)this.options).get("accountId");
+            return Helpers.GetValue(this.options, "accountId");
         });
 
     }
@@ -1610,59 +1609,59 @@ public class Apex extends ApexApi
         final Object side3 = side2;
         return BaseExchange.supplyAsync(() -> {
             Object side = side3;
-            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object price = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object orderType = ((String)type).toUpperCase();
-            if (java.util.Objects.equals(side, null))
+            if (Helpers.isTrue(Helpers.isEqual(side, null)))
             {
-                throw new ArgumentsRequired((this.id + " createOrder() requires a side argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a side argument")) ;
             }
             Object orderSide = ((String)side).toUpperCase();
             Object orderSize = this.amountToPrecision(symbol, amount);
             Object orderPrice = "0";
-            if (!java.util.Objects.equals(price, null))
+            if (Helpers.isTrue(!Helpers.isEqual(price, null)))
             {
                 orderPrice = this.priceToPrecision(symbol, price);
             }
-            Map<String, Object> fees = (Map<String, Object>) this.safeDict(this.fees, "swap", new HashMap<String, Object>() {{}});
+            Object fees = this.safeDict(this.fees, "swap", new HashMap<String, Object>() {{}});
             String taker = this.safeString(fees, "taker", "0.0005");
             String maker = this.safeString(fees, "maker", "0.0002");
-            Object limitFee = this.decimalToPrecision(Precise.stringAdd(Precise.stringMul(Precise.stringMul(orderPrice, orderSize), taker), this.numberToString(((Map<String, Object>)((Map<String, Object>)market).get("precision")).get("price"))), TRUNCATE, ((Map<String, Object>)((Map<String, Object>)market).get("precision")).get("price"), this.precisionMode, this.paddingMode);
+            Object limitFee = this.decimalToPrecision(Precise.stringAdd(Precise.stringMul(Precise.stringMul(orderPrice, orderSize), taker), this.numberToString(Helpers.GetValue(Helpers.GetValue(market, "precision"), "price"))), TRUNCATE, Helpers.GetValue(Helpers.GetValue(market, "precision"), "price"), this.precisionMode, this.paddingMode);
             Long timeNow = this.milliseconds();
             String triggerPrice = this.safeString(parameters, "triggerPrice");
             String stopLossPrice = this.safeString(parameters, "stopLossPrice");
             String takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
-            if (!java.util.Objects.equals(stopLossPrice, null))
+            if (Helpers.isTrue(!Helpers.isEqual(stopLossPrice, null)))
             {
-                orderType = (((java.util.Objects.equals(orderType, "MARKET")))) ? "STOP_MARKET" : "STOP_LIMIT";
+                orderType = ((Helpers.isTrue((Helpers.isEqual(orderType, "MARKET"))))) ? "STOP_MARKET" : "STOP_LIMIT";
                 triggerPrice = stopLossPrice;
-            } else if (!java.util.Objects.equals(takeProfitPrice, null))
+            } else if (Helpers.isTrue(!Helpers.isEqual(takeProfitPrice, null)))
             {
-                orderType = (((java.util.Objects.equals(orderType, "MARKET")))) ? "TAKE_PROFIT_MARKET" : "TAKE_PROFIT_LIMIT";
+                orderType = ((Helpers.isTrue((Helpers.isEqual(orderType, "MARKET"))))) ? "TAKE_PROFIT_MARKET" : "TAKE_PROFIT_LIMIT";
                 triggerPrice = takeProfitPrice;
             }
-            Boolean isMarket = java.util.Objects.equals(orderType, "MARKET");
-            if (Boolean.TRUE.equals(isMarket) && (java.util.Objects.equals(price, null)))
+            Boolean isMarket = Helpers.isEqual(orderType, "MARKET");
+            if (Helpers.isTrue(Helpers.isTrue(isMarket) && Helpers.isTrue((Helpers.isEqual(price, null)))))
             {
-                throw new ArgumentsRequired((this.id + " createOrder() requires a price argument for market orders")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a price argument for market orders")) ;
             }
             String timeInForce = this.safeStringUpper(parameters, "timeInForce");
             Object postOnly = this.isPostOnly(isMarket, null, parameters);
-            if (java.util.Objects.equals(timeInForce, null))
+            if (Helpers.isTrue(Helpers.isEqual(timeInForce, null)))
             {
                 timeInForce = "GOOD_TIL_CANCEL";
             }
-            if (!Boolean.TRUE.equals(isMarket))
+            if (!Helpers.isTrue(isMarket))
             {
-                if (Boolean.TRUE.equals(postOnly))
+                if (Helpers.isTrue(postOnly))
                 {
                     timeInForce = "POST_ONLY";
-                } else if (java.util.Objects.equals(timeInForce, "ioc"))
+                } else if (Helpers.isTrue(Helpers.isEqual(timeInForce, "ioc")))
                 {
                     timeInForce = "IMMEDIATE_OR_CANCEL";
                 }
@@ -1671,9 +1670,9 @@ public class Apex extends ApexApi
             parameters = this.omit(parameters, "postOnly");
             Object clientOrderId = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("clientId", "clientOrderId", "client_order_id")));
             Object accountId = (this.getAccountId()).join();
-            if (java.util.Objects.equals(clientOrderId, null))
+            if (Helpers.isTrue(Helpers.isEqual(clientOrderId, null)))
             {
-                clientOrderId = this.generateRandomClientIdOmni((String) (accountId));
+                clientOrderId = this.generateRandomClientIdOmni(accountId);
             }
             Object finalClientOrderId = clientOrderId; // java req
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientId", "clientOrderId", "client_order_id", "stopLossPrice", "takeProfitPrice", "triggerPrice")));
@@ -1682,40 +1681,40 @@ public class Apex extends ApexApi
                 put( "accountId", accountId );
                 put( "slotId", finalClientOrderId );
                 put( "nonce", finalClientOrderId );
-                put( "pairId", ((Map<String, Object>)market).get("quoteId") );
+                put( "pairId", Helpers.GetValue(market, "quoteId") );
                 put( "size", orderSize );
                 put( "price", finalOrderPrice );
                 put( "direction", orderSide );
                 put( "makerFeeRate", maker );
                 put( "takerFeeRate", taker );
             }};
-            if (!java.util.Objects.equals(triggerPrice, null))
+            if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
             {
-                ((Map<String, Object>)orderToSign).put("triggerPrice", this.priceToPrecision(symbol, triggerPrice));
+                Helpers.addElementToObject(orderToSign, "triggerPrice", this.priceToPrecision(symbol, triggerPrice));
             }
             Object signature = (this.getZKContractSignatureObj(this.remove0xPrefix(this.getSeeds()), orderToSign)).join();
             final Object finalOrderType = orderType;
             final Object finalTimeNow = timeNow;
             final Object finalTimeInForce = timeInForce;
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", ((Map<String, Object>)market).get("id") );
+                put( "symbol", Helpers.GetValue(market, "id") );
                 put( "side", orderSide );
                 put( "type", finalOrderType );
                 put( "size", orderSize );
                 put( "price", finalOrderPrice );
                 put( "limitFee", limitFee );
-                put( "expiration", (Math.floor(Double.parseDouble(Helpers.toString(Helpers.add(Helpers.divide(finalTimeNow, 1000), (((30L * 24L) * 60L) * 60L)))))) );
+                put( "expiration", (Math.floor(Double.parseDouble(Helpers.toString(Helpers.add(Helpers.divide(finalTimeNow, 1000), Helpers.multiply(Helpers.multiply(Helpers.multiply(30, 24), 60), 60)))))) );
                 put( "timeInForce", finalTimeInForce );
                 put( "clientId", finalClientOrderId );
                 put( "brokerId", Apex.this.safeString(Apex.this.options, "brokerId", "6956") );
             }};
-            if (!java.util.Objects.equals(triggerPrice, null))
+            if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
             {
-                ((Map<String, Object>)request).put("triggerPrice", this.priceToPrecision(symbol, triggerPrice));
+                Helpers.addElementToObject(request, "triggerPrice", this.priceToPrecision(symbol, triggerPrice));
             }
-            ((Map<String, Object>)request).put("signature", signature);
+            Helpers.addElementToObject(request, "signature", signature);
             Map<String, Object> response = (this.privatePostV3Order(this.extend(request, parameters))).join();
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
@@ -1740,70 +1739,70 @@ public class Apex extends ApexApi
         return BaseExchange.supplyAsync(() -> {
             Object amount = amount3;
             Object fromAccount = fromAccount3;
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> configResponse = (this.publicGetV3Symbols(parameters)).join();
-            Map<String, Object> configData = (Map<String, Object>) this.safeDict(configResponse, "data", new HashMap<String, Object>() {{}});
-            Map<String, Object> contractConfig = (Map<String, Object>) this.safeDict(configData, "contractConfig", new HashMap<String, Object>() {{}});
-            List<Object> contractAssets = (List<Object>) this.safeList(contractConfig, "assets", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> spotConfig = (Map<String, Object>) this.safeDict(configData, "spotConfig", new HashMap<String, Object>() {{}});
-            List<Object> spotAssets = (List<Object>) this.safeList(spotConfig, "assets", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> globalConfig = (Map<String, Object>) this.safeDict(spotConfig, "global", new HashMap<String, Object>() {{}});
+            Object configData = this.safeDict(configResponse, "data", new HashMap<String, Object>() {{}});
+            Object contractConfig = this.safeDict(configData, "contractConfig", new HashMap<String, Object>() {{}});
+            Object contractAssets = this.safeList(contractConfig, "assets", new ArrayList<Object>(Arrays.asList()));
+            Object spotConfig = this.safeDict(configData, "spotConfig", new HashMap<String, Object>() {{}});
+            Object spotAssets = this.safeList(spotConfig, "assets", new ArrayList<Object>(Arrays.asList()));
+            Object globalConfig = this.safeDict(spotConfig, "global", new HashMap<String, Object>() {{}});
             String receiverAddress = this.safeString(globalConfig, "contractAssetPoolEthAddress", "");
             String receiverZkAccountId = this.safeString(globalConfig, "contractAssetPoolZkAccountId", "");
             String receiverSubAccountId = this.safeString(globalConfig, "contractAssetPoolSubAccount", "");
             String receiverAccountId = this.safeString(globalConfig, "contractAssetPoolAccountId", "");
             Map<String, Object> accountResponse = (this.privateGetV3Account(parameters)).join();
-            Map<String, Object> accountData = (Map<String, Object>) this.safeDict(accountResponse, "data", new HashMap<String, Object>() {{}});
-            Map<String, Object> spotAccount = (Map<String, Object>) this.safeDict(accountData, "spotAccount", new HashMap<String, Object>() {{}});
+            Object accountData = this.safeDict(accountResponse, "data", new HashMap<String, Object>() {{}});
+            Object spotAccount = this.safeDict(accountData, "spotAccount", new HashMap<String, Object>() {{}});
             String zkAccountId = this.safeString(spotAccount, "zkAccountId", "");
             String subAccountId = this.safeString(spotAccount, "defaultSubAccountId", "0");
-            List<Object> subAccounts = (List<Object>) this.safeList(spotAccount, "subAccounts", new ArrayList<Object>(Arrays.asList()));
+            Object subAccounts = this.safeList(spotAccount, "subAccounts", new ArrayList<Object>(Arrays.asList()));
             String nonce = "0";
-            if (((List<?>)subAccounts).size() > 0)
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(subAccounts), 0)))
             {
-                nonce = this.safeString((subAccounts == null || 0 >= ((List<?>)subAccounts).size() ? null : ((List<?>)subAccounts).get(0)), "nonce", "0");
+                nonce = this.safeString(Helpers.GetValue(subAccounts, 0), "nonce", "0");
             }
             String finalNonce = nonce; // java req
             String ethAddress = this.safeString(accountData, "ethereumAddress", "");
             String accountId = this.safeString(accountData, "id", "");
             Object currency = new HashMap<String, Object>() {{}};
             Object assets = new ArrayList<Object>(Arrays.asList());
-            if (!java.util.Objects.equals(fromAccount, null) && java.util.Objects.equals(((String)fromAccount).toLowerCase(), "contract"))
+            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(fromAccount, null)) && Helpers.isTrue(Helpers.isEqual(((String)fromAccount).toLowerCase(), "contract"))))
             {
                 assets = contractAssets;
             } else
             {
                 assets = spotAssets;
             }
-            for (var i = 0; i < ((List<?>)assets).size(); i++)
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(assets)); i++)
             {
-                if (java.util.Objects.equals(this.safeString((assets == null || i < 0 || i >= ((List<?>)assets).size() ? null : ((List<?>)assets).get(i)), "token", ""), code))
+                if (Helpers.isTrue(Helpers.isEqual(this.safeString(Helpers.GetValue(assets, i), "token", ""), code)))
                 {
-                    currency = (assets == null || i < 0 || i >= ((List<?>)assets).size() ? null : ((List<?>)assets).get(i));
+                    currency = Helpers.GetValue(assets, i);
                 }
             }
             String tokenId = this.safeString(currency, "tokenId", "");
             Object decimalsNum = this.safeNumber(currency, "decimals", 0);
-            Object decimalsNumber = (((java.util.Objects.equals(decimalsNum, null)))) ? 0 : decimalsNum;
-            Object mathPowResult = (Math.pow(Double.parseDouble(String.valueOf(10)), Double.parseDouble(Helpers.toString(decimalsNumber))));
+            Object decimalsNumber = ((Helpers.isTrue((Helpers.isEqual(decimalsNum, null))))) ? 0 : decimalsNum;
+            Object mathPowResult = (Helpers.mathPow(Double.parseDouble(Helpers.toString(10)), Double.parseDouble(Helpers.toString(decimalsNumber))));
             Long amountNumber = this.parseToInt(Helpers.multiply(amount, mathPowResult));
-            Long timestampSeconds = this.parseToInt((((double) this.milliseconds()) / ((double) 1000)));
+            Long timestampSeconds = this.parseToInt(Helpers.divide(this.milliseconds(), 1000));
             Object clientOrderId = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("clientId", "clientOrderId", "client_order_id")));
-            if (java.util.Objects.equals(clientOrderId, null))
+            if (Helpers.isTrue(Helpers.isEqual(clientOrderId, null)))
             {
                 clientOrderId = this.generateRandomClientIdOmni(this.safeString(this.options, "accountId"));
             }
             Object finalClientOrderId = clientOrderId; // java req
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientId", "clientOrderId", "client_order_id")));
-            if (!java.util.Objects.equals(fromAccount, null) && java.util.Objects.equals(((String)fromAccount).toLowerCase(), "contract"))
+            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(fromAccount, null)) && Helpers.isTrue(Helpers.isEqual(((String)fromAccount).toLowerCase(), "contract"))))
             {
                 String formattedUint32 = "4294967295";
                 String zkSignAccountId = Precise.stringMod(accountId, formattedUint32);
-                Object expireTime = (timestampSeconds + ((3600L * 24L) * 28L));
+                Object expireTime = Helpers.add(timestampSeconds, Helpers.multiply(Helpers.multiply(3600, 24), 28));
                 Map<String, Object> orderToSign = new HashMap<String, Object>() {{
                     put( "zkAccountId", zkSignAccountId );
                     put( "receiverAddress", ethAddress );
@@ -1827,10 +1826,10 @@ public class Apex extends ApexApi
                     put( "ethAddress", ethAddress );
                 }};
                 Map<String, Object> response = (this.privatePostV3ContractTransferOut(this.extend(request, parameters))).join();
-                Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 Long currentTime = this.milliseconds();
                 Object parsedAmount = this.parseNumber(amount);
-                return this.extend(this.parseTransfer((Map<String, Object>) (data), this.currency((String) (code))), new HashMap<String, Object>() {{
+                return this.extend(this.parseTransfer(data, this.currency(code)), new HashMap<String, Object>() {{
                     put( "timestamp", currentTime );
                     put( "datetime", Apex.this.iso8601(currentTime) );
                     put( "amount", parsedAmount );
@@ -1871,10 +1870,10 @@ public class Apex extends ApexApi
                     put( "nonce", finalNonce );
                 }};
                 Map<String, Object> response = (this.privatePostV3TransferOut(this.extend(request, parameters))).join();
-                Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 Long currentTime = this.milliseconds();
                 final Object finalAmount_2 = amount;
-                return this.extend(this.parseTransfer((Map<String, Object>) (data), this.currency((String) (code))), new HashMap<String, Object>() {{
+                return this.extend(this.parseTransfer(data, this.currency(code)), new HashMap<String, Object>() {{
                     put( "timestamp", currentTime );
                     put( "datetime", Apex.this.iso8601(currentTime) );
                     put( "amount", Apex.this.parseNumber(finalAmount_2) );
@@ -1886,9 +1885,9 @@ public class Apex extends ApexApi
 
     }
 
-    public Object parseTransfer(Map<String, Object> transfer, Object... optionalArgs)
+    public Object parseTransfer(Object transfer, Object... optionalArgs)
     {
-        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString(transfer, "coin");
         Long timestamp = this.safeInteger(transfer, "timestamp");
         String fromAccount = this.safeString(transfer, "fromAccount");
@@ -1920,23 +1919,23 @@ public class Apex extends ApexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object market = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            if (!java.util.Objects.equals(symbol, null))
+            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
             Map<String, Object> response = (this.privatePostV3DeleteOpenOrders(this.extend(request, parameters))).join();
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return new ArrayList<Object>(Arrays.asList(this.parseOrder(data, market)));
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1955,23 +1954,23 @@ public class Apex extends ApexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             String clientOrderId = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("clientId", "clientOrderId", "client_order_id")));
             Object response = null;
-            if (!java.util.Objects.equals(clientOrderId, null))
+            if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
             {
-                ((Map<String, Object>)request).put("id", clientOrderId);
+                Helpers.addElementToObject(request, "id", clientOrderId);
                 parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientId", "clientOrderId", "client_order_id")));
                 response = (this.privatePostV3DeleteClientOrderId(this.extend(request, parameters))).join();
             } else
             {
-                ((Map<String, Object>)request).put("id", id);
+                Helpers.addElementToObject(request, "id", id);
                 response = (this.privatePostV3DeleteOrder(this.extend(request, parameters))).join();
             }
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.safeOrder((Map<String, Object>) (data));
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            return this.safeOrder(data);
         }).thenApply(Order::new);
 
     }
@@ -1993,26 +1992,26 @@ public class Apex extends ApexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             String clientOrderId = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("clientId", "clientOrderId", "client_order_id")));
             Object response = null;
-            if (!java.util.Objects.equals(clientOrderId, null))
+            if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
             {
-                ((Map<String, Object>)request).put("id", clientOrderId);
+                Helpers.addElementToObject(request, "id", clientOrderId);
                 parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientId", "clientOrderId", "client_order_id")));
                 response = (this.privateGetV3OrderByClientOrderId(this.extend(request, parameters))).join();
             } else
             {
-                ((Map<String, Object>)request).put("id", id);
+                Helpers.addElementToObject(request, "id", id);
                 response = (this.privateGetV3Order(this.extend(request, parameters))).join();
             }
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data);
         }).thenApply(Order::new);
 
@@ -2034,18 +2033,18 @@ public class Apex extends ApexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> response = (this.privateGetV3OpenOrders(parameters)).join();
-            List<Object> orders = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Object orders = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, null, since, limit);
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2071,40 +2070,40 @@ public class Apex extends ApexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object market = null;
-            if (!java.util.Objects.equals(symbol, null))
+            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
-            if (!java.util.Objects.equals(since, null))
+            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
-                ((Map<String, Object>)request).put("beginTimeInclusive", since);
+                Helpers.addElementToObject(request, "beginTimeInclusive", since);
             }
-            if (!java.util.Objects.equals(limit, null))
+            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                Helpers.addElementToObject(request, "limit", limit);
             }
             Long endTimeExclusive = this.safeIntegerN(parameters, new ArrayList<Object>(Arrays.asList("endTime", "endTimeExclusive", "until")));
-            if (!java.util.Objects.equals(endTimeExclusive, null))
+            if (Helpers.isTrue(!Helpers.isEqual(endTimeExclusive, null)))
             {
-                ((Map<String, Object>)request).put("endTimeExclusive", endTimeExclusive);
+                Helpers.addElementToObject(request, "endTimeExclusive", endTimeExclusive);
                 parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("endTime", "endTimeExclusive", "until")));
             }
             Map<String, Object> response = (this.privateGetV3HistoryOrders(this.extend(request, parameters))).join();
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> orders = (List<Object>) this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Object orders = this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2125,29 +2124,29 @@ public class Apex extends ApexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "clientId");
-            if (!java.util.Objects.equals(clientOrderId, null))
+            if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
             {
-                ((Map<String, Object>)request).put("clientOrderId", clientOrderId);
+                Helpers.addElementToObject(request, "clientOrderId", clientOrderId);
             } else
             {
-                ((Map<String, Object>)request).put("orderId", id);
+                Helpers.addElementToObject(request, "orderId", id);
             }
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "clientId")));
             Map<String, Object> response = (this.privateGetV3OrderFills(this.extend(request, parameters))).join();
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> orders = (List<Object>) this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Object orders = this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(orders, null, since, limit);
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -2171,40 +2170,40 @@ public class Apex extends ApexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object market = null;
-            if (!java.util.Objects.equals(symbol, null))
+            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
-            if (!java.util.Objects.equals(since, null))
+            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
-                ((Map<String, Object>)request).put("beginTimeInclusive", since);
+                Helpers.addElementToObject(request, "beginTimeInclusive", since);
             }
-            if (!java.util.Objects.equals(limit, null))
+            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                Helpers.addElementToObject(request, "limit", limit);
             }
             Long endTimeExclusive = this.safeIntegerN(parameters, new ArrayList<Object>(Arrays.asList("endTime", "endTimeExclusive", "until")));
-            if (!java.util.Objects.equals(endTimeExclusive, null))
+            if (Helpers.isTrue(!Helpers.isEqual(endTimeExclusive, null)))
             {
-                ((Map<String, Object>)request).put("endTimeExclusive", endTimeExclusive);
+                Helpers.addElementToObject(request, "endTimeExclusive", endTimeExclusive);
                 parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("endTime", "endTimeExclusive", "until")));
             }
             Map<String, Object> response = (this.privateGetV3Fills(this.extend(request, parameters))).join();
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> orders = (List<Object>) this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Object orders = this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(orders, market, since, limit);
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -2227,40 +2226,40 @@ public class Apex extends ApexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object market = null;
-            if (!java.util.Objects.equals(symbol, null))
+            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
-            if (!java.util.Objects.equals(since, null))
+            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
-                ((Map<String, Object>)request).put("beginTimeInclusive", since);
+                Helpers.addElementToObject(request, "beginTimeInclusive", since);
             }
-            if (!java.util.Objects.equals(limit, null))
+            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                Helpers.addElementToObject(request, "limit", limit);
             }
             Long endTimeExclusive = this.safeIntegerN(parameters, new ArrayList<Object>(Arrays.asList("endTime", "endTimeExclusive", "until")));
-            if (!java.util.Objects.equals(endTimeExclusive, null))
+            if (Helpers.isTrue(!Helpers.isEqual(endTimeExclusive, null)))
             {
                 parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("endTime", "endTimeExclusive", "until")));
-                ((Map<String, Object>)request).put("endTimeExclusive", endTimeExclusive);
+                Helpers.addElementToObject(request, "endTimeExclusive", endTimeExclusive);
             }
             Map<String, Object> response = (this.privateGetV3Funding(this.extend(request, parameters))).join();
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> fundingValues = (List<Object>) this.safeList(data, "fundingValues", new ArrayList<Object>(Arrays.asList()));
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Object fundingValues = this.safeList(data, "fundingValues", new ArrayList<Object>(Arrays.asList()));
             return this.parseIncomes(fundingValues, market, since, limit);
-        }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, FundingHistory::new));
 
     }
 
@@ -2280,7 +2279,7 @@ public class Apex extends ApexApi
         //     "transactionId": "1234556"
         // }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(income, "symbol");
         market = this.safeMarket(marketId, market, null, "contract");
         String code = "USDT";
@@ -2313,13 +2312,13 @@ public class Apex extends ApexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(symbol, null))
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((this.id + " setLeverage() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
             }
-            if (java.util.Objects.equals(this.markets, null))
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
@@ -2327,11 +2326,11 @@ public class Apex extends ApexApi
             Object leverageString = this.numberToString(leverage);
             String initialMarginRate = Precise.stringDiv("1", leverageString, 4);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", ((Map<String, Object>)market).get("id") );
+                put( "symbol", Helpers.GetValue(market, "id") );
                 put( "initialMarginRate", initialMarginRate );
             }};
             Map<String, Object> response = (this.privatePostV3SetInitialMarginRate(this.extend(request, parameters))).join();
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return data;
         });
 
@@ -2351,21 +2350,21 @@ public class Apex extends ApexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object symbols = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> response = (this.privateGetV3Account(parameters)).join();
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> positions = (List<Object>) this.safeList(data, "positions", new ArrayList<Object>(Arrays.asList()));
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Object positions = this.safeList(data, "positions", new ArrayList<Object>(Arrays.asList()));
             return this.parsePositions(positions, symbols);
-        }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
-    public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
+    public Object parsePosition(Object position, Object... optionalArgs)
     {
         //
         // {
@@ -2382,21 +2381,21 @@ public class Apex extends ApexApi
         //     "lightNumbers": "",
         //     "customInitialMarginRate": "0"
         // }
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(position, "symbol");
         market = this.safeMarket(marketId, market);
-        Object symbol = ((Map<String, Object>)market).get("symbol");
+        Object symbol = Helpers.GetValue(market, "symbol");
         String side = this.safeStringLower(position, "side");
         String quantity = this.safeString(position, "size");
         Long timestamp = this.safeInteger(position, "updatedTime");
         Object leverage = 20;
         String customInitialMarginRate = this.safeString2(position, "customInitialMarginRate", "customImr", "0");
-        if (!Helpers.isEqual(this.precisionFromString(customInitialMarginRate), 0))
+        if (Helpers.isTrue(!Helpers.isEqual(this.precisionFromString(customInitialMarginRate), 0)))
         {
             leverage = this.parseToInt(Precise.stringDiv("1", customInitialMarginRate, 4));
         }
         final Object finalLeverage = leverage;
-        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safePosition(new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", Apex.this.safeString(position, "id") );
             put( "symbol", symbol );
@@ -2420,17 +2419,17 @@ public class Apex extends ApexApi
             put( "marginRatio", null );
             put( "marginMode", null );
             put( "percentage", null );
-        }}));
+        }});
     }
 
     public Object sign(Object path, Object... optionalArgs)
     {
-        Object api = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "public";
-        Object method = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET";
-        Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
-        Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
-        Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
-        Object url = Helpers.add((this.implodeHostname(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api)) + "/"), path);
+        Object api = Helpers.getArg(optionalArgs, 0, "public");
+        Object method = Helpers.getArg(optionalArgs, 1, "GET");
+        Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
+        Object headers = Helpers.getArg(optionalArgs, 3, null);
+        Object body = Helpers.getArg(optionalArgs, 4, null);
+        Object url = Helpers.add(Helpers.add(this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api)), "/"), path);
         headers = new HashMap<String, Object>() {{
             put( "User-Agent", "apex-CCXT" );
             put( "Accept", "application/json" );
@@ -2438,32 +2437,32 @@ public class Apex extends ApexApi
         }};
         Object signPath = Helpers.add("/api/", path);
         Object signBody = body;
-        if (!java.util.Objects.equals(((String)method).toUpperCase(), "POST"))
+        if (Helpers.isTrue(!Helpers.isEqual(((String)method).toUpperCase(), "POST")))
         {
-            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
             {
-                signPath = (signPath + ("?" + this.rawencode(parameters)));
-                url = (url + ("?" + this.rawencode(parameters)));
+                signPath = Helpers.add(signPath, Helpers.add("?", this.rawencode(parameters)));
+                url = Helpers.add(url, Helpers.add("?", this.rawencode(parameters)));
             }
         } else
         {
             Map<String, Object> sortedQuery = this.keysort(parameters);
             signBody = this.rawencode(sortedQuery);
         }
-        if (java.util.Objects.equals(api, "private"))
+        if (Helpers.isTrue(Helpers.isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
             Object timestamp = String.valueOf(this.milliseconds());
             Object messageString = Helpers.add(Helpers.add(timestamp, ((String)method).toUpperCase()), signPath);
-            if (!java.util.Objects.equals(signBody, null))
+            if (Helpers.isTrue(!Helpers.isEqual(signBody, null)))
             {
                 messageString = Helpers.add(messageString, signBody);
             }
             Object signature = this.hmac(this.encode(messageString), this.encode(this.stringToBase64(this.secret)), sha256(), "base64");
-            ((Map<String, Object>)headers).put("APEX-SIGNATURE", signature);
-            ((Map<String, Object>)headers).put("APEX-API-KEY", this.apiKey);
-            ((Map<String, Object>)headers).put("APEX-TIMESTAMP", timestamp);
-            ((Map<String, Object>)headers).put("APEX-PASSPHRASE", this.password);
+            Helpers.addElementToObject(headers, "APEX-SIGNATURE", signature);
+            Helpers.addElementToObject(headers, "APEX-API-KEY", this.apiKey);
+            Helpers.addElementToObject(headers, "APEX-TIMESTAMP", timestamp);
+            Helpers.addElementToObject(headers, "APEX-PASSPHRASE", this.password);
         }
         final Object finalUrl = url;
         final Object finalSignBody = signBody;
@@ -2482,19 +2481,19 @@ public class Apex extends ApexApi
         // {"code":3,"msg":"Order price must be greater than 0. Order price is 0.","key":"ORDER_PRICE_MUST_GREETER_ZERO","detail":{"price":"0"}}
         // {"code":400,"msg":"strconv.ParseInt: parsing \"dsfdfsd\": invalid syntax","timeCost":5320995}
         //
-        if (java.util.Objects.equals(response, null))
+        if (Helpers.isTrue(Helpers.isEqual(response, null)))
         {
             return null;
         }
         Long errorCode = this.safeInteger(response, "code");
-        if (!java.util.Objects.equals(errorCode, null) && (errorCode == null || errorCode != 0))
+        if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(errorCode, null)) && Helpers.isTrue(!Helpers.isEqual(errorCode, 0))))
         {
-            String feedback = ((this.id + " ") + body);
+            Object feedback = Helpers.add(Helpers.add(this.id, " "), body);
             String message = this.safeString2(response, "key", "msg");
-            this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
+            this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), message, feedback);
             Object status = String.valueOf(code);
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), status, feedback);
-            throw new ExchangeError(feedback) ;
+            this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), status, feedback);
+            throw new ExchangeError((String)feedback) ;
         }
         return null;
     }

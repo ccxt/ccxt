@@ -27,13 +27,13 @@ public class TestWatchLiquidations extends BaseTest {
         List<Object> skippedExchanges = new ArrayList<Object>(Arrays.asList());
         if (Helpers.isTrue(exchange.inArray(exchange.id, skippedExchanges)))
         {
-            String m1 = ((((exchange.id + " ") + method) + "() test skipped"));
+            Object m1 = (Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), "() test skipped"));
             System.out.println(m1);
             return false;
         }
-        if (java.util.Objects.equals(Helpers.GetValue(exchange.has, method), null) || java.util.Objects.equals(Helpers.GetValue(exchange.has, method), false))
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(exchange.has, method), null)) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(exchange.has, method), false))))
         {
-            String m2 = ((((exchange.id + " does not support ") + method) + "() method"));
+            Object m2 = (Helpers.add(Helpers.add(Helpers.add(exchange.id, " does not support "), method), "() method"));
             System.out.println(m2);
             return false;
         }
@@ -46,18 +46,18 @@ public class TestWatchLiquidations extends BaseTest {
             {
                 response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, method, new Object[] { symbol })).join();
                 now = System.currentTimeMillis();
-                Object isArray = (response instanceof List);
+                Object isArray = Helpers.isArray(response);
                 Assert(isArray, "response must be an array");
-                String m3 = ((Helpers.add((((exchange.id + " ") + method) + "() returned "), ((List<?>)response).size()) + " liquidations"));
+                Object m3 = (Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), "() returned "), Helpers.getArrayLength(response)), " liquidations"));
                 System.out.println(m3);
                 // log.noLocate (asTable (response))
-                for (var i = 0; i < ((List<?>)response).size(); i++)
+                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
                 {
-                    TestLiquidation.testLiquidation(exchange, skippedProperties, method, (response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i)), symbol);
+                    TestLiquidation.testLiquidation(exchange, skippedProperties, method, Helpers.GetValue(response, i), symbol);
                 }
             } catch(Exception e)
             {
-                if (!(Helpers.isInstance(e, NetworkError.class)))
+                if (!Helpers.isTrue((Helpers.isInstance(e, NetworkError.class))))
                 {
                     throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }

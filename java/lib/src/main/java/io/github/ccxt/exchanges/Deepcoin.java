@@ -27,7 +27,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 public class Deepcoin extends DeepcoinApi
 {
@@ -341,7 +340,7 @@ public class Deepcoin extends DeepcoinApi
                             put( "cost", 5 );
                         }} );
                         put( "deepcoin/trade/cancel-trigger-order", new HashMap<String, Object>() {{
-                            put( "cost", (((double) 1) / ((double) 6)) );
+                            put( "cost", Helpers.divide(1, 6) );
                         }} );
                         put( "deepcoin/trade/swap/cancel-all", new HashMap<String, Object>() {{
                             put( "cost", 5 );
@@ -546,13 +545,13 @@ public class Deepcoin extends DeepcoinApi
 
     public Object handleMarketTypeAndParams(Object methodName, Object... optionalArgs)
     {
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-        Object defaultValue = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+        Object defaultValue = Helpers.getArg(optionalArgs, 2, null);
         String instType = this.safeString(parameters, "instType");
         parameters = this.omit(parameters, "instType");
         String type = this.safeString(parameters, "type");
-        if ((java.util.Objects.equals(type, null)) && (!java.util.Objects.equals(instType, null)))
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, null))) && Helpers.isTrue((!Helpers.isEqual(instType, null)))))
         {
             final Object finalInstType = instType;
             parameters = this.extend(parameters, new HashMap<String, Object>() {{
@@ -562,9 +561,9 @@ public class Deepcoin extends DeepcoinApi
         return super.handleMarketTypeAndParams(methodName, market, parameters, defaultValue);
     }
 
-    public String convertToInstrumentType(String type)
+    public String convertToInstrumentType(Object type)
     {
-        Map<String, Object> exchangeTypes = (Map<String, Object>) this.safeDict(this.options, "exchangeType", new HashMap<String, Object>() {{}});
+        Object exchangeTypes = this.safeDict(this.options, "exchangeType", new HashMap<String, Object>() {{}});
         return this.safeString(exchangeTypes, ((String)type), type);
     }
 
@@ -581,10 +580,10 @@ public class Deepcoin extends DeepcoinApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object types = new ArrayList<Object>(Arrays.asList("spot", "swap"));
-            Map<String, Object> fetchMarketsOption = (Map<String, Object>) this.safeDict(this.options, "fetchMarkets");
-            if (!java.util.Objects.equals(fetchMarketsOption, null))
+            Object fetchMarketsOption = this.safeDict(this.options, "fetchMarkets");
+            if (Helpers.isTrue(!Helpers.isEqual(fetchMarketsOption, null)))
             {
                 types = this.safeList(fetchMarketsOption, "types", types);
             } else
@@ -593,28 +592,28 @@ public class Deepcoin extends DeepcoinApi
             }
             Object promises = new ArrayList<Object>(Arrays.asList());
             Object result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)types).size(); i++)
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(types)); i++)
             {
-                ((List<Object>)promises).add(this.fetchMarketsByType((String) (Helpers.GetValue(types, i)), parameters));
+                ((List<Object>)promises).add(this.fetchMarketsByType(Helpers.GetValue(types, i), parameters));
             }
             promises = (Helpers.promiseAll(promises)).join();
-            for (var i = 0; i < ((List<?>)promises).size(); i++)
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(promises)); i++)
             {
-                result = this.arrayConcat(result, (promises == null || i < 0 || i >= ((List<?>)promises).size() ? null : ((List<?>)promises).get(i)));
+                result = this.arrayConcat(result, Helpers.GetValue(promises, i));
             }
             return result;
         });
 
     }
 
-    public CompletableFuture<Object> fetchMarketsByType(String type, Object... optionalArgs)
+    public CompletableFuture<Object> fetchMarketsByType(Object type, Object... optionalArgs)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "instType", Deepcoin.this.convertToInstrumentType((String) (type)) );
+                put( "instType", Deepcoin.this.convertToInstrumentType(type) );
             }};
             Map<String, Object> response = (this.publicGetDeepcoinMarketInstruments(this.extend(request, parameters))).join();
             //
@@ -646,7 +645,7 @@ public class Deepcoin extends DeepcoinApi
             //         ]
             //     }
             //
-            List<Object> dataResponse = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Object dataResponse = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarkets(dataResponse);
         });
 
@@ -701,22 +700,22 @@ public class Deepcoin extends DeepcoinApi
         //
         String id = this.safeString(market, "instId");
         String type = this.safeStringLower(market, "instType");
-        Boolean spot = (java.util.Objects.equals(type, "spot"));
-        Boolean swap = (java.util.Objects.equals(type, "swap"));
+        Boolean spot = (Helpers.isEqual(type, "spot"));
+        Boolean swap = (Helpers.isEqual(type, "swap"));
         String baseId = this.safeString(market, "baseCcy");
         String quoteId = this.safeString(market, "quoteCcy", "");
         String settleId = null;
         Object settle = null;
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
-        Object symbol = ((base + "/") + quote);
+        Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         Object isLinear = null;
-        if (Boolean.TRUE.equals(swap))
+        if (Helpers.isTrue(swap))
         {
-            isLinear = (!java.util.Objects.equals(quoteId, "USD"));
-            settleId = ((Boolean.TRUE.equals(isLinear))) ? quoteId : baseId;
+            isLinear = (!Helpers.isEqual(quoteId, "USD"));
+            settleId = ((Helpers.isTrue(isLinear))) ? quoteId : baseId;
             settle = this.safeCurrencyCode(settleId);
-            symbol = ((symbol + ":") + settle);
+            symbol = Helpers.add(Helpers.add(symbol, ":"), settle);
         }
         Object fees = this.safeDict2(this.fees, type, "trading", new HashMap<String, Object>() {{}});
         String maxLeverage = this.safeString(market, "lever", "1");
@@ -725,8 +724,8 @@ public class Deepcoin extends DeepcoinApi
         String maxLimitSize = this.safeString(market, "maxLmtSz");
         Object maxAmount = this.parseNumber(Precise.stringMax(maxMarketSize, maxLimitSize));
         String state = this.safeString(market, "state");
-        Boolean isMargin = Boolean.TRUE.equals(spot) && (Precise.stringGt(maxLeverage, "1"));
-        Object isInverse = ((Boolean.TRUE.equals(swap))) ? (!java.util.Objects.equals(isLinear, true)) : null;
+        Boolean isMargin = Helpers.isTrue(spot) && Helpers.isTrue((Precise.stringGt(maxLeverage, "1")));
+        Object isInverse = ((Helpers.isTrue(swap))) ? (!Helpers.isEqual(isLinear, true)) : null;
         final Object finalSymbol = symbol;
         final Object finalBase = base;
         final Object finalSettle = settle;
@@ -752,11 +751,11 @@ public class Deepcoin extends DeepcoinApi
             put( "swap", swap );
             put( "future", false );
             put( "option", false );
-            put( "active", java.util.Objects.equals(finalState, "live") );
+            put( "active", Helpers.isEqual(finalState, "live") );
             put( "contract", swap );
             put( "linear", finalIsLinear );
             put( "inverse", isInverse );
-            put( "contractSize", ((Boolean.TRUE.equals(swap))) ? Deepcoin.this.safeNumber(market, "ctVal") : null );
+            put( "contractSize", ((Helpers.isTrue(swap))) ? Deepcoin.this.safeNumber(market, "ctVal") : null );
             put( "expiry", null );
             put( "expiryDatetime", null );
             put( "strike", null );
@@ -790,17 +789,17 @@ public class Deepcoin extends DeepcoinApi
 
     public Object setMarkets(Object markets, Object... optionalArgs)
     {
-        Object currencies = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        Object currencies = Helpers.getArg(optionalArgs, 0, null);
         Object result = super.setMarkets(markets, currencies);
-        List<Object> symbols = new ArrayList<Object>(((Map<String, Object>)result).keySet());
-        for (var i = 0; i < ((List<?>)symbols).size(); i++)
+        Object symbols = Helpers.objectKeys(result);
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
         {
-            Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
+            Object symbol = Helpers.GetValue(symbols, i);
             Object market = Helpers.GetValue(result, symbol);
-            if ((!java.util.Objects.equals(market, null)) && (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(market, null))) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))))
             {
-                String additionalId = (this.safeString(market, "baseId", "") + this.safeString(market, "quoteId", ""));
-                if (!java.util.Objects.equals(this.markets_by_id, null))
+                Object additionalId = Helpers.add(this.safeString(market, "baseId", ""), this.safeString(market, "quoteId", ""));
+                if (Helpers.isTrue(!Helpers.isEqual(this.markets_by_id, null)))
                 {
                     Helpers.addElementToObject(this.markets_by_id, additionalId, new ArrayList<Object>(Arrays.asList(market))); // some endpoints return swap market id as base+quote
                 }
@@ -824,20 +823,20 @@ public class Deepcoin extends DeepcoinApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object limit = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            if (java.util.Objects.equals(limit, null))
+            if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
                 limit = 400;
             }
             final Object finalLimit = limit;
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "instId", ((Map<String, Object>)market).get("id") );
+                put( "instId", Helpers.GetValue(market, "id") );
                 put( "sz", finalLimit );
             }};
             Map<String, Object> response = (this.publicGetDeepcoinMarketBooks(this.extend(request, parameters))).join();
@@ -857,7 +856,7 @@ public class Deepcoin extends DeepcoinApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrderBook(data, symbol, null, "bids", "asks", 0, 1);
         }).thenApply(OrderBook::new);
 
@@ -885,11 +884,11 @@ public class Deepcoin extends DeepcoinApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
@@ -898,7 +897,7 @@ public class Deepcoin extends DeepcoinApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Boolean.TRUE.equals(paginate))
+            if (Helpers.isTrue(paginate))
             {
                 parameters = this.extend(parameters, new HashMap<String, Object>() {{
                     put( "calculateUntil", true );
@@ -910,43 +909,43 @@ public class Deepcoin extends DeepcoinApi
             parameters = this.omit(parameters, "price");
             String bar = this.safeString(this.timeframes, timeframe, timeframe);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "instId", ((Map<String, Object>)market).get("id") );
+                put( "instId", Helpers.GetValue(market, "id") );
                 put( "bar", bar );
             }};
-            if (!java.util.Objects.equals(limit, null))
+            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                Helpers.addElementToObject(request, "limit", limit);
             }
             Long until = this.safeInteger(parameters, "until");
-            if (!java.util.Objects.equals(until, null))
+            if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
-                ((Map<String, Object>)request).put("after", until);
+                Helpers.addElementToObject(request, "after", until);
                 parameters = this.omit(parameters, "until");
             }
-            Boolean calculateUntil = (Boolean) this.safeBool(parameters, "calculateUntil", false);
-            if (java.util.Objects.equals(calculateUntil, true))
+            Object calculateUntil = this.safeBool(parameters, "calculateUntil", false);
+            if (Helpers.isTrue(Helpers.isEqual(calculateUntil, true)))
             {
                 parameters = this.omit(parameters, "calculateUntil");
-                if (!java.util.Objects.equals(since, null))
+                if (Helpers.isTrue(!Helpers.isEqual(since, null)))
                 {
                     // the exchange do not have a since param for this endpoint
                     // we calculate until (after) for correct pagination
                     int duration = this.parseTimeframe(timeframe);
-                    Object numberOfCandles = (((java.util.Objects.equals(limit, null)))) ? maxLimit : limit;
+                    Object numberOfCandles = ((Helpers.isTrue((Helpers.isEqual(limit, null))))) ? maxLimit : limit;
                     Object endTime = Helpers.add(since, Helpers.multiply((Helpers.multiply(duration, numberOfCandles)), 1000));
-                    if (!java.util.Objects.equals(until, null))
+                    if (Helpers.isTrue(!Helpers.isEqual(until, null)))
                     {
                         endTime = Helpers.mathMin(endTime, until);
                     }
                     Long now = this.milliseconds();
-                    ((Map<String, Object>)request).put("after", Helpers.mathMin(endTime, now));
+                    Helpers.addElementToObject(request, "after", Helpers.mathMin(endTime, now));
                 }
             }
             Object response = null;
-            if (java.util.Objects.equals(price, "mark"))
+            if (Helpers.isTrue(Helpers.isEqual(price, "mark")))
             {
                 response = (this.publicGetDeepcoinMarketMarkPriceCandles(this.extend(request, parameters))).join();
-            } else if (java.util.Objects.equals(price, "index"))
+            } else if (Helpers.isTrue(Helpers.isEqual(price, "index")))
             {
                 response = (this.publicGetDeepcoinMarketIndexCandles(this.extend(request, parameters))).join();
             } else
@@ -979,9 +978,9 @@ public class Deepcoin extends DeepcoinApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(data, market, timeframe, since, limit);
-        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -999,9 +998,9 @@ public class Deepcoin extends DeepcoinApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object symbols = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
@@ -1013,16 +1012,16 @@ public class Deepcoin extends DeepcoinApi
             parameters = ((List<Object>) marketTypeparametersVariable).get(1);
             final Object finalMarketType = marketType;
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "instType", Deepcoin.this.convertToInstrumentType((String) (finalMarketType)) );
+                put( "instType", Deepcoin.this.convertToInstrumentType(finalMarketType) );
             }};
             Map<String, Object> response = (this.publicGetDeepcoinMarketTickers(this.extend(request, parameters))).join();
-            List<Object> tickers = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Object tickers = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTickers(tickers, symbols);
         }).thenApply(Tickers::new);
 
     }
 
-    public Object parseTicker(Map<String, Object> ticker, Object... optionalArgs)
+    public Object parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         //     {
@@ -1044,16 +1043,16 @@ public class Deepcoin extends DeepcoinApi
         //         "ts": "1760367816000"
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeIntegerOmitZero(ticker, "ts");
         String marketId = this.safeString(ticker, "instId");
         market = this.safeMarket(marketId, market, "-");
-        Object symbol = ((Map<String, Object>)market).get("symbol");
+        Object symbol = Helpers.GetValue(market, "symbol");
         String last = this.safeString(ticker, "last");
         String open = this.safeString(ticker, "open24h");
         Object quoteVolume = this.safeString(ticker, "volCcy24h");
         Object baseVolume = this.safeString(ticker, "vol24h");
-        if ((java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)) && (java.util.Objects.equals(((Map<String, Object>)market).get("inverse"), true)))
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "swap"), true))) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))))
         {
             Object temp = baseVolume;
             baseVolume = quoteVolume;
@@ -1105,36 +1104,36 @@ public class Deepcoin extends DeepcoinApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object since = Helpers.getArg(optionalArgs, 0, null);
+            Object limit = Helpers.getArg(optionalArgs, 1, null);
+            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "instId", ((Map<String, Object>)market).get("id") );
+                put( "instId", Helpers.GetValue(market, "id") );
             }};
-            if (!java.util.Objects.equals(limit, null))
+            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
-                ((Map<String, Object>)request).put("limit", Helpers.mathMin(limit, 500));
+                Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 500));
             }
-            String productGroup = this.getProductGroupFromMarket((Map<String, Object>) (market));
-            ((Map<String, Object>)request).put("productGroup", productGroup);
+            String productGroup = this.getProductGroupFromMarket(market);
+            Helpers.addElementToObject(request, "productGroup", productGroup);
             Map<String, Object> response = (this.publicGetDeepcoinMarketTrades(this.extend(request, parameters))).join();
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(data, market, since, limit);
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
-    public String getProductGroupFromMarket(Map<String, Object> market)
+    public String getProductGroupFromMarket(Object market)
     {
         String productGroup = "Spot";
-        if (java.util.Objects.equals(this.safeBool(market, "swap"), true))
+        if (Helpers.isTrue(Helpers.isEqual(this.safeBool(market, "swap"), true)))
         {
-            if (java.util.Objects.equals(this.safeBool(market, "linear"), true))
+            if (Helpers.isTrue(Helpers.isEqual(this.safeBool(market, "linear"), true)))
             {
                 productGroup = "SwapU";
             } else
@@ -1178,7 +1177,7 @@ public class Deepcoin extends DeepcoinApi
         //         "ts": "1760704540000"
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(trade, "instId");
         market = this.safeMarket(marketId, market);
         Long timestamp = this.safeInteger(trade, "ts");
@@ -1186,7 +1185,7 @@ public class Deepcoin extends DeepcoinApi
         String execType = this.safeString(trade, "execType");
         Object fee = null;
         String feeCost = this.safeString(trade, "fee");
-        if (!java.util.Objects.equals(feeCost, null))
+        if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
             String feeCurrencyId = this.safeString(trade, "feeCcy");
             String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
@@ -1198,11 +1197,11 @@ public class Deepcoin extends DeepcoinApi
         }
         final Object finalMarket = market;
         final Object finalFee = fee;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
             put( "datetime", Deepcoin.this.iso8601(timestamp) );
-            put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
+            put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "id", Deepcoin.this.safeString(trade, "tradeId") );
             put( "order", Deepcoin.this.safeString(trade, "ordId") );
             put( "type", null );
@@ -1212,10 +1211,10 @@ public class Deepcoin extends DeepcoinApi
             put( "amount", Deepcoin.this.safeString2(trade, "fillSz", "sz") );
             put( "cost", null );
             put( "fee", finalFee );
-        }}), market);
+        }}, market);
     }
 
-    public String parseTakerOrMaker(String execType)
+    public String parseTakerOrMaker(Object execType)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "T", "taker" );
@@ -1238,8 +1237,8 @@ public class Deepcoin extends DeepcoinApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
@@ -1249,7 +1248,7 @@ public class Deepcoin extends DeepcoinApi
             parameters = ((List<Object>) marketTypeparametersVariable).get(1);
             final Object finalMarketType = marketType;
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "instType", Deepcoin.this.convertToInstrumentType((String) (finalMarketType)) );
+                put( "instType", Deepcoin.this.convertToInstrumentType(finalMarketType) );
             }};
             Map<String, Object> response = (this.privateGetDeepcoinAccountBalances(this.extend(request, parameters))).join();
             return this.parseBalance(response);
@@ -1278,17 +1277,17 @@ public class Deepcoin extends DeepcoinApi
             put( "timestamp", null );
             put( "datetime", null );
         }};
-        List<Object> balances = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; i < ((List<?>)balances).size(); i++)
+        Object balances = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balances)); i++)
         {
-            Object balance = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
+            Object balance = Helpers.GetValue(balances, i);
             String symbol = this.safeString(balance, "ccy");
             Object code = this.safeCurrencyCode(symbol);
             Object account = this.account();
-            ((Map<String, Object>)account).put("total", this.safeString(balance, "bal"));
-            ((Map<String, Object>)account).put("used", this.safeString(balance, "frozenBal"));
-            ((Map<String, Object>)account).put("free", this.safeString(balance, "availBal"));
-            ((Map<String, Object>)result).put((String)((String)code), account);
+            Helpers.addElementToObject(account, "total", this.safeString(balance, "bal"));
+            Helpers.addElementToObject(account, "used", this.safeString(balance, "frozenBal"));
+            Helpers.addElementToObject(account, "free", this.safeString(balance, "availBal"));
+            Helpers.addElementToObject(result, ((String)code), account);
         }
         return this.safeBalance(result);
     }
@@ -1311,11 +1310,11 @@ public class Deepcoin extends DeepcoinApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object code = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
@@ -1323,39 +1322,39 @@ public class Deepcoin extends DeepcoinApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchDeposits", "paginate", false);
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Boolean.TRUE.equals(paginate))
+            if (Helpers.isTrue(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchDeposits", code, since, limit, parameters, "code", null, 1, 50)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object currency = null;
-            if (!java.util.Objects.equals(code, null))
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
-                currency = this.currency((String) (code));
-                ((Map<String, Object>)request).put("coin", ((Map<String, Object>)currency).get("id"));
+                currency = this.currency(code);
+                Helpers.addElementToObject(request, "coin", Helpers.GetValue(currency, "id"));
             }
-            if (!java.util.Objects.equals(since, null))
+            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
-                ((Map<String, Object>)request).put("startTime", since);
+                Helpers.addElementToObject(request, "startTime", since);
             }
-            if (!java.util.Objects.equals(limit, null))
+            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
-                ((Map<String, Object>)request).put("size", limit);
+                Helpers.addElementToObject(request, "size", limit);
             }
             Long until = this.safeInteger(parameters, "until");
-            if (!java.util.Objects.equals(until, null))
+            if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
-                ((Map<String, Object>)request).put("endTime", until);
+                Helpers.addElementToObject(request, "endTime", until);
                 parameters = this.omit(parameters, "until");
             }
             Map<String, Object> response = (this.privateGetDeepcoinAssetDepositList(this.extend(request, parameters))).join();
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> items = (List<Object>) this.safeList(data, "data", new ArrayList<Object>(Arrays.asList()));
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Object items = this.safeList(data, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> transactionParams = new HashMap<String, Object>() {{
                 put( "type", "deposit" );
             }};
             return this.parseTransactions(items, currency, since, limit, transactionParams);
-        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
@@ -1377,11 +1376,11 @@ public class Deepcoin extends DeepcoinApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object code = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
@@ -1389,43 +1388,43 @@ public class Deepcoin extends DeepcoinApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchWithdrawals", "paginate", false);
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Boolean.TRUE.equals(paginate))
+            if (Helpers.isTrue(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, parameters, "code", null, 1, 50)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object currency = null;
-            if (!java.util.Objects.equals(code, null))
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
-                currency = this.currency((String) (code));
-                ((Map<String, Object>)request).put("coin", ((Map<String, Object>)currency).get("id"));
+                currency = this.currency(code);
+                Helpers.addElementToObject(request, "coin", Helpers.GetValue(currency, "id"));
             }
-            if (!java.util.Objects.equals(since, null))
+            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
-                ((Map<String, Object>)request).put("startTime", since);
+                Helpers.addElementToObject(request, "startTime", since);
             }
-            if (!java.util.Objects.equals(limit, null))
+            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
-                ((Map<String, Object>)request).put("size", limit);
+                Helpers.addElementToObject(request, "size", limit);
             }
             Long until = this.safeInteger(parameters, "until");
-            if (!java.util.Objects.equals(until, null))
+            if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
-                ((Map<String, Object>)request).put("endTime", until);
+                Helpers.addElementToObject(request, "endTime", until);
                 parameters = this.omit(parameters, "until");
             }
             Map<String, Object> response = (this.privateGetDeepcoinAssetWithdrawList(this.extend(request, parameters))).join();
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> items = (List<Object>) this.safeList(data, "data", new ArrayList<Object>(Arrays.asList()));
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Object items = this.safeList(data, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> transactionParams = new HashMap<String, Object>() {{
                 put( "type", "withdrawal" );
             }};
             return this.parseTransactions(items, currency, since, limit, transactionParams);
-        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 
     }
 
-    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
+    public Object parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         // fetchDeposits
@@ -1438,7 +1437,7 @@ public class Deepcoin extends DeepcoinApi
         //         "status": "succeed"
         //     }
         //
-        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        Object currency = Helpers.getArg(optionalArgs, 0, null);
         String txid = this.safeString(transaction, "txHash");
         String currencyId = this.safeString(transaction, "coin");
         String code = this.safeCurrencyCode(currencyId, currency);
@@ -1474,7 +1473,7 @@ public class Deepcoin extends DeepcoinApi
         }};
     }
 
-    public String parseTransactionStatus(String status)
+    public String parseTransactionStatus(Object status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "confirming", "pending" );
@@ -1497,25 +1496,25 @@ public class Deepcoin extends DeepcoinApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object codes = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object codes = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            if (java.util.Objects.equals(codes, null))
+            if (Helpers.isTrue(Helpers.isEqual(codes, null)))
             {
-                throw new ArgumentsRequired((this.id + " fetchDepositAddresses requires a list with one currency code")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchDepositAddresses requires a list with one currency code")) ;
             }
-            Object length = ((List<?>)codes).size();
-            if (!java.util.Objects.equals(length, 1))
+            Object length = Helpers.getArrayLength(codes);
+            if (Helpers.isTrue(!Helpers.isEqual(length, 1)))
             {
-                throw new NotSupported((this.id + " fetchDepositAddresses requires a list with one currency code")) ;
+                throw new NotSupported(Helpers.add(this.id, " fetchDepositAddresses requires a list with one currency code")) ;
             }
-            Object code = (codes == null || 0 >= ((List<?>)codes).size() ? null : ((List<?>)codes).get(0));
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Object code = Helpers.GetValue(codes, 0);
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "currency_id", ((Map<String, Object>)currency).get("id") );
+                put( "currency_id", Helpers.GetValue(currency, "id") );
                 put( "lang", "en" );
             }};
             Map<String, Object> response = (this.privateGetDeepcoinAssetRechargeChainList(this.extend(request, parameters))).join();
@@ -1545,13 +1544,13 @@ public class Deepcoin extends DeepcoinApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> list = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Object list = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> additionalParams = new HashMap<String, Object>() {{
                 put( "currency", code );
             }};
             return this.parseDepositAddresses(list, codes, false, additionalParams);
-        }).thenApply(res -> ((List<?>) res).stream().map(DepositAddress::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, DepositAddress::new));
 
     }
 
@@ -1570,28 +1569,28 @@ public class Deepcoin extends DeepcoinApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object network = this.safeString(parameters, "network");
-            Map<String, Object> defaultNetworks = (Map<String, Object>) this.safeDict(this.options, "defaultNetworks", new HashMap<String, Object>() {{}});
+            Object defaultNetworks = this.safeDict(this.options, "defaultNetworks", new HashMap<String, Object>() {{}});
             String defaultNetwork = this.safeString(defaultNetworks, code);
-            network = (((!java.util.Objects.equals(network, null) && !java.util.Objects.equals(network, "")))) ? network : defaultNetwork;
-            if (!java.util.Objects.equals(network, null))
+            network = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(network, null)) && Helpers.isTrue(!Helpers.isEqual(network, "")))))) ? network : defaultNetwork;
+            if (Helpers.isTrue(!Helpers.isEqual(network, null)))
             {
                 parameters = this.omit(parameters, "network");
             }
             Object addressess = (this.fetchDepositAddresses((Object)(new ArrayList<Object>(Arrays.asList(code))), (Object)(parameters))).join();
-            Object length = ((List<?>)addressess).size();
+            Object length = Helpers.getArrayLength(addressess);
             Object address = this.safeDict(addressess, 0, new HashMap<String, Object>() {{}});
-            if ((!java.util.Objects.equals(network, null)) && (Helpers.isGreaterThan(length, 1)))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(network, null))) && Helpers.isTrue((Helpers.isGreaterThan(length, 1)))))
             {
                 for (var i = 0; Helpers.isLessThan(i, length); i++)
                 {
-                    Object entry = (addressess == null || i < 0 || i >= ((List<?>)addressess).size() ? null : ((List<?>)addressess).get(i));
-                    if (java.util.Objects.equals(((Map<String, Object>)entry).get("network"), network))
+                    Object entry = Helpers.GetValue(addressess, i);
+                    if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(entry, "network"), network)))
                     {
                         address = entry;
                     }
@@ -1622,7 +1621,7 @@ public class Deepcoin extends DeepcoinApi
         //         }
         //     }
         //
-        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        Object currency = Helpers.getArg(optionalArgs, 0, null);
         String chain = this.safeString(response, "chain");
         String address = this.safeString(response, "address");
         this.checkAddress(address);
@@ -1654,11 +1653,11 @@ public class Deepcoin extends DeepcoinApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object code = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
@@ -1668,26 +1667,26 @@ public class Deepcoin extends DeepcoinApi
             parameters = ((List<Object>) marketTypeparametersVariable).get(1);
             final Object finalMarketType = marketType;
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "instType", Deepcoin.this.convertToInstrumentType((String) (finalMarketType)) );
+                put( "instType", Deepcoin.this.convertToInstrumentType(finalMarketType) );
             }};
             Object currency = null;
-            if (!java.util.Objects.equals(code, null))
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
-                currency = this.currency((String) (code));
-                ((Map<String, Object>)request).put("ccy", ((Map<String, Object>)currency).get("id"));
+                currency = this.currency(code);
+                Helpers.addElementToObject(request, "ccy", Helpers.GetValue(currency, "id"));
             }
-            if (!java.util.Objects.equals(since, null))
+            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
-                ((Map<String, Object>)request).put("after", since);
+                Helpers.addElementToObject(request, "after", since);
             }
-            if (!java.util.Objects.equals(limit, null))
+            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                Helpers.addElementToObject(request, "limit", limit);
             }
             Long until = this.safeInteger(parameters, "until");
-            if (!java.util.Objects.equals(until, null))
+            if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
-                ((Map<String, Object>)request).put("before", until);
+                Helpers.addElementToObject(request, "before", until);
                 parameters = this.omit(parameters, "until");
             }
             Map<String, Object> response = (this.privateGetDeepcoinAccountBills(this.extend(request, parameters))).join();
@@ -1717,13 +1716,13 @@ public class Deepcoin extends DeepcoinApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseLedger(data, currency, since, limit);
-        }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
 
     }
 
-    public Object parseLedgerEntry(Map<String, Object> item, Object... optionalArgs)
+    public Object parseLedgerEntry(Object item, Object... optionalArgs)
     {
         //
         //     {
@@ -1736,11 +1735,11 @@ public class Deepcoin extends DeepcoinApi
         //         "ts": "1761047448000"
         //     }
         //
-        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        Object currency = Helpers.getArg(optionalArgs, 0, null);
         Long timestamp = this.safeInteger(item, "ts");
         String change = this.safeString(item, "balChg");
         String amount = Precise.stringAbs(change);
-        String direction = ((Precise.stringLt(change, "0"))) ? "out" : "in";
+        String direction = ((Helpers.isTrue(Precise.stringLt(change, "0")))) ? "out" : "in";
         String currencyId = this.safeString(item, "ccy");
         currency = this.safeCurrency(currencyId, currency);
         String type = this.safeString(item, "type");
@@ -1753,7 +1752,7 @@ public class Deepcoin extends DeepcoinApi
             put( "referenceAccount", null );
             put( "referenceId", null );
             put( "type", Deepcoin.this.parseLedgerEntryType(type) );
-            put( "currency", ((Map<String, Object>)finalCurrency).get("code") );
+            put( "currency", Helpers.GetValue(finalCurrency, "code") );
             put( "amount", amount );
             put( "timestamp", timestamp );
             put( "datetime", Deepcoin.this.iso8601(timestamp) );
@@ -1764,7 +1763,7 @@ public class Deepcoin extends DeepcoinApi
         }}, currency);
     }
 
-    public String parseLedgerEntryType(String type)
+    public Object parseLedgerEntryType(Object type)
     {
         Map<String, Object> ledgerType = new HashMap<String, Object>() {{
             put( "1", "trade" );
@@ -1794,28 +1793,28 @@ public class Deepcoin extends DeepcoinApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object userId = null;
             List<Object> userIdparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "transfer", "userId");
             userId = ((List<Object>) userIdparametersVariable).get(0);
             parameters = ((List<Object>) userIdparametersVariable).get(1);
-            userId = (((!java.util.Objects.equals(userId, null) && !java.util.Objects.equals(userId, "")))) ? userId : this.safeString(parameters, "uid");
-            if (java.util.Objects.equals(userId, null))
+            userId = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(userId, null)) && Helpers.isTrue(!Helpers.isEqual(userId, "")))))) ? userId : this.safeString(parameters, "uid");
+            if (Helpers.isTrue(Helpers.isEqual(userId, null)))
             {
-                throw new ArgumentsRequired((this.id + " transfer() requires a userId parameter")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " transfer() requires a userId parameter")) ;
             }
-            if (java.util.Objects.equals(this.markets, null))
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
-            Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Object accountsByType = this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             String fromId = this.safeString(accountsByType, fromAccount, fromAccount);
             String toId = this.safeString(accountsByType, toAccount, toAccount);
             final Object finalUserId = userId;
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "currency_id", ((Map<String, Object>)currency).get("id") );
-                put( "amount", Deepcoin.this.currencyToPrecision((String) (code), amount) );
+                put( "currency_id", Helpers.GetValue(currency, "id") );
+                put( "amount", Deepcoin.this.currencyToPrecision(code, amount) );
                 put( "from_id", fromId );
                 put( "to_id", toId );
                 put( "uid", finalUserId );
@@ -1832,22 +1831,22 @@ public class Deepcoin extends DeepcoinApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object transfer = this.parseTransfer((Map<String, Object>) (data), currency);
-            Map<String, Object> transferOptions = (Map<String, Object>) this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
-            Boolean fillResponseFromRequest = (Boolean) this.safeBool(transferOptions, "fillResponseFromRequest", true);
-            if (java.util.Objects.equals(fillResponseFromRequest, true))
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Object transfer = this.parseTransfer(data, currency);
+            Object transferOptions = this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
+            Object fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
+            if (Helpers.isTrue(Helpers.isEqual(fillResponseFromRequest, true)))
             {
-                ((Map<String, Object>)transfer).put("fromAccount", fromAccount);
-                ((Map<String, Object>)transfer).put("toAccount", toAccount);
-                ((Map<String, Object>)transfer).put("amount", amount);
+                Helpers.addElementToObject(transfer, "fromAccount", fromAccount);
+                Helpers.addElementToObject(transfer, "toAccount", toAccount);
+                Helpers.addElementToObject(transfer, "amount", amount);
             }
             return transfer;
         }).thenApply(TransferEntry::new);
 
     }
 
-    public Object parseTransfer(Map<String, Object> transfer, Object... optionalArgs)
+    public Object parseTransfer(Object transfer, Object... optionalArgs)
     {
         //
         //     {
@@ -1856,9 +1855,9 @@ public class Deepcoin extends DeepcoinApi
         //         "retData": {}
         //     }
         //
-        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        Object currency = Helpers.getArg(optionalArgs, 0, null);
         String status = this.safeString(transfer, "retCode");
-        String currencyCode = this.safeCurrencyCode((String) (null), currency);
+        String currencyCode = this.safeCurrencyCode(null, currency);
         return new HashMap<String, Object>() {{
             put( "info", transfer );
             put( "id", null );
@@ -1872,9 +1871,9 @@ public class Deepcoin extends DeepcoinApi
         }};
     }
 
-    public String parseTransferStatus(String status)
+    public String parseTransferStatus(Object status)
     {
-        if (java.util.Objects.equals(status, "0"))
+        if (Helpers.isTrue(Helpers.isEqual(status, "0")))
         {
             return "ok";
         }
@@ -1910,17 +1909,17 @@ public class Deepcoin extends DeepcoinApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object price = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String triggerPrice = this.safeString(parameters, "triggerPrice");
-            Object request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+            Object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
             Object response = null;
-            if (!java.util.Objects.equals(triggerPrice, null))
+            if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
             {
                 // trigger orders
                 response = (this.privatePostDeepcoinTradeTriggerOrder(request)).join();
@@ -1942,13 +1941,13 @@ public class Deepcoin extends DeepcoinApi
                 //
                 response = (this.privatePostDeepcoinTradeOrder(request)).join();
             }
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
     }
 
-    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
+    public Object createOrderRequest(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
         /**
         * @method
@@ -1956,38 +1955,38 @@ public class Deepcoin extends DeepcoinApi
         * @name deepcoin#createOrderRequest
         * @description helper function to build request
         */
-        Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-        if (java.util.Objects.equals(type, null))
+        Object price = Helpers.getArg(optionalArgs, 0, null);
+        Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+        if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
-            throw new ArgumentsRequired((this.id + " requires a type argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
         }
-        if (java.util.Objects.equals(side, null))
+        if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((this.id + " requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
         }
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         String triggerPrice = this.safeString(parameters, "triggerPrice");
         // const isTriggerOrder = (triggerPrice !== undefined) || this.safeString2 (params, 'stopLossPrice', 'takeProfitPrice') !== undefined;
-        Boolean isTriggerOrder = (!java.util.Objects.equals(triggerPrice, null));
+        Boolean isTriggerOrder = (!Helpers.isEqual(triggerPrice, null));
         String cost = this.safeString(parameters, "cost");
-        if (!java.util.Objects.equals(cost, null))
+        if (Helpers.isTrue(!Helpers.isEqual(cost, null)))
         {
-            if ((!java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)) || (!java.util.Objects.equals(triggerPrice, null)))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "spot"), true))) || Helpers.isTrue((!Helpers.isEqual(triggerPrice, null)))))
             {
-                throw new BadRequest((this.id + " createOrder() accepts a cost parameter for spot non-trigger market orders only")) ;
+                throw new BadRequest(Helpers.add(this.id, " createOrder() accepts a cost parameter for spot non-trigger market orders only")) ;
             }
         }
-        if (Boolean.TRUE.equals(isTriggerOrder))
+        if (Helpers.isTrue(isTriggerOrder))
         {
-            return this.createTriggerOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+            return this.createTriggerOrderRequest(symbol, type, side, amount, price, parameters);
         } else
         {
-            return this.createRegularOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+            return this.createRegularOrderRequest(symbol, type, side, amount, price, parameters);
         }
     }
 
-    public Object createRegularOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
+    public Object createRegularOrderRequest(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
         /**
         * @method
@@ -2010,119 +2009,119 @@ public class Deepcoin extends DeepcoinApi
         * @param {string} [params.marginMode] *swap only* 'cross' or 'isolated', the default is 'cash' for spot and 'cross' for swap
         * @param {string} [params.mrgPosition] *swap only* 'merge' or 'split', the default is 'merge'
         */
-        Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-        if (java.util.Objects.equals(type, null))
+        Object price = Helpers.getArg(optionalArgs, 0, null);
+        Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+        if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
-            throw new ArgumentsRequired((this.id + " requires a type argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
         }
-        if (java.util.Objects.equals(side, null))
+        if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((this.id + " requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
         }
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         Object orderType = type;
-        List<Object> orderTypeparametersVariable = (List<Object>) this.handleTypePostOnlyAndTimeInForce((String) (type), (Map<String, Object>) (parameters));
+        List<Object> orderTypeparametersVariable = (List<Object>) this.handleTypePostOnlyAndTimeInForce(type, parameters);
         orderType = ((List<Object>) orderTypeparametersVariable).get(0);
         parameters = ((List<Object>) orderTypeparametersVariable).get(1);
         final Object finalSide = side;
         final Object finalOrderType = orderType;
         Map<String, Object> request = new HashMap<String, Object>() {{
-            put( "instId", ((Map<String, Object>)market).get("id") );
+            put( "instId", Helpers.GetValue(market, "id") );
             put( "side", finalSide );
             put( "ordType", finalOrderType );
         }};
         String clientOrderId = this.safeString(parameters, "clientOrderId");
-        if (!java.util.Objects.equals(clientOrderId, null))
+        if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
         {
-            ((Map<String, Object>)request).put("clOrdId", clientOrderId);
+            Helpers.addElementToObject(request, "clOrdId", clientOrderId);
             parameters = this.omit(parameters, "clientOrderId");
         }
-        Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(parameters, "stopLoss", new HashMap<String, Object>() {{}});
+        Object stopLoss = this.safeDict(parameters, "stopLoss", new HashMap<String, Object>() {{}});
         String stopLossPrice = this.safeString(stopLoss, "triggerPrice");
-        if (!java.util.Objects.equals(stopLossPrice, null))
+        if (Helpers.isTrue(!Helpers.isEqual(stopLossPrice, null)))
         {
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopLoss")));
-            ((Map<String, Object>)request).put("slTriggerPx", this.priceToPrecision(symbol, stopLossPrice));
+            Helpers.addElementToObject(request, "slTriggerPx", this.priceToPrecision(symbol, stopLossPrice));
         }
-        Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(parameters, "takeProfit", new HashMap<String, Object>() {{}});
+        Object takeProfit = this.safeDict(parameters, "takeProfit", new HashMap<String, Object>() {{}});
         String takeProfitPrice = this.safeString(takeProfit, "triggerPrice");
-        if (!java.util.Objects.equals(takeProfitPrice, null))
+        if (Helpers.isTrue(!Helpers.isEqual(takeProfitPrice, null)))
         {
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("takeProfit")));
-            ((Map<String, Object>)request).put("tpTriggerPx", this.priceToPrecision(symbol, takeProfitPrice));
+            Helpers.addElementToObject(request, "tpTriggerPx", this.priceToPrecision(symbol, takeProfitPrice));
         }
-        Boolean isMarketOrder = (java.util.Objects.equals(type, "market"));
-        if (!java.util.Objects.equals(price, null))
+        Boolean isMarketOrder = (Helpers.isEqual(type, "market"));
+        if (Helpers.isTrue(!Helpers.isEqual(price, null)))
         {
-            if (Boolean.TRUE.equals(isMarketOrder))
+            if (Helpers.isTrue(isMarketOrder))
             {
-                throw new BadRequest((this.id + " createOrder() does not require a price argument for market orders")) ;
+                throw new BadRequest(Helpers.add(this.id, " createOrder() does not require a price argument for market orders")) ;
             }
-            ((Map<String, Object>)request).put("px", this.priceToPrecision(symbol, price));
-        } else if (!Boolean.TRUE.equals(isMarketOrder))
+            Helpers.addElementToObject(request, "px", this.priceToPrecision(symbol, price));
+        } else if (!Helpers.isTrue(isMarketOrder))
         {
-            throw new BadRequest((this.id + " createOrder() requires a price argument for limit orders")) ;
+            throw new BadRequest(Helpers.add(this.id, " createOrder() requires a price argument for limit orders")) ;
         }
-        if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
+        if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
         {
             String cost = this.safeString(parameters, "cost");
-            if (!java.util.Objects.equals(cost, null))
+            if (Helpers.isTrue(!Helpers.isEqual(cost, null)))
             {
-                if (!Boolean.TRUE.equals(isMarketOrder))
+                if (!Helpers.isTrue(isMarketOrder))
                 {
-                    throw new BadRequest((this.id + " createOrder() accepts a cost parameter for spot market orders only")) ;
+                    throw new BadRequest(Helpers.add(this.id, " createOrder() accepts a cost parameter for spot market orders only")) ;
                 }
                 parameters = this.omit(parameters, "cost");
-                ((Map<String, Object>)request).put("sz", this.costToPrecision(symbol, cost));
-                ((Map<String, Object>)request).put("tgtCcy", "quote_ccy");
+                Helpers.addElementToObject(request, "sz", this.costToPrecision(symbol, cost));
+                Helpers.addElementToObject(request, "tgtCcy", "quote_ccy");
             } else
             {
-                ((Map<String, Object>)request).put("sz", this.amountToPrecision(symbol, amount));
-                ((Map<String, Object>)request).put("tgtCcy", "base_ccy");
+                Helpers.addElementToObject(request, "sz", this.amountToPrecision(symbol, amount));
+                Helpers.addElementToObject(request, "tgtCcy", "base_ccy");
             }
-            ((Map<String, Object>)request).put("side", side);
-            ((Map<String, Object>)request).put("tdMode", "cash");
+            Helpers.addElementToObject(request, "side", side);
+            Helpers.addElementToObject(request, "tdMode", "cash");
         } else
         {
-            ((Map<String, Object>)request).put("sz", this.amountToPrecision(symbol, amount));
+            Helpers.addElementToObject(request, "sz", this.amountToPrecision(symbol, amount));
             Object marginMode = "cross";
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("createOrder", parameters, marginMode);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
             parameters = ((List<Object>) marginModeparametersVariable).get(1);
-            ((Map<String, Object>)request).put("tdMode", marginMode);
+            Helpers.addElementToObject(request, "tdMode", marginMode);
             Object mrgPosition = "merge";
             List<Object> mrgPositionparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "mrgPosition", mrgPosition);
             mrgPosition = ((List<Object>) mrgPositionparametersVariable).get(0);
             parameters = ((List<Object>) mrgPositionparametersVariable).get(1);
-            ((Map<String, Object>)request).put("mrgPosition", mrgPosition);
+            Helpers.addElementToObject(request, "mrgPosition", mrgPosition);
             String posSide = null;
-            Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", false);
-            if (java.util.Objects.equals(reduceOnly, true))
+            Object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
+            if (Helpers.isTrue(Helpers.isEqual(reduceOnly, true)))
             {
-                if (java.util.Objects.equals(side, "buy"))
+                if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
                 {
                     posSide = "short";
-                } else if (java.util.Objects.equals(side, "sell"))
+                } else if (Helpers.isTrue(Helpers.isEqual(side, "sell")))
                 {
                     posSide = "long";
                 }
             } else
             {
-                if (java.util.Objects.equals(side, "buy"))
+                if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
                 {
                     posSide = "long";
-                } else if (java.util.Objects.equals(side, "sell"))
+                } else if (Helpers.isTrue(Helpers.isEqual(side, "sell")))
                 {
                     posSide = "short";
                 }
             }
-            ((Map<String, Object>)request).put("posSide", posSide);
+            Helpers.addElementToObject(request, "posSide", posSide);
         }
         return this.extend(request, parameters);
     }
 
-    public Object createTriggerOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
+    public Object createTriggerOrderRequest(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
         /**
         * @method
@@ -2138,22 +2137,22 @@ public class Deepcoin extends DeepcoinApi
         * @param {bool} [params.reduceOnly] a mark to reduce the position size for margin orders
         * @param {string} [params.marginMode] *swap only* 'cross' or 'isolated', the default is 'cash' for spot and 'cross' for swap
         */
-        Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-        if (java.util.Objects.equals(type, null))
+        Object price = Helpers.getArg(optionalArgs, 0, null);
+        Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+        if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
-            throw new ArgumentsRequired((this.id + " requires a type argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
         }
-        if (java.util.Objects.equals(side, null))
+        if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            throw new ArgumentsRequired((this.id + " requires a side argument")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
         }
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         final Object finalSide = side;
         final Object finalType = type;
         Map<String, Object> request = new HashMap<String, Object>() {{
-            put( "instId", ((Map<String, Object>)market).get("id") );
-            put( "productGroup", Deepcoin.this.capitalize(((Map<String, Object>)market).get("type")) );
+            put( "instId", Helpers.GetValue(market, "id") );
+            put( "productGroup", Deepcoin.this.capitalize(Helpers.GetValue(market, "type")) );
             put( "sz", Deepcoin.this.amountToPrecision(symbol, amount) );
             put( "side", finalSide );
             put( "orderType", finalType );
@@ -2169,47 +2168,47 @@ public class Deepcoin extends DeepcoinApi
         //         request['triggerPrice'] = this.priceToPrecision (symbol, stopLossPrice);
         //     }
         // } else {
-        ((Map<String, Object>)request).put("triggerPrice", this.priceToPrecision(symbol, triggerPrice));
+        Helpers.addElementToObject(request, "triggerPrice", this.priceToPrecision(symbol, triggerPrice));
         // }
-        if (!java.util.Objects.equals(price, null))
+        if (Helpers.isTrue(!Helpers.isEqual(price, null)))
         {
-            ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
-        } else if (java.util.Objects.equals(type, "limit"))
+            Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
+        } else if (Helpers.isTrue(Helpers.isEqual(type, "limit")))
         {
-            throw new ArgumentsRequired((this.id + " createOrder() requires a price argument for limit trigger orders")) ;
+            throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a price argument for limit trigger orders")) ;
         }
         Object marginMode = "cross";
         List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("createOrder", parameters, marginMode);
         marginMode = ((List<Object>) marginModeparametersVariable).get(0);
         parameters = ((List<Object>) marginModeparametersVariable).get(1);
         Integer isCrossMargin = 1;
-        if (java.util.Objects.equals(marginMode, "isolated"))
+        if (Helpers.isTrue(Helpers.isEqual(marginMode, "isolated")))
         {
             isCrossMargin = 0;
         }
-        Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", false);
+        Object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
         parameters = this.omit(parameters, "reduceOnly");
-        ((Map<String, Object>)request).put("isCrossMargin", isCrossMargin);
-        ((Map<String, Object>)request).put("tdMode", marginMode);
-        if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
+        Helpers.addElementToObject(request, "isCrossMargin", isCrossMargin);
+        Helpers.addElementToObject(request, "tdMode", marginMode);
+        if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
         {
-            if (java.util.Objects.equals(reduceOnly, true))
+            if (Helpers.isTrue(Helpers.isEqual(reduceOnly, true)))
             {
-                if (java.util.Objects.equals(side, "buy"))
+                if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
                 {
-                    ((Map<String, Object>)request).put("posSide", "short");
-                } else if (java.util.Objects.equals(side, "sell"))
+                    Helpers.addElementToObject(request, "posSide", "short");
+                } else if (Helpers.isTrue(Helpers.isEqual(side, "sell")))
                 {
-                    ((Map<String, Object>)request).put("posSide", "long");
+                    Helpers.addElementToObject(request, "posSide", "long");
                 }
             } else
             {
-                if (java.util.Objects.equals(side, "buy"))
+                if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
                 {
-                    ((Map<String, Object>)request).put("posSide", "long");
-                } else if (java.util.Objects.equals(side, "sell"))
+                    Helpers.addElementToObject(request, "posSide", "long");
+                } else if (Helpers.isTrue(Helpers.isEqual(side, "sell")))
                 {
-                    ((Map<String, Object>)request).put("posSide", "short");
+                    Helpers.addElementToObject(request, "posSide", "short");
                 }
             }
         }
@@ -2217,23 +2216,23 @@ public class Deepcoin extends DeepcoinApi
         List<Object> mrgPositionparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "mrgPosition", mrgPosition);
         mrgPosition = ((List<Object>) mrgPositionparametersVariable).get(0);
         parameters = ((List<Object>) mrgPositionparametersVariable).get(1);
-        ((Map<String, Object>)request).put("mrgPosition", mrgPosition);
+        Helpers.addElementToObject(request, "mrgPosition", mrgPosition);
         return this.extend(request, parameters);
     }
 
-    public Object handleTypePostOnlyAndTimeInForce(String type, Map<String, Object> parameters)
+    public Object handleTypePostOnlyAndTimeInForce(Object type, Object parameters)
     {
         Boolean postOnly = false;
-        List<Object> postOnlyparametersVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), java.util.Objects.equals(type, "post_only"), parameters);
+        List<Object> postOnlyparametersVariable = (List<Object>) this.handlePostOnly(Helpers.isEqual(type, "market"), Helpers.isEqual(type, "post_only"), parameters);
         postOnly = (Boolean) ((List<Object>) postOnlyparametersVariable).get(0);
-        parameters = (Map<String, Object>) ((List<Object>) postOnlyparametersVariable).get(1);
-        if (Boolean.TRUE.equals(postOnly))
+        parameters = ((List<Object>) postOnlyparametersVariable).get(1);
+        if (Helpers.isTrue(postOnly))
         {
             type = "post_only";
         }
         String timeInForce = this.handleTimeInForce(parameters);
-        parameters = (Map<String, Object>) (this.omit(parameters, "timeInForce"));
-        if ((!java.util.Objects.equals(timeInForce, null)) && (java.util.Objects.equals(timeInForce, "IOC")))
+        parameters = this.omit(parameters, "timeInForce");
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(timeInForce, null))) && Helpers.isTrue((Helpers.isEqual(timeInForce, "IOC")))))
         {
             type = "ioc";
         }
@@ -2255,7 +2254,7 @@ public class Deepcoin extends DeepcoinApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             parameters = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "cost", cost );
             }});
@@ -2278,7 +2277,7 @@ public class Deepcoin extends DeepcoinApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             parameters = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "cost", cost );
             }});
@@ -2301,7 +2300,7 @@ public class Deepcoin extends DeepcoinApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             parameters = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "cost", cost );
             }});
@@ -2325,19 +2324,19 @@ public class Deepcoin extends DeepcoinApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            if (java.util.Objects.equals(symbol, null))
+            if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((this.id + " fetchClosedOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchClosedOrder() requires a symbol argument")) ;
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "instId", ((Map<String, Object>)market).get("id") );
+                put( "instId", Helpers.GetValue(market, "id") );
                 put( "ordId", id );
             }};
             Map<String, Object> response = (this.privateGetDeepcoinTradeFinishOrderByID(this.extend(request, parameters))).join();
@@ -2387,8 +2386,8 @@ public class Deepcoin extends DeepcoinApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> entry = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Object entry = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseOrder(entry, market);
         });
 
@@ -2409,29 +2408,29 @@ public class Deepcoin extends DeepcoinApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            if (java.util.Objects.equals(symbol, null))
+            if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((this.id + " fetchClosedOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchClosedOrder() requires a symbol argument")) ;
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "instId", ((Map<String, Object>)market).get("id") );
+                put( "instId", Helpers.GetValue(market, "id") );
                 put( "ordId", id );
             }};
             Map<String, Object> response = (this.privateGetDeepcoinTradeOrderByID(this.extend(request, parameters))).join();
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object length = ((List<?>)data).size();
-            if (java.util.Objects.equals(length, 0))
+            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Object length = Helpers.getArrayLength(data);
+            if (Helpers.isTrue(Helpers.isEqual(length, 0)))
             {
-                throw new OrderNotFound(((this.id + " fetchOpenOrder() could not find order id ") + id)) ;
+                throw new OrderNotFound(Helpers.add(Helpers.add(this.id, " fetchOpenOrder() could not find order id "), id)) ;
             }
-            Map<String, Object> entry = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            Object entry = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseOrder(entry, market);
         });
 
@@ -2459,11 +2458,11 @@ public class Deepcoin extends DeepcoinApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
@@ -2471,41 +2470,41 @@ public class Deepcoin extends DeepcoinApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchCanceledAndClosedOrders", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Boolean.TRUE.equals(paginate))
+            if (Helpers.isTrue(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchCanceledAndClosedOrders", symbol, since, limit, parameters)).join();
             }
-            Boolean trigger = (Boolean) this.safeBool(parameters, "trigger", false);
+            Object trigger = this.safeBool(parameters, "trigger", false);
             String methodName = "fetchCanceledAndClosedOrders";
             List<Object> methodNameparametersVariable = (List<Object>) this.handleParamString(parameters, "methodName", methodName);
             methodName = (String) ((List<Object>) methodNameparametersVariable).get(0);
             parameters = ((List<Object>) methodNameparametersVariable).get(1);
             Object market = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            if (!java.util.Objects.equals(symbol, null))
+            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);
-                ((Map<String, Object>)request).put("instId", ((Map<String, Object>)market).get("id"));
+                Helpers.addElementToObject(request, "instId", Helpers.GetValue(market, "id"));
             }
             Object marketType = "spot";
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams(methodName, market, parameters, marketType);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((List<Object>) marketTypeparametersVariable).get(1);
-            ((Map<String, Object>)request).put("instType", this.convertToInstrumentType((String) (marketType)));
-            if (!java.util.Objects.equals(limit, null))
+            Helpers.addElementToObject(request, "instType", this.convertToInstrumentType(marketType));
+            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
-                ((Map<String, Object>)request).put("limit", limit); // default 100
+                Helpers.addElementToObject(request, "limit", limit); // default 100
             }
             Object response = null;
-            if (java.util.Objects.equals(trigger, true))
+            if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
             {
-                if (!java.util.Objects.equals(methodName, "fetchCanceledAndClosedOrders"))
+                if (Helpers.isTrue(!Helpers.isEqual(methodName, "fetchCanceledAndClosedOrders")))
                 {
-                    throw new BadRequest((((this.id + " ") + methodName) + "() does not support trigger orders")) ;
+                    throw new BadRequest(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() does not support trigger orders")) ;
                 }
-                if (java.util.Objects.equals(market, null))
+                if (Helpers.isTrue(Helpers.isEqual(market, null)))
                 {
-                    throw new ArgumentsRequired((this.id + " fetchCanceledAndClosedOrders() requires a symbol argument for trigger orders")) ;
+                    throw new ArgumentsRequired(Helpers.add(this.id, " fetchCanceledAndClosedOrders() requires a symbol argument for trigger orders")) ;
                 }
                 parameters = this.omit(parameters, "trigger");
                 //
@@ -2587,9 +2586,9 @@ public class Deepcoin extends DeepcoinApi
                 response = (this.privateGetDeepcoinTradeOrdersHistory(this.extend(request, parameters))).join();
             }
             // todo handle with since, until and pagination
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2610,10 +2609,10 @@ public class Deepcoin extends DeepcoinApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             String methodName = "fetchCanceledOrders";
             parameters = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "methodName", methodName );
@@ -2622,7 +2621,7 @@ public class Deepcoin extends DeepcoinApi
                 put( "state", "canceled" );
             }});
             return (this.fetchCanceledAndClosedOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2643,10 +2642,10 @@ public class Deepcoin extends DeepcoinApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             String methodName = "fetchClosedOrders";
             parameters = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "methodName", methodName );
@@ -2655,7 +2654,7 @@ public class Deepcoin extends DeepcoinApi
                 put( "state", "filled" );
             }});
             return (this.fetchCanceledAndClosedOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2679,33 +2678,33 @@ public class Deepcoin extends DeepcoinApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            if (java.util.Objects.equals(symbol, null))
+            if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((this.id + " fetchOpenOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Long index = this.safeInteger(parameters, "index", 1); // todo add pagination handling
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "instId", ((Map<String, Object>)market).get("id") );
+                put( "instId", Helpers.GetValue(market, "id") );
             }};
-            if (!java.util.Objects.equals(limit, null))
+            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                Helpers.addElementToObject(request, "limit", limit);
             }
-            Boolean trigger = (Boolean) this.safeBool(parameters, "trigger", false);
+            Object trigger = this.safeBool(parameters, "trigger", false);
             Object response = null;
-            if (java.util.Objects.equals(trigger, true))
+            if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
             {
                 parameters = this.omit(parameters, "trigger");
-                ((Map<String, Object>)request).put("instType", this.convertToInstrumentType((String) (((Map<String, Object>)market).get("type"))));
+                Helpers.addElementToObject(request, "instType", this.convertToInstrumentType(Helpers.GetValue(market, "type")));
                 //
                 //     {
                 //         "code": "0",
@@ -2740,7 +2739,7 @@ public class Deepcoin extends DeepcoinApi
                 response = (this.privateGetDeepcoinTradeTriggerOrdersPending(this.extend(request, parameters))).join();
             } else
             {
-                ((Map<String, Object>)request).put("index", index);
+                Helpers.addElementToObject(request, "index", index);
                 //
                 //     {
                 //         "code": "0",
@@ -2789,11 +2788,11 @@ public class Deepcoin extends DeepcoinApi
                 //
                 response = (this.privateGetDeepcoinTradeV2OrdersPending(this.extend(request, parameters))).join();
             }
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, since, limit, new HashMap<String, Object>() {{
                 put( "status", "open" );
             }});
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2813,24 +2812,24 @@ public class Deepcoin extends DeepcoinApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            if (java.util.Objects.equals(symbol, null))
+            if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((this.id + " cancelOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "instId", ((Map<String, Object>)market).get("id") );
+                put( "instId", Helpers.GetValue(market, "id") );
                 put( "ordId", id );
             }};
             Object response = null;
-            Boolean trigger = (Boolean) this.safeBool(parameters, "trigger", false);
-            if (java.util.Objects.equals(trigger, true))
+            Object trigger = this.safeBool(parameters, "trigger", false);
+            if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
             {
                 parameters = this.omit(parameters, "trigger");
                 response = (this.privatePostDeepcoinTradeCancelTriggerOrder(this.extend(request, parameters))).join();
@@ -2838,7 +2837,7 @@ public class Deepcoin extends DeepcoinApi
             {
                 response = (this.privatePostDeepcoinTradeCancelOrder(this.extend(request, parameters))).join();
             }
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
@@ -2860,28 +2859,28 @@ public class Deepcoin extends DeepcoinApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            if (java.util.Objects.equals(symbol, null))
+            if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((this.id + " cancelAllOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " cancelAllOrders() requires a symbol argument")) ;
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                throw new NotSupported((this.id + " cancelAllOrders() is not supported for spot markets")) ;
+                throw new NotSupported(Helpers.add(this.id, " cancelAllOrders() is not supported for spot markets")) ;
             }
-            String productGroup = this.getProductGroupFromMarket((Map<String, Object>) (market));
+            String productGroup = this.getProductGroupFromMarket(market);
             String marginMode = this.safeString(parameters, "marginMode");
             Integer encodedMarginMode = 1;
-            if (!java.util.Objects.equals(marginMode, null))
+            if (Helpers.isTrue(!Helpers.isEqual(marginMode, null)))
             {
                 parameters = this.omit(parameters, "marginMode");
-                if (java.util.Objects.equals(marginMode, "isolated"))
+                if (Helpers.isTrue(Helpers.isEqual(marginMode, "isolated")))
                 {
                     encodedMarginMode = 0;
                 }
@@ -2890,18 +2889,18 @@ public class Deepcoin extends DeepcoinApi
             List<Object> mergedparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "cancelAllOrders", "merged", merged);
             merged = ((List<Object>) mergedparametersVariable).get(0);
             parameters = ((List<Object>) mergedparametersVariable).get(1);
-            Object isMergedMode = ((Boolean.TRUE.equals(merged))) ? 1 : 0;
+            Object isMergedMode = ((Helpers.isTrue(merged))) ? 1 : 0;
             final Object finalEncodedMarginMode = encodedMarginMode;
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "InstrumentID", ((Map<String, Object>)market).get("id") );
+                put( "InstrumentID", Helpers.GetValue(market, "id") );
                 put( "ProductGroup", productGroup );
                 put( "IsCrossMargin", finalEncodedMarginMode );
                 put( "IsMergeMode", isMergedMode );
             }};
             Map<String, Object> response = (this.privatePostDeepcoinTradeSwapCancelAll(this.extend(request, parameters))).join();
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market);
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -2927,10 +2926,10 @@ public class Deepcoin extends DeepcoinApi
         final Object symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
-            Object amount = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object price = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object amount = Helpers.getArg(optionalArgs, 0, null);
+            Object price = Helpers.getArg(optionalArgs, 1, null);
+            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
@@ -2938,60 +2937,60 @@ public class Deepcoin extends DeepcoinApi
                 put( "OrderSysID", id );
             }};
             Object market = null;
-            if (!java.util.Objects.equals(symbol, null))
+            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);
-                if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
+                if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
                 {
-                    throw new NotSupported((this.id + " editOrder() is not supported for spot markets")) ;
+                    throw new NotSupported(Helpers.add(this.id, " editOrder() is not supported for spot markets")) ;
                 }
-                symbol = ((Map<String, Object>)market).get("symbol");
+                symbol = Helpers.GetValue(market, "symbol");
             }
             Double stopLossPrice = this.safeNumber(parameters, "stopLossPrice");
             Double takeProfitPrice = this.safeNumber(parameters, "takeProfitPrice");
-            Boolean isTPSL = (!java.util.Objects.equals(stopLossPrice, null)) || (!java.util.Objects.equals(takeProfitPrice, null));
+            Boolean isTPSL = Helpers.isTrue((!Helpers.isEqual(stopLossPrice, null))) || Helpers.isTrue((!Helpers.isEqual(takeProfitPrice, null)));
             Object response = null;
-            if (Boolean.TRUE.equals(isTPSL))
+            if (Helpers.isTrue(isTPSL))
             {
-                if ((!java.util.Objects.equals(price, null)) || (!java.util.Objects.equals(amount, null)))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(price, null))) || Helpers.isTrue((!Helpers.isEqual(amount, null)))))
                 {
-                    throw new BadRequest((this.id + " editOrder() with stopLossPrice or takeProfitPrice cannot have price or amount. Either use stopLossPrice/takeProfitPrice or price/amount to edit order.")) ;
+                    throw new BadRequest(Helpers.add(this.id, " editOrder() with stopLossPrice or takeProfitPrice cannot have price or amount. Either use stopLossPrice/takeProfitPrice or price/amount to edit order.")) ;
                 }
-                if (!java.util.Objects.equals(stopLossPrice, null))
+                if (Helpers.isTrue(!Helpers.isEqual(stopLossPrice, null)))
                 {
-                    ((Map<String, Object>)request).put("slTriggerPx", (((!java.util.Objects.equals(symbol, "")))) ? this.priceToPrecision(symbol, stopLossPrice) : this.numberToString(stopLossPrice));
+                    Helpers.addElementToObject(request, "slTriggerPx", ((Helpers.isTrue((!Helpers.isEqual(symbol, ""))))) ? this.priceToPrecision(symbol, stopLossPrice) : this.numberToString(stopLossPrice));
                 }
-                if (!java.util.Objects.equals(takeProfitPrice, null))
+                if (Helpers.isTrue(!Helpers.isEqual(takeProfitPrice, null)))
                 {
-                    ((Map<String, Object>)request).put("tpTriggerPx", (((!java.util.Objects.equals(symbol, "")))) ? this.priceToPrecision(symbol, takeProfitPrice) : this.numberToString(takeProfitPrice));
+                    Helpers.addElementToObject(request, "tpTriggerPx", ((Helpers.isTrue((!Helpers.isEqual(symbol, ""))))) ? this.priceToPrecision(symbol, takeProfitPrice) : this.numberToString(takeProfitPrice));
                 }
                 parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopLossPrice", "takeProfitPrice")));
                 response = (this.privatePostDeepcoinTradeReplaceOrderSltp(this.extend(request, parameters))).join();
             } else
             {
-                if (!java.util.Objects.equals(price, null))
+                if (Helpers.isTrue(!Helpers.isEqual(price, null)))
                 {
-                    if (!java.util.Objects.equals(symbol, null))
+                    if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
                     {
-                        ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
+                        Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
                     } else
                     {
-                        ((Map<String, Object>)request).put("price", this.numberToString(price));
+                        Helpers.addElementToObject(request, "price", this.numberToString(price));
                     }
                 }
-                if (!java.util.Objects.equals(amount, null))
+                if (Helpers.isTrue(!Helpers.isEqual(amount, null)))
                 {
-                    if (!java.util.Objects.equals(symbol, null))
+                    if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
                     {
-                        ((Map<String, Object>)request).put("volume", this.amountToPrecision(symbol, amount));
+                        Helpers.addElementToObject(request, "volume", this.amountToPrecision(symbol, amount));
                     } else
                     {
-                        ((Map<String, Object>)request).put("volume", this.numberToString(amount));
+                        Helpers.addElementToObject(request, "volume", this.numberToString(amount));
                     }
                 }
                 response = (this.privatePostDeepcoinTradeReplaceOrder(this.extend(request, parameters))).join();
             }
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data);
         }).thenApply(Order::new);
 
@@ -3011,28 +3010,28 @@ public class Deepcoin extends DeepcoinApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object market = null;
-            if (!java.util.Objects.equals(symbol, null))
+            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);
-                if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
+                if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
                 {
-                    throw new NotSupported((this.id + " cancelOrders() is not supported for spot markets")) ;
+                    throw new NotSupported(Helpers.add(this.id, " cancelOrders() is not supported for spot markets")) ;
                 }
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "OrderSysIDs", ids );
             }};
             Map<String, Object> response = (this.privatePostDeepcoinTradeBatchCancelOrder(this.extend(request, parameters))).join();
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market);
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -3104,31 +3103,31 @@ public class Deepcoin extends DeepcoinApi
         //         "uTime": "1761814167000"
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(order, "instId");
         market = this.safeMarket(marketId, market);
         Object timestamp = this.safeInteger(order, "cTime");
         Object timestampString = this.safeString(order, "cTime", "");
-        if (((String)timestampString).length() < 13)
+        if (Helpers.isTrue(Helpers.isLessThan(((String)timestampString).length(), 13)))
         {
             timestamp = this.safeTimestamp(order, "cTime");
         }
         String state = this.safeString(order, "state");
         String orderType = this.safeString(order, "ordType");
         String average = this.safeString(order, "avgPx");
-        if (java.util.Objects.equals(average, ""))
+        if (Helpers.isTrue(Helpers.isEqual(average, "")))
         {
             average = null;
         }
         String feeCurrencyId = this.safeString(order, "feeCcy");
         Object fee = null;
-        if (!java.util.Objects.equals(feeCurrencyId, null))
+        if (Helpers.isTrue(!Helpers.isEqual(feeCurrencyId, null)))
         {
             String feeCost = this.safeString(order, "fee");
             final Object finalFeeCurrencyId = feeCurrencyId;
             fee = new HashMap<String, Object>() {{
                 put( "cost", Deepcoin.this.parseNumber(feeCost) );
-                put( "currency", Deepcoin.this.safeCurrencyCode((String) (finalFeeCurrencyId)) );
+                put( "currency", Deepcoin.this.safeCurrencyCode(finalFeeCurrencyId) );
             }};
         }
         final Object finalTimestamp = timestamp;
@@ -3136,7 +3135,7 @@ public class Deepcoin extends DeepcoinApi
         final Object finalOrderType = orderType;
         final Object finalAverage = average;
         final Object finalFee = fee;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "id", Deepcoin.this.safeString(order, "ordId") );
             put( "clientOrderId", Deepcoin.this.safeString(order, "clOrdId") );
             put( "datetime", Deepcoin.this.iso8601(finalTimestamp) );
@@ -3144,9 +3143,9 @@ public class Deepcoin extends DeepcoinApi
             put( "lastTradeTimestamp", null );
             put( "lastUpdateTimestamp", Deepcoin.this.safeInteger(order, "uTime") );
             put( "status", Deepcoin.this.parseOrderStatus(state) );
-            put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
-            put( "type", Deepcoin.this.parseOrderType((String) (finalOrderType)) );
-            put( "timeInForce", Deepcoin.this.parseOrderTimeInForce((String) (finalOrderType)) );
+            put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
+            put( "type", Deepcoin.this.parseOrderType(finalOrderType) );
+            put( "timeInForce", Deepcoin.this.parseOrderTimeInForce(finalOrderType) );
             put( "side", Deepcoin.this.safeString(order, "side") );
             put( "price", Deepcoin.this.safeString2(order, "px", "ordPx") );
             put( "average", finalAverage );
@@ -3160,12 +3159,12 @@ public class Deepcoin extends DeepcoinApi
             put( "trades", null );
             put( "fee", finalFee );
             put( "reduceOnly", null );
-            put( "postOnly", (((!java.util.Objects.equals(finalOrderType, null) && !java.util.Objects.equals(finalOrderType, "")))) ? (java.util.Objects.equals(finalOrderType, "post_only")) : null );
+            put( "postOnly", ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(finalOrderType, null)) && Helpers.isTrue(!Helpers.isEqual(finalOrderType, "")))))) ? (Helpers.isEqual(finalOrderType, "post_only")) : null );
             put( "info", order );
-        }}), market);
+        }}, market);
     }
 
-    public String parseOrderStatus(String status)
+    public String parseOrderStatus(Object status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "live", "open" );
@@ -3176,7 +3175,7 @@ public class Deepcoin extends DeepcoinApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public String parseOrderType(String type)
+    public String parseOrderType(Object type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "limit", "limit" );
@@ -3188,7 +3187,7 @@ public class Deepcoin extends DeepcoinApi
         return this.safeString(types, ((String)type), type);
     }
 
-    public String parseOrderTimeInForce(String type)
+    public String parseOrderTimeInForce(Object type)
     {
         Map<String, Object> timeInForces = new HashMap<String, Object>() {{
             put( "post_only", "PO" );
@@ -3214,21 +3213,21 @@ public class Deepcoin extends DeepcoinApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            String instrumentType = this.convertToInstrumentType((String) (((Map<String, Object>)market).get("type")));
+            String instrumentType = this.convertToInstrumentType(Helpers.GetValue(market, "type"));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instType", instrumentType );
-                put( "instId", ((Map<String, Object>)market).get("id") );
+                put( "instId", Helpers.GetValue(market, "id") );
             }};
             Map<String, Object> response = (this.privateGetDeepcoinAccountPositions(this.extend(request, parameters))).join();
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parsePositions(data, new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("symbol"))));
-        }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
+            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            return this.parsePositions(data, new ArrayList<Object>(Arrays.asList(Helpers.GetValue(market, "symbol"))));
+        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
@@ -3246,16 +3245,16 @@ public class Deepcoin extends DeepcoinApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object symbols = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, true, true);
             Object marketType = "swap";
             Object market = null;
-            if (!java.util.Objects.equals(symbols, null))
+            if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
                 String firstSymbol = this.safeString(symbols, 0);
                 market = this.market(firstSymbol);
@@ -3263,7 +3262,7 @@ public class Deepcoin extends DeepcoinApi
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchPositions", market, parameters, marketType);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((List<Object>) marketTypeparametersVariable).get(1);
-            String instrumentType = this.convertToInstrumentType((String) (marketType));
+            String instrumentType = this.convertToInstrumentType(marketType);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instType", instrumentType );
             }};
@@ -3292,13 +3291,13 @@ public class Deepcoin extends DeepcoinApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parsePositions(data, symbols);
-        }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
-    public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
+    public Object parsePosition(Object position, Object... optionalArgs)
     {
         //
         //     {
@@ -3318,13 +3317,13 @@ public class Deepcoin extends DeepcoinApi
         //         "cTime": "1760709419000"
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(position, "instId");
         market = this.safeMarket(marketId, market);
         Long timestamp = this.safeInteger(position, "cTime");
         final Object finalMarket = market;
-        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
-            put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
+        return this.safePosition(new HashMap<String, Object>() {{
+            put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "id", Deepcoin.this.safeString(position, "posId") );
             put( "timestamp", timestamp );
             put( "datetime", Deepcoin.this.iso8601(timestamp) );
@@ -3352,7 +3351,7 @@ public class Deepcoin extends DeepcoinApi
             put( "takeProfitPrice", null );
             put( "percentage", null );
             put( "info", position );
-        }}));
+        }});
     }
 
     /**
@@ -3372,19 +3371,19 @@ public class Deepcoin extends DeepcoinApi
         final Object leverage3 = leverage2;
         return BaseExchange.supplyAsync(() -> {
             Object leverage = leverage3;
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(symbol, null))
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((this.id + " setLeverage() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
             }
             // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
             // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
-            if (Helpers.isLessThan(leverage, 1))
+            if (Helpers.isTrue(Helpers.isLessThan(leverage, 1)))
             {
-                throw new BadRequest((this.id + " setLeverage() leverage should be minimum 1")) ;
+                throw new BadRequest(Helpers.add(this.id, " setLeverage() leverage should be minimum 1")) ;
             }
-            if (java.util.Objects.equals(this.markets, null))
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
@@ -3393,17 +3392,17 @@ public class Deepcoin extends DeepcoinApi
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("setLeverage", parameters, marginMode);
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
             parameters = ((List<Object>) marginModeparametersVariable).get(1);
-            if ((!java.util.Objects.equals(marginMode, "cross")) && (!java.util.Objects.equals(marginMode, "isolated")))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marginMode, "cross"))) && Helpers.isTrue((!Helpers.isEqual(marginMode, "isolated")))))
             {
-                throw new BadRequest((this.id + " setLeverage() requires a marginMode parameter that must be either cross or isolated")) ;
+                throw new BadRequest(Helpers.add(this.id, " setLeverage() requires a marginMode parameter that must be either cross or isolated")) ;
             }
             Object mrgPosition = "merge";
             List<Object> mrgPositionparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "setLeverage", "mrgPosition", mrgPosition);
             mrgPosition = ((List<Object>) mrgPositionparametersVariable).get(0);
             parameters = ((List<Object>) mrgPositionparametersVariable).get(1);
-            if (!java.util.Objects.equals(mrgPosition, "merge") && !java.util.Objects.equals(mrgPosition, "split"))
+            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(mrgPosition, "merge")) && Helpers.isTrue(!Helpers.isEqual(mrgPosition, "split"))))
             {
-                throw new BadRequest((this.id + " setLeverage() mrgPosition parameter must be either merge or split")) ;
+                throw new BadRequest(Helpers.add(this.id, " setLeverage() mrgPosition parameter must be either merge or split")) ;
             }
             final Object finalLeverage = leverage;
             final Object finalMarginMode = marginMode;
@@ -3411,7 +3410,7 @@ public class Deepcoin extends DeepcoinApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "lever", finalLeverage );
                 put( "mgnMode", finalMarginMode );
-                put( "instId", ((Map<String, Object>)market).get("id") );
+                put( "instId", Helpers.GetValue(market, "id") );
                 put( "mrgPosition", finalMrgPosition );
             }};
             Map<String, Object> response = (this.privatePostDeepcoinAccountSetLeverage(this.extend(request, parameters))).join();
@@ -3449,16 +3448,16 @@ public class Deepcoin extends DeepcoinApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object symbols = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, "swap", true, true, true);
             Object subType = "linear";
             Object firstMarket = null;
-            if (!java.util.Objects.equals(symbols, null))
+            if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
                 String firstSymbol = this.safeString(symbols, 0);
                 firstMarket = this.market(firstSymbol);
@@ -3467,12 +3466,12 @@ public class Deepcoin extends DeepcoinApi
             subType = ((List<Object>) subTypeparametersVariable).get(0);
             parameters = ((List<Object>) subTypeparametersVariable).get(1);
             String instType = "SwapU";
-            if (java.util.Objects.equals(subType, "inverse"))
+            if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
             {
                 instType = "Swap";
-            } else if (!java.util.Objects.equals(subType, "linear"))
+            } else if (Helpers.isTrue(!Helpers.isEqual(subType, "linear")))
             {
-                throw new BadRequest((this.id + " fetchFundingRates() subType parameter must be either linear or inverse")) ;
+                throw new BadRequest(Helpers.add(this.id, " fetchFundingRates() subType parameter must be either linear or inverse")) ;
             }
             final Object finalInstType = instType;
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3497,8 +3496,8 @@ public class Deepcoin extends DeepcoinApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> rates = (List<Object>) this.safeList(data, "current_fund_rates", new ArrayList<Object>(Arrays.asList()));
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Object rates = this.safeList(data, "current_fund_rates", new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingRates(rates, symbols);
         }).thenApply(FundingRates::new);
 
@@ -3518,19 +3517,19 @@ public class Deepcoin extends DeepcoinApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            if (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                throw new ExchangeError((this.id + " fetchFundingRate() is only valid for swap markets")) ;
+                throw new ExchangeError(Helpers.add(this.id, " fetchFundingRate() is only valid for swap markets")) ;
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "instId", ((Map<String, Object>)market).get("id") );
-                put( "instType", Deepcoin.this.getProductGroupFromMarket((Map<String, Object>) (market)) );
+                put( "instId", Helpers.GetValue(market, "id") );
+                put( "instType", Deepcoin.this.getProductGroupFromMarket(market) );
             }};
             Map<String, Object> response = (this.publicGetDeepcoinTradeFundRateCurrentFundingRate(this.extend(request, parameters))).join();
             //
@@ -3547,9 +3546,9 @@ public class Deepcoin extends DeepcoinApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> rates = (List<Object>) this.safeList(data, "current_fund_rates", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> entry = (Map<String, Object>) this.safeDict(rates, 0, new HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Object rates = this.safeList(data, "current_fund_rates", new ArrayList<Object>(Arrays.asList()));
+            Object entry = this.safeDict(rates, 0, new HashMap<String, Object>() {{}});
             return this.parseFundingRate(entry, market);
         }).thenApply(FundingRate::new);
 
@@ -3563,7 +3562,7 @@ public class Deepcoin extends DeepcoinApi
         //         "fundingRate": 0.0000402356250176
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString2(contract, "instrumentId", "instrumentID");
         String symbol = this.safeSymbol(marketId, market);
         return new HashMap<String, Object>() {{
@@ -3605,25 +3604,25 @@ public class Deepcoin extends DeepcoinApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(symbol, null))
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
             }
-            if (java.util.Objects.equals(this.markets, null))
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "instId", ((Map<String, Object>)market).get("id") );
+                put( "instId", Helpers.GetValue(market, "id") );
             }};
-            if (!java.util.Objects.equals(limit, null))
+            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
-                ((Map<String, Object>)request).put("size", limit); // default 20, max 100
+                Helpers.addElementToObject(request, "size", limit); // default 20, max 100
             }
             Map<String, Object> response = (this.publicGetDeepcoinTradeFundRateHistory(this.extend(request, parameters))).join();
             //
@@ -3648,10 +3647,10 @@ public class Deepcoin extends DeepcoinApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            List<Object> rows = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Object rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingRateHistories(rows, market, since, limit);
-        }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
 
     }
 
@@ -3665,14 +3664,14 @@ public class Deepcoin extends DeepcoinApi
         //         "ratePeriodSec": 0
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeTimestamp(info, "CreateTime");
         String instrumentID = this.safeString2(info, "instrumentID", "instrumentId");
         market = this.safeMarket(instrumentID, market, null, "swap");
         final Object finalMarket = market;
         return new HashMap<String, Object>() {{
             put( "info", info );
-            put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
+            put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "fundingRate", Deepcoin.this.safeNumber(info, "rate") );
             put( "timestamp", timestamp );
             put( "datetime", Deepcoin.this.iso8601(timestamp) );
@@ -3698,11 +3697,11 @@ public class Deepcoin extends DeepcoinApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
@@ -3710,12 +3709,12 @@ public class Deepcoin extends DeepcoinApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Boolean.TRUE.equals(paginate))
+            if (Helpers.isTrue(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters)).join();
             }
             Object market = null;
-            if (!java.util.Objects.equals(symbol, null))
+            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);
             }
@@ -3725,25 +3724,25 @@ public class Deepcoin extends DeepcoinApi
             parameters = ((List<Object>) marketTypeparametersVariable).get(1);
             final Object finalMarketType = marketType;
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "instType", Deepcoin.this.convertToInstrumentType((String) (finalMarketType)) );
+                put( "instType", Deepcoin.this.convertToInstrumentType(finalMarketType) );
             }};
-            if (!java.util.Objects.equals(market, null))
+            if (Helpers.isTrue(!Helpers.isEqual(market, null)))
             {
-                ((Map<String, Object>)request).put("instId", ((Map<String, Object>)market).get("id"));
+                Helpers.addElementToObject(request, "instId", Helpers.GetValue(market, "id"));
             }
-            if (!java.util.Objects.equals(since, null))
+            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
-                ((Map<String, Object>)request).put("begin", since);
+                Helpers.addElementToObject(request, "begin", since);
             }
-            if (!java.util.Objects.equals(limit, null))
+            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
-                ((Map<String, Object>)request).put("limit", limit); // default 100, max 100
+                Helpers.addElementToObject(request, "limit", limit); // default 100, max 100
             }
             Long until = this.safeInteger(parameters, "until");
-            if (!java.util.Objects.equals(until, null))
+            if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 parameters = this.omit(parameters, "until");
-                ((Map<String, Object>)request).put("end", until);
+                Helpers.addElementToObject(request, "end", until);
             }
             Map<String, Object> response = (this.privateGetDeepcoinTradeFills(this.extend(request, parameters))).join();
             //
@@ -3771,9 +3770,9 @@ public class Deepcoin extends DeepcoinApi
             //         ]
             //     }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(data, market, since, limit);
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -3795,24 +3794,24 @@ public class Deepcoin extends DeepcoinApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             String marketType = this.safeString(parameters, "type");
-            if (java.util.Objects.equals(symbol, null) && java.util.Objects.equals(marketType, null))
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(symbol, null)) && Helpers.isTrue(Helpers.isEqual(marketType, null))))
             {
-                throw new ArgumentsRequired((this.id + " fetchOrderTrades requires a symbol argument or a market type in the params")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrderTrades requires a symbol argument or a market type in the params")) ;
             }
             parameters = this.extend(new HashMap<String, Object>() {{
                 put( "ordId", id );
             }}, parameters);
             return (this.fetchMyTrades((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -3834,34 +3833,34 @@ public class Deepcoin extends DeepcoinApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object side = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object side = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            String productGroup = this.getProductGroupFromMarket((Map<String, Object>) (market));
+            String productGroup = this.getProductGroupFromMarket(market);
             String positionId = this.safeString(parameters, "positionId");
-            List<Object> positionIds = (List<Object>) this.safeList(parameters, "positionIds");
+            Object positionIds = this.safeList(parameters, "positionIds");
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "instId", ((Map<String, Object>)market).get("id") );
+                put( "instId", Helpers.GetValue(market, "id") );
                 put( "productGroup", productGroup );
             }};
             Object response = null;
-            if (java.util.Objects.equals(positionId, null) && java.util.Objects.equals(positionIds, null))
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(positionId, null)) && Helpers.isTrue(Helpers.isEqual(positionIds, null))))
             {
                 response = (this.privatePostDeepcoinTradeBatchClosePosition(this.extend(request, parameters))).join();
             } else
             {
-                if (!java.util.Objects.equals(positionId, null))
+                if (Helpers.isTrue(!Helpers.isEqual(positionId, null)))
                 {
                     parameters = this.omit(parameters, "positionId");
-                    ((Map<String, Object>)request).put("positionIds", new ArrayList<Object>(Arrays.asList(positionId)));
+                    Helpers.addElementToObject(request, "positionIds", new ArrayList<Object>(Arrays.asList(positionId)));
                 }
                 response = (this.privatePostDeepcoinTradeClosePositionByIds(this.extend(request, parameters))).join();
             }
-            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
@@ -3869,27 +3868,27 @@ public class Deepcoin extends DeepcoinApi
 
     public Object sign(Object path, Object... optionalArgs)
     {
-        Object api = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "public";
-        Object method = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET";
-        Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
-        Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
-        Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
+        Object api = Helpers.getArg(optionalArgs, 0, "public");
+        Object method = Helpers.getArg(optionalArgs, 1, "GET");
+        Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
+        Object headers = Helpers.getArg(optionalArgs, 3, null);
+        Object body = Helpers.getArg(optionalArgs, 4, null);
         Object requestPath = path;
-        if (java.util.Objects.equals(method, "GET"))
+        if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
         {
             Object query = this.urlencode(parameters);
-            if (((String)query).length() > 0)
+            if (Helpers.isTrue(Helpers.isGreaterThan(((String)query).length(), 0)))
             {
-                requestPath = Helpers.add(requestPath, ("?" + query));
+                requestPath = Helpers.add(requestPath, Helpers.add("?", query));
             }
         }
-        Object url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), "/"), requestPath);
-        if (java.util.Objects.equals(api, "private"))
+        Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api), "/"), requestPath);
+        if (Helpers.isTrue(Helpers.isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
             Long timestamp = this.milliseconds();
             String dateTime = this.iso8601(timestamp);
-            Object payload = Helpers.add(((dateTime + method) + "/"), requestPath);
+            Object payload = Helpers.add(Helpers.add(Helpers.add(dateTime, method), "/"), requestPath);
             final Object finalDateTime = dateTime;
             headers = new HashMap<String, Object>() {{
                 put( "DC-ACCESS-KEY", Deepcoin.this.apiKey );
@@ -3897,14 +3896,14 @@ public class Deepcoin extends DeepcoinApi
                 put( "DC-ACCESS-PASSPHRASE", Deepcoin.this.password );
                 put( "appid", "200103" );
             }};
-            if (!java.util.Objects.equals(method, "GET"))
+            if (Helpers.isTrue(!Helpers.isEqual(method, "GET")))
             {
                 body = this.json(parameters);
-                ((Map<String, Object>)headers).put("Content-Type", "application/json");
+                Helpers.addElementToObject(headers, "Content-Type", "application/json");
                 payload = Helpers.add(payload, body);
             }
             Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
-            ((Map<String, Object>)headers).put("DC-ACCESS-SIGN", signature);
+            Helpers.addElementToObject(headers, "DC-ACCESS-SIGN", signature);
         }
         final Object finalMethod = method;
         final Object finalBody = body;
@@ -3919,48 +3918,48 @@ public class Deepcoin extends DeepcoinApi
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
     {
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+        Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         String msg = this.safeString(response, "msg");
         String messageCode = this.safeString(response, "code");
         String sCode = this.safeString(data, "sCode");
         String sMsg = this.safeString(data, "sMsg");
         String errorCode = this.safeString(data, "errorCode");
-        if ((!java.util.Objects.equals(msg, null)) && (java.util.Objects.equals(msg, "")) && (!java.util.Objects.equals(sMsg, null)))
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(msg, null))) && Helpers.isTrue((Helpers.isEqual(msg, "")))) && Helpers.isTrue((!Helpers.isEqual(sMsg, null)))))
         {
             msg = sMsg;
         }
-        List<Object> errorList = (List<Object>) this.safeList(data, "errorList");
-        if (!java.util.Objects.equals(errorList, null))
+        Object errorList = this.safeList(data, "errorList");
+        if (Helpers.isTrue(!Helpers.isEqual(errorList, null)))
         {
-            for (var i = 0; i < ((List<?>)errorList).size(); i++)
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(errorList)); i++)
             {
-                Map<String, Object> entry = (Map<String, Object>) this.safeDict(errorList, i, new HashMap<String, Object>() {{}});
+                Object entry = this.safeDict(errorList, i, new HashMap<String, Object>() {{}});
                 errorCode = this.safeString(entry, "errorCode");
             }
         }
-        String feedback = ((this.id + " ") + body);
-        if ((java.util.Objects.equals(sCode, null)) && (!java.util.Objects.equals(errorCode, null)))
+        Object feedback = Helpers.add(Helpers.add(this.id, " "), body);
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(sCode, null))) && Helpers.isTrue((!Helpers.isEqual(errorCode, null)))))
         {
             sCode = errorCode;
         }
         String retCode = this.safeString(data, "retCode");
-        if ((java.util.Objects.equals(sCode, null)) && (!java.util.Objects.equals(retCode, null)))
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(sCode, null))) && Helpers.isTrue((!Helpers.isEqual(retCode, null)))))
         {
             sCode = retCode;
         }
-        if ((!Helpers.isEqual(code, 200)) || (!java.util.Objects.equals(messageCode, "0")) || (!java.util.Objects.equals(sCode, null) && !java.util.Objects.equals(sCode, "0")))
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, 200))) || Helpers.isTrue((!Helpers.isEqual(messageCode, "0")))) || Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(sCode, null)) && Helpers.isTrue(!Helpers.isEqual(sCode, "0"))))))
         {
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), messageCode, feedback);
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), sCode, feedback);
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), msg, feedback);
-            this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), msg, feedback);
-            throw new ExchangeError(feedback) ;
+            this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), messageCode, feedback);
+            this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), sCode, feedback);
+            this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), msg, feedback);
+            this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), msg, feedback);
+            throw new ExchangeError((String)feedback) ;
         } else
         {
-            List<Object> list = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
-            if ((data.containsKey("list")) && (java.util.Objects.equals(list, null)))
+            Object list = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.inOp(data, "list"))) && Helpers.isTrue((Helpers.isEqual(list, null)))))
             {
-                throw new NullResponse(feedback) ;
+                throw new NullResponse((String)feedback) ;
             }
         }
         return null;

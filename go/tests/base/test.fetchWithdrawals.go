@@ -19,7 +19,7 @@ func testFetchWithdrawalsBody(ch chan any, exchange ccxt.ICoreExchange, skippedP
 	PanicOnError(transactions)
 	AssertNonEmtpyArray(exchange, skippedProperties, method, transactions, code)
 	var now int64 = exchange.Milliseconds()
-	for i := 0; i < GetArrayLength(transactions); i++ {
+	for i := 0; IsLessThan(i, GetArrayLength(transactions)); i++ {
 		TestDepositWithdrawal(exchange, skippedProperties, method, GetValue(transactions, i), code, now)
 	}
 	AssertTimestampOrder(exchange, method, code, transactions)

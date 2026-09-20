@@ -28,8 +28,8 @@ export default class digifinex extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     fetchMarkets(params?: {}): Promise<Market[]>;
-    fetchMarketsV2(params?: Dict): Promise<Market[]>;
-    fetchMarketsV1(params?: Dict): Promise<Market[]>;
+    fetchMarketsV2(params?: {}): Promise<Market[]>;
+    fetchMarketsV1(params?: {}): Promise<Market[]>;
     parseBalance(response: any): Balances;
     /**
      * @method
@@ -156,7 +156,7 @@ export default class digifinex extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
-    createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: Dict): Dict;
+    createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): any;
     /**
      * @method
      * @name digifinex#createMarketBuyOrderWithCost
@@ -180,7 +180,7 @@ export default class digifinex extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
-    parseCancelOrders(response: Dict): Order[];
+    parseCancelOrders(response: any): Order[];
     /**
      * @method
      * @name digifinex#cancelOrders
@@ -245,7 +245,7 @@ export default class digifinex extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    parseLedgerEntryType(type: any): Str;
+    parseLedgerEntryType(type: any): string;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
     /**
      * @method
@@ -271,7 +271,7 @@ export default class digifinex extends Exchange {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
-    fetchTransactionsByType(type: Str, code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
+    fetchTransactionsByType(type: any, code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     /**
      * @method
      * @name digifinex#fetchDeposits
@@ -355,7 +355,7 @@ export default class digifinex extends Exchange {
         datetime: undefined;
         info: any;
     };
-    parseBorrowRates(info: any[], codeKey: Str): Dict;
+    parseBorrowRates(info: any, codeKey: any): Dict;
     /**
      * @method
      * @name digifinex#fetchFundingRate
@@ -377,7 +377,7 @@ export default class digifinex extends Exchange {
      */
     fetchFundingInterval(symbol: string, params?: {}): Promise<FundingRate>;
     parseFundingRate(contract: any, market?: Market): FundingRate;
-    parseFundingInterval(interval: Str): Str;
+    parseFundingInterval(interval: any): string;
     /**
      * @method
      * @name digifinex#fetchFundingRateHistory
@@ -506,7 +506,7 @@ export default class digifinex extends Exchange {
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     reduceMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
-    modifyMarginHelper(symbol: string, amount: Num, type: any, params?: Dict): Promise<MarginModification>;
+    modifyMarginHelper(symbol: string, amount: any, type: any, params?: {}): Promise<MarginModification>;
     parseMarginModification(data: Dict, market?: Market): MarginModification;
     /**
      * @method

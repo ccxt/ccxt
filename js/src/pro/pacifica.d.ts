@@ -116,7 +116,7 @@ export default class pacifica extends pacificaRest {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
-    handleOrderBook(client: Client, message: Dict): void;
+    handleOrderBook(client: any, message: any): void;
     /**
      * @method
      * @name pacifica#watchTicker
@@ -171,9 +171,9 @@ export default class pacifica extends pacificaRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     unWatchMyTrades(symbol?: Str, params?: {}): Promise<any>;
-    handleWsTickers(client: Client, message: Dict): boolean;
-    parseWsTicker(rawTicker: Dict, market?: Market): Ticker;
-    handleMyTrades(client: Client, message: Dict): void;
+    handleWsTickers(client: Client, message: any): boolean;
+    parseWsTicker(rawTicker: any, market?: Market): Ticker;
+    handleMyTrades(client: Client, message: any): void;
     /**
      * @method
      * @name pacifica#watchTrades
@@ -196,7 +196,7 @@ export default class pacifica extends pacificaRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     unWatchTrades(symbol: string, params?: {}): Promise<any>;
-    handleTrades(client: Client, message: Dict): void;
+    handleTrades(client: Client, message: any): void;
     parseWsTrade(trade: Dict, market?: Market): Trade;
     /**
      * @method
@@ -222,7 +222,7 @@ export default class pacifica extends pacificaRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     unWatchOHLCV(symbol: string, timeframe?: string, params?: {}): Promise<any>;
-    handleOHLCV(client: Client, message: Dict): void;
+    handleOHLCV(client: Client, message: any): void;
     /**
      * @method
      * @name pacifica#watchOrders
@@ -247,20 +247,20 @@ export default class pacifica extends pacificaRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     unWatchOrders(symbol?: Str, params?: {}): Promise<any>;
-    handleOrder(client: Client, message: Dict): void;
-    handleErrorMessage(client: Client, message: Dict): Bool;
+    handleOrder(client: Client, message: any): void;
+    handleErrorMessage(client: Client, message: any): Bool;
     handleOrderBookUnsubscription(client: Client, subscription: Dict): void;
     handleTradesUnsubscription(client: Client, subscription: Dict): void;
     handleTickersUnsubscription(client: Client, subscription: Dict): void;
     handleOHLCVUnsubscription(client: Client, subscription: Dict): void;
     handleOrderUnsubscription(client: Client, subscription: Dict): void;
     handleMyTradesUnsubscription(client: Client, subscription: Dict): void;
-    handleSubscriptionResponse(client: Client, message: Dict): void;
+    handleSubscriptionResponse(client: Client, message: any): void;
     handleMessage(client: Client, message: any): void;
     ping(client: Client): {
         method: string;
     };
-    handlePong(client: Client, message: Dict): Dict;
+    handlePong(client: Client, message: any): any;
     requestId(): string;
     wrapAsPostAction(operationType: Str, request: Dict): Dict;
     handleWsPost(client: Client, message: Dict): void;

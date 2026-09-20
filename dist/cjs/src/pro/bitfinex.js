@@ -228,9 +228,9 @@ class bitfinex extends bitfinex$1["default"] {
         //       ]
         //   ]
         //
-        const data = this.safeList(message, 1, []);
+        const data = this.safeValue(message, 1, []);
         let ohlcvs = [];
-        const first = this.safeList(data, 0);
+        const first = this.safeValue(data, 0);
         if (Array.isArray(first)) {
             // snapshot
             ohlcvs = data;
@@ -239,7 +239,7 @@ class bitfinex extends bitfinex$1["default"] {
             // update
             ohlcvs = [data];
         }
-        const channel = this.safeString(subscription, 'channel');
+        const channel = this.safeValue(subscription, 'channel');
         const key = this.safeString(subscription, 'key', '');
         const keyParts = key.split(':');
         const interval = this.safeString(keyParts, 1);
@@ -250,7 +250,7 @@ class bitfinex extends bitfinex$1["default"] {
         const timeframe = this.findTimeframe(interval);
         const symbol = market['symbol'];
         const messageHash = channel + ':' + interval + ':' + marketId;
-        this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
         let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
@@ -411,7 +411,7 @@ class bitfinex extends bitfinex$1["default"] {
         //    ]
         //
         //
-        const channel = this.safeString(subscription, 'channel');
+        const channel = this.safeValue(subscription, 'channel');
         const marketId = this.safeString(subscription, 'symbol');
         const market = this.safeMarket(marketId);
         const messageHash = channel + ':' + marketId;
@@ -442,7 +442,7 @@ class bitfinex extends bitfinex$1["default"] {
                 // since te and tu updates are duplicated on the public stream
                 return;
             }
-            const trade = this.safeList(message, 2, []);
+            const trade = this.safeValue(message, 2, []);
             const parsed = this.parseWsTrade(trade, market);
             stored.append(parsed);
         }
@@ -635,7 +635,7 @@ class bitfinex extends bitfinex$1["default"] {
                 throw new errors.ExchangeError(this.id + ' watchOrderBook limit argument must be undefined, 25 or 100');
             }
         }
-        const options = this.safeDict(this.options, 'watchOrderBook', {});
+        const options = this.safeValue(this.options, 'watchOrderBook', {});
         const prec = this.safeString(options, 'prec', 'P0');
         const freq = this.safeString(options, 'freq', 'F0');
         const request = {
@@ -760,7 +760,7 @@ class bitfinex extends bitfinex$1["default"] {
         const symbol = this.safeSymbol(marketId);
         const channel = 'book';
         const messageHash = channel + ':' + marketId;
-        const book = this.safeDict(this.orderbooks, symbol);
+        const book = this.safeValue(this.orderbooks, symbol);
         if (book === undefined) {
             return;
         }
@@ -773,8 +773,8 @@ class bitfinex extends bitfinex$1["default"] {
         const idToCheck = isRaw ? 2 : 0;
         // pepperoni pizza from bitfinex
         for (let i = 0; i < depth; i++) {
-            const bid = this.safeList(bids, i);
-            const ask = this.safeList(asks, i);
+            const bid = this.safeValue(bids, i);
+            const ask = this.safeValue(asks, i);
             if (bid !== undefined) {
                 stringArray.push(this.numberToString(bids[i][idToCheck]));
                 stringArray.push(this.numberToString(bids[i][1]));
@@ -1279,7 +1279,7 @@ class bitfinex extends bitfinex$1["default"] {
             if (message[1] === 'hb') {
                 return; // skip heartbeats within subscription channels for now
             }
-            const subscription = this.safeDict(client.subscriptions, channelId, {});
+            const subscription = this.safeValue(client.subscriptions, channelId, {});
             const channel = this.safeString(subscription, 'channel');
             const name = this.safeString(message, 1);
             const publicMethods = {

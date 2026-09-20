@@ -1115,7 +1115,7 @@ class bitfinex extends bitfinex$1["default"] {
         //
         const result = this.safeList(transfer, 'result');
         const timestamp = this.safeInteger(result, 0);
-        const info = this.safeList(result, 4);
+        const info = this.safeValue(result, 4);
         const fromAccount = this.safeString(info, 1);
         const toAccount = this.safeString(info, 2);
         const currencyId = this.safeString(info, 5);
@@ -1146,9 +1146,9 @@ class bitfinex extends bitfinex$1["default"] {
         //   "id": "fUSTF0",
         //   "code": "USTF0",
         //   "info": [ 'USTF0', [], [], [], [ "USTF0", "UST" ] ],
-        const info = this.safeList(currency, 'info');
+        const info = this.safeValue(currency, 'info');
         const transferId = this.safeString(info, 0);
-        const underlying = this.safeList(info, 4, []);
+        const underlying = this.safeValue(info, 4, []);
         let currencyId = undefined;
         if (type === 'derivatives') {
             currencyId = this.safeString(underlying, 0, transferId);
@@ -1654,7 +1654,7 @@ class bitfinex extends bitfinex$1["default"] {
             // '16384': 'OCO', // The one cancels other order option allows you to place a pair of orders stipulating that if one order is executed fully or partially, then the other is automatically canceled.
             // '524288': 'No Var Rates' // Excludes variable rate funding offers from matching against this order, if on margin
         };
-        return this.safeList(flagValues, flags, undefined);
+        return this.safeValue(flagValues, flags, undefined);
     }
     parseTimeInForce(orderType) {
         const orderTypes = {
@@ -1678,7 +1678,7 @@ class bitfinex extends bitfinex$1["default"] {
         const amount = Precise["default"].stringAbs(signedAmount);
         const side = Precise["default"].stringLt(signedAmount, '0') ? 'sell' : 'buy';
         const orderType = this.safeString(orderList, 8);
-        const type = this.safeString(this.safeDict(this.options, 'exchangeTypes'), orderType);
+        const type = this.safeString(this.safeValue(this.options, 'exchangeTypes'), orderType);
         const timeInForce = this.parseTimeInForce(orderType);
         const rawFlags = this.safeString(orderList, 12);
         const flags = this.parseOrderFlags(rawFlags);
@@ -2440,8 +2440,8 @@ class bitfinex extends bitfinex$1["default"] {
         const currency = this.currency(code);
         // if not provided explicitly we will try to match using the currency name
         const network = this.safeString(params, 'network', code);
-        const currencyNetworks = this.safeDict(currency, 'networks', {});
-        const currencyNetwork = this.safeDict(currencyNetworks, network);
+        const currencyNetworks = this.safeValue(currency, 'networks', {});
+        const currencyNetwork = this.safeValue(currencyNetworks, network);
         const networkId = this.safeString(currencyNetwork, 'id');
         if (networkId === undefined) {
             throw new errors.ArgumentsRequired(this.id + " fetchDepositAddress() could not find a network for '" + code + "'. You can specify it by providing the 'network' value inside params");
@@ -2473,7 +2473,7 @@ class bitfinex extends bitfinex$1["default"] {
         //         "success", // TEXT Text of the notification
         //     ]
         //
-        const result = this.safeList(response, 4, []);
+        const result = this.safeValue(response, 4, []);
         const poolAddress = this.safeString(result, 5);
         const address = (poolAddress === undefined) ? this.safeString(result, 4) : poolAddress;
         const tag = (poolAddress === undefined) ? undefined : this.safeString(result, 4);
@@ -2569,7 +2569,7 @@ class bitfinex extends bitfinex$1["default"] {
         let network = undefined;
         let comment = undefined;
         if (transactionLength === 8) {
-            const data = this.safeList(transaction, 4, []);
+            const data = this.safeValue(transaction, 4, []);
             timestamp = this.safeInteger(transaction, 0);
             if (currency !== undefined) {
                 code = currency['code'];
@@ -2726,9 +2726,9 @@ class bitfinex extends bitfinex$1["default"] {
         //
         const result = {};
         const fiat = this.safeDict(this.options, 'fiat', {});
-        const feeData = this.safeList(response, 4, []);
-        const makerData = this.safeList(feeData, 0, []);
-        const takerData = this.safeList(feeData, 1, []);
+        const feeData = this.safeValue(response, 4, []);
+        const makerData = this.safeValue(feeData, 0, []);
+        const takerData = this.safeValue(feeData, 1, []);
         const makerFee = this.safeNumber(makerData, 0);
         const makerFeeFiat = this.safeNumber(makerData, 2);
         const makerFeeDeriv = this.safeNumber(makerData, 5);
@@ -2846,8 +2846,8 @@ class bitfinex extends bitfinex$1["default"] {
         // if not provided explicitly we will try to match using the currency name
         const network = this.safeString(params, 'network', code);
         params = this.omit(params, 'network');
-        const currencyNetworks = this.safeDict(currency, 'networks', {});
-        const currencyNetwork = this.safeDict(currencyNetworks, network);
+        const currencyNetworks = this.safeValue(currency, 'networks', {});
+        const currencyNetwork = this.safeValue(currencyNetworks, network);
         const networkId = this.safeString(currencyNetwork, 'id');
         if (networkId === undefined) {
             throw new errors.ArgumentsRequired(this.id + " withdraw() could not find a network for '" + code + "'. You can specify it by providing the 'network' value inside params");
@@ -2863,7 +2863,7 @@ class bitfinex extends bitfinex$1["default"] {
         if (tag !== undefined) {
             request['payment_id'] = tag;
         }
-        const withdrawOptions = this.safeDict(this.options, 'withdraw', {});
+        const withdrawOptions = this.safeValue(this.options, 'withdraw', {});
         const includeFee = this.safeBool(withdrawOptions, 'includeFee', false);
         if (includeFee === true) {
             request['fee_deduct'] = 1;

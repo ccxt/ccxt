@@ -12,21 +12,21 @@ public partial class testMainClass : BaseTest
     {
         string method = "watchOHLCV";
         Int64 now = exchange.milliseconds();
-        object ends = (now + 15000);
+        object ends = add(now, 15000);
         List<object> timeframeKeys = new List<object>(((IDictionary<string,object>)exchange.timeframes).Keys);
-        assert(timeframeKeys.Count > 0, add(add(add(exchange.id, " "), method), " - no timeframes found"));
+        assert(isGreaterThan(getArrayLength(timeframeKeys), 0), add(add(add(exchange.id, " "), method), " - no timeframes found"));
         // prefer 1m timeframe if available, otherwise return the first one
         object chosenTimeframeKey = "1m";
         if (!isTrue(exchange.inArray(chosenTimeframeKey, timeframeKeys)))
         {
-            chosenTimeframeKey = (timeframeKeys != null && 0 < timeframeKeys.Count ? timeframeKeys[0] : null);
+            chosenTimeframeKey = getValue(timeframeKeys, 0);
         }
         int limit = 10;
         int duration = exchange.parseTimeframe(chosenTimeframeKey);
         Int64 since = subtract(subtract(exchange.milliseconds(), multiply(multiply(duration, limit), 1000)), 1000);
         int maxIdleTime = 5000;
         bool idle = false;
-        while ((isLessThan(now, ends)) && !idle)
+        while (isTrue((isLessThan(now, ends))) && !isTrue(idle))
         {
             object response = null;
             bool success = true;
@@ -34,7 +34,7 @@ public partial class testMainClass : BaseTest
             try
             {
                 response = detypeForComparison(await exchange.WatchOHLCV(((string)symbol),((string)chosenTimeframeKey),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit)));
-                if ((response == null))
+                if (isTrue(isEqual(response, null)))
                 {
                     throw new Exception ((string)add(exchange.id, " watch returned undefined response")) ;
                 }
@@ -47,14 +47,14 @@ public partial class testMainClass : BaseTest
                 success = false;
             }
             now = exchange.milliseconds();
-            if (((success == true)) && ((response != null)))
+            if (isTrue(isTrue((isEqual(success, true))) && isTrue((!isEqual(response, null)))))
             {
                 testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, response, symbol);
-                for (int i = 0; i < getArrayLength(response); i++)
+                for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
                 {
                     testOHLCV(exchange, skippedProperties, method, getValue(response, i), symbol, now);
                 }
-                if (isGreaterThan(((now - startTime)), maxIdleTime))
+                if (isTrue(isGreaterThan((subtract(now, startTime)), maxIdleTime)))
                 {
                     idle = true;
                 }

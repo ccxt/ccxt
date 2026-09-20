@@ -11,10 +11,10 @@ use ccxt::exchange_generated::ExchangeBase;
 pub fn testSum() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("id".to_string(), Value::Str("sampleexchange".into()));
+            m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
         m
     }));
     // testSharedMethods.assertDeepEqual (exchange, undefined, 'testSum', exchange.sum (), undefined); // todo: bugs in py
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testSum".into()).clone(), exchange.sum(&[Value::Int(2)]).clone(), Value::Int(2).clone()]);
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testSum".into()).clone(), exchange.sum(&[Value::Int(2), Value::Int(30), Value::Int(400)]).clone(), Value::Int(432).clone()]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testSum".to_string()).clone(), exchange.sum(&[Value::Int(2)]).clone(), Value::Int(2).clone()]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testSum".to_string()).clone(), exchange.sum(&[Value::Int(2), Value::Int(30), Value::Int(400)]).clone(), Value::Int(432).clone()]);
 }

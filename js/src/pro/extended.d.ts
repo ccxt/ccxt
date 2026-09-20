@@ -1,5 +1,5 @@
 import extendedRest from '../extended.js';
-import type { Balances, Bool, Dict, FundingRate, Int, Market, NullableDict, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
+import type { Balances, Bool, FundingRate, Int, Market, NullableDict, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class extended extends extendedRest {
     describe(): any;
@@ -14,10 +14,10 @@ export default class extended extends extendedRest {
      * @param {string} [params.depth] set to '1' to receive best bid and ask snapshots only
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
-    handleOrderBook(client: Client, message: Dict): void;
-    handleDelta(bookside: any, delta: Dict): void;
-    handleDeltas(bookside: any, deltas: any[]): void;
+    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    handleOrderBook(client: Client, message: any): void;
+    handleDelta(bookside: any, delta: any): void;
+    handleDeltas(bookside: any, deltas: any): void;
     watchPrivate(messageHash: string, subscription?: NullableDict): Promise<any>;
     /**
      * @method
@@ -30,7 +30,7 @@ export default class extended extends extendedRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     /**
      * @method
      * @name extended#watchBalance
@@ -39,8 +39,8 @@ export default class extended extends extendedRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    watchBalance(params?: Dict): Promise<Balances>;
-    handleBalance(client: Client, message: Dict): void;
+    watchBalance(params?: {}): Promise<Balances>;
+    handleBalance(client: Client, message: any): void;
     /**
      * @method
      * @name extended#watchMyTrades
@@ -52,8 +52,8 @@ export default class extended extends extendedRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
-    handleMyTrades(client: Client, message: Dict): void;
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    handleMyTrades(client: Client, message: any): void;
     /**
      * @method
      * @name extended#watchPositions
@@ -65,9 +65,9 @@ export default class extended extends extendedRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<Position[]>;
-    handlePositions(client: Client, message: Dict): void;
-    handleOrders(client: Client, message: Dict): void;
+    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
+    handlePositions(client: Client, message: any): void;
+    handleOrders(client: Client, message: any): void;
     /**
      * @method
      * @name extended#watchFundingRate
@@ -77,9 +77,9 @@ export default class extended extends extendedRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    watchFundingRate(symbol: string, params?: Dict): Promise<FundingRate>;
-    handleFundingRate(client: Client, message: Dict): void;
-    parseWsFundingRate(fundingRate: Dict, market?: Market, message?: NullableDict): FundingRate;
+    watchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
+    handleFundingRate(client: Client, message: any): void;
+    parseWsFundingRate(fundingRate: any, market?: Market, message?: any): FundingRate;
     /**
      * @method
      * @name extended#watchMarkPrice
@@ -89,8 +89,8 @@ export default class extended extends extendedRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchMarkPrice(symbol: string, params?: Dict): Promise<Ticker>;
-    handleMarkPrice(client: Client, message: Dict): void;
+    watchMarkPrice(symbol: string, params?: {}): Promise<Ticker>;
+    handleMarkPrice(client: Client, message: any): void;
     /**
      * @method
      * @name extended#watchTrades
@@ -102,8 +102,8 @@ export default class extended extends extendedRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
-    handleTrades(client: Client, message: Dict): void;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    handleTrades(client: Client, message: any): void;
     /**
      * @method
      * @name extended#watchOHLCV
@@ -118,9 +118,9 @@ export default class extended extends extendedRest {
      * @param {string} [params.price] *ignored if params.candleType is set* 'mark' or 'index' for mark price and index price candles
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
-    handleOHLCV(client: Client, message: Dict): void;
-    findSubscription(client: Client, name: string): NullableDict;
-    handleErrorMessage(client: Client, message: Dict): Bool;
-    handleMessage(client: Client, message: Dict): void;
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    handleOHLCV(client: Client, message: any): void;
+    findSubscription(client: Client, name: string): import("../base/types.js").Dictionary<any> | undefined;
+    handleErrorMessage(client: Client, message: any): Bool;
+    handleMessage(client: Client, message: any): void;
 }

@@ -892,9 +892,9 @@ class independentreserve extends independentreserve$1["default"] {
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market(symbol);
-            const fee = this.safeDict(fees, market['base'], {});
+            const fee = this.safeValue(fees, market['base'], {});
             result[symbol] = {
-                'info': this.safeDict(fee, 'info'),
+                'info': this.safeValue(fee, 'info'),
                 'symbol': symbol,
                 'maker': this.safeNumber(fee, 'fee'),
                 'taker': this.safeNumber(fee, 'fee'),

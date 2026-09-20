@@ -193,48 +193,48 @@ impl BybiteuCore {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.parent.describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str("bybiteu".into()));
-        m.insert("name".to_string(), Value::Str("Bybit EU".into()));
-        m.insert("countries".to_string(), Value::from(vec![Value::Str("EU".into())]));
-        m.insert("version".to_string(), Value::Str("v5".into()));
+        m.insert("id".to_string(), Value::Str("bybiteu".to_string()));
+        m.insert("name".to_string(), Value::Str("Bybit EU".to_string()));
+        m.insert("countries".to_string(), Value::List(vec![Value::Str("EU".to_string())]));
+        m.insert("version".to_string(), Value::Str("v5".to_string()));
         m.insert("rateLimit".to_string(), Value::Int(20));
-        m.insert("hostname".to_string(), Value::Str("bybit.eu".into()));
+        m.insert("hostname".to_string(), Value::Str("bybit.eu".to_string()));
         m.insert("pro".to_string(), Value::Bool(true));
         m.insert("certified".to_string(), Value::Bool(false));
         m.insert("urls".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("test".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("spot".to_string(), Value::Str("https://api-testnet.{hostname}".into()));
-        m.insert("futures".to_string(), Value::Str("https://api-testnet.{hostname}".into()));
-        m.insert("v2".to_string(), Value::Str("https://api-testnet.{hostname}".into()));
-        m.insert("public".to_string(), Value::Str("https://api-testnet.{hostname}".into()));
-        m.insert("private".to_string(), Value::Str("https://api-testnet.{hostname}".into()));
+        m.insert("spot".to_string(), Value::Str("https://api-testnet.{hostname}".to_string()));
+        m.insert("futures".to_string(), Value::Str("https://api-testnet.{hostname}".to_string()));
+        m.insert("v2".to_string(), Value::Str("https://api-testnet.{hostname}".to_string()));
+        m.insert("public".to_string(), Value::Str("https://api-testnet.{hostname}".to_string()));
+        m.insert("private".to_string(), Value::Str("https://api-testnet.{hostname}".to_string()));
     m
 }));
-        m.insert("logo".to_string(), Value::Str("https://github.com/user-attachments/assets/97a5d0b3-de10-423d-90e1-6620960025ed".into()));
+        m.insert("logo".to_string(), Value::Str("https://github.com/user-attachments/assets/97a5d0b3-de10-423d-90e1-6620960025ed".to_string()));
         m.insert("api".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("spot".to_string(), Value::Str("https://api.{hostname}".into()));
-        m.insert("futures".to_string(), Value::Str("https://api.{hostname}".into()));
-        m.insert("v2".to_string(), Value::Str("https://api.{hostname}".into()));
-        m.insert("public".to_string(), Value::Str("https://api.{hostname}".into()));
-        m.insert("private".to_string(), Value::Str("https://api.{hostname}".into()));
+        m.insert("spot".to_string(), Value::Str("https://api.{hostname}".to_string()));
+        m.insert("futures".to_string(), Value::Str("https://api.{hostname}".to_string()));
+        m.insert("v2".to_string(), Value::Str("https://api.{hostname}".to_string()));
+        m.insert("public".to_string(), Value::Str("https://api.{hostname}".to_string()));
+        m.insert("private".to_string(), Value::Str("https://api.{hostname}".to_string()));
     m
 }));
         m.insert("demotrading".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("spot".to_string(), Value::Str("https://api-demo.{hostname}".into()));
-        m.insert("futures".to_string(), Value::Str("https://api-demo.{hostname}".into()));
-        m.insert("v2".to_string(), Value::Str("https://api-demo.{hostname}".into()));
-        m.insert("public".to_string(), Value::Str("https://api-demo.{hostname}".into()));
-        m.insert("private".to_string(), Value::Str("https://api-demo.{hostname}".into()));
+        m.insert("spot".to_string(), Value::Str("https://api-demo.{hostname}".to_string()));
+        m.insert("futures".to_string(), Value::Str("https://api-demo.{hostname}".to_string()));
+        m.insert("v2".to_string(), Value::Str("https://api-demo.{hostname}".to_string()));
+        m.insert("public".to_string(), Value::Str("https://api-demo.{hostname}".to_string()));
+        m.insert("private".to_string(), Value::Str("https://api-demo.{hostname}".to_string()));
     m
 }));
-        m.insert("www".to_string(), Value::Str("https://www.bybit.com".into()));
-        m.insert("doc".to_string(), Value::from(vec![Value::Str("https://bybit-exchange.github.io/docs/inverse/".into()), Value::Str("https://bybit-exchange.github.io/docs/linear/".into()), Value::Str("https://github.com/bybit-exchange".into())]));
-        m.insert("fees".to_string(), Value::Str("https://help.bybit.com/hc/en-us/articles/360039261154".into()));
-        m.insert("referral".to_string(), Value::Str("https://www.bybit.com/invite?ref=XDK12WP".into()));
+        m.insert("www".to_string(), Value::Str("https://www.bybit.com".to_string()));
+        m.insert("doc".to_string(), Value::List(vec![Value::Str("https://bybit-exchange.github.io/docs/inverse/".to_string()), Value::Str("https://bybit-exchange.github.io/docs/linear/".to_string()), Value::Str("https://github.com/bybit-exchange".to_string())]));
+        m.insert("fees".to_string(), Value::Str("https://help.bybit.com/hc/en-us/articles/360039261154".to_string()));
+        m.insert("referral".to_string(), Value::Str("https://www.bybit.com/invite?ref=XDK12WP".to_string()));
     m
 }));
         m.insert("has".to_string(), Value::Map({

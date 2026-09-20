@@ -63,7 +63,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 /**
  * Typed sync + async surface shared by every exchange. Declared ONCE; each default
@@ -229,12 +228,12 @@ public interface PredictionTypedSurface {
     @SuppressWarnings("unchecked")
     default List<MarketInterface> fetchMarkets(Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(this.fetchMarkets((Object) (params != null ? params : new HashMap<String, Object>())));
-        return ((List<?>) res).stream().map(MarketInterface::new).collect(Collectors.toList());
+        return Helpers.toTypedList(res, MarketInterface::new);
     }
     default List<MarketInterface> fetchMarkets() { return fetchMarkets((Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     default CompletableFuture<List<MarketInterface>> fetchMarketsAsync(Map<String, Object> params) {
-        return this.fetchMarkets((Object) (params != null ? params : new HashMap<String, Object>())).thenApply(res -> ((List<?>) res).stream().map(MarketInterface::new).collect(Collectors.toList()));
+        return this.fetchMarkets((Object) (params != null ? params : new HashMap<String, Object>())).thenApply(res -> Helpers.toTypedList(res, MarketInterface::new));
     }
     default CompletableFuture<List<MarketInterface>> fetchMarketsAsync() { return fetchMarketsAsync((Map<String, Object>) null); }
 

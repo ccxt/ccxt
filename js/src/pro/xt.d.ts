@@ -12,9 +12,9 @@ export default class xt extends xtRest {
      * @see https://doc.xt.com/docs/futures/UserWebsocket/General_WSS_information
      * @returns {string} listen key / access token
      */
-    getListenKey(isContract: boolean): Promise<Str>;
-    getCacheIndex(orderbook: Dict, cache: any): number;
-    handleDelta(orderbook: Dict, delta: Dict): void;
+    getListenKey(isContract: boolean): Promise<any>;
+    getCacheIndex(orderbook: any, cache: any): any;
+    handleDelta(orderbook: any, delta: any): void;
     /**
      * @ignore
      * @method
@@ -29,7 +29,7 @@ export default class xt extends xtRest {
      * @param {object} params extra parameters specific to the xt api
      * @returns {object} data from the websocket stream
      */
-    subscribe(name: string, access: string, methodName: string, market?: Market, symbols?: Strings, params?: Dict): Promise<any>;
+    subscribe(name: string, access: string, methodName: string, market?: Market, symbols?: Strings, params?: {}): Promise<any>;
     /**
      * @ignore
      * @method
@@ -47,7 +47,7 @@ export default class xt extends xtRest {
      * @param {object} subscriptionParams extra parameters specific to the subscription
      * @returns {object} data from the websocket stream
      */
-    unSubscribe(messageHash: string, name: string, access: string, methodName: string, topic: string, market?: Market, symbols?: Strings, params?: Dict, subscriptionParams?: {}): Promise<any>;
+    unSubscribe(messageHash: string, name: string, access: string, methodName: string, topic: string, market?: Market, symbols?: Strings, params?: {}, subscriptionParams?: {}): Promise<any>;
     /**
      * @method
      * @name xt#watchTicker
@@ -59,7 +59,7 @@ export default class xt extends xtRest {
      * @param {string} [params.method] 'agg_ticker' (contract only) or 'ticker', default = 'ticker' - the endpoint that will be streamed
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
-    watchTicker(symbol: string, params?: Dict): Promise<Ticker>;
+    watchTicker(symbol: string, params?: {}): Promise<Ticker>;
     /**
      * @method
      * @name xt#unWatchTicker
@@ -71,7 +71,7 @@ export default class xt extends xtRest {
      * @param {string} [params.method] 'agg_ticker' (contract only) or 'ticker', default = 'ticker' - the endpoint that will be streamed
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
-    unWatchTicker(symbol: string, params?: Dict): Promise<Ticker>;
+    unWatchTicker(symbol: string, params?: {}): Promise<Ticker>;
     /**
      * @method
      * @name xt#watchTickers
@@ -83,7 +83,7 @@ export default class xt extends xtRest {
      * @param {string} [params.method] 'agg_tickers' (contract only) or 'tickers', default = 'tickers' - the endpoint that will be streamed
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
-    watchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
+    watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     /**
      * @method
      * @name xt#unWatchTickers
@@ -95,7 +95,7 @@ export default class xt extends xtRest {
      * @param {string} [params.method] 'agg_tickers' (contract only) or 'tickers', default = 'tickers' - the endpoint that will be streamed
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
-    unWatchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
+    unWatchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     /**
      * @method
      * @name xt#watchOHLCV
@@ -109,7 +109,7 @@ export default class xt extends xtRest {
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     /**
      * @method
      * @name xt#unWatchOHLCV
@@ -121,7 +121,7 @@ export default class xt extends xtRest {
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    unWatchOHLCV(symbol: string, timeframe?: string, params?: Dict): Promise<OHLCV[]>;
+    unWatchOHLCV(symbol: string, timeframe?: string, params?: {}): Promise<OHLCV[]>;
     /**
      * @method
      * @name xt#watchTrades
@@ -134,7 +134,7 @@ export default class xt extends xtRest {
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
      */
-    watchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     /**
      * @method
      * @name xt#unWatchTrades
@@ -145,7 +145,7 @@ export default class xt extends xtRest {
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
      */
-    unWatchTrades(symbol: string, params?: Dict): Promise<Trade[]>;
+    unWatchTrades(symbol: string, params?: {}): Promise<Trade[]>;
     /**
      * @method
      * @name xt#watchOrderBook
@@ -160,7 +160,7 @@ export default class xt extends xtRest {
      * @param {int} [params.levels] 5, 10, 20, or 50
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
+    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     /**
      * @method
      * @name xt#unWatchOrderBook
@@ -174,7 +174,7 @@ export default class xt extends xtRest {
      * @param {int} [params.levels] 5, 10, 20, or 50
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
      */
-    unWatchOrderBook(symbol: string, params?: Dict): Promise<OrderBook>;
+    unWatchOrderBook(symbol: string, params?: {}): Promise<OrderBook>;
     /**
      * @method
      * @name xt#watchOrders
@@ -187,7 +187,7 @@ export default class xt extends xtRest {
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
-    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     /**
      * @method
      * @name xt#watchMyTrades
@@ -200,7 +200,7 @@ export default class xt extends xtRest {
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     /**
      * @method
      * @name xt#watchOrders
@@ -210,7 +210,7 @@ export default class xt extends xtRest {
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [balance structures]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    watchBalance(params?: Dict): Promise<Balances>;
+    watchBalance(params?: {}): Promise<Balances>;
     /**
      * @method
      * @name xt#watchPositions
@@ -222,7 +222,7 @@ export default class xt extends xtRest {
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<Position[]>;
+    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
     /**
      * @method
      * @name xt#watchFundingRate
@@ -232,7 +232,7 @@ export default class xt extends xtRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
      */
-    watchFundingRate(symbol: string, params?: Dict): Promise<FundingRate>;
+    watchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
     /**
      * @method
      * @name xt#unWatchFundingRate
@@ -242,11 +242,11 @@ export default class xt extends xtRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
      */
-    unWatchFundingRate(symbol: string, params?: Dict): Promise<FundingRate>;
+    unWatchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
     handleFundingRate(client: Client, message: Dict): Dict;
     setPositionsCache(client: Client): void;
     loadPositionsSnapshot(client: Client, messageHash: any): Promise<void>;
-    handlePosition(client: any, message: Dict): void;
+    handlePosition(client: any, message: any): void;
     handleTicker(client: Client, message: Dict): Dict;
     handleTickers(client: Client, message: Dict): Dict;
     handleOHLCV(client: Client, message: Dict): Dict;
@@ -257,9 +257,9 @@ export default class xt extends xtRest {
     handleOrder(client: Client, message: Dict): Dict;
     handleBalance(client: Client, message: Dict): void;
     handleMyTrades(client: Client, message: Dict): void;
-    handleMessage(client: Client, message: Dict): void;
+    handleMessage(client: Client, message: any): void;
     ping(client: Client): string;
-    handleSubscriptionStatus(client: Client, message: Dict): Dict;
+    handleSubscriptionStatus(client: Client, message: any): any;
     handleUnSubscription(client: Client, subscription: Dict): void;
     handleErrorMessage(client: Client, message: Dict): void;
 }

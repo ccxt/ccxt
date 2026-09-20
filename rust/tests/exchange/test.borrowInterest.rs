@@ -16,21 +16,21 @@ pub fn testBorrowInterest(mut exchange: Value, mut skippedProperties: Value, mut
     let mut m = indexmap::IndexMap::new();
     m
 }));
-            m.insert("account".to_string(), Value::Str("BTC/USDT".into()));
-            m.insert("currency".to_string(), Value::Str("USDT".into()));
-            m.insert("interest".to_string(), exchange.parse_number(Value::Str("0.1444".into()), &[]));
-            m.insert("interestRate".to_string(), exchange.parse_number(Value::Str("0.0006".into()), &[]));
-            m.insert("amountBorrowed".to_string(), exchange.parse_number(Value::Str("30.0".into()), &[]));
+            m.insert("account".to_string(), Value::Str("BTC/USDT".to_string()));
+            m.insert("currency".to_string(), Value::Str("USDT".to_string()));
+            m.insert("interest".to_string(), exchange.parse_number(Value::Str("0.1444".to_string()), &[]));
+            m.insert("interestRate".to_string(), exchange.parse_number(Value::Str("0.0006".to_string()), &[]));
+            m.insert("amountBorrowed".to_string(), exchange.parse_number(Value::Str("30.0".to_string()), &[]));
             m.insert("timestamp".to_string(), Value::Int(1638230400000));
-            m.insert("datetime".to_string(), Value::Str("2021-11-30T00:00:00.000Z".into()));
+            m.insert("datetime".to_string(), Value::Str("2021-11-30T00:00:00.000Z".to_string()));
         m
     });
-    let mut emptyAllowedFor: Value = Value::from(vec![Value::Str("account".into())]);
+    let mut emptyAllowedFor: Value = Value::List(vec![Value::Str("account".to_string())]);
     crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format.clone(), emptyAllowedFor.clone()]);
     crate::tests_support::shared::assert_timestamp_and_datetime(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone()]);
-    crate::tests_support::shared::assert_currency_code(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), entry.as_map().and_then(|__m| __m.get("currency")).cloned().unwrap_or(Value::Null).clone(), requestedCode.clone()]);
-    crate::tests_support::shared::assert_symbol(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), entry.as_map().and_then(|__m| __m.get("account")).cloned().unwrap_or(Value::Null).clone(), requestedSymbol.clone()]);
-    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("interest".into()).clone(), Value::Str("0".into()).clone()]);
-    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("interestRate".into()).clone(), Value::Str("0".into()).clone()]);
-    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("amountBorrowed".into()).clone(), Value::Str("0".into()).clone()]);
+    crate::tests_support::shared::assert_currency_code(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), get_value(&entry, &Value::Str("currency".to_string())).clone(), requestedCode.clone()]);
+    crate::tests_support::shared::assert_symbol(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), get_value(&entry, &Value::Str("account".to_string())).clone(), requestedSymbol.clone()]);
+    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("interest".to_string()).clone(), Value::Str("0".to_string()).clone()]);
+    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("interestRate".to_string()).clone(), Value::Str("0".to_string()).clone()]);
+    crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("amountBorrowed".to_string()).clone(), Value::Str("0".to_string()).clone()]);
 }

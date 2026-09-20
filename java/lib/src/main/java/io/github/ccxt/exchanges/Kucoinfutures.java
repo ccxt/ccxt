@@ -69,8 +69,8 @@ public class Kucoinfutures extends KucoinfuturesApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object symbols = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "futuresPublicGetAllTickers" );
             }};
@@ -96,34 +96,34 @@ public class Kucoinfutures extends KucoinfuturesApi
         final Object toAccount3 = toAccount2;
         return BaseExchange.supplyAsync(() -> {
             Object toAccount = toAccount3;
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
-            Object amountToPrecision = this.currencyToPrecision((String) (code), amount);
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
+            Object amountToPrecision = this.currencyToPrecision(code, amount);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", Kucoinfutures.this.safeString(currency, "id") );
                 put( "amount", amountToPrecision );
             }};
-            String toAccountString = this.parseTransferType((String) (toAccount));
+            String toAccountString = this.parseTransferType(toAccount);
             Object response = null;
-            if (java.util.Objects.equals(toAccountString, "TRADE") || java.util.Objects.equals(toAccountString, "MAIN"))
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(toAccountString, "TRADE")) || Helpers.isTrue(Helpers.isEqual(toAccountString, "MAIN"))))
             {
-                ((Map<String, Object>)request).put("recAccountType", toAccountString);
+                Helpers.addElementToObject(request, "recAccountType", toAccountString);
                 response = (this.futuresPrivatePostTransferOut(this.extend(request, parameters))).join();
-            } else if (java.util.Objects.equals(toAccount, "future") || java.util.Objects.equals(toAccount, "swap") || java.util.Objects.equals(toAccount, "contract"))
+            } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(toAccount, "future")) || Helpers.isTrue(Helpers.isEqual(toAccount, "swap"))) || Helpers.isTrue(Helpers.isEqual(toAccount, "contract"))))
             {
-                ((Map<String, Object>)request).put("payAccountType", this.parseTransferType((String) (fromAccount)));
+                Helpers.addElementToObject(request, "payAccountType", this.parseTransferType(fromAccount));
                 response = (this.futuresPrivatePostTransferIn(this.extend(request, parameters))).join();
             } else
             {
-                throw new BadRequest((this.id + " transfer() only supports transfers between future/swap, spot and funding accounts")) ;
+                throw new BadRequest(Helpers.add(this.id, " transfer() only supports transfers between future/swap, spot and funding accounts")) ;
             }
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             final Object finalToAccount = toAccount;
-            return this.extend(this.parseTransfer((Map<String, Object>) (data), currency), new HashMap<String, Object>() {{
+            return this.extend(this.parseTransfer(data, currency), new HashMap<String, Object>() {{
                 put( "amount", Kucoinfutures.this.parseNumber(amountToPrecision) );
                 put( "fromAccount", fromAccount );
                 put( "toAccount", finalToAccount );
@@ -132,7 +132,7 @@ public class Kucoinfutures extends KucoinfuturesApi
 
     }
 
-    public String parseTransferType(String transferType)
+    public String parseTransferType(Object transferType)
     {
         Map<String, Object> transferTypes = new HashMap<String, Object>() {{
             put( "spot", "TRADE" );

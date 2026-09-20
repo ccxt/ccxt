@@ -31,12 +31,12 @@ func HelperTestSandboxState(exchange *ccxt.Exchange, optionalArgs ...any) {
 	Assert(!ccxt.IsEqual(exchange.Urls, nil))
 	Assert(ccxt.InOp(exchange.Urls, "test"))
 	var isSandboxModeEnabled any = ExchangeProp(exchange, "isSandboxModeEnabled")
-	if expectEnabled == true {
-		Assert((isSandboxModeEnabled == true))
+	if ccxt.EvalTruthy(expectEnabled) {
+		Assert(ccxt.IsEqual(isSandboxModeEnabled, true))
 		Assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(exchange.Urls, "api"), "public"), "https://testnet.org"))
 		Assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(exchange.Urls, "apiBackup"), "public"), "https://example.com"))
 	} else {
-		Assert((isSandboxModeEnabled != true))
+		Assert(!ccxt.IsEqual(isSandboxModeEnabled, true))
 		Assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(exchange.Urls, "api"), "public"), "https://example.com"))
 		Assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(exchange.Urls, "test"), "public"), "https://testnet.org"))
 	}
@@ -69,7 +69,7 @@ func HelperTestInitSandbox() {
 	//
 	// CASE B: when sandbox is enabled
 	//
-	ccxt.AddElementToObject(opts["options"], "sandbox", true)
+	ccxt.AddElementToObject(ccxt.GetValue(opts, "options"), "sandbox", true)
 	exchange4 := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange4.DerivedExchange = exchange4
 	exchange4.InitParent(opts, map[string]any{}, exchange4)
@@ -108,13 +108,8 @@ func HelperTestProperties() {
 	//
 	var keys []any = []any{"chrome", "chrome39", "chrome100"}
 	Assert(!ccxt.IsEqual(ExchangeProp(exchange, "userAgents"), nil))
-	for i := 0; i < len(keys); i++ {
-		var key any = func() any {
-			if i >= 0 && i < len(keys) {
-				return ccxt.DerefScalar(keys[i])
-			}
-			return nil
-		}()
+	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(keys)); i++ {
+		var key any = ccxt.GetValue(keys, i)
 		var userAgent any = ccxt.GetValue(ExchangeProp(exchange, "userAgents"), key)
 		Assert(!ccxt.IsEqual(userAgent, nil))
 	}

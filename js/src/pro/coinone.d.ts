@@ -14,7 +14,7 @@ export default class coinone extends coinoneRest {
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    handleOrderBook(client: Client, message: Dict): void;
+    handleOrderBook(client: any, message: any): void;
     handleDelta(bookside: any, delta: any): void;
     /**
      * @method
@@ -26,7 +26,7 @@ export default class coinone extends coinoneRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
-    handleTicker(client: Client, message: Dict): void;
+    handleTicker(client: Client, message: any): void;
     parseWsTicker(ticker: Dict, market?: Market): Ticker;
     /**
      * @method
@@ -40,10 +40,12 @@ export default class coinone extends coinoneRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    handleTrades(client: Client, message: Dict): void;
+    handleTrades(client: Client, message: any): void;
     parseWsTrade(trade: Dict, market?: Market): Trade;
     handleErrorMessage(client: Client, message: any): Bool;
-    handleMessage(client: Client, message: Dict): void;
-    ping(client: Client): Dict;
-    handlePong(client: Client, message: Dict): Dict;
+    handleMessage(client: Client, message: any): void;
+    ping(client: Client): {
+        request_type: string;
+    };
+    handlePong(client: Client, message: any): any;
 }

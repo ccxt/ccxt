@@ -4,9 +4,6 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -22,11 +19,11 @@ public class TestFetchTradingFees extends BaseTest {
 
         String method = "fetchTradingFees";
         Object fees = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchTradingFees", new Object[]{})).join();
-        List<Object> symbols = new ArrayList<Object>(((Map<String, Object>)fees).keySet());
+        Object symbols = Helpers.objectKeys(fees);
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, symbols);
-        for (var i = 0; i < ((List<?>)symbols).size(); i++)
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
         {
-            Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
+            Object symbol = Helpers.GetValue(symbols, i);
             TestTradingFee.testTradingFee(exchange, skippedProperties, method, symbol, Helpers.GetValue(fees, symbol));
         }
         return true;

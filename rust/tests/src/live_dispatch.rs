@@ -261,8 +261,8 @@ pub async fn live_call(id: &str, method: &str, args: Vec<Value>) -> Value {
 /// the error. Mirrors Go's typed-interface dispatch through
 /// `ccxt.ICoreExchange`.
 pub async fn dispatch(ex: &mut Value, method: &str, args: Vec<Value>) -> Value {
-    let id = match ccxt::get_value(ex, &Value::Str("id".into())) {
-        Value::Str(s) => s.to_string(),
+    let id = match ccxt::get_value(ex, &Value::Str("id".to_string())) {
+        Value::Str(s) => s,
         _ => return Value::Null,
     };
     let entry = {
@@ -301,7 +301,7 @@ pub async fn dispatch(ex: &mut Value, method: &str, args: Vec<Value>) -> Value {
         } else {
             // REST replaces outright (the snapshot mirrors describe().options and
             // is reset per case).
-            let opts = ccxt::get_value(ex, &Value::Str("options".into()));
+            let opts = ccxt::get_value(ex, &Value::Str("options".to_string()));
             if matches!(opts, Value::Dict(_)) {
                 (entry.write_options)(entry.ptr.0, opts);
             }
@@ -326,7 +326,7 @@ pub async fn dispatch(ex: &mut Value, method: &str, args: Vec<Value>) -> Value {
                 "password", "token", "login", "accountId",
                 "httpProxy", "httpsProxy", "socksProxy", "proxy",
                 "wsProxy", "wssProxy", "wsSocksProxy"] {
-        let v = ccxt::get_value(ex, &Value::Str(key.to_string().into()));
+        let v = ccxt::get_value(ex, &Value::Str(key.to_string()));
         if matches!(v, Value::Str(ref s) if !s.is_empty()) {
             (entry.write_field)(entry.ptr.0, key, v);
         }
@@ -356,11 +356,11 @@ pub async fn dispatch(ex: &mut Value, method: &str, args: Vec<Value>) -> Value {
     // `setFetchResponse(exchange, response)` — push it to the Core so
     // `fetch_typed` returns it instead of hitting the (fake) network.
     // `Null` clears any leftover mock.
-    let mock = ccxt::get_value(ex, &Value::Str("__fetchResponse".into()));
+    let mock = ccxt::get_value(ex, &Value::Str("__fetchResponse".to_string()));
     (entry.write_mock)(entry.ptr.0, mock);
     // same contract for the url-keyed mock, so a method that calls several
     // endpoints gets the body matching each request's url
-    let mock_by_url = ccxt::get_value(ex, &Value::Str("__fetchResponseByUrl".into()));
+    let mock_by_url = ccxt::get_value(ex, &Value::Str("__fetchResponseByUrl".to_string()));
     (entry.write_mock_by_url)(entry.ptr.0, mock_by_url);
     // Clear the snapshot's mock so it doesn't leak into a subsequent
     // dispatch on the same exchange.
@@ -538,11 +538,11 @@ fn build_core(id: &str, cfg: Value, ws: bool) -> Option<CoreEntry> {
                 // markets_by_id → expired option) but clone only the one
                 // market it returns — not the whole markets map.
                 let core: &$core = unsafe { &*(ptr as *const $core) };
-                core.market(Value::Str(symbol.to_string().into()))
+                core.market(Value::Str(symbol.to_string()))
             }
             fn has_market(ptr: *mut (), symbol: &str) -> bool {
                 let core: &$core = unsafe { &*(ptr as *const $core) };
-                let key = Value::Str(symbol.to_string().into());
+                let key = Value::Str(symbol.to_string());
                 ccxt::runtime::in_op(&core.markets, &key)
                     || ccxt::runtime::in_op(&core.markets_by_id, &key)
             }

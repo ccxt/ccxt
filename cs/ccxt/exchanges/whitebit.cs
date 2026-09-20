@@ -745,7 +745,7 @@ public partial class whitebit : Exchange
     public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual((this.options.ContainsKey("adjustForTimeDifference") ? this.options["adjustForTimeDifference"] : null), true))
+        if (isTrue(isEqual(getValue(this.options, "adjustForTimeDifference"), true)))
         {
             await this.loadTimeDifference();
         }
@@ -780,24 +780,24 @@ public partial class whitebit : Exchange
     {
         string? id = this.safeString(market, "name");
         string? baseId = this.safeString(market, "stock");
-        string? quoteId = this.safeString(market, "money");
-        quoteId = ((quoteId == "PERP")) ? "USDT" : quoteId;
+        object quoteId = this.safeString(market, "money");
+        quoteId = ((bool) isTrue((isEqual(quoteId, "PERP")))) ? "USDT" : quoteId;
         object bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
-        bool? active = this.safeBool(market, "tradesEnabled");
-        bool? isCollateral = this.safeBool(market, "isCollateral");
+        object active = this.safeValue(market, "tradesEnabled");
+        object isCollateral = this.safeValue(market, "isCollateral");
         string? typeId = this.safeString(market, "type");
         object type = null;
         string? settle = null;
-        string? settleId = null;
+        object settleId = null;
         object symbol = add(add(bs, "/"), quote);
-        bool swap = ((typeId == "futures")) || ((typeId == "tradfiFutures"));
-        bool margin = ((isCollateral == true)) && !swap;
+        bool swap = isTrue((isEqual(typeId, "futures"))) || isTrue((isEqual(typeId, "tradfiFutures")));
+        bool margin = isTrue((isEqual(isCollateral, true))) && !isTrue(swap);
         bool contract = false;
         double? amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "stockPrec")));
         bool? linear = null;
         bool? inverse = null;
-        if (swap)
+        if (isTrue(swap))
         {
             settleId = quoteId;
             settle = this.safeCurrencyCode(settleId);
@@ -814,7 +814,7 @@ public partial class whitebit : Exchange
         string? taker = Precise.stringDiv(takerFeeRate, "100");
         string? makerFeeRate = this.safeString(market, "makerFee");
         string? maker = Precise.stringDiv(makerFeeRate, "100");
-        bool isSpot = !swap;
+        bool isSpot = !isTrue(swap);
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "symbol", symbol },
@@ -836,7 +836,7 @@ public partial class whitebit : Exchange
             { "inverse", inverse },
             { "taker", this.parseNumber(taker) },
             { "maker", this.parseNumber(maker) },
-            { "contractSize", isSpot ? null : this.parseNumber("1") },
+            { "contractSize", ((bool) isTrue(isSpot)) ? null : this.parseNumber("1") },
             { "expiry", null },
             { "expiryDatetime", null },
             { "strike", null },
@@ -954,7 +954,7 @@ public partial class whitebit : Exchange
         // const name = this.safeString (currency, 'name'); // breaks down in Python due to utf8 encoding issues on the exchange side
         string? id = this.safeString(rawCurrency, "_coin_id");
         string? code = this.safeCurrencyCode(id);
-        bool hasProvider = ((rawCurrency != null && ((IDictionary<string, object>)rawCurrency).ContainsKey("providers")));
+        bool hasProvider = (inOp(rawCurrency, "providers"));
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         IDictionary<string, object> rawNetworks = this.safeDict(rawCurrency, "networks", new Dictionary<string, object>() {});
         List<object> depositsNetworks = this.safeList(rawNetworks, "deposits", new List<object>() {});
@@ -963,13 +963,13 @@ public partial class whitebit : Exchange
         IDictionary<string, object> depositLimits = this.safeDict(networkLimits, "deposit", new Dictionary<string, object>() {});
         IDictionary<string, object> withdrawLimits = this.safeDict(networkLimits, "withdraw", new Dictionary<string, object>() {});
         List<object> allNetworks = this.arrayConcat(depositsNetworks, withdrawsNetworks);
-        for (int j = 0; j < (allNetworks?.Count ?? 0); j++)
+        for (int j = 0; isLessThan(j, getArrayLength(allNetworks)); postFixIncrement(ref j))
         {
-            object networkId = allNetworks[j];
+            object networkId = getValue(allNetworks, j);
             object networkCode = this.networkIdToCode(networkId, code);
             IDictionary<string, object> networkDepositLimits = this.safeDict(depositLimits, networkId, new Dictionary<string, object>() {});
             IDictionary<string, object> networkWithdrawLimits = this.safeDict(withdrawLimits, networkId, new Dictionary<string, object>() {});
-            if ((networkCode != null))
+            if (isTrue(!isEqual(networkCode, null)))
             {
                 ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                     { "id", networkId },
@@ -1002,7 +1002,7 @@ public partial class whitebit : Exchange
             { "withdraw", this.safeBool(rawCurrency, "can_withdraw") },
             { "fee", null },
             { "networks", networks },
-            { "type", hasProvider ? "fiat" : "crypto" },
+            { "type", ((bool) isTrue(hasProvider)) ? "fiat" : "crypto" },
             { "precision", this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, "currency_precision"))) },
             { "limits", new Dictionary<string, object>() {
                 { "amount", new Dictionary<string, object>() {
@@ -1034,7 +1034,7 @@ public partial class whitebit : Exchange
     public async override Task<Dictionary<string, object>> FetchTransactionFees(object codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
@@ -1067,18 +1067,18 @@ public partial class whitebit : Exchange
         List<object> currenciesIds = new List<object>(((IDictionary<string,object>)response).Keys);
         Dictionary<string, object> withdrawFees = new Dictionary<string, object>() {};
         Dictionary<string, object> depositFees = new Dictionary<string, object>() {};
-        for (int i = 0; i < currenciesIds.Count; i++)
+        for (int i = 0; isLessThan(i, getArrayLength(currenciesIds)); postFixIncrement(ref i))
         {
-            string? currency = ((string)currenciesIds[i]);
+            string? currency = ((string)getValue(currenciesIds, i));
             IDictionary<string, object> data = this.safeDict(response, currency, new Dictionary<string, object>() {});
             string? code = this.safeCurrencyCode(currency);
-            IDictionary<string, object> withdraw = this.safeDict(data, "withdraw", new Dictionary<string, object>() {});
-            if ((code != null))
+            object withdraw = this.safeValue(data, "withdraw", new Dictionary<string, object>() {});
+            if (isTrue(!isEqual(code, null)))
             {
                 ((IDictionary<string,object>)withdrawFees)[(string)code] = this.safeString(withdraw, "fixed");
             }
-            IDictionary<string, object> deposit = this.safeDict(data, "deposit", new Dictionary<string, object>() {});
-            if ((code != null))
+            object deposit = this.safeValue(data, "deposit", new Dictionary<string, object>() {});
+            if (isTrue(!isEqual(code, null)))
             {
                 ((IDictionary<string,object>)depositFees)[(string)code] = this.safeString(deposit, "fixed");
             }
@@ -1098,7 +1098,7 @@ public partial class whitebit : Exchange
     public async override Task<ccxt.DepositWithdrawFees> FetchDepositWithdrawFees(object codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
@@ -1195,40 +1195,40 @@ public partial class whitebit : Exchange
         Dictionary<string, object> depositWithdrawFees = new Dictionary<string, object>() {};
         codes = this.marketCodes(codes);
         List<object> currencyIds = new List<object>(((IDictionary<string,object>)response).Keys);
-        for (int i = 0; i < currencyIds.Count; i++)
+        for (int i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
         {
-            string? entry = ((string)currencyIds[i]);
+            string? entry = ((string)getValue(currencyIds, i));
             List<object> splitEntry = ((string)entry).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
-            object currencyId = (splitEntry != null && 0 < splitEntry.Count ? splitEntry[0] : null);
+            object currencyId = getValue(splitEntry, 0);
             object feeInfo = getValue(response, entry);
             string? code = this.safeCurrencyCode(currencyId);
-            if (((code != null)) && (((codes == null)) || (this.inArray(code, codes))))
+            if (isTrue(isTrue((!isEqual(code, null))) && isTrue((isTrue((isEqual(codes, null))) || isTrue((this.inArray(code, codes)))))))
             {
-                IDictionary<string, object> depositWithdrawFee = this.safeDict(depositWithdrawFees, code);
-                if ((depositWithdrawFee == null))
+                object depositWithdrawFee = this.safeValue(depositWithdrawFees, code);
+                if (isTrue(isEqual(depositWithdrawFee, null)))
                 {
                     ((IDictionary<string,object>)depositWithdrawFees)[(string)code] = this.depositWithdrawFee(new Dictionary<string, object>() {});
                 }
                 ((IDictionary<string,object>)getValue(getValue(depositWithdrawFees, code), "info"))[(string)entry] = feeInfo;
                 string? networkId = this.safeString(splitEntry, 1);
-                IDictionary<string, object> withdraw = this.safeDict(feeInfo, "withdraw");
-                IDictionary<string, object> deposit = this.safeDict(feeInfo, "deposit");
+                object withdraw = this.safeValue(feeInfo, "withdraw");
+                object deposit = this.safeValue(feeInfo, "deposit");
                 double? withdrawFee = this.safeNumber(withdraw, "fixed");
                 double? depositFee = this.safeNumber(deposit, "fixed");
                 Dictionary<string, object> withdrawResult = new Dictionary<string, object>() {
                     { "fee", withdrawFee },
-                    { "percentage", (!isEqual(withdrawFee, null)) ? false : null },
+                    { "percentage", ((bool) isTrue((!isEqual(withdrawFee, null)))) ? false : null },
                 };
                 Dictionary<string, object> depositResult = new Dictionary<string, object>() {
                     { "fee", depositFee },
-                    { "percentage", (!isEqual(depositFee, null)) ? false : null },
+                    { "percentage", ((bool) isTrue((!isEqual(depositFee, null)))) ? false : null },
                 };
-                if ((networkId != null))
+                if (isTrue(!isEqual(networkId, null)))
                 {
                     int networkLength = ((string)networkId).Length;
-                    networkId = slice(networkId, 1, (networkLength - 1));
+                    networkId = slice(networkId, 1, subtract(networkLength, 1));
                     object networkCode = this.networkIdToCode(networkId, code);
-                    if ((networkCode != null))
+                    if (isTrue(!isEqual(networkCode, null)))
                     {
                         ((IDictionary<string,object>)getValue(getValue(depositWithdrawFees, code), "networks"))[(string)networkCode] = new Dictionary<string, object>() {
                             { "withdraw", withdrawResult },
@@ -1243,9 +1243,9 @@ public partial class whitebit : Exchange
             }
         }
         List<object> depositWithdrawCodes = new List<object>(((IDictionary<string,object>)depositWithdrawFees).Keys);
-        for (int i = 0; i < depositWithdrawCodes.Count; i++)
+        for (int i = 0; isLessThan(i, getArrayLength(depositWithdrawCodes)); postFixIncrement(ref i))
         {
-            string? code = ((string)depositWithdrawCodes[i]);
+            string? code = ((string)getValue(depositWithdrawCodes, i));
             Dictionary<string, object> currency = this.currency(((string)code));
             ((IDictionary<string,object>)depositWithdrawFees)[(string)code] = this.assignDefaultDepositWithdrawFees(getValue(depositWithdrawFees, code), currency);
         }
@@ -1263,7 +1263,7 @@ public partial class whitebit : Exchange
     public async override Task<ccxt.TradingFees> FetchTradingFees(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
@@ -1287,18 +1287,18 @@ public partial class whitebit : Exchange
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         List<object> symbols = this.symbols;
-        for (int i = 0; i < (symbols?.Count ?? 0); i++)
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
-            object symbol = symbols[i];
+            object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            IDictionary<string, object> fee = this.safeDict(response, (market.ContainsKey("baseId") ? market["baseId"] : null), new Dictionary<string, object>() {});
+            object fee = this.safeValue(response, getValue(market, "baseId"), new Dictionary<string, object>() {});
             string? makerFee = this.safeString(fee, "maker_fee");
             string? takerFee = this.safeString(fee, "taker_fee");
             makerFee = Precise.stringDiv(makerFee, "100");
             takerFee = Precise.stringDiv(takerFee, "100");
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
                 { "info", fee },
-                { "symbol", (market.ContainsKey("symbol") ? market["symbol"] : null) },
+                { "symbol", getValue(market, "symbol") },
                 { "percentage", true },
                 { "tierBased", false },
                 { "maker", this.parseNumber(makerFee) },
@@ -1320,7 +1320,7 @@ public partial class whitebit : Exchange
     public async override Task<Dictionary<string, object>> FetchTradingLimits(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
@@ -1371,34 +1371,34 @@ public partial class whitebit : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         // Process all markets from the loaded markets cache
         object markets = this.markets;
-        if ((markets == null))
+        if (isTrue(isEqual(markets, null)))
         {
-            throw new ExchangeError ((string)(this.id + " markets not loaded")) ;
+            throw new ExchangeError ((string)add(this.id, " markets not loaded")) ;
         }
         List<object> marketIds = new List<object>(((IDictionary<string,object>)markets).Keys);
-        for (int i = 0; i < marketIds.Count; i++)
+        for (int i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
-            string? marketId = ((string)marketIds[i]);
+            string? marketId = ((string)getValue(marketIds, i));
             object market = getValue(markets, marketId);
             string? marketSymbol = this.safeString(market, "symbol");
-            if (((market == null)) || ((market == null)) || ((marketSymbol == null)) || ((marketSymbol == "")))
+            if (isTrue(isTrue(isTrue(isTrue((isEqual(market, null))) || isTrue((isEqual(market, null)))) || isTrue((isEqual(marketSymbol, null)))) || isTrue((isEqual(marketSymbol, "")))))
             {
                 continue;
             }
             object symbol = getValue(market, "symbol");
             // Filter by symbols if specified
-            if ((symbols != null))
+            if (isTrue(!isEqual(symbols, null)))
             {
                 bool symbolFound = false;
-                for (int j = 0; j < getArrayLength(symbols); j++)
+                for (int j = 0; isLessThan(j, getArrayLength(symbols)); postFixIncrement(ref j))
                 {
-                    if (isEqual(getValue(symbols, j), symbol))
+                    if (isTrue(isEqual(getValue(symbols, j), symbol)))
                     {
                         symbolFound = true;
                         break;
                     }
                 }
-                if (!symbolFound)
+                if (!isTrue(symbolFound))
                 {
                     continue;
                 }
@@ -1409,10 +1409,10 @@ public partial class whitebit : Exchange
             IDictionary<string, object> priceLimits = this.safeDict(limits, "price");
             IDictionary<string, object> costLimits = this.safeDict(limits, "cost");
             // Validate that all required limits exist and are valid numbers
-            bool hasAmountLimits = ((amountLimits != null)) && ((amountLimits != null)) && !isEqual(this.safeNumber(amountLimits, "min"), null) && !isEqual(this.safeNumber(amountLimits, "max"), null);
-            bool hasPriceLimits = ((priceLimits != null)) && ((priceLimits != null)) && !isEqual(this.safeNumber(priceLimits, "min"), null) && !isEqual(this.safeNumber(priceLimits, "max"), null);
-            bool hasCostLimits = ((costLimits != null)) && ((costLimits != null)) && !isEqual(this.safeNumber(costLimits, "min"), null) && !isEqual(this.safeNumber(costLimits, "max"), null);
-            if (((hasAmountLimits == true)) && ((hasPriceLimits == true)) && ((hasCostLimits == true)))
+            bool hasAmountLimits = isTrue(isTrue(isTrue((!isEqual(amountLimits, null))) && isTrue((!isEqual(amountLimits, null)))) && isTrue(!isEqual(this.safeNumber(amountLimits, "min"), null))) && isTrue(!isEqual(this.safeNumber(amountLimits, "max"), null));
+            bool hasPriceLimits = isTrue(isTrue(isTrue((!isEqual(priceLimits, null))) && isTrue((!isEqual(priceLimits, null)))) && isTrue(!isEqual(this.safeNumber(priceLimits, "min"), null))) && isTrue(!isEqual(this.safeNumber(priceLimits, "max"), null));
+            bool hasCostLimits = isTrue(isTrue(isTrue((!isEqual(costLimits, null))) && isTrue((!isEqual(costLimits, null)))) && isTrue(!isEqual(this.safeNumber(costLimits, "min"), null))) && isTrue(!isEqual(this.safeNumber(costLimits, "max"), null));
+            if (isTrue(isTrue(isTrue((isEqual(hasAmountLimits, true))) && isTrue((isEqual(hasPriceLimits, true)))) && isTrue((isEqual(hasCostLimits, true)))))
             {
                 ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
                     { "info", market },
@@ -1449,7 +1449,7 @@ public partial class whitebit : Exchange
     public async virtual Task<Dictionary<string, object>> FetchFundingLimits(object codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
@@ -1515,26 +1515,26 @@ public partial class whitebit : Exchange
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         List<object> currencyKeys = new List<object>(((IDictionary<string,object>)currenciesData).Keys);
-        for (int i = 0; i < currencyKeys.Count; i++)
+        for (int i = 0; isLessThan(i, getArrayLength(currencyKeys)); postFixIncrement(ref i))
         {
-            string? code = ((string)currencyKeys[i]);
+            string? code = ((string)getValue(currencyKeys, i));
             object currency = getValue(currenciesData, code);
-            if ((currency == null))
+            if (isTrue(isEqual(currency, null)))
             {
                 continue;
             }
-            if ((codes != null) && !this.inArray(code, codes))
+            if (isTrue(isTrue(!isEqual(codes, null)) && !isTrue(this.inArray(code, codes))))
             {
                 continue;
             }
             // Find corresponding fee data for this currency
             IDictionary<string, object> feeData = null;
             List<object> feeKeys = new List<object>(((IDictionary<string,object>)feesData).Keys);
-            for (int j = 0; j < feeKeys.Count; j++)
+            for (int j = 0; isLessThan(j, getArrayLength(feeKeys)); postFixIncrement(ref j))
             {
-                string? feeKey = ((string)feeKeys[j]);
+                string? feeKey = ((string)getValue(feeKeys, j));
                 IDictionary<string, object> fee = this.safeDict(feesData, feeKey);
-                if (((fee != null) && (fee != null)) && isEqual((fee != null && fee.ContainsKey("ticker") ? fee["ticker"] : null), code))
+                if (isTrue(isTrue((isTrue(!isEqual(fee, null)) && isTrue(!isEqual(fee, null)))) && isTrue(isEqual(getValue(fee, "ticker"), code))))
                 {
                     feeData = fee;
                     break;
@@ -1544,25 +1544,25 @@ public partial class whitebit : Exchange
             IDictionary<string, object> currencyLimits = this.safeDict(currency, "limits", new Dictionary<string, object>() {});
             Dictionary<string, object> limits = new Dictionary<string, object>() {
                 { "deposit", new Dictionary<string, object>() {
-                    { "min", getValue((currencyLimits != null && currencyLimits.ContainsKey("deposit") ? currencyLimits["deposit"] : null), "min") },
-                    { "max", getValue((currencyLimits != null && currencyLimits.ContainsKey("deposit") ? currencyLimits["deposit"] : null), "max") },
+                    { "min", getValue(getValue(currencyLimits, "deposit"), "min") },
+                    { "max", getValue(getValue(currencyLimits, "deposit"), "max") },
                 } },
                 { "withdraw", new Dictionary<string, object>() {
-                    { "min", getValue((currencyLimits != null && currencyLimits.ContainsKey("withdraw") ? currencyLimits["withdraw"] : null), "min") },
-                    { "max", getValue((currencyLimits != null && currencyLimits.ContainsKey("withdraw") ? currencyLimits["withdraw"] : null), "max") },
+                    { "min", getValue(getValue(currencyLimits, "withdraw"), "min") },
+                    { "max", getValue(getValue(currencyLimits, "withdraw"), "max") },
                 } },
             };
             // Add fee information if available
-            if ((feeData != null))
+            if (isTrue(!isEqual(feeData, null)))
             {
-                object depositFee = (feeData != null && feeData.ContainsKey("deposit") ? feeData["deposit"] : null);
-                object withdrawFee = (feeData != null && feeData.ContainsKey("withdraw") ? feeData["withdraw"] : null);
-                if (((depositFee != null)) && ((depositFee != null)))
+                object depositFee = getValue(feeData, "deposit");
+                object withdrawFee = getValue(feeData, "withdraw");
+                if (isTrue(isTrue((!isEqual(depositFee, null))) && isTrue((!isEqual(depositFee, null)))))
                 {
                     Dictionary<string, object> depositFeeData = new Dictionary<string, object>() {
                         { "fixed", this.safeNumber(depositFee, "fixed") },
                     };
-                    if ((!isEqual(getValue(depositFee, "flex"), null)) && (!isEqual(getValue(depositFee, "flex"), null)))
+                    if (isTrue(isTrue((!isEqual(getValue(depositFee, "flex"), null))) && isTrue((!isEqual(getValue(depositFee, "flex"), null)))))
                     {
                         ((IDictionary<string,object>)depositFeeData)["flex"] = new Dictionary<string, object>() {
                             { "min", this.safeNumber(getValue(depositFee, "flex"), "min_fee") },
@@ -1570,14 +1570,14 @@ public partial class whitebit : Exchange
                             { "percent", this.safeNumber(getValue(depositFee, "flex"), "percent") },
                         };
                     }
-                    ((IDictionary<string,object>)((IDictionary<string,object>)limits)["deposit"])["fee"] = depositFeeData;
+                    ((IDictionary<string,object>)getValue(limits, "deposit"))["fee"] = depositFeeData;
                 }
-                if (((withdrawFee != null)) && ((withdrawFee != null)))
+                if (isTrue(isTrue((!isEqual(withdrawFee, null))) && isTrue((!isEqual(withdrawFee, null)))))
                 {
                     Dictionary<string, object> withdrawFeeData = new Dictionary<string, object>() {
                         { "fixed", this.safeNumber(withdrawFee, "fixed") },
                     };
-                    if ((!isEqual(getValue(withdrawFee, "flex"), null)) && (!isEqual(getValue(withdrawFee, "flex"), null)))
+                    if (isTrue(isTrue((!isEqual(getValue(withdrawFee, "flex"), null))) && isTrue((!isEqual(getValue(withdrawFee, "flex"), null)))))
                     {
                         ((IDictionary<string,object>)withdrawFeeData)["flex"] = new Dictionary<string, object>() {
                             { "min", this.safeNumber(getValue(withdrawFee, "flex"), "min_fee") },
@@ -1585,11 +1585,11 @@ public partial class whitebit : Exchange
                             { "percent", this.safeNumber(getValue(withdrawFee, "flex"), "percent") },
                         };
                     }
-                    ((IDictionary<string,object>)((IDictionary<string,object>)limits)["withdraw"])["fee"] = withdrawFeeData;
+                    ((IDictionary<string,object>)getValue(limits, "withdraw"))["fee"] = withdrawFeeData;
                 }
             }
             // Add network-specific limits if available
-            if (!isEqual(getValue(currency, "networks"), null))
+            if (isTrue(!isEqual(getValue(currency, "networks"), null)))
             {
                 ((IDictionary<string,object>)limits)["networks"] = getValue(currency, "networks");
             }
@@ -1613,13 +1613,13 @@ public partial class whitebit : Exchange
     public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market", (market.ContainsKey("id") ? market["id"] : null) },
+            { "market", getValue(market, "id") },
         };
         Dictionary<string, object> response = await this.v1PublicGetTicker(this.extend(request, parameters));
         //
@@ -1776,7 +1776,7 @@ public partial class whitebit : Exchange
     public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
@@ -1788,24 +1788,24 @@ public partial class whitebit : Exchange
             { "orderId", id },
         };
         IDictionary<string, object> market = null;
-        if ((symbol != null))
+        if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["market"] = (market.ContainsKey("id") ? market["id"] : null);
+            ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
         }
         // Try active orders first (if enabled)
-        if ((checkActive == true))
+        if (isTrue(isEqual(checkActive, true)))
         {
             try
             {
                 List<object> response = await this.v4PrivatePostOrders(this.extend(request, parameters));
                 // Search for order in active orders response (array format)
                 IList<object> orders = this.toArray(response);
-                for (int i = 0; i < (orders?.Count ?? 0); i++)
+                for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
                 {
-                    object order = orders[i];
+                    object order = getValue(orders, i);
                     string? orderId = this.safeString(order, "orderId");
-                    if ((orderId == id))
+                    if (isTrue(isEqual(orderId, id)))
                     {
                         string? marketId = this.safeString(order, "market");
                         Dictionary<string, object> marketNew = this.safeMarket(marketId, null, "_");
@@ -1814,30 +1814,30 @@ public partial class whitebit : Exchange
                 }
             } catch(Exception error)
             {
-                if (!(error is OrderNotFound))
+                if (!isTrue((error is OrderNotFound)))
                 {
                     throw error;
                 }
             }
         }
         // Try executed orders (if enabled)
-        if ((checkExecuted == true))
+        if (isTrue(isEqual(checkExecuted, true)))
         {
             try
             {
                 Dictionary<string, object> response = await this.v4PrivatePostTradeAccountOrderHistory(this.extend(request, parameters));
                 // Search for order in executed orders response (object format)
                 List<object> marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
-                for (int i = 0; i < marketIds.Count; i++)
+                for (int i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
                 {
-                    string? marketId = ((string)marketIds[i]);
+                    string? marketId = ((string)getValue(marketIds, i));
                     Dictionary<string, object> marketNew = this.safeMarket(marketId, null, "_");
                     List<object> marketOrders = this.safeList(response, marketId, new List<object>() {});
-                    for (int j = 0; j < marketOrders.Count; j++)
+                    for (int j = 0; isLessThan(j, getArrayLength(marketOrders)); postFixIncrement(ref j))
                     {
-                        object order = marketOrders[j];
+                        object order = getValue(marketOrders, j);
                         string? orderId = this.safeString(order, "id");
-                        if ((orderId == id))
+                        if (isTrue(isEqual(orderId, id)))
                         {
                             return ccxt.BaseExchange.ToOrder(this.parseOrder(order, marketNew));
                         }
@@ -1845,13 +1845,13 @@ public partial class whitebit : Exchange
                 }
             } catch(Exception error)
             {
-                if (!(error is OrderNotFound))
+                if (!isTrue((error is OrderNotFound)))
                 {
                     throw error;
                 }
             }
         }
-        throw new OrderNotFound ((string)((this.id + " fetchOrder() order not found: ") + id)) ;
+        throw new OrderNotFound ((string)add(add(this.id, " fetchOrder() order not found: "), id)) ;
     }
 
     /**
@@ -1868,19 +1868,19 @@ public partial class whitebit : Exchange
     public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
         bool onlyContractSymbols = true;
-        if ((symbols != null))
+        if (isTrue(!isEqual(symbols, null)))
         {
-            for (int i = 0; i < getArrayLength(symbols); i++)
+            for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 object symbol = getValue(symbols, i);
                 Dictionary<string, object> market = this.market(symbol);
-                if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) != true))
+                if (isTrue(!isEqual(getValue(market, "contract"), true)))
                 {
                     onlyContractSymbols = false;
                     break;
@@ -1898,10 +1898,10 @@ public partial class whitebit : Exchange
         IList<object> methodparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchTickers", "method", method);
         method = ((IList<object>)methodparametersVariable)[0];
         parameters = ((IList<object>)methodparametersVariable)[1];
-        if ((method == null))
+        if (isTrue(isEqual(method, null)))
         {
             // if the user did not specify a method, choose it based on market type and symbols
-            if (onlyContractSymbols || ((marketType == "swap")))
+            if (isTrue(isTrue(onlyContractSymbols) || isTrue((isEqual(marketType, "swap")))))
             {
                 method = "v4PublicGetFutures";
             } else
@@ -1910,7 +1910,7 @@ public partial class whitebit : Exchange
             }
         }
         object response = null;
-        if (isEqual(method, "v4PublicGetTicker"))
+        if (isTrue(isEqual(method, "v4PublicGetTicker")))
         {
             //
             //      "BCH_RUB": {
@@ -1924,7 +1924,7 @@ public partial class whitebit : Exchange
             //      },
             //
             response = await this.v4PublicGetTicker(parameters);
-        } else if (isEqual(method, "v4PublicGetFutures"))
+        } else if (isTrue(isEqual(method, "v4PublicGetFutures")))
         {
             //
             //     {
@@ -1971,18 +1971,18 @@ public partial class whitebit : Exchange
             response = await this.v2PublicGetTicker(parameters);
         }
         List<object> resultList = this.safeList(response, "result");
-        if ((resultList != null))
+        if (isTrue(!isEqual(resultList, null)))
         {
             return ccxt.BaseExchange.ToTickers(this.parseTickers(resultList, symbols));
         }
         List<object> marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (int i = 0; i < marketIds.Count; i++)
+        for (int i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
-            string? marketId = ((string)marketIds[i]);
+            string? marketId = ((string)getValue(marketIds, i));
             Dictionary<string, object> market = this.safeMarket(marketId);
             Dictionary<string, object> ticker = this.parseTicker(getValue(response, marketId), market);
-            string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
+            object symbol = getValue(ticker, "symbol");
             ((IDictionary<string,object>)result)[(string)((string)symbol)] = ticker;
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbols));
@@ -2001,15 +2001,15 @@ public partial class whitebit : Exchange
     public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market", (market.ContainsKey("id") ? market["id"] : null) },
+            { "market", getValue(market, "id") },
         };
-        if ((limit != null))
+        if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default = 100, maximum = 100
         }
@@ -2051,13 +2051,13 @@ public partial class whitebit : Exchange
     public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market", (market.ContainsKey("id") ? market["id"] : null) },
+            { "market", getValue(market, "id") },
         };
         List<object> response = await this.v4PublicGetTradesMarket(this.extend(request, parameters));
         //
@@ -2089,16 +2089,16 @@ public partial class whitebit : Exchange
     public async override Task<List<ccxt.Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if ((symbol != null))
+        if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["market"] = (market.ContainsKey("id") ? market["id"] : null);
+            ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
         }
         object response = await this.v4PrivatePostTradeAccountExecutedHistory(this.extend(request, parameters));
         //
@@ -2138,18 +2138,18 @@ public partial class whitebit : Exchange
         //         },
         //     ]
         //
-        if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if (isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));
         } else
         {
             List<object> results = new List<object>() {};
             List<object> keys = new List<object>(((IDictionary<string,object>)response).Keys);
-            for (int i = 0; i < keys.Count; i++)
+            for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
             {
-                string? marketId = ((string)keys[i]);
+                string? marketId = ((string)getValue(keys, i));
                 Dictionary<string, object> marketNew = this.safeMarket(marketId, null, "_");
-                List<object> rawTrades = this.safeList(response, marketId, new List<object>() {});
+                object rawTrades = this.safeValue(response, marketId, new List<object>() {});
                 IList<object> parsed = this.parseTrades(rawTrades, marketNew, since, limit);
                 results = this.arrayConcat(results, parsed);
             }
@@ -2214,13 +2214,13 @@ public partial class whitebit : Exchange
         object symbol = getValue(market, "symbol");
         Int64? role = this.safeInteger(trade, "role");
         string? takerOrMaker = null;
-        if (!isEqual(role, null))
+        if (isTrue(!isEqual(role, null)))
         {
-            takerOrMaker = ((role == 1)) ? "maker" : "taker";
+            takerOrMaker = ((bool) isTrue((isEqual(role, 1)))) ? "maker" : "taker";
         }
         Dictionary<string, object> fee = null;
         string? feeCost = this.safeString(trade, "fee");
-        if ((feeCost != null))
+        if (isTrue(!isEqual(feeCost, null)))
         {
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },
@@ -2262,27 +2262,27 @@ public partial class whitebit : Exchange
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market", (market.ContainsKey("id") ? market["id"] : null) },
+            { "market", getValue(market, "id") },
             { "interval", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
-        if ((since != null))
+        if (isTrue(!isEqual(since, null)))
         {
             int maxLimit = 1440;
-            if ((limitVar == null))
+            if (isTrue(isEqual(limitVar, null)))
             {
                 limitVar = maxLimit;
             }
             limitVar = mathMin(limitVar, maxLimit);
-            Int64? start = this.parseToInt((since / 1000));
+            Int64? start = this.parseToInt(divide(since, 1000));
             ((IDictionary<string,object>)request)["start"] = start;
         }
-        if ((limitVar != null))
+        if (isTrue(!isEqual(limitVar, null)))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limitVar, 1440);
         }
@@ -2336,7 +2336,7 @@ public partial class whitebit : Exchange
         //      ]
         //
         string? status = this.safeString(response, 0);
-        return ccxt.BaseExchange.ToStatus(new Dictionary<string, object>() {             { "status", ((status == "pong")) ? "ok" : status },             { "updated", null },             { "eta", null },             { "url", null },             { "info", response },         });
+        return ccxt.BaseExchange.ToStatus(new Dictionary<string, object>() {             { "status", ((bool) isTrue((isEqual(status, "pong")))) ? "ok" : status },             { "updated", null },             { "eta", null },             { "url", null },             { "info", response },         });
     }
 
     /**
@@ -2420,24 +2420,24 @@ public partial class whitebit : Exchange
     public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market", (market.ContainsKey("id") ? market["id"] : null) },
+            { "market", getValue(market, "id") },
             { "side", side },
         };
         string? cost = null;
         IList<object> costparametersVariable = (IList<object>)this.handleParamString(parameters, "cost");
         cost = (string)((IList<object>)costparametersVariable)[0];
         parameters = ((IList<object>)costparametersVariable)[1];
-        if ((cost != null))
+        if (isTrue(!isEqual(cost, null)))
         {
-            if (((side != "buy")) || ((type != "market")))
+            if (isTrue(isTrue((!isEqual(side, "buy"))) || isTrue((!isEqual(type, "market")))))
             {
-                throw new InvalidOrder ((string)(this.id + " createOrder() cost is only supported for market buy orders")) ;
+                throw new InvalidOrder ((string)add(this.id, " createOrder() cost is only supported for market buy orders")) ;
             }
             ((IDictionary<string,object>)request)["amount"] = this.costToPrecision(symbol, cost);
         } else
@@ -2445,10 +2445,10 @@ public partial class whitebit : Exchange
             ((IDictionary<string,object>)request)["amount"] = this.amountToPrecision(symbol, amount);
         }
         string? clientOrderId = this.safeString2(parameters, "clOrdId", "clientOrderId");
-        if ((clientOrderId == null))
+        if (isTrue(isEqual(clientOrderId, null)))
         {
             object brokerId = this.safeString(this.options, "brokerId");
-            if ((brokerId != null))
+            if (isTrue(!isEqual(brokerId, null)))
             {
                 ((IDictionary<string,object>)request)["clientOrderId"] = add(brokerId, this.uuid16());
             }
@@ -2458,47 +2458,47 @@ public partial class whitebit : Exchange
             parameters = this.omit(parameters, new List<object>() {"clientOrderId"});
         }
         string? marketType = this.safeString(market, "type");
-        bool isLimitOrder = (type == "limit");
-        bool isMarketOrder = (type == "market");
+        bool isLimitOrder = isEqual(type, "limit");
+        bool isMarketOrder = isEqual(type, "market");
         double? triggerPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPrice", "activation_price"});
         bool isStopOrder = (!isEqual(triggerPrice, null));
         string? timeInForce = this.safeStringUpper(parameters, "timeInForce");
-        if (((timeInForce != null)) && ((timeInForce != "GTC")) && ((timeInForce != "IOC")) && ((timeInForce != "PO")))
+        if (isTrue(isTrue(isTrue(isTrue((!isEqual(timeInForce, null))) && isTrue((!isEqual(timeInForce, "GTC")))) && isTrue((!isEqual(timeInForce, "IOC")))) && isTrue((!isEqual(timeInForce, "PO")))))
         {
-            throw new NotSupported ((string)(((this.id + " createOrder() does not support timeInForce ") + timeInForce) + ", only GTC, IOC and PO are allowed")) ;
+            throw new NotSupported ((string)add(add(add(this.id, " createOrder() does not support timeInForce "), timeInForce), ", only GTC, IOC and PO are allowed")) ;
         }
         bool postOnly = this.isPostOnly(isMarketOrder, false, parameters);
-        bool ioc = ((timeInForce == "IOC"));
-        if (isStopOrder && (postOnly || ioc))
+        bool ioc = (isEqual(timeInForce, "IOC"));
+        if (isTrue(isTrue(isStopOrder) && isTrue((isTrue(postOnly) || isTrue(ioc)))))
         {
-            throw new NotSupported ((string)(this.id + " createOrder() does not support postOnly or timeInForce IOC for stop orders")) ;
+            throw new NotSupported ((string)add(this.id, " createOrder() does not support postOnly or timeInForce IOC for stop orders")) ;
         }
-        if (ioc && !isLimitOrder)
+        if (isTrue(isTrue(ioc) && !isTrue(isLimitOrder)))
         {
-            throw new NotSupported ((string)(this.id + " createOrder() timeInForce IOC is only supported for limit orders")) ;
+            throw new NotSupported ((string)add(this.id, " createOrder() timeInForce IOC is only supported for limit orders")) ;
         }
         IList<object> marginModequeryVariable = (IList<object>)this.handleMarginModeAndParams("createOrder", parameters);
         var marginMode = ((IList<object>) marginModequeryVariable)[0];
         var query = ((IList<object>) marginModequeryVariable)[1];
-        if (postOnly)
+        if (isTrue(postOnly))
         {
             ((IDictionary<string,object>)request)["postOnly"] = true;
         }
-        if (ioc)
+        if (isTrue(ioc))
         {
             ((IDictionary<string,object>)request)["ioc"] = true;
         }
-        if ((marginMode != null) && !isEqual(marginMode, "cross"))
+        if (isTrue(isTrue(!isEqual(marginMode, null)) && isTrue(!isEqual(marginMode, "cross"))))
         {
-            throw new NotSupported ((string)(this.id + " createOrder() is only available for cross margin")) ;
+            throw new NotSupported ((string)add(this.id, " createOrder() is only available for cross margin")) ;
         }
         parameters = this.omit(query, new List<object>() {"postOnly", "triggerPrice", "stopPrice", "timeInForce"});
-        bool useCollateralEndpoint = (marginMode != null) || (marketType == "swap");
+        bool useCollateralEndpoint = isTrue(!isEqual(marginMode, null)) || isTrue(isEqual(marketType, "swap"));
         object response = null;
-        if (isStopOrder)
+        if (isTrue(isStopOrder))
         {
             ((IDictionary<string,object>)request)["activation_price"] = this.priceToPrecision(symbol, triggerPrice);
-            if (isLimitOrder)
+            if (isTrue(isLimitOrder))
             {
                 // stop limit order
                 ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
@@ -2506,7 +2506,7 @@ public partial class whitebit : Exchange
             } else
             {
                 // stop market order
-                if (useCollateralEndpoint)
+                if (isTrue(useCollateralEndpoint))
                 {
                     response = await this.v4PrivatePostOrderCollateralTriggerMarket(this.extend(request, parameters));
                 } else
@@ -2516,11 +2516,11 @@ public partial class whitebit : Exchange
             }
         } else
         {
-            if (isLimitOrder)
+            if (isTrue(isLimitOrder))
             {
                 // limit order
                 ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
-                if (useCollateralEndpoint)
+                if (isTrue(useCollateralEndpoint))
                 {
                     response = await this.v4PrivatePostOrderCollateralLimit(this.extend(request, parameters));
                 } else
@@ -2530,12 +2530,12 @@ public partial class whitebit : Exchange
             } else
             {
                 // market order
-                if (useCollateralEndpoint)
+                if (isTrue(useCollateralEndpoint))
                 {
                     response = await this.v4PrivatePostOrderCollateralMarket(this.extend(request, parameters));
                 } else
                 {
-                    if ((cost != null))
+                    if (isTrue(!isEqual(cost, null)))
                     {
                         response = await this.v4PrivatePostOrderMarket(this.extend(request, parameters));
                     } else
@@ -2565,17 +2565,17 @@ public partial class whitebit : Exchange
     public async override Task<ccxt.Order> EditOrder(string id, string symbol, string type, string side, double? amount = null, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market", (market.ContainsKey("id") ? market["id"] : null) },
+            { "market", getValue(market, "id") },
         };
         // Handle clientOrderId vs orderId (clientOrderId takes priority)
         string? clientOrderId = this.safeString(parameters, "clientOrderId");
-        if ((clientOrderId != null))
+        if (isTrue(!isEqual(clientOrderId, null)))
         {
             ((IDictionary<string,object>)request)["clientOrderId"] = clientOrderId;
         } else
@@ -2586,22 +2586,22 @@ public partial class whitebit : Exchange
         double? triggerPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPrice", "activationPrice"});
         bool isStopOrder = (!isEqual(triggerPrice, null));
         // Handle activation price for stop orders
-        if (isStopOrder)
+        if (isTrue(isStopOrder))
         {
             ((IDictionary<string,object>)request)["activation_price"] = this.priceToPrecision(symbol, triggerPrice);
         }
-        bool isLimitOrder = (type == "limit");
+        bool isLimitOrder = isEqual(type, "limit");
         double? total = this.safeNumber(parameters, "total");
-        if (!isEqual(total, null))
+        if (isTrue(!isEqual(total, null)))
         {
             ((IDictionary<string,object>)request)["total"] = this.amountToPrecision(symbol, total);
-        } else if ((amount != null))
+        } else if (isTrue(!isEqual(amount, null)))
         {
-            if (isLimitOrder)
+            if (isTrue(isLimitOrder))
             {
                 // Limit orders always use amount parameter
                 ((IDictionary<string,object>)request)["amount"] = this.amountToPrecision(symbol, amount);
-            } else if ((type == "market") && (side == "buy"))
+            } else if (isTrue(isTrue(isEqual(type, "market")) && isTrue(isEqual(side, "buy"))))
             {
                 // Market buy orders use total parameter
                 ((IDictionary<string,object>)request)["total"] = this.amountToPrecision(symbol, amount);
@@ -2612,15 +2612,15 @@ public partial class whitebit : Exchange
             }
         }
         // Handle price parameter for limit orders
-        if ((price != null))
+        if (isTrue(!isEqual(price, null)))
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
         // Ensure at least one modifiable parameter is provided
-        bool hasModifiableParam = ((amount != null)) || ((price != null)) || (!isEqual(triggerPrice, null)) || (!isEqual(total, null));
-        if (!hasModifiableParam)
+        bool hasModifiableParam = isTrue(isTrue(isTrue((!isEqual(amount, null))) || isTrue((!isEqual(price, null)))) || isTrue((!isEqual(triggerPrice, null)))) || isTrue((!isEqual(total, null)));
+        if (!isTrue(hasModifiableParam))
         {
-            throw new ArgumentsRequired ((string)(this.id + " editOrder() requires at least one of: amount, price, activationPrice, or total parameters")) ;
+            throw new ArgumentsRequired ((string)add(this.id, " editOrder() requires at least one of: amount, price, activationPrice, or total parameters")) ;
         }
         parameters = this.omit(parameters, new List<object>() {"clientOrderId", "triggerPrice", "stopPrice", "activationPrice", "total"});
         Dictionary<string, object> response = await this.v4PrivatePostOrderModify(this.extend(request, parameters));
@@ -2640,17 +2640,17 @@ public partial class whitebit : Exchange
     public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((symbol == null))
+        if (isTrue(isEqual(symbol, null)))
         {
-            throw new ArgumentsRequired ((string)(this.id + " cancelOrder() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a symbol argument")) ;
         }
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market", (market.ContainsKey("id") ? market["id"] : null) },
+            { "market", getValue(market, "id") },
             { "orderId", parseInt(id) },
         };
         Dictionary<string, object> response = await this.v4PrivatePostOrderCancel(this.extend(request, parameters));
@@ -2690,41 +2690,41 @@ public partial class whitebit : Exchange
     public async override Task<List<ccxt.Order>> CancelAllOrders(string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if ((symbol != null))
+        if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["market"] = (market.ContainsKey("id") ? market["id"] : null);
+            ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
         }
         string? type = null;
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
         type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         List<object> requestType = new List<object>() {};
-        if ((type == "spot"))
+        if (isTrue(isEqual(type, "spot")))
         {
-            bool? isMargin = null;
+            object isMargin = null;
             IList<object> isMarginparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "cancelAllOrders", "isMargin", false);
-            isMargin = isTrue(((IList<object>)isMarginparametersVariable)[0]);
+            isMargin = ((IList<object>)isMarginparametersVariable)[0];
             parameters = ((IList<object>)isMarginparametersVariable)[1];
-            if ((isMargin == true))
+            if (isTrue(isMargin))
             {
                 ((IList<object>)requestType).Add("margin");
             } else
             {
                 ((IList<object>)requestType).Add("spot");
             }
-        } else if ((type == "swap"))
+        } else if (isTrue(isEqual(type, "swap")))
         {
             ((IList<object>)requestType).Add("futures");
         } else
         {
-            throw new NotSupported ((string)(((this.id + " cancelAllOrders() does not support ") + type) + " type")) ;
+            throw new NotSupported ((string)add(add(add(this.id, " cancelAllOrders() does not support "), type), " type")) ;
         }
         ((IDictionary<string,object>)request)["type"] = requestType;
         List<object> response = await this.v4PrivatePostOrderCancelAll(this.extend(request, parameters));
@@ -2749,7 +2749,7 @@ public partial class whitebit : Exchange
     public async override Task<List<ccxt.Order>> FetchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
@@ -2761,7 +2761,7 @@ public partial class whitebit : Exchange
         // Sort by timestamp (most recent first)
         List<object> sortedOrders = this.sortBy(allOrders, "timestamp", true);
         // Apply limit if specified (since and symbol filtering already handled by individual methods)
-        if ((limit != null) && isGreaterThan((sortedOrders?.Count ?? 0), limit))
+        if (isTrue(isTrue(!isEqual(limit, null)) && isTrue(isGreaterThan(getArrayLength(sortedOrders), limit))))
         {
             return ccxt.BaseExchange.ToOrderList(slice(sortedOrders, 0, limit));
         }
@@ -2782,26 +2782,26 @@ public partial class whitebit : Exchange
     public async override Task<Dictionary<string, object>> CancelAllOrdersAfter(object timeout, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
         string? symbol = this.safeString(parameters, "symbol");
-        if ((symbol == null))
+        if (isTrue(isEqual(symbol, null)))
         {
-            throw new ArgumentsRequired ((string)(this.id + " cancelAllOrdersAfter() requires a symbol argument in params")) ;
+            throw new ArgumentsRequired ((string)add(this.id, " cancelAllOrdersAfter() requires a symbol argument in params")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         parameters = this.omit(parameters, "symbol");
-        if (isEqual(timeout, null))
+        if (isTrue(isEqual(timeout, null)))
         {
-            throw new ExchangeError ((string)(this.id + " cancelAllOrdersAfter() missing timeout")) ;
+            throw new ExchangeError ((string)add(this.id, " cancelAllOrdersAfter() missing timeout")) ;
         }
         bool isBiggerThanZero = (isGreaterThan(timeout, 0));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market", (market.ContainsKey("id") ? market["id"] : null) },
+            { "market", getValue(market, "id") },
         };
-        if (isBiggerThanZero)
+        if (isTrue(isBiggerThanZero))
         {
             ((IDictionary<string,object>)request)["timeout"] = this.numberToString(divide(timeout, 1000));
         } else
@@ -2824,18 +2824,18 @@ public partial class whitebit : Exchange
     {
         List<object> balanceKeys = new List<object>(((IDictionary<string,object>)response).Keys);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (int i = 0; i < balanceKeys.Count; i++)
+        for (int i = 0; isLessThan(i, getArrayLength(balanceKeys)); postFixIncrement(ref i))
         {
-            string? id = ((string)balanceKeys[i]);
+            string? id = ((string)getValue(balanceKeys, i));
             string? code = this.safeCurrencyCode(id);
             object balance = getValue(response, id);
-            if ((balance != null) && isTrue(this.isDictionary(balance)))
+            if (isTrue(isTrue(!isEqual(balance, null)) && isTrue(this.isDictionary(balance))))
             {
                 Dictionary<string, object> account = this.account();
                 ((IDictionary<string,object>)account)["free"] = this.safeString2(balance, "available", "main_balance");
                 ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "freeze");
                 ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "main_balance");
-                if ((code != null))
+                if (isTrue(!isEqual(code, null)))
                 {
                     ((IDictionary<string,object>)result)[(string)code] = account;
                 }
@@ -2843,7 +2843,7 @@ public partial class whitebit : Exchange
             {
                 Dictionary<string, object> account = this.account();
                 ((IDictionary<string,object>)account)["total"] = balance;
-                if ((code != null))
+                if (isTrue(!isEqual(code, null)))
                 {
                     ((IDictionary<string,object>)result)[(string)code] = account;
                 }
@@ -2864,7 +2864,7 @@ public partial class whitebit : Exchange
     public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
@@ -2873,16 +2873,16 @@ public partial class whitebit : Exchange
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         object response = null;
-        if ((marketType == "swap"))
+        if (isTrue(isEqual(marketType, "swap")))
         {
             response = await this.v4PrivatePostCollateralAccountBalance(parameters);
         } else
         {
-            IDictionary<string, object> options = this.safeDict(this.options, "fetchBalance", new Dictionary<string, object>() {});
+            object options = this.safeValue(this.options, "fetchBalance", new Dictionary<string, object>() {});
             string? defaultAccount = this.safeString(options, "account");
             string? account = this.safeString2(parameters, "account", "type", defaultAccount);
             parameters = this.omit(parameters, new List<object>() {"account", "type"});
-            if ((account == "main") || (account == "funding"))
+            if (isTrue(isTrue(isEqual(account, "main")) || isTrue(isEqual(account, "funding"))))
             {
                 response = await this.v4PrivatePostMainAccountBalance(parameters);
             } else
@@ -2929,18 +2929,18 @@ public partial class whitebit : Exchange
     public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if ((symbol != null))
+        if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["market"] = (market.ContainsKey("id") ? market["id"] : null);
+            ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
         }
-        if ((limit != null))
+        if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 100);
         }
@@ -2983,19 +2983,19 @@ public partial class whitebit : Exchange
     {
         object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> market = null;
-        if ((symbolVar != null))
+        if (isTrue(!isEqual(symbolVar, null)))
         {
             market = this.market(symbolVar);
-            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
-            ((IDictionary<string,object>)request)["market"] = (market.ContainsKey("id") ? market["id"] : null);
+            symbolVar = getValue(market, "symbol");
+            ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
         }
-        if ((limit != null))
+        if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 100); // default 50 max 100
         }
@@ -3019,14 +3019,14 @@ public partial class whitebit : Exchange
         //
         List<object> marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
         IList<object> results = new List<object>() {};
-        for (int i = 0; i < marketIds.Count; i++)
+        for (int i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
-            string? marketId = ((string)marketIds[i]);
+            string? marketId = ((string)getValue(marketIds, i));
             Dictionary<string, object> marketNew = this.safeMarket(marketId, null, "_");
             List<object> orders = this.safeList(response, marketId, new List<object>() {});
-            for (int j = 0; j < orders.Count; j++)
+            for (int j = 0; isLessThan(j, getArrayLength(orders)); postFixIncrement(ref j))
             {
-                Dictionary<string, object> order = this.parseOrder(orders[j], marketNew);
+                Dictionary<string, object> order = this.parseOrder(getValue(orders, j), marketNew);
                 ((IList<object>)results).Add(this.extend(order, new Dictionary<string, object>() {
                     { "status", "closed" },
                 }));
@@ -3099,7 +3099,7 @@ public partial class whitebit : Exchange
         string? filled = this.safeString(order, "dealStock");
         string? remaining = this.safeString(order, "left");
         string? clientOrderId = this.safeString(order, "clientOrderId");
-        if ((clientOrderId == ""))
+        if (isTrue(isEqual(clientOrderId, "")))
         {
             clientOrderId = null;
         }
@@ -3108,19 +3108,19 @@ public partial class whitebit : Exchange
         string? orderId = this.safeString2(order, "orderId", "id");
         string? type = this.safeString(order, "type");
         string? orderType = this.parseOrderType(type);
-        if ((orderType == "market"))
+        if (isTrue(isEqual(orderType, "market")))
         {
             remaining = null;
         }
         string? amount = this.safeString(order, "amount");
         string? cost = this.safeString(order, "dealMoney");
-        if (((side == "buy")) && (((type == "market")) || ((type == "stop market"))))
+        if (isTrue(isTrue((isEqual(side, "buy"))) && isTrue((isTrue((isEqual(type, "market"))) || isTrue((isEqual(type, "stop market")))))))
         {
             amount = filled;
         }
         string? dealFee = this.safeString(order, "dealFee");
         Dictionary<string, object> fee = null;
-        if ((dealFee != null))
+        if (isTrue(!isEqual(dealFee, null)))
         {
             fee = new Dictionary<string, object>() {
                 { "cost", this.parseNumber(dealFee) },
@@ -3132,10 +3132,10 @@ public partial class whitebit : Exchange
         bool? postOnly = this.safeBool(order, "postOnly");
         bool? ioc = this.safeBool(order, "ioc");
         string? timeInForce = null;
-        if ((ioc == true))
+        if (isTrue(isEqual(ioc, true)))
         {
             timeInForce = "IOC";
-        } else if ((postOnly == true))
+        } else if (isTrue(isEqual(postOnly, true)))
         {
             timeInForce = "PO";
         }
@@ -3190,7 +3190,7 @@ public partial class whitebit : Exchange
     public async override Task<List<ccxt.Trade>> FetchOrderTrades(string id, string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
@@ -3198,12 +3198,12 @@ public partial class whitebit : Exchange
             { "orderId", parseInt(id) },
         };
         IDictionary<string, object> market = null;
-        if ((symbol != null))
+        if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["market"] = (market.ContainsKey("id") ? market["id"] : null);
+            ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
         }
-        if ((limit != null))
+        if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 100);
         }
@@ -3247,26 +3247,26 @@ public partial class whitebit : Exchange
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
         IDictionary<string, object> currency = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if ((code != null))
+        if (isTrue(!isEqual(code, null)))
         {
             currency = this.currency(((string)code));
-            ((IDictionary<string,object>)request)["ticker"] = (currency.ContainsKey("id") ? currency["id"] : null);
+            ((IDictionary<string,object>)request)["ticker"] = getValue(currency, "id");
         }
-        if ((since != null))
+        if (isTrue(!isEqual(since, null)))
         {
-            ((IDictionary<string,object>)request)["startDate"] = this.parseToInt((since / 1000));
+            ((IDictionary<string,object>)request)["startDate"] = this.parseToInt(divide(since, 1000));
         }
-        if ((limitVar == null) || isGreaterThan(limitVar, 100))
+        if (isTrue(isTrue(isEqual(limitVar, null)) || isTrue(isGreaterThan(limitVar, 100))))
         {
             limitVar = 100;
         }
-        if ((limitVar != null))
+        if (isTrue(!isEqual(limitVar, null)))
         {
             ((IDictionary<string,object>)request)["limit"] = limitVar;
         }
@@ -3310,26 +3310,26 @@ public partial class whitebit : Exchange
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
         IDictionary<string, object> currency = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if ((code != null))
+        if (isTrue(!isEqual(code, null)))
         {
             currency = this.currency(((string)code));
-            ((IDictionary<string,object>)request)["ticker"] = (currency.ContainsKey("id") ? currency["id"] : null);
+            ((IDictionary<string,object>)request)["ticker"] = getValue(currency, "id");
         }
-        if ((since != null))
+        if (isTrue(!isEqual(since, null)))
         {
-            ((IDictionary<string,object>)request)["startDate"] = this.parseToInt((since / 1000));
+            ((IDictionary<string,object>)request)["startDate"] = this.parseToInt(divide(since, 1000));
         }
-        if ((limitVar == null) || isGreaterThan(limitVar, 100))
+        if (isTrue(isTrue(isEqual(limitVar, null)) || isTrue(isGreaterThan(limitVar, 100))))
         {
             limitVar = 100;
         }
-        if ((limitVar != null))
+        if (isTrue(!isEqual(limitVar, null)))
         {
             ((IDictionary<string,object>)request)["limit"] = limitVar;
         }
@@ -3379,33 +3379,33 @@ public partial class whitebit : Exchange
     public async override Task<ccxt.DepositAddress> FetchDepositAddress(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "ticker", (currency.ContainsKey("id") ? currency["id"] : null) },
+            { "ticker", getValue(currency, "id") },
         };
         object response = null;
-        if (this.isFiat(code))
+        if (isTrue(this.isFiat(code)))
         {
             string? provider = this.safeString(parameters, "provider");
-            if ((provider == null))
+            if (isTrue(isEqual(provider, null)))
             {
-                throw new ArgumentsRequired ((string)(this.id + " fetchDepositAddress() requires a provider when the ticker is fiat")) ;
+                throw new ArgumentsRequired ((string)add(this.id, " fetchDepositAddress() requires a provider when the ticker is fiat")) ;
             }
             ((IDictionary<string,object>)request)["provider"] = provider;
             double? amount = this.safeNumber(parameters, "amount");
-            if (isEqual(amount, null))
+            if (isTrue(isEqual(amount, null)))
             {
-                throw new ArgumentsRequired ((string)(this.id + " fetchDepositAddress() requires an amount when the ticker is fiat")) ;
+                throw new ArgumentsRequired ((string)add(this.id, " fetchDepositAddress() requires an amount when the ticker is fiat")) ;
             }
             ((IDictionary<string,object>)request)["amount"] = amount;
             object uniqueId = this.safeValue(parameters, "uniqueId");
-            if ((uniqueId == null))
+            if (isTrue(isEqual(uniqueId, null)))
             {
-                throw new ArgumentsRequired ((string)(this.id + " fetchDepositAddress() requires an uniqueId when the ticker is fiat")) ;
+                throw new ArgumentsRequired ((string)add(this.id, " fetchDepositAddress() requires an uniqueId when the ticker is fiat")) ;
             }
             response = await this.v4PrivatePostMainAccountFiatDepositUrl(this.extend(request, parameters));
         } else
@@ -3439,7 +3439,7 @@ public partial class whitebit : Exchange
         //     }
         //
         string? url = this.safeString(response, "url");
-        IDictionary<string, object> account = this.safeDict(response, "account", new Dictionary<string, object>() {});
+        object account = this.safeValue(response, "account", new Dictionary<string, object>() {});
         string? address = this.safeString(account, "address", url);
         string? tag = this.safeString(account, "memo");
         this.checkAddress(address);
@@ -3460,13 +3460,13 @@ public partial class whitebit : Exchange
     public async override Task<ccxt.DepositAddress> CreateDepositAddress(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "ticker", (currency.ContainsKey("id") ? currency["id"] : null) },
+            { "ticker", getValue(currency, "id") },
         };
         Dictionary<string, object> response = await this.v4PrivatePostMainAccountCreateNewAddress(this.extend(request, parameters));
         //
@@ -3519,7 +3519,7 @@ public partial class whitebit : Exchange
     public async override Task<List<ccxt.Account>> FetchAccounts(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
@@ -3544,7 +3544,7 @@ public partial class whitebit : Exchange
         //     }
         //
         List<object> subAccounts = this.safeList(response, "data", new List<object>() {});
-        for (int i = 0; i < subAccounts.Count; i++)
+        for (int i = 0; isLessThan(i, getArrayLength(subAccounts)); postFixIncrement(ref i))
         {
             IDictionary<string, object> subAccount = this.safeDict(subAccounts, i, new Dictionary<string, object>() {});
             string? accountId = this.safeString(subAccount, "id");
@@ -3573,17 +3573,17 @@ public partial class whitebit : Exchange
     public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        if ((symbol != null))
+        if (isTrue(!isEqual(symbol, null)))
         {
-            throw new NotSupported ((string)(this.id + " setLeverage() does not allow to set per symbol")) ;
+            throw new NotSupported ((string)add(this.id, " setLeverage() does not allow to set per symbol")) ;
         }
-        if ((isLessThan(leverage, 1)) || (isGreaterThan(leverage, 20)))
+        if (isTrue(isTrue((isLessThan(leverage, 1))) || isTrue((isGreaterThan(leverage, 20)))))
         {
-            throw new BadRequest ((string)(this.id + " setLeverage() leverage should be between 1 and 20")) ;
+            throw new BadRequest ((string)add(this.id, " setLeverage() leverage should be between 1 and 20")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "leverage", leverage },
@@ -3606,17 +3606,17 @@ public partial class whitebit : Exchange
     public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(((string)code));
-        IDictionary<string, object> accountsByType = this.safeDict(this.options, "accountsByType");
+        object accountsByType = this.safeValue(this.options, "accountsByType");
         string? fromAccountId = this.safeString(accountsByType, fromAccount, fromAccount);
         string? toAccountId = this.safeString(accountsByType, toAccount, toAccount);
         string? amountString = this.currencyToPrecision(((string)code), amount);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "ticker", (currency.ContainsKey("id") ? currency["id"] : null) },
+            { "ticker", getValue(currency, "id") },
             { "amount", amountString },
             { "from", fromAccountId },
             { "to", toAccountId },
@@ -3661,32 +3661,32 @@ public partial class whitebit : Exchange
     public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(((string)code)); // check if it has canDeposit
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "ticker", (currency.ContainsKey("id") ? currency["id"] : null) },
+            { "ticker", getValue(currency, "id") },
             { "amount", this.currencyToPrecision(((string)code), amount) },
             { "address", address },
         };
         object uniqueId = this.safeValue(parameters, "uniqueId");
-        if ((uniqueId == null))
+        if (isTrue(isEqual(uniqueId, null)))
         {
             uniqueId = this.uuid22();
         }
         ((IDictionary<string,object>)request)["uniqueId"] = uniqueId;
-        if ((tag != null))
+        if (isTrue(!isEqual(tag, null)))
         {
             ((IDictionary<string,object>)request)["memo"] = tag;
         }
-        if (this.isFiat(code))
+        if (isTrue(this.isFiat(code)))
         {
             object provider = this.safeValue(parameters, "provider");
-            if ((provider == null))
+            if (isTrue(isEqual(provider, null)))
             {
-                throw new ArgumentsRequired ((string)(this.id + " withdraw() requires a provider when the ticker is fiat")) ;
+                throw new ArgumentsRequired ((string)add(this.id, " withdraw() requires a provider when the ticker is fiat")) ;
             }
             ((IDictionary<string,object>)request)["provider"] = provider;
         }
@@ -3745,11 +3745,11 @@ public partial class whitebit : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "network", this.safeString(transaction, "network") },
-            { "addressFrom", ((method == "1")) ? address : null },
+            { "addressFrom", ((bool) isTrue((isEqual(method, "1")))) ? address : null },
             { "address", address },
-            { "addressTo", ((method == "2")) ? address : null },
+            { "addressTo", ((bool) isTrue((isEqual(method, "2")))) ? address : null },
             { "amount", this.safeNumber(transaction, "amount") },
-            { "type", ((method == "1")) ? "deposit" : "withdrawal" },
+            { "type", ((bool) isTrue((isEqual(method, "1")))) ? "deposit" : "withdrawal" },
             { "currency", this.safeCurrencyCode(currencyId, currency) },
             { "status", this.parseTransactionStatus(status) },
             { "updated", null },
@@ -3802,7 +3802,7 @@ public partial class whitebit : Exchange
     public async virtual Task<ccxt.Transaction> FetchDeposit(string id, string code = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
@@ -3813,10 +3813,10 @@ public partial class whitebit : Exchange
             { "limit", 1 },
             { "offset", 0 },
         };
-        if ((code != null))
+        if (isTrue(!isEqual(code, null)))
         {
             currency = this.currency(((string)code));
-            ((IDictionary<string,object>)request)["ticker"] = (currency.ContainsKey("id") ? currency["id"] : null);
+            ((IDictionary<string,object>)request)["ticker"] = getValue(currency, "id");
         }
         Dictionary<string, object> response = await this.v4PrivatePostMainAccountHistory(this.extend(request, parameters));
         //
@@ -3856,7 +3856,7 @@ public partial class whitebit : Exchange
         //         "total": 300                                                                                             // total number of  transactions, use this for calculating ‘limit’ and ‘offset'
         //     }
         //
-        List<object> records = this.safeList(response, "records", new List<object>() {});
+        object records = this.safeValue(response, "records", new List<object>() {});
         IDictionary<string, object> first = this.safeDict(records, 0, new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(first, currency));
     }
@@ -3875,7 +3875,7 @@ public partial class whitebit : Exchange
     public async override Task<List<ccxt.Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
@@ -3885,12 +3885,12 @@ public partial class whitebit : Exchange
             { "limit", 100 },
             { "offset", 0 },
         };
-        if ((code != null))
+        if (isTrue(!isEqual(code, null)))
         {
             currency = this.currency(((string)code));
-            ((IDictionary<string,object>)request)["ticker"] = (currency.ContainsKey("id") ? currency["id"] : null);
+            ((IDictionary<string,object>)request)["ticker"] = getValue(currency, "id");
         }
-        if ((limit != null))
+        if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 100);
         }
@@ -3934,7 +3934,7 @@ public partial class whitebit : Exchange
         //
         List<object> records = this.safeList(response, "records", new List<object>() {});
         List<object> recordsList = new List<object>() {};
-        if ((records != null))
+        if (isTrue(!isEqual(records, null)))
         {
             recordsList = records;
         }
@@ -3956,16 +3956,16 @@ public partial class whitebit : Exchange
     public async override Task<List<ccxt.BorrowInterest>> FetchBorrowInterest(string code = null, object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> market = null;
-        if ((symbol != null))
+        if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["market"] = (market.ContainsKey("id") ? market["id"] : null);
+            ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
         }
         List<object> response = await this.v4PrivatePostCollateralAccountPositionsOpen(this.extend(request, parameters));
         //
@@ -4043,7 +4043,7 @@ public partial class whitebit : Exchange
     {
         string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
@@ -4064,7 +4064,7 @@ public partial class whitebit : Exchange
     public async override Task<ccxt.FundingRates> FetchFundingRates(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
@@ -4195,23 +4195,23 @@ public partial class whitebit : Exchange
     public async override Task<List<ccxt.FundingHistory>> FetchFundingHistory(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        if ((symbol == null))
+        if (isTrue(isEqual(symbol, null)))
         {
-            throw new ArgumentsRequired ((string)(this.id + " fetchFundingHistory() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((string)add(this.id, " fetchFundingHistory() requires a symbol argument")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market", (market.ContainsKey("id") ? market["id"] : null) },
+            { "market", getValue(market, "id") },
         };
-        if ((since != null))
+        if (isTrue(!isEqual(since, null)))
         {
             ((IDictionary<string,object>)request)["startDate"] = since;
         }
-        if ((limit != null))
+        if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -4269,7 +4269,7 @@ public partial class whitebit : Exchange
     public virtual object parseFundingHistories(object contracts, object market = null, object since = null, object limit = null)
     {
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(contracts); i++)
+        for (int i = 0; isLessThan(i, getArrayLength(contracts)); postFixIncrement(ref i))
         {
             object contract = getValue(contracts, i);
             ((IList<object>)result).Add(this.parseFundingHistory(contract, market));
@@ -4300,18 +4300,18 @@ public partial class whitebit : Exchange
     public async override Task<List<ccxt.Transaction>> FetchDepositsWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> currency = null;
-        if ((code != null))
+        if (isTrue(!isEqual(code, null)))
         {
             currency = this.currency(((string)code));
-            ((IDictionary<string,object>)request)["ticker"] = (currency.ContainsKey("id") ? currency["id"] : null);
+            ((IDictionary<string,object>)request)["ticker"] = getValue(currency, "id");
         }
-        if ((limit != null))
+        if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default 1000
         }
@@ -4356,7 +4356,7 @@ public partial class whitebit : Exchange
         //
         List<object> records = this.safeList(response, "records");
         List<object> recordsList = new List<object>() {};
-        if ((records != null))
+        if (isTrue(!isEqual(records, null)))
         {
             recordsList = records;
         }
@@ -4377,7 +4377,7 @@ public partial class whitebit : Exchange
     public async override Task<ccxt.Conversion> FetchConvertQuote(object fromCode, object toCode, double? amount = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
@@ -4419,7 +4419,7 @@ public partial class whitebit : Exchange
     public async override Task<ccxt.Conversion> CreateConvertTrade(string id, object fromCode, object toCode, double? amount = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
@@ -4456,21 +4456,21 @@ public partial class whitebit : Exchange
     public async override Task<List<ccxt.Conversion>> FetchConvertTradeHistory(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if ((code != null))
+        if (isTrue(!isEqual(code, null)))
         {
             ((IDictionary<string,object>)request)["fromTicker"] = code;
         }
-        if ((since != null))
+        if (isTrue(!isEqual(since, null)))
         {
-            Int64? start = this.parseToInt((since / 1000));
+            Int64? start = this.parseToInt(divide(since, 1000));
             ((IDictionary<string,object>)request)["from"] = this.numberToString(start);
         }
-        if ((limit != null))
+        if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -4582,19 +4582,19 @@ public partial class whitebit : Exchange
     public async override Task<List<ccxt.Position>> FetchPositionHistory(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market", (market.ContainsKey("id") ? market["id"] : null) },
+            { "market", getValue(market, "id") },
         };
-        if ((since != null))
+        if (isTrue(!isEqual(since, null)))
         {
             ((IDictionary<string,object>)request)["startDate"] = since;
         }
-        if ((limit != null))
+        if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["limit"] = since;
         }
@@ -4641,7 +4641,7 @@ public partial class whitebit : Exchange
     public async override Task<List<ccxt.Position>> FetchPositions(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
@@ -4683,13 +4683,13 @@ public partial class whitebit : Exchange
     public async override Task<ccxt.Position> FetchPosition(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
+            { "symbol", getValue(market, "id") },
         };
         List<object> response = await this.v4PrivatePostCollateralAccountPositionsOpen(this.extend(request, parameters));
         //
@@ -4800,7 +4800,7 @@ public partial class whitebit : Exchange
 
     public virtual bool isFiat(object currency)
     {
-        List<object> fiatCurrencies = this.safeList(this.options, "fiatCurrencies", new List<object>() {});
+        object fiatCurrencies = this.safeValue(this.options, "fiatCurrencies", new List<object>() {});
         return ((bool)((object)(this.inArray(currency, fiatCurrencies)))!);
     }
 
@@ -4819,35 +4819,35 @@ public partial class whitebit : Exchange
     public async override Task<List<ccxt.FundingRateHistory>> FetchFundingRateHistory(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((symbol == null))
+        if (isTrue(isEqual(symbol, null)))
         {
-            throw new ArgumentsRequired ((string)(this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((string)add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
         }
         int maxLimit = 100;
-        bool paginate = false;
+        object paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
-        paginate = isTrue(((IList<object>)paginateparametersVariable)[0]);
+        paginate = ((IList<object>)paginateparametersVariable)[0];
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        if (paginate)
+        if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters, maxLimit));
         }
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market", (market.ContainsKey("id") ? market["id"] : null) },
+            { "market", getValue(market, "id") },
         };
-        if ((since != null))
+        if (isTrue(!isEqual(since, null)))
         {
-            ((IDictionary<string,object>)request)["startDate"] = Math.Round(Convert.ToDouble((since / 1000)));
+            ((IDictionary<string,object>)request)["startDate"] = Math.Round(Convert.ToDouble(divide(since, 1000)));
         }
         IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("until_timestamp", request, parameters, 0.001);
         request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        if ((limit != null))
+        if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -4882,7 +4882,7 @@ public partial class whitebit : Exchange
 
     public override Int64 nonce()
     {
-        return ((Int64)((object)(subtract(this.milliseconds(), (this.options.ContainsKey("timeDifference") ? this.options["timeDifference"] : null))))!);
+        return ((Int64)((object)(subtract(this.milliseconds(), getValue(this.options, "timeDifference"))))!);
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
@@ -4893,26 +4893,26 @@ public partial class whitebit : Exchange
         object query = this.omit(parameters, this.extractParams(path));
         object version = this.safeValue(api, 0);
         object accessibility = this.safeValue(api, 1);
-        if ((headers == null))
+        if (isTrue(isEqual(headers, null)))
         {
             headers = new Dictionary<string, object>() {};
         }
-        ((IDictionary<string,object>)headers)["User-Agent"] = ((("ccxt/" + this.id) + "-") + this.version);
-        string pathWithParams = ("/" + this.implodeParams(path, parameters));
-        object url = add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), version), accessibility), pathWithParams);
-        if (isEqual(accessibility, "public"))
+        ((IDictionary<string,object>)headers)["User-Agent"] = add(add(add("ccxt/", this.id), "-"), this.version);
+        string pathWithParams = add("/", this.implodeParams(path, parameters));
+        object url = add(getValue(getValue(getValue(this.urls, "api"), version), accessibility), pathWithParams);
+        if (isTrue(isEqual(accessibility, "public")))
         {
-            if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
             {
-                url = add(url, ("?" + this.urlencode(query)));
+                url = add(url, add("?", this.urlencode(query)));
             }
         }
-        if (isEqual(accessibility, "private"))
+        if (isTrue(isEqual(accessibility, "private")))
         {
             this.checkRequiredCredentials();
             string nonce = ((object)this.nonce()).ToString();
             string? secret = this.encode(this.secret);
-            string request = (((("/" + "api") + "/") + (version)) + pathWithParams);
+            string request = add(add(add(add("/", "api"), "/"), version), pathWithParams);
             IList<object> nonceWindowrequestParamsVariable = (IList<object>)this.handleOptionAndParams(parameters, "sign", "nonceWindow", false);
             var nonceWindow = ((IList<object>) nonceWindowrequestParamsVariable)[0];
             var requestParams = ((IList<object>) nonceWindowrequestParamsVariable)[1];
@@ -4940,68 +4940,68 @@ public partial class whitebit : Exchange
 
     public override object handleErrors(object code, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
     {
-        if ((isEqual(code, 418)) || (isEqual(code, 429)))
+        if (isTrue(isTrue((isEqual(code, 418))) || isTrue((isEqual(code, 429)))))
         {
-            throw new DDoSProtection ((string)((((((this.id + " ") + ((object)code).ToString()) + " ") + (reason)) + " ") + (body))) ;
+            throw new DDoSProtection ((string)add(add(add(add(add(add(this.id, " "), ((object)code).ToString()), " "), reason), " "), body)) ;
         }
-        if (isEqual(code, 404))
+        if (isTrue(isEqual(code, 404)))
         {
-            throw new ExchangeError ((string)(((this.id + " ") + ((object)code).ToString()) + " endpoint not found")) ;
+            throw new ExchangeError ((string)add(add(add(this.id, " "), ((object)code).ToString()), " endpoint not found")) ;
         }
-        if ((response != null))
+        if (isTrue(!isEqual(response, null)))
         {
             // For cases where we have a meaningful status
             // {"response":null,"status":422,"errors":{"orderId":["Finished order id 435453454535 not found on your account"]},"notification":null,"warning":"Finished order id 435453454535 not found on your account","_token":null}
             string? status = this.safeString(response, "status");
-            IDictionary<string, object> errors = this.safeDict(response, "errors");
+            object errors = this.safeValue(response, "errors");
             // {"code":10,"message":"Unauthorized request."}
             string? message = this.safeString(response, "message");
             // For these cases where we have a generic code variable error key
             // {"code":0,"message":"Validation failed","errors":{"amount":["Amount must be greater than 0"]}}
             Int64? codeNew = this.safeInteger(response, "code");
-            bool hasErrorStatus = (status != null) && (status != "200") && (errors != null);
-            if (hasErrorStatus || !isEqual(codeNew, null))
+            bool hasErrorStatus = isTrue(isTrue(!isEqual(status, null)) && isTrue(!isEqual(status, "200"))) && isTrue(!isEqual(errors, null));
+            if (isTrue(isTrue(hasErrorStatus) || isTrue(!isEqual(codeNew, null))))
             {
-                string feedback = ((this.id + " ") + (body));
+                string feedback = add(add(this.id, " "), body);
                 object errorInfo = message;
-                if (hasErrorStatus)
+                if (isTrue(hasErrorStatus))
                 {
                     errorInfo = status;
                 } else
                 {
                     IDictionary<string, object> errorObject = this.safeDict(response, "errors", new Dictionary<string, object>() {});
                     List<object> errorKeys = new List<object>(((IDictionary<string,object>)errorObject).Keys);
-                    int errorsLength = errorKeys.Count;
-                    if (errorsLength > 0)
+                    int errorsLength = getArrayLength(errorKeys);
+                    if (isTrue(isGreaterThan(errorsLength, 0)))
                     {
-                        string? errorKey = ((string)(errorKeys != null && 0 < errorKeys.Count ? errorKeys[0] : null));
+                        string? errorKey = ((string)getValue(errorKeys, 0));
                         List<object> errorMessageArray = this.safeList(errorObject, errorKey, new List<object>() {});
-                        int errorMessageLength = errorMessageArray.Count;
-                        errorInfo = (errorMessageLength > 0) ? (errorMessageArray != null && 0 < errorMessageArray.Count ? errorMessageArray[0] : null) : body;
+                        int errorMessageLength = getArrayLength(errorMessageArray);
+                        errorInfo = ((bool) isTrue((isGreaterThan(errorMessageLength, 0)))) ? getValue(errorMessageArray, 0) : body;
                     }
                 }
-                this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorInfo, feedback);
-                this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), body, feedback);
+                this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorInfo, feedback);
+                this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), body, feedback);
                 throw new ExchangeError ((string)feedback) ;
             }
             // {"success":false,"message":{"limit":["limit must be less than or equal to 100"]},"result":null}
             bool? success = this.safeBool(response, "success", true);
-            if ((success != true))
+            if (isTrue(!isEqual(success, true)))
             {
                 IDictionary<string, object> errMsg = this.safeDict(response, "message", new Dictionary<string, object>() {});
                 List<object> errKeys = new List<object>(((IDictionary<string,object>)errMsg).Keys);
-                int errKeysLength = errKeys.Count;
+                int errKeysLength = getArrayLength(errKeys);
                 object errorInfo = body;
-                if (errKeysLength > 0)
+                if (isTrue(isGreaterThan(errKeysLength, 0)))
                 {
-                    string? errorKey = ((string)(errKeys != null && 0 < errKeys.Count ? errKeys[0] : null));
+                    string? errorKey = ((string)getValue(errKeys, 0));
                     List<object> errorMessageArray = this.safeList(errMsg, errorKey, new List<object>() {});
-                    int errorMessageLength = errorMessageArray.Count;
-                    errorInfo = (errorMessageLength > 0) ? (errorMessageArray != null && 0 < errorMessageArray.Count ? errorMessageArray[0] : null) : body;
+                    int errorMessageLength = getArrayLength(errorMessageArray);
+                    errorInfo = ((bool) isTrue((isGreaterThan(errorMessageLength, 0)))) ? getValue(errorMessageArray, 0) : body;
                 }
-                string feedback = ((this.id + " ") + (body));
-                this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorInfo, feedback);
-                this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), body, feedback);
+                string feedback = add(add(this.id, " "), body);
+                this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorInfo, feedback);
+                this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), body, feedback);
                 throw new ExchangeError ((string)feedback) ;
             }
         }

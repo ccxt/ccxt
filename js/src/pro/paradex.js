@@ -635,7 +635,7 @@ export default class paradex extends paradexRest {
         //         }
         //     }
         //
-        const result = this.safeDict(message, 'result');
+        const result = this.safeValue(message, 'result');
         if (result !== undefined) {
             this.handleAuthenticationMessage(client, message);
             return;

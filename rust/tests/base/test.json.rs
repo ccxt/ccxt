@@ -11,19 +11,19 @@ use ccxt::exchange_generated::ExchangeBase;
 pub fn testJson() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("id".to_string(), Value::Str("regirock".into()));
+            m.insert("id".to_string(), Value::Str("regirock".to_string()));
         m
     }));
     // Test: object
     let mut obj: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("k".to_string(), Value::Str("v".into()));
+            m.insert("k".to_string(), Value::Str("v".to_string()));
         m
     });
     let mut objJson: Value = exchange.json(obj.clone());
-    assert!(ccxt::runtime::is_true(&(Value::Bool(objJson.as_str() == Some("{\"k\":\"v\"}")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&objJson, &Value::Str("{\"k\":\"v\"}".to_string()))))));
     // Test: list
-    let mut list: Value = Value::from(vec![Value::Int(1), Value::Int(2)]);
+    let mut list: Value = Value::List(vec![Value::Int(1), Value::Int(2)]);
     let mut listJson: Value = exchange.json(list.clone());
-    assert!(ccxt::runtime::is_true(&(Value::Bool(listJson.as_str() == Some("[1,2]")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&listJson, &Value::Str("[1,2]".to_string()))))));
 }

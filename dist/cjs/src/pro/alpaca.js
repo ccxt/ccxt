@@ -457,8 +457,8 @@ class alpaca extends alpaca$1["default"] {
         //        }
         //      }
         //
-        const data = this.safeDict(message, 'data', {});
-        const rawOrder = this.safeDict(data, 'order', {});
+        const data = this.safeValue(message, 'data', {});
+        const rawOrder = this.safeValue(data, 'order', {});
         if (this.orders === undefined) {
             const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
             this.orders = new Cache.ArrayCacheBySymbolById(limit);
@@ -517,12 +517,12 @@ class alpaca extends alpaca$1["default"] {
         //        }
         //      }
         //
-        const data = this.safeDict(message, 'data', {});
+        const data = this.safeValue(message, 'data', {});
         const event = this.safeString(data, 'event');
         if (event !== 'fill' && event !== 'partial_fill') {
             return;
         }
-        const rawOrder = this.safeDict(data, 'order', {});
+        const rawOrder = this.safeValue(data, 'order', {});
         let myTrades = this.myTrades;
         if (myTrades === undefined) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
@@ -725,7 +725,7 @@ class alpaca extends alpaca$1["default"] {
         //    }
         //
         const T = this.safeString(message, 'T');
-        const data = this.safeDict(message, 'data', {});
+        const data = this.safeValue(message, 'data', {});
         const status = this.safeString(data, 'status');
         if (T === 'success' || status === 'authorized') {
             const promise = client.futures['authenticated'];

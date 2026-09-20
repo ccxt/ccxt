@@ -11,7 +11,7 @@ use ccxt::exchange_generated::ExchangeBase;
 pub fn testNumberToBE() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("id".to_string(), Value::Str("sampleexchange".into()));
+            m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
         m
     }));
     // @SKIP_START_GO
@@ -21,59 +21,59 @@ pub fn testNumberToBE() {
     let mut padding1: Value = Value::Int(8);
     let mut result1: Value = exchange.number_to_be(num1.clone(), &[padding1.clone()]);
     assert!(ccxt::runtime::is_true(&(exchange.is_binary_message(result1.clone(), &[]))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.binary_length(result1.clone(), &[]).as_f64() == padding1.as_f64()))));
-    let mut expectedBinary1: Value = exchange.base16_to_binary(Value::Str("00000000499602d2".into()), &[]);
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.binary_length(result1.clone(), &[]), &padding1)))));
+    let mut expectedBinary1: Value = exchange.base16_to_binary(Value::Str("00000000499602d2".to_string()), &[]);
     let mut resultBase64: Value = exchange.binary_to_base64(result1.clone(), &[]);
     let mut expectedBase64: Value = exchange.binary_to_base64(expectedBinary1.clone(), &[]);
-    assert!(ccxt::runtime::is_true(&((resultBase64.as_str() == expectedBase64.as_str()))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&resultBase64, &expectedBase64)))));
     // 0 with 1-byte padding => 0x00
     let mut result2: Value = exchange.number_to_be(Value::Int(0), &[Value::Int(1)]);
     assert!(ccxt::runtime::is_true(&(exchange.is_binary_message(result2.clone(), &[]))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.binary_length(result2.clone(), &[]).as_f64() == Some(1.0)))));
-    let mut expectedBinary2: Value = exchange.base16_to_binary(Value::Str("00".into()), &[]);
-    assert!(ccxt::runtime::is_true(&((exchange.binary_to_base64(result2.clone(), &[]).as_str() == exchange.binary_to_base64(expectedBinary2.clone(), &[]).as_str()))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.binary_length(result2.clone(), &[]), &Value::Int(1))))));
+    let mut expectedBinary2: Value = exchange.base16_to_binary(Value::Str("00".to_string()), &[]);
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.binary_to_base64(result2.clone(), &[]), &exchange.binary_to_base64(expectedBinary2.clone(), &[]))))));
     // 1 with 1-byte padding => 0x01
     let mut result3: Value = exchange.number_to_be(Value::Int(1), &[Value::Int(1)]);
     assert!(ccxt::runtime::is_true(&(exchange.is_binary_message(result3.clone(), &[]))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.binary_length(result3.clone(), &[]).as_f64() == Some(1.0)))));
-    let mut expectedBinary3: Value = exchange.base16_to_binary(Value::Str("01".into()), &[]);
-    assert!(ccxt::runtime::is_true(&((exchange.binary_to_base64(result3.clone(), &[]).as_str() == exchange.binary_to_base64(expectedBinary3.clone(), &[]).as_str()))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.binary_length(result3.clone(), &[]), &Value::Int(1))))));
+    let mut expectedBinary3: Value = exchange.base16_to_binary(Value::Str("01".to_string()), &[]);
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.binary_to_base64(result3.clone(), &[]), &exchange.binary_to_base64(expectedBinary3.clone(), &[]))))));
     // 255 with 1-byte padding => 0xFF (max single byte)
     let mut result4: Value = exchange.number_to_be(Value::Int(255), &[Value::Int(1)]);
     assert!(ccxt::runtime::is_true(&(exchange.is_binary_message(result4.clone(), &[]))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.binary_length(result4.clone(), &[]).as_f64() == Some(1.0)))));
-    let mut expectedBinary4: Value = exchange.base16_to_binary(Value::Str("ff".into()), &[]);
-    assert!(ccxt::runtime::is_true(&((exchange.binary_to_base64(result4.clone(), &[]).as_str() == exchange.binary_to_base64(expectedBinary4.clone(), &[]).as_str()))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.binary_length(result4.clone(), &[]), &Value::Int(1))))));
+    let mut expectedBinary4: Value = exchange.base16_to_binary(Value::Str("ff".to_string()), &[]);
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.binary_to_base64(result4.clone(), &[]), &exchange.binary_to_base64(expectedBinary4.clone(), &[]))))));
     // 256 with 2-byte padding => 0x01 0x00
     let mut result5: Value = exchange.number_to_be(Value::Int(256), &[Value::Int(2)]);
     assert!(ccxt::runtime::is_true(&(exchange.is_binary_message(result5.clone(), &[]))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.binary_length(result5.clone(), &[]).as_f64() == Some(2.0)))));
-    let mut expectedBinary5: Value = exchange.base16_to_binary(Value::Str("0100".into()), &[]);
-    assert!(ccxt::runtime::is_true(&((exchange.binary_to_base64(result5.clone(), &[]).as_str() == exchange.binary_to_base64(expectedBinary5.clone(), &[]).as_str()))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.binary_length(result5.clone(), &[]), &Value::Int(2))))));
+    let mut expectedBinary5: Value = exchange.base16_to_binary(Value::Str("0100".to_string()), &[]);
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.binary_to_base64(result5.clone(), &[]), &exchange.binary_to_base64(expectedBinary5.clone(), &[]))))));
     // 1 with 4-byte padding => 0x00 0x00 0x00 0x01
     let mut result6: Value = exchange.number_to_be(Value::Int(1), &[Value::Int(4)]);
     assert!(ccxt::runtime::is_true(&(exchange.is_binary_message(result6.clone(), &[]))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.binary_length(result6.clone(), &[]).as_f64() == Some(4.0)))));
-    let mut expectedBinary6: Value = exchange.base16_to_binary(Value::Str("00000001".into()), &[]);
-    assert!(ccxt::runtime::is_true(&((exchange.binary_to_base64(result6.clone(), &[]).as_str() == exchange.binary_to_base64(expectedBinary6.clone(), &[]).as_str()))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.binary_length(result6.clone(), &[]), &Value::Int(4))))));
+    let mut expectedBinary6: Value = exchange.base16_to_binary(Value::Str("00000001".to_string()), &[]);
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.binary_to_base64(result6.clone(), &[]), &exchange.binary_to_base64(expectedBinary6.clone(), &[]))))));
     // 0 with 8-byte padding => all zeros
     let mut result7: Value = exchange.number_to_be(Value::Int(0), &[Value::Int(8)]);
     assert!(ccxt::runtime::is_true(&(exchange.is_binary_message(result7.clone(), &[]))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.binary_length(result7.clone(), &[]).as_f64() == Some(8.0)))));
-    let mut expectedBinary7: Value = exchange.base16_to_binary(Value::Str("0000000000000000".into()), &[]);
-    assert!(ccxt::runtime::is_true(&((exchange.binary_to_base64(result7.clone(), &[]).as_str() == exchange.binary_to_base64(expectedBinary7.clone(), &[]).as_str()))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.binary_length(result7.clone(), &[]), &Value::Int(8))))));
+    let mut expectedBinary7: Value = exchange.base16_to_binary(Value::Str("0000000000000000".to_string()), &[]);
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.binary_to_base64(result7.clone(), &[]), &exchange.binary_to_base64(expectedBinary7.clone(), &[]))))));
     // 4294967295 (0xFFFFFFFF) with 4-byte padding
     let mut result8: Value = exchange.number_to_be(Value::Int(4294967295), &[Value::Int(4)]);
     assert!(ccxt::runtime::is_true(&(exchange.is_binary_message(result8.clone(), &[]))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.binary_length(result8.clone(), &[]).as_f64() == Some(4.0)))));
-    let mut expectedBinary8: Value = exchange.base16_to_binary(Value::Str("ffffffff".into()), &[]);
-    assert!(ccxt::runtime::is_true(&((exchange.binary_to_base64(result8.clone(), &[]).as_str() == exchange.binary_to_base64(expectedBinary8.clone(), &[]).as_str()))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.binary_length(result8.clone(), &[]), &Value::Int(4))))));
+    let mut expectedBinary8: Value = exchange.base16_to_binary(Value::Str("ffffffff".to_string()), &[]);
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.binary_to_base64(result8.clone(), &[]), &exchange.binary_to_base64(expectedBinary8.clone(), &[]))))));
     // 16909060 (0x01020304) with 4-byte padding
     let mut result9: Value = exchange.number_to_be(Value::Int(16909060), &[Value::Int(4)]);
     assert!(ccxt::runtime::is_true(&(exchange.is_binary_message(result9.clone(), &[]))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.binary_length(result9.clone(), &[]).as_f64() == Some(4.0)))));
-    let mut expectedBinary9: Value = exchange.base16_to_binary(Value::Str("01020304".into()), &[]);
-    assert!(ccxt::runtime::is_true(&((exchange.binary_to_base64(result9.clone(), &[]).as_str() == exchange.binary_to_base64(expectedBinary9.clone(), &[]).as_str()))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.binary_length(result9.clone(), &[]), &Value::Int(4))))));
+    let mut expectedBinary9: Value = exchange.base16_to_binary(Value::Str("01020304".to_string()), &[]);
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.binary_to_base64(result9.clone(), &[]), &exchange.binary_to_base64(expectedBinary9.clone(), &[]))))));
     // @SKIP_END_GO
     exchange.describe(); // avoid unused var
 }

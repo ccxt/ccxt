@@ -15,7 +15,7 @@ public partial class BaseTest
             string input = "encode-test";
             string? encoded = exchange.encode(input);
             string? decoded = exchange.decode(encoded);
-            Assert((decoded == input), ((("decoded should be equal to input, got " + decoded) + " instead of ") + input));
+            Assert(isEqual(decoded, input), add(add(add("decoded should be equal to input, got ", decoded), " instead of "), input));
         }
         public void testDecode()
         {
@@ -25,7 +25,7 @@ public partial class BaseTest
             string input = "decode-test";
             string? encoded = exchange.encode(input);
             string? decoded = exchange.decode(encoded);
-            Assert((decoded == input), ((("decoded should be equal to input, got " + decoded) + " instead of ") + input));
+            Assert(isEqual(decoded, input), add(add(add("decoded should be equal to input, got ", decoded), " instead of "), input));
         }
         public void testEncodeDecode()
         {

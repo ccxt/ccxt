@@ -18,7 +18,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 public class Ndax extends io.github.ccxt.exchanges.Ndax
 {
@@ -73,16 +72,16 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Long omsId = this.safeInteger(this.options, "omsId", 1);
-            if (java.util.Objects.equals(this.markets, null))
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String name = "SubscribeLevel1";
-            Object messageHash = ((name + ":") + ((Map<String, Object>)market).get("id"));
-            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            Object messageHash = Helpers.add(Helpers.add(name, ":"), Helpers.GetValue(market, "id"));
+            Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object requestId = this.requestId();
             Map<String, Object> payload = new HashMap<String, Object>() {{
                 put( "OMSId", omsId );
@@ -101,9 +100,9 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
 
     }
 
-    public void handleTicker(Client client, Map<String, Object> message)
+    public void handleTicker(Client client, Object message)
     {
-        Map<String, Object> payload = (Map<String, Object>) this.safeDict(message, "o", new HashMap<String, Object>() {{}});
+        Object payload = this.safeValue(message, "o", new HashMap<String, Object>() {{}});
         //
         //     {
         //         "OMSId": 1,
@@ -129,15 +128,15 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         //         "TimeStamp": "1534862990358"
         //     }
         //
-        Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((Map<String, Object>) (payload));
-        Object symbol = ((Map<String, Object>)ticker).get("symbol");
+        Object ticker = this.parseTicker(payload);
+        Object symbol = Helpers.GetValue(ticker, "symbol");
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-        if (!java.util.Objects.equals(symbol, null))
+        if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
         {
             Helpers.addElementToObject(this.tickers, symbol, ticker);
         }
         String name = "SubscribeLevel1";
-        Object messageHash = ((name + ":") + ((Map<String, Object>)market).get("id"));
+        Object messageHash = Helpers.add(Helpers.add(name, ":"), Helpers.GetValue(market, "id"));
         client.resolve(ticker, messageHash);
     }
 
@@ -157,19 +156,19 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         final Object symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
-            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            Object since = Helpers.getArg(optionalArgs, 0, null);
+            Object limit = Helpers.getArg(optionalArgs, 1, null);
+            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             Long omsId = this.safeInteger(this.options, "omsId", 1);
-            if (java.util.Objects.equals(this.markets, null))
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = Helpers.GetValue(market, "symbol");
             String name = "SubscribeTrades";
-            Object messageHash = ((name + ":") + ((Map<String, Object>)market).get("id"));
-            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            Object messageHash = Helpers.add(Helpers.add(name, ":"), Helpers.GetValue(market, "id"));
+            Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object requestId = this.requestId();
             Map<String, Object> payload = new HashMap<String, Object>() {{
                 put( "OMSId", omsId );
@@ -185,18 +184,18 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
             }};
             Map<String, Object> message = this.extend(request, parameters);
             Object trades = (this.watch(url, messageHash, message, messageHash, null)).join();
-            if (this.newUpdates)
+            if (Helpers.isTrue(this.newUpdates))
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
-    public void handleTrades(Client client, Map<String, Object> message)
+    public void handleTrades(Client client, Object message)
     {
-        List<Object> payload = (List<Object>) this.safeList(message, "o", new ArrayList<Object>(Arrays.asList()));
+        Object payload = this.safeList(message, "o", new ArrayList<Object>(Arrays.asList()));
         //
         // initial snapshot
         //
@@ -218,32 +217,32 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         //
         String name = "SubscribeTrades";
         Map<String, Object> updates = new HashMap<String, Object>() {{}};
-        for (var i = 0; i < ((List<?>)payload).size(); i++)
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(payload)); i++)
         {
-            Map<String, Object> trade = (Map<String, Object>) this.parseTrade((payload == null || i < 0 || i >= payload.size() ? null : payload.get(i)));
-            Object symbol = ((Map<String, Object>)trade).get("symbol");
-            Object tradesArray = (((java.util.Objects.equals(symbol, null)))) ? null : this.safeValue(this.trades, symbol);
-            if (java.util.Objects.equals(tradesArray, null))
+            Object trade = this.parseTrade(Helpers.GetValue(payload, i));
+            Object symbol = Helpers.GetValue(trade, "symbol");
+            Object tradesArray = ((Helpers.isTrue((Helpers.isEqual(symbol, null))))) ? null : this.safeValue(this.trades, symbol);
+            if (Helpers.isTrue(Helpers.isEqual(tradesArray, null)))
             {
                 Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
                 tradesArray = new ArrayCache(((Number)limit).intValue());
             }
             Helpers.callDynamically(tradesArray, "append", new Object[]{trade});
-            if (!java.util.Objects.equals(symbol, null))
+            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 Helpers.addElementToObject(this.trades, symbol, tradesArray);
             }
-            if (!java.util.Objects.equals(symbol, null))
+            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                ((Map<String, Object>)updates).put((String)symbol, true);
+                Helpers.addElementToObject(updates, symbol, true);
             }
         }
-        List<Object> symbols = new ArrayList<Object>(updates.keySet());
-        for (var i = 0; i < ((List<?>)symbols).size(); i++)
+        Object symbols = Helpers.objectKeys(updates);
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
         {
-            Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
+            Object symbol = Helpers.GetValue(symbols, i);
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object messageHash = ((name + ":") + ((Map<String, Object>)market).get("id"));
+            Object messageHash = Helpers.add(Helpers.add(name, ":"), Helpers.GetValue(market, "id"));
             Object tradesArray = this.safeValue(this.trades, symbol);
             client.resolve(tradesArray, messageHash);
         }
@@ -266,20 +265,20 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         final Object symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
-            Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             Long omsId = this.safeInteger(this.options, "omsId", 1);
-            if (java.util.Objects.equals(this.markets, null))
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = Helpers.GetValue(market, "symbol");
             String name = "SubscribeTicker";
-            Object messageHash = ((((name + ":") + timeframe) + ":") + ((Map<String, Object>)market).get("id"));
-            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            Object messageHash = Helpers.add(Helpers.add(Helpers.add(Helpers.add(name, ":"), timeframe), ":"), Helpers.GetValue(market, "id"));
+            Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object requestId = this.requestId();
             Map<String, Object> payload = new HashMap<String, Object>() {{
                 put( "OMSId", omsId );
@@ -296,16 +295,16 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
             }};
             Map<String, Object> message = this.extend(request, parameters);
             Object ohlcv = (this.watch(url, messageHash, message, messageHash, null)).join();
-            if (this.newUpdates)
+            if (Helpers.isTrue(this.newUpdates))
             {
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
-        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
-    public void handleOHLCV(Client client, Map<String, Object> message)
+    public void handleOHLCV(Client client, Object message)
     {
         //
         //     {
@@ -315,7 +314,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         //         "o": [[1608284160000,23113.52,23070.88,23075.76,23075.39,162.44964300,23075.38,23075.39,8,1608284100000]],
         //     }
         //
-        List<Object> payload = (List<Object>) this.safeList(message, "o", new ArrayList<Object>(Arrays.asList()));
+        Object payload = this.safeList(message, "o", new ArrayList<Object>(Arrays.asList()));
         //
         //     [
         //         [
@@ -333,90 +332,90 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         //     ]
         //
         Map<String, Object> updates = new HashMap<String, Object>() {{}};
-        for (var i = 0; i < ((List<?>)payload).size(); i++)
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(payload)); i++)
         {
-            Object ohlcv = (payload == null || i < 0 || i >= payload.size() ? null : payload.get(i));
+            Object ohlcv = Helpers.GetValue(payload, i);
             String marketId = this.safeString(ohlcv, 8);
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-            Object symbol = ((Map<String, Object>)market).get("symbol");
-            if (!java.util.Objects.equals(marketId, null))
+            Object symbol = Helpers.GetValue(market, "symbol");
+            if (Helpers.isTrue(!Helpers.isEqual(marketId, null)))
             {
-                ((Map<String, Object>)updates).put((String)marketId, new HashMap<String, Object>() {{}});
+                Helpers.addElementToObject(updates, marketId, new HashMap<String, Object>() {{}});
             }
-            Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
-            List<Object> keys = Helpers.objectKeys(this.timeframes);
-            for (var j = 0; j < ((List<?>)keys).size(); j++)
+            Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
+            Object keys = Helpers.objectKeys(this.timeframes);
+            for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(keys)); j++)
             {
-                Object timeframe = (keys == null || j < 0 || j >= keys.size() ? null : keys.get(j));
+                Object timeframe = Helpers.GetValue(keys, j);
                 String interval = this.safeString(this.timeframes, timeframe, timeframe);
                 Object duration = Helpers.multiply(Helpers.parseInt(interval), 1000);
                 Long timestamp = this.safeInteger(ohlcv, 0);
-                if (java.util.Objects.equals(timestamp, null))
+                if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
                 {
                     continue;
                 }
                 List<Object> parsed = new ArrayList<Object>(Arrays.asList(this.parseToInt(Helpers.multiply((Helpers.divide(timestamp, duration)), duration)), this.safeFloat(ohlcv, 3), this.safeFloat(ohlcv, 1), this.safeFloat(ohlcv, 2), this.safeFloat(ohlcv, 4), this.safeFloat(ohlcv, 5)));
-                Object stored = this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, new ArrayList<Object>(Arrays.asList()));
+                Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe, new ArrayList<Object>(Arrays.asList()));
                 Object length = Helpers.getArrayLength(stored);
-                if ((Helpers.isGreaterThan(length, 0)) && (Helpers.isEqual((parsed == null || 0 >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(0)), Helpers.GetValue(Helpers.GetValue(stored, Helpers.subtract(length, 1)), 0))))
+                if (Helpers.isTrue(Helpers.isTrue((Helpers.isGreaterThan(length, 0))) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(parsed, 0), Helpers.GetValue(Helpers.GetValue(stored, Helpers.subtract(length, 1)), 0))))))
                 {
                     Object previous = Helpers.GetValue(stored, Helpers.subtract(length, 1));
-                    Object high = (parsed == null || 1 >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(1));
-                    if (java.util.Objects.equals((parsed == null || 1 >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(1)), null))
+                    Object high = Helpers.GetValue(parsed, 1);
+                    if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(parsed, 1), null)))
                     {
                         high = Helpers.GetValue(previous, 1);
-                    } else if (!java.util.Objects.equals(Helpers.GetValue(previous, 1), null))
+                    } else if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(previous, 1), null)))
                     {
-                        high = Helpers.mathMax((parsed == null || 1 >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(1)), Helpers.GetValue(previous, 1));
+                        high = Helpers.mathMax(Helpers.GetValue(parsed, 1), Helpers.GetValue(previous, 1));
                     }
-                    Object low = (parsed == null || 2 >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(2));
-                    if (java.util.Objects.equals((parsed == null || 2 >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(2)), null))
+                    Object low = Helpers.GetValue(parsed, 2);
+                    if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(parsed, 2), null)))
                     {
                         low = Helpers.GetValue(previous, 2);
-                    } else if (!java.util.Objects.equals(Helpers.GetValue(previous, 2), null))
+                    } else if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(previous, 2), null)))
                     {
-                        low = Helpers.mathMin((parsed == null || 2 >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(2)), Helpers.GetValue(previous, 2));
+                        low = Helpers.mathMin(Helpers.GetValue(parsed, 2), Helpers.GetValue(previous, 2));
                     }
-                    Helpers.addElementToObject(stored, Helpers.subtract(length, 1), new ArrayList<Object>(Arrays.asList((parsed == null || 0 >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(0)), Helpers.GetValue(previous, 1), high, low, (parsed == null || 4 >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(4)), this.sum((parsed == null || 5 >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(5)), Helpers.GetValue(previous, 5)))));
-                    if ((!java.util.Objects.equals(marketId, null)) && (!java.util.Objects.equals(timeframe, null)))
+                    Helpers.addElementToObject(stored, Helpers.subtract(length, 1), new ArrayList<Object>(Arrays.asList(Helpers.GetValue(parsed, 0), Helpers.GetValue(previous, 1), high, low, Helpers.GetValue(parsed, 4), this.sum(Helpers.GetValue(parsed, 5), Helpers.GetValue(previous, 5)))));
+                    if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marketId, null))) && Helpers.isTrue((!Helpers.isEqual(timeframe, null)))))
                     {
                         Helpers.addElementToObject(Helpers.GetValue(updates, marketId), timeframe, true);
                     }
                 } else
                 {
-                    if ((Helpers.isGreaterThan(length, 0)) && (Helpers.isLessThan(this.parseToInt((parsed == null || 0 >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(0))), this.parseToInt(Helpers.GetValue(Helpers.GetValue(stored, Helpers.subtract(length, 1)), 0)))))
+                    if (Helpers.isTrue(Helpers.isTrue((Helpers.isGreaterThan(length, 0))) && Helpers.isTrue((Helpers.isLessThan(this.parseToInt(Helpers.GetValue(parsed, 0)), this.parseToInt(Helpers.GetValue(Helpers.GetValue(stored, Helpers.subtract(length, 1)), 0)))))))
                     {
                         continue;
                     } else
                     {
                         ((List<Object>)stored).add(parsed);
                         Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-                        if (Helpers.isGreaterThanOrEqual(length, limit))
+                        if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(length, limit)))
                         {
                             ((List<Object>)stored).get(0);
                         }
-                        if ((!java.util.Objects.equals(marketId, null)) && (!java.util.Objects.equals(timeframe, null)))
+                        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marketId, null))) && Helpers.isTrue((!Helpers.isEqual(timeframe, null)))))
                         {
                             Helpers.addElementToObject(Helpers.GetValue(updates, marketId), timeframe, true);
                         }
                     }
                 }
-                Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
+                Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), timeframe, stored);
             }
         }
         String name = "SubscribeTicker";
-        List<Object> marketIds = new ArrayList<Object>(updates.keySet());
-        for (var i = 0; i < ((List<?>)marketIds).size(); i++)
+        Object marketIds = Helpers.objectKeys(updates);
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
         {
-            Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
-            List<Object> timeframes = Helpers.objectKeys((updates == null || marketId == null ? null : updates.get(marketId)));
-            for (var j = 0; j < ((List<?>)timeframes).size(); j++)
+            Object marketId = Helpers.GetValue(marketIds, i);
+            Object timeframes = Helpers.objectKeys(Helpers.GetValue(updates, marketId));
+            for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(timeframes)); j++)
             {
-                Object timeframe = (timeframes == null || j < 0 || j >= timeframes.size() ? null : timeframes.get(j));
-                String messageHash = ((((name + ":") + timeframe) + ":") + marketId);
+                Object timeframe = Helpers.GetValue(timeframes, j);
+                Object messageHash = Helpers.add(Helpers.add(Helpers.add(Helpers.add(name, ":"), timeframe), ":"), marketId);
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-                Object symbol = ((Map<String, Object>)market).get("symbol");
-                List<Object> stored = (List<Object>) this.safeList(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, new ArrayList<Object>(Arrays.asList()));
+                Object symbol = Helpers.GetValue(market, "symbol");
+                Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe, new ArrayList<Object>(Arrays.asList()));
                 client.resolve(stored, messageHash);
             }
         }
@@ -437,20 +436,20 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         final Object symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
-            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object limit = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             Long omsId = this.safeInteger(this.options, "omsId", 1);
-            if (java.util.Objects.equals(this.markets, null))
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = Helpers.GetValue(market, "symbol");
             String name = "SubscribeLevel2";
-            Object messageHash = ((name + ":") + ((Map<String, Object>)market).get("id"));
-            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            Object messageHash = Helpers.add(Helpers.add(name, ":"), Helpers.GetValue(market, "id"));
+            Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object requestId = this.requestId();
-            limit = (((java.util.Objects.equals(limit, null)))) ? 100 : limit;
+            limit = ((Helpers.isTrue((Helpers.isEqual(limit, null))))) ? 100 : limit;
             final Object finalLimit = limit;
             Map<String, Object> payload = new HashMap<String, Object>() {{
                 put( "OMSId", omsId );
@@ -470,7 +469,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                 put( "messageHash", messageHash );
                 put( "name", finalName );
                 put( "symbol", finalSymbol );
-                put( "marketId", ((Map<String, Object>)market).get("id") );
+                put( "marketId", Helpers.GetValue(market, "id") );
                 put( "method", "handleOrderBookSubscription");
                 put( "limit", finalLimit );
                 put( "params", parameters );
@@ -482,7 +481,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
 
     }
 
-    public void handleOrderBook(Client client, Map<String, Object> message)
+    public void handleOrderBook(Client client, Object message)
     {
         //
         //     {
@@ -492,7 +491,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         //         "o": [[2,1,1608208308265,0,20782.49,1,25000,8,1,1]]
         //     }
         //
-        List<Object> payload = (List<Object>) this.safeList(message, "o", new ArrayList<Object>(Arrays.asList()));
+        Object payload = this.safeList(message, "o", new ArrayList<Object>(Arrays.asList()));
         //
         //     [
         //         0,   // 0 MDUpdateId
@@ -507,42 +506,42 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         //         0,   // 9 Side
         //     ],
         //
-        List<Object> firstBidAsk = (List<Object>) this.safeList(payload, 0, new ArrayList<Object>(Arrays.asList()));
+        Object firstBidAsk = this.safeValue(payload, 0, new ArrayList<Object>(Arrays.asList()));
         String marketId = this.safeString(firstBidAsk, 7);
-        if (java.util.Objects.equals(marketId, null))
+        if (Helpers.isTrue(Helpers.isEqual(marketId, null)))
         {
             return;
         }
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-        Object symbol = ((Map<String, Object>)market).get("symbol");
+        Object symbol = Helpers.GetValue(market, "symbol");
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
-        if (java.util.Objects.equals(orderbook, null))
+        if (Helpers.isTrue(Helpers.isEqual(orderbook, null)))
         {
             return;
         }
         Object timestamp = null;
         Object nonce = null;
-        for (var i = 0; i < ((List<?>)payload).size(); i++)
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(payload)); i++)
         {
-            Object bidask = (payload == null || i < 0 || i >= payload.size() ? null : payload.get(i));
-            if (java.util.Objects.equals(timestamp, null))
+            Object bidask = Helpers.GetValue(payload, i);
+            if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
             {
                 timestamp = this.safeInteger(bidask, 2);
             } else
             {
                 Object newTimestamp = this.safeInteger(bidask, 2);
-                Object currentTimestampValue = (((java.util.Objects.equals(timestamp, null)))) ? 0 : timestamp;
-                Object newTimestampValue = (((java.util.Objects.equals(newTimestamp, null)))) ? 0 : newTimestamp;
+                Object currentTimestampValue = ((Helpers.isTrue((Helpers.isEqual(timestamp, null))))) ? 0 : timestamp;
+                Object newTimestampValue = ((Helpers.isTrue((Helpers.isEqual(newTimestamp, null))))) ? 0 : newTimestamp;
                 timestamp = Helpers.mathMax(currentTimestampValue, newTimestampValue);
             }
-            if (java.util.Objects.equals(nonce, null))
+            if (Helpers.isTrue(Helpers.isEqual(nonce, null)))
             {
                 nonce = this.safeInteger(bidask, 0);
             } else
             {
                 Object newNonce = this.safeInteger(bidask, 0);
-                Object currentNonceValue = (((java.util.Objects.equals(nonce, null)))) ? 0 : nonce;
-                Object newNonceValue = (((java.util.Objects.equals(newNonce, null)))) ? 0 : newNonce;
+                Object currentNonceValue = ((Helpers.isTrue((Helpers.isEqual(nonce, null))))) ? 0 : nonce;
+                Object newNonceValue = ((Helpers.isTrue((Helpers.isEqual(newNonce, null))))) ? 0 : newNonce;
                 nonce = Helpers.mathMax(currentNonceValue, newNonceValue);
             }
             // 0 new, 1 update, 2 remove
@@ -551,15 +550,15 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
             Double amount = this.safeFloat(bidask, 8);
             Long side = this.safeInteger(bidask, 9);
             // 0 buy, 1 sell, 2 short reserved for future use, 3 unknown
-            Object orderbookSide = ((((side != null && side == 0)))) ? Helpers.GetValue(orderbook, "bids") : Helpers.GetValue(orderbook, "asks");
+            Object orderbookSide = ((Helpers.isTrue((Helpers.isEqual(side, 0))))) ? Helpers.GetValue(orderbook, "bids") : Helpers.GetValue(orderbook, "asks");
             // 0 new, 1 update, 2 remove
-            if ((type != null && type == 0))
+            if (Helpers.isTrue(Helpers.isEqual(type, 0)))
             {
                 Helpers.callDynamically(orderbookSide, "store", new Object[]{price, amount});
-            } else if ((type != null && type == 1))
+            } else if (Helpers.isTrue(Helpers.isEqual(type, 1)))
             {
                 Helpers.callDynamically(orderbookSide, "store", new Object[]{price, amount});
-            } else if ((type != null && type == 2))
+            } else if (Helpers.isTrue(Helpers.isEqual(type, 2)))
             {
                 Helpers.callDynamically(orderbookSide, "store", new Object[]{price, 0});
             }
@@ -568,12 +567,12 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         Helpers.addElementToObject(orderbook, "timestamp", timestamp);
         Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
         String name = "SubscribeLevel2";
-        String messageHash = ((name + ":") + marketId);
+        Object messageHash = Helpers.add(Helpers.add(name, ":"), marketId);
         Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
         client.resolve(orderbook, messageHash);
     }
 
-    public void handleOrderBookSubscription(Client client, Map<String, Object> message, Map<String, Object> subscription)
+    public void handleOrderBookSubscription(Client client, Object message, Object subscription)
     {
         //
         //     {
@@ -583,7 +582,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         //         "o": [[1,1,1608204295901,0,20782.49,1,18200,8,1,0]]
         //     }
         //
-        List<Object> payload = (List<Object>) this.safeList(message, "o", new ArrayList<Object>(Arrays.asList()));
+        Object payload = this.safeValue(message, "o", new ArrayList<Object>(Arrays.asList()));
         //
         //     [
         //         [
@@ -601,10 +600,10 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         //     ]
         //
         String symbol = this.safeString(subscription, "symbol");
-        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(payload, symbol);
+        Object snapshot = this.parseOrderBook(payload, symbol);
         Long limit = this.safeInteger(subscription, "limit");
         io.github.ccxt.ws.WsOrderBook orderbook = this.orderBook(snapshot, limit);
-        if (!java.util.Objects.equals(symbol, null))
+        if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
         {
             Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
         }
@@ -612,7 +611,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         client.resolve(orderbook, messageHash);
     }
 
-    public void handleSubscriptionStatus(Client client, Map<String, Object> message)
+    public void handleSubscriptionStatus(Client client, Object message)
     {
         //
         //     {
@@ -624,11 +623,11 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         //
         Map<String, Object> subscriptionsById = this.indexBy(client.subscriptions, "id");
         Long id = this.safeInteger(message, "i");
-        Object subscription = (((java.util.Objects.equals(id, null)))) ? null : this.safeDict(subscriptionsById, id);
-        if (!java.util.Objects.equals(subscription, null))
+        Object subscription = ((Helpers.isTrue((Helpers.isEqual(id, null))))) ? null : this.safeValue(subscriptionsById, id);
+        if (Helpers.isTrue(!Helpers.isEqual(subscription, null)))
         {
             Object method = this.safeValue(subscription, "method");
-            if (!java.util.Objects.equals(method, null))
+            if (Helpers.isTrue(!Helpers.isEqual(method, null)))
             {
                 Helpers.callDynamically(this, method, new Object[] {client, message, subscription});
             }
@@ -660,11 +659,11 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         //     }
         //
         String payload = this.safeString(message, "o");
-        if (java.util.Objects.equals(payload, null))
+        if (Helpers.isTrue(Helpers.isEqual(payload, null)))
         {
             return;
         }
-        ((Map<String, Object>)message).put("o", Helpers.parseJson(payload));
+        Helpers.addElementToObject(message, "o", Helpers.parseJson(payload));
         Map<String, Object> methods = new HashMap<String, Object>() {{
             put( "SubscribeLevel2", "handleSubscriptionStatus");
             put( "SubscribeLevel1", "handleTicker");
@@ -676,8 +675,8 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
             put( "TickerDataUpdateEvent", "handleOHLCV");
         }};
         String eventVar = this.safeString(message, "n");
-        Object method = (((java.util.Objects.equals(eventVar, null)))) ? null : this.safeValue(methods, eventVar);
-        if (!java.util.Objects.equals(method, null))
+        Object method = ((Helpers.isTrue((Helpers.isEqual(eventVar, null))))) ? null : this.safeValue(methods, eventVar);
+        if (Helpers.isTrue(!Helpers.isEqual(method, null)))
         {
             Helpers.callDynamically(this, method, new Object[] {client, message});
         }

@@ -6,8 +6,6 @@ import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -23,15 +21,15 @@ public class TestFetchOrderBooks extends BaseTest {
 
         String method = "fetchOrderBooks";
         Object symbols = exchange.symbols;
-        Assert(!java.util.Objects.equals(symbols, null), (((exchange.id + " ") + method) + " requires exchange.symbols to be loaded"));
-        Object symbol = (symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0));
+        Assert(!Helpers.isEqual(symbols, null), Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " requires exchange.symbols to be loaded"));
+        Object symbol = Helpers.GetValue(symbols, 0);
         Object orderBooks = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchOrderBooks", new Object[]{new ArrayList<Object>(Arrays.asList(symbol))})).join();
         TestSharedMethods.AssertDictionaryResponse(exchange, method, orderBooks);
-        List<Object> orderBookKeys = new ArrayList<Object>(((Map<String, Object>)orderBooks).keySet());
-        Assert(((List<?>)orderBookKeys).size() > 0, (((exchange.id + " ") + method) + " returned 0 length data"));
-        for (var i = 0; i < ((List<?>)orderBookKeys).size(); i++)
+        Object orderBookKeys = Helpers.objectKeys(orderBooks);
+        Assert(Helpers.isGreaterThan(Helpers.getArrayLength(orderBookKeys), 0), Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " returned 0 length data"));
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orderBookKeys)); i++)
         {
-            Object symbolInner = (orderBookKeys == null || i < 0 || i >= orderBookKeys.size() ? null : orderBookKeys.get(i));
+            Object symbolInner = Helpers.GetValue(orderBookKeys, i);
             TestOrderBook.testOrderBook(exchange, skippedProperties, method, Helpers.GetValue(orderBooks, symbolInner), symbolInner);
         }
         return true;

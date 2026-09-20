@@ -29,7 +29,7 @@ public class TestMarginModification extends BaseTest {
         }};
         List<Object> emptyAllowedFor = new ArrayList<Object>(Arrays.asList("status", "symbol", "code", "total", "amount"));
         TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
-        TestSharedMethods.AssertCurrencyCode(exchange, skippedProperties, method, entry, ((Map<String, Object>)entry).get("code"));
+        TestSharedMethods.AssertCurrencyCode(exchange, skippedProperties, method, entry, Helpers.GetValue(entry, "code"));
         //
         TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "amount", "0");
         TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "total", "0");

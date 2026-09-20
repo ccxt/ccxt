@@ -384,13 +384,13 @@ public partial class cryptomus : Exchange
         //     }
         //
         string? marketId = this.safeString(market, "symbol");
-        if ((marketId == null))
+        if (isTrue(isEqual(marketId, null)))
         {
-            throw new ExchangeError ((string)(this.id + " parseMarket() missing marketId")) ;
+            throw new ExchangeError ((string)add(this.id, " parseMarket() missing marketId")) ;
         }
-        List<object> parts = marketId.Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
-        string? baseId = ((string)(parts != null && 0 < parts.Count ? parts[0] : null));
-        string? quoteId = ((string)(parts != null && 1 < parts.Count ? parts[1] : null));
+        List<object> parts = ((string)marketId).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+        string? baseId = ((string)getValue(parts, 0));
+        string? quoteId = ((string)getValue(parts, 1));
         object bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
         IDictionary<string, object> fees = this.safeDict(this.fees, "trading");
@@ -493,18 +493,18 @@ public partial class cryptomus : Exchange
         string? id = null; // all entries have same id, as they were grouped by
         string? code = null;
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(rawCurrency); i++)
+        for (int i = 0; isLessThan(i, getArrayLength(rawCurrency)); postFixIncrement(ref i))
         {
             object networkEntry = getValue(rawCurrency, i);
             // set ID on first loop
-            if ((id == null))
+            if (isTrue(isEqual(id, null)))
             {
                 id = this.safeString(networkEntry, "currency_code");
                 code = this.safeCurrencyCode(id);
             }
             string? networkId = this.safeString(networkEntry, "network_code");
             object networkCode = this.networkIdToCode(networkId, code);
-            if ((networkCode != null))
+            if (isTrue(!isEqual(networkCode, null)))
             {
                 ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                     { "id", networkId },
@@ -548,7 +548,7 @@ public partial class cryptomus : Exchange
     public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
@@ -622,13 +622,13 @@ public partial class cryptomus : Exchange
     public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currencyPair", (market.ContainsKey("id") ? market["id"] : null) },
+            { "currencyPair", getValue(market, "id") },
         };
         object level = 0;
         IList<object> levelparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOrderBook", "level", level);
@@ -674,13 +674,13 @@ public partial class cryptomus : Exchange
     public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currencyPair", (market.ContainsKey("id") ? market["id"] : null) },
+            { "currencyPair", getValue(market, "id") },
         };
         Dictionary<string, object> response = await this.publicGetV1ExchangeMarketTradesCurrencyPair(this.extend(request, parameters));
         //
@@ -699,7 +699,7 @@ public partial class cryptomus : Exchange
         //
         List<object> data = this.safeList(response, "data");
         List<object> dataList = new List<object>() {};
-        if ((data != null))
+        if (isTrue(!isEqual(data, null)))
         {
             dataList = data;
         }
@@ -750,7 +750,7 @@ public partial class cryptomus : Exchange
     public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
@@ -783,7 +783,7 @@ public partial class cryptomus : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", balance },
         };
-        for (int i = 0; i < getArrayLength(balance); i++)
+        for (int i = 0; isLessThan(i, getArrayLength(balance)); postFixIncrement(ref i))
         {
             object balanceEntry = getValue(balance, i);
             string? currencyId = this.safeString(balanceEntry, "ticker");
@@ -791,7 +791,7 @@ public partial class cryptomus : Exchange
             Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(balanceEntry, "available");
             ((IDictionary<string,object>)account)["used"] = this.safeString(balanceEntry, "held");
-            if ((code != null))
+            if (isTrue(!isEqual(code, null)))
             {
                 ((IDictionary<string,object>)result)[(string)code] = account;
             }
@@ -818,23 +818,23 @@ public partial class cryptomus : Exchange
     public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market", (market.ContainsKey("id") ? market["id"] : null) },
+            { "market", getValue(market, "id") },
             { "direction", side },
             { "tag", "ccxt" },
         };
         string? clientOrderId = this.safeString(parameters, "clientOrderId");
-        if ((clientOrderId != null))
+        if (isTrue(!isEqual(clientOrderId, null)))
         {
             parameters = this.omit(parameters, "clientOrderId");
             ((IDictionary<string,object>)request)["client_order_id"] = clientOrderId;
         }
-        bool sideBuy = (side == "buy");
+        bool sideBuy = isEqual(side, "buy");
         string? amountToString = this.numberToString(amount);
         string? priceToString = this.numberToString(price);
         object cost = null;
@@ -842,26 +842,26 @@ public partial class cryptomus : Exchange
         cost = ((IList<object>)costparametersVariable)[0];
         parameters = ((IList<object>)costparametersVariable)[1];
         object response = null;
-        if ((type == "market"))
+        if (isTrue(isEqual(type, "market")))
         {
-            if (sideBuy)
+            if (isTrue(sideBuy))
             {
-                bool createMarketBuyOrderRequiresPrice = true;
+                object createMarketBuyOrderRequiresPrice = true;
                 IList<object> createMarketBuyOrderRequiresPriceparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-                createMarketBuyOrderRequiresPrice = isTrue(((IList<object>)createMarketBuyOrderRequiresPriceparametersVariable)[0]);
+                createMarketBuyOrderRequiresPrice = ((IList<object>)createMarketBuyOrderRequiresPriceparametersVariable)[0];
                 parameters = ((IList<object>)createMarketBuyOrderRequiresPriceparametersVariable)[1];
-                if (createMarketBuyOrderRequiresPrice)
+                if (isTrue(createMarketBuyOrderRequiresPrice))
                 {
-                    if (((price == null)) && ((cost == null)))
+                    if (isTrue(isTrue((isEqual(price, null))) && isTrue((isEqual(cost, null)))))
                     {
-                        throw new InvalidOrder ((string)(this.id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option of param to false and pass the cost to spend in the amount argument")) ;
-                    } else if ((cost == null))
+                        throw new InvalidOrder ((string)add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option of param to false and pass the cost to spend in the amount argument")) ;
+                    } else if (isTrue(isEqual(cost, null)))
                     {
                         cost = Precise.stringMul(amountToString, priceToString);
                     }
                 } else
                 {
-                    cost = ((cost != null) && !isEqual(cost, "")) ? cost : amountToString;
+                    cost = ((bool) isTrue((isTrue(!isEqual(cost, null)) && isTrue(!isEqual(cost, ""))))) ? cost : amountToString;
                 }
                 ((IDictionary<string,object>)request)["value"] = cost;
             } else
@@ -869,18 +869,18 @@ public partial class cryptomus : Exchange
                 ((IDictionary<string,object>)request)["quantity"] = amountToString;
             }
             response = await this.privatePostV2UserApiExchangeOrdersMarket(this.extend(request, parameters));
-        } else if ((type == "limit"))
+        } else if (isTrue(isEqual(type, "limit")))
         {
-            if ((price == null))
+            if (isTrue(isEqual(price, null)))
             {
-                throw new ArgumentsRequired ((string)(((this.id + " createOrder() requires a price parameter for a ") + type) + " order")) ;
+                throw new ArgumentsRequired ((string)add(add(add(this.id, " createOrder() requires a price parameter for a "), type), " order")) ;
             }
             ((IDictionary<string,object>)request)["quantity"] = amountToString;
             ((IDictionary<string,object>)request)["price"] = price;
             response = await this.privatePostV2UserApiExchangeOrders(this.extend(request, parameters));
         } else
         {
-            throw new ArgumentsRequired ((string)(this.id + " createOrder() requires a type parameter (limit or market)")) ;
+            throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a type parameter (limit or market)")) ;
         }
         //
         //     {
@@ -903,7 +903,7 @@ public partial class cryptomus : Exchange
     public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
@@ -937,18 +937,18 @@ public partial class cryptomus : Exchange
     public async override Task<List<ccxt.Order>> FetchCanceledAndClosedOrders(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> market = null;
-        if ((symbol != null))
+        if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["market"] = (market.ContainsKey("id") ? market["id"] : null);
+            ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
         }
-        if ((limit != null))
+        if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -994,9 +994,9 @@ public partial class cryptomus : Exchange
         //
         List<object> result = this.safeList(response, "result", new List<object>() {});
         List<object> orders = new List<object>() {};
-        for (int i = 0; i < result.Count; i++)
+        for (int i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
         {
-            object order = result[i];
+            object order = getValue(result, i);
             ((IList<object>)orders).Add(this.parseOrder(order, market));
         }
         return ccxt.BaseExchange.ToOrderList(orders);
@@ -1021,19 +1021,19 @@ public partial class cryptomus : Exchange
     public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        if ((symbol != null))
+        if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if ((market != null))
+        if (isTrue(!isEqual(market, null)))
         {
-            ((IDictionary<string,object>)request)["market"] = (market.ContainsKey("id") ? market["id"] : null);
+            ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
         }
         Dictionary<string, object> response = await this.privateGetV2UserApiExchangeOrders(this.extend(request, parameters));
         //
@@ -1131,14 +1131,14 @@ public partial class cryptomus : Exchange
         Dictionary<string, object> fee = null;
         IDictionary<string, object> firstTx = this.safeDict(transaction, 0);
         string? feeCurrency = this.safeString(firstTx, "feeCurrency");
-        if ((feeCurrency != null))
+        if (isTrue(!isEqual(feeCurrency, null)))
         {
             fee = new Dictionary<string, object>() {
                 { "currency", this.safeCurrencyCode(feeCurrency) },
                 { "cost", this.safeNumber(firstTx, "fee") },
             };
         }
-        if (isEqual(price, null))
+        if (isTrue(isEqual(price, null)))
         {
             price = this.safeNumber(firstTx, "filledPrice");
         }
@@ -1255,13 +1255,13 @@ public partial class cryptomus : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         Dictionary<string, object> tiers = this.parseFeeTiers(feeTiers);
         List<object> symbols = this.symbols;
-        if ((symbols == null))
+        if (isTrue(isEqual(symbols, null)))
         {
             return ccxt.BaseExchange.ToTradingFees(result);
         }
-        for (int i = 0; i < (symbols?.Count ?? 0); i++)
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
-            object symbol = symbols[i];
+            object symbol = getValue(symbols, i);
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
                 { "info", response },
                 { "symbol", symbol },
@@ -1279,7 +1279,7 @@ public partial class cryptomus : Exchange
     {
         List<object> takerFees = new List<object>() {};
         List<object> makerFees = new List<object>() {};
-        for (int i = 0; i < getArrayLength(feeTiers); i++)
+        for (int i = 0; isLessThan(i, getArrayLength(feeTiers)); postFixIncrement(ref i))
         {
             object tier = getValue(feeTiers, i);
             double? turnover = this.safeNumber(tier, "from_turnover");
@@ -1303,15 +1303,15 @@ public partial class cryptomus : Exchange
         parameters ??= new Dictionary<string, object>();
         string? endpoint = this.implodeParams(path, parameters);
         parameters = this.omit(parameters, this.extractParams(path));
-        object url = add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), "/"), endpoint);
-        if (isEqual(api, "private"))
+        object url = add(add(getValue(getValue(this.urls, "api"), api), "/"), endpoint);
+        if (isTrue(isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
             object jsonParams = "";
             headers = new Dictionary<string, object>() {
                 { "userId", this.uid },
             };
-            if (!isEqual(method, "GET"))
+            if (isTrue(!isEqual(method, "GET")))
             {
                 body = this.json(parameters);
                 jsonParams = body;
@@ -1319,9 +1319,9 @@ public partial class cryptomus : Exchange
             } else
             {
                 string query = this.urlencode(parameters);
-                if ((((string)query).Length != 0))
+                if (isTrue(!isEqual(((string)query).Length, 0)))
                 {
-                    url = add(url, ("?" + query));
+                    url = add(url, add("?", query));
                 }
             }
             object jsonParamsBase64 = this.stringToBase64(jsonParams);
@@ -1331,9 +1331,9 @@ public partial class cryptomus : Exchange
         } else
         {
             string query = this.urlencode(parameters);
-            if ((((string)query).Length != 0))
+            if (isTrue(!isEqual(((string)query).Length, 0)))
             {
-                url = add(url, ("?" + query));
+                url = add(url, add("?", query));
             }
         }
         return new Dictionary<string, object>() {
@@ -1346,25 +1346,25 @@ public partial class cryptomus : Exchange
 
     public override object handleErrors(object httpCode, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
     {
-        if ((response == null))
+        if (isTrue(isEqual(response, null)))
         {
             return null;
         }
-        if (inOp(response, "code"))
+        if (isTrue(inOp(response, "code")))
         {
             string? code = this.safeString(response, "code");
-            string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), code, feedback);
+            string feedback = add(add(this.id, " "), body);
+            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
             throw new ExchangeError ((string)feedback) ;
-        } else if (inOp(response, "message"))
+        } else if (isTrue(inOp(response, "message")))
         {
             //
             //      {"message":"Minimum amount 15 USDT","state":1}
             //
             string? message = this.safeString(response, "message");
-            string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), message, feedback);
-            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), message, feedback);
+            string feedback = add(add(this.id, " "), body);
+            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
+            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
             throw new ExchangeError ((string)feedback) ;
         }
         return null;

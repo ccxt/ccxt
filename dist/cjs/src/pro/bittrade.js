@@ -98,7 +98,7 @@ class bittrade extends bittrade$1["default"] {
         //         }
         //     }
         //
-        const tick = this.safeDict(message, 'tick', {});
+        const tick = this.safeValue(message, 'tick', {});
         const ch = this.safeString(message, 'ch');
         if (ch === undefined) {
             return message;
@@ -107,7 +107,7 @@ class bittrade extends bittrade$1["default"] {
         const marketId = this.safeString(parts, 1);
         const market = this.safeMarket(marketId);
         const ticker = this.parseTicker(tick, market);
-        const timestamp = this.safeInteger(message, 'ts');
+        const timestamp = this.safeValue(message, 'ts');
         ticker['timestamp'] = timestamp;
         ticker['datetime'] = this.iso8601(timestamp);
         const symbol = ticker['symbol'];
@@ -174,8 +174,8 @@ class bittrade extends bittrade$1["default"] {
         //         }
         //     }
         //
-        const tick = this.safeDict(message, 'tick', {});
-        const data = this.safeList(tick, 'data', []);
+        const tick = this.safeValue(message, 'tick', {});
+        const data = this.safeValue(tick, 'data', {});
         const ch = this.safeString(message, 'ch');
         if (ch === undefined) {
             return message;
@@ -264,7 +264,7 @@ class bittrade extends bittrade$1["default"] {
         const symbol = market['symbol'];
         const interval = this.safeString(parts, 3);
         const timeframe = this.findTimeframe(interval);
-        this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
         let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
@@ -342,7 +342,7 @@ class bittrade extends bittrade$1["default"] {
         const messageHash = this.safeString(subscription, 'messageHash');
         const timestamp = this.safeInteger(message, 'ts');
         const orderbook = this.orderbooks[symbol];
-        const data = this.safeDict(message, 'data');
+        const data = this.safeValue(message, 'data');
         const snapshot = this.parseOrderBook(data, symbol);
         snapshot['nonce'] = this.safeInteger(data, 'seqNum');
         snapshot['timestamp'] = timestamp;
@@ -420,15 +420,15 @@ class bittrade extends bittrade$1["default"] {
         //         }
         //     }
         //
-        const tick = this.safeDict(message, 'tick', {});
+        const tick = this.safeValue(message, 'tick', {});
         const seqNum = this.safeInteger(tick, 'seqNum');
         const prevSeqNum = this.safeInteger(tick, 'prevSeqNum');
         if ((prevSeqNum === undefined) || (seqNum === undefined)) {
             return orderbook;
         }
         if ((prevSeqNum <= orderbook['nonce']) && (seqNum > orderbook['nonce'])) {
-            const asks = this.safeList(tick, 'asks', []);
-            const bids = this.safeList(tick, 'bids', []);
+            const asks = this.safeValue(tick, 'asks', []);
+            const bids = this.safeValue(tick, 'bids', []);
             this.handleDeltas(orderbook['asks'], asks);
             this.handleDeltas(orderbook['bids'], bids);
             orderbook['nonce'] = seqNum;
@@ -502,7 +502,7 @@ class bittrade extends bittrade$1["default"] {
             return message;
         }
         const subscriptionsById = this.indexBy(client.subscriptions, 'id');
-        const subscription = this.safeDict(subscriptionsById, id);
+        const subscription = this.safeValue(subscriptionsById, id);
         if (subscription !== undefined) {
             const method = this.safeValue(subscription, 'method');
             if (method !== undefined) {
@@ -593,7 +593,7 @@ class bittrade extends bittrade$1["default"] {
                 return false;
             }
             const subscriptionsById = this.indexBy(client.subscriptions, 'id');
-            const subscription = this.safeDict(subscriptionsById, id);
+            const subscription = this.safeValue(subscriptionsById, id);
             if (subscription !== undefined) {
                 const errorCode = this.safeString(message, 'err-code');
                 try {

@@ -168,7 +168,7 @@ class bitopro extends bitopro$1["default"] {
         const symbol = market['symbol'];
         const event = this.safeString(message, 'event');
         const messageHash = event + ':' + symbol;
-        const rawData = this.safeList(message, 'data', []);
+        const rawData = this.safeValue(message, 'data', []);
         const trades = this.parseTrades(rawData, market);
         let tradesCache = this.safeValue(this.trades, symbol);
         if (tradesCache === undefined) {
@@ -234,7 +234,7 @@ class bitopro extends bitopro$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeDict(message, 'data', {});
+        const data = this.safeValue(message, 'data', {});
         const baseId = this.safeString(data, 'base');
         const quoteId = this.safeString(data, 'quote');
         const base = this.safeCurrencyCode(baseId);
@@ -301,7 +301,7 @@ class bitopro extends bitopro$1["default"] {
                 'rate': undefined,
             };
         }
-        const isMaker = this.safeBool(trade, 'isMaker');
+        const isMaker = this.safeValue(trade, 'isMaker');
         let takerOrMaker = undefined;
         if (isMaker !== undefined) {
             if (isMaker === true) {
@@ -450,7 +450,7 @@ class bitopro extends bitopro$1["default"] {
         //     }
         //
         const event = this.safeString(message, 'event');
-        const data = this.safeDict(message, 'data', {});
+        const data = this.safeValue(message, 'data');
         const timestamp = this.safeInteger(message, 'timestamp');
         const datetime = this.safeString(message, 'datetime');
         const currencies = Object.keys(data);
@@ -461,7 +461,7 @@ class bitopro extends bitopro$1["default"] {
         };
         for (let i = 0; i < currencies.length; i++) {
             const currency = this.safeString(currencies, i);
-            const balance = this.safeDict(data, currency, {});
+            const balance = this.safeValue(data, currency);
             const currencyId = this.safeString(balance, 'currency');
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();

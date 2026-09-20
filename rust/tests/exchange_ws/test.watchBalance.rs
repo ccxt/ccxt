@@ -10,10 +10,10 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testWatchBalance(mut exchange: Value, mut skippedProperties: Value, mut code: Value) -> Value {
-    let mut method: Value = Value::Str("watchBalance".into());
+    let mut method: Value = Value::Str("watchBalance".to_string());
     let mut now: Value = exchange.milliseconds();
-    let mut ends: Value = (match (&(now), &(Value::Int(15000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-    while now.as_f64().unwrap_or(f64::NAN) < ends.as_f64().unwrap_or(f64::NAN) {
+    let mut ends: Value = add(&now, &Value::Int(15000));
+    while is_less_than(&now, &ends) {
         let mut response: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -30,7 +30,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // continue;
             success = Value::Bool(false);
         }
-        if (success.as_bool() == Some(false)) {
+        if is_equal(&success, &Value::Bool(false)) {
             continue;
         }
         testBalance(exchange.clone(), skippedProperties.clone(), method.clone(), response.clone());

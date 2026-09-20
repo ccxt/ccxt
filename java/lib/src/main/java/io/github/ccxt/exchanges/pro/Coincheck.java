@@ -16,7 +16,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 public class Coincheck extends io.github.ccxt.exchanges.Coincheck
 {
@@ -80,18 +79,18 @@ public class Coincheck extends io.github.ccxt.exchanges.Coincheck
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object limit = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            String messageHash = ("orderbook:" + ((Map<String, Object>)market).get("symbol"));
-            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String messageHash = Helpers.add("orderbook:", Helpers.GetValue(market, "symbol"));
+            Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", "subscribe" );
-                put( "channel", (((Map<String, Object>)market).get("id") + "-orderbook") );
+                put( "channel", Helpers.add(Helpers.GetValue(market, "id"), "-orderbook") );
             }};
             Map<String, Object> message = this.extend(request, parameters);
             Object orderbook = (this.watch(url, messageHash, message, messageHash, null)).join();
@@ -123,20 +122,20 @@ public class Coincheck extends io.github.ccxt.exchanges.Coincheck
         //     ]
         //
         String symbol = this.symbol(this.safeString(message, 0));
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, 1, new HashMap<String, Object>() {{}});
+        Object data = this.safeValue(message, 1, new HashMap<String, Object>() {{}});
         Object timestamp = this.safeTimestamp(data, "last_update_at");
-        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp);
+        Object snapshot = this.parseOrderBook(data, symbol, timestamp);
         Object orderbook = this.safeValue(this.orderbooks, symbol);
-        if (java.util.Objects.equals(orderbook, null))
+        if (Helpers.isTrue(Helpers.isEqual(orderbook, null)))
         {
             orderbook = this.orderBook(snapshot);
             Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
         } else
         {
-            orderbook = ((Map<?, ?>)this.orderbooks).get(symbol);
+            orderbook = Helpers.GetValue(this.orderbooks, symbol);
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         }
-        String messageHash = ("orderbook:" + symbol);
+        String messageHash = Helpers.add("orderbook:", symbol);
         client.resolve(orderbook, messageHash);
     }
 
@@ -156,29 +155,29 @@ public class Coincheck extends io.github.ccxt.exchanges.Coincheck
         final Object symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
-            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object since = Helpers.getArg(optionalArgs, 0, null);
+            Object limit = Helpers.getArg(optionalArgs, 1, null);
+            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
-            String messageHash = ("trade:" + ((Map<String, Object>)market).get("symbol"));
-            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            symbol = Helpers.GetValue(market, "symbol");
+            String messageHash = Helpers.add("trade:", Helpers.GetValue(market, "symbol"));
+            Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", "subscribe" );
-                put( "channel", (((Map<String, Object>)market).get("id") + "-trades") );
+                put( "channel", Helpers.add(Helpers.GetValue(market, "id"), "-trades") );
             }};
             Map<String, Object> message = this.extend(request, parameters);
             Object trades = (this.watch(url, messageHash, message, messageHash, null)).join();
-            if (this.newUpdates)
+            if (Helpers.isTrue(this.newUpdates))
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -198,26 +197,26 @@ public class Coincheck extends io.github.ccxt.exchanges.Coincheck
         //         ]
         //     ]
         //
-        List<Object> first = (List<Object>) this.safeList(message, 0, new ArrayList<Object>(Arrays.asList()));
+        Object first = this.safeValue(message, 0, new ArrayList<Object>(Arrays.asList()));
         String symbol = this.symbol(this.safeString(first, 2));
         Object stored = this.safeValue(this.trades, symbol);
-        if (java.util.Objects.equals(stored, null))
+        if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
-        for (var i = 0; i < ((List<?>)message).size(); i++)
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(message)); i++)
         {
             Object data = this.safeValue(message, i);
-            Object trade = this.parseWsTrade((Map<String, Object>) (data));
+            Object trade = this.parseWsTrade(data);
             Helpers.callDynamically(stored, "append", new Object[]{trade});
         }
-        String messageHash = ("trade:" + symbol);
+        String messageHash = Helpers.add("trade:", symbol);
         client.resolve(stored, messageHash);
     }
 
-    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Object parseWsTrade(Object trade, Object... optionalArgs)
     {
         //
         //     [
@@ -231,13 +230,13 @@ public class Coincheck extends io.github.ccxt.exchanges.Coincheck
         //         "2078767" // ID of the Maker
         //     ]
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        Object market = Helpers.getArg(optionalArgs, 0, null);
         String symbol = this.symbol(this.safeString(trade, 2));
         Object timestamp = this.safeTimestamp(trade, 0);
         String side = this.safeString(trade, 5);
         String priceString = this.safeString(trade, 3);
         String amountString = this.safeString(trade, 4);
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "id", Coincheck.this.safeString(trade, 1) );
             put( "info", trade );
             put( "timestamp", timestamp );
@@ -251,13 +250,13 @@ public class Coincheck extends io.github.ccxt.exchanges.Coincheck
             put( "amount", amountString );
             put( "cost", null );
             put( "fee", null );
-        }}), market);
+        }}, market);
     }
 
     public void handleMessage(Client client, Object message)
     {
         Object data = this.safeValue(message, 0);
-        if (!(data instanceof List))
+        if (!Helpers.isTrue(Helpers.isArray(data)))
         {
             this.handleOrderBook(client, message);
         } else

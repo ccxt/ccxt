@@ -85,35 +85,6 @@ func SafeMapTyped(m any, key any) map[string]any {
 	return nil
 }
 
-// SafeListTyped reads a free-form list member (TS `Array`) for a local declared `[]any`: the
-// member SafeList returns, with every array kind IsArray admits handed back as a []any of the
-// same length and elements, and nil when the member is absent or not array-like.
-func SafeListTyped(m any, key any) []any {
-	res := derefScalar(SafeValue(m, key, nil))
-	if res == nil {
-		return nil
-	}
-	if asSlice, ok := res.([]any); ok {
-		return asSlice
-	}
-	if slicePtr, ok := res.(*[]any); ok {
-		if slicePtr == nil {
-			return nil
-		}
-		return *slicePtr
-	}
-	if obs, ok := res.(IOrderBookSide); ok {
-		asSlice, _ := castToSlice(obs.GetData())
-		return asSlice
-	}
-	if cache, ok := res.(IArrayCache); ok {
-		asSlice, _ := castToSlice(cache.ToArray())
-		return asSlice
-	}
-	asSlice, _ := castToSlice(res)
-	return asSlice
-}
-
 // MarketInterface struct
 type MarketInterface struct {
 	Info           map[string]any

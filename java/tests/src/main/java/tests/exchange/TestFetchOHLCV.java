@@ -4,7 +4,6 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -19,13 +18,13 @@ public class TestFetchOHLCV extends BaseTest {
         return BaseExchange.supplyAsync(() -> {
 
         String method = "fetchOHLCV";
-        List<Object> timeframeKeys = Helpers.objectKeys(exchange.timeframes);
-        Assert(((List<?>)timeframeKeys).size() > 0, (((exchange.id + " ") + method) + " - no timeframes found"));
+        Object timeframeKeys = Helpers.objectKeys(exchange.timeframes);
+        Assert(Helpers.isGreaterThan(Helpers.getArrayLength(timeframeKeys), 0), Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " - no timeframes found"));
         // prefer 1m timeframe if available, otherwise return the first one
         Object chosenTimeframeKey = "1m";
         if (!Helpers.isTrue(exchange.inArray(chosenTimeframeKey, timeframeKeys)))
         {
-            chosenTimeframeKey = (timeframeKeys == null || 0 >= ((List<?>)timeframeKeys).size() ? null : ((List<?>)timeframeKeys).get(0));
+            chosenTimeframeKey = Helpers.GetValue(timeframeKeys, 0);
         }
         Integer limit = 10;
         Object duration = exchange.parseTimeframe(chosenTimeframeKey);
@@ -33,9 +32,9 @@ public class TestFetchOHLCV extends BaseTest {
         Object ohlcvs = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchOHLCV", new Object[]{symbol, chosenTimeframeKey, since, limit})).join();
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, ohlcvs, symbol);
         Object now = exchange.milliseconds();
-        for (var i = 0; i < ((List<?>)ohlcvs).size(); i++)
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ohlcvs)); i++)
         {
-            TestOHLCV.testOHLCV(exchange, skippedProperties, method, (ohlcvs == null || i < 0 || i >= ((List<?>)ohlcvs).size() ? null : ((List<?>)ohlcvs).get(i)), symbol, now);
+            TestOHLCV.testOHLCV(exchange, skippedProperties, method, Helpers.GetValue(ohlcvs, i), symbol, now);
         }
         // todo: sorted timestamps check
         return true;

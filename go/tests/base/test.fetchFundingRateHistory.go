@@ -18,7 +18,7 @@ func testFetchFundingRateHistoryBody(ch chan any, exchange ccxt.ICoreExchange, s
 	fundingRatesHistory := (<-exchange.FetchFundingRateHistoryAsync(symbol))
 	PanicOnError(fundingRatesHistory)
 	AssertNonEmtpyArray(exchange, skippedProperties, method, fundingRatesHistory, symbol)
-	for i := 0; i < GetArrayLength(fundingRatesHistory); i++ {
+	for i := 0; IsLessThan(i, GetArrayLength(fundingRatesHistory)); i++ {
 		TestFundingRateHistory(exchange, skippedProperties, method, GetValue(fundingRatesHistory, i), symbol)
 	}
 	AssertTimestampOrder(exchange, method, symbol, fundingRatesHistory)

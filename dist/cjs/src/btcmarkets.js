@@ -520,7 +520,7 @@ class btcmarkets extends btcmarkets$1["default"] {
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
         const symbol = base + '/' + quote;
-        const fees = this.safeDict(this.safeDict(this.options, 'fees', {}), quote, this.fees);
+        const fees = this.safeValue(this.safeDict(this.options, 'fees', {}), quote, this.fees);
         const pricePrecision = this.parseNumber(this.parsePrecision(this.safeString(market, 'priceDecimals')));
         const minAmount = this.safeNumber(market, 'minOrderAmount');
         const maxAmount = this.safeNumber(market, 'maxOrderAmount');
@@ -956,7 +956,7 @@ class btcmarkets extends btcmarkets$1["default"] {
             // 'clientOrderId': this.uuid (),
         };
         const lowercaseType = type.toLowerCase();
-        const orderTypes = this.safeDict(this.options, 'orderTypes', {
+        const orderTypes = this.safeValue(this.options, 'orderTypes', {
             'limit': 'Limit',
             'market': 'Market',
             'stop': 'Stop',

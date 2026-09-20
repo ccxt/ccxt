@@ -96,7 +96,7 @@ class p2b extends p2b$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const timeframes = this.safeDict(this.options, 'timeframes', {});
+        const timeframes = this.safeValue(this.options, 'timeframes', {});
         const channel = this.safeInteger(timeframes, timeframe);
         if (channel === undefined) {
             throw new errors.BadRequest(this.id + ' watchOHLCV cannot take a timeframe of ' + timeframe);
@@ -220,7 +220,7 @@ class p2b extends p2b$1["default"] {
         const query = this.extend(subscribe, params);
         const trades = await this.watchMultiple(url, messageHashes, query, messageHashes);
         if (this.newUpdates) {
-            const first = this.safeDict(trades, 0);
+            const first = this.safeValue(trades, 0);
             const tradeSymbol = this.safeString(first, 'symbol');
             limit = trades.getLimit(tradeSymbol, limit);
         }
@@ -426,7 +426,7 @@ class p2b extends p2b$1["default"] {
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
         const messageHash = 'orderbook::' + market['symbol'];
-        const subscription = this.safeDict(client.subscriptions, messageHash, {});
+        const subscription = this.safeValue(client.subscriptions, messageHash, {});
         const limit = this.safeInteger(subscription, 'limit');
         let orderbook = this.safeValue(this.orderbooks, symbol);
         if (orderbook === undefined) {
@@ -442,7 +442,7 @@ class p2b extends p2b$1["default"] {
         }
         if (bids !== undefined) {
             for (let i = 0; i < bids.length; i++) {
-                const bid = this.safeList(bids, i);
+                const bid = this.safeValue(bids, i);
                 const price = this.safeNumber(bid, 0);
                 const amount = this.safeNumber(bid, 1);
                 const bookSide = orderbook['bids'];
@@ -451,7 +451,7 @@ class p2b extends p2b$1["default"] {
         }
         if (asks !== undefined) {
             for (let i = 0; i < asks.length; i++) {
-                const ask = this.safeList(asks, i);
+                const ask = this.safeValue(asks, i);
                 const price = this.safeNumber(ask, 0);
                 const amount = this.safeNumber(ask, 1);
                 const bookside = orderbook['asks'];

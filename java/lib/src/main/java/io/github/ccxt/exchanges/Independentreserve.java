@@ -21,7 +21,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 public class Independentreserve extends IndependentreserveApi
 {
@@ -444,13 +443,13 @@ public class Independentreserve extends IndependentreserveApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object baseCurrenciesPromise = this.publicGetGetValidPrimaryCurrencyCodes(parameters);
             //     ['Xbt', 'Eth', 'Usdt', ...]
             Object quoteCurrenciesPromise = this.publicGetGetValidSecondaryCurrencyCodes(parameters);
             //     ['Aud', 'Usd', 'Nzd', 'Sgd']
             Object limitsPromise = this.publicGetGetOrderMinimumVolumes(parameters);
-            var baseCurrenciesquoteCurrencieslimitsVariable = (CompletableFuture.allOf(((CompletableFuture<?>) baseCurrenciesPromise), ((CompletableFuture<?>) quoteCurrenciesPromise), ((CompletableFuture<?>) limitsPromise)).thenApply(promiseAllValue -> new ArrayList<Object>(Arrays.asList(((CompletableFuture<?>) baseCurrenciesPromise).join(), ((CompletableFuture<?>) quoteCurrenciesPromise).join(), ((CompletableFuture<?>) limitsPromise).join())))).join();
+            var baseCurrenciesquoteCurrencieslimitsVariable = (Helpers.promiseAll(new ArrayList<Object>(Arrays.asList(baseCurrenciesPromise, quoteCurrenciesPromise, limitsPromise)))).join();
             var baseCurrencies = ((List<Object>) baseCurrenciesquoteCurrencieslimitsVariable).get(0);
             var quoteCurrencies = ((List<Object>) baseCurrenciesquoteCurrencieslimitsVariable).get(1);
             var limits = ((List<Object>) baseCurrenciesquoteCurrencieslimitsVariable).get(2);
@@ -465,21 +464,21 @@ public class Independentreserve extends IndependentreserveApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             List<Object> baseCurrencyIds = this.toArray(baseCurrencies);
             List<Object> quoteCurrencyIds = this.toArray(quoteCurrencies);
-            for (var i = 0; i < ((List<?>)baseCurrencyIds).size(); i++)
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(baseCurrencyIds)); i++)
             {
-                Object baseId = (baseCurrencyIds == null || i < 0 || i >= baseCurrencyIds.size() ? null : baseCurrencyIds.get(i));
-                String base = this.safeCurrencyCode((String) (baseId));
+                Object baseId = Helpers.GetValue(baseCurrencyIds, i);
+                String base = this.safeCurrencyCode(baseId);
                 Double minAmount = this.safeNumber(limits, baseId);
-                for (var j = 0; j < ((List<?>)quoteCurrencyIds).size(); j++)
+                for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(quoteCurrencyIds)); j++)
                 {
-                    Object quoteId = (quoteCurrencyIds == null || j < 0 || j >= quoteCurrencyIds.size() ? null : quoteCurrencyIds.get(j));
-                    String quote = this.safeCurrencyCode((String) (quoteId));
+                    Object quoteId = Helpers.GetValue(quoteCurrencyIds, j);
+                    String quote = this.safeCurrencyCode(quoteId);
                     Object id = Helpers.add(Helpers.add(baseId, "/"), quoteId);
     final Object finalBase = base;
                     final Object finalBaseId = baseId;
                                     ((List<Object>)result).add(new HashMap<String, Object>() {{
                         put( "id", id );
-                        put( "symbol", ((finalBase + "/") + quote) );
+                        put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), quote) );
                         put( "base", finalBase );
                         put( "quote", quote );
                         put( "settle", null );
@@ -538,17 +537,17 @@ public class Independentreserve extends IndependentreserveApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        for (var i = 0; i < Helpers.getArrayLength(response); i++)
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
         {
             Object balance = Helpers.GetValue(response, i);
             String currencyId = this.safeString(balance, "CurrencyCode");
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
-            ((Map<String, Object>)account).put("free", this.safeString(balance, "AvailableBalance"));
-            ((Map<String, Object>)account).put("total", this.safeString(balance, "TotalBalance"));
-            if (!java.util.Objects.equals(code, null))
+            Helpers.addElementToObject(account, "free", this.safeString(balance, "AvailableBalance"));
+            Helpers.addElementToObject(account, "total", this.safeString(balance, "TotalBalance"));
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
-                ((Map<String, Object>)result).put((String)code, account);
+                Helpers.addElementToObject(result, code, account);
             }
         }
         return this.safeBalance(result);
@@ -566,8 +565,8 @@ public class Independentreserve extends IndependentreserveApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
@@ -591,25 +590,25 @@ public class Independentreserve extends IndependentreserveApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object limit = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "primaryCurrencyCode", ((Map<String, Object>)market).get("baseId") );
-                put( "secondaryCurrencyCode", ((Map<String, Object>)market).get("quoteId") );
+                put( "primaryCurrencyCode", Helpers.GetValue(market, "baseId") );
+                put( "secondaryCurrencyCode", Helpers.GetValue(market, "quoteId") );
             }};
             Map<String, Object> response = (this.publicGetGetOrderBook(this.extend(request, parameters))).join();
             Long timestamp = this.parse8601(this.safeString(response, "CreatedTimestampUtc"));
-            return this.parseOrderBook(response, ((Map<String, Object>)market).get("symbol"), timestamp, "BuyOrders", "SellOrders", "Price", "Volume");
+            return this.parseOrderBook(response, Helpers.GetValue(market, "symbol"), timestamp, "BuyOrders", "SellOrders", "Price", "Volume");
         }).thenApply(OrderBook::new);
 
     }
 
-    public Object parseTicker(Map<String, Object> ticker, Object... optionalArgs)
+    public Object parseTicker(Object ticker, Object... optionalArgs)
     {
         // {
         //     "DayHighestPrice":43489.49,
@@ -624,17 +623,17 @@ public class Independentreserve extends IndependentreserveApi
         //     "SecondaryCurrencyCode":"Usd",
         //     "CreatedTimestampUtc":"2022-01-14T22:52:29.5029223Z"
         // }
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        Object market = Helpers.getArg(optionalArgs, 0, null);
         Long timestamp = this.parse8601(this.safeString(ticker, "CreatedTimestampUtc"));
         String baseId = this.safeString(ticker, "PrimaryCurrencyCode");
         String quoteId = this.safeString(ticker, "SecondaryCurrencyCode");
         Object defaultMarketId = null;
-        if ((!java.util.Objects.equals(baseId, null)) && (!java.util.Objects.equals(quoteId, null)))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(baseId, null))) && Helpers.isTrue((!Helpers.isEqual(quoteId, null)))))
         {
-            defaultMarketId = ((baseId + "/") + quoteId);
+            defaultMarketId = Helpers.add(Helpers.add(baseId, "/"), quoteId);
         }
         market = this.safeMarket(defaultMarketId, market, "/");
-        Object symbol = ((Map<String, Object>)market).get("symbol");
+        Object symbol = Helpers.GetValue(market, "symbol");
         String last = this.safeString(ticker, "LastPrice");
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -673,15 +672,15 @@ public class Independentreserve extends IndependentreserveApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "primaryCurrencyCode", ((Map<String, Object>)market).get("baseId") );
-                put( "secondaryCurrencyCode", ((Map<String, Object>)market).get("quoteId") );
+                put( "primaryCurrencyCode", Helpers.GetValue(market, "baseId") );
+                put( "secondaryCurrencyCode", Helpers.GetValue(market, "quoteId") );
             }};
             Map<String, Object> response = (this.publicGetGetMarketSummary(this.extend(request, parameters))).join();
             // {
@@ -697,7 +696,7 @@ public class Independentreserve extends IndependentreserveApi
             //     "SecondaryCurrencyCode":"Usd",
             //     "CreatedTimestampUtc":"2022-01-14T22:52:29.5029223Z"
             // }
-            return this.parseTicker((Map<String, Object>) (response), market);
+            return this.parseTicker(response, market);
         }).thenApply(Ticker::new);
 
     }
@@ -753,38 +752,38 @@ public class Independentreserve extends IndependentreserveApi
         //        "VolumeFilled": 0,
         //        "VolumeOrdered": 0.358
         //    }
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        Object market = Helpers.getArg(optionalArgs, 0, null);
         Object symbol = null;
         String baseId = this.safeString(order, "PrimaryCurrencyCode");
         String quoteId = this.safeString(order, "SecondaryCurrencyCode");
         Object base = null;
         Object quote = null;
-        if ((!java.util.Objects.equals(baseId, null)) && (!java.util.Objects.equals(quoteId, null)))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(baseId, null))) && Helpers.isTrue((!Helpers.isEqual(quoteId, null)))))
         {
             base = this.safeCurrencyCode(baseId);
             quote = this.safeCurrencyCode(quoteId);
-            symbol = Helpers.add((base + "/"), quote);
-        } else if (!java.util.Objects.equals(market, null))
+            symbol = Helpers.add(Helpers.add(base, "/"), quote);
+        } else if (Helpers.isTrue(!Helpers.isEqual(market, null)))
         {
-            symbol = ((Map<String, Object>)market).get("symbol");
-            base = ((Map<String, Object>)market).get("base");
-            quote = ((Map<String, Object>)market).get("quote");
+            symbol = Helpers.GetValue(market, "symbol");
+            base = Helpers.GetValue(market, "base");
+            quote = Helpers.GetValue(market, "quote");
         }
         String orderType = this.safeString2(order, "Type", "OrderType");
         String side = null;
-        if (!java.util.Objects.equals(orderType, null))
+        if (Helpers.isTrue(!Helpers.isEqual(orderType, null)))
         {
-            if (((String)orderType).indexOf("Bid") >= 0)
+            if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(orderType, "Bid"), 0)))
             {
                 side = "buy";
-            } else if (((String)orderType).indexOf("Offer") >= 0)
+            } else if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(orderType, "Offer"), 0)))
             {
                 side = "sell";
             }
-            if (((String)orderType).indexOf("Market") >= 0)
+            if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(orderType, "Market"), 0)))
             {
                 orderType = "market";
-            } else if (((String)orderType).indexOf("Limit") >= 0)
+            } else if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(orderType, "Limit"), 0)))
             {
                 orderType = "limit";
             }
@@ -793,7 +792,7 @@ public class Independentreserve extends IndependentreserveApi
         String filled = this.safeString(order, "VolumeFilled");
         String feeRate = this.safeString(order, "FeePercent");
         String feeCost = null;
-        if (!java.util.Objects.equals(feeRate, null) && !java.util.Objects.equals(filled, null))
+        if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(feeRate, null)) && Helpers.isTrue(!Helpers.isEqual(filled, null))))
         {
             feeCost = Precise.stringMul(feeRate, filled);
         }
@@ -804,7 +803,7 @@ public class Independentreserve extends IndependentreserveApi
         final Object finalFeeRate = feeRate;
         final Object finalFeeCost = feeCost;
         final Object finalBase = base;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", Independentreserve.this.safeString(order, "OrderGuid") );
             put( "clientOrderId", null );
@@ -830,10 +829,10 @@ public class Independentreserve extends IndependentreserveApi
                 put( "currency", finalBase );
             }} );
             put( "trades", null );
-        }}), market);
+        }}, market);
     }
 
-    public String parseOrderStatus(String status)
+    public String parseOrderStatus(Object status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "Open", "open" );
@@ -848,7 +847,7 @@ public class Independentreserve extends IndependentreserveApi
         return this.safeString(statuses, status, status);
     }
 
-    public String parseTimeInForce(String timeInForce)
+    public String parseTimeInForce(Object timeInForce)
     {
         Map<String, Object> timeInForces = new HashMap<String, Object>() {{
             put( "Gtc", "GTC" );
@@ -873,9 +872,9 @@ public class Independentreserve extends IndependentreserveApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
@@ -883,7 +882,7 @@ public class Independentreserve extends IndependentreserveApi
                 put( "orderGuid", id );
             }}, parameters))).join();
             Object market = null;
-            if (!java.util.Objects.equals(symbol, null))
+            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);
             }
@@ -907,32 +906,32 @@ public class Independentreserve extends IndependentreserveApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object market = null;
-            if (!java.util.Objects.equals(symbol, null))
+            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);
-                ((Map<String, Object>)request).put("primaryCurrencyCode", ((Map<String, Object>)market).get("baseId"));
-                ((Map<String, Object>)request).put("secondaryCurrencyCode", ((Map<String, Object>)market).get("quoteId"));
+                Helpers.addElementToObject(request, "primaryCurrencyCode", Helpers.GetValue(market, "baseId"));
+                Helpers.addElementToObject(request, "secondaryCurrencyCode", Helpers.GetValue(market, "quoteId"));
             }
-            if (java.util.Objects.equals(limit, null))
+            if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
                 limit = 50;
             }
-            ((Map<String, Object>)request).put("pageIndex", 1);
-            ((Map<String, Object>)request).put("pageSize", limit);
+            Helpers.addElementToObject(request, "pageIndex", 1);
+            Helpers.addElementToObject(request, "pageSize", limit);
             Map<String, Object> response = (this.privatePostGetOpenOrders(this.extend(request, parameters))).join();
-            List<Object> data = (List<Object>) this.safeList(response, "Data", new ArrayList<Object>(Arrays.asList()));
+            Object data = this.safeList(response, "Data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -951,32 +950,32 @@ public class Independentreserve extends IndependentreserveApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object market = null;
-            if (!java.util.Objects.equals(symbol, null))
+            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);
-                ((Map<String, Object>)request).put("primaryCurrencyCode", ((Map<String, Object>)market).get("baseId"));
-                ((Map<String, Object>)request).put("secondaryCurrencyCode", ((Map<String, Object>)market).get("quoteId"));
+                Helpers.addElementToObject(request, "primaryCurrencyCode", Helpers.GetValue(market, "baseId"));
+                Helpers.addElementToObject(request, "secondaryCurrencyCode", Helpers.GetValue(market, "quoteId"));
             }
-            if (java.util.Objects.equals(limit, null))
+            if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
                 limit = 50;
             }
-            ((Map<String, Object>)request).put("pageIndex", 1);
-            ((Map<String, Object>)request).put("pageSize", limit);
+            Helpers.addElementToObject(request, "pageIndex", 1);
+            Helpers.addElementToObject(request, "pageSize", limit);
             Map<String, Object> response = (this.privatePostGetClosedOrders(this.extend(request, parameters))).join();
-            List<Object> data = (List<Object>) this.safeList(response, "Data", new ArrayList<Object>(Arrays.asList()));
+            Object data = this.safeList(response, "Data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -995,16 +994,16 @@ public class Independentreserve extends IndependentreserveApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : 50;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, 50);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Long pageIndex = this.safeInteger(parameters, "pageIndex", 1);
-            if (java.util.Objects.equals(limit, null))
+            if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
                 limit = 50;
             }
@@ -1015,20 +1014,20 @@ public class Independentreserve extends IndependentreserveApi
             }};
             Map<String, Object> response = (this.privatePostGetTrades(this.extend(request, parameters))).join();
             Object market = null;
-            if (!java.util.Objects.equals(symbol, null))
+            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);
             }
-            List<Object> data = (List<Object>) this.safeList(response, "Data", new ArrayList<Object>(Arrays.asList()));
+            Object data = this.safeList(response, "Data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(data, market, since, limit);
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
     public Object parseTrade(Object trade, Object... optionalArgs)
     {
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Long timestamp = this.parse8601(((Map<String, Object>)trade).get("TradeTimestampUtc"));
+        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Long timestamp = this.parse8601(Helpers.GetValue(trade, "TradeTimestampUtc"));
         String id = this.safeString(trade, "TradeGuid");
         String orderId = this.safeString(trade, "OrderGuid");
         String priceString = this.safeString2(trade, "Price", "SecondaryCurrencyTradePrice");
@@ -1039,24 +1038,24 @@ public class Independentreserve extends IndependentreserveApi
         String baseId = this.safeString(trade, "PrimaryCurrencyCode");
         String quoteId = this.safeString(trade, "SecondaryCurrencyCode");
         Object marketId = null;
-        if ((!java.util.Objects.equals(baseId, null)) && (!java.util.Objects.equals(quoteId, null)))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(baseId, null))) && Helpers.isTrue((!Helpers.isEqual(quoteId, null)))))
         {
-            marketId = ((baseId + "/") + quoteId);
+            marketId = Helpers.add(Helpers.add(baseId, "/"), quoteId);
         }
         String symbol = this.safeSymbol(marketId, market, "/");
         String side = this.safeString(trade, "OrderType");
-        if (!java.util.Objects.equals(side, null))
+        if (Helpers.isTrue(!Helpers.isEqual(side, null)))
         {
-            if (((String)side).indexOf("Bid") >= 0)
+            if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(side, "Bid"), 0)))
             {
                 side = "buy";
-            } else if (((String)side).indexOf("Offer") >= 0)
+            } else if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(side, "Offer"), 0)))
             {
                 side = "sell";
             }
         }
         final Object finalSide = side;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeTrade(new HashMap<String, Object>() {{
             put( "id", id );
             put( "info", trade );
             put( "timestamp", timestamp );
@@ -1070,7 +1069,7 @@ public class Independentreserve extends IndependentreserveApi
             put( "amount", amount );
             put( "cost", cost );
             put( "fee", null );
-        }}), market);
+        }}, market);
     }
 
     /**
@@ -1088,23 +1087,23 @@ public class Independentreserve extends IndependentreserveApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object since = Helpers.getArg(optionalArgs, 0, null);
+            Object limit = Helpers.getArg(optionalArgs, 1, null);
+            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "primaryCurrencyCode", ((Map<String, Object>)market).get("baseId") );
-                put( "secondaryCurrencyCode", ((Map<String, Object>)market).get("quoteId") );
+                put( "primaryCurrencyCode", Helpers.GetValue(market, "baseId") );
+                put( "secondaryCurrencyCode", Helpers.GetValue(market, "quoteId") );
                 put( "numberOfRecentTradesToRetrieve", 50 );
             }};
             Map<String, Object> response = (this.publicGetGetRecentTrades(this.extend(request, parameters))).join();
-            List<Object> trades = (List<Object>) this.safeList(response, "Trades", new ArrayList<Object>(Arrays.asList()));
+            Object trades = this.safeList(response, "Trades", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1120,8 +1119,8 @@ public class Independentreserve extends IndependentreserveApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
@@ -1137,15 +1136,15 @@ public class Independentreserve extends IndependentreserveApi
             //
             Map<String, Object> fees = new HashMap<String, Object>() {{}};
             List<Object> rows = this.toArray(response);
-            for (var i = 0; i < ((List<?>)rows).size(); i++)
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rows)); i++)
             {
-                Object fee = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
+                Object fee = Helpers.GetValue(rows, i);
                 String currencyId = this.safeString(fee, "CurrencyCode");
                 String code = this.safeCurrencyCode(currencyId);
                 Double tradingFee = this.safeNumber(fee, "Fee");
-                if (!java.util.Objects.equals(code, null))
+                if (Helpers.isTrue(!Helpers.isEqual(code, null)))
                 {
-                    ((Map<String, Object>)fees).put((String)code, new HashMap<String, Object>() {{
+                    Helpers.addElementToObject(fees, code, new HashMap<String, Object>() {{
         put( "info", fee );
         put( "fee", tradingFee );
     }});
@@ -1153,13 +1152,13 @@ public class Independentreserve extends IndependentreserveApi
             }
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             List<Object> symbols = this.symbols;
-            for (var i = 0; i < ((List<?>)symbols).size(); i++)
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
-                Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
+                Object symbol = Helpers.GetValue(symbols, i);
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                Map<String, Object> fee = (Map<String, Object>) this.safeDict(fees, ((Map<String, Object>)market).get("base"), new HashMap<String, Object>() {{}});
-                ((Map<String, Object>)result).put((String)symbol, new HashMap<String, Object>() {{
-        put( "info", Independentreserve.this.safeDict(fee, "info") );
+                Object fee = this.safeValue(fees, Helpers.GetValue(market, "base"), new HashMap<String, Object>() {{}});
+                Helpers.addElementToObject(result, symbol, new HashMap<String, Object>() {{
+        put( "info", Independentreserve.this.safeValue(fee, "info") );
         put( "symbol", symbol );
         put( "maker", Independentreserve.this.safeNumber(fee, "fee") );
         put( "taker", Independentreserve.this.safeNumber(fee, "fee") );
@@ -1191,36 +1190,36 @@ public class Independentreserve extends IndependentreserveApi
         return BaseExchange.supplyAsync(() -> {
             Object type = type3;
             Object side = side3;
-            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object price = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object orderType = this.capitalize(type);
-            orderType = Helpers.add(orderType, (((java.util.Objects.equals(side, "sell")))) ? "Offer" : "Bid");
+            orderType = Helpers.add(orderType, ((Helpers.isTrue((Helpers.isEqual(side, "sell"))))) ? "Offer" : "Bid");
             final Object finalOrderType = orderType;
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "primaryCurrencyCode", ((Map<String, Object>)market).get("baseId") );
-                put( "secondaryCurrencyCode", ((Map<String, Object>)market).get("quoteId") );
+                put( "primaryCurrencyCode", Helpers.GetValue(market, "baseId") );
+                put( "secondaryCurrencyCode", Helpers.GetValue(market, "quoteId") );
                 put( "orderType", finalOrderType );
             }};
             Object response = null;
-            ((Map<String, Object>)request).put("volume", amount);
-            if (java.util.Objects.equals(type, "limit"))
+            Helpers.addElementToObject(request, "volume", amount);
+            if (Helpers.isTrue(Helpers.isEqual(type, "limit")))
             {
-                ((Map<String, Object>)request).put("price", price);
+                Helpers.addElementToObject(request, "price", price);
                 response = (this.privatePostPlaceLimitOrder(this.extend(request, parameters))).join();
             } else
             {
                 response = (this.privatePostPlaceMarketOrder(this.extend(request, parameters))).join();
             }
             final Object finalResponse = response;
-            return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+            return this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", finalResponse );
-                put( "id", ((Map<String, Object>)finalResponse).get("OrderGuid") );
-            }}), market);
+                put( "id", Helpers.GetValue(finalResponse, "OrderGuid") );
+            }}, market);
         }).thenApply(Order::new);
 
     }
@@ -1240,9 +1239,9 @@ public class Independentreserve extends IndependentreserveApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
@@ -1284,14 +1283,14 @@ public class Independentreserve extends IndependentreserveApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "primaryCurrencyCode", ((Map<String, Object>)currency).get("id") );
+                put( "primaryCurrencyCode", Helpers.GetValue(currency, "id") );
             }};
             Map<String, Object> response = (this.privatePostGetDigitalCurrencyDepositAddress(this.extend(request, parameters))).join();
             //
@@ -1317,7 +1316,7 @@ public class Independentreserve extends IndependentreserveApi
         //        NextUpdateTimestampUtc: '2024-02-20T11:14:56.5112394Z'
         //    }
         //
-        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        Object currency = Helpers.getArg(optionalArgs, 0, null);
         String address = this.safeString(depositAddress, "DepositAddress");
         this.checkAddress(address);
         return new HashMap<String, Object>() {{
@@ -1349,32 +1348,32 @@ public class Independentreserve extends IndependentreserveApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object tag = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object tag = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
             tag = ((List<Object>) tagparametersVariable).get(0);
             parameters = ((List<Object>) tagparametersVariable).get(1);
-            if (java.util.Objects.equals(this.markets, null))
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "primaryCurrencyCode", ((Map<String, Object>)currency).get("id") );
+                put( "primaryCurrencyCode", Helpers.GetValue(currency, "id") );
                 put( "withdrawalAddress", address );
-                put( "amount", Independentreserve.this.currencyToPrecision((String) (code), amount) );
+                put( "amount", Independentreserve.this.currencyToPrecision(code, amount) );
             }};
-            if (!java.util.Objects.equals(tag, null))
+            if (Helpers.isTrue(!Helpers.isEqual(tag, null)))
             {
-                ((Map<String, Object>)request).put("destinationTag", tag);
+                Helpers.addElementToObject(request, "destinationTag", tag);
             }
             String networkCode = null;
             List<Object> networkCodeparametersVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
             networkCode = (String) ((List<Object>) networkCodeparametersVariable).get(0);
             parameters = ((List<Object>) networkCodeparametersVariable).get(1);
-            if (!java.util.Objects.equals(networkCode, null))
+            if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
             {
-                throw new BadRequest((this.id + " withdraw () does not accept params[\"networkCode\"]")) ;
+                throw new BadRequest(Helpers.add(this.id, " withdraw () does not accept params[\"networkCode\"]")) ;
             }
             Map<String, Object> response = (this.privatePostWithdrawDigitalCurrency(this.extend(request, parameters))).join();
             //
@@ -1394,12 +1393,12 @@ public class Independentreserve extends IndependentreserveApi
             //        "Transaction": null
             //    }
             //
-            return this.parseTransaction((Map<String, Object>) (response), currency);
+            return this.parseTransaction(response, currency);
         }).thenApply(Transaction::new);
 
     }
 
-    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
+    public Object parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         //    {
@@ -1418,9 +1417,9 @@ public class Independentreserve extends IndependentreserveApi
         //        "Transaction": null
         //    }
         //
-        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Map<String, Object> amount = (Map<String, Object>) this.safeDict(transaction, "Amount");
-        Map<String, Object> destination = (Map<String, Object>) this.safeDict(transaction, "Destination");
+        Object currency = Helpers.getArg(optionalArgs, 0, null);
+        Object amount = this.safeDict(transaction, "Amount");
+        Object destination = this.safeDict(transaction, "Destination");
         String currencyId = this.safeString(transaction, "PrimaryCurrencyCode");
         String datetime = this.safeString(transaction, "CreatedTimestampUtc");
         String address = this.safeString(destination, "Address");
@@ -1456,40 +1455,40 @@ public class Independentreserve extends IndependentreserveApi
 
     public Object sign(Object path, Object... optionalArgs)
     {
-        Object api = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "public";
-        Object method = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET";
-        Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
-        Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
-        Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
-        Object url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), "/"), path);
-        if (java.util.Objects.equals(api, "public"))
+        Object api = Helpers.getArg(optionalArgs, 0, "public");
+        Object method = Helpers.getArg(optionalArgs, 1, "GET");
+        Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
+        Object headers = Helpers.getArg(optionalArgs, 3, null);
+        Object body = Helpers.getArg(optionalArgs, 4, null);
+        Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api), "/"), path);
+        if (Helpers.isTrue(Helpers.isEqual(api, "public")))
         {
-            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
             {
-                url = (url + ("?" + this.urlencode(parameters)));
+                url = Helpers.add(url, Helpers.add("?", this.urlencode(parameters)));
             }
         } else
         {
             this.checkRequiredCredentials();
             Object nonce = this.nonce();
-            Object auth = new ArrayList<Object>(Arrays.asList(url, ("apiKey=" + this.apiKey), ("nonce=" + String.valueOf(nonce))));
-            List<Object> keys = new ArrayList<Object>(((Map<String, Object>)parameters).keySet());
-            for (var i = 0; i < ((List<?>)keys).size(); i++)
+            Object auth = new ArrayList<Object>(Arrays.asList(url, Helpers.add("apiKey=", this.apiKey), Helpers.add("nonce=", String.valueOf(nonce))));
+            Object keys = Helpers.objectKeys(parameters);
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
-                Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+                Object key = Helpers.GetValue(keys, i);
                 Object value = String.valueOf(Helpers.GetValue(parameters, key));
-                ((List<Object>)auth).add(Helpers.add((key + "="), value));
+                ((List<Object>)auth).add(Helpers.add(Helpers.add(key, "="), value));
             }
             Object message = String.join(",", (List<String>)auth);
             Object signature = this.hmac(this.encode(message), this.encode(this.secret), sha256());
             Map<String, Object> query = new HashMap<String, Object>() {{}};
-            ((Map<String, Object>)query).put("apiKey", this.apiKey);
-            ((Map<String, Object>)query).put("nonce", nonce);
-            ((Map<String, Object>)query).put("signature", ((String)signature).toUpperCase());
-            for (var i = 0; i < ((List<?>)keys).size(); i++)
+            Helpers.addElementToObject(query, "apiKey", this.apiKey);
+            Helpers.addElementToObject(query, "nonce", nonce);
+            Helpers.addElementToObject(query, "signature", ((String)signature).toUpperCase());
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
-                Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-                ((Map<String, Object>)query).put((String)key, Helpers.GetValue(parameters, key));
+                Object key = Helpers.GetValue(keys, i);
+                Helpers.addElementToObject(query, key, Helpers.GetValue(parameters, key));
             }
             body = this.json(query);
             headers = new HashMap<String, Object>() {{

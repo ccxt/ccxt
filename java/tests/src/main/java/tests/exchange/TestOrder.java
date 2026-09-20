@@ -66,18 +66,18 @@ public class TestOrder extends BaseTest {
         TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "amount", "0");
         TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "amount", exchange.safeString(entry, "remaining"));
         TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "amount", exchange.safeString(entry, "filled"));
-        if (!(Helpers.inOp(skippedProperties, "trades")))
+        if (!Helpers.isTrue((Helpers.inOp(skippedProperties, "trades"))))
         {
             Object skippedNew = exchange.deepExtend(skippedProperties, new HashMap<String, Object>() {{
                 put( "timestamp", true );
                 put( "datetime", true );
                 put( "side", true );
             }});
-            if (!java.util.Objects.equals(((Map<String, Object>)entry).get("trades"), null))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(entry, "trades"), null)))
             {
-                for (var i = 0; i < Helpers.getArrayLength(((Map<String, Object>)entry).get("trades")); i++)
+                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(Helpers.GetValue(entry, "trades"))); i++)
                 {
-                    TestTrade.testTrade(exchange, skippedNew, method, Helpers.GetValue(((Map<String, Object>)entry).get("trades"), i), symbol, now, false);
+                    TestTrade.testTrade(exchange, skippedNew, method, Helpers.GetValue(Helpers.GetValue(entry, "trades"), i), symbol, now, false);
                 }
             }
         }

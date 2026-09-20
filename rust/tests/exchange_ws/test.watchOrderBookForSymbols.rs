@@ -10,15 +10,15 @@ use crate::test_helpers::*;
 use super::*;
 
 pub async fn testWatchOrderBookForSymbols(mut exchange: Value, mut skippedProperties: Value, mut symbols: Value) -> Value {
-    let mut method: Value = Value::Str("watchOrderBookForSymbols".into());
+    let mut method: Value = Value::Str("watchOrderBookForSymbols".to_string());
     // as in `watchOrderBook`, a pending subscription can not be cancelled, so the
     // loop has to be bounded by the deadline alone. waiting for every requested
     // symbol to be seen would hang forever whenever one of them stays idle.
     let mut maxIdleTime: Value = Value::Int(5000);
     let mut currentTime: Value = exchange.milliseconds();
-    let mut deadline: Value = (match (&(currentTime), &(Value::Int(15000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
+    let mut deadline: Value = add(&currentTime, &Value::Int(15000));
     let mut idle: Value = Value::Bool(false);
-    while (currentTime.as_f64().unwrap_or(f64::NAN) < deadline.as_f64().unwrap_or(f64::NAN)) && !is_true(&idle) {
+    while is_true(&(is_less_than(&currentTime, &deadline))) && !is_true(&idle) {
         let mut response: Value = Value::Null;
         let mut succeeded: Value = Value::Bool(true);
         let mut startTime: Value = exchange.milliseconds();
@@ -27,17 +27,17 @@ pub async fn testWatchOrderBookForSymbols(mut exchange: Value, mut skippedProper
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // interim workaround for InvalidNonce raised by the c# runtime
-            if !is_true(&crate::tests_support::shared::is_temporary_failure(e.clone())) && !(is_instance(&e, &Value::Str("InvalidNonce".into()))) {
+            if !is_true(&crate::tests_support::shared::is_temporary_failure(e.clone())) && !is_true(&(is_instance(&e, &Value::Str("InvalidNonce".to_string())))) {
                 panic!("{}", e);
             }
             succeeded = Value::Bool(false);
         }
         currentTime = exchange.milliseconds();
-        if (succeeded.as_bool() == Some(true)) && (response != Value::Null) {
+        if is_true(&(is_equal(&succeeded, &Value::Bool(true)))) && is_true(&(!is_equal(&response, &Value::Null))) {
             testOrderBook(exchange.clone(), skippedProperties.clone(), method.clone(), response.clone(), Value::Null);
-            crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), response.clone(), Value::Str("symbol".into()).clone(), symbols.clone()]);
-            let mut elapsed: Value = (match (&(currentTime), &(startTime)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
-            if elapsed.as_f64().unwrap_or(f64::NAN) > maxIdleTime.as_f64().unwrap_or(f64::NAN) {
+            crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), response.clone(), Value::Str("symbol".to_string()).clone(), symbols.clone()]);
+            let mut elapsed: Value = subtract(&currentTime, &startTime);
+            if is_greater_than(&elapsed, &maxIdleTime) {
                 idle = Value::Bool(true);
             }
         }

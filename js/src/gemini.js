@@ -480,7 +480,7 @@ export default class gemini extends Exchange {
         //    }
         //
         this.options['tradingPairs'] = this.safeList(data, 'tradingPairs');
-        const currenciesArray = this.safeList(data, 'currencies', []);
+        const currenciesArray = this.safeValue(data, 'currencies', []);
         return this.parseCurrencies(currenciesArray);
     }
     parseCurrency(rawCurrency) {
@@ -551,7 +551,7 @@ export default class gemini extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
-        const method = this.safeString(this.options, 'fetchMarketsMethod', 'fetch_markets_from_api');
+        const method = this.safeValue(this.options, 'fetchMarketsMethod', 'fetch_markets_from_api');
         if (method === 'fetch_markets_from_web') {
             const promises = [];
             promises.push(this.fetchMarketsFromWeb(params)); // get usd markets
@@ -1019,7 +1019,7 @@ export default class gemini extends Exchange {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        const method = this.safeString(this.options, 'fetchTickerMethod', 'fetchTickerV1');
+        const method = this.safeValue(this.options, 'fetchTickerMethod', 'fetchTickerV1');
         if (method === 'fetchTickerV1') {
             return await this.fetchTickerV1(symbol, params);
         }
@@ -1065,7 +1065,7 @@ export default class gemini extends Exchange {
         //         "ask":"9115.87"
         //     }
         //
-        const volume = this.safeDict(ticker, 'volume', {});
+        const volume = this.safeValue(ticker, 'volume', {});
         const timestamp = this.safeInteger(volume, 'timestamp');
         let symbol = undefined;
         const marketId = this.safeStringLower(ticker, 'pair');
@@ -1478,7 +1478,7 @@ export default class gemini extends Exchange {
         const id = this.safeString(order, 'order_id');
         const side = this.safeStringLower(order, 'side');
         const clientOrderId = this.safeString(order, 'client_order_id');
-        const optionsArray = this.safeList(order, 'options', []);
+        const optionsArray = this.safeValue(order, 'options', []);
         const option = this.safeString(optionsArray, 0);
         let timeInForce = 'GTC';
         let postOnly = false;

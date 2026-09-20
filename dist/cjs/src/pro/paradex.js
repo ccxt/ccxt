@@ -634,7 +634,7 @@ class paradex extends paradex$1["default"] {
         //         }
         //     }
         //
-        const result = this.safeDict(message, 'result');
+        const result = this.safeValue(message, 'result');
         if (result !== undefined) {
             this.handleAuthenticationMessage(client, message);
             return;

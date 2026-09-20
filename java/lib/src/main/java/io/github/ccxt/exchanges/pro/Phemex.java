@@ -21,7 +21,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 public class Phemex extends io.github.ccxt.exchanges.Phemex
 {
@@ -71,7 +70,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
 
     public String fromEn(Object en, Object scale)
     {
-        if (java.util.Objects.equals(en, null))
+        if (Helpers.isTrue(Helpers.isEqual(en, null)))
         {
             return null;
         }
@@ -83,8 +82,8 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
 
     public Object fromEp(Object ep, Object... optionalArgs)
     {
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        if ((java.util.Objects.equals(ep, null)) || (java.util.Objects.equals(market, null)))
+        Object market = Helpers.getArg(optionalArgs, 0, null);
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(ep, null))) || Helpers.isTrue((Helpers.isEqual(market, null)))))
         {
             return ep;
         }
@@ -93,8 +92,8 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
 
     public Object fromEv(Object ev, Object... optionalArgs)
     {
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        if ((java.util.Objects.equals(ev, null)) || (java.util.Objects.equals(market, null)))
+        Object market = Helpers.getArg(optionalArgs, 0, null);
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(ev, null))) || Helpers.isTrue((Helpers.isEqual(market, null)))))
         {
             return ev;
         }
@@ -103,8 +102,8 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
 
     public Object fromEr(Object er, Object... optionalArgs)
     {
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        if ((java.util.Objects.equals(er, null)) || (java.util.Objects.equals(market, null)))
+        Object market = Helpers.getArg(optionalArgs, 0, null);
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(er, null))) || Helpers.isTrue((Helpers.isEqual(market, null)))))
         {
             return er;
         }
@@ -121,7 +120,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         return requestId;
     }
 
-    public Object parseSwapTicker(Map<String, Object> ticker, Object... optionalArgs)
+    public Object parseSwapTicker(Object ticker, Object... optionalArgs)
     {
         //
         //     {
@@ -139,11 +138,11 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         //         "volume": 934292
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(ticker, "symbol");
         Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market);
         market = marketResolved;
-        Object symbol = ((Map<String, Object>)marketResolved).get("symbol");
+        Object symbol = Helpers.GetValue(marketResolved, "symbol");
         Long timestamp = this.safeIntegerProduct(ticker, "timestamp", 0.000001);
         Object lastString = this.fromEp(this.safeString(ticker, "close"), market);
         Object last = this.parseNumber(lastString);
@@ -154,7 +153,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         Object average = null;
         Object openString = this.omitZero(this.fromEp(this.safeString(ticker, "open"), market));
         Object open = this.parseNumber(openString);
-        if ((!java.util.Objects.equals(openString, null)) && (!java.util.Objects.equals(lastString, null)))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(openString, null))) && Helpers.isTrue((!Helpers.isEqual(lastString, null)))))
         {
             change = this.parseNumber(Precise.stringSub(lastString, openString));
             average = this.parseNumber(Precise.stringDiv(Precise.stringAdd(lastString, openString), "2"));
@@ -208,11 +207,11 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         //        "0.0001",
         //    ]
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(ticker, 0);
         Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market);
         market = marketResolved;
-        Object symbol = ((Map<String, Object>)marketResolved).get("symbol");
+        Object symbol = Helpers.GetValue(marketResolved, "symbol");
         Object lastString = this.fromEp(this.safeString(ticker, 4), market);
         Object last = this.parseNumber(lastString);
         Object quoteVolume = this.parseNumber(this.fromEv(this.safeString(ticker, 6), market));
@@ -222,7 +221,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         Object average = null;
         Object openString = this.omitZero(this.fromEp(this.safeString(ticker, 1), market));
         Object open = this.parseNumber(openString);
-        if ((!java.util.Objects.equals(openString, null)) && (!java.util.Objects.equals(lastString, null)))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(openString, null))) && Helpers.isTrue((!Helpers.isEqual(lastString, null)))))
         {
             change = this.parseNumber(Precise.stringSub(lastString, openString));
             average = this.parseNumber(Precise.stringDiv(Precise.stringAdd(lastString, openString), "2"));
@@ -256,7 +255,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         }});
     }
 
-    public void handleTicker(Client client, Map<String, Object> message)
+    public void handleTicker(Client client, Object message)
     {
         //
         //     {
@@ -334,25 +333,25 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         //    }
         //
         List<Object> tickers = new ArrayList<Object>(Arrays.asList());
-        if (message.containsKey("market24h"))
+        if (Helpers.isTrue(Helpers.inOp(message, "market24h")))
         {
             Object ticker = this.safeValue(message, "market24h");
-            ((List<Object>)tickers).add(this.parseSwapTicker((Map<String, Object>) (ticker)));
-        } else if (message.containsKey("spot_market24h"))
+            ((List<Object>)tickers).add(this.parseSwapTicker(ticker));
+        } else if (Helpers.isTrue(Helpers.inOp(message, "spot_market24h")))
         {
             Object ticker = this.safeValue(message, "spot_market24h");
-            ((List<Object>)tickers).add(this.parseTicker((Map<String, Object>) (ticker)));
-        } else if (message.containsKey("data"))
+            ((List<Object>)tickers).add(this.parseTicker(ticker));
+        } else if (Helpers.isTrue(Helpers.inOp(message, "data")))
         {
-            List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
-                ((List<Object>)tickers).add(this.parsePerpetualTicker((data == null || i < 0 || i >= data.size() ? null : data.get(i))));
+                ((List<Object>)tickers).add(this.parsePerpetualTicker(Helpers.GetValue(data, i)));
             }
         }
-        for (var i = 0; i < ((List<?>)tickers).size(); i++)
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tickers)); i++)
         {
-            Object ticker = (tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i));
+            Object ticker = Helpers.GetValue(tickers, i);
             Object symbol = Helpers.GetValue(ticker, "symbol");
             String messageHash = Helpers.add("ticker:", symbol);
             Long timestamp = this.safeIntegerProduct(message, "timestamp", 0.000001);
@@ -379,8 +378,8 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
@@ -388,10 +387,10 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("watchBalance", null, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
             parameters = ((List<Object>) typeparametersVariable).get(1);
-            Boolean usePerpetualApi = java.util.Objects.equals(this.safeString(parameters, "settle"), "USDT");
+            Boolean usePerpetualApi = Helpers.isEqual(this.safeString(parameters, "settle"), "USDT");
             Object messageHash = ":balance";
-            messageHash = ((Boolean.TRUE.equals(usePerpetualApi))) ? ("perpetual" + messageHash) : Helpers.add(type, messageHash);
-            return (this.subscribePrivate((String) (type), messageHash, parameters)).join();
+            messageHash = ((Helpers.isTrue(usePerpetualApi))) ? Helpers.add("perpetual", messageHash) : Helpers.add(type, messageHash);
+            return (this.subscribePrivate(type, messageHash, parameters)).join();
         }).thenApply(Balances::new);
 
     }
@@ -441,19 +440,19 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         //    ]
         //
         Helpers.addElementToObject(this.balance, "info", message);
-        for (var i = 0; i < ((List<?>)message).size(); i++)
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(message)); i++)
         {
-            Object balance = (message == null || i < 0 || i >= ((List<?>)message).size() ? null : ((List<?>)message).get(i));
+            Object balance = Helpers.GetValue(message, i);
             String currencyId = this.safeString(balance, "currency");
-            String code = this.safeCurrencyCode((String) (currencyId));
-            Map<String, Object> currency = (Map<String, Object>) this.safeDict(this.currencies, code, new HashMap<String, Object>() {{}});
+            String code = this.safeCurrencyCode(currencyId);
+            Object currency = this.safeValue(this.currencies, code, new HashMap<String, Object>() {{}});
             Long scale = this.safeInteger(currency, "valueScale", 8);
             Object account = this.account();
             String used = this.safeString(balance, "totalUsedBalanceRv");
-            if (java.util.Objects.equals(used, null))
+            if (Helpers.isTrue(Helpers.isEqual(used, null)))
             {
                 String usedEv = this.safeString(balance, "totalUsedBalanceEv");
-                if (java.util.Objects.equals(usedEv, null))
+                if (Helpers.isTrue(Helpers.isEqual(usedEv, null)))
                 {
                     String lockedTradingBalanceEv = this.safeString(balance, "lockedTradingBalanceEv");
                     String lockedWithdrawEv = this.safeString2(balance, "lockedWithdrawEv", "lockedWithdrawRv");
@@ -462,24 +461,24 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                 used = this.fromEn(usedEv, scale);
             }
             String total = this.safeString(balance, "accountBalanceRv");
-            if (java.util.Objects.equals(total, null))
+            if (Helpers.isTrue(Helpers.isEqual(total, null)))
             {
                 String totalEv = this.safeString2(balance, "accountBalanceEv", "balanceEv");
                 total = this.fromEn(totalEv, scale);
             }
-            ((Map<String, Object>)account).put("used", used);
-            ((Map<String, Object>)account).put("total", total);
-            if (!java.util.Objects.equals(code, null))
+            Helpers.addElementToObject(account, "used", used);
+            Helpers.addElementToObject(account, "total", total);
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
                 Helpers.addElementToObject(this.balance, code, account);
             }
             this.balance = this.safeBalance(this.balance);
         }
-        String messageHash = (type + ":balance");
+        Object messageHash = Helpers.add(type, ":balance");
         client.resolve(this.balance, messageHash);
     }
 
-    public void handleTrades(Client client, Map<String, Object> message)
+    public void handleTrades(Client client, Object message)
     {
         //
         //     {
@@ -510,25 +509,25 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         String name = "trade";
         String marketId = this.safeString(message, "symbol");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-        Object symbol = ((Map<String, Object>)market).get("symbol");
-        String messageHash = ((name + ":") + symbol);
+        Object symbol = Helpers.GetValue(market, "symbol");
+        Object messageHash = Helpers.add(Helpers.add(name, ":"), symbol);
         Object stored = this.safeValue(this.trades, symbol);
-        if (java.util.Objects.equals(stored, null))
+        if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
-        List<Object> trades = (List<Object>) this.safeList2(message, "trades", "trades_p", new ArrayList<Object>(Arrays.asList()));
+        Object trades = this.safeValue2(message, "trades", "trades_p", new ArrayList<Object>(Arrays.asList()));
         List<Object> parsed = this.parseTrades(trades, market);
-        for (var i = 0; i < ((List<?>)parsed).size(); i++)
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(parsed)); i++)
         {
-            Helpers.callDynamically(stored, "append", new Object[]{(parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i))});
+            Helpers.callDynamically(stored, "append", new Object[]{Helpers.GetValue(parsed, i)});
         }
         client.resolve(stored, messageHash);
     }
 
-    public void handleOHLCV(Client client, Map<String, Object> message)
+    public void handleOHLCV(Client client, Object message)
     {
         //
         //     {
@@ -563,26 +562,26 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         //
         String marketId = this.safeString(message, "symbol");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-        Object symbol = ((Map<String, Object>)market).get("symbol");
-        List<Object> candles = (List<Object>) this.safeList2(message, "kline", "kline_p", new ArrayList<Object>(Arrays.asList()));
-        List<Object> first = (List<Object>) this.safeList(candles, 0, new ArrayList<Object>(Arrays.asList()));
+        Object symbol = Helpers.GetValue(market, "symbol");
+        Object candles = this.safeValue2(message, "kline", "kline_p", new ArrayList<Object>(Arrays.asList()));
+        Object first = this.safeValue(candles, 0, new ArrayList<Object>(Arrays.asList()));
         String interval = this.safeString(first, 1);
         Object timeframe = this.findTimeframe(interval);
-        if (!java.util.Objects.equals(timeframe, null))
+        if (Helpers.isTrue(!Helpers.isEqual(timeframe, null)))
         {
-            String messageHash = ((("kline:" + timeframe) + ":") + symbol);
+            String messageHash = Helpers.add(Helpers.add(Helpers.add("kline:", timeframe), ":"), symbol);
             List<Object> ohlcvs = this.parseOHLCVs(candles, market);
-            Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
-            Object stored = this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
-            if (java.util.Objects.equals(stored, null))
+            Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
+            Object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
+            if (Helpers.isTrue(Helpers.isEqual(stored, null)))
             {
                 Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                 stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-                Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
+                Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), timeframe, stored);
             }
-            for (var i = 0; i < ((List<?>)ohlcvs).size(); i++)
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ohlcvs)); i++)
             {
-                Object candle = (ohlcvs == null || i < 0 || i >= ohlcvs.size() ? null : ohlcvs.get(i));
+                Object candle = Helpers.GetValue(ohlcvs, i);
                 Helpers.callDynamically(stored, "append", new Object[]{candle});
             }
             client.resolve(stored, messageHash);
@@ -605,24 +604,24 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         final Object symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
-            Object isSwap = ((Map<String, Object>)market).get("swap");
-            Boolean settleIsUSDT = java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDT");
+            symbol = Helpers.GetValue(market, "symbol");
+            Object isSwap = Helpers.GetValue(market, "swap");
+            Boolean settleIsUSDT = Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDT");
             String name = "spot_market24h";
-            if (java.util.Objects.equals(isSwap, true))
+            if (Helpers.isTrue(Helpers.isEqual(isSwap, true)))
             {
-                name = ((Boolean.TRUE.equals(settleIsUSDT))) ? "perp_market24h_pack_p" : "market24h";
+                name = ((Helpers.isTrue(settleIsUSDT))) ? "perp_market24h_pack_p" : "market24h";
             }
-            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object requestId = this.requestId();
-            String subscriptionHash = (name + ".subscribe");
-            String messageHash = ("ticker:" + symbol);
+            Object subscriptionHash = Helpers.add(name, ".subscribe");
+            String messageHash = Helpers.add("ticker:", symbol);
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "method", subscriptionHash );
                 put( "id", requestId );
@@ -651,29 +650,29 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object symbols = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, false);
-            Object first = (symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0));
+            Object first = Helpers.GetValue(symbols, 0);
             Map<String, Object> market = (Map<String, Object>) this.market(first);
-            Object isSwap = ((Map<String, Object>)market).get("swap");
-            Boolean settleIsUSDT = java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDT");
+            Object isSwap = Helpers.GetValue(market, "swap");
+            Boolean settleIsUSDT = Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDT");
             String name = "spot_market24h";
-            if (java.util.Objects.equals(isSwap, true))
+            if (Helpers.isTrue(Helpers.isEqual(isSwap, true)))
             {
-                name = ((Boolean.TRUE.equals(settleIsUSDT))) ? "perp_market24h_pack_p" : "market24h";
+                name = ((Helpers.isTrue(settleIsUSDT))) ? "perp_market24h_pack_p" : "market24h";
             }
-            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object requestId = this.requestId();
-            String subscriptionHash = (name + ".subscribe");
+            Object subscriptionHash = Helpers.add(name, ".subscribe");
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)symbols).size(); i++)
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
-                ((List<Object>)messageHashes).add(("ticker:" + (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i))));
+                ((List<Object>)messageHashes).add(Helpers.add("ticker:", Helpers.GetValue(symbols, i)));
             }
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "method", subscriptionHash );
@@ -681,8 +680,8 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                 put( "params", new ArrayList<Object>(Arrays.asList()) );
             }};
             Map<String, Object> request = this.deepExtend(subscribe, parameters);
-            Object ticker = (this.watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
-            if (this.newUpdates)
+            Object ticker = (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
+            if (Helpers.isTrue(this.newUpdates))
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(result, Helpers.GetValue(ticker, "symbol"), ticker);
@@ -711,36 +710,36 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         final Object symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
-            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object since = Helpers.getArg(optionalArgs, 0, null);
+            Object limit = Helpers.getArg(optionalArgs, 1, null);
+            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
-            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            symbol = Helpers.GetValue(market, "symbol");
+            Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object requestId = this.requestId();
-            Object isSwap = ((Map<String, Object>)market).get("swap");
-            Boolean settleIsUSDT = java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDT");
-            Boolean isUsdtSwap = (java.util.Objects.equals(isSwap, true)) && Boolean.TRUE.equals(settleIsUSDT);
-            String name = ((Boolean.TRUE.equals(isUsdtSwap))) ? "trade_p" : "trade";
-            String messageHash = ("trade:" + symbol);
-            Object method = (name + ".subscribe");
+            Object isSwap = Helpers.GetValue(market, "swap");
+            Boolean settleIsUSDT = Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDT");
+            Boolean isUsdtSwap = Helpers.isTrue((Helpers.isEqual(isSwap, true))) && Helpers.isTrue(settleIsUSDT);
+            String name = ((Helpers.isTrue(isUsdtSwap))) ? "trade_p" : "trade";
+            String messageHash = Helpers.add("trade:", symbol);
+            Object method = Helpers.add(name, ".subscribe");
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "method", method );
                 put( "id", requestId );
-                put( "params", new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("id"))) );
+                put( "params", new ArrayList<Object>(Arrays.asList(Helpers.GetValue(market, "id"))) );
             }};
             Map<String, Object> request = this.deepExtend(subscribe, parameters);
             Object trades = (this.watch(url, messageHash, request, messageHash, null)).join();
-            if (this.newUpdates)
+            if (Helpers.isTrue(this.newUpdates))
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -762,26 +761,26 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         final Object symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
-            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object limit = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
-            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            symbol = Helpers.GetValue(market, "symbol");
+            Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object requestId = this.requestId();
-            Object isSwap = ((Map<String, Object>)market).get("swap");
-            Boolean settleIsUSDT = java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDT");
-            Boolean isUsdtSwap = (java.util.Objects.equals(isSwap, true)) && Boolean.TRUE.equals(settleIsUSDT);
-            String name = ((Boolean.TRUE.equals(isUsdtSwap))) ? "orderbook_p" : "orderbook";
-            String messageHash = ("orderbook:" + symbol);
-            Object method = (name + ".subscribe");
+            Object isSwap = Helpers.GetValue(market, "swap");
+            Boolean settleIsUSDT = Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDT");
+            Boolean isUsdtSwap = Helpers.isTrue((Helpers.isEqual(isSwap, true))) && Helpers.isTrue(settleIsUSDT);
+            String name = ((Helpers.isTrue(isUsdtSwap))) ? "orderbook_p" : "orderbook";
+            String messageHash = Helpers.add("orderbook:", symbol);
+            Object method = Helpers.add(name, ".subscribe");
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "method", method );
                 put( "id", requestId );
-                put( "params", new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("id"))) );
+                put( "params", new ArrayList<Object>(Arrays.asList(Helpers.GetValue(market, "id"))) );
             }};
             Map<String, Object> request = this.deepExtend(subscribe, parameters);
             Object orderbook = (this.watch(url, messageHash, request, messageHash, null)).join();
@@ -809,57 +808,57 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         final Object symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
-            Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
-            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            symbol = Helpers.GetValue(market, "symbol");
+            Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object requestId = this.requestId();
-            Object isSwap = ((Map<String, Object>)market).get("swap");
-            Boolean settleIsUSDT = java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDT");
-            Boolean isUsdtSwap = (java.util.Objects.equals(isSwap, true)) && Boolean.TRUE.equals(settleIsUSDT);
-            String name = ((Boolean.TRUE.equals(isUsdtSwap))) ? "kline_p" : "kline";
-            String messageHash = ((("kline:" + timeframe) + ":") + symbol);
-            Object method = (name + ".subscribe");
+            Object isSwap = Helpers.GetValue(market, "swap");
+            Boolean settleIsUSDT = Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDT");
+            Boolean isUsdtSwap = Helpers.isTrue((Helpers.isEqual(isSwap, true))) && Helpers.isTrue(settleIsUSDT);
+            String name = ((Helpers.isTrue(isUsdtSwap))) ? "kline_p" : "kline";
+            String messageHash = Helpers.add(Helpers.add(Helpers.add("kline:", timeframe), ":"), symbol);
+            Object method = Helpers.add(name, ".subscribe");
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "method", method );
                 put( "id", requestId );
-                put( "params", new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("id"), Phemex.this.safeInteger(Phemex.this.timeframes, timeframe))) );
+                put( "params", new ArrayList<Object>(Arrays.asList(Helpers.GetValue(market, "id"), Phemex.this.safeInteger(Phemex.this.timeframes, timeframe))) );
             }};
             Map<String, Object> request = this.deepExtend(subscribe, parameters);
             Object ohlcv = (this.watch(url, messageHash, request, messageHash, null)).join();
-            if (this.newUpdates)
+            if (Helpers.isTrue(this.newUpdates))
             {
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
-        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
     public void customHandleDelta(Object bookside, Object delta, Object... optionalArgs)
     {
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        Object market = Helpers.getArg(optionalArgs, 0, null);
         Object bidAsk = this.customParseBidAsk(delta, 0, 1, market);
         Helpers.callDynamically(bookside, "storeArray", new Object[]{bidAsk});
     }
 
     public void customHandleDeltas(Object bookside, Object deltas, Object... optionalArgs)
     {
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        for (var i = 0; i < ((List<?>)deltas).size(); i++)
+        Object market = Helpers.getArg(optionalArgs, 0, null);
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(deltas)); i++)
         {
-            this.customHandleDelta(bookside, (deltas == null || i < 0 || i >= ((List<?>)deltas).size() ? null : ((List<?>)deltas).get(i)), market);
+            this.customHandleDelta(bookside, Helpers.GetValue(deltas, i), market);
         }
     }
 
-    public void handleOrderBook(Client client, Map<String, Object> message)
+    public void handleOrderBook(Client client, Object message)
     {
         //
         //     {
@@ -906,29 +905,29 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         //
         String marketId = this.safeString(message, "symbol");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-        Object symbol = ((Map<String, Object>)market).get("symbol");
+        Object symbol = Helpers.GetValue(market, "symbol");
         String type = this.safeString(message, "type");
         Long depth = this.safeInteger(message, "depth");
         String name = "orderbook";
-        String messageHash = ((name + ":") + symbol);
+        Object messageHash = Helpers.add(Helpers.add(name, ":"), symbol);
         Long nonce = this.safeInteger(message, "sequence");
         Long timestamp = this.safeIntegerProduct(message, "timestamp", 0.000001);
-        if (java.util.Objects.equals(type, "snapshot"))
+        if (Helpers.isTrue(Helpers.isEqual(type, "snapshot")))
         {
-            Object book = this.safeDict2(message, "book", "orderbook_p", new HashMap<String, Object>() {{}});
-            Object snapshot = this.customParseOrderBook((Map<String, Object>) (book), symbol, timestamp, "bids", "asks", 0, 1, market);
-            ((Map<String, Object>)snapshot).put("nonce", nonce);
+            Object book = this.safeValue2(message, "book", "orderbook_p", new HashMap<String, Object>() {{}});
+            Object snapshot = this.customParseOrderBook(book, symbol, timestamp, "bids", "asks", 0, 1, market);
+            Helpers.addElementToObject(snapshot, "nonce", nonce);
             io.github.ccxt.ws.WsOrderBook orderbook = this.orderBook(snapshot, depth);
             Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
             client.resolve(orderbook, messageHash);
         } else
         {
-            if (((Map<?, ?>)this.orderbooks).containsKey(symbol))
+            if (Helpers.isTrue(Helpers.inOp(this.orderbooks, symbol)))
             {
-                io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
+                io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
                 Object changes = this.safeDict2(message, "book", "orderbook_p", new HashMap<String, Object>() {{}});
-                List<Object> asks = (List<Object>) this.safeList(changes, "asks", new ArrayList<Object>(Arrays.asList()));
-                List<Object> bids = (List<Object>) this.safeList(changes, "bids", new ArrayList<Object>(Arrays.asList()));
+                Object asks = this.safeList(changes, "asks", new ArrayList<Object>(Arrays.asList()));
+                Object bids = this.safeList(changes, "bids", new ArrayList<Object>(Arrays.asList()));
                 this.customHandleDeltas(Helpers.GetValue(orderbook, "asks"), asks, market);
                 this.customHandleDeltas(Helpers.GetValue(orderbook, "bids"), bids, market);
                 Helpers.addElementToObject(orderbook, "nonce", nonce);
@@ -955,43 +954,43 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object market = null;
             Object type = null;
             Object messageHash = "trades:";
-            if (!java.util.Objects.equals(symbol, null))
+            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);
-                symbol = ((Map<String, Object>)market).get("symbol");
-                messageHash = Helpers.add(messageHash, ((Map<String, Object>)market).get("symbol"));
-                if (java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDT"))
+                symbol = Helpers.GetValue(market, "symbol");
+                messageHash = Helpers.add(messageHash, Helpers.GetValue(market, "symbol"));
+                if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDT")))
                 {
                     parameters = this.extend(parameters);
-                    ((Map<String, Object>)parameters).put("settle", "USDT");
+                    Helpers.addElementToObject(parameters, "settle", "USDT");
                 }
             }
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("watchMyTrades", market, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
             parameters = ((List<Object>) typeparametersVariable).get(1);
-            if (java.util.Objects.equals(symbol, null))
+            if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
                 String settle = this.safeString(parameters, "settle");
-                messageHash = (((java.util.Objects.equals(settle, "USDT")))) ? ((messageHash + "perpetual")) : (Helpers.add(messageHash, type));
+                messageHash = ((Helpers.isTrue((Helpers.isEqual(settle, "USDT"))))) ? (Helpers.add(messageHash, "perpetual")) : (Helpers.add(messageHash, type));
             }
-            Object trades = (this.subscribePrivate((String) (type), messageHash, parameters)).join();
-            if (this.newUpdates)
+            Object trades = (this.subscribePrivate(type, messageHash, parameters)).join();
+            if (Helpers.isTrue(this.newUpdates))
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1091,45 +1090,45 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         //    ]
         //
         String channel = "trades";
-        Object tradesLength = ((List<?>)message).size();
-        if (java.util.Objects.equals(tradesLength, 0))
+        Object tradesLength = Helpers.getArrayLength(message);
+        if (Helpers.isTrue(Helpers.isEqual(tradesLength, 0)))
         {
             return;
         }
         Object cachedTrades = this.myTrades;
-        if (java.util.Objects.equals(cachedTrades, null))
+        if (Helpers.isTrue(Helpers.isEqual(cachedTrades, null)))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             cachedTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Map<String, Object> marketIds = new HashMap<String, Object>() {{}};
         Object type = null;
-        for (var i = 0; i < ((List<?>)message).size(); i++)
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(message)); i++)
         {
-            Object rawTrade = (message == null || i < 0 || i >= ((List<?>)message).size() ? null : ((List<?>)message).get(i));
+            Object rawTrade = Helpers.GetValue(message, i);
             String marketId = this.safeString(rawTrade, "symbol");
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-            Map<String, Object> parsed = (Map<String, Object>) this.parseTrade(rawTrade);
+            Object parsed = this.parseTrade(rawTrade);
             Helpers.callDynamically(cachedTrades, "append", new Object[]{parsed});
-            Object symbol = ((Map<String, Object>)parsed).get("symbol");
-            if (java.util.Objects.equals(type, null))
+            Object symbol = Helpers.GetValue(parsed, "symbol");
+            if (Helpers.isTrue(Helpers.isEqual(type, null)))
             {
-                type = (((java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDT")))) ? "perpetual" : ((Map<String, Object>)market).get("type");
+                type = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDT"))))) ? "perpetual" : Helpers.GetValue(market, "type");
             }
-            if (!java.util.Objects.equals(symbol, null))
+            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                ((Map<String, Object>)marketIds).put((String)symbol, true);
+                Helpers.addElementToObject(marketIds, symbol, true);
             }
         }
-        List<Object> keys = new ArrayList<Object>(marketIds.keySet());
-        for (var i = 0; i < ((List<?>)keys).size(); i++)
+        Object keys = Helpers.objectKeys(marketIds);
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
-            Object market = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            String hash = ((channel + ":") + market);
+            Object market = Helpers.GetValue(keys, i);
+            Object hash = Helpers.add(Helpers.add(channel, ":"), market);
             client.resolve(cachedTrades, hash);
         }
         // generic subscription
-        Object messageHash = ((channel + ":") + type);
+        Object messageHash = Helpers.add(Helpers.add(channel, ":"), type);
         client.resolve(cachedTrades, messageHash);
     }
 
@@ -1148,43 +1147,43 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object messageHash = "orders:";
             Object market = null;
             Object type = null;
-            if (!java.util.Objects.equals(symbol, null))
+            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);
-                symbol = ((Map<String, Object>)market).get("symbol");
-                messageHash = Helpers.add(messageHash, ((Map<String, Object>)market).get("symbol"));
-                if (java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDT"))
+                symbol = Helpers.GetValue(market, "symbol");
+                messageHash = Helpers.add(messageHash, Helpers.GetValue(market, "symbol"));
+                if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDT")))
                 {
                     parameters = this.extend(parameters);
-                    ((Map<String, Object>)parameters).put("settle", "USDT");
+                    Helpers.addElementToObject(parameters, "settle", "USDT");
                 }
             }
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("watchOrders", market, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
             parameters = ((List<Object>) typeparametersVariable).get(1);
-            Boolean isUSDTSettled = java.util.Objects.equals(this.safeString(parameters, "settle"), "USDT");
-            if (java.util.Objects.equals(symbol, null))
+            Boolean isUSDTSettled = Helpers.isEqual(this.safeString(parameters, "settle"), "USDT");
+            if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                messageHash = ((Boolean.TRUE.equals(isUSDTSettled))) ? ((messageHash + "perpetual")) : (Helpers.add(messageHash, type));
+                messageHash = ((Helpers.isTrue((isUSDTSettled)))) ? (Helpers.add(messageHash, "perpetual")) : (Helpers.add(messageHash, type));
             }
-            Object orders = (this.subscribePrivate((String) (type), messageHash, parameters)).join();
-            if (this.newUpdates)
+            Object orders = (this.subscribePrivate(type, messageHash, parameters)).join();
+            if (Helpers.isTrue(this.newUpdates))
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
@@ -1350,77 +1349,77 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         //
         Object trades = new ArrayList<Object>(Arrays.asList());
         List<Object> parsedOrders = new ArrayList<Object>(Arrays.asList());
-        if ((Helpers.inOp(message, "closed")) || (Helpers.inOp(message, "fills")) || (Helpers.inOp(message, "open")))
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.inOp(message, "closed"))) || Helpers.isTrue((Helpers.inOp(message, "fills")))) || Helpers.isTrue((Helpers.inOp(message, "open")))))
         {
-            List<Object> closed = (List<Object>) this.safeList(message, "closed", new ArrayList<Object>(Arrays.asList()));
-            List<Object> open = (List<Object>) this.safeList(message, "open", new ArrayList<Object>(Arrays.asList()));
+            Object closed = this.safeValue(message, "closed", new ArrayList<Object>(Arrays.asList()));
+            Object open = this.safeValue(message, "open", new ArrayList<Object>(Arrays.asList()));
             List<Object> orders = (List<Object>) this.arrayConcat(open, closed);
-            Object ordersLength = ((List<?>)orders).size();
-            if (java.util.Objects.equals(ordersLength, 0))
+            Object ordersLength = Helpers.getArrayLength(orders);
+            if (Helpers.isTrue(Helpers.isEqual(ordersLength, 0)))
             {
                 return;
             }
             trades = this.safeList(message, "fills", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < ((List<?>)orders).size(); i++)
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
-                Object rawOrder = (orders == null || i < 0 || i >= orders.size() ? null : orders.get(i));
-                Map<String, Object> parsedOrder = (Map<String, Object>) this.parseOrder(rawOrder);
+                Object rawOrder = Helpers.GetValue(orders, i);
+                Object parsedOrder = this.parseOrder(rawOrder);
                 ((List<Object>)parsedOrders).add(parsedOrder);
             }
         } else
         {
             Object messageLength = Helpers.getArrayLength(message);
-            if (Helpers.isEqual(messageLength, 0))
+            if (Helpers.isTrue(Helpers.isEqual(messageLength, 0)))
             {
                 return;
             }
-            for (var i = 0; i < Helpers.getArrayLength(message); i++)
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(message)); i++)
             {
                 Object update = Helpers.GetValue(message, i);
                 String action = this.safeString(update, "action");
-                if ((!java.util.Objects.equals(action, null)) && (!java.util.Objects.equals(action, "Cancel")))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(action, null))) && Helpers.isTrue((!Helpers.isEqual(action, "Cancel")))))
                 {
                     // order + trade info together
                     ((List<Object>)trades).add(update);
                 }
-                Object parsedOrder = this.parseWSSwapOrder((Map<String, Object>) (update));
+                Object parsedOrder = this.parseWSSwapOrder(update);
                 ((List<Object>)parsedOrders).add(parsedOrder);
             }
         }
         this.handleMyTrades(client, trades);
         Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
         Map<String, Object> marketIds = new HashMap<String, Object>() {{}};
-        if (java.util.Objects.equals(this.orders, null))
+        if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object type = null;
         Object stored = this.orders;
-        for (var i = 0; i < ((List<?>)parsedOrders).size(); i++)
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(parsedOrders)); i++)
         {
-            Object parsed = (parsedOrders == null || i < 0 || i >= parsedOrders.size() ? null : parsedOrders.get(i));
+            Object parsed = Helpers.GetValue(parsedOrders, i);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
             Object symbol = Helpers.GetValue(parsed, "symbol");
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            if (java.util.Objects.equals(type, null))
+            if (Helpers.isTrue(Helpers.isEqual(type, null)))
             {
-                Boolean isUsdt = java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDT");
-                type = ((Boolean.TRUE.equals(isUsdt))) ? "perpetual" : ((Map<String, Object>)market).get("type");
+                Boolean isUsdt = Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDT");
+                type = ((Helpers.isTrue(isUsdt))) ? "perpetual" : Helpers.GetValue(market, "type");
             }
             Helpers.addElementToObject(marketIds, symbol, true);
         }
-        List<Object> keys = new ArrayList<Object>(marketIds.keySet());
-        for (var i = 0; i < ((List<?>)keys).size(); i++)
+        Object keys = Helpers.objectKeys(marketIds);
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
-            String currentMessageHash = (("orders" + ":") + (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i)));
+            Object currentMessageHash = Helpers.add(Helpers.add("orders", ":"), Helpers.GetValue(keys, i));
             client.resolve(this.orders, currentMessageHash);
         }
         // resolve generic subscription (spot or swap)
-        String messageHash = ("orders:" + type);
+        String messageHash = Helpers.add("orders:", type);
         client.resolve(this.orders, messageHash);
     }
 
-    public Object parseWSSwapOrder(Map<String, Object> order, Object... optionalArgs)
+    public Object parseWSSwapOrder(Object order, Object... optionalArgs)
     {
         //
         // swap
@@ -1544,17 +1543,17 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         //        "userID": 4018340
         //    }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        Object market = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString(order, "orderID");
         String clientOrderId = this.safeString(order, "clOrdID");
-        if ((!java.util.Objects.equals(clientOrderId, null)) && (clientOrderId.length() < 1))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(clientOrderId, null))) && Helpers.isTrue((Helpers.isLessThan(clientOrderId.length(), 1)))))
         {
             clientOrderId = null;
         }
         String marketId = this.safeString(order, "symbol");
         Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market);
         market = marketResolved;
-        Object symbol = ((Map<String, Object>)marketResolved).get("symbol");
+        Object symbol = Helpers.GetValue(marketResolved, "symbol");
         String status = this.parseOrderStatus(this.safeString(order, "ordStatus"));
         String side = this.safeStringLower(order, "side");
         String type = this.parseOrderType(this.safeString(order, "ordType"));
@@ -1565,17 +1564,17 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         Long timestamp = this.safeIntegerProduct(order, "actionTimeNs", 0.000001);
         String cost = this.safeString(order, "cumValueRv", this.fromEv(this.safeString(order, "cumValueEv"), market));
         Long lastTradeTimestamp = this.safeIntegerProduct(order, "transactTimeNs", 0.000001);
-        if ((lastTradeTimestamp != null && lastTradeTimestamp == 0))
+        if (Helpers.isTrue(Helpers.isEqual(lastTradeTimestamp, 0)))
         {
             lastTradeTimestamp = null;
         }
         String timeInForce = this.parseTimeInForce(this.safeString(order, "timeInForce"));
         String stopPrice = this.safeString(order, "stopPx");
-        Boolean postOnly = (java.util.Objects.equals(timeInForce, "PO"));
+        Boolean postOnly = (Helpers.isEqual(timeInForce, "PO"));
         final Object finalClientOrderId = clientOrderId;
         final Object finalLastTradeTimestamp = lastTradeTimestamp;
         final Object finalTimeInForce = timeInForce;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "info", order );
             put( "id", id );
             put( "clientOrderId", finalClientOrderId );
@@ -1598,7 +1597,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             put( "status", status );
             put( "fee", null );
             put( "trades", null );
-        }}), market);
+        }}, market);
     }
 
     public void handleMessage(Client client, Object message)
@@ -1699,52 +1698,52 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         //     ]
         // }
         String id = this.safeString(message, "id", "");
-        if (((Map<?, ?>)client.subscriptions).containsKey(id))
+        if (Helpers.isTrue(Helpers.inOp(client.subscriptions, id)))
         {
             Object method = this.safeValue(client.subscriptions, id);
             ((Map<String,Object>)client.subscriptions).remove((String)id);
-            if (!java.util.Objects.equals(method, true))
+            if (Helpers.isTrue(!Helpers.isEqual(method, true)))
             {
                 Helpers.callDynamically(this, method, new Object[] {client, message});
                 return;
             }
         }
         String methodName = this.safeString(message, "method", "");
-        if ((((Map<?, ?>)message).containsKey("market24h")) || (((Map<?, ?>)message).containsKey("spot_market24h")) || (((String)methodName).indexOf("perp_market24h_pack_p") >= 0))
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.inOp(message, "market24h"))) || Helpers.isTrue((Helpers.inOp(message, "spot_market24h")))) || Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(methodName, "perp_market24h_pack_p"), 0)))))
         {
-            this.handleTicker(client, (Map<String, Object>) (message));
+            this.handleTicker(client, message);
             return;
-        } else if ((((Map<?, ?>)message).containsKey("trades")) || (((Map<?, ?>)message).containsKey("trades_p")))
+        } else if (Helpers.isTrue(Helpers.isTrue((Helpers.inOp(message, "trades"))) || Helpers.isTrue((Helpers.inOp(message, "trades_p")))))
         {
-            this.handleTrades(client, (Map<String, Object>) (message));
+            this.handleTrades(client, message);
             return;
-        } else if ((((Map<?, ?>)message).containsKey("kline")) || (((Map<?, ?>)message).containsKey("kline_p")))
+        } else if (Helpers.isTrue(Helpers.isTrue((Helpers.inOp(message, "kline"))) || Helpers.isTrue((Helpers.inOp(message, "kline_p")))))
         {
-            this.handleOHLCV(client, (Map<String, Object>) (message));
+            this.handleOHLCV(client, message);
             return;
-        } else if ((((Map<?, ?>)message).containsKey("book")) || (((Map<?, ?>)message).containsKey("orderbook_p")))
+        } else if (Helpers.isTrue(Helpers.isTrue((Helpers.inOp(message, "book"))) || Helpers.isTrue((Helpers.inOp(message, "orderbook_p")))))
         {
-            this.handleOrderBook(client, (Map<String, Object>) (message));
+            this.handleOrderBook(client, message);
             return;
         }
-        if ((((Map<?, ?>)message).containsKey("orders")) || (((Map<?, ?>)message).containsKey("orders_p")))
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.inOp(message, "orders"))) || Helpers.isTrue((Helpers.inOp(message, "orders_p")))))
         {
-            Object orders = this.safeDict2(message, "orders", "orders_p", new HashMap<String, Object>() {{}});
+            Object orders = this.safeValue2(message, "orders", "orders_p", new HashMap<String, Object>() {{}});
             this.handleOrders(client, orders);
         }
-        if ((((Map<?, ?>)message).containsKey("accounts")) || (((Map<?, ?>)message).containsKey("accounts_p")) || (((Map<?, ?>)message).containsKey("wallets")))
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.inOp(message, "accounts"))) || Helpers.isTrue((Helpers.inOp(message, "accounts_p")))) || Helpers.isTrue((Helpers.inOp(message, "wallets")))))
         {
-            String type = (((((Map<?, ?>)message).containsKey("accounts")))) ? "swap" : "spot";
-            if (((Map<?, ?>)message).containsKey("accounts_p"))
+            String type = ((Helpers.isTrue((Helpers.inOp(message, "accounts"))))) ? "swap" : "spot";
+            if (Helpers.isTrue(Helpers.inOp(message, "accounts_p")))
             {
                 type = "perpetual";
             }
-            List<Object> accounts = (List<Object>) this.safeListN(message, new ArrayList<Object>(Arrays.asList("accounts", "accounts_p", "wallets")), new ArrayList<Object>(Arrays.asList()));
+            Object accounts = this.safeValueN(message, new ArrayList<Object>(Arrays.asList("accounts", "accounts_p", "wallets")), new ArrayList<Object>(Arrays.asList()));
             this.handleBalance(type, client, accounts);
         }
     }
 
-    public void handleAuthenticate(Client client, Map<String, Object> message)
+    public void handleAuthenticate(Client client, Object message)
     {
         //
         // {
@@ -1755,44 +1754,44 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         //     }
         // }
         //
-        Map<String, Object> result = (Map<String, Object>) this.safeDict(message, "result");
+        Object result = this.safeValue(message, "result");
         String status = this.safeString(result, "status");
         String messageHash = "authenticated";
-        if (java.util.Objects.equals(status, "success"))
+        if (Helpers.isTrue(Helpers.isEqual(status, "success")))
         {
             client.resolve(message, messageHash);
         } else
         {
-            var error = new AuthenticationError(((this.id + " ") + this.json(message)));
+            var error = new AuthenticationError(Helpers.add(Helpers.add(this.id, " "), this.json(message)));
             client.reject(error, messageHash);
-            if (((Map<?, ?>)client.subscriptions).containsKey(messageHash))
+            if (Helpers.isTrue(Helpers.inOp(client.subscriptions, messageHash)))
             {
                 ((Map<String,Object>)client.subscriptions).remove(messageHash);
             }
         }
     }
 
-    public CompletableFuture<Object> subscribePrivate(String type2, Object messageHash, Object... optionalArgs)
+    public CompletableFuture<Object> subscribePrivate(Object type2, Object messageHash, Object... optionalArgs)
     {
         final Object type3 = type2;
         return BaseExchange.supplyAsync(() -> {
             Object type = type3;
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             (this.authenticate()).join();
-            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Long requestId = this.seconds();
-            Boolean settleIsUSDT = (java.util.Objects.equals(this.safeString(parameters, "settle", ""), "USDT"));
+            Boolean settleIsUSDT = (Helpers.isEqual(this.safeValue(parameters, "settle", ""), "USDT"));
             parameters = this.omit(parameters, "settle");
             String channel = "aop.subscribe";
-            if (java.util.Objects.equals(type, "spot"))
+            if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
             {
                 channel = "wo.subscribe";
             }
-            if (Boolean.TRUE.equals(settleIsUSDT))
+            if (Helpers.isTrue(settleIsUSDT))
             {
                 channel = "aop_p.subscribe";
             }
@@ -1813,17 +1812,17 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             this.checkRequiredCredentials();
-            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Client client = this.client(url);
             Object requestId = this.requestId();
             String messageHash = "authenticated";
             Object future = this.safeValue(client.subscriptions, messageHash);
-            if (java.util.Objects.equals(future, null))
+            if (Helpers.isTrue(Helpers.isEqual(future, null)))
             {
                 Long expiryDelta = this.safeInteger(this.options, "expires", 120);
-                Object expiration = (this.seconds() + expiryDelta);
+                Object expiration = Helpers.add(this.seconds(), expiryDelta);
                 Object payload = Helpers.add(this.apiKey, String.valueOf(expiration));
                 Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256());
                 String method = "user.auth";
@@ -1834,12 +1833,12 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                 }};
                 Object subscriptionHash = String.valueOf(requestId);
                 Map<String, Object> message = this.extend(request, parameters);
-                if (!(((Map<?, ?>)client.subscriptions).containsKey(messageHash)))
+                if (!Helpers.isTrue((Helpers.inOp(client.subscriptions, messageHash))))
                 {
-                    ((Map)client.subscriptions).put((String)subscriptionHash, "handleAuthenticate");
+                    Helpers.addElementToObject(client.subscriptions, subscriptionHash, "handleAuthenticate");
                 }
                 future = (this.watch(url, messageHash, message, messageHash, null)).join();
-                ((Map)client.subscriptions).put((String)messageHash, future);
+                Helpers.addElementToObject(client.subscriptions, messageHash, future);
             }
             return future;
         });

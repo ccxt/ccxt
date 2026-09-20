@@ -325,8 +325,8 @@ export default class zaif extends Exchange {
         });
     }
     parseBalance(response) {
-        const balances = this.safeDict(response, 'return', {});
-        const deposit = this.safeDict(balances, 'deposit');
+        const balances = this.safeValue(response, 'return', {});
+        const deposit = this.safeValue(balances, 'deposit');
         const result = {
             'info': response,
             'timestamp': undefined,
@@ -789,7 +789,7 @@ export default class zaif extends Exchange {
         //
         currency = this.safeCurrency(undefined, currency);
         let fee = undefined;
-        const feeCost = this.safeNumber(transaction, 'fee');
+        const feeCost = this.safeValue(transaction, 'fee');
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,

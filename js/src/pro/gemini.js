@@ -221,7 +221,7 @@ export default class gemini extends geminiRest {
         //
         const marketId = this.safeStringLower(message, 'symbol');
         const market = this.safeMarket(marketId);
-        const trades = this.safeList(message, 'trades');
+        const trades = this.safeValue(message, 'trades');
         if (trades !== undefined) {
             const symbol = market['symbol'];
             const tradesLimit = this.safeInteger(this.options, 'tradesLimit', 1000);
@@ -338,11 +338,11 @@ export default class gemini extends geminiRest {
         const symbol = this.safeSymbol(marketId, market);
         const changes = this.safeList(message, 'changes', []);
         const timeframe = this.findTimeframe(timeframeId);
-        const ohlcvsBySymbol = this.safeDict(this.ohlcvs, symbol);
+        const ohlcvsBySymbol = this.safeValue(this.ohlcvs, symbol);
         if (ohlcvsBySymbol === undefined) {
             this.ohlcvs[symbol] = {};
         }
-        let stored = this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
+        let stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp(limit);

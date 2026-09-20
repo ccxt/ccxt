@@ -453,7 +453,7 @@ export default class coinmate extends Exchange {
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
             const code = this.safeCurrencyCode(currencyId);
-            const balance = this.safeDict(balances, currencyId);
+            const balance = this.safeValue(balances, currencyId);
             const account = this.account();
             account['free'] = this.safeString(balance, 'available');
             account['used'] = this.safeString(balance, 'reserved');
@@ -578,7 +578,7 @@ export default class coinmate extends Exchange {
         const result = {};
         for (let i = 0; i < keys.length; i++) {
             const market = this.market(keys[i]);
-            const ticker = this.parseTicker(this.safeDict(data, keys[i]), market);
+            const ticker = this.parseTicker(this.safeValue(data, keys[i]), market);
             result[market['symbol']] = ticker;
         }
         return this.filterByArrayTickers(result, 'symbol', symbols);
@@ -761,7 +761,7 @@ export default class coinmate extends Exchange {
             await this.loadMarkets();
         }
         const currency = this.currency(code);
-        const withdrawOptions = this.safeDict(this.options, 'withdraw', {});
+        const withdrawOptions = this.safeValue(this.options, 'withdraw', {});
         const methods = this.safeDict(withdrawOptions, 'methods', {});
         const method = this.safeString(methods, code);
         if (method === undefined) {
@@ -816,7 +816,7 @@ export default class coinmate extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeDict(response, 'data');
+        const data = this.safeValue(response, 'data');
         const transaction = this.parseTransaction(data, currency);
         const fillResponseFromRequest = this.safeBool(withdrawOptions, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest === true) {
@@ -989,7 +989,7 @@ export default class coinmate extends Exchange {
         //         "data": { maker: '0.3', taker: "0.35", timestamp: "1646253217815" }
         //     }
         //
-        const data = this.safeDict(response, 'data', {});
+        const data = this.safeValue(response, 'data', {});
         const makerString = this.safeString(data, 'maker');
         const takerString = this.safeString(data, 'taker');
         const maker = this.parseNumber(Precise.stringDiv(makerString, '100'));

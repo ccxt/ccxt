@@ -34,7 +34,7 @@ func (this *Bitrue) SpotV1PublicGetExchangeInfo(args ...any) <-chan any {
 
 // SpotV1PublicGetDepth returns a channel that yields a JSON object.
 func (this *Bitrue) SpotV1PublicGetDepth(args ...any) <-chan any {
-	return this.Fetch2Async("depth", []string{"spot", "v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("spotV1PublicGetDepth", args...)
 }
 
 // SpotV1PublicGetTrades returns a channel that yields a JSON array.
@@ -74,27 +74,27 @@ func (this *Bitrue) SpotV1PublicGetMarketKline(args ...any) <-chan any {
 
 // SpotV1PrivateGetOrder returns a channel that yields a JSON object.
 func (this *Bitrue) SpotV1PrivateGetOrder(args ...any) <-chan any {
-	return this.Fetch2Async("order", []string{"spot", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+	return this.callEndpointAsync("spotV1PrivateGetOrder", args...)
 }
 
 // SpotV1PrivateGetOpenOrders returns a channel that yields a JSON object.
 func (this *Bitrue) SpotV1PrivateGetOpenOrders(args ...any) <-chan any {
-	return this.Fetch2Async("openOrders", []string{"spot", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+	return this.callEndpointAsync("spotV1PrivateGetOpenOrders", args...)
 }
 
 // SpotV1PrivateGetAllOrders returns a channel that yields a JSON array.
 func (this *Bitrue) SpotV1PrivateGetAllOrders(args ...any) <-chan any {
-	return this.Fetch2Async("allOrders", []string{"spot", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(25)})
+	return this.callEndpointAsync("spotV1PrivateGetAllOrders", args...)
 }
 
 // SpotV1PrivateGetAccount returns a channel that yields a JSON object.
 func (this *Bitrue) SpotV1PrivateGetAccount(args ...any) <-chan any {
-	return this.Fetch2Async("account", []string{"spot", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(25)})
+	return this.callEndpointAsync("spotV1PrivateGetAccount", args...)
 }
 
 // SpotV1PrivateGetMyTrades returns a channel that yields a JSON array.
 func (this *Bitrue) SpotV1PrivateGetMyTrades(args ...any) <-chan any {
-	return this.Fetch2Async("myTrades", []string{"spot", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(25)})
+	return this.callEndpointAsync("spotV1PrivateGetMyTrades", args...)
 }
 
 // SpotV1PrivateGetEtfNetValueSymbol returns a channel that yields a JSON object.
@@ -104,27 +104,27 @@ func (this *Bitrue) SpotV1PrivateGetEtfNetValueSymbol(args ...any) <-chan any {
 
 // SpotV1PrivateGetWithdrawHistory returns a channel that yields a JSON object.
 func (this *Bitrue) SpotV1PrivateGetWithdrawHistory(args ...any) <-chan any {
-	return this.Fetch2Async("withdraw/history", []string{"spot", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(120)})
+	return this.callEndpointAsync("spotV1PrivateGetWithdrawHistory", args...)
 }
 
 // SpotV1PrivateGetDepositHistory returns a channel that yields a JSON object.
 func (this *Bitrue) SpotV1PrivateGetDepositHistory(args ...any) <-chan any {
-	return this.Fetch2Async("deposit/history", []string{"spot", "v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(120)})
+	return this.callEndpointAsync("spotV1PrivateGetDepositHistory", args...)
 }
 
 // SpotV1PrivatePostOrder returns a channel that yields a JSON object.
 func (this *Bitrue) SpotV1PrivatePostOrder(args ...any) <-chan any {
-	return this.Fetch2Async("order", []string{"spot", "v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+	return this.callEndpointAsync("spotV1PrivatePostOrder", args...)
 }
 
 // SpotV1PrivatePostWithdrawCommit returns a channel that yields a JSON object.
 func (this *Bitrue) SpotV1PrivatePostWithdrawCommit(args ...any) <-chan any {
-	return this.Fetch2Async("withdraw/commit", []string{"spot", "v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(120)})
+	return this.callEndpointAsync("spotV1PrivatePostWithdrawCommit", args...)
 }
 
 // SpotV1PrivateDeleteOrder returns a channel that yields a JSON object.
 func (this *Bitrue) SpotV1PrivateDeleteOrder(args ...any) <-chan any {
-	return this.Fetch2Async("order", []string{"spot", "v1", "private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+	return this.callEndpointAsync("spotV1PrivateDeleteOrder", args...)
 }
 
 // SpotV2PrivateGetMyTrades returns a channel that yields a JSON object.
@@ -164,72 +164,72 @@ func (this *Bitrue) FapiV1PublicGetKlines(args ...any) <-chan any {
 
 // FapiV2PrivateGetMyTrades returns a channel that yields a JSON object.
 func (this *Bitrue) FapiV2PrivateGetMyTrades(args ...any) <-chan any {
-	return this.Fetch2Async("myTrades", []string{"fapi", "v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+	return this.callEndpointAsync("fapiV2PrivateGetMyTrades", args...)
 }
 
 // FapiV2PrivateGetOpenOrders returns a channel that yields a JSON object.
 func (this *Bitrue) FapiV2PrivateGetOpenOrders(args ...any) <-chan any {
-	return this.Fetch2Async("openOrders", []string{"fapi", "v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+	return this.callEndpointAsync("fapiV2PrivateGetOpenOrders", args...)
 }
 
 // FapiV2PrivateGetOrder returns a channel that yields a JSON object.
 func (this *Bitrue) FapiV2PrivateGetOrder(args ...any) <-chan any {
-	return this.Fetch2Async("order", []string{"fapi", "v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+	return this.callEndpointAsync("fapiV2PrivateGetOrder", args...)
 }
 
 // FapiV2PrivateGetAccount returns a channel that yields a JSON object.
 func (this *Bitrue) FapiV2PrivateGetAccount(args ...any) <-chan any {
-	return this.Fetch2Async("account", []string{"fapi", "v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+	return this.callEndpointAsync("fapiV2PrivateGetAccount", args...)
 }
 
 // FapiV2PrivateGetLeverageBracket returns a channel that yields a JSON object.
 func (this *Bitrue) FapiV2PrivateGetLeverageBracket(args ...any) <-chan any {
-	return this.Fetch2Async("leverageBracket", []string{"fapi", "v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+	return this.callEndpointAsync("fapiV2PrivateGetLeverageBracket", args...)
 }
 
 // FapiV2PrivateGetCommissionRate returns a channel that yields a JSON object.
 func (this *Bitrue) FapiV2PrivateGetCommissionRate(args ...any) <-chan any {
-	return this.Fetch2Async("commissionRate", []string{"fapi", "v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+	return this.callEndpointAsync("fapiV2PrivateGetCommissionRate", args...)
 }
 
 // FapiV2PrivateGetFuturesTransferHistory returns a channel that yields a JSON object.
 func (this *Bitrue) FapiV2PrivateGetFuturesTransferHistory(args ...any) <-chan any {
-	return this.Fetch2Async("futures_transfer_history", []string{"fapi", "v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+	return this.callEndpointAsync("fapiV2PrivateGetFuturesTransferHistory", args...)
 }
 
 // FapiV2PrivateGetForceOrdersHistory returns a channel that yields a JSON object.
 func (this *Bitrue) FapiV2PrivateGetForceOrdersHistory(args ...any) <-chan any {
-	return this.Fetch2Async("forceOrdersHistory", []string{"fapi", "v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+	return this.callEndpointAsync("fapiV2PrivateGetForceOrdersHistory", args...)
 }
 
 // FapiV2PrivatePostPositionMargin returns a channel that yields a JSON object.
 func (this *Bitrue) FapiV2PrivatePostPositionMargin(args ...any) <-chan any {
-	return this.Fetch2Async("positionMargin", []string{"fapi", "v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+	return this.callEndpointAsync("fapiV2PrivatePostPositionMargin", args...)
 }
 
 // FapiV2PrivatePostLevelEdit returns a channel that yields a JSON object.
 func (this *Bitrue) FapiV2PrivatePostLevelEdit(args ...any) <-chan any {
-	return this.Fetch2Async("level_edit", []string{"fapi", "v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+	return this.callEndpointAsync("fapiV2PrivatePostLevelEdit", args...)
 }
 
 // FapiV2PrivatePostCancel returns a channel that yields a JSON object.
 func (this *Bitrue) FapiV2PrivatePostCancel(args ...any) <-chan any {
-	return this.Fetch2Async("cancel", []string{"fapi", "v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+	return this.callEndpointAsync("fapiV2PrivatePostCancel", args...)
 }
 
 // FapiV2PrivatePostOrder returns a channel that yields a JSON object.
 func (this *Bitrue) FapiV2PrivatePostOrder(args ...any) <-chan any {
-	return this.Fetch2Async("order", []string{"fapi", "v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(25)})
+	return this.callEndpointAsync("fapiV2PrivatePostOrder", args...)
 }
 
 // FapiV2PrivatePostAllOpenOrders returns a channel that yields a JSON object.
 func (this *Bitrue) FapiV2PrivatePostAllOpenOrders(args ...any) <-chan any {
-	return this.Fetch2Async("allOpenOrders", []string{"fapi", "v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+	return this.callEndpointAsync("fapiV2PrivatePostAllOpenOrders", args...)
 }
 
 // FapiV2PrivatePostFuturesTransfer returns a channel that yields a JSON object.
 func (this *Bitrue) FapiV2PrivatePostFuturesTransfer(args ...any) <-chan any {
-	return this.Fetch2Async("futures_transfer", []string{"fapi", "v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+	return this.callEndpointAsync("fapiV2PrivatePostFuturesTransfer", args...)
 }
 
 // DapiV1PublicGetPing returns a channel that yields a JSON object.
@@ -264,72 +264,72 @@ func (this *Bitrue) DapiV1PublicGetKlines(args ...any) <-chan any {
 
 // DapiV2PrivateGetMyTrades returns a channel that yields a JSON object.
 func (this *Bitrue) DapiV2PrivateGetMyTrades(args ...any) <-chan any {
-	return this.Fetch2Async("myTrades", []string{"dapi", "v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+	return this.callEndpointAsync("dapiV2PrivateGetMyTrades", args...)
 }
 
 // DapiV2PrivateGetOpenOrders returns a channel that yields a JSON object.
 func (this *Bitrue) DapiV2PrivateGetOpenOrders(args ...any) <-chan any {
-	return this.Fetch2Async("openOrders", []string{"dapi", "v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+	return this.callEndpointAsync("dapiV2PrivateGetOpenOrders", args...)
 }
 
 // DapiV2PrivateGetOrder returns a channel that yields a JSON object.
 func (this *Bitrue) DapiV2PrivateGetOrder(args ...any) <-chan any {
-	return this.Fetch2Async("order", []string{"dapi", "v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+	return this.callEndpointAsync("dapiV2PrivateGetOrder", args...)
 }
 
 // DapiV2PrivateGetAccount returns a channel that yields a JSON object.
 func (this *Bitrue) DapiV2PrivateGetAccount(args ...any) <-chan any {
-	return this.Fetch2Async("account", []string{"dapi", "v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+	return this.callEndpointAsync("dapiV2PrivateGetAccount", args...)
 }
 
 // DapiV2PrivateGetLeverageBracket returns a channel that yields a JSON object.
 func (this *Bitrue) DapiV2PrivateGetLeverageBracket(args ...any) <-chan any {
-	return this.Fetch2Async("leverageBracket", []string{"dapi", "v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+	return this.callEndpointAsync("dapiV2PrivateGetLeverageBracket", args...)
 }
 
 // DapiV2PrivateGetCommissionRate returns a channel that yields a JSON object.
 func (this *Bitrue) DapiV2PrivateGetCommissionRate(args ...any) <-chan any {
-	return this.Fetch2Async("commissionRate", []string{"dapi", "v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+	return this.callEndpointAsync("dapiV2PrivateGetCommissionRate", args...)
 }
 
 // DapiV2PrivateGetFuturesTransferHistory returns a channel that yields a JSON object.
 func (this *Bitrue) DapiV2PrivateGetFuturesTransferHistory(args ...any) <-chan any {
-	return this.Fetch2Async("futures_transfer_history", []string{"dapi", "v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+	return this.callEndpointAsync("dapiV2PrivateGetFuturesTransferHistory", args...)
 }
 
 // DapiV2PrivateGetForceOrdersHistory returns a channel that yields a JSON object.
 func (this *Bitrue) DapiV2PrivateGetForceOrdersHistory(args ...any) <-chan any {
-	return this.Fetch2Async("forceOrdersHistory", []string{"dapi", "v2", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+	return this.callEndpointAsync("dapiV2PrivateGetForceOrdersHistory", args...)
 }
 
 // DapiV2PrivatePostPositionMargin returns a channel that yields a JSON object.
 func (this *Bitrue) DapiV2PrivatePostPositionMargin(args ...any) <-chan any {
-	return this.Fetch2Async("positionMargin", []string{"dapi", "v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+	return this.callEndpointAsync("dapiV2PrivatePostPositionMargin", args...)
 }
 
 // DapiV2PrivatePostLevelEdit returns a channel that yields a JSON object.
 func (this *Bitrue) DapiV2PrivatePostLevelEdit(args ...any) <-chan any {
-	return this.Fetch2Async("level_edit", []string{"dapi", "v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+	return this.callEndpointAsync("dapiV2PrivatePostLevelEdit", args...)
 }
 
 // DapiV2PrivatePostCancel returns a channel that yields a JSON object.
 func (this *Bitrue) DapiV2PrivatePostCancel(args ...any) <-chan any {
-	return this.Fetch2Async("cancel", []string{"dapi", "v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+	return this.callEndpointAsync("dapiV2PrivatePostCancel", args...)
 }
 
 // DapiV2PrivatePostOrder returns a channel that yields a JSON object.
 func (this *Bitrue) DapiV2PrivatePostOrder(args ...any) <-chan any {
-	return this.Fetch2Async("order", []string{"dapi", "v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+	return this.callEndpointAsync("dapiV2PrivatePostOrder", args...)
 }
 
 // DapiV2PrivatePostAllOpenOrders returns a channel that yields a JSON object.
 func (this *Bitrue) DapiV2PrivatePostAllOpenOrders(args ...any) <-chan any {
-	return this.Fetch2Async("allOpenOrders", []string{"dapi", "v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+	return this.callEndpointAsync("dapiV2PrivatePostAllOpenOrders", args...)
 }
 
 // DapiV2PrivatePostFuturesTransfer returns a channel that yields a JSON object.
 func (this *Bitrue) DapiV2PrivatePostFuturesTransfer(args ...any) <-chan any {
-	return this.Fetch2Async("futures_transfer", []string{"dapi", "v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+	return this.callEndpointAsync("dapiV2PrivatePostFuturesTransfer", args...)
 }
 
 // OpenV1PrivatePostPoseidonApiV1ListenKey returns a channel that yields a JSON object.

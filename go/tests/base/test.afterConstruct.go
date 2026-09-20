@@ -33,7 +33,7 @@ func TestOptionsNetworks(exchange ccxt.ICoreExchange, skippedProperties any) {
 		}
 		// 1) ensure 'networks' dictionary exists in options
 		Assert(exchange.IsDictionary(networks), "exchange.options[\"networks\"] is not a dict")
-		if len(ObjectKeys(networks)) == 0 {
+		if GetArrayLength(ObjectKeys(networks)) == 0 {
 			return
 		}
 		// 2) ensure 'networksById' dictionary exists in options
@@ -42,29 +42,29 @@ func TestOptionsNetworks(exchange ccxt.ICoreExchange, skippedProperties any) {
 		//
 		var networkCodes []string = ObjectKeys(GetValue(exchange.GetOptions(), "networks"))
 		// 3) ensure that the same network-id is not assigned to multiple networkCodes
-		var collectedNetworkIds []any = []any{}
-		for i := 0; i < len(networkCodes); i++ {
+		var collectedNetworkIds any = []any{}
+		for i := 0; IsLessThan(i, GetArrayLength(networkCodes)); i++ {
 			var networkCode string = GetValue(networkCodes, i).(string)
 			var networkId any = GetValue(GetValue(exchange.GetOptions(), "networks"), networkCode)
 			if !EvalTruthy(exchange.InArray(networkCode, allowedUnifiedAliases)) {
 				Assert(!EvalTruthy(exchange.InArray(networkId, collectedNetworkIds)), Add(Add("exchange.options[\"networks\"] should not contain multiple non-unified networkCodes (in the list of unified-networks) with the same networkId: \"", networkId), "\""))
 			}
-			collectedNetworkIds = append(collectedNetworkIds, networkId)
+			AppendToArray(&collectedNetworkIds, networkId)
 		}
 		// 4) ensure that there are no same networkCode with different case (uppercase/lowercase)
-		var collectedNetworkCodes []any = []any{}
-		for i := 0; i < len(networkCodes); i++ {
+		var collectedNetworkCodes any = []any{}
+		for i := 0; IsLessThan(i, GetArrayLength(networkCodes)); i++ {
 			var networkCodeLower string = ToLower((GetValue(networkCodes, i)))
 			Assert(!EvalTruthy(exchange.InArray(networkCodeLower, collectedNetworkCodes)), Add(Add("exchange.options[\"networks\"] contains multiple networkCodes with the same networkCode \"", GetValue(networkCodes, i)), "\" in different uppercase/lowercase format"))
-			collectedNetworkCodes = append(collectedNetworkCodes, networkCodeLower)
+			AppendToArray(&collectedNetworkCodes, networkCodeLower)
 		}
 		// 5) test networkCodeToId & networkIdToCode
-		for i := 0; i < len(networkCodes); i++ {
+		for i := 0; IsLessThan(i, GetArrayLength(networkCodes)); i++ {
 			var networkCode string = GetValue(networkCodes, i).(string)
 			var networkId any = GetValue(GetValue(exchange.GetOptions(), "networks"), networkCode)
 			// check networkCodeToId
 			var networkIdConverted any = exchange.NetworkCodeToId(networkCode)
-			Assert(IsEqual(networkId, networkIdConverted), Add(Add(Add(Add(Add(Add("exchange.GetnetworkCodeToId() (\""+networkCode+"\")=\"", networkIdConverted), "\" does not match exchange.options[\"networks\"][\""), networkCode), "\"]=\""), networkId), "\""))
+			Assert(IsEqual(networkId, networkIdConverted), Add(Add(Add(Add(Add(Add(Add(Add("exchange.GetnetworkCodeToId() (\"", networkCode), "\")=\""), networkIdConverted), "\" does not match exchange.options[\"networks\"][\""), networkCode), "\"]=\""), networkId), "\""))
 			// ensure it exists in networksById
 			Assert(InOp(GetValue(exchange.GetOptions(), "networksById"), networkId), Add(Add("exchange.options[\"networksById\"] does not contain networkId \"", networkId), "\""))
 			// ensure networkCode matches for networksById (however, it only works if one mapping is set)

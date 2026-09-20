@@ -390,7 +390,7 @@ export default class bybit extends bybitRest {
         const messageHash = 'ticker:' + symbol;
         const url = await this.getUrlByMarketType(symbol, false, 'watchTicker', params);
         params = this.cleanParams(params);
-        const options = this.safeDict(this.options, 'watchTicker', {});
+        const options = this.safeValue(this.options, 'watchTicker', {});
         let topic = this.safeString(options, 'name', 'tickers');
         if ((market['spot'] !== true) && topic !== 'tickers') {
             throw new BadRequest(this.id + ' watchTicker() only supports name tickers for contract markets');
@@ -417,7 +417,7 @@ export default class bybit extends bybitRest {
         const messageHashes = [];
         const url = await this.getUrlByMarketType(symbols[0], false, 'watchTickers', params);
         params = this.cleanParams(params);
-        const options = this.safeDict(this.options, 'watchTickers', {});
+        const options = this.safeValue(this.options, 'watchTickers', {});
         const topic = this.safeString(options, 'name', 'tickers');
         const marketIds = this.marketIds(symbols);
         const topics = [];
@@ -449,7 +449,7 @@ export default class bybit extends bybitRest {
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols, undefined, false);
-        const options = this.safeDict(this.options, 'watchTickers', {});
+        const options = this.safeValue(this.options, 'watchTickers', {});
         const topic = this.safeString(options, 'name', 'tickers');
         const messageHashes = [];
         const subMessageHashes = [];
@@ -818,7 +818,7 @@ export default class bybit extends bybitRest {
         const marketType = isSpot ? 'spot' : 'contract';
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
-        const ohlcvsByTimeframe = this.safeDict(this.ohlcvs, symbol);
+        const ohlcvsByTimeframe = this.safeValue(this.ohlcvs, symbol);
         if (ohlcvsByTimeframe === undefined) {
             this.ohlcvs[symbol] = {};
         }
@@ -1110,7 +1110,7 @@ export default class bybit extends bybitRest {
         }
         const trades = await this.watchTopics(url, messageHashes, topics, params);
         if (this.newUpdates) {
-            const first = this.safeDict(trades, 0);
+            const first = this.safeValue(trades, 0);
             const tradeSymbol = this.safeString(first, 'symbol');
             limit = trades.getLimit(tradeSymbol, limit);
         }
@@ -1312,7 +1312,7 @@ export default class bybit extends bybitRest {
             'unified': 'execution',
             'usdc': 'user.openapi.perp.trade',
         };
-        let topic = this.safeString(topicByMarket, this.getPrivateType(url));
+        let topic = this.safeValue(topicByMarket, this.getPrivateType(url));
         let executionFast = false;
         [executionFast, params] = this.handleOptionAndParams(params, 'watchMyTrades', 'executionFast', false);
         if (executionFast) {
@@ -1353,7 +1353,7 @@ export default class bybit extends bybitRest {
             'unified': 'execution',
             'usdc': 'user.openapi.perp.trade',
         };
-        let topic = this.safeString(topicByMarket, this.getPrivateType(url));
+        let topic = this.safeValue(topicByMarket, this.getPrivateType(url));
         let executionFast = false;
         [executionFast, params] = this.handleOptionAndParams(params, 'watchMyTrades', 'executionFast', false);
         if (executionFast) {
@@ -1449,7 +1449,7 @@ export default class bybit extends bybitRest {
         const topic = this.safeString(message, 'topic', '');
         const spot = topic === 'ticketInfo';
         const executionFast = topic === 'execution.fast';
-        let data = this.safeList(message, 'data', []);
+        let data = this.safeValue(message, 'data', []);
         if (!Array.isArray(data)) {
             data = this.safeList(data, 'result', []);
         }
@@ -1849,7 +1849,7 @@ export default class bybit extends bybitRest {
             'unified': ['order'],
             'usdc': ['user.openapi.perp.order'],
         };
-        const topics = this.safeList(topicsByMarket, this.getPrivateType(url));
+        const topics = this.safeValue(topicsByMarket, this.getPrivateType(url));
         const orders = await this.watchTopics(url, [messageHash], topics, params);
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
@@ -1883,7 +1883,7 @@ export default class bybit extends bybitRest {
             'unified': ['order'],
             'usdc': ['user.openapi.perp.order'],
         };
-        const topics = this.safeList(topicsByMarket, this.getPrivateType(url));
+        const topics = this.safeValue(topicsByMarket, this.getPrivateType(url));
         return await this.unWatchTopics(url, 'orders', [], [messageHash], [subHash], topics, params);
     }
     handleOrderWs(client, message) {
@@ -2002,7 +2002,7 @@ export default class bybit extends bybitRest {
         }
         const orders = this.orders;
         let rawOrders = this.safeList(message, 'data', []);
-        const first = this.safeDict(rawOrders, 0, {});
+        const first = this.safeValue(rawOrders, 0, {});
         const category = this.safeString(first, 'category');
         const isSpot = category === 'spot';
         if (!isSpot) {
@@ -2090,7 +2090,7 @@ export default class bybit extends bybitRest {
                 }
             }
         }
-        const topics = [this.safeString(topicByMarket, this.getPrivateType(url))];
+        const topics = [this.safeValue(topicByMarket, this.getPrivateType(url))];
         return await this.watchTopics(url, [messageHash], topics, params);
     }
     handleBalance(client, message) {
@@ -2240,7 +2240,7 @@ export default class bybit extends bybitRest {
             this.balance = {};
         }
         let messageHash = 'balance';
-        const topic = this.safeString(message, 'topic');
+        const topic = this.safeValue(message, 'topic');
         let info = undefined;
         let rawBalances = [];
         let account = undefined;
@@ -2248,7 +2248,7 @@ export default class bybit extends bybitRest {
             account = 'spot';
             const data = this.safeList(message, 'data', []);
             for (let i = 0; i < data.length; i++) {
-                const B = this.safeList(data[i], 'B', []);
+                const B = this.safeValue(data[i], 'B', []);
                 rawBalances = this.arrayConcat(rawBalances, B);
             }
             info = rawBalances;
@@ -2256,9 +2256,9 @@ export default class bybit extends bybitRest {
         if (topic === 'wallet') {
             const data = this.safeValue(message, 'data', {});
             for (let i = 0; i < data.length; i++) {
-                const result = this.safeDict(data, 0, {});
+                const result = this.safeValue(data, 0, {});
                 account = this.safeStringLower(result, 'accountType');
-                rawBalances = this.arrayConcat(rawBalances, this.safeList(result, 'coin', []));
+                rawBalances = this.arrayConcat(rawBalances, this.safeValue(result, 'coin', []));
             }
             info = data;
         }
@@ -2266,7 +2266,7 @@ export default class bybit extends bybitRest {
             this.parseWsBalance(rawBalances[i], account);
         }
         if (account !== undefined) {
-            if (this.safeDict(this.balance, account) === undefined) {
+            if (this.safeValue(this.balance, account) === undefined) {
                 this.balance[account] = {};
             }
             this.balance[account]['info'] = info;
@@ -2334,7 +2334,7 @@ export default class bybit extends bybitRest {
         // is the consistent total, the spot rows fall back to the wallet balance
         account['total'] = this.safeString2(balance, 'equity', 'walletBalance');
         if (accountType !== undefined) {
-            if (this.safeDict(this.balance, accountType) === undefined) {
+            if (this.safeValue(this.balance, accountType) === undefined) {
                 this.balance[accountType] = {};
             }
             if ((accountType !== undefined) && (code !== undefined)) {
@@ -2492,10 +2492,10 @@ export default class bybit extends bybitRest {
                 this.throwBroadlyMatchedException(this.exceptions['broad'], msg, feedback);
                 throw new ExchangeError(feedback);
             }
-            const success = this.safeBool(message, 'success');
+            const success = this.safeValue(message, 'success');
             if ((success !== undefined) && (success !== true)) {
                 const ret_msg = this.safeString(message, 'ret_msg');
-                const request = this.safeDict(message, 'request', {});
+                const request = this.safeValue(message, 'request', {});
                 const op = this.safeString(request, 'op');
                 if (op === 'auth') {
                     throw new AuthenticationError('Authentication failed: ' + ret_msg);
@@ -2681,7 +2681,7 @@ export default class bybit extends bybitRest {
         //        "conn_id": "d266o6hqo29sqmnq4vk0-1yus1"
         //    }
         //
-        const success = this.safeBool(message, 'success');
+        const success = this.safeValue(message, 'success');
         const code = this.safeInteger(message, 'retCode');
         const messageHash = 'authenticated';
         if ((success === true) || (code === 0)) {

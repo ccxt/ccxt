@@ -102,7 +102,7 @@ class coinone extends coinone$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeDict(message, 'data', {});
+        const data = this.safeValue(message, 'data', {});
         const baseId = this.safeStringUpper(data, 'target_currency');
         const quoteId = this.safeStringUpper(data, 'quote_currency');
         const base = this.safeCurrencyCode(baseId);
@@ -117,8 +117,8 @@ class coinone extends coinone$1["default"] {
             orderbook.reset();
         }
         orderbook['symbol'] = symbol;
-        const asks = this.safeList(data, 'asks', []);
-        const bids = this.safeList(data, 'bids', []);
+        const asks = this.safeValue(data, 'asks', []);
+        const bids = this.safeValue(data, 'bids', []);
         this.handleDeltas(orderbook['asks'], asks);
         this.handleDeltas(orderbook['bids'], bids);
         orderbook['timestamp'] = timestamp;
@@ -188,7 +188,7 @@ class coinone extends coinone$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeDict(message, 'data', {});
+        const data = this.safeValue(message, 'data', {});
         const ticker = this.parseWsTicker(data);
         const symbol = ticker['symbol'];
         this.tickers[symbol] = ticker;
@@ -300,7 +300,7 @@ class coinone extends coinone$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeDict(message, 'data', {});
+        const data = this.safeValue(message, 'data', {});
         const trade = this.parseWsTrade(data);
         const symbol = trade['symbol'];
         let stored = this.safeValue(this.trades, symbol);
@@ -332,7 +332,7 @@ class coinone extends coinone$1["default"] {
         const symbol = base + '/' + quote;
         const timestamp = this.safeInteger(trade, 'timestamp');
         market = this.safeMarket(symbol, market);
-        const isSellerMaker = this.safeBool(trade, 'is_seller_maker');
+        const isSellerMaker = this.safeValue(trade, 'is_seller_maker');
         let side = undefined;
         if (isSellerMaker !== undefined) {
             side = (isSellerMaker === true) ? 'sell' : 'buy';

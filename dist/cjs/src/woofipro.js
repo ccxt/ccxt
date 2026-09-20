@@ -1700,7 +1700,7 @@ class woofipro extends woofipro$1["default"] {
         const amount = this.safeString2(order, 'order_quantity', 'quantity'); // This is base amount
         const cost = this.safeString2(order, 'order_amount', 'amount'); // This is quote amount
         const orderType = this.safeStringLower2(order, 'order_type', 'type');
-        let status = this.safeString2(order, 'status', 'algoStatus');
+        let status = this.safeValue2(order, 'status', 'algoStatus');
         const success = this.safeBool(order, 'success');
         if (success !== undefined) {
             status = (success) ? 'NEW' : 'REJECTED';
@@ -1715,14 +1715,14 @@ class woofipro extends woofipro$1["default"] {
         const triggerPrice = this.safeNumber(order, 'triggerPrice');
         let takeProfitPrice = undefined;
         let stopLossPrice = undefined;
-        const childOrders = this.safeList(order, 'childOrders');
+        const childOrders = this.safeValue(order, 'childOrders');
         if (childOrders !== undefined) {
-            const first = this.safeDict(childOrders, 0);
+            const first = this.safeValue(childOrders, 0);
             const innerChildOrders = this.safeList(first, 'childOrders', []);
             const innerChildOrdersLength = innerChildOrders.length;
             if (innerChildOrdersLength > 0) {
-                const takeProfitOrder = this.safeDict(innerChildOrders, 0);
-                const stopLossOrder = this.safeDict(innerChildOrders, 1);
+                const takeProfitOrder = this.safeValue(innerChildOrders, 0);
+                const stopLossOrder = this.safeValue(innerChildOrders, 1);
                 takeProfitPrice = this.safeNumber(takeProfitOrder, 'triggerPrice');
                 stopLossPrice = this.safeNumber(stopLossOrder, 'triggerPrice');
             }
@@ -1824,8 +1824,8 @@ class woofipro extends woofipro$1["default"] {
             'side': orderSide,
         };
         const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
-        const stopLoss = this.safeDict(params, 'stopLoss');
-        const takeProfit = this.safeDict(params, 'takeProfit');
+        const stopLoss = this.safeValue(params, 'stopLoss');
+        const takeProfit = this.safeValue(params, 'takeProfit');
         const hasStopLoss = (stopLoss !== undefined);
         const hasTakeProfit = (takeProfit !== undefined);
         const algoType = this.safeString(params, 'algoType');
@@ -1934,9 +1934,9 @@ class woofipro extends woofipro$1["default"] {
         const market = this.market(symbol);
         const request = this.createOrderRequest(symbol, type, side, amount, price, params);
         const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
-        const stopLoss = this.safeDict(params, 'stopLoss');
-        const takeProfit = this.safeDict(params, 'takeProfit');
-        const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeList(params, 'childOrders') !== undefined);
+        const stopLoss = this.safeValue(params, 'stopLoss');
+        const takeProfit = this.safeValue(params, 'takeProfit');
+        const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue(params, 'childOrders') !== undefined);
         let response = undefined;
         if (isConditional) {
             response = await this.v1PrivatePostAlgoOrder(request);
@@ -2000,9 +2000,9 @@ class woofipro extends woofipro$1["default"] {
             const price = this.safeValue(rawOrder, 'price');
             const orderParams = this.safeDict(rawOrder, 'params', {});
             const triggerPrice = this.safeString2(orderParams, 'triggerPrice', 'stopPrice');
-            const stopLoss = this.safeDict(orderParams, 'stopLoss');
-            const takeProfit = this.safeDict(orderParams, 'takeProfit');
-            const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeList(orderParams, 'childOrders') !== undefined);
+            const stopLoss = this.safeValue(orderParams, 'stopLoss');
+            const takeProfit = this.safeValue(orderParams, 'takeProfit');
+            const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue(orderParams, 'childOrders') !== undefined);
             if (isConditional) {
                 throw new errors.NotSupported(this.id + ' createOrders() only support non-stop order');
             }
@@ -2467,7 +2467,7 @@ class woofipro extends woofipro$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeDict(response, 'data', response);
+        const data = this.safeValue(response, 'data', response);
         const orders = this.safeList(data, 'rows');
         return this.parseOrders(orders, market, since, limit);
     }

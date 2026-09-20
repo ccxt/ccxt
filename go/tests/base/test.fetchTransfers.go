@@ -18,7 +18,7 @@ func testFetchTransfersBody(ch chan any, exchange ccxt.ICoreExchange, skippedPro
 	transfers := (<-exchange.FetchTransfersAsync(code))
 	PanicOnError(transfers)
 	AssertNonEmtpyArray(exchange, skippedProperties, method, transfers, code)
-	for i := 0; i < GetArrayLength(transfers); i++ {
+	for i := 0; IsLessThan(i, GetArrayLength(transfers)); i++ {
 		TestTransfer(exchange, skippedProperties, method, GetValue(transfers, i), code)
 	}
 	AssertTimestampOrder(exchange, method, code, transfers)

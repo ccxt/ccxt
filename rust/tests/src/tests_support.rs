@@ -46,7 +46,7 @@ pub fn equals(a: Value, b: Value) -> bool {
 // live in the not-yet-ported `rust/ccxt/src/pro/{Cache,Client,...}.rs`.
 fn new_cache(kind: &str) -> Value {
     let mut m = indexmap::IndexMap::new();
-    m.insert("__cacheKind".to_string(), Value::Str(kind.to_string().into()));
+    m.insert("__cacheKind".to_string(), Value::Str(kind.to_string()));
     m.insert("hashmap".to_string(), Value::Map(indexmap::IndexMap::new()));
     m.insert("_data".to_string(), Value::Array(Vec::new()));
     Value::Map(m)
@@ -91,7 +91,7 @@ pub mod shared {
                 return crate::live_dispatch::has_market(id, sym);
             }
         }
-        let markets = ccxt::get_value(ex, &Value::Str("markets".into()));
+        let markets = ccxt::get_value(ex, &Value::Str("markets".to_string()));
         ccxt::runtime::in_op(&markets, symbol)
     }
 
@@ -101,8 +101,8 @@ pub mod shared {
     /// OnMaintenance)`; panic payloads stringify as `[Kind] message`, so
     /// `is_instance` walks the error hierarchy.
     pub fn is_temporary_failure(e: Value) -> Value {
-        let op_failed = ccxt::runtime::is_instance(&e, &Value::Str("OperationFailed".into()));
-        let on_maint = ccxt::runtime::is_instance(&e, &Value::Str("OnMaintenance".into()));
+        let op_failed = ccxt::runtime::is_instance(&e, &Value::Str("OperationFailed".to_string()));
+        let on_maint = ccxt::runtime::is_instance(&e, &Value::Str("OnMaintenance".to_string()));
         Value::Bool(op_failed && !on_maint)
     }
 
@@ -116,7 +116,7 @@ pub mod shared {
     impl AsValue for ccxt::exchange::Exchange     { fn as_value(&self) -> Value { self.to_value() } }
 
     fn method_str(m: &Value) -> String {
-        match m { Value::Str(s) => s.to_string(), _ => format!("{m:?}") }
+        match m { Value::Str(s) => s.clone(), _ => format!("{m:?}") }
     }
 
     // Helpers all take `(exchange, &[args])` because the transpiler
@@ -200,16 +200,16 @@ pub mod shared {
     pub fn ticker_exception_needs_ohlcv(ex: Value, exchange: Value, ticker: Value) -> bool {
         let e_message = match &ex {
             Value::Str(s) => s.clone(),
-            other => ccxt::runtime::stringify_param(other).into(),
+            other => ccxt::runtime::stringify_param(other),
         };
         let percentage_case = e_message.contains("percentage should be above")
             || e_message.contains("percentage should be below");
         if percentage_case {
-            let symbol = ccxt::get_value(&ticker, &Value::Str("symbol".into()));
+            let symbol = ccxt::get_value(&ticker, &Value::Str("symbol".to_string()));
             if !matches!(symbol, Value::Null) && market_exists(&exchange, &symbol) {
                 let has_ohlcv = ccxt::get_value(
-                    &ccxt::get_value(&exchange, &Value::Str("has".into())),
-                    &Value::Str("fetchOHLCV".into()),
+                    &ccxt::get_value(&exchange, &Value::Str("has".to_string())),
+                    &Value::Str("fetchOHLCV".to_string()),
                 );
                 if ccxt::runtime::is_true(&has_ohlcv) {
                     return true;
@@ -228,12 +228,12 @@ pub mod shared {
     pub async fn validate_ticker_exception_for_percentage(ex: Value, exchange: Value, ticker: Value, ohlcv: Value) {
         let e_message = match &ex {
             Value::Str(s) => s.clone(),
-            other => ccxt::runtime::stringify_param(other).into(),
+            other => ccxt::runtime::stringify_param(other),
         };
         let percentage_case = e_message.contains("percentage should be above")
             || e_message.contains("percentage should be below");
         if percentage_case {
-            let symbol = ccxt::get_value(&ticker, &Value::Str("symbol".into()));
+            let symbol = ccxt::get_value(&ticker, &Value::Str("symbol".to_string()));
             if !matches!(symbol, Value::Null) {
                 if !market_exists(&exchange, &symbol) {
                     return;
@@ -260,13 +260,13 @@ pub mod shared {
         let v = entry.as_value();
         ccxt::get_value(&v, &key)
     }
-    pub fn log_template<E: AsValue>(_e: E, _method: Value, _entry: Value) -> Value { Value::Str(String::new().into()) }
+    pub fn log_template<E: AsValue>(_e: E, _method: Value, _entry: Value) -> Value { Value::Str(String::new()) }
     pub fn string_value(v: Value) -> Value { v }
 
     fn collect_skips(skipped: &Value) -> Vec<String> {
         match skipped {
             Value::Arr(a) => a.iter().filter_map(|v| match v {
-                Value::Str(s) => Some(s.to_string()), _ => None,
+                Value::Str(s) => Some(s.clone()), _ => None,
             }).collect(),
             Value::Dict(m)   => m.keys().cloned().collect(),
             _               => Vec::new(),

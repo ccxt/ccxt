@@ -47,7 +47,7 @@ public partial class testMainClass : BaseTest
         {
             errorResponse = e;
         }
-        assert((errorResponse != null), add(add(add(add(exchange.id, " "), method), " must throw an error when unwatching a specific symbol, returned "), exchange.json(errorResponse)));
+        assert(!isEqual(errorResponse, null), add(add(add(add(exchange.id, " "), method), " must throw an error when unwatching a specific symbol, returned "), exchange.json(errorResponse)));
         // Test unwatching all positions (without specific symbols)
         object responseAll = null;
         try
@@ -62,7 +62,7 @@ public partial class testMainClass : BaseTest
             throw e;
         }
         // Verify the response for unwatching all positions
-        assert((responseAll != null), add(add(add(add(exchange.id, " "), method), " must return a response when unwatching all positions, returned "), exchange.json(responseAll)));
+        assert(!isEqual(responseAll, null), add(add(add(add(exchange.id, " "), method), " must return a response when unwatching all positions, returned "), exchange.json(responseAll)));
         // Test that we can resubscribe after unwatching (to ensure cleanup was proper)
         object resubscribeResponse = null;
         try

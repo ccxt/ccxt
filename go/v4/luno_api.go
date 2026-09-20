@@ -9,200 +9,200 @@ package ccxt
 
 // ExchangeGetMarkets returns a channel that yields a JSON object.
 func (this *Luno) ExchangeGetMarkets(args ...any) <-chan any {
-	return this.Fetch2Async("markets", "exchange", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("exchangeGetMarkets", args...)
 }
 
 // ExchangePrivateGetCandles returns a channel that yields a JSON object.
 func (this *Luno) ExchangePrivateGetCandles(args ...any) <-chan any {
-	return this.Fetch2Async("candles", "exchangePrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("exchangePrivateGetCandles", args...)
 }
 
 // ExchangePrivateGetMove returns a channel that yields a JSON object.
 func (this *Luno) ExchangePrivateGetMove(args ...any) <-chan any {
-	return this.Fetch2Async("move", "exchangePrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("exchangePrivateGetMove", args...)
 }
 
 // ExchangePrivateGetMoveListMoves returns a channel that yields a JSON object.
 func (this *Luno) ExchangePrivateGetMoveListMoves(args ...any) <-chan any {
-	return this.Fetch2Async("move/list_moves", "exchangePrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("exchangePrivateGetMoveListMoves", args...)
 }
 
 // ExchangePrivateGetTransfers returns a channel that yields a JSON object.
 func (this *Luno) ExchangePrivateGetTransfers(args ...any) <-chan any {
-	return this.Fetch2Async("transfers", "exchangePrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("exchangePrivateGetTransfers", args...)
 }
 
 // ExchangePrivatePostConvert returns a channel that yields a JSON object.
 func (this *Luno) ExchangePrivatePostConvert(args ...any) <-chan any {
-	return this.Fetch2Async("convert", "exchangePrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("exchangePrivatePostConvert", args...)
 }
 
 // ExchangePrivatePostMove returns a channel that yields a JSON object.
 func (this *Luno) ExchangePrivatePostMove(args ...any) <-chan any {
-	return this.Fetch2Async("move", "exchangePrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("exchangePrivatePostMove", args...)
 }
 
 // PublicGetOrderbook returns a channel that yields a JSON object.
 func (this *Luno) PublicGetOrderbook(args ...any) <-chan any {
-	return this.Fetch2Async("orderbook", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("publicGetOrderbook", args...)
 }
 
 // PublicGetOrderbookTop returns a channel that yields a JSON object.
 func (this *Luno) PublicGetOrderbookTop(args ...any) <-chan any {
-	return this.Fetch2Async("orderbook_top", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("publicGetOrderbookTop", args...)
 }
 
 // PublicGetTicker returns a channel that yields a JSON object.
 func (this *Luno) PublicGetTicker(args ...any) <-chan any {
-	return this.Fetch2Async("ticker", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("publicGetTicker", args...)
 }
 
 // PublicGetTickers returns a channel that yields a JSON object.
 func (this *Luno) PublicGetTickers(args ...any) <-chan any {
-	return this.Fetch2Async("tickers", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("publicGetTickers", args...)
 }
 
 // PublicGetTrades returns a channel that yields a JSON object.
 func (this *Luno) PublicGetTrades(args ...any) <-chan any {
-	return this.Fetch2Async("trades", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("publicGetTrades", args...)
 }
 
 // PrivateGetAccountsIdPending returns a channel that yields a JSON object.
 func (this *Luno) PrivateGetAccountsIdPending(args ...any) <-chan any {
-	return this.Fetch2Async("accounts/{id}/pending", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateGetAccountsIdPending", args...)
 }
 
 // PrivateGetAccountsIdTransactions returns a channel that yields a JSON object.
 func (this *Luno) PrivateGetAccountsIdTransactions(args ...any) <-chan any {
-	return this.Fetch2Async("accounts/{id}/transactions", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateGetAccountsIdTransactions", args...)
 }
 
 // PrivateGetBalance returns a channel that yields a JSON object.
 func (this *Luno) PrivateGetBalance(args ...any) <-chan any {
-	return this.Fetch2Async("balance", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateGetBalance", args...)
 }
 
 // PrivateGetBeneficiaries returns a channel that yields a JSON object.
 func (this *Luno) PrivateGetBeneficiaries(args ...any) <-chan any {
-	return this.Fetch2Async("beneficiaries", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateGetBeneficiaries", args...)
 }
 
 // PrivateGetSendNetworks returns a channel that yields a JSON object.
 func (this *Luno) PrivateGetSendNetworks(args ...any) <-chan any {
-	return this.Fetch2Async("send/networks", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateGetSendNetworks", args...)
 }
 
 // PrivateGetFeeInfo returns a channel that yields a JSON object.
 func (this *Luno) PrivateGetFeeInfo(args ...any) <-chan any {
-	return this.Fetch2Async("fee_info", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateGetFeeInfo", args...)
 }
 
 // PrivateGetFundingAddress returns a channel that yields a JSON object.
 func (this *Luno) PrivateGetFundingAddress(args ...any) <-chan any {
-	return this.Fetch2Async("funding_address", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateGetFundingAddress", args...)
 }
 
 // PrivateGetListorders returns a channel that yields a JSON object.
 func (this *Luno) PrivateGetListorders(args ...any) <-chan any {
-	return this.Fetch2Async("listorders", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateGetListorders", args...)
 }
 
 // PrivateGetListtrades returns a channel that yields a JSON object.
 func (this *Luno) PrivateGetListtrades(args ...any) <-chan any {
-	return this.Fetch2Async("listtrades", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateGetListtrades", args...)
 }
 
 // PrivateGetSendFee returns a channel that yields a JSON object.
 func (this *Luno) PrivateGetSendFee(args ...any) <-chan any {
-	return this.Fetch2Async("send_fee", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateGetSendFee", args...)
 }
 
 // PrivateGetOrdersId returns a channel that yields a JSON object.
 func (this *Luno) PrivateGetOrdersId(args ...any) <-chan any {
-	return this.Fetch2Async("orders/{id}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateGetOrdersId", args...)
 }
 
 // PrivateGetWithdrawals returns a channel that yields a JSON object.
 func (this *Luno) PrivateGetWithdrawals(args ...any) <-chan any {
-	return this.Fetch2Async("withdrawals", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateGetWithdrawals", args...)
 }
 
 // PrivateGetWithdrawalsId returns a channel that yields a JSON object.
 func (this *Luno) PrivateGetWithdrawalsId(args ...any) <-chan any {
-	return this.Fetch2Async("withdrawals/{id}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateGetWithdrawalsId", args...)
 }
 
 // PrivateGetTransfers returns a channel that yields a JSON object.
 func (this *Luno) PrivateGetTransfers(args ...any) <-chan any {
-	return this.Fetch2Async("transfers", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateGetTransfers", args...)
 }
 
 // PrivateGetUsersLinked returns a channel that yields a JSON object.
 func (this *Luno) PrivateGetUsersLinked(args ...any) <-chan any {
-	return this.Fetch2Async("users/linked", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateGetUsersLinked", args...)
 }
 
 // PrivatePostAccounts returns a channel that yields a JSON object.
 func (this *Luno) PrivatePostAccounts(args ...any) <-chan any {
-	return this.Fetch2Async("accounts", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privatePostAccounts", args...)
 }
 
 // PrivatePostAddressValidate returns a channel that yields a JSON object.
 func (this *Luno) PrivatePostAddressValidate(args ...any) <-chan any {
-	return this.Fetch2Async("address/validate", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privatePostAddressValidate", args...)
 }
 
 // PrivatePostPostorder returns a channel that yields a JSON object.
 func (this *Luno) PrivatePostPostorder(args ...any) <-chan any {
-	return this.Fetch2Async("postorder", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privatePostPostorder", args...)
 }
 
 // PrivatePostMarketorder returns a channel that yields a JSON object.
 func (this *Luno) PrivatePostMarketorder(args ...any) <-chan any {
-	return this.Fetch2Async("marketorder", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privatePostMarketorder", args...)
 }
 
 // PrivatePostStoporder returns a channel that yields a JSON object.
 func (this *Luno) PrivatePostStoporder(args ...any) <-chan any {
-	return this.Fetch2Async("stoporder", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privatePostStoporder", args...)
 }
 
 // PrivatePostFundingAddress returns a channel that yields a JSON object.
 func (this *Luno) PrivatePostFundingAddress(args ...any) <-chan any {
-	return this.Fetch2Async("funding_address", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privatePostFundingAddress", args...)
 }
 
 // PrivatePostWithdrawals returns a channel that yields a JSON object.
 func (this *Luno) PrivatePostWithdrawals(args ...any) <-chan any {
-	return this.Fetch2Async("withdrawals", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privatePostWithdrawals", args...)
 }
 
 // PrivatePostSend returns a channel that yields a JSON object.
 func (this *Luno) PrivatePostSend(args ...any) <-chan any {
-	return this.Fetch2Async("send", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privatePostSend", args...)
 }
 
 // PrivatePostOauth2Grant returns a channel that yields a JSON object.
 func (this *Luno) PrivatePostOauth2Grant(args ...any) <-chan any {
-	return this.Fetch2Async("oauth2/grant", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privatePostOauth2Grant", args...)
 }
 
 // PrivatePostBeneficiaries returns a channel that yields a JSON object.
 func (this *Luno) PrivatePostBeneficiaries(args ...any) <-chan any {
-	return this.Fetch2Async("beneficiaries", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privatePostBeneficiaries", args...)
 }
 
 // PrivatePutAccountsIdName returns a channel that yields a JSON object.
 func (this *Luno) PrivatePutAccountsIdName(args ...any) <-chan any {
-	return this.Fetch2Async("accounts/{id}/name", "private", "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privatePutAccountsIdName", args...)
 }
 
 // PrivateDeleteWithdrawalsId returns a channel that yields a JSON object.
 func (this *Luno) PrivateDeleteWithdrawalsId(args ...any) <-chan any {
-	return this.Fetch2Async("withdrawals/{id}", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateDeleteWithdrawalsId", args...)
 }
 
 // PrivateDeleteBeneficiariesId returns a channel that yields a JSON object.
 func (this *Luno) PrivateDeleteBeneficiariesId(args ...any) <-chan any {
-	return this.Fetch2Async("beneficiaries/{id}", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("privateDeleteBeneficiariesId", args...)
 }

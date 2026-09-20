@@ -24,7 +24,7 @@ func testFetchMyLiquidationsBody(ch chan any, exchange ccxt.ICoreExchange, skipp
 	PanicOnError(items)
 	Assert(IsArray(items), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), code), " must return an array. "), exchange.Json(items)))
 	// const now = exchange.Getmilliseconds() ();
-	for i := 0; i < GetArrayLength(items); i++ {
+	for i := 0; IsLessThan(i, GetArrayLength(items)); i++ {
 		TestLiquidation(exchange, skippedProperties, method, GetValue(items, i), code)
 	}
 	AssertTimestampOrder(exchange, method, code, items)

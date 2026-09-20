@@ -9,480 +9,480 @@ package ccxt
 
 // BrokerPrivateGetV1AccountsAccountIdTokenizationRequests returns a channel that yields a JSON array.
 func (this *Alpaca) BrokerPrivateGetV1AccountsAccountIdTokenizationRequests(args ...any) <-chan any {
-	return this.Fetch2Async("v1/accounts/{account_id}/tokenization/requests", []string{"broker", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("brokerPrivateGetV1AccountsAccountIdTokenizationRequests", args...)
 }
 
 // BrokerPrivateGetV1AccountsAccountIdTokenizationRequestsTokenizationRequestId returns a channel that yields a JSON object.
 func (this *Alpaca) BrokerPrivateGetV1AccountsAccountIdTokenizationRequestsTokenizationRequestId(args ...any) <-chan any {
-	return this.Fetch2Async("v1/accounts/{account_id}/tokenization/requests/{tokenization_request_id}", []string{"broker", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("brokerPrivateGetV1AccountsAccountIdTokenizationRequestsTokenizationRequestId", args...)
 }
 
 // BrokerPrivateGetV1AccountsAccountIdTokenizationRequestsByClientRequestId returns a channel that yields a JSON object.
 func (this *Alpaca) BrokerPrivateGetV1AccountsAccountIdTokenizationRequestsByClientRequestId(args ...any) <-chan any {
-	return this.Fetch2Async("v1/accounts/{account_id}/tokenization/requests:by_client_request_id", []string{"broker", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("brokerPrivateGetV1AccountsAccountIdTokenizationRequestsByClientRequestId", args...)
 }
 
 // BrokerPrivateGetV1AccountsAccountIdTokenizationRequestsByIssuerRequestId returns a channel that yields a JSON object.
 func (this *Alpaca) BrokerPrivateGetV1AccountsAccountIdTokenizationRequestsByIssuerRequestId(args ...any) <-chan any {
-	return this.Fetch2Async("v1/accounts/{account_id}/tokenization/requests:by_issuer_request_id", []string{"broker", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("brokerPrivateGetV1AccountsAccountIdTokenizationRequestsByIssuerRequestId", args...)
 }
 
 // BrokerPrivateGetV1FpslAnalyticsAccountIdLoans returns a channel that yields a JSON object.
 func (this *Alpaca) BrokerPrivateGetV1FpslAnalyticsAccountIdLoans(args ...any) <-chan any {
-	return this.Fetch2Async("v1/fpsl/analytics/{account_id}/loans", []string{"broker", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("brokerPrivateGetV1FpslAnalyticsAccountIdLoans", args...)
 }
 
 // BrokerPrivateGetV1Ipos returns a channel that yields a JSON object.
 func (this *Alpaca) BrokerPrivateGetV1Ipos(args ...any) <-chan any {
-	return this.Fetch2Async("v1/ipos", []string{"broker", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("brokerPrivateGetV1Ipos", args...)
 }
 
 // BrokerPrivateGetV1IposOfferingReference returns a channel that yields a JSON object.
 func (this *Alpaca) BrokerPrivateGetV1IposOfferingReference(args ...any) <-chan any {
-	return this.Fetch2Async("v1/ipos/{offering_reference}", []string{"broker", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("brokerPrivateGetV1IposOfferingReference", args...)
 }
 
 // BrokerPrivateGetV1WalletsTravelRuleVasps returns a channel that yields a JSON object.
 func (this *Alpaca) BrokerPrivateGetV1WalletsTravelRuleVasps(args ...any) <-chan any {
-	return this.Fetch2Async("v1/wallets/travel-rule/vasps", []string{"broker", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("brokerPrivateGetV1WalletsTravelRuleVasps", args...)
 }
 
 // BrokerPrivateGetV1beta1Acats returns a channel that yields a JSON object.
 func (this *Alpaca) BrokerPrivateGetV1beta1Acats(args ...any) <-chan any {
-	return this.Fetch2Async("v1beta1/acats", []string{"broker", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("brokerPrivateGetV1beta1Acats", args...)
 }
 
 // BrokerPrivateGetV1beta1AcatsContrabrokers returns a channel that yields a JSON object.
 func (this *Alpaca) BrokerPrivateGetV1beta1AcatsContrabrokers(args ...any) <-chan any {
-	return this.Fetch2Async("v1beta1/acats/contrabrokers", []string{"broker", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("brokerPrivateGetV1beta1AcatsContrabrokers", args...)
 }
 
 // BrokerPrivateGetV1beta1AcatsAccountId returns a channel that yields a JSON object.
 func (this *Alpaca) BrokerPrivateGetV1beta1AcatsAccountId(args ...any) <-chan any {
-	return this.Fetch2Async("v1beta1/acats/{account_id}", []string{"broker", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("brokerPrivateGetV1beta1AcatsAccountId", args...)
 }
 
 // BrokerPrivateGetV1beta1AcatsAccountIdAcatsId returns a channel that yields a JSON object.
 func (this *Alpaca) BrokerPrivateGetV1beta1AcatsAccountIdAcatsId(args ...any) <-chan any {
-	return this.Fetch2Async("v1beta1/acats/{account_id}/{acats_id}", []string{"broker", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("brokerPrivateGetV1beta1AcatsAccountIdAcatsId", args...)
 }
 
 // BrokerPrivateGetV1beta1AcatsAccountIdAcatsIdAssets returns a channel that yields a JSON array.
 func (this *Alpaca) BrokerPrivateGetV1beta1AcatsAccountIdAcatsIdAssets(args ...any) <-chan any {
-	return this.Fetch2Async("v1beta1/acats/{account_id}/{acats_id}/assets", []string{"broker", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("brokerPrivateGetV1beta1AcatsAccountIdAcatsIdAssets", args...)
 }
 
 // BrokerPrivatePostV1beta1AcatsAccountId returns a channel that yields a JSON object.
 func (this *Alpaca) BrokerPrivatePostV1beta1AcatsAccountId(args ...any) <-chan any {
-	return this.Fetch2Async("v1beta1/acats/{account_id}", []string{"broker", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("brokerPrivatePostV1beta1AcatsAccountId", args...)
 }
 
 // BrokerPrivatePatchV1AccountsAccountIdWalletsWhitelistsWhitelistedAddressIdTravelRuleInfo returns a channel that yields a JSON object.
 func (this *Alpaca) BrokerPrivatePatchV1AccountsAccountIdWalletsWhitelistsWhitelistedAddressIdTravelRuleInfo(args ...any) <-chan any {
-	return this.Fetch2Async("v1/accounts/{account_id}/wallets/whitelists/{whitelisted_address_id}/travel-rule-info", []string{"broker", "private"}, "PATCH", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("brokerPrivatePatchV1AccountsAccountIdWalletsWhitelistsWhitelistedAddressIdTravelRuleInfo", args...)
 }
 
 // TraderPrivateGetV2Account returns a channel that yields a JSON object.
 func (this *Alpaca) TraderPrivateGetV2Account(args ...any) <-chan any {
-	return this.Fetch2Async("v2/account", []string{"trader", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("traderPrivateGetV2Account", args...)
 }
 
 // TraderPrivateGetV2Orders returns a channel that yields a JSON array.
 func (this *Alpaca) TraderPrivateGetV2Orders(args ...any) <-chan any {
-	return this.Fetch2Async("v2/orders", []string{"trader", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("traderPrivateGetV2Orders", args...)
 }
 
 // TraderPrivateGetV2OrdersOrderId returns a channel that yields a JSON object.
 func (this *Alpaca) TraderPrivateGetV2OrdersOrderId(args ...any) <-chan any {
-	return this.Fetch2Async("v2/orders/{order_id}", []string{"trader", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("traderPrivateGetV2OrdersOrderId", args...)
 }
 
 // TraderPrivateGetV2Positions returns a channel that yields a JSON array.
 func (this *Alpaca) TraderPrivateGetV2Positions(args ...any) <-chan any {
-	return this.Fetch2Async("v2/positions", []string{"trader", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("traderPrivateGetV2Positions", args...)
 }
 
 // TraderPrivateGetV2PositionsSymbolOrAssetId returns a channel that yields a JSON object.
 func (this *Alpaca) TraderPrivateGetV2PositionsSymbolOrAssetId(args ...any) <-chan any {
-	return this.Fetch2Async("v2/positions/{symbol_or_asset_id}", []string{"trader", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("traderPrivateGetV2PositionsSymbolOrAssetId", args...)
 }
 
 // TraderPrivateGetV2AccountPortfolioHistory returns a channel that yields a JSON object.
 func (this *Alpaca) TraderPrivateGetV2AccountPortfolioHistory(args ...any) <-chan any {
-	return this.Fetch2Async("v2/account/portfolio/history", []string{"trader", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("traderPrivateGetV2AccountPortfolioHistory", args...)
 }
 
 // TraderPrivateGetV2Watchlists returns a channel that yields a JSON array.
 func (this *Alpaca) TraderPrivateGetV2Watchlists(args ...any) <-chan any {
-	return this.Fetch2Async("v2/watchlists", []string{"trader", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("traderPrivateGetV2Watchlists", args...)
 }
 
 // TraderPrivateGetV2WatchlistsWatchlistId returns a channel that yields a JSON object.
 func (this *Alpaca) TraderPrivateGetV2WatchlistsWatchlistId(args ...any) <-chan any {
-	return this.Fetch2Async("v2/watchlists/{watchlist_id}", []string{"trader", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("traderPrivateGetV2WatchlistsWatchlistId", args...)
 }
 
 // TraderPrivateGetV2WatchlistsByName returns a channel that yields a JSON object.
 func (this *Alpaca) TraderPrivateGetV2WatchlistsByName(args ...any) <-chan any {
-	return this.Fetch2Async("v2/watchlists:by_name", []string{"trader", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("traderPrivateGetV2WatchlistsByName", args...)
 }
 
 // TraderPrivateGetV2AccountConfigurations returns a channel that yields a JSON object.
 func (this *Alpaca) TraderPrivateGetV2AccountConfigurations(args ...any) <-chan any {
-	return this.Fetch2Async("v2/account/configurations", []string{"trader", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("traderPrivateGetV2AccountConfigurations", args...)
 }
 
 // TraderPrivateGetV2AccountActivities returns a channel that yields a JSON array.
 func (this *Alpaca) TraderPrivateGetV2AccountActivities(args ...any) <-chan any {
-	return this.Fetch2Async("v2/account/activities", []string{"trader", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("traderPrivateGetV2AccountActivities", args...)
 }
 
 // TraderPrivateGetV2AccountActivitiesActivityType returns a channel that yields a JSON array.
 func (this *Alpaca) TraderPrivateGetV2AccountActivitiesActivityType(args ...any) <-chan any {
-	return this.Fetch2Async("v2/account/activities/{activity_type}", []string{"trader", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("traderPrivateGetV2AccountActivitiesActivityType", args...)
 }
 
 // TraderPrivateGetV2Calendar returns a channel that yields a JSON array.
 func (this *Alpaca) TraderPrivateGetV2Calendar(args ...any) <-chan any {
-	return this.Fetch2Async("v2/calendar", []string{"trader", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("traderPrivateGetV2Calendar", args...)
 }
 
 // TraderPrivateGetV2Clock returns a channel that yields a JSON object.
 func (this *Alpaca) TraderPrivateGetV2Clock(args ...any) <-chan any {
-	return this.Fetch2Async("v2/clock", []string{"trader", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("traderPrivateGetV2Clock", args...)
 }
 
 // TraderPrivateGetV2Assets returns a channel that yields a JSON array.
 func (this *Alpaca) TraderPrivateGetV2Assets(args ...any) <-chan any {
-	return this.Fetch2Async("v2/assets", []string{"trader", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("traderPrivateGetV2Assets", args...)
 }
 
 // TraderPrivateGetV2AssetsSymbolOrAssetId returns a channel that yields a JSON object.
 func (this *Alpaca) TraderPrivateGetV2AssetsSymbolOrAssetId(args ...any) <-chan any {
-	return this.Fetch2Async("v2/assets/{symbol_or_asset_id}", []string{"trader", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("traderPrivateGetV2AssetsSymbolOrAssetId", args...)
 }
 
 // TraderPrivateGetV2CorporateActionsAnnouncementsId returns a channel that yields a JSON object.
 func (this *Alpaca) TraderPrivateGetV2CorporateActionsAnnouncementsId(args ...any) <-chan any {
-	return this.Fetch2Async("v2/corporate_actions/announcements/{id}", []string{"trader", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("traderPrivateGetV2CorporateActionsAnnouncementsId", args...)
 }
 
 // TraderPrivateGetV2CorporateActionsAnnouncements returns a channel that yields a JSON array.
 func (this *Alpaca) TraderPrivateGetV2CorporateActionsAnnouncements(args ...any) <-chan any {
-	return this.Fetch2Async("v2/corporate_actions/announcements", []string{"trader", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("traderPrivateGetV2CorporateActionsAnnouncements", args...)
 }
 
 // TraderPrivateGetV2Wallets returns a channel that yields a JSON object.
 func (this *Alpaca) TraderPrivateGetV2Wallets(args ...any) <-chan any {
-	return this.Fetch2Async("v2/wallets", []string{"trader", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("traderPrivateGetV2Wallets", args...)
 }
 
 // TraderPrivateGetV2WalletsTransfers returns a channel that yields a JSON array.
 func (this *Alpaca) TraderPrivateGetV2WalletsTransfers(args ...any) <-chan any {
-	return this.Fetch2Async("v2/wallets/transfers", []string{"trader", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("traderPrivateGetV2WalletsTransfers", args...)
 }
 
 // TraderPrivateGetV1Locates returns a channel that yields a JSON object.
 func (this *Alpaca) TraderPrivateGetV1Locates(args ...any) <-chan any {
-	return this.Fetch2Async("v1/locates", []string{"trader", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("traderPrivateGetV1Locates", args...)
 }
 
 // TraderPrivateGetV1LocatesLocateId returns a channel that yields a JSON object.
 func (this *Alpaca) TraderPrivateGetV1LocatesLocateId(args ...any) <-chan any {
-	return this.Fetch2Async("v1/locates/{locate_id}", []string{"trader", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("traderPrivateGetV1LocatesLocateId", args...)
 }
 
 // TraderPrivateGetV1LocatesQuotes returns a channel that yields a JSON object.
 func (this *Alpaca) TraderPrivateGetV1LocatesQuotes(args ...any) <-chan any {
-	return this.Fetch2Async("v1/locates/quotes", []string{"trader", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("traderPrivateGetV1LocatesQuotes", args...)
 }
 
 // TraderPrivateGetV2TokenizationRequests returns a channel that yields a JSON array.
 func (this *Alpaca) TraderPrivateGetV2TokenizationRequests(args ...any) <-chan any {
-	return this.Fetch2Async("v2/tokenization/requests", []string{"trader", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("traderPrivateGetV2TokenizationRequests", args...)
 }
 
 // TraderPrivateGetV2TokenizationRequestsTokenizationRequestId returns a channel that yields a JSON object.
 func (this *Alpaca) TraderPrivateGetV2TokenizationRequestsTokenizationRequestId(args ...any) <-chan any {
-	return this.Fetch2Async("v2/tokenization/requests/{tokenization_request_id}", []string{"trader", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("traderPrivateGetV2TokenizationRequestsTokenizationRequestId", args...)
 }
 
 // TraderPrivateGetV2TokenizationRequestsByClientRequestId returns a channel that yields a JSON object.
 func (this *Alpaca) TraderPrivateGetV2TokenizationRequestsByClientRequestId(args ...any) <-chan any {
-	return this.Fetch2Async("v2/tokenization/requests:by_client_request_id", []string{"trader", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("traderPrivateGetV2TokenizationRequestsByClientRequestId", args...)
 }
 
 // TraderPrivateGetV2WalletsTravelRuleVasps returns a channel that yields a JSON object.
 func (this *Alpaca) TraderPrivateGetV2WalletsTravelRuleVasps(args ...any) <-chan any {
-	return this.Fetch2Async("v2/wallets/travel-rule/vasps", []string{"trader", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("traderPrivateGetV2WalletsTravelRuleVasps", args...)
 }
 
 // TraderPrivatePostV2Orders returns a channel that yields a JSON object.
 func (this *Alpaca) TraderPrivatePostV2Orders(args ...any) <-chan any {
-	return this.Fetch2Async("v2/orders", []string{"trader", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("traderPrivatePostV2Orders", args...)
 }
 
 // TraderPrivatePostV2Watchlists returns a channel that yields a JSON object.
 func (this *Alpaca) TraderPrivatePostV2Watchlists(args ...any) <-chan any {
-	return this.Fetch2Async("v2/watchlists", []string{"trader", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("traderPrivatePostV2Watchlists", args...)
 }
 
 // TraderPrivatePostV2WatchlistsWatchlistId returns a channel that yields a JSON object.
 func (this *Alpaca) TraderPrivatePostV2WatchlistsWatchlistId(args ...any) <-chan any {
-	return this.Fetch2Async("v2/watchlists/{watchlist_id}", []string{"trader", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("traderPrivatePostV2WatchlistsWatchlistId", args...)
 }
 
 // TraderPrivatePostV2WatchlistsByName returns a channel that yields a JSON object.
 func (this *Alpaca) TraderPrivatePostV2WatchlistsByName(args ...any) <-chan any {
-	return this.Fetch2Async("v2/watchlists:by_name", []string{"trader", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("traderPrivatePostV2WatchlistsByName", args...)
 }
 
 // TraderPrivatePostV2WalletsTransfers returns a channel that yields a JSON object.
 func (this *Alpaca) TraderPrivatePostV2WalletsTransfers(args ...any) <-chan any {
-	return this.Fetch2Async("v2/wallets/transfers", []string{"trader", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("traderPrivatePostV2WalletsTransfers", args...)
 }
 
 // TraderPrivatePostV1Locates returns a channel that yields a JSON object.
 func (this *Alpaca) TraderPrivatePostV1Locates(args ...any) <-chan any {
-	return this.Fetch2Async("v1/locates", []string{"trader", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("traderPrivatePostV1Locates", args...)
 }
 
 // TraderPrivatePutV2OrdersOrderId returns a channel that yields a JSON object.
 func (this *Alpaca) TraderPrivatePutV2OrdersOrderId(args ...any) <-chan any {
-	return this.Fetch2Async("v2/orders/{order_id}", []string{"trader", "private"}, "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("traderPrivatePutV2OrdersOrderId", args...)
 }
 
 // TraderPrivatePutV2WatchlistsWatchlistId returns a channel that yields a JSON object.
 func (this *Alpaca) TraderPrivatePutV2WatchlistsWatchlistId(args ...any) <-chan any {
-	return this.Fetch2Async("v2/watchlists/{watchlist_id}", []string{"trader", "private"}, "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("traderPrivatePutV2WatchlistsWatchlistId", args...)
 }
 
 // TraderPrivatePutV2WatchlistsByName returns a channel that yields a JSON object.
 func (this *Alpaca) TraderPrivatePutV2WatchlistsByName(args ...any) <-chan any {
-	return this.Fetch2Async("v2/watchlists:by_name", []string{"trader", "private"}, "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("traderPrivatePutV2WatchlistsByName", args...)
 }
 
 // TraderPrivatePatchV2OrdersOrderId returns a channel that yields a JSON object.
 func (this *Alpaca) TraderPrivatePatchV2OrdersOrderId(args ...any) <-chan any {
-	return this.Fetch2Async("v2/orders/{order_id}", []string{"trader", "private"}, "PATCH", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("traderPrivatePatchV2OrdersOrderId", args...)
 }
 
 // TraderPrivatePatchV2AccountConfigurations returns a channel that yields a JSON object.
 func (this *Alpaca) TraderPrivatePatchV2AccountConfigurations(args ...any) <-chan any {
-	return this.Fetch2Async("v2/account/configurations", []string{"trader", "private"}, "PATCH", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("traderPrivatePatchV2AccountConfigurations", args...)
 }
 
 // TraderPrivatePatchV2WalletsWhitelistsWhitelistedAddressIdTravelRuleInfo returns a channel that yields a JSON object.
 func (this *Alpaca) TraderPrivatePatchV2WalletsWhitelistsWhitelistedAddressIdTravelRuleInfo(args ...any) <-chan any {
-	return this.Fetch2Async("v2/wallets/whitelists/{whitelisted_address_id}/travel-rule-info", []string{"trader", "private"}, "PATCH", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("traderPrivatePatchV2WalletsWhitelistsWhitelistedAddressIdTravelRuleInfo", args...)
 }
 
 // TraderPrivateDeleteV2Orders returns a channel that yields a JSON array.
 func (this *Alpaca) TraderPrivateDeleteV2Orders(args ...any) <-chan any {
-	return this.Fetch2Async("v2/orders", []string{"trader", "private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("traderPrivateDeleteV2Orders", args...)
 }
 
 // TraderPrivateDeleteV2OrdersOrderId returns a channel that yields a JSON object.
 func (this *Alpaca) TraderPrivateDeleteV2OrdersOrderId(args ...any) <-chan any {
-	return this.Fetch2Async("v2/orders/{order_id}", []string{"trader", "private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("traderPrivateDeleteV2OrdersOrderId", args...)
 }
 
 // TraderPrivateDeleteV2Positions returns a channel that yields a JSON array.
 func (this *Alpaca) TraderPrivateDeleteV2Positions(args ...any) <-chan any {
-	return this.Fetch2Async("v2/positions", []string{"trader", "private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("traderPrivateDeleteV2Positions", args...)
 }
 
 // TraderPrivateDeleteV2PositionsSymbolOrAssetId returns a channel that yields a JSON object.
 func (this *Alpaca) TraderPrivateDeleteV2PositionsSymbolOrAssetId(args ...any) <-chan any {
-	return this.Fetch2Async("v2/positions/{symbol_or_asset_id}", []string{"trader", "private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("traderPrivateDeleteV2PositionsSymbolOrAssetId", args...)
 }
 
 // TraderPrivateDeleteV2WatchlistsWatchlistId returns a channel that yields a JSON object.
 func (this *Alpaca) TraderPrivateDeleteV2WatchlistsWatchlistId(args ...any) <-chan any {
-	return this.Fetch2Async("v2/watchlists/{watchlist_id}", []string{"trader", "private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("traderPrivateDeleteV2WatchlistsWatchlistId", args...)
 }
 
 // TraderPrivateDeleteV2WatchlistsByName returns a channel that yields a JSON object.
 func (this *Alpaca) TraderPrivateDeleteV2WatchlistsByName(args ...any) <-chan any {
-	return this.Fetch2Async("v2/watchlists:by_name", []string{"trader", "private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("traderPrivateDeleteV2WatchlistsByName", args...)
 }
 
 // TraderPrivateDeleteV2WatchlistsWatchlistIdSymbol returns a channel that yields a JSON object.
 func (this *Alpaca) TraderPrivateDeleteV2WatchlistsWatchlistIdSymbol(args ...any) <-chan any {
-	return this.Fetch2Async("v2/watchlists/{watchlist_id}/{symbol}", []string{"trader", "private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("traderPrivateDeleteV2WatchlistsWatchlistIdSymbol", args...)
 }
 
 // MarketPublicGetV1beta3CryptoLocBars returns a channel that yields a JSON object.
 func (this *Alpaca) MarketPublicGetV1beta3CryptoLocBars(args ...any) <-chan any {
-	return this.Fetch2Async("v1beta3/crypto/{loc}/bars", []string{"market", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("marketPublicGetV1beta3CryptoLocBars", args...)
 }
 
 // MarketPublicGetV1beta3CryptoLocLatestBars returns a channel that yields a JSON object.
 func (this *Alpaca) MarketPublicGetV1beta3CryptoLocLatestBars(args ...any) <-chan any {
-	return this.Fetch2Async("v1beta3/crypto/{loc}/latest/bars", []string{"market", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("marketPublicGetV1beta3CryptoLocLatestBars", args...)
 }
 
 // MarketPublicGetV1beta3CryptoLocLatestOrderbooks returns a channel that yields a JSON object.
 func (this *Alpaca) MarketPublicGetV1beta3CryptoLocLatestOrderbooks(args ...any) <-chan any {
-	return this.Fetch2Async("v1beta3/crypto/{loc}/latest/orderbooks", []string{"market", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("marketPublicGetV1beta3CryptoLocLatestOrderbooks", args...)
 }
 
 // MarketPublicGetV1beta3CryptoLocLatestQuotes returns a channel that yields a JSON object.
 func (this *Alpaca) MarketPublicGetV1beta3CryptoLocLatestQuotes(args ...any) <-chan any {
-	return this.Fetch2Async("v1beta3/crypto/{loc}/latest/quotes", []string{"market", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("marketPublicGetV1beta3CryptoLocLatestQuotes", args...)
 }
 
 // MarketPublicGetV1beta3CryptoLocLatestTrades returns a channel that yields a JSON object.
 func (this *Alpaca) MarketPublicGetV1beta3CryptoLocLatestTrades(args ...any) <-chan any {
-	return this.Fetch2Async("v1beta3/crypto/{loc}/latest/trades", []string{"market", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("marketPublicGetV1beta3CryptoLocLatestTrades", args...)
 }
 
 // MarketPublicGetV1beta3CryptoLocQuotes returns a channel that yields a JSON object.
 func (this *Alpaca) MarketPublicGetV1beta3CryptoLocQuotes(args ...any) <-chan any {
-	return this.Fetch2Async("v1beta3/crypto/{loc}/quotes", []string{"market", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("marketPublicGetV1beta3CryptoLocQuotes", args...)
 }
 
 // MarketPublicGetV1beta3CryptoLocSnapshots returns a channel that yields a JSON object.
 func (this *Alpaca) MarketPublicGetV1beta3CryptoLocSnapshots(args ...any) <-chan any {
-	return this.Fetch2Async("v1beta3/crypto/{loc}/snapshots", []string{"market", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("marketPublicGetV1beta3CryptoLocSnapshots", args...)
 }
 
 // MarketPublicGetV1beta3CryptoLocTrades returns a channel that yields a JSON object.
 func (this *Alpaca) MarketPublicGetV1beta3CryptoLocTrades(args ...any) <-chan any {
-	return this.Fetch2Async("v1beta3/crypto/{loc}/trades", []string{"market", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("marketPublicGetV1beta3CryptoLocTrades", args...)
 }
 
 // MarketPrivateGetV1beta1CorporateActions returns a channel that yields a JSON object.
 func (this *Alpaca) MarketPrivateGetV1beta1CorporateActions(args ...any) <-chan any {
-	return this.Fetch2Async("v1beta1/corporate-actions", []string{"market", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("marketPrivateGetV1beta1CorporateActions", args...)
 }
 
 // MarketPrivateGetV1beta1FixedIncomeLatestPrices returns a channel that yields a JSON object.
 func (this *Alpaca) MarketPrivateGetV1beta1FixedIncomeLatestPrices(args ...any) <-chan any {
-	return this.Fetch2Async("v1beta1/fixed_income/latest/prices", []string{"market", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("marketPrivateGetV1beta1FixedIncomeLatestPrices", args...)
 }
 
 // MarketPrivateGetV1beta1FixedIncomeLatestQuotes returns a channel that yields a JSON object.
 func (this *Alpaca) MarketPrivateGetV1beta1FixedIncomeLatestQuotes(args ...any) <-chan any {
-	return this.Fetch2Async("v1beta1/fixed_income/latest/quotes", []string{"market", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("marketPrivateGetV1beta1FixedIncomeLatestQuotes", args...)
 }
 
 // MarketPrivateGetV1beta1ForexLatestRates returns a channel that yields a JSON object.
 func (this *Alpaca) MarketPrivateGetV1beta1ForexLatestRates(args ...any) <-chan any {
-	return this.Fetch2Async("v1beta1/forex/latest/rates", []string{"market", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("marketPrivateGetV1beta1ForexLatestRates", args...)
 }
 
 // MarketPrivateGetV1beta1ForexRates returns a channel that yields a JSON object.
 func (this *Alpaca) MarketPrivateGetV1beta1ForexRates(args ...any) <-chan any {
-	return this.Fetch2Async("v1beta1/forex/rates", []string{"market", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("marketPrivateGetV1beta1ForexRates", args...)
 }
 
 // MarketPrivateGetV1beta1LogosSymbol returns a channel that yields a JSON scalar.
 func (this *Alpaca) MarketPrivateGetV1beta1LogosSymbol(args ...any) <-chan any {
-	return this.Fetch2Async("v1beta1/logos/{symbol}", []string{"market", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("marketPrivateGetV1beta1LogosSymbol", args...)
 }
 
 // MarketPrivateGetV1beta1News returns a channel that yields a JSON object.
 func (this *Alpaca) MarketPrivateGetV1beta1News(args ...any) <-chan any {
-	return this.Fetch2Async("v1beta1/news", []string{"market", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("marketPrivateGetV1beta1News", args...)
 }
 
 // MarketPrivateGetV1beta1ScreenerStocksMostActives returns a channel that yields a JSON object.
 func (this *Alpaca) MarketPrivateGetV1beta1ScreenerStocksMostActives(args ...any) <-chan any {
-	return this.Fetch2Async("v1beta1/screener/stocks/most-actives", []string{"market", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("marketPrivateGetV1beta1ScreenerStocksMostActives", args...)
 }
 
 // MarketPrivateGetV1beta1ScreenerMarketTypeMovers returns a channel that yields a JSON object.
 func (this *Alpaca) MarketPrivateGetV1beta1ScreenerMarketTypeMovers(args ...any) <-chan any {
-	return this.Fetch2Async("v1beta1/screener/{market_type}/movers", []string{"market", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("marketPrivateGetV1beta1ScreenerMarketTypeMovers", args...)
 }
 
 // MarketPrivateGetV2StocksAuctions returns a channel that yields a JSON object.
 func (this *Alpaca) MarketPrivateGetV2StocksAuctions(args ...any) <-chan any {
-	return this.Fetch2Async("v2/stocks/auctions", []string{"market", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("marketPrivateGetV2StocksAuctions", args...)
 }
 
 // MarketPrivateGetV2StocksBars returns a channel that yields a JSON object.
 func (this *Alpaca) MarketPrivateGetV2StocksBars(args ...any) <-chan any {
-	return this.Fetch2Async("v2/stocks/bars", []string{"market", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("marketPrivateGetV2StocksBars", args...)
 }
 
 // MarketPrivateGetV2StocksBarsLatest returns a channel that yields a JSON object.
 func (this *Alpaca) MarketPrivateGetV2StocksBarsLatest(args ...any) <-chan any {
-	return this.Fetch2Async("v2/stocks/bars/latest", []string{"market", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("marketPrivateGetV2StocksBarsLatest", args...)
 }
 
 // MarketPrivateGetV2StocksMetaConditionsTicktype returns a channel that yields a JSON object.
 func (this *Alpaca) MarketPrivateGetV2StocksMetaConditionsTicktype(args ...any) <-chan any {
-	return this.Fetch2Async("v2/stocks/meta/conditions/{ticktype}", []string{"market", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("marketPrivateGetV2StocksMetaConditionsTicktype", args...)
 }
 
 // MarketPrivateGetV2StocksMetaExchanges returns a channel that yields a JSON object.
 func (this *Alpaca) MarketPrivateGetV2StocksMetaExchanges(args ...any) <-chan any {
-	return this.Fetch2Async("v2/stocks/meta/exchanges", []string{"market", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("marketPrivateGetV2StocksMetaExchanges", args...)
 }
 
 // MarketPrivateGetV2StocksQuotes returns a channel that yields a JSON object.
 func (this *Alpaca) MarketPrivateGetV2StocksQuotes(args ...any) <-chan any {
-	return this.Fetch2Async("v2/stocks/quotes", []string{"market", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("marketPrivateGetV2StocksQuotes", args...)
 }
 
 // MarketPrivateGetV2StocksQuotesLatest returns a channel that yields a JSON object.
 func (this *Alpaca) MarketPrivateGetV2StocksQuotesLatest(args ...any) <-chan any {
-	return this.Fetch2Async("v2/stocks/quotes/latest", []string{"market", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("marketPrivateGetV2StocksQuotesLatest", args...)
 }
 
 // MarketPrivateGetV2StocksSnapshots returns a channel that yields a JSON object.
 func (this *Alpaca) MarketPrivateGetV2StocksSnapshots(args ...any) <-chan any {
-	return this.Fetch2Async("v2/stocks/snapshots", []string{"market", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("marketPrivateGetV2StocksSnapshots", args...)
 }
 
 // MarketPrivateGetV2StocksTrades returns a channel that yields a JSON object.
 func (this *Alpaca) MarketPrivateGetV2StocksTrades(args ...any) <-chan any {
-	return this.Fetch2Async("v2/stocks/trades", []string{"market", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("marketPrivateGetV2StocksTrades", args...)
 }
 
 // MarketPrivateGetV2StocksTradesLatest returns a channel that yields a JSON object.
 func (this *Alpaca) MarketPrivateGetV2StocksTradesLatest(args ...any) <-chan any {
-	return this.Fetch2Async("v2/stocks/trades/latest", []string{"market", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("marketPrivateGetV2StocksTradesLatest", args...)
 }
 
 // MarketPrivateGetV2StocksSymbolAuctions returns a channel that yields a JSON object.
 func (this *Alpaca) MarketPrivateGetV2StocksSymbolAuctions(args ...any) <-chan any {
-	return this.Fetch2Async("v2/stocks/{symbol}/auctions", []string{"market", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("marketPrivateGetV2StocksSymbolAuctions", args...)
 }
 
 // MarketPrivateGetV2StocksSymbolBars returns a channel that yields a JSON object.
 func (this *Alpaca) MarketPrivateGetV2StocksSymbolBars(args ...any) <-chan any {
-	return this.Fetch2Async("v2/stocks/{symbol}/bars", []string{"market", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("marketPrivateGetV2StocksSymbolBars", args...)
 }
 
 // MarketPrivateGetV2StocksSymbolBarsLatest returns a channel that yields a JSON object.
 func (this *Alpaca) MarketPrivateGetV2StocksSymbolBarsLatest(args ...any) <-chan any {
-	return this.Fetch2Async("v2/stocks/{symbol}/bars/latest", []string{"market", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("marketPrivateGetV2StocksSymbolBarsLatest", args...)
 }
 
 // MarketPrivateGetV2StocksSymbolQuotes returns a channel that yields a JSON object.
 func (this *Alpaca) MarketPrivateGetV2StocksSymbolQuotes(args ...any) <-chan any {
-	return this.Fetch2Async("v2/stocks/{symbol}/quotes", []string{"market", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("marketPrivateGetV2StocksSymbolQuotes", args...)
 }
 
 // MarketPrivateGetV2StocksSymbolQuotesLatest returns a channel that yields a JSON object.
 func (this *Alpaca) MarketPrivateGetV2StocksSymbolQuotesLatest(args ...any) <-chan any {
-	return this.Fetch2Async("v2/stocks/{symbol}/quotes/latest", []string{"market", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("marketPrivateGetV2StocksSymbolQuotesLatest", args...)
 }
 
 // MarketPrivateGetV2StocksSymbolSnapshot returns a channel that yields a JSON object.
 func (this *Alpaca) MarketPrivateGetV2StocksSymbolSnapshot(args ...any) <-chan any {
-	return this.Fetch2Async("v2/stocks/{symbol}/snapshot", []string{"market", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("marketPrivateGetV2StocksSymbolSnapshot", args...)
 }
 
 // MarketPrivateGetV2StocksSymbolTrades returns a channel that yields a JSON object.
 func (this *Alpaca) MarketPrivateGetV2StocksSymbolTrades(args ...any) <-chan any {
-	return this.Fetch2Async("v2/stocks/{symbol}/trades", []string{"market", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("marketPrivateGetV2StocksSymbolTrades", args...)
 }
 
 // MarketPrivateGetV2StocksSymbolTradesLatest returns a channel that yields a JSON object.
 func (this *Alpaca) MarketPrivateGetV2StocksSymbolTradesLatest(args ...any) <-chan any {
-	return this.Fetch2Async("v2/stocks/{symbol}/trades/latest", []string{"market", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.callEndpointAsync("marketPrivateGetV2StocksSymbolTradesLatest", args...)
 }

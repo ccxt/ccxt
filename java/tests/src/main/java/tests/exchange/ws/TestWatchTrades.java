@@ -7,7 +7,6 @@ import io.github.ccxt.errors.*;
 import tests.exchange.*;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -26,7 +25,7 @@ public class TestWatchTrades extends BaseTest {
         Object ends = Helpers.add(now, 15000);
         Integer maxIdleTime = 5000;
         Boolean idle = false;
-        while ((Helpers.isLessThan(now, ends)) && !Boolean.TRUE.equals(idle))
+        while (Helpers.isTrue((Helpers.isLessThan(now, ends))) && !Helpers.isTrue(idle))
         {
             Object response = new ArrayList<Object>(Arrays.asList());
             Boolean success = true;
@@ -43,14 +42,14 @@ public class TestWatchTrades extends BaseTest {
                 success = false;
             }
             now = exchange.milliseconds();
-            if (java.util.Objects.equals(success, true))
+            if (Helpers.isTrue(Helpers.isEqual(success, true)))
             {
                 TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, response);
-                for (var i = 0; i < ((List<?>)response).size(); i++)
+                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
                 {
-                    TestTrade.testTrade(exchange, skippedProperties, method, (response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i)), symbol, now, true);
+                    TestTrade.testTrade(exchange, skippedProperties, method, Helpers.GetValue(response, i), symbol, now, true);
                 }
-                if (Helpers.isGreaterThan((Helpers.subtract(now, startTime)), maxIdleTime))
+                if (Helpers.isTrue(Helpers.isGreaterThan((Helpers.subtract(now, startTime)), maxIdleTime)))
                 {
                     idle = true;
                 }

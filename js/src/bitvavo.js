@@ -913,7 +913,7 @@ export default class bitvavo extends Exchange {
         const id = this.safeString2(trade, 'id', 'fillId');
         const marketId = this.safeString(trade, 'market');
         const symbol = this.safeSymbol(marketId, market, '-');
-        const taker = this.safeBool(trade, 'taker');
+        const taker = this.safeValue(trade, 'taker');
         let takerOrMaker = undefined;
         if (taker !== undefined) {
             takerOrMaker = (taker === true) ? 'taker' : 'maker';
@@ -979,7 +979,7 @@ export default class bitvavo extends Exchange {
         //         }
         //     }
         //
-        const feesValue = this.safeDict(fees, 'fees');
+        const feesValue = this.safeValue(fees, 'fees');
         const maker = this.safeNumber(feesValue, 'maker');
         const taker = this.safeNumber(feesValue, 'taker');
         const result = {};
@@ -1489,8 +1489,8 @@ export default class bitvavo extends Exchange {
         const timeInForce = this.safeString(params, 'timeInForce');
         let triggerPrice = this.safeStringN(params, ['triggerPrice', 'stopPrice', 'triggerAmount']);
         const postOnly = this.isPostOnly(isMarketOrder, false, params);
-        const stopLossPrice = this.safeString(params, 'stopLossPrice'); // trigger when price crosses from above to below this value
-        const takeProfitPrice = this.safeString(params, 'takeProfitPrice'); // trigger when price crosses from below to above this value
+        const stopLossPrice = this.safeValue(params, 'stopLossPrice'); // trigger when price crosses from above to below this value
+        const takeProfitPrice = this.safeValue(params, 'takeProfitPrice'); // trigger when price crosses from below to above this value
         params = this.omit(params, ['timeInForce', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice']);
         if (isMarketOrder) {
             let cost = undefined;
@@ -2113,7 +2113,7 @@ export default class bitvavo extends Exchange {
                 'currency': feeCurrencyCode,
             };
         }
-        const rawTrades = this.safeList(order, 'fills', []);
+        const rawTrades = this.safeValue(order, 'fills', []);
         const timeInForce = this.safeString(order, 'timeInForce');
         const postOnly = this.safeValue(order, 'postOnly');
         // https://github.com/ccxt/ccxt/issues/8489
@@ -2598,8 +2598,8 @@ export default class bitvavo extends Exchange {
             },
             'networks': {},
         };
-        const networks = this.safeList(fee, 'networks');
-        let networkId = this.safeString(networks, 0); // Bitvavo currently only supports one network per currency
+        const networks = this.safeValue(fee, 'networks');
+        let networkId = this.safeValue(networks, 0); // Bitvavo currently only supports one network per currency
         const currencyCode = this.safeString(currency, 'code');
         if (networkId === 'Mainnet') {
             networkId = currencyCode;
@@ -2706,6 +2706,6 @@ export default class bitvavo extends Exchange {
         if (('noMarket' in config) && !('market' in params)) {
             return config['noMarket'];
         }
-        return this.safeNumber(config, 'cost', 1);
+        return this.safeValue(config, 'cost', 1);
     }
 }

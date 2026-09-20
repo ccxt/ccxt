@@ -59,7 +59,7 @@ export default class blockchaincom extends Exchange {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
-    parseOrderState(state: Str): Str;
+    parseOrderState(state: any): string;
     parseOrder(order: Dict, market?: Market): Order;
     /**
      * @method
@@ -141,7 +141,7 @@ export default class blockchaincom extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    fetchOrdersByState(state: string, symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
+    fetchOrdersByState(state: any, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     parseTrade(trade: Dict, market?: Market): Trade;
     /**
      * @method
@@ -165,7 +165,7 @@ export default class blockchaincom extends Exchange {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
-    parseTransactionState(state: Str): Str;
+    parseTransactionState(state: any): string;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     /**
      * @method
@@ -202,7 +202,7 @@ export default class blockchaincom extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    fetchWithdrawal(id: string, code?: Str, params?: Dict): Promise<Transaction>;
+    fetchWithdrawal(id: string, code?: Str, params?: {}): Promise<Transaction>;
     /**
      * @method
      * @name blockchaincom#fetchDeposits
@@ -225,7 +225,7 @@ export default class blockchaincom extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    fetchDeposit(id: string, code?: Str, params?: Dict): Promise<Transaction>;
+    fetchDeposit(id: string, code?: Str, params?: {}): Promise<Transaction>;
     /**
      * @method
      * @name blockchaincom#fetchBalance

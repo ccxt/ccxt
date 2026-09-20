@@ -127,7 +127,7 @@ public partial class BaseTest
             Assert(preciseEqualStr(exchange, result8, "previousClose", "4.9"));
             Assert(preciseEqualStr(exchange, result8, "indexPrice", "5.8"));
             Assert(preciseEqualStr(exchange, result8, "markPrice", "5.9"));
-            Assert(!isEqual((result8 != null && ((IDictionary<string, object>)result8).ContainsKey("info") ? ((IDictionary<string, object>)result8)["info"] : null), null));
+            Assert(!isEqual(getValue(result8, "info"), null));
             // CASE 9 - flat day, a legitimate zero change must be preserved, see https://github.com/ccxt/ccxt/issues/25971
             Dictionary<string, object> ticker9 = new Dictionary<string, object>() {
                 { "open", 6 },
@@ -152,7 +152,7 @@ public partial class BaseTest
             // the supplied average must survive untouched, and this path deliberately
             // leaves change and percentage underived - pin that boundary
             Assert(preciseEqualStr(exchange, result10, "average", "5.5"));
-            Assert(isEqual((result10 != null && ((IDictionary<string, object>)result10).ContainsKey("change") ? ((IDictionary<string, object>)result10)["change"] : null), null));
-            Assert(isEqual((result10 != null && ((IDictionary<string, object>)result10).ContainsKey("percentage") ? ((IDictionary<string, object>)result10)["percentage"] : null), null));
+            Assert(isEqual(getValue(result10, "change"), null));
+            Assert(isEqual(getValue(result10, "percentage"), null));
         }
 }

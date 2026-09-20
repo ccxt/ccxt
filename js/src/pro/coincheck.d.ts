@@ -13,8 +13,8 @@ export default class coincheck extends coincheckRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
-    handleOrderBook(client: Client, message: any[]): void;
+    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    handleOrderBook(client: any, message: any): void;
     /**
      * @method
      * @name coincheck#watchTrades
@@ -26,8 +26,8 @@ export default class coincheck extends coincheckRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    watchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
-    handleTrades(client: Client, message: any[]): void;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    handleTrades(client: Client, message: any): void;
     parseWsTrade(trade: Dict, market?: Market): Trade;
-    handleMessage(client: Client, message: any[]): void;
+    handleMessage(client: Client, message: any): void;
 }

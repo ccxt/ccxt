@@ -3652,7 +3652,7 @@ class kucoin extends kucoin$1["default"] {
         // BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
         // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
         this.options['versions']['private']['GET']['deposit-addresses'] = version;
-        const data = this.safeDict(response, 'data');
+        const data = this.safeValue(response, 'data');
         if (data === undefined) {
             throw new errors.ExchangeError(this.id + ' fetchDepositAddress() returned an empty response, you might try to run createDepositAddress() first and try again');
         }
@@ -3964,9 +3964,9 @@ class kucoin extends kucoin$1["default"] {
         return orderbook;
     }
     handleTriggerPrices(params) {
-        const triggerPrice = this.safeNumber2(params, 'triggerPrice', 'stopPrice');
-        const stopLossPrice = this.safeNumber(params, 'stopLossPrice');
-        const takeProfitPrice = this.safeNumber(params, 'takeProfitPrice');
+        const triggerPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
+        const stopLossPrice = this.safeValue(params, 'stopLossPrice');
+        const takeProfitPrice = this.safeValue(params, 'takeProfitPrice');
         const isStopLoss = stopLossPrice !== undefined;
         const isTakeProfit = takeProfitPrice !== undefined;
         if ((isStopLoss && isTakeProfit) || ((triggerPrice !== undefined) && (stopLossPrice !== undefined)) || ((triggerPrice !== undefined) && isTakeProfit)) {
@@ -4784,7 +4784,7 @@ class kucoin extends kucoin$1["default"] {
             const side = this.safeString(rawOrder, 'side');
             const amount = this.safeValue(rawOrder, 'amount');
             const price = this.safeValue(rawOrder, 'price');
-            const orderParams = this.safeDict(rawOrder, 'params', {});
+            const orderParams = this.safeValue(rawOrder, 'params', {});
             const orderRequest = this.createSpotOrderRequest(marketId, type, side, amount, price, orderParams);
             ordersRequests.push(orderRequest);
         }
@@ -4868,7 +4868,7 @@ class kucoin extends kucoin$1["default"] {
             const side = this.safeString(rawOrder, 'side');
             const amount = this.safeValue(rawOrder, 'amount');
             const price = this.safeValue(rawOrder, 'price');
-            const orderParams = this.safeDict(rawOrder, 'params', {});
+            const orderParams = this.safeValue(rawOrder, 'params', {});
             const orderRequest = this.createContractOrderRequest(symbol, type, side, amount, price, orderParams);
             ordersRequests.push(orderRequest);
         }
@@ -6430,7 +6430,7 @@ class kucoin extends kucoin$1["default"] {
         // precision reported by their api is 8 d.p.
         // const average = Precise.stringDiv (cost, Precise.stringMul (filled, market['contractSize']));
         // bool
-        const isActive = this.safeBool(order, 'isActive');
+        const isActive = this.safeValue(order, 'isActive');
         const cancelExist = this.safeBool(order, 'cancelExist', false);
         let status = undefined;
         if (isActive !== undefined) {
@@ -6446,8 +6446,8 @@ class kucoin extends kucoin$1["default"] {
         }
         const clientOrderId = this.safeString(order, 'clientOid');
         const timeInForce = this.safeString(order, 'timeInForce');
-        const postOnly = this.safeBool(order, 'postOnly');
-        const reduceOnly = this.safeBool(order, 'reduceOnly');
+        const postOnly = this.safeValue(order, 'postOnly');
+        const reduceOnly = this.safeValue(order, 'reduceOnly');
         const lastUpdateTimestamp = this.safeInteger(order, 'updatedAt');
         return this.safeOrder({
             'id': orderId,
@@ -8414,7 +8414,7 @@ class kucoin extends kucoin$1["default"] {
         }
         // only fetches one balance at a time
         let defaultCode = this.safeString(this.options, 'code');
-        const fetchBalanceOptions = this.safeDict(this.options, 'fetchBalance', {});
+        const fetchBalanceOptions = this.safeValue(this.options, 'fetchBalance', {});
         defaultCode = this.safeString(fetchBalanceOptions, 'code', defaultCode);
         const code = this.safeString(params, 'code', defaultCode);
         if (code === undefined) {
@@ -8445,7 +8445,7 @@ class kucoin extends kucoin$1["default"] {
             'timestamp': undefined,
             'datetime': undefined,
         };
-        const data = this.safeDict(response, 'data');
+        const data = this.safeValue(response, 'data');
         const currencyId = this.safeString(data, 'currency');
         const currencyCode = this.safeCurrencyCode(currencyId, currency);
         const account = this.account();
@@ -10466,7 +10466,7 @@ class kucoin extends kucoin$1["default"] {
             //        }
             //    }
             //
-            const data = this.safeDict(response, 'data');
+            const data = this.safeValue(response, 'data');
             dataList = this.safeList(data, 'dataList', []);
         }
         const fees = [];
@@ -10935,7 +10935,7 @@ class kucoin extends kucoin$1["default"] {
         const initialMarginPercentage = Precise["default"].stringDiv(initialMargin, notional);
         // const marginRatio = Precise.stringDiv (maintenanceRate, collateral);
         const unrealisedPnl = this.safeString2(position, 'unrealisedPnl', 'unrealizedPnL');
-        const crossMode = this.safeBool(position, 'crossMode');
+        const crossMode = this.safeValue(position, 'crossMode');
         // currently crossMode is always set to false and only isolated positions are supported
         let marginMode = this.safeStringLower(position, 'marginMode');
         if (crossMode !== undefined) {
@@ -11156,7 +11156,7 @@ class kucoin extends kucoin$1["default"] {
         //        "msg":"Position does not exist"
         //    }
         //
-        const data = this.safeDict(response, 'data');
+        const data = this.safeValue(response, 'data');
         return this.extend(this.parseMarginModification(data, market), {
             'amount': this.amountToPrecision(symbol, amount),
             'direction': 'in',
@@ -11254,7 +11254,7 @@ class kucoin extends kucoin$1["default"] {
         const id = this.safeString(info, 'id');
         market = this.safeMarket(id, market);
         const currencyId = this.safeString(info, 'settleCurrency');
-        const crossMode = this.safeBool(info, 'crossMode');
+        const crossMode = this.safeValue(info, 'crossMode');
         const mode = (crossMode === true) ? 'cross' : 'isolated';
         const marketId = this.safeString(market, 'symbol');
         const timestamp = this.safeInteger(info, 'currentTimestamp');

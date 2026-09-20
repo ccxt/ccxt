@@ -476,7 +476,7 @@ class bittrade extends bittrade$1["default"] {
         //                 "market-sell-order-rate-must-less-than":  0.1,
         //                  "market-buy-order-rate-must-less-than":  0.1        } }
         //
-        return this.parseTradingLimits(this.safeDict(response, 'data', {}));
+        return this.parseTradingLimits(this.safeValue(response, 'data', {}));
     }
     parseTradingLimits(limits, symbol = undefined, params = {}) {
         //
@@ -765,7 +765,7 @@ class bittrade extends bittrade$1["default"] {
             if ((response['tick'] === undefined) || (response['tick'] === null)) {
                 throw new errors.BadSymbol(this.id + ' fetchOrderBook() returned empty response: ' + this.json(response));
             }
-            const tick = this.safeDict(response, 'tick');
+            const tick = this.safeValue(response, 'tick');
             const timestamp = this.safeInteger(tick, 'ts', this.safeInteger(response, 'ts'));
             const result = this.parseOrderBook(tick, symbol, timestamp);
             result['nonce'] = this.safeInteger(tick, 'version');
@@ -1165,15 +1165,15 @@ class bittrade extends bittrade$1["default"] {
         //         ]
         //     }
         //
-        const currencies = this.safeList(response, 'data', []);
+        const currencies = this.safeValue(response, 'data', []);
         return this.parseCurrencies(currencies);
     }
     parseCurrency(currency) {
-        const id = this.safeString(currency, 'name');
+        const id = this.safeValue(currency, 'name');
         const code = this.safeCurrencyCode(id);
-        const depositEnabled = this.safeBool(currency, 'deposit-enabled');
-        const withdrawEnabled = this.safeBool(currency, 'withdraw-enabled');
-        const countryDisabled = this.safeBool(currency, 'country-disabled');
+        const depositEnabled = this.safeValue(currency, 'deposit-enabled');
+        const withdrawEnabled = this.safeValue(currency, 'withdraw-enabled');
+        const countryDisabled = this.safeValue(currency, 'country-disabled');
         const visible = this.safeBool(currency, 'visible', false);
         const state = this.safeString(currency, 'state');
         const active = (visible === true) && (depositEnabled === true) && (withdrawEnabled === true) && (state === 'online') && (countryDisabled !== true);
@@ -1567,7 +1567,7 @@ class bittrade extends bittrade$1["default"] {
         };
         const clientOrderId = this.safeString2(params, 'clientOrderId', 'client-order-id'); // must be 64 chars max and unique within 24 hours
         if (clientOrderId === undefined) {
-            const broker = this.safeDict(this.options, 'broker', {});
+            const broker = this.safeValue(this.options, 'broker', {});
             const brokerId = this.safeString(broker, 'id');
             request['client-order-id'] = brokerId + this.uuid();
         }
@@ -1835,7 +1835,7 @@ class bittrade extends bittrade$1["default"] {
         currency = this.safeCurrency(currencyId, currency);
         const code = this.safeCurrencyCode(currencyId, currency);
         const networkId = this.safeString(depositAddress, 'chain');
-        const networks = this.safeDict(currency, 'networks', {});
+        const networks = this.safeValue(currency, 'networks', {});
         const networksById = this.indexBy(networks, 'id');
         const networkValue = this.safeValue(networksById, networkId, networkId);
         const network = this.safeString(networkValue, 'network');
@@ -2049,7 +2049,7 @@ class bittrade extends bittrade$1["default"] {
         if (tag !== undefined) {
             request['addr-tag'] = tag; // only for XRP?
         }
-        const networks = this.safeDict(this.options, 'networks', {});
+        const networks = this.safeValue(this.options, 'networks', {});
         let network = this.safeStringUpper(params, 'network'); // this line allows the user to specify either ERC20 or ETH
         network = this.safeStringLower(networks, network, network); // handle ETH>ERC20 alias
         if (network !== undefined) {

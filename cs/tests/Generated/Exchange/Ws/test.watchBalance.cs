@@ -12,7 +12,7 @@ public partial class testMainClass : BaseTest
     {
         string method = "watchBalance";
         Int64 now = exchange.milliseconds();
-        object ends = (now + 15000);
+        object ends = add(now, 15000);
         while (isLessThan(now, ends))
         {
             object response = new Dictionary<string, object>() {};
@@ -30,7 +30,7 @@ public partial class testMainClass : BaseTest
                 // continue;
                 success = false;
             }
-            if ((success == false))
+            if (isTrue(isEqual(success, false)))
             {
                 continue;
             }

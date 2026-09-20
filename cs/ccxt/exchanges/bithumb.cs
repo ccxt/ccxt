@@ -531,13 +531,13 @@ public partial class bithumb : Exchange
     public override string? amountToPrecision(object symbol, object amount)
     {
         Dictionary<string, object> market = this.market(symbol);
-        return this.decimalToPrecision(amount, TRUNCATE, getValue((market.ContainsKey("precision") ? market["precision"] : null), "amount"), DECIMAL_PLACES);
+        return this.decimalToPrecision(amount, TRUNCATE, getValue(getValue(market, "precision"), "amount"), DECIMAL_PLACES);
     }
 
     public virtual string? getGen2MarketId(object market)
     {
         string? marketId = this.safeString(market, "id");
-        if (((marketId != null)) && (((string)marketId).IndexOf("-", StringComparison.Ordinal) >= 0))
+        if (isTrue(isTrue((!isEqual(marketId, null))) && isTrue((isGreaterThanOrEqual(getIndexOf(marketId, "-"), 0)))))
         {
             return marketId;
         }
@@ -565,7 +565,7 @@ public partial class bithumb : Exchange
         IList<object> generationparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMarkets", "generation", 2);
         generation = ((IList<object>)generationparametersVariable)[0];
         parameters = ((IList<object>)generationparametersVariable)[1];
-        if (isEqual(generation, 2))
+        if (isTrue(isEqual(generation, 2)))
         {
             ((IDictionary<string,object>)request)["isDetails"] = true;
             List<object> response = await this.publicGetV1MarketAll(this.extend(request, parameters));
@@ -579,24 +579,24 @@ public partial class bithumb : Exchange
             //         },
             //     ]
             //
-            for (int i = 0; i < (response?.Count ?? 0); i++)
+            for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
             {
-                object entry = response[i];
+                object entry = getValue(response, i);
                 string? marketId = this.safeString(entry, "market");
                 object baseId = null;
                 object quoteId = null;
                 object bs = null;
                 string? quote = null;
-                if ((marketId != null))
+                if (isTrue(!isEqual(marketId, null)))
                 {
-                    List<object> parts = marketId.Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+                    List<object> parts = ((string)marketId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
                     // to match gen 1, the quoteId is the first currency derived from the market id
-                    baseId = (parts != null && 1 < parts.Count ? parts[1] : null);
-                    quoteId = (parts != null && 0 < parts.Count ? parts[0] : null);
+                    baseId = getValue(parts, 1);
+                    quoteId = getValue(parts, 0);
                     bs = this.safeCurrencyCode(baseId);
                     quote = this.safeCurrencyCode(quoteId);
                 }
-                if (((bs == null)) || ((quote == null)))
+                if (isTrue(isTrue((isEqual(bs, null))) || isTrue((isEqual(quote, null)))))
                 {
                     continue;
                 }
@@ -625,8 +625,8 @@ public partial class bithumb : Exchange
                     { "strike", null },
                     { "optionType", null },
                     { "precision", new Dictionary<string, object>() {
-                        { "amount", 4L },
-                        { "price", 4L },
+                        { "amount", parseInt("4") },
+                        { "price", parseInt("4") },
                     } },
                     { "limits", new Dictionary<string, object>() {
                         { "leverage", new Dictionary<string, object>() {
@@ -655,34 +655,34 @@ public partial class bithumb : Exchange
             IDictionary<string, object> quoteCurrencies = this.safeDict(this.options, "quoteCurrencies", new Dictionary<string, object>() {});
             List<object> quotes = new List<object>(((IDictionary<string,object>)quoteCurrencies).Keys);
             List<object> promises = new List<object>() {};
-            for (int i = 0; i < quotes.Count; i++)
+            for (int i = 0; isLessThan(i, getArrayLength(quotes)); postFixIncrement(ref i))
             {
-                ((IDictionary<string,object>)request)["quoteId"] = quotes[i];
+                ((IDictionary<string,object>)request)["quoteId"] = getValue(quotes, i);
                 ((IList<object>)promises).Add(this.publicGetPublicTickerALLQuoteId(this.extend(request, parameters)));
             }
             List<object> results = await promiseAll(promises);
-            for (int i = 0; i < quotes.Count; i++)
+            for (int i = 0; isLessThan(i, getArrayLength(quotes)); postFixIncrement(ref i))
             {
-                string? quote = ((string)quotes[i]);
+                string? quote = ((string)getValue(quotes, i));
                 string? quoteId = quote;
                 object response = getValue(results, i);
                 IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
                 IDictionary<string, object> extension = this.safeDict(quoteCurrencies, quote, new Dictionary<string, object>() {});
                 List<object> currencyIds = new List<object>(((IDictionary<string,object>)data).Keys);
-                for (int j = 0; j < currencyIds.Count; j++)
+                for (int j = 0; isLessThan(j, getArrayLength(currencyIds)); postFixIncrement(ref j))
                 {
-                    string? currencyId = ((string)currencyIds[j]);
-                    if ((currencyId == "date"))
+                    string? currencyId = ((string)getValue(currencyIds, j));
+                    if (isTrue(isEqual(currencyId, "date")))
                     {
                         continue;
                     }
                     object market = getValue(data, currencyId);
                     object bs = this.safeCurrencyCode(currencyId);
                     bool active = true;
-                    if (((market is IList<object>) || (market.GetType().IsGenericType && market.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+                    if (isTrue(((market is IList<object>) || (market.GetType().IsGenericType && market.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
                     {
                         int numElements = getArrayLength(market);
-                        if ((numElements == 0))
+                        if (isTrue(isEqual(numElements, 0)))
                         {
                             active = false;
                         }
@@ -712,8 +712,8 @@ public partial class bithumb : Exchange
                         { "strike", null },
                         { "optionType", null },
                         { "precision", new Dictionary<string, object>() {
-                            { "amount", 4L },
-                            { "price", 4L },
+                            { "amount", parseInt("4") },
+                            { "price", parseInt("4") },
                         } },
                         { "limits", new Dictionary<string, object>() {
                             { "leverage", new Dictionary<string, object>() {
@@ -771,29 +771,29 @@ public partial class bithumb : Exchange
             { "info", response },
         };
         IDictionary<string, object> balances = this.safeDict(response, "data");
-        if ((balances != null))
+        if (isTrue(!isEqual(balances, null)))
         {
             List<object> codes = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
-            for (int i = 0; i < codes.Count; i++)
+            for (int i = 0; isLessThan(i, getArrayLength(codes)); postFixIncrement(ref i))
             {
-                string? code = ((string)codes[i]);
+                string? code = ((string)getValue(codes, i));
                 Dictionary<string, object> account = this.account();
                 Dictionary<string, object> currency = this.currency(((string)code));
                 string? lowerCurrencyId = this.safeStringLower(currency, "id");
-                ((IDictionary<string,object>)account)["total"] = this.safeString(balances, ("total_" + lowerCurrencyId));
-                ((IDictionary<string,object>)account)["used"] = this.safeString(balances, ("in_use_" + lowerCurrencyId));
-                ((IDictionary<string,object>)account)["free"] = this.safeString(balances, ("available_" + lowerCurrencyId));
+                ((IDictionary<string,object>)account)["total"] = this.safeString(balances, add("total_", lowerCurrencyId));
+                ((IDictionary<string,object>)account)["used"] = this.safeString(balances, add("in_use_", lowerCurrencyId));
+                ((IDictionary<string,object>)account)["free"] = this.safeString(balances, add("available_", lowerCurrencyId));
                 ((IDictionary<string,object>)result)[(string)code] = account;
             }
         } else
         {
-            for (int i = 0; i < getArrayLength(response); i++)
+            for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
             {
                 object entry = getValue(response, i);
                 Dictionary<string, object> account = this.account();
                 string? currencyId = this.safeString(entry, "currency");
                 string? code = this.safeCurrencyCode(currencyId);
-                if ((code == null))
+                if (isTrue(isEqual(code, null)))
                 {
                     continue;
                 }
@@ -818,7 +818,7 @@ public partial class bithumb : Exchange
     public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
@@ -827,7 +827,7 @@ public partial class bithumb : Exchange
         generation = ((IList<object>)generationparametersVariable)[0];
         parameters = ((IList<object>)generationparametersVariable)[1];
         object response = null;
-        if (isEqual(generation, 2))
+        if (isTrue(isEqual(generation, 2)))
         {
             response = await this.privateGetV1Accounts(parameters);
         } else
@@ -855,7 +855,7 @@ public partial class bithumb : Exchange
     public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
@@ -868,7 +868,7 @@ public partial class bithumb : Exchange
         object response = null;
         IDictionary<string, object> data = null;
         Int64? timestamp = null;
-        if (isEqual(generation, 2))
+        if (isTrue(isEqual(generation, 2)))
         {
             ((IDictionary<string,object>)request)["markets"] = this.getGen2MarketId(market);
             response = await this.publicGetV1Orderbook(this.extend(request, parameters));
@@ -895,9 +895,9 @@ public partial class bithumb : Exchange
             List<object> orderBookUnits = this.safeList(result, "orderbook_units", new List<object>() {});
             List<object> bids = new List<object>() {};
             List<object> asks = new List<object>() {};
-            for (int i = 0; i < orderBookUnits.Count; i++)
+            for (int i = 0; isLessThan(i, getArrayLength(orderBookUnits)); postFixIncrement(ref i))
             {
-                object entry = orderBookUnits[i];
+                object entry = getValue(orderBookUnits, i);
                 ((IList<object>)bids).Add(new Dictionary<string, object>() {
                     { "price", this.safeString(entry, "bid_price") },
                     { "quantity", this.safeString(entry, "bid_size") },
@@ -913,9 +913,9 @@ public partial class bithumb : Exchange
             };
         } else
         {
-            ((IDictionary<string,object>)request)["baseId"] = (market.ContainsKey("baseId") ? market["baseId"] : null);
-            ((IDictionary<string,object>)request)["quoteId"] = (market.ContainsKey("quoteId") ? market["quoteId"] : null);
-            if ((limit != null))
+            ((IDictionary<string,object>)request)["baseId"] = getValue(market, "baseId");
+            ((IDictionary<string,object>)request)["quoteId"] = getValue(market, "quoteId");
+            if (isTrue(!isEqual(limit, null)))
             {
                 ((IDictionary<string,object>)request)["count"] = limit; // default 30, max 30
             }
@@ -1043,11 +1043,11 @@ public partial class bithumb : Exchange
         string? percentage = this.safeString2(ticker, "signed_change_rate", "change_rate");
         string? open = this.safeString(ticker, "opening_price");
         string? nonZeroOpen = ((string)this.omitZero(open));
-        if (((marketId != null)) && ((nonZeroOpen != null)) && ((close != null)))
+        if (isTrue(isTrue(isTrue((!isEqual(marketId, null))) && isTrue((!isEqual(nonZeroOpen, null)))) && isTrue((!isEqual(close, null)))))
         {
             string? computedChange = Precise.stringSub(close, open);
             // Some v2 payloads return signed_change_price as 0 while open/last imply a non-zero move.
-            if (((change != null)) && Precise.stringEq(change, "0") && !Precise.stringEq(computedChange, "0"))
+            if (isTrue(isTrue(isTrue((!isEqual(change, null))) && isTrue(Precise.stringEq(change, "0"))) && !isTrue(Precise.stringEq(computedChange, "0"))))
             {
                 change = computedChange;
                 percentage = null;
@@ -1056,11 +1056,11 @@ public partial class bithumb : Exchange
         string? high = this.safeString2(ticker, "max_price", "high_price");
         string? low = this.safeString2(ticker, "min_price", "low_price");
         // Some generation 2 ticker payloads can contain inconsistent high/low versus last.
-        if (((close != null)) && ((high != null)) && Precise.stringGt(close, high))
+        if (isTrue(isTrue(isTrue((!isEqual(close, null))) && isTrue((!isEqual(high, null)))) && isTrue(Precise.stringGt(close, high))))
         {
             high = close;
         }
-        if (((close != null)) && ((low != null)) && Precise.stringLt(close, low))
+        if (isTrue(isTrue(isTrue((!isEqual(close, null))) && isTrue((!isEqual(low, null)))) && isTrue(Precise.stringLt(close, low))))
         {
             low = close;
         }
@@ -1102,7 +1102,7 @@ public partial class bithumb : Exchange
     public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
@@ -1112,26 +1112,26 @@ public partial class bithumb : Exchange
         parameters = ((IList<object>)generationparametersVariable)[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        if (isEqual(generation, 2))
+        if (isTrue(isEqual(generation, 2)))
         {
             // Bithumb v2 ticker payloads are inconsistent for all-market calls,
             // so we aggregate 300 markets per request only when symbols are not provided.
             List<object> marketIds = new List<object>() {};
-            object symbolsForMarketIds = ((symbols == null)) ? this.symbols : symbols;
+            object symbolsForMarketIds = ((bool) isTrue((isEqual(symbols, null)))) ? this.symbols : symbols;
             int symbolsForMarketIdsLength = getArrayLength(symbolsForMarketIds);
-            for (int i = 0; i < symbolsForMarketIdsLength; i++)
+            for (int i = 0; isLessThan(i, symbolsForMarketIdsLength); postFixIncrement(ref i))
             {
                 Dictionary<string, object> market = this.market(getValue(symbolsForMarketIds, i));
                 ((IList<object>)marketIds).Add(this.getGen2MarketId(market));
             }
-            int marketIdsLength = (marketIds?.Count ?? 0);
-            if ((marketIdsLength == 0))
+            int marketIdsLength = getArrayLength(marketIds);
+            if (isTrue(isEqual(marketIdsLength, 0)))
             {
                 return ccxt.BaseExchange.ToTickers(result);
             }
             List<object> marketIdsChunks = new List<object>() {};
             List<object> promises = new List<object>() {};
-            if ((symbols != null))
+            if (isTrue(!isEqual(symbols, null)))
             {
                 ((IDictionary<string,object>)request)["markets"] = String.Join(",", ((IList<object>)marketIds).ToArray());
                 ((IList<object>)marketIdsChunks).Add(marketIds);
@@ -1139,17 +1139,17 @@ public partial class bithumb : Exchange
             } else
             {
                 object maxMarketIdsPerRequest = this.safeInteger(this.options, "fetchTickersGeneration2MaxMarketIdsPerRequest", 300);
-                if ((isEqual(maxMarketIdsPerRequest, null)) || (isLessThan(maxMarketIdsPerRequest, 1)))
+                if (isTrue(isTrue((isEqual(maxMarketIdsPerRequest, null))) || isTrue((isLessThan(maxMarketIdsPerRequest, 1)))))
                 {
                     maxMarketIdsPerRequest = 300;
                 }
                 List<object> marketIdsChunk = new List<object>() {};
-                for (int i = 0; i < marketIdsLength; i++)
+                for (int i = 0; isLessThan(i, marketIdsLength); postFixIncrement(ref i))
                 {
                     ((IList<object>)marketIdsChunk).Add(getValue(marketIds, i));
-                    int marketIdsChunkLength = (marketIdsChunk?.Count ?? 0);
-                    bool isLastMarketId = (isEqual(i, ((marketIdsLength - 1))));
-                    if ((isGreaterThanOrEqual(marketIdsChunkLength, maxMarketIdsPerRequest)) || isLastMarketId)
+                    int marketIdsChunkLength = getArrayLength(marketIdsChunk);
+                    bool isLastMarketId = (isEqual(i, (subtract(marketIdsLength, 1))));
+                    if (isTrue(isTrue((isGreaterThanOrEqual(marketIdsChunkLength, maxMarketIdsPerRequest))) || isTrue(isLastMarketId)))
                     {
                         ((IList<object>)marketIdsChunks).Add(marketIdsChunk);
                         ((IDictionary<string,object>)request)["markets"] = String.Join(",", ((IList<object>)marketIdsChunk).ToArray());
@@ -1191,38 +1191,38 @@ public partial class bithumb : Exchange
             //     ]
             //
             List<object> responses = await promiseAll(promises);
-            int responsesLength = (responses?.Count ?? 0);
-            for (int i = 0; i < responsesLength; i++)
+            int responsesLength = getArrayLength(responses);
+            for (int i = 0; isLessThan(i, responsesLength); postFixIncrement(ref i))
             {
                 object response = getValue(responses, i);
-                if (isTrue(this.isDictionary(response)) && (inOp(response, "data")) && (!isEqual(getValue(response, "data"), null)))
+                if (isTrue(isTrue(isTrue(this.isDictionary(response)) && isTrue((inOp(response, "data")))) && isTrue((!isEqual(getValue(response, "data"), null)))))
                 {
                     response = getValue(response, "data");
                 }
                 string? expectedMarketId = null;
                 List<object> marketIdsChunk = this.safeList(marketIdsChunks, i, new List<object>() {});
                 string? firstMarketId = this.safeString(marketIdsChunk, 0);
-                if (((firstMarketId != null)) && ((this.safeString(marketIdsChunk, 1) == null)))
+                if (isTrue(isTrue((!isEqual(firstMarketId, null))) && isTrue((isEqual(this.safeString(marketIdsChunk, 1), null)))))
                 {
                     expectedMarketId = firstMarketId;
                 }
                 object tickers = new List<object>() {};
-                if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+                if (isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
                 {
                     tickers = response;
                 } else if (isTrue(this.isDictionary(response)))
                 {
-                    if ((inOp(response, "market")) || (inOp(response, "trade_date")) || (inOp(response, "trade_timestamp")))
+                    if (isTrue(isTrue(isTrue((inOp(response, "market"))) || isTrue((inOp(response, "trade_date")))) || isTrue((inOp(response, "trade_timestamp")))))
                     {
                         tickers = new List<object>() {response};
                     } else
                     {
                         List<object> ids = new List<object>(((IDictionary<string,object>)response).Keys);
-                        for (int j = 0; j < ids.Count; j++)
+                        for (int j = 0; isLessThan(j, getArrayLength(ids)); postFixIncrement(ref j))
                         {
-                            string? id = ((string)ids[j]);
+                            string? id = ((string)getValue(ids, j));
                             IDictionary<string, object> ticker = this.safeDict(response, id);
-                            if ((ticker != null))
+                            if (isTrue(!isEqual(ticker, null)))
                             {
                                 ((IDictionary<string,object>)ticker)["market"] = this.safeString(ticker, "market", id);
                                 ((IList<object>)tickers).Add(ticker);
@@ -1230,17 +1230,17 @@ public partial class bithumb : Exchange
                         }
                     }
                 }
-                for (int j = 0; j < getArrayLength(tickers); j++)
+                for (int j = 0; isLessThan(j, getArrayLength(tickers)); postFixIncrement(ref j))
                 {
                     object entry = getValue(tickers, j);
                     string? marketId = this.safeString(entry, "market", expectedMarketId);
-                    if ((marketId == null))
+                    if (isTrue(isEqual(marketId, null)))
                     {
                         continue;
                     }
                     Dictionary<string, object> market = this.safeMarket(marketId);
                     string? symbol = this.safeSymbol(marketId, market);
-                    if ((symbol == null))
+                    if (isTrue(isEqual(symbol, null)))
                     {
                         continue;
                     }
@@ -1251,44 +1251,44 @@ public partial class bithumb : Exchange
         {
             IDictionary<string, object> quoteCurrencies = this.safeDict(this.options, "quoteCurrencies", new Dictionary<string, object>() {});
             List<object> quotes = new List<object>(((IDictionary<string,object>)quoteCurrencies).Keys);
-            if ((symbols != null))
+            if (isTrue(!isEqual(symbols, null)))
             {
                 Dictionary<string, object> requiredQuotes = new Dictionary<string, object>() {};
-                for (int i = 0; i < getArrayLength(symbols); i++)
+                for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
                 {
                     object symbol = getValue(symbols, i);
                     Dictionary<string, object> market = this.market(symbol);
                     string? quoteId = this.safeString(market, "quoteId");
-                    if (((quoteId != null)) && (quoteCurrencies.ContainsKey(quoteId)))
+                    if (isTrue(isTrue((!isEqual(quoteId, null))) && isTrue((inOp(quoteCurrencies, quoteId)))))
                     {
                         ((IDictionary<string,object>)requiredQuotes)[(string)quoteId] = true;
                     }
                 }
                 List<object> requiredQuoteIds = new List<object>(((IDictionary<string,object>)requiredQuotes).Keys);
                 string? populatedQuotes = this.safeString(requiredQuoteIds, 0);
-                if ((populatedQuotes != null))
+                if (isTrue(!isEqual(populatedQuotes, null)))
                 {
                     quotes = requiredQuoteIds;
                 }
             }
             List<object> promises = new List<object>() {};
-            for (int i = 0; i < (quotes?.Count ?? 0); i++)
+            for (int i = 0; isLessThan(i, getArrayLength(quotes)); postFixIncrement(ref i))
             {
-                ((IDictionary<string,object>)request)["quoteId"] = quotes[i];
+                ((IDictionary<string,object>)request)["quoteId"] = getValue(quotes, i);
                 ((IList<object>)promises).Add(this.publicGetPublicTickerALLQuoteId(this.extend(request, parameters)));
             }
             List<object> responses = await promiseAll(promises);
-            for (int i = 0; i < (quotes?.Count ?? 0); i++)
+            for (int i = 0; isLessThan(i, getArrayLength(quotes)); postFixIncrement(ref i))
             {
-                object quote = quotes[i];
+                object quote = getValue(quotes, i);
                 object response = getValue(responses, i);
                 IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
                 Int64? timestamp = this.safeInteger(data, "date");
                 object tickers = this.omit(data, "date");
                 List<object> currencyIds = new List<object>(((IDictionary<string,object>)tickers).Keys);
-                for (int j = 0; j < currencyIds.Count; j++)
+                for (int j = 0; isLessThan(j, getArrayLength(currencyIds)); postFixIncrement(ref j))
                 {
-                    string? currencyId = ((string)currencyIds[j]);
+                    string? currencyId = ((string)getValue(currencyIds, j));
                     object ticker = getValue(data, currencyId);
                     object bs = this.safeCurrencyCode(currencyId);
                     object symbol = add(add(bs, "/"), quote);
@@ -1315,7 +1315,7 @@ public partial class bithumb : Exchange
     public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
@@ -1327,7 +1327,7 @@ public partial class bithumb : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         object response = null;
         IDictionary<string, object> data = new Dictionary<string, object>() {};
-        if (isEqual(generation, 2))
+        if (isTrue(isEqual(generation, 2)))
         {
             ((IDictionary<string,object>)request)["markets"] = this.getGen2MarketId(market);
             response = await this.publicGetV1Ticker(this.extend(request, parameters));
@@ -1366,8 +1366,8 @@ public partial class bithumb : Exchange
             data = this.safeDict(response, 0, new Dictionary<string, object>() {});
         } else
         {
-            ((IDictionary<string,object>)request)["baseId"] = (market.ContainsKey("baseId") ? market["baseId"] : null);
-            ((IDictionary<string,object>)request)["quoteId"] = (market.ContainsKey("quoteId") ? market["quoteId"] : null);
+            ((IDictionary<string,object>)request)["baseId"] = getValue(market, "baseId");
+            ((IDictionary<string,object>)request)["quoteId"] = getValue(market, "quoteId");
             response = await this.publicGetPublicTickerBaseIdQuoteId(this.extend(request, parameters));
             //
             //     {
@@ -1424,7 +1424,7 @@ public partial class bithumb : Exchange
         //     }
         //
         Int64? timestamp = null;
-        if (((ohlcv is IList<object>) || (ohlcv.GetType().IsGenericType && ohlcv.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if (isTrue(((ohlcv is IList<object>) || (ohlcv.GetType().IsGenericType && ohlcv.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             timestamp = this.safeInteger2(ohlcv, 0, "timestamp");
         } else
@@ -1456,7 +1456,7 @@ public partial class bithumb : Exchange
         object timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
@@ -1468,28 +1468,28 @@ public partial class bithumb : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         object response = null;
         object data = new List<object>() {};
-        if (isEqual(generation, 2))
+        if (isTrue(isEqual(generation, 2)))
         {
             ((IDictionary<string,object>)request)["market"] = this.getGen2MarketId(market);
-            if ((limit != null))
+            if (isTrue(!isEqual(limit, null)))
             {
                 ((IDictionary<string,object>)request)["count"] = limit;
             }
-            if (isEqual(timeframeVar, "1d"))
+            if (isTrue(isEqual(timeframeVar, "1d")))
             {
                 response = await this.publicGetV1CandlesDays(this.extend(request, parameters));
-            } else if (isEqual(timeframeVar, "1w"))
+            } else if (isTrue(isEqual(timeframeVar, "1w")))
             {
                 response = await this.publicGetV1CandlesWeeks(this.extend(request, parameters));
-            } else if (isEqual(timeframeVar, "1M"))
+            } else if (isTrue(isEqual(timeframeVar, "1M")))
             {
                 response = await this.publicGetV1CandlesMonths(this.extend(request, parameters));
             } else
             {
                 Int64? timeframeInteger = this.safeInteger(this.timeframes, timeframeVar);
-                if (isEqual(timeframeInteger, null))
+                if (isTrue(isEqual(timeframeInteger, null)))
                 {
-                    throw new BadRequest ((string)((this.id + " fetchOHLCV() unsupported timeframe ") + (timeframeVar))) ;
+                    throw new BadRequest ((string)add(add(this.id, " fetchOHLCV() unsupported timeframe "), timeframeVar)) ;
                 }
                 ((IDictionary<string,object>)request)["unit"] = timeframeInteger;
                 response = await this.publicGetV1CandlesMinutesUnit(this.extend(request, parameters));
@@ -1528,8 +1528,8 @@ public partial class bithumb : Exchange
                 { "1M", "1mm" },
             };
             ((IDictionary<string,object>)request)["interval"] = this.safeString(legacyTimeframes, timeframeVar, timeframeVar);
-            ((IDictionary<string,object>)request)["baseId"] = (market.ContainsKey("baseId") ? market["baseId"] : null);
-            ((IDictionary<string,object>)request)["quoteId"] = (market.ContainsKey("quoteId") ? market["quoteId"] : null);
+            ((IDictionary<string,object>)request)["baseId"] = getValue(market, "baseId");
+            ((IDictionary<string,object>)request)["quoteId"] = getValue(market, "quoteId");
             response = await this.publicGetPublicCandlestickBaseIdQuoteIdInterval(this.extend(request, parameters));
             //
             //     {
@@ -1621,17 +1621,17 @@ public partial class bithumb : Exchange
         object timestamp = this.safeInteger(trade, "timestamp");
         bool isGenerationTwo = (!isEqual(timestamp, null));
         string? transactionDatetime = this.safeString(trade, "transaction_date");
-        if ((transactionDatetime != null))
+        if (isTrue(!isEqual(transactionDatetime, null)))
         {
-            List<object> parts = transactionDatetime.Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
-            int numParts = parts.Count;
-            if (numParts > 1)
+            List<object> parts = ((string)transactionDatetime).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
+            int numParts = getArrayLength(parts);
+            if (isTrue(isGreaterThan(numParts, 1)))
             {
-                object transactionDate = (parts != null && 0 < parts.Count ? parts[0] : null);
-                string? transactionTime = ((string)(parts != null && 1 < parts.Count ? parts[1] : null));
-                if (((string)transactionTime).Length < 8)
+                object transactionDate = getValue(parts, 0);
+                string? transactionTime = ((string)getValue(parts, 1));
+                if (isTrue(isLessThan(((string)transactionTime).Length, 8)))
                 {
-                    transactionTime = ("0" + transactionTime);
+                    transactionTime = add("0", transactionTime);
                 }
                 timestamp = this.parse8601(add(add(transactionDate, " "), transactionTime));
             } else
@@ -1639,16 +1639,16 @@ public partial class bithumb : Exchange
                 timestamp = this.safeIntegerProduct(trade, "transaction_date", 0.001);
             }
         }
-        if ((!isEqual(timestamp, null)) && (!isGenerationTwo))
+        if (isTrue(isTrue((!isEqual(timestamp, null))) && isTrue((!isTrue(isGenerationTwo)))))
         {
             timestamp = subtract(timestamp, multiply(9, 3600000)); // they report UTC + 9 hours, server in Korean timezone
         }
         object type = null;
         string? side = this.safeStringLower2(trade, "ask_bid", "type");
-        if ((side == "bid"))
+        if (isTrue(isEqual(side, "bid")))
         {
             side = "buy";
-        } else if ((side == "ask"))
+        } else if (isTrue(isEqual(side, "ask")))
         {
             side = "sell";
         } else
@@ -1660,14 +1660,14 @@ public partial class bithumb : Exchange
         market = this.safeMarket(marketId, market);
         string? priceString = this.safeString2(trade, "price", "trade_price");
         object amountString = this.safeString(trade, "trade_volume");
-        if ((amountString == null))
+        if (isTrue(isEqual(amountString, null)))
         {
             amountString = this.fixCommaNumber(this.safeString2(trade, "units_traded", "units"));
         }
         string? costString = this.safeString(trade, "total");
         Dictionary<string, object> fee = null;
         string? feeCostString = this.safeString(trade, "fee");
-        if ((feeCostString != null))
+        if (isTrue(!isEqual(feeCostString, null)))
         {
             string? feeCurrencyId = this.safeString(trade, "fee_currency");
             object feeCurrencyCode = this.commonCurrencyCode(((string)feeCurrencyId));
@@ -1709,7 +1709,7 @@ public partial class bithumb : Exchange
     public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
@@ -1719,13 +1719,13 @@ public partial class bithumb : Exchange
         parameters = ((IList<object>)generationparametersVariable)[1];
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if ((limit != null))
+        if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["count"] = limit;
         }
         object response = null;
         object data = new List<object>() {};
-        if (isEqual(generation, 2))
+        if (isTrue(isEqual(generation, 2)))
         {
             ((IDictionary<string,object>)request)["market"] = this.getGen2MarketId(market);
             response = await this.publicGetV1TradesTicks(this.extend(request, parameters));
@@ -1748,8 +1748,8 @@ public partial class bithumb : Exchange
             data = response;
         } else
         {
-            ((IDictionary<string,object>)request)["baseId"] = (market.ContainsKey("baseId") ? market["baseId"] : null);
-            ((IDictionary<string,object>)request)["quoteId"] = (market.ContainsKey("quoteId") ? market["quoteId"] : null);
+            ((IDictionary<string,object>)request)["baseId"] = getValue(market, "baseId");
+            ((IDictionary<string,object>)request)["quoteId"] = getValue(market, "quoteId");
             response = await this.publicGetPublicTransactionHistoryBaseIdQuoteId(this.extend(request, parameters));
             //
             //     {
@@ -1786,7 +1786,7 @@ public partial class bithumb : Exchange
     public async override Task<List<ccxt.Order>> CreateOrders(object orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
@@ -1794,35 +1794,35 @@ public partial class bithumb : Exchange
         IList<object> generationparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrders", "generation", 2);
         generation = ((IList<object>)generationparametersVariable)[0];
         parameters = ((IList<object>)generationparametersVariable)[1];
-        if (!isEqual(generation, 2))
+        if (isTrue(!isEqual(generation, 2)))
         {
-            throw new BadRequest ((string)(this.id + " createOrders is only supported for the generation 2 API")) ;
+            throw new BadRequest ((string)add(this.id, " createOrders is only supported for the generation 2 API")) ;
         }
         int ordersCount = getArrayLength(orders);
-        if ((ordersCount == 0))
+        if (isTrue(isEqual(ordersCount, 0)))
         {
-            throw new ArgumentsRequired ((string)(this.id + " createOrders() requires a non-empty orders array")) ;
+            throw new ArgumentsRequired ((string)add(this.id, " createOrders() requires a non-empty orders array")) ;
         }
         List<object> ordersRequests = new List<object>() {};
         IList<object> orderSymbols = new List<object>() {};
-        for (int i = 0; i < getArrayLength(orders); i++)
+        for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object rawOrder = getValue(orders, i);
             string? symbol = this.safeString(rawOrder, "symbol");
-            if ((symbol == null))
+            if (isTrue(isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired ((string)(this.id + " createOrders() requires each order to have a symbol")) ;
+                throw new ArgumentsRequired ((string)add(this.id, " createOrders() requires each order to have a symbol")) ;
             }
             ((IList<object>)orderSymbols).Add(symbol);
             string? type = this.safeString(rawOrder, "type");
-            if ((type == null))
+            if (isTrue(isEqual(type, null)))
             {
-                throw new ArgumentsRequired ((string)(this.id + " createOrders() requires each order to have a type")) ;
+                throw new ArgumentsRequired ((string)add(this.id, " createOrders() requires each order to have a type")) ;
             }
             string? side = this.safeString(rawOrder, "side");
-            if ((side == null))
+            if (isTrue(isEqual(side, null)))
             {
-                throw new ArgumentsRequired ((string)(this.id + " createOrders() requires each order to have a side")) ;
+                throw new ArgumentsRequired ((string)add(this.id, " createOrders() requires each order to have a side")) ;
             }
             object amount = this.safeValue(rawOrder, "amount");
             object price = this.safeValue(rawOrder, "price");
@@ -1875,19 +1875,19 @@ public partial class bithumb : Exchange
             { "market", this.getGen2MarketId(market) },
         };
         string? sideRequest = null;
-        if (isEqual(side, "buy"))
+        if (isTrue(isEqual(side, "buy")))
         {
             sideRequest = "bid";
-        } else if (isEqual(side, "sell"))
+        } else if (isTrue(isEqual(side, "sell")))
         {
             sideRequest = "ask";
         } else
         {
-            throw new InvalidOrder ((string)((this.id + " createOrder() invalid side ") + (side))) ;
+            throw new InvalidOrder ((string)add(add(this.id, " createOrder() invalid side "), side)) ;
         }
         ((IDictionary<string,object>)request)["side"] = sideRequest;
         string? timeInForce = this.safeString2(parameters, "timeInForce", "time_in_force");
-        if ((timeInForce == null))
+        if (isTrue(isEqual(timeInForce, null)))
         {
             timeInForce = "GTC";
         } else
@@ -1898,18 +1898,18 @@ public partial class bithumb : Exchange
         IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isEqual(type, "market"), false, parameters);
         postOnly = (bool)((IList<object>)postOnlyparametersVariable)[0];
         parameters = ((IList<object>)postOnlyparametersVariable)[1];
-        if (postOnly || ((timeInForce == "PO")))
+        if (isTrue(isTrue(postOnly) || isTrue((isEqual(timeInForce, "PO")))))
         {
             ((IDictionary<string,object>)request)["time_in_force"] = "post_only";
             parameters = this.omit(parameters, "postOnly");
-        } else if ((timeInForce == "FOK"))
+        } else if (isTrue(isEqual(timeInForce, "FOK")))
         {
             ((IDictionary<string,object>)request)["time_in_force"] = "fok";
-        } else if ((timeInForce == "IOC"))
+        } else if (isTrue(isEqual(timeInForce, "IOC")))
         {
             ((IDictionary<string,object>)request)["time_in_force"] = "ioc";
         }
-        if (isEqual(type, "limit"))
+        if (isTrue(isEqual(type, "limit")))
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
             ((IDictionary<string,object>)request)["volume"] = this.amountToPrecision(symbol, amount);
@@ -1917,21 +1917,21 @@ public partial class bithumb : Exchange
         } else
         {
             string? typeRequest = null;
-            if (isEqual(side, "buy"))
+            if (isTrue(isEqual(side, "buy")))
             {
                 typeRequest = "price";
                 // for market buy it requires the amount of quote currency to spend
-                string? cost = this.safeString(parameters, "cost");
+                object cost = this.safeString(parameters, "cost");
                 parameters = this.omit(parameters, "cost");
-                bool createMarketBuyOrderRequiresPrice = true;
+                object createMarketBuyOrderRequiresPrice = true;
                 IList<object> createMarketBuyOrderRequiresPriceparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-                createMarketBuyOrderRequiresPrice = isTrue(((IList<object>)createMarketBuyOrderRequiresPriceparametersVariable)[0]);
+                createMarketBuyOrderRequiresPrice = ((IList<object>)createMarketBuyOrderRequiresPriceparametersVariable)[0];
                 parameters = ((IList<object>)createMarketBuyOrderRequiresPriceparametersVariable)[1];
-                if (createMarketBuyOrderRequiresPrice)
+                if (isTrue(createMarketBuyOrderRequiresPrice))
                 {
-                    if (((price == null)) && ((cost == null)))
+                    if (isTrue(isTrue((isEqual(price, null))) && isTrue((isEqual(cost, null)))))
                     {
-                        throw new InvalidOrder ((string)(this.id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
+                        throw new InvalidOrder ((string)add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                     } else
                     {
                         string? amountString = this.numberToString(amount);
@@ -1940,7 +1940,7 @@ public partial class bithumb : Exchange
                     }
                 } else
                 {
-                    cost = ((cost == null)) ? this.numberToString(amount) : cost;
+                    cost = ((bool) isTrue((isEqual(cost, null)))) ? this.numberToString(amount) : cost;
                 }
                 ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, cost);
             } else
@@ -1951,7 +1951,7 @@ public partial class bithumb : Exchange
             ((IDictionary<string,object>)request)["order_type"] = typeRequest;
         }
         string? clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id");
-        if ((clientOrderId != null))
+        if (isTrue(!isEqual(clientOrderId, null)))
         {
             ((IDictionary<string,object>)request)["client_order_id"] = clientOrderId;
             parameters = this.omit(parameters, "clientOrderId");
@@ -1984,7 +1984,7 @@ public partial class bithumb : Exchange
     public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
@@ -1995,20 +1995,20 @@ public partial class bithumb : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> response = null;
-        if (isEqual(generation, 2))
+        if (isTrue(isEqual(generation, 2)))
         {
             request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
             response = await this.privatePostV2Orders(request);
         } else
         {
-            ((IDictionary<string,object>)request)["order_currency"] = (market.ContainsKey("base") ? market["base"] : null);
-            ((IDictionary<string,object>)request)["payment_currency"] = (market.ContainsKey("quote") ? market["quote"] : null);
+            ((IDictionary<string,object>)request)["order_currency"] = getValue(market, "base");
+            ((IDictionary<string,object>)request)["payment_currency"] = getValue(market, "quote");
             ((IDictionary<string,object>)request)["units"] = this.amountToPrecision(symbol, amount);
-            if ((type == "limit"))
+            if (isTrue(isEqual(type, "limit")))
             {
                 ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
                 string? typeRequest = null;
-                if ((side == "buy"))
+                if (isTrue(isEqual(side, "buy")))
                 {
                     typeRequest = "bid";
                 } else
@@ -2017,7 +2017,7 @@ public partial class bithumb : Exchange
                 }
                 ((IDictionary<string,object>)request)["type"] = typeRequest;
                 response = await this.privatePostTradePlace(this.extend(request, parameters));
-            } else if ((side == "buy"))
+            } else if (isTrue(isEqual(side, "buy")))
             {
                 response = await this.privatePostTradeMarketBuy(this.extend(request, parameters));
             } else
@@ -2026,9 +2026,9 @@ public partial class bithumb : Exchange
             }
         }
         string? id = this.safeString(response, "order_id");
-        if ((id == null))
+        if (isTrue(isEqual(id, null)))
         {
-            throw new InvalidOrder ((string)(this.id + " createOrder() did not return an order id")) ;
+            throw new InvalidOrder ((string)add(this.id, " createOrder() did not return an order id")) ;
         }
         return ccxt.BaseExchange.ToOrder(this.extend(this.parseOrder(response, market), new Dictionary<string, object>() {             { "info", response },             { "symbol", symbol },             { "type", type },             { "side", side },             { "id", id },         }));
     }
@@ -2047,7 +2047,7 @@ public partial class bithumb : Exchange
     public async override Task<ccxt.Order> CreateMarketBuyOrderWithCost(string symbol, double cost, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
@@ -2055,9 +2055,9 @@ public partial class bithumb : Exchange
         IList<object> generationparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createMarketBuyOrderWithCost", "generation", 2);
         generation = ((IList<object>)generationparametersVariable)[0];
         parameters = ((IList<object>)generationparametersVariable)[1];
-        if (!isEqual(generation, 2))
+        if (isTrue(!isEqual(generation, 2)))
         {
-            throw new BadRequest ((string)(this.id + " createMarketBuyOrderWithCost() is only supported for the generation 2 API")) ;
+            throw new BadRequest ((string)add(this.id, " createMarketBuyOrderWithCost() is only supported for the generation 2 API")) ;
         }
         ((IDictionary<string,object>)parameters)["createMarketBuyOrderRequiresPrice"] = false;
         return await this.CreateOrder(((string)symbol), "market", "buy",ccxt.BaseExchange.ToDoubleArgRequired(cost),ccxt.BaseExchange.ToDoubleArg(null), parameters);
@@ -2081,7 +2081,7 @@ public partial class bithumb : Exchange
     public async override Task<ccxt.Order> CreateTwapOrder(string symbol, string side, double amount, object duration, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
@@ -2089,9 +2089,9 @@ public partial class bithumb : Exchange
         IList<object> generationparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createTwapOrder", "generation", 2);
         generation = ((IList<object>)generationparametersVariable)[0];
         parameters = ((IList<object>)generationparametersVariable)[1];
-        if (!isEqual(generation, 2))
+        if (isTrue(!isEqual(generation, 2)))
         {
-            throw new BadRequest ((string)(this.id + " createTwapOrder() is only supported for the generation 2 API")) ;
+            throw new BadRequest ((string)add(this.id, " createTwapOrder() is only supported for the generation 2 API")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         string? durationString = this.numberToString(duration);
@@ -2100,12 +2100,12 @@ public partial class bithumb : Exchange
             { "market", this.getGen2MarketId(market) },
             { "duration", durationSeconds },
         };
-        if (!isEqual(amount, null))
+        if (isTrue(!isEqual(amount, null)))
         {
             ((IDictionary<string,object>)request)["volume"] = this.amountToPrecision(symbol, amount); // required for sale
         }
         string? sideRequest = null;
-        if ((side == "buy"))
+        if (isTrue(isEqual(side, "buy")))
         {
             sideRequest = "bid";
         } else
@@ -2141,7 +2141,7 @@ public partial class bithumb : Exchange
     public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
@@ -2150,7 +2150,7 @@ public partial class bithumb : Exchange
         generation = ((IList<object>)generationparametersVariable)[0];
         parameters = ((IList<object>)generationparametersVariable)[1];
         IDictionary<string, object> market = null;
-        if ((symbol != null))
+        if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
         }
@@ -2159,11 +2159,11 @@ public partial class bithumb : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Dictionary<string, object> response = null;
         IDictionary<string, object> data = null;
-        if (isEqual(generation, 2))
+        if (isTrue(isEqual(generation, 2)))
         {
-            if ((twap == true))
+            if (isTrue(twap))
             {
-                if ((market != null))
+                if (isTrue(!isEqual(market, null)))
                 {
                     ((IDictionary<string,object>)request)["market"] = this.getGen2MarketId(market);
                 }
@@ -2198,7 +2198,7 @@ public partial class bithumb : Exchange
             } else
             {
                 string? clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id");
-                if ((clientOrderId != null))
+                if (isTrue(!isEqual(clientOrderId, null)))
                 {
                     ((IDictionary<string,object>)request)["client_order_id"] = clientOrderId;
                     parameters = this.omit(parameters, new List<object>() {"clientOrderId"});
@@ -2233,16 +2233,16 @@ public partial class bithumb : Exchange
             }
         } else
         {
-            if ((symbol == null))
+            if (isTrue(isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired ((string)(this.id + " fetchOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired ((string)add(this.id, " fetchOrder() requires a symbol argument")) ;
             }
             IDictionary<string, object> marketDefined = market;
             string? bs = this.safeString(marketDefined, "base");
             string? quote = this.safeString(marketDefined, "quote");
-            if (((bs == null)) || ((quote == null)))
+            if (isTrue(isTrue((isEqual(bs, null))) || isTrue((isEqual(quote, null)))))
             {
-                throw new ArgumentsRequired ((string)(this.id + " fetchOrder() requires a market with defined base and quote")) ;
+                throw new ArgumentsRequired ((string)add(this.id, " fetchOrder() requires a market with defined base and quote")) ;
             }
             ((IDictionary<string,object>)request)["order_id"] = id;
             ((IDictionary<string,object>)request)["order_currency"] = bs;
@@ -2419,13 +2419,13 @@ public partial class bithumb : Exchange
         //
         string? datetime = this.safeString(order, "created_at");
         object timestamp = null;
-        if ((datetime != null))
+        if (isTrue(!isEqual(datetime, null)))
         {
-            if (((string)datetime).IndexOf("+09:00", StringComparison.Ordinal) > -1)
+            if (isTrue(isGreaterThan(getIndexOf(datetime, "+09:00"), -1)))
             {
                 string normalized = ((string)datetime).Replace((string)"+09:00", (string)"Z");
                 Int64? normalizedTimestamp = this.parse8601(normalized);
-                if (!isEqual(normalizedTimestamp, null))
+                if (isTrue(!isEqual(normalizedTimestamp, null)))
                 {
                     timestamp = subtract(normalizedTimestamp, multiply(9, 3600000));
                 } else
@@ -2443,10 +2443,10 @@ public partial class bithumb : Exchange
         }
         string? sideProperty = this.safeString2(order, "type", "side");
         string? side = null;
-        if ((sideProperty == "bid"))
+        if (isTrue(isEqual(sideProperty, "bid")))
         {
             side = "buy";
-        } else if ((sideProperty == "ask"))
+        } else if (isTrue(isEqual(sideProperty, "ask")))
         {
             side = "sell";
         }
@@ -2454,9 +2454,9 @@ public partial class bithumb : Exchange
         string? price = this.safeString2(order, "order_price", "price");
         string? type = this.safeString2(order, "order_type", "ord_type");
         string? progressCount = this.safeString(order, "progress_count");
-        if (((type == null)) && ((price != null)) && ((progressCount == null)))
+        if (isTrue(isTrue(isTrue((isEqual(type, null))) && isTrue((!isEqual(price, null)))) && isTrue((isEqual(progressCount, null)))))
         {
-            if (Precise.stringEquals(price, "0"))
+            if (isTrue(Precise.stringEquals(price, "0")))
             {
                 type = "market";
             } else
@@ -2466,12 +2466,12 @@ public partial class bithumb : Exchange
         }
         object amount = this.fixCommaNumber(this.safeStringN(order, new List<object>() {"order_qty", "units", "volume"}));
         object remaining = this.fixCommaNumber(this.safeString2(order, "units_remaining", "remaining_volume"));
-        if ((remaining == null))
+        if (isTrue(isEqual(remaining, null)))
         {
-            if ((status == "closed"))
+            if (isTrue(isEqual(status, "closed")))
             {
                 remaining = "0";
-            } else if ((status != "canceled"))
+            } else if (isTrue(!isEqual(status, "canceled")))
             {
                 remaining = amount;
             }
@@ -2481,11 +2481,11 @@ public partial class bithumb : Exchange
         string? quoteId = this.safeString(order, "payment_currency");
         object bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
-        if (((bs != null)) && ((quote != null)))
+        if (isTrue(isTrue((!isEqual(bs, null))) && isTrue((!isEqual(quote, null)))))
         {
             symbol = add(add(bs, "/"), quote);
         }
-        if ((symbol == null))
+        if (isTrue(isEqual(symbol, null)))
         {
             string? marketId = this.safeString(order, "market");
             market = this.safeMarket(marketId, market);
@@ -2495,10 +2495,10 @@ public partial class bithumb : Exchange
         List<object> rawTrades = this.safeList2(order, "contract", "trades", new List<object>() {});
         double? feeCost = this.safeNumber(order, "reserved_fee");
         Dictionary<string, object> fee = null;
-        if (!isEqual(feeCost, null))
+        if (isTrue(!isEqual(feeCost, null)))
         {
             object currency = null;
-            if ((market != null))
+            if (isTrue(!isEqual(market, null)))
             {
                 currency = getValue(market, "quote");
             }
@@ -2510,7 +2510,7 @@ public partial class bithumb : Exchange
         }
         bool? postOnly = null;
         string? timeInForce = this.safeStringUpper(order, "time_in_force");
-        if ((timeInForce == "POST_ONLY"))
+        if (isTrue(isEqual(timeInForce, "POST_ONLY")))
         {
             timeInForce = "PO";
             postOnly = true;
@@ -2560,7 +2560,7 @@ public partial class bithumb : Exchange
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
@@ -2571,10 +2571,10 @@ public partial class bithumb : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> market = null;
         Dictionary<string, object> response = null;
-        if (isEqual(generation, 2))
+        if (isTrue(isEqual(generation, 2)))
         {
             bool? twap = this.safeBool(parameters, "twap", false);
-            if ((twap == true))
+            if (isTrue(twap))
             {
                 ((IDictionary<string,object>)parameters)["state"] = "progress";
             } else
@@ -2585,22 +2585,22 @@ public partial class bithumb : Exchange
             return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(orders, since, limitVar));
         } else
         {
-            if ((symbol == null))
+            if (isTrue(isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired ((string)(this.id + " fetchOpenOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired ((string)add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
             }
             market = this.market(symbol);
-            if ((since != null))
+            if (isTrue(!isEqual(since, null)))
             {
                 ((IDictionary<string,object>)request)["after"] = since;
             }
-            if ((limitVar == null))
+            if (isTrue(isEqual(limitVar, null)))
             {
                 limitVar = 100;
             }
             ((IDictionary<string,object>)request)["count"] = limitVar;
-            ((IDictionary<string,object>)request)["order_currency"] = (market.ContainsKey("base") ? market["base"] : null);
-            ((IDictionary<string,object>)request)["payment_currency"] = (market.ContainsKey("quote") ? market["quote"] : null);
+            ((IDictionary<string,object>)request)["order_currency"] = getValue(market, "base");
+            ((IDictionary<string,object>)request)["payment_currency"] = getValue(market, "quote");
             response = await this.privatePostInfoOrders(this.extend(request, parameters));
         }
         List<object> data = this.safeList(response, "data", new List<object>() {});
@@ -2626,7 +2626,7 @@ public partial class bithumb : Exchange
     public async override Task<List<ccxt.Order>> FetchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
@@ -2634,35 +2634,35 @@ public partial class bithumb : Exchange
         IList<object> generationparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOrders", "generation", 2);
         generation = ((IList<object>)generationparametersVariable)[0];
         parameters = ((IList<object>)generationparametersVariable)[1];
-        if (!isEqual(generation, 2))
+        if (isTrue(!isEqual(generation, 2)))
         {
-            throw new BadRequest ((string)(this.id + " fetchOrders is only supported for the generation 2 API")) ;
+            throw new BadRequest ((string)add(this.id, " fetchOrders is only supported for the generation 2 API")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         bool? twap = this.safeBool(parameters, "twap", false);
         parameters = this.omit(parameters, "twap");
-        if (twap != true)
+        if (!isTrue(twap))
         {
             List<object> clientOrderIds = this.safeList2(parameters, "client_order_ids", "clientOrderIds");
-            if ((clientOrderIds != null))
+            if (isTrue(!isEqual(clientOrderIds, null)))
             {
                 ((IDictionary<string,object>)request)["client_order_ids"] = clientOrderIds;
                 parameters = this.omit(parameters, new List<object>() {"clientOrderIds"});
             }
         }
         IDictionary<string, object> market = null;
-        if ((symbol != null))
+        if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["market"] = this.getGen2MarketId(market);
         }
-        if ((limit != null))
+        if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
         object response = null;
         object data = null;
-        if ((twap == true))
+        if (isTrue(twap))
         {
             response = await this.privateGetV1Twap(this.extend(request, parameters));
             //
@@ -2785,7 +2785,7 @@ public partial class bithumb : Exchange
     public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
@@ -2794,7 +2794,7 @@ public partial class bithumb : Exchange
         generation = ((IList<object>)generationparametersVariable)[0];
         parameters = ((IList<object>)generationparametersVariable)[1];
         IDictionary<string, object> market = null;
-        if ((symbol != null))
+        if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
         }
@@ -2802,13 +2802,13 @@ public partial class bithumb : Exchange
         Dictionary<string, object> response = null;
         bool? twap = this.safeBool(parameters, "twap", false);
         parameters = this.omit(parameters, "twap");
-        if ((twap == true))
+        if (isTrue(twap))
         {
             ((IDictionary<string,object>)request)["algo_order_id"] = id;
         } else
         {
             string? clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id");
-            if ((isEqual(generation, 2)) && ((clientOrderId != null)))
+            if (isTrue(isTrue((isEqual(generation, 2))) && isTrue((!isEqual(clientOrderId, null)))))
             {
                 ((IDictionary<string,object>)request)["client_order_id"] = clientOrderId;
                 parameters = this.omit(parameters, new List<object>() {"clientOrderId"});
@@ -2817,9 +2817,9 @@ public partial class bithumb : Exchange
                 ((IDictionary<string,object>)request)["order_id"] = id;
             }
         }
-        if (isEqual(generation, 2))
+        if (isTrue(isEqual(generation, 2)))
         {
-            if ((twap == true))
+            if (isTrue(twap))
             {
                 response = await this.privateDeleteV1Twap(this.extend(request, parameters));
             } else
@@ -2828,24 +2828,24 @@ public partial class bithumb : Exchange
             }
         } else
         {
-            if ((symbol == null))
+            if (isTrue(isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired ((string)(this.id + " cancelOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
             IDictionary<string, object> marketDefined = market;
             string? bs = this.safeString(marketDefined, "base");
             string? quote = this.safeString(marketDefined, "quote");
-            if (((bs == null)) || ((quote == null)))
+            if (isTrue(isTrue((isEqual(bs, null))) || isTrue((isEqual(quote, null)))))
             {
-                throw new ArgumentsRequired ((string)(this.id + " cancelOrder() requires a market with defined base and quote")) ;
+                throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a market with defined base and quote")) ;
             }
             bool side_in_params = (inOp(parameters, "side"));
-            if (!side_in_params)
+            if (!isTrue(side_in_params))
             {
-                throw new ArgumentsRequired ((string)(this.id + " cancelOrder() requires a `side` parameter (sell or buy)")) ;
+                throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a `side` parameter (sell or buy)")) ;
             }
             string? side = null;
-            if (isEqual(getValue(parameters, "side"), "buy"))
+            if (isTrue(isEqual(getValue(parameters, "side"), "buy")))
             {
                 side = "bid";
             } else
@@ -2877,7 +2877,7 @@ public partial class bithumb : Exchange
     public async override Task<List<ccxt.Order>> CancelOrders(object ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
@@ -2885,18 +2885,18 @@ public partial class bithumb : Exchange
         IList<object> generationparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "cancelOrders", "generation", 2);
         generation = ((IList<object>)generationparametersVariable)[0];
         parameters = ((IList<object>)generationparametersVariable)[1];
-        if (!isEqual(generation, 2))
+        if (isTrue(!isEqual(generation, 2)))
         {
-            throw new BadRequest ((string)(this.id + " cancelOrders is only supported for the generation 2 API")) ;
+            throw new BadRequest ((string)add(this.id, " cancelOrders is only supported for the generation 2 API")) ;
         }
         IDictionary<string, object> market = null;
-        if ((symbol != null))
+        if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         List<object> clientOrderIds = this.safeList2(parameters, "client_order_ids", "clientOrderIds");
-        if ((clientOrderIds != null))
+        if (isTrue(!isEqual(clientOrderIds, null)))
         {
             ((IDictionary<string,object>)request)["client_order_ids"] = clientOrderIds;
             parameters = this.omit(parameters, new List<object>() {"clientOrderIds"});
@@ -2959,7 +2959,7 @@ public partial class bithumb : Exchange
     {
         object tagVar = tag;
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
@@ -2977,14 +2977,14 @@ public partial class bithumb : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Dictionary<string, object> response = null;
         object destinationRequest = null;
-        if ((code == "XRP") || (code == "XMR") || (code == "EOS") || (code == "STEEM") || (code == "TON"))
+        if (isTrue(isTrue(isTrue(isTrue(isTrue(isEqual(code, "XRP")) || isTrue(isEqual(code, "XMR"))) || isTrue(isEqual(code, "EOS"))) || isTrue(isEqual(code, "STEEM"))) || isTrue(isEqual(code, "TON"))))
         {
             string? destination = this.safeString2(parameters, "destination", "secondary_address");
             parameters = this.omit(parameters, new List<object>() {"destination", "secondary_address"});
-            if (((tagVar == null)) && ((destination == null)))
+            if (isTrue(isTrue((isEqual(tagVar, null))) && isTrue((isEqual(destination, null)))))
             {
-                throw new ArgumentsRequired ((string)(((this.id + " ") + code) + " withdraw() requires a tag argument or an extra destination param")) ;
-            } else if ((tagVar != null))
+                throw new ArgumentsRequired ((string)add(add(add(this.id, " "), code), " withdraw() requires a tag argument or an extra destination param")) ;
+            } else if (isTrue(!isEqual(tagVar, null)))
             {
                 destinationRequest = tagVar;
             } else
@@ -2994,14 +2994,14 @@ public partial class bithumb : Exchange
         }
         string? receiverType = this.safeString2(parameters, "receiver_type", "cust_type_cd");
         parameters = this.omit(parameters, new List<object>() {"receiver_type", "cust_type_cd"});
-        if (isEqual(generation, 2))
+        if (isTrue(isEqual(generation, 2)))
         {
-            if ((code == "KRW"))
+            if (isTrue(isEqual(code, "KRW")))
             {
                 string? twoFactorType = this.safeString(parameters, "two_factor_type");
-                if ((twoFactorType == null))
+                if (isTrue(isEqual(twoFactorType, null)))
                 {
-                    throw new ArgumentsRequired ((string)(((this.id + " ") + code) + " withdraw() requires a two_factor_type parameter for withdrawing KRW")) ;
+                    throw new ArgumentsRequired ((string)add(add(add(this.id, " "), code), " withdraw() requires a two_factor_type parameter for withdrawing KRW")) ;
                 }
                 Dictionary<string, object> krwRequest = new Dictionary<string, object>() {
                     { "amount", this.numberToString(amount) },
@@ -3009,19 +3009,19 @@ public partial class bithumb : Exchange
                 response = await this.privatePostV1WithdrawsKrw(this.extend(krwRequest, parameters));
             } else
             {
-                if ((network == null))
+                if (isTrue(isEqual(network, null)))
                 {
-                    throw new ArgumentsRequired ((string)(((this.id + " ") + code) + " withdraw() requires a network parameter")) ;
+                    throw new ArgumentsRequired ((string)add(add(add(this.id, " "), code), " withdraw() requires a network parameter")) ;
                 }
                 ((IDictionary<string,object>)request)["address"] = address;
-                ((IDictionary<string,object>)request)["currency"] = (currency.ContainsKey("id") ? currency["id"] : null);
+                ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
                 ((IDictionary<string,object>)request)["net_type"] = network;
                 ((IDictionary<string,object>)request)["amount"] = this.numberToString(amount);
-                if ((destinationRequest != null))
+                if (isTrue(!isEqual(destinationRequest, null)))
                 {
                     ((IDictionary<string,object>)request)["secondary_address"] = destinationRequest;
                 }
-                if ((receiverType != null))
+                if (isTrue(!isEqual(receiverType, null)))
                 {
                     ((IDictionary<string,object>)request)["receiver_type"] = receiverType;
                 }
@@ -3030,22 +3030,22 @@ public partial class bithumb : Exchange
         } else
         {
             ((IDictionary<string,object>)request)["address"] = address;
-            ((IDictionary<string,object>)request)["currency"] = (currency.ContainsKey("id") ? currency["id"] : null);
+            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
             ((IDictionary<string,object>)request)["units"] = amount;
-            if ((network != null))
+            if (isTrue(!isEqual(network, null)))
             {
                 ((IDictionary<string,object>)request)["net_type"] = network;
             }
-            if ((destinationRequest != null))
+            if (isTrue(!isEqual(destinationRequest, null)))
             {
                 ((IDictionary<string,object>)request)["destination"] = destinationRequest;
             }
-            if ((receiverType != null))
+            if (isTrue(!isEqual(receiverType, null)))
             {
-                if ((receiverType == "corporation"))
+                if (isTrue(isEqual(receiverType, "corporation")))
                 {
                     ((IDictionary<string,object>)request)["cust_type_cd"] = "Corporation 02";
-                } else if ((receiverType == "personal"))
+                } else if (isTrue(isEqual(receiverType, "personal")))
                 {
                     ((IDictionary<string,object>)request)["cust_type_cd"] = "Individual 01";
                 } else
@@ -3087,11 +3087,11 @@ public partial class bithumb : Exchange
         currency = this.safeCurrency(currencyId, currency);
         string? datetime = this.safeString(transaction, "created_at");
         object timestamp = this.parse8601(datetime);
-        if (((datetime != null)) && (((string)datetime).IndexOf("+09:00", StringComparison.Ordinal) > -1))
+        if (isTrue(isTrue((!isEqual(datetime, null))) && isTrue((isGreaterThan(getIndexOf(datetime, "+09:00"), -1)))))
         {
-            string normalized = datetime.Replace((string)"+09:00", (string)"Z");
+            string normalized = ((string)datetime).Replace((string)"+09:00", (string)"Z");
             Int64? normalizedTimestamp = this.parse8601(normalized);
-            if (!isEqual(normalizedTimestamp, null))
+            if (isTrue(!isEqual(normalizedTimestamp, null)))
             {
                 timestamp = subtract(normalizedTimestamp, multiply(9, 3600000));
             }
@@ -3126,7 +3126,7 @@ public partial class bithumb : Exchange
 
     public virtual object parseTransactionStatusByType(object status, object type = null)
     {
-        if ((type == null))
+        if (isTrue(isEqual(type, null)))
         {
             return status;
         }
@@ -3164,7 +3164,7 @@ public partial class bithumb : Exchange
     public async virtual Task<List<Dictionary<string, object>>> FetchWithdrawalWhitelist(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
@@ -3172,9 +3172,9 @@ public partial class bithumb : Exchange
         IList<object> generationparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchWithdrawalWhitelist", "generation", 2);
         generation = ((IList<object>)generationparametersVariable)[0];
         parameters = ((IList<object>)generationparametersVariable)[1];
-        if (!isEqual(generation, 2))
+        if (isTrue(!isEqual(generation, 2)))
         {
-            throw new BadRequest ((string)(this.id + " fetchWithdrawalWhitelist() is only supported for the generation 2 API")) ;
+            throw new BadRequest ((string)add(this.id, " fetchWithdrawalWhitelist() is only supported for the generation 2 API")) ;
         }
         List<object> response = await this.privateGetV1WithdrawsCoinAddresses(parameters);
         //
@@ -3209,7 +3209,7 @@ public partial class bithumb : Exchange
     public async virtual Task<ccxt.Transaction> FetchWithdrawal(string id, string code = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
@@ -3217,19 +3217,19 @@ public partial class bithumb : Exchange
         IList<object> generationparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchWithdrawal", "generation", 2);
         generation = ((IList<object>)generationparametersVariable)[0];
         parameters = ((IList<object>)generationparametersVariable)[1];
-        if (!isEqual(generation, 2))
+        if (isTrue(!isEqual(generation, 2)))
         {
-            throw new BadRequest ((string)(this.id + " fetchWithdrawal() is only supported for the generation 2 API")) ;
+            throw new BadRequest ((string)add(this.id, " fetchWithdrawal() is only supported for the generation 2 API")) ;
         }
-        if ((code == null))
+        if (isTrue(isEqual(code, null)))
         {
-            throw new ArgumentsRequired ((string)(this.id + " fetchWithdrawal() requires a code argument")) ;
+            throw new ArgumentsRequired ((string)add(this.id, " fetchWithdrawal() requires a code argument")) ;
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
+            { "currency", getValue(currency, "id") },
         };
-        if ((id != null))
+        if (isTrue(!isEqual(id, null)))
         {
             ((IDictionary<string,object>)request)["uuid"] = id;
         }
@@ -3273,7 +3273,7 @@ public partial class bithumb : Exchange
     public async override Task<List<ccxt.Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
@@ -3281,27 +3281,27 @@ public partial class bithumb : Exchange
         IList<object> generationparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchWithdrawals", "generation", 2);
         generation = ((IList<object>)generationparametersVariable)[0];
         parameters = ((IList<object>)generationparametersVariable)[1];
-        if (!isEqual(generation, 2))
+        if (isTrue(!isEqual(generation, 2)))
         {
-            throw new BadRequest ((string)(this.id + " fetchWithdrawals() is only supported for the generation 2 API")) ;
+            throw new BadRequest ((string)add(this.id, " fetchWithdrawals() is only supported for the generation 2 API")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if ((limit != null))
+        if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
         List<object> response = null;
         IDictionary<string, object> currency = null;
-        if ((code == "KRW"))
+        if (isTrue(isEqual(code, "KRW")))
         {
             currency = this.currency(((string)code));
             response = await this.privateGetV1WithdrawsKrw(this.extend(request, parameters));
         } else
         {
-            if ((code != null))
+            if (isTrue(!isEqual(code, null)))
             {
                 currency = this.currency(((string)code));
-                ((IDictionary<string,object>)request)["currency"] = (currency.ContainsKey("id") ? currency["id"] : null);
+                ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
             }
             response = await this.privateGetV1Withdraws(this.extend(request, parameters));
         }
@@ -3340,7 +3340,7 @@ public partial class bithumb : Exchange
     public async virtual Task<ccxt.Transaction> FetchDeposit(string id, string code = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
@@ -3348,19 +3348,19 @@ public partial class bithumb : Exchange
         IList<object> generationparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchDeposit", "generation", 2);
         generation = ((IList<object>)generationparametersVariable)[0];
         parameters = ((IList<object>)generationparametersVariable)[1];
-        if (!isEqual(generation, 2))
+        if (isTrue(!isEqual(generation, 2)))
         {
-            throw new BadRequest ((string)(this.id + " fetchDeposit() is only supported for the generation 2 API")) ;
+            throw new BadRequest ((string)add(this.id, " fetchDeposit() is only supported for the generation 2 API")) ;
         }
-        if ((code == null))
+        if (isTrue(isEqual(code, null)))
         {
-            throw new ArgumentsRequired ((string)(this.id + " fetchDeposit() requires a code argument")) ;
+            throw new ArgumentsRequired ((string)add(this.id, " fetchDeposit() requires a code argument")) ;
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
+            { "currency", getValue(currency, "id") },
         };
-        if ((id != null))
+        if (isTrue(!isEqual(id, null)))
         {
             ((IDictionary<string,object>)request)["uuid"] = id;
         }
@@ -3404,7 +3404,7 @@ public partial class bithumb : Exchange
     public async override Task<List<ccxt.Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
@@ -3412,27 +3412,27 @@ public partial class bithumb : Exchange
         IList<object> generationparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchDeposits", "generation", 2);
         generation = ((IList<object>)generationparametersVariable)[0];
         parameters = ((IList<object>)generationparametersVariable)[1];
-        if (!isEqual(generation, 2))
+        if (isTrue(!isEqual(generation, 2)))
         {
-            throw new BadRequest ((string)(this.id + " fetchDeposits() is only supported for the generation 2 API")) ;
+            throw new BadRequest ((string)add(this.id, " fetchDeposits() is only supported for the generation 2 API")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if ((limit != null))
+        if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
         List<object> response = null;
         IDictionary<string, object> currency = null;
-        if ((code == "KRW"))
+        if (isTrue(isEqual(code, "KRW")))
         {
             currency = this.currency(((string)code));
             response = await this.privateGetV1DepositsKrw(this.extend(request, parameters));
         } else
         {
-            if ((code != null))
+            if (isTrue(!isEqual(code, null)))
             {
                 currency = this.currency(((string)code));
-                ((IDictionary<string,object>)request)["currency"] = (currency.ContainsKey("id") ? currency["id"] : null);
+                ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
             }
             response = await this.privateGetV1Deposits(this.extend(request, parameters));
         }
@@ -3470,7 +3470,7 @@ public partial class bithumb : Exchange
     public async override Task<ccxt.DepositAddress> CreateDepositAddress(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
@@ -3478,19 +3478,19 @@ public partial class bithumb : Exchange
         IList<object> generationparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createDepositAddress", "generation", 2);
         generation = ((IList<object>)generationparametersVariable)[0];
         parameters = ((IList<object>)generationparametersVariable)[1];
-        if (!isEqual(generation, 2))
+        if (isTrue(!isEqual(generation, 2)))
         {
-            throw new BadRequest ((string)(this.id + " createDepositAddress() is only supported for the generation 2 API")) ;
+            throw new BadRequest ((string)add(this.id, " createDepositAddress() is only supported for the generation 2 API")) ;
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
+            { "currency", getValue(currency, "id") },
         };
         string? network = this.safeString2(parameters, "network", "net_type");
         parameters = this.omit(parameters, "network");
-        if ((network == null))
+        if (isTrue(isEqual(network, null)))
         {
-            throw new ArgumentsRequired ((string)(((this.id + " ") + code) + " createDepositAddress() requires a network parameter")) ;
+            throw new ArgumentsRequired ((string)add(add(add(this.id, " "), code), " createDepositAddress() requires a network parameter")) ;
         }
         ((IDictionary<string,object>)request)["net_type"] = network;
         Dictionary<string, object> response = await this.privatePostV1DepositsGenerateCoinAddress(this.extend(request, parameters));
@@ -3519,7 +3519,7 @@ public partial class bithumb : Exchange
     public async override Task<ccxt.DepositAddress> FetchDepositAddress(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
@@ -3527,19 +3527,19 @@ public partial class bithumb : Exchange
         IList<object> generationparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchDepositAddress", "generation", 2);
         generation = ((IList<object>)generationparametersVariable)[0];
         parameters = ((IList<object>)generationparametersVariable)[1];
-        if (!isEqual(generation, 2))
+        if (isTrue(!isEqual(generation, 2)))
         {
-            throw new BadRequest ((string)(this.id + " fetchDepositAddress() is only supported for the generation 2 API")) ;
+            throw new BadRequest ((string)add(this.id, " fetchDepositAddress() is only supported for the generation 2 API")) ;
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
+            { "currency", getValue(currency, "id") },
         };
         string? network = this.safeString2(parameters, "network", "net_type");
         parameters = this.omit(parameters, "network");
-        if ((network == null))
+        if (isTrue(isEqual(network, null)))
         {
-            throw new ArgumentsRequired ((string)(((this.id + " ") + code) + " fetchDepositAddress() requires a network parameter")) ;
+            throw new ArgumentsRequired ((string)add(add(add(this.id, " "), code), " fetchDepositAddress() requires a network parameter")) ;
         }
         ((IDictionary<string,object>)request)["net_type"] = network;
         Dictionary<string, object> response = await this.privateGetV1DepositsCoinAddress(this.extend(request, parameters));
@@ -3567,7 +3567,7 @@ public partial class bithumb : Exchange
     public async override Task<List<ccxt.DepositAddress>> FetchDepositAddresses(object codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
@@ -3575,9 +3575,9 @@ public partial class bithumb : Exchange
         IList<object> generationparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchDepositAddresses", "generation", 2);
         generation = ((IList<object>)generationparametersVariable)[0];
         parameters = ((IList<object>)generationparametersVariable)[1];
-        if (!isEqual(generation, 2))
+        if (isTrue(!isEqual(generation, 2)))
         {
-            throw new BadRequest ((string)(this.id + " fetchDepositAddresses() is only supported for the generation 2 API")) ;
+            throw new BadRequest ((string)add(this.id, " fetchDepositAddresses() is only supported for the generation 2 API")) ;
         }
         List<object> response = await this.privateGetV1DepositsCoinAddresses(parameters);
         //
@@ -3608,9 +3608,9 @@ public partial class bithumb : Exchange
         string? currencyId = this.safeString(response, "currency");
         string? code = this.safeCurrencyCode(currencyId, currency);
         string? address = this.safeString(response, "deposit_address");
-        if ((address == null))
+        if (isTrue(isEqual(address, null)))
         {
-            throw new ExchangeError ((string)(this.id + " parseDepositAddress() could not find deposit_address")) ;
+            throw new ExchangeError ((string)add(this.id, " parseDepositAddress() could not find deposit_address")) ;
         }
         this.checkAddress(address);
         return new Dictionary<string, object>() {
@@ -3625,12 +3625,12 @@ public partial class bithumb : Exchange
     public virtual object fixCommaNumber(object numberStr)
     {
         // some endpoints need this https://github.com/ccxt/ccxt/issues/11031
-        if ((numberStr == null))
+        if (isTrue(isEqual(numberStr, null)))
         {
             return null;
         }
         object finalNumberStr = numberStr;
-        while (getIndexOf(finalNumberStr, ",") > -1)
+        while (isGreaterThan(getIndexOf(finalNumberStr, ","), -1))
         {
             finalNumberStr = ((string)finalNumberStr).Replace((string)",", (string)"");
         }
@@ -3646,22 +3646,22 @@ public partial class bithumb : Exchange
     {
         List<object> keys = new List<object>(((IDictionary<string,object>)query).Keys);
         object result = "";
-        for (int i = 0; i < keys.Count; i++)
+        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
-            string? key = ((string)keys[i]);
+            string? key = ((string)getValue(keys, i));
             object value = getValue(query, key);
-            if (((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+            if (isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
             {
                 object encodedKey = add(this.encodeURIComponent(key), "[]");
-                for (int j = 0; j < getArrayLength(value); j++)
+                for (int j = 0; isLessThan(j, getArrayLength(value)); postFixIncrement(ref j))
                 {
                     object item = getValue(value, j);
                     string? valueString = this.safeString(value, j);
-                    if ((valueString == null))
+                    if (isTrue(isEqual(valueString, null)))
                     {
                         valueString = this.json(item);
                     }
-                    if (((string)result).Length > 0)
+                    if (isTrue(isGreaterThan(((string)result).Length, 0)))
                     {
                         result = add(result, "&");
                     }
@@ -3669,7 +3669,7 @@ public partial class bithumb : Exchange
                 }
             } else
             {
-                if (((string)result).Length > 0)
+                if (isTrue(isGreaterThan(((string)result).Length, 0)))
                 {
                     result = add(result, "&");
                 }
@@ -3687,26 +3687,26 @@ public partial class bithumb : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string endpoint = ("/" + this.implodeParams(path, parameters));
-        string url = (this.implodeHostname(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api)) + endpoint);
+        string endpoint = add("/", this.implodeParams(path, parameters));
+        string url = add(this.implodeHostname(getValue(getValue(this.urls, "api"), api)), endpoint);
         object query = this.omit(parameters, this.extractParams(path));
         List<object> queryKeys = new List<object>(((IDictionary<string,object>)query).Keys);
-        int queryKeysLength = queryKeys.Count;
-        bool hasQuery = (queryKeysLength > 0);
-        if (isEqual(api, "public"))
+        int queryKeysLength = getArrayLength(queryKeys);
+        bool hasQuery = (isGreaterThan(queryKeysLength, 0));
+        if (isTrue(isEqual(api, "public")))
         {
             headers = new Dictionary<string, object>() {
                 { "OPEN-API-PARTNER", "CCXT" },
             };
-            if (hasQuery)
+            if (isTrue(hasQuery))
             {
-                url = url + ("?" + this.urlencode(query));
+                url = add(url, add("?", this.urlencode(query)));
             }
         } else
         {
             this.checkRequiredCredentials();
-            bool isVersionedApi = (((string)endpoint).StartsWith(((string)"/v1/")) || ((string)endpoint).StartsWith(((string)"/v2/")));
-            if (isVersionedApi)
+            bool isVersionedApi = (isTrue(((string)endpoint).StartsWith(((string)"/v1/"))) || isTrue(((string)endpoint).StartsWith(((string)"/v2/"))));
+            if (isTrue(isVersionedApi))
             {
                 headers = new Dictionary<string, object>() {
                     { "Accept", "application/json" },
@@ -3718,27 +3718,27 @@ public partial class bithumb : Exchange
                     { "timestamp", this.milliseconds() },
                 };
                 object auth = null;
-                if ((!isEqual(method, "GET")) && (!isEqual(method, "DELETE")))
+                if (isTrue(isTrue((!isEqual(method, "GET"))) && isTrue((!isEqual(method, "DELETE")))))
                 {
                     ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
-                    if (hasQuery)
+                    if (isTrue(hasQuery))
                     {
                         body = this.json(query);
                         auth = this.urlencodeWithArrayBrackets(query);
                     }
-                } else if (hasQuery)
+                } else if (isTrue(hasQuery))
                 {
                     auth = this.urlencodeWithArrayBrackets(query);
-                    url = url + ("?" + (auth));
+                    url = add(url, add("?", auth));
                 }
-                if (hasQuery)
+                if (isTrue(hasQuery))
                 {
-                    object authString = ((auth == null)) ? "" : auth;
+                    object authString = ((bool) isTrue((isEqual(auth, null)))) ? "" : auth;
                     ((IDictionary<string,object>)request)["query_hash"] = this.hash(this.encode(authString), sha512);
                     ((IDictionary<string,object>)request)["query_hash_alg"] = "SHA512";
                 }
                 string token = jwt(request, this.encode(this.secret), sha256);
-                ((IDictionary<string,object>)headers)["Authorization"] = ("Bearer " + token);
+                ((IDictionary<string,object>)headers)["Authorization"] = add("Bearer ", token);
             } else
             {
                 body = this.urlencode(this.extend(new Dictionary<string, object>() {
@@ -3748,7 +3748,7 @@ public partial class bithumb : Exchange
                 List<object> bodyParts = ((string)body).Split(new [] {((string)"%20")}, StringSplitOptions.None).ToList<object>();
                 body = String.Join("+", ((IList<object>)bodyParts).ToArray());
                 string nonce = ((object)this.nonce()).ToString();
-                string auth = ((((endpoint + "\\") + (body)) + "\\") + nonce); // eslint-disable-line quotes
+                string auth = add(add(add(add(endpoint, "\\"), body), "\\"), nonce); // eslint-disable-line quotes
                 string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512);
                 string signature64 = this.stringToBase64(signature);
                 headers = new Dictionary<string, object>() {
@@ -3771,7 +3771,7 @@ public partial class bithumb : Exchange
 
     public override object handleErrors(object httpCode, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
     {
-        if ((response == null))
+        if (isTrue(isEqual(response, null)))
         {
             return null;  // fallback to default error handler
         }
@@ -3780,22 +3780,22 @@ public partial class bithumb : Exchange
         //     {"error":{"name":400,"message":"Missing request parameter error. Check the required parameters!"}}
         //
         IDictionary<string, object> error = this.safeDict(response, "error");
-        if ((error != null))
+        if (isTrue(!isEqual(error, null)))
         {
             string? errorName = this.safeString(error, "name");
             string? message = this.safeString(error, "message");
-            string feedback = ((this.id + " ") + message);
-            if ((errorName != null))
+            string feedback = add(add(this.id, " "), message);
+            if (isTrue(!isEqual(errorName, null)))
             {
                 this.throwExactlyMatchedException(this.exceptions, errorName, feedback);
             }
-            if ((message != null))
+            if (isTrue(!isEqual(message, null)))
             {
                 this.throwExactlyMatchedException(this.exceptions, message, feedback);
             }
             throw new ExchangeError ((string)feedback) ;
         }
-        if (inOp(response, "status"))
+        if (isTrue(inOp(response, "status")))
         {
             // generation 1:
             //
@@ -3803,17 +3803,17 @@ public partial class bithumb : Exchange
             //
             string? status = this.safeString(response, "status");
             string? message = this.safeString(response, "message");
-            if ((status != null))
+            if (isTrue(!isEqual(status, null)))
             {
-                if ((status == "0000"))
+                if (isTrue(isEqual(status, "0000")))
                 {
                     return null;  // no error
-                } else if ((message == "거래 진행중인 내역이 존재하지 않습니다."))
+                } else if (isTrue(isEqual(message, "거래 진행중인 내역이 존재하지 않습니다.")))
                 {
                     // https://github.com/ccxt/ccxt/issues/9017
                     return null;  // no error
                 }
-                string feedback = ((this.id + " ") + message);
+                string feedback = add(add(this.id, " "), message);
                 this.throwExactlyMatchedException(this.exceptions, status, feedback);
                 this.throwExactlyMatchedException(this.exceptions, message, feedback);
                 throw new ExchangeError ((string)feedback) ;

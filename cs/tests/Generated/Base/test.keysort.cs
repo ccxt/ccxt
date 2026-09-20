@@ -13,7 +13,7 @@ public partial class BaseTest
                 { "id", "sampleexchange" },
             });
             // temporarily disable, as this test doesn't make sense in lib (bcz of GO) // todo: do something
-            if (isGreaterThan(exchange.milliseconds(), 0))
+            if (isTrue(isGreaterThan(exchange.milliseconds(), 0)))
             {
                 return;
             }

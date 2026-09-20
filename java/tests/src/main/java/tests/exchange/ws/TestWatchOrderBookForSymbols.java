@@ -26,7 +26,7 @@ public class TestWatchOrderBookForSymbols extends BaseTest {
         Object currentTime = exchange.milliseconds();
         Object deadline = Helpers.add(currentTime, 15000);
         Boolean idle = false;
-        while ((Helpers.isLessThan(currentTime, deadline)) && !Boolean.TRUE.equals(idle))
+        while (Helpers.isTrue((Helpers.isLessThan(currentTime, deadline))) && !Helpers.isTrue(idle))
         {
             Object response = null;
             Boolean succeeded = true;
@@ -37,19 +37,19 @@ public class TestWatchOrderBookForSymbols extends BaseTest {
             } catch(Exception e)
             {
                 // interim workaround for InvalidNonce raised by the c# runtime
-                if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)) && !(Helpers.isInstance(e, InvalidNonce.class)))
+                if (Helpers.isTrue(!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)) && !Helpers.isTrue((Helpers.isInstance(e, InvalidNonce.class)))))
                 {
                     throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }
                 succeeded = false;
             }
             currentTime = exchange.milliseconds();
-            if ((java.util.Objects.equals(succeeded, true)) && (!java.util.Objects.equals(response, null)))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(succeeded, true))) && Helpers.isTrue((!Helpers.isEqual(response, null)))))
             {
                 TestOrderBook.testOrderBook(exchange, skippedProperties, method, response, null);
                 TestSharedMethods.AssertInArray(exchange, skippedProperties, method, response, "symbol", symbols);
                 Object elapsed = Helpers.subtract(currentTime, startTime);
-                if (Helpers.isGreaterThan(elapsed, maxIdleTime))
+                if (Helpers.isTrue(Helpers.isGreaterThan(elapsed, maxIdleTime)))
                 {
                     idle = true;
                 }

@@ -11,65 +11,65 @@ use ccxt::exchange_generated::ExchangeBase;
 pub fn testGroupBy() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("id".to_string(), Value::Str("sampleexchange".into()));
+            m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
         m
     }));
-    let mut sampleArray: Value = Value::from(vec![Value::Map({
+    let mut sampleArray: Value = Value::List(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("foo".to_string(), Value::Str("a".into()));
+        m.insert("foo".to_string(), Value::Str("a".to_string()));
     m
 }), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("foo".to_string(), Value::Str("b".into()));
+        m.insert("foo".to_string(), Value::Str("b".to_string()));
     m
 }), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("foo".to_string(), Value::Str("c".into()));
+        m.insert("foo".to_string(), Value::Str("c".to_string()));
     m
 }), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("foo".to_string(), Value::Str("b".into()));
+        m.insert("foo".to_string(), Value::Str("b".to_string()));
     m
 }), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("foo".to_string(), Value::Str("c".into()));
+        m.insert("foo".to_string(), Value::Str("c".to_string()));
     m
 }), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("foo".to_string(), Value::Str("c".into()));
+        m.insert("foo".to_string(), Value::Str("c".to_string()));
     m
 })]);
-    let mut currentValue: Value = exchange.group_by(sampleArray.clone(), Value::Str("foo".into()), &[]);
+    let mut currentValue: Value = exchange.group_by(sampleArray.clone(), Value::Str("foo".to_string()), &[]);
     let mut storedValue: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("a".to_string(), Value::from(vec![Value::Map({
+            m.insert("a".to_string(), Value::List(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("foo".to_string(), Value::Str("a".into()));
+        m.insert("foo".to_string(), Value::Str("a".to_string()));
     m
 })]));
-            m.insert("b".to_string(), Value::from(vec![Value::Map({
+            m.insert("b".to_string(), Value::List(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("foo".to_string(), Value::Str("b".into()));
+        m.insert("foo".to_string(), Value::Str("b".to_string()));
     m
 }), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("foo".to_string(), Value::Str("b".into()));
+        m.insert("foo".to_string(), Value::Str("b".to_string()));
     m
 })]));
-            m.insert("c".to_string(), Value::from(vec![Value::Map({
+            m.insert("c".to_string(), Value::List(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("foo".to_string(), Value::Str("c".into()));
+        m.insert("foo".to_string(), Value::Str("c".to_string()));
     m
 }), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("foo".to_string(), Value::Str("c".into()));
+        m.insert("foo".to_string(), Value::Str("c".to_string()));
     m
 }), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("foo".to_string(), Value::Str("c".into()));
+        m.insert("foo".to_string(), Value::Str("c".to_string()));
     m
 })]));
         m
     });
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testGroupBy".into()).clone(), currentValue.clone(), storedValue.clone()]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testGroupBy".to_string()).clone(), currentValue.clone(), storedValue.clone()]);
 }

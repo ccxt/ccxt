@@ -6,8 +6,6 @@ import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -29,15 +27,15 @@ public class TestFetchLeverageTiers extends BaseTest {
         //     ],
         // };
         TestSharedMethods.AssertDictionaryResponse(exchange, method, tiers, symbol);
-        List<Object> tierKeys = new ArrayList<Object>(((Map<String, Object>)tiers).keySet());
+        Object tierKeys = Helpers.objectKeys(tiers);
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, tierKeys, symbol);
-        for (var i = 0; i < ((List<?>)tierKeys).size(); i++)
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tierKeys)); i++)
         {
-            Object tiersForSymbol = Helpers.GetValue(tiers, (tierKeys == null || i < 0 || i >= tierKeys.size() ? null : tierKeys.get(i)));
+            Object tiersForSymbol = Helpers.GetValue(tiers, Helpers.GetValue(tierKeys, i));
             TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, tiersForSymbol, symbol);
-            for (var j = 0; j < ((List<?>)tiersForSymbol).size(); j++)
+            for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(tiersForSymbol)); j++)
             {
-                TestLeverageTier.testLeverageTier(exchange, skippedProperties, method, (tiersForSymbol == null || j < 0 || j >= ((List<?>)tiersForSymbol).size() ? null : ((List<?>)tiersForSymbol).get(j)));
+                TestLeverageTier.testLeverageTier(exchange, skippedProperties, method, Helpers.GetValue(tiersForSymbol, j));
             }
         }
         return true;

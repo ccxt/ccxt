@@ -48,20 +48,20 @@ public partial class dydx : ccxt.dydx
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = ("trade:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
+        string messageHash = add("trade:", getValue(market, "symbol"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "subscribe" },
             { "channel", "v4_trades" },
-            { "id", (market.ContainsKey("id") ? market["id"] : null) },
+            { "id", getValue(market, "id") },
         };
         object trades = await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
-        if (this.newUpdates)
+        if (isTrue(this.newUpdates))
         {
             limitVar = callDynamically(trades, "getLimit", new object[] {symbol, limitVar});
         }
@@ -80,22 +80,22 @@ public partial class dydx : ccxt.dydx
     public async override Task<object> unWatchTrades(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = ("trade:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
+        string messageHash = add("trade:", getValue(market, "symbol"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "unsubscribe" },
             { "channel", "v4_trades" },
-            { "id", (market.ContainsKey("id") ? market["id"] : null) },
+            { "id", getValue(market, "id") },
         };
         return await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
     }
 
-    public virtual void handleTrades(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleTrades(WebSocketClient client, object message)
     {
         //
         // {
@@ -121,24 +121,24 @@ public partial class dydx : ccxt.dydx
         //
         string? marketId = this.safeString(message, "id");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = ((string)getValue(market, "symbol"));
         IDictionary<string, object> content = this.safeDict(message, "contents");
         List<object> rawTrades = this.safeList(content, "trades", new List<object>() {});
         object stored = this.safeValue(this.trades, symbol);
-        if ((stored == null))
+        if (isTrue(isEqual(stored, null)))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(limit);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
         IList<object> parsedTrades = this.parseTrades(rawTrades, market);
-        for (int i = 0; i < (parsedTrades?.Count ?? 0); i++)
+        for (int i = 0; isLessThan(i, getArrayLength(parsedTrades)); postFixIncrement(ref i))
         {
-            object parsed = parsedTrades[i];
+            object parsed = getValue(parsedTrades, i);
             callDynamically(stored, "append", new object[] {parsed});
         }
-        string messageHash = (("trade" + ":") + symbol);
-        (client as WebSocketClient).resolve(stored, messageHash);
+        string messageHash = add(add("trade", ":"), symbol);
+        callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
     }
 
     public override object parseWsTrade(object trade, object market = null)
@@ -185,17 +185,17 @@ public partial class dydx : ccxt.dydx
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = ("orderbook:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
+        string messageHash = add("orderbook:", getValue(market, "symbol"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "subscribe" },
             { "channel", "v4_orderbook" },
-            { "id", (market.ContainsKey("id") ? market["id"] : null) },
+            { "id", getValue(market, "id") },
         };
         object orderbook = await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
@@ -213,22 +213,22 @@ public partial class dydx : ccxt.dydx
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = ("orderbook:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
+        string messageHash = add("orderbook:", getValue(market, "symbol"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "unsubscribe" },
             { "channel", "v4_orderbook" },
-            { "id", (market.ContainsKey("id") ? market["id"] : null) },
+            { "id", getValue(market, "id") },
         };
         return await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
     }
 
-    public virtual void handleOrderBook(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleOrderBook(WebSocketClient client, object message)
     {
         //
         // {
@@ -255,10 +255,10 @@ public partial class dydx : ccxt.dydx
         //
         string? marketId = this.safeString(message, "id");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = ((string)getValue(market, "symbol"));
         IDictionary<string, object> content = this.safeDict(message, "contents");
         object orderbook = this.safeOrderBook(this.orderbooks, symbol);
-        if ((orderbook == null))
+        if (isTrue(isEqual(orderbook, null)))
         {
             orderbook = this.orderBook();
         }
@@ -268,14 +268,14 @@ public partial class dydx : ccxt.dydx
         this.handleDeltas(getValue(orderbook, "asks"), asks);
         this.handleDeltas(getValue(orderbook, "bids"), bids);
         ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(message, "message_id");
-        string messageHash = ("orderbook:" + symbol);
+        string messageHash = add("orderbook:", symbol);
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
-        (client as WebSocketClient).resolve(orderbook, messageHash);
+        callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
     }
 
     public override void handleDelta(object bookside, object delta)
     {
-        if (((delta is IList<object>) || (delta.GetType().IsGenericType && delta.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if (isTrue(((delta is IList<object>) || (delta.GetType().IsGenericType && delta.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             double? price = this.safeFloat(delta, 0);
             double? amount = this.safeFloat(delta, 1);
@@ -305,21 +305,21 @@ public partial class dydx : ccxt.dydx
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = ("ohlcv:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
+        string messageHash = add("ohlcv:", getValue(market, "symbol"));
         string? resolution = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "subscribe" },
             { "channel", "v4_candles" },
-            { "id", add(add((market.ContainsKey("id") ? market["id"] : null), "/"), resolution) },
+            { "id", add(add(getValue(market, "id"), "/"), resolution) },
         };
         object ohlcv = await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
-        if (this.newUpdates)
+        if (isTrue(this.newUpdates))
         {
             limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbol, limitVar});
         }
@@ -342,23 +342,23 @@ public partial class dydx : ccxt.dydx
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if ((this.markets == null))
+        if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = ("ohlcv:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
+        string messageHash = add("ohlcv:", getValue(market, "symbol"));
         string? resolution = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "unsubscribe" },
             { "channel", "v4_candles" },
-            { "id", add(add((market.ContainsKey("id") ? market["id"] : null), "/"), resolution) },
+            { "id", add(add(getValue(market, "id"), "/"), resolution) },
         };
         return await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
     }
 
-    public virtual void handleOHLCV(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleOHLCV(WebSocketClient client, object message)
     {
         //
         // {
@@ -412,27 +412,27 @@ public partial class dydx : ccxt.dydx
         // }
         //
         string? id = this.safeString(message, "id", "");
-        List<object> part = id.Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
+        List<object> part = ((string)id).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
         string? interval = this.safeString(part, 1);
         string? timeframe = this.findTimeframe(interval);
         string? marketId = this.safeString(part, 0);
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = ((string)getValue(market, "symbol"));
         IDictionary<string, object> content = this.safeDict(message, "contents");
         List<object> candles = this.safeList(content, "candles");
-        string messageHash = ("ohlcv:" + symbol);
+        string messageHash = add("ohlcv:", symbol);
         IDictionary<string, object> ohlcv = this.safeDict(candles, 0, content);
         object parsed = this.parseOHLCV(ohlcv, market);
-        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
-        if ((stored == null))
+        if (isTrue(isEqual(stored, null)))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCacheByTimestamp(limit);
             ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)((string)timeframe)] = stored;
         }
         callDynamically(stored, "append", new object[] {parsed});
-        (client as WebSocketClient).resolve(stored, messageHash);
+        callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
     }
 
     public virtual bool handleErrorMessage(WebSocketClient client, object message)
@@ -440,7 +440,7 @@ public partial class dydx : ccxt.dydx
         try
         {
             string? msg = this.safeString(message, "message");
-            throw new ExchangeError ((string)((this.id + " ") + msg)) ;
+            throw new ExchangeError ((string)add(add(this.id, " "), msg)) ;
         } catch(Exception e)
         {
             ((WebSocketClient)client).reject(e);
@@ -451,12 +451,12 @@ public partial class dydx : ccxt.dydx
     public override void handleMessage(WebSocketClient client, object message)
     {
         string? type = this.safeString(message, "type");
-        if ((type == "error"))
+        if (isTrue(isEqual(type, "error")))
         {
             this.handleErrorMessage(client as WebSocketClient, message);
             return;
         }
-        if ((type != null))
+        if (isTrue(!isEqual(type, null)))
         {
             string? topic = this.safeString(message, "channel");
             Dictionary<string, object> methods = new Dictionary<string, object>() {
@@ -465,7 +465,7 @@ public partial class dydx : ccxt.dydx
                 { "v4_candles", this.handleOHLCV },
             };
             object method = this.safeValue(methods, topic);
-            if ((method != null))
+            if (isTrue(!isEqual(method, null)))
             {
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message});
             }

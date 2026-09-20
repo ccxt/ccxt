@@ -7,7 +7,6 @@ import io.github.ccxt.errors.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -37,13 +36,13 @@ public class TestFetchLastPrices extends BaseTest {
         Object values = Helpers.objectValues(response);
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol);
         Boolean atLeastOnePassed = false;
-        for (var i = 0; i < ((List<?>)values).size(); i++)
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(values)); i++)
         {
             // todo: symbol check here
-            TestLastPrice.testLastPrice(exchange, skippedProperties, method, (values == null || i < 0 || i >= ((List<?>)values).size() ? null : ((List<?>)values).get(i)), ((String)checkedSymbol));
-            atLeastOnePassed = Boolean.TRUE.equals(atLeastOnePassed) || (Helpers.isGreaterThan(exchange.safeNumber((values == null || i < 0 || i >= ((List<?>)values).size() ? null : ((List<?>)values).get(i)), "price"), 0));
+            TestLastPrice.testLastPrice(exchange, skippedProperties, method, Helpers.GetValue(values, i), ((String)checkedSymbol));
+            atLeastOnePassed = Helpers.isTrue(atLeastOnePassed) || Helpers.isTrue((Helpers.isGreaterThan(exchange.safeNumber(Helpers.GetValue(values, i), "price"), 0)));
         }
-        Assert(atLeastOnePassed, (((((exchange.id + " ") + method) + " ") + checkedSymbol) + " at least one symbol should pass the test"));
+        Assert(atLeastOnePassed, Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), checkedSymbol), " at least one symbol should pass the test"));
         return true;
         });
 

@@ -12,7 +12,7 @@ func TestOHLCV(exchange ccxt.ICoreExchange, skippedProperties any, method any, e
 	AssertTimestampAndDatetime(exchange, skippedProperties, method, entry, now, 0)
 	var logText any = LogTemplate(exchange, method, entry)
 	//
-	Assert((GetArrayLength(entry) >= 6), Add("ohlcv array length should be >= 6;", logText))
+	Assert(IsGreaterThanOrEqual(GetArrayLength(entry), 6), Add("ohlcv array length should be >= 6;", logText))
 	if !(InOp(skippedProperties, "roundTimestamp")) {
 		AssertRoundMinuteTimestamp(exchange, skippedProperties, method, entry, 0)
 	}
@@ -25,5 +25,5 @@ func TestOHLCV(exchange ccxt.ICoreExchange, skippedProperties any, method any, e
 	AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "1", low)
 	AssertLessOrEqual(exchange, skippedProperties, method, entry, "4", high)
 	AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "4", low)
-	Assert((symbol == nil) || (IsString(symbol)), Add(Add(Add("symbol ", symbol), " is incorrect"), logText)) // todo: check with standard symbol check
+	Assert((IsEqual(symbol, nil)) || (IsString(symbol)), Add(Add(Add("symbol ", symbol), " is incorrect"), logText)) // todo: check with standard symbol check
 }

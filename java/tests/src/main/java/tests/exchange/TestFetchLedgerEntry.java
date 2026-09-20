@@ -4,8 +4,6 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -21,13 +19,13 @@ public class TestFetchLedgerEntry extends BaseTest {
 
         String method = "fetchLedgerEntry";
         Object items = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchLedger", new Object[]{code})).join();
-        Object length = ((List<?>)items).size();
+        Object length = Helpers.getArrayLength(items);
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, items, code);
-        if (Helpers.isGreaterThan(length, 0))
+        if (Helpers.isTrue(Helpers.isGreaterThan(length, 0)))
         {
-            Object firstItem = (items == null || 0 >= ((List<?>)items).size() ? null : ((List<?>)items).get(0));
-            Object id = ((Map<String, Object>)firstItem).get("id");
-            if (!java.util.Objects.equals(id, null))
+            Object firstItem = Helpers.GetValue(items, 0);
+            Object id = Helpers.GetValue(firstItem, "id");
+            if (Helpers.isTrue(!Helpers.isEqual(id, null)))
             {
                 Object item = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchLedgerEntry", new Object[]{id})).join();
                 Object now = exchange.milliseconds();

@@ -531,12 +531,12 @@ export default class blofin extends blofinRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const trigger = this.safeBool2(params, 'stop', 'trigger');
+        const trigger = this.safeValue2(params, 'stop', 'trigger');
         params = this.omit(params, ['stop', 'trigger']);
         const channel = (trigger === true) ? 'orders-algo' : 'orders';
         const orders = await this.watchMultipleWrapper(false, channel, 'watchOrdersForSymbols', symbols, params);
         if (this.newUpdates) {
-            const first = this.safeDict(orders, 0);
+            const first = this.safeValue(orders, 0);
             const tradeSymbol = this.safeString(first, 'symbol');
             limit = orders.getLimit(tradeSymbol, limit);
         }

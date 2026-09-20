@@ -11,7 +11,7 @@ use ccxt::exchange_generated::ExchangeBase;
 pub async fn testSetMarketsFromExchange() -> Value {
     let mut emptyExchange = crate::tests_support::make_exchange(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("id".to_string(), Value::Str("sample0".into()));
+            m.insert("id".to_string(), Value::Str("sample0".to_string()));
         m
     }));
     // @SKIP (rust): Exchange-as-value not supported

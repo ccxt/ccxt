@@ -1,5 +1,5 @@
 import onetradingRest from '../onetrading.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Dict, Bool, Market } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Bool, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class onetrading extends onetradingRest {
     describe(): any;
@@ -12,7 +12,7 @@ export default class onetrading extends onetradingRest {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     watchBalance(params?: {}): Promise<Balances>;
-    handleBalanceSnapshot(client: Client, message: Dict): void;
+    handleBalanceSnapshot(client: Client, message: any): void;
     /**
      * @method
      * @name onetrading#watchTicker
@@ -33,8 +33,8 @@ export default class onetrading extends onetradingRest {
      * @returns {object} an array of [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
-    handleTicker(client: Client, message: Dict): void;
-    parseWSTicker(ticker: Dict, market?: Market): Ticker;
+    handleTicker(client: Client, message: any): void;
+    parseWSTicker(ticker: any, market?: Market): Ticker;
     /**
      * @method
      * @name onetrading#watchMyTrades
@@ -58,7 +58,7 @@ export default class onetrading extends onetradingRest {
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    handleOrderBook(client: Client, message: Dict): void;
+    handleOrderBook(client: Client, message: any): void;
     handleDelta(orderbook: any, delta: any): void;
     handleDeltas(orderbook: any, deltas: any): void;
     /**
@@ -74,13 +74,13 @@ export default class onetrading extends onetradingRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    handleTrading(client: Client, message: Dict): void;
-    parseTradingOrder(order: Dict, market?: Market): Order;
-    parseTradingOrderStatus(status: Str): Str;
-    handleOrders(client: Client, message: Dict): void;
-    handleAccountUpdate(client: Client, message: Dict): void;
-    parseWsOrderStatus(status: Str): Str;
-    updateBalance(balance: Dict): void;
+    handleTrading(client: Client, message: any): void;
+    parseTradingOrder(order: any, market?: Market): Order;
+    parseTradingOrderStatus(status: any): string;
+    handleOrders(client: Client, message: any): void;
+    handleAccountUpdate(client: Client, message: any): void;
+    parseWsOrderStatus(status: any): string;
+    updateBalance(balance: any): void;
     /**
      * @method
      * @name onetrading#watchOHLCV
@@ -94,14 +94,14 @@ export default class onetrading extends onetradingRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
-    handleOHLCV(client: Client, message: Dict): void;
-    findTimeframe(timeframe: any, timeframes?: any): Str;
-    handleSubscriptions(client: Client, message: Dict): Dict;
-    handleHeartbeat(client: Client, message: Dict): Dict;
-    handleErrorMessage(client: Client, message: Dict): Bool;
-    handleMessage(client: Client, message: Dict): void;
-    handlePricePointUpdates(client: Client, message: Dict): Dict;
-    handleAuthenticationMessage(client: Client, message: Dict): Dict;
-    watchMany(messageHash: string, request: Dict, subscriptionHash: string, symbols?: Strings, params?: Dict): Promise<any>;
-    authenticate(params?: Dict): Promise<any>;
+    handleOHLCV(client: Client, message: any): void;
+    findTimeframe(timeframe: any, timeframes?: any): string | undefined;
+    handleSubscriptions(client: Client, message: any): any;
+    handleHeartbeat(client: Client, message: any): any;
+    handleErrorMessage(client: Client, message: any): Bool;
+    handleMessage(client: Client, message: any): void;
+    handlePricePointUpdates(client: Client, message: any): any;
+    handleAuthenticationMessage(client: Client, message: any): any;
+    watchMany(messageHash: any, request: any, subscriptionHash: any, symbols?: Strings, params?: {}): Promise<any>;
+    authenticate(params?: {}): Promise<any>;
 }

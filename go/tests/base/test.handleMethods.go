@@ -30,7 +30,7 @@ func HelperTestHandleMarketTypeAndParams() {
 	var marketType1params1Variable []any = exchange.HandleMarketTypeAndParams("fetchX", market, initialParams, "valueDefault")
 	marketType1 := ccxt.GetValue(marketType1params1Variable, 0)
 	params1 := ccxt.GetValue(marketType1params1Variable, 1)
-	Assert(func() bool { _, ok := initialParams["defaultType"]; return ok }())
+	Assert(ccxt.InOp(initialParams, "defaultType"))
 	Assert(!(ccxt.InOp(params1, "defaultType")))
 	Assert((marketType1 == "valueFromParam"))
 	//

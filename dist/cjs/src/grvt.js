@@ -3252,7 +3252,7 @@ class grvt extends grvt$1["default"] {
             'chain_id': this.isSandboxModeEnabled ? '326' : '325',
         };
     }
-    handleUntilOptionString(key, request, params = undefined, multiplier = 1) {
+    handleUntilOptionString(key, request, params, multiplier = 1) {
         const until = this.safeInteger2(params, 'until', 'till');
         if (until !== undefined) {
             request[key] = this.numberToString(this.parseToInt(until * multiplier));

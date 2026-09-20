@@ -20,28 +20,28 @@ public class TestBinaryToBase58 extends BaseTest
             var exchange = new Exchange(new HashMap<String, Object>() {{
                 put( "id", "sampleexchange" );
             }});
-            Assert(java.util.Objects.equals(exchange.parseNumber(null), null), "GO skip trick");
+            Assert(Helpers.isEqual(exchange.parseNumber(null), null), "GO skip trick");
             // @SKIP_START_GO
             // Test 1: Simple string
             Object binary1 = helperStrToBinary5(exchange, "hello");
-            Assert(java.util.Objects.equals(exchange.binaryToBase58(binary1), "Cn8eVZg"));
+            Assert(Helpers.isEqual(exchange.binaryToBase58(binary1), "Cn8eVZg"));
             // Test 2: String with space
             Object binary2 = helperStrToBinary5(exchange, "hello world");
-            Assert(java.util.Objects.equals(exchange.binaryToBase58(binary2), "StV1DL6CwTryKyV"));
+            Assert(Helpers.isEqual(exchange.binaryToBase58(binary2), "StV1DL6CwTryKyV"));
             // Test 3: Short string
             Object binary3 = helperStrToBinary5(exchange, "test");
-            Assert(java.util.Objects.equals(exchange.binaryToBase58(binary3), "3yZe7d"));
+            Assert(Helpers.isEqual(exchange.binaryToBase58(binary3), "3yZe7d"));
             // Test 4: Single byte
             Object binary4 = helperStrToBinary5(exchange, "a");
-            Assert(java.util.Objects.equals(exchange.binaryToBase58(binary4), "2g"));
+            Assert(Helpers.isEqual(exchange.binaryToBase58(binary4), "2g"));
             // Test 5: Two bytes
             Object binary5 = helperStrToBinary5(exchange, "ab");
-            Assert(java.util.Objects.equals(exchange.binaryToBase58(binary5), "8Qq"));
+            Assert(Helpers.isEqual(exchange.binaryToBase58(binary5), "8Qq"));
             // Test 6: Three bytes
             Object binary6 = helperStrToBinary5(exchange, "abc");
-            Assert(java.util.Objects.equals(exchange.binaryToBase58(binary6), "ZiCa"));
+            Assert(Helpers.isEqual(exchange.binaryToBase58(binary6), "ZiCa"));
             // Test 7: JSON-like binary
             Object binary7 = helperStrToBinary5(exchange, "{\"key\":\"value\"}");
-            Assert(java.util.Objects.equals(exchange.binaryToBase58(binary7), "4SoiMiEYtTt5tPdi81Fik"));
+            Assert(Helpers.isEqual(exchange.binaryToBase58(binary7), "4SoiMiEYtTt5tPdi81Fik"));
         }
 }

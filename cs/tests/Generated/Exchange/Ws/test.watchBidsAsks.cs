@@ -19,10 +19,10 @@ public partial class testMainClass : BaseTest
         argParams ??= new Dictionary<string, object>();
         string method = "watchBidsAsks";
         Int64 now = exchange.milliseconds();
-        object ends = (now + 15000);
+        object ends = add(now, 15000);
         int maxIdleTime = 5000;
         bool idle = false;
-        while ((isLessThan(now, ends)) && !idle)
+        while (isTrue((isLessThan(now, ends))) && !isTrue(idle))
         {
             bool success = true;
             bool shouldReturn = false;
@@ -36,7 +36,7 @@ public partial class testMainClass : BaseTest
                 // for some exchanges, multi symbol methods might require symbols array to be present, so
                 // so, if method throws "arguments-required" exception, we don't fail test, but just skip silently,
                 // because tests will make a second call of this method with symbols array
-                if ((e is ArgumentsRequired) && ((argSymbols == null) || (getArrayLength(argSymbols) == 0)))
+                if (isTrue(isTrue((e is ArgumentsRequired)) && isTrue((isTrue(isEqual(argSymbols, null)) || isTrue(isEqual(getArrayLength(argSymbols), 0))))))
                 {
                     // todo: provide random symbols to try
                     // return false;
@@ -48,26 +48,26 @@ public partial class testMainClass : BaseTest
                 success = false;
             }
             now = exchange.milliseconds();
-            if (shouldReturn)
+            if (isTrue(shouldReturn))
             {
                 return false;
             }
-            if ((success == true))
+            if (isTrue(isEqual(success, true)))
             {
                 assert(exchange.isDictionary(response), add(add(add(add(add(add(exchange.id, " "), method), " "), exchange.json(argSymbols)), " must return a dictionary. "), exchange.json(response)));
                 List<object> values = new List<object>(((IDictionary<string,object>)response).Values);
                 object checkedSymbol = null;
-                if ((argSymbols != null) && (getArrayLength(argSymbols) == 1))
+                if (isTrue(isTrue(!isEqual(argSymbols, null)) && isTrue(isEqual(getArrayLength(argSymbols), 1))))
                 {
                     checkedSymbol = getValue(argSymbols, 0);
                 }
                 testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol);
-                for (int i = 0; i < values.Count; i++)
+                for (int i = 0; isLessThan(i, getArrayLength(values)); postFixIncrement(ref i))
                 {
-                    object ticker = values[i];
+                    object ticker = getValue(values, i);
                     testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);
                 }
-                if (isGreaterThan(((now - startTime)), maxIdleTime))
+                if (isTrue(isGreaterThan((subtract(now, startTime)), maxIdleTime)))
                 {
                     idle = true;
                 }

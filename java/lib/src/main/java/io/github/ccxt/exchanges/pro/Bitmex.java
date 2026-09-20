@@ -23,7 +23,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 public class Bitmex extends io.github.ccxt.exchanges.Bitmex
 {
@@ -94,8 +93,8 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
         final Object symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
@@ -120,26 +119,26 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object symbols = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, true);
             String name = "instrument";
-            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             List<Object> rawSubscriptions = new ArrayList<Object>(Arrays.asList());
-            if (!java.util.Objects.equals(symbols, null))
+            if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                for (var i = 0; i < ((List<?>)symbols).size(); i++)
+                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
                 {
-                    Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
+                    Object symbol = Helpers.GetValue(symbols, i);
                     Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                    Object subscription = ((name + ":") + ((Map<String, Object>)market).get("id"));
+                    Object subscription = Helpers.add(Helpers.add(name, ":"), Helpers.GetValue(market, "id"));
                     ((List<Object>)rawSubscriptions).add(subscription);
-                    String messageHash = ("ticker:" + symbol);
+                    String messageHash = Helpers.add("ticker:", symbol);
                     ((List<Object>)messageHashes).add(messageHash);
                 }
             } else
@@ -151,8 +150,8 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
                 put( "op", "subscribe" );
                 put( "args", rawSubscriptions );
             }};
-            Object ticker = (this.watchMultiple((String) (url), messageHashes, this.extend(request, parameters), rawSubscriptions, null)).join();
-            if (this.newUpdates)
+            Object ticker = (this.watchMultiple(url, messageHashes, this.extend(request, parameters), rawSubscriptions, null)).join();
+            if (Helpers.isTrue(this.newUpdates))
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(result, Helpers.GetValue(ticker, "symbol"), ticker);
@@ -163,7 +162,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
 
     }
 
-    public Map<String, Object> handleTicker(Client client, Map<String, Object> message)
+    public Object handleTicker(Client client, Object message)
     {
         //
         //     {
@@ -391,22 +390,22 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
         //         ]
         //     }
         //
-        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> tickers = new HashMap<String, Object>() {{}};
-        for (var i = 0; i < ((List<?>)data).size(); i++)
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
-            Object update = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
+            Object update = Helpers.GetValue(data, i);
             String marketId = this.safeString(update, "symbol");
             String symbol = this.safeSymbol(marketId);
-            if (!(((Map<?, ?>)this.tickers).containsKey(symbol)))
+            if (!Helpers.isTrue((Helpers.inOp(this.tickers, symbol))))
             {
-                Helpers.addElementToObject(this.tickers, symbol, this.parseTicker((Map<String, Object>) (new HashMap<String, Object>() {{}})));
+                Helpers.addElementToObject(this.tickers, symbol, this.parseTicker(new HashMap<String, Object>() {{}}));
             }
-            Map<String, Object> updatedTicker = (Map<String, Object>) this.parseTicker((Map<String, Object>) (update));
+            Object updatedTicker = this.parseTicker(update);
             Map<String, Object> fullParsedTicker = this.deepExtend(Helpers.GetValue(this.tickers, symbol), updatedTicker);
-            ((Map<String, Object>)tickers).put((String)symbol, fullParsedTicker);
+            Helpers.addElementToObject(tickers, symbol, fullParsedTicker);
             Helpers.addElementToObject(this.tickers, symbol, fullParsedTicker);
-            String messageHash = ("ticker:" + symbol);
+            String messageHash = Helpers.add("ticker:", symbol);
             client.resolve(fullParsedTicker, messageHash);
             client.resolve(fullParsedTicker, "alltickers");
         }
@@ -429,11 +428,11 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            Object since = Helpers.getArg(optionalArgs, 0, null);
+            Object limit = Helpers.getArg(optionalArgs, 1, null);
+            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             return (this.watchLiquidationsForSymbols((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(res -> ((List<?>) res).stream().map(Liquidation::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
 
     }
 
@@ -453,46 +452,46 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
         final Object symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object since = Helpers.getArg(optionalArgs, 0, null);
+            Object limit = Helpers.getArg(optionalArgs, 1, null);
+            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, true, true);
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             List<Object> subscriptionHashes = new ArrayList<Object>(Arrays.asList());
-            if (this.isEmpty(symbols))
+            if (Helpers.isTrue(this.isEmpty(symbols)))
             {
                 ((List<Object>)subscriptionHashes).add("liquidation");
                 ((List<Object>)messageHashes).add("liquidations");
             } else
             {
-                for (var i = 0; i < ((List<?>)symbols).size(); i++)
+                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
                 {
-                    Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
+                    Object symbol = Helpers.GetValue(symbols, i);
                     Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                    ((List<Object>)subscriptionHashes).add(("liquidation:" + ((Map<String, Object>)market).get("id")));
-                    ((List<Object>)messageHashes).add(("liquidations::" + symbol));
+                    ((List<Object>)subscriptionHashes).add(Helpers.add("liquidation:", Helpers.GetValue(market, "id")));
+                    ((List<Object>)messageHashes).add(Helpers.add("liquidations::", symbol));
                 }
             }
-            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "op", "subscribe" );
                 put( "args", subscriptionHashes );
             }};
-            Object newLiquidations = (this.watchMultiple((String) (url), messageHashes, this.deepExtend(request, parameters), subscriptionHashes, null)).join();
-            if (this.newUpdates)
+            Object newLiquidations = (this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), subscriptionHashes, null)).join();
+            if (Helpers.isTrue(this.newUpdates))
             {
                 return newLiquidations;
             }
             return this.filterBySymbolsSinceLimit(this.liquidations, symbols, since, limit, true);
-        }).thenApply(res -> ((List<?>) res).stream().map(Liquidation::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, Liquidation::new));
 
     }
 
-    public void handleLiquidation(Client client, Map<String, Object> message)
+    public void handleLiquidation(Client client, Object message)
     {
         //
         //    {
@@ -520,28 +519,28 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
         //        ]
         //    }
         //
-        List<Object> rawLiquidations = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        Object rawLiquidations = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         List<Object> newLiquidations = new ArrayList<Object>(Arrays.asList());
-        if (java.util.Objects.equals(this.liquidations, null))
+        if (Helpers.isTrue(Helpers.isEqual(this.liquidations, null)))
         {
             Long limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
             this.liquidations = new ArrayCache(((Number)limit).intValue());
         }
         Object cache = this.liquidations;
-        for (var i = 0; i < ((List<?>)rawLiquidations).size(); i++)
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawLiquidations)); i++)
         {
-            Object rawLiquidation = (rawLiquidations == null || i < 0 || i >= rawLiquidations.size() ? null : rawLiquidations.get(i));
+            Object rawLiquidation = Helpers.GetValue(rawLiquidations, i);
             Object liquidation = this.parseLiquidation(rawLiquidation);
             Helpers.callDynamically(cache, "append", new Object[]{liquidation});
             ((List<Object>)newLiquidations).add(liquidation);
         }
         client.resolve(newLiquidations, "liquidations");
         Map<String, Object> liquidationsBySymbol = this.indexBy(newLiquidations, "symbol");
-        List<Object> symbols = new ArrayList<Object>(liquidationsBySymbol.keySet());
-        for (var i = 0; i < ((List<?>)symbols).size(); i++)
+        Object symbols = Helpers.objectKeys(liquidationsBySymbol);
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
         {
-            Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
-            client.resolve((liquidationsBySymbol == null || symbol == null ? null : liquidationsBySymbol.get(symbol)), ("liquidations::" + symbol));
+            Object symbol = Helpers.GetValue(symbols, i);
+            client.resolve(Helpers.GetValue(liquidationsBySymbol, symbol), Helpers.add("liquidations::", symbol));
         }
     }
 
@@ -558,14 +557,14 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             (this.authenticate()).join();
             String messageHash = "margin";
-            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "op", "subscribe" );
                 put( "args", new ArrayList<Object>(Arrays.asList(messageHash)) );
@@ -575,7 +574,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
 
     }
 
-    public void handleBalance(Client client, Map<String, Object> message)
+    public void handleBalance(Client client, Object message)
     {
         //
         //     {
@@ -675,14 +674,14 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
         //         ]
         //     }
         //
-        List<Object> data = (List<Object>) this.safeList(message, "data");
-        Map<String, Object> balance = (Map<String, Object>) this.parseBalance(data);
+        Object data = this.safeValue(message, "data");
+        Object balance = this.parseBalance(data);
         this.balance = this.extend(this.balance, balance);
         String messageHash = this.safeString(message, "table");
         client.resolve(this.balance, messageHash);
     }
 
-    public void handleTrades(Client client, Map<String, Object> message)
+    public void handleTrades(Client client, Object message)
     {
         //
         // initial snapshot
@@ -744,26 +743,26 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
         //     }
         //
         String table = "trade";
-        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        Object data = this.safeValue(message, "data", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> dataByMarketIds = this.groupBy(data, "symbol");
-        List<Object> marketIds = new ArrayList<Object>(dataByMarketIds.keySet());
-        for (var i = 0; i < ((List<?>)marketIds).size(); i++)
+        Object marketIds = Helpers.objectKeys(dataByMarketIds);
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
         {
-            Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
+            Object marketId = Helpers.GetValue(marketIds, i);
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-            Object symbol = ((Map<String, Object>)market).get("symbol");
-            String messageHash = ((table + ":") + symbol);
-            List<Object> trades = this.parseTrades((dataByMarketIds == null || marketId == null ? null : dataByMarketIds.get(marketId)), market);
+            Object symbol = Helpers.GetValue(market, "symbol");
+            Object messageHash = Helpers.add(Helpers.add(table, ":"), symbol);
+            List<Object> trades = this.parseTrades(Helpers.GetValue(dataByMarketIds, marketId), market);
             Object stored = this.safeValue(this.trades, symbol);
-            if (java.util.Objects.equals(stored, null))
+            if (Helpers.isTrue(Helpers.isEqual(stored, null)))
             {
                 Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
                 stored = new ArrayCache(((Number)limit).intValue());
                 Helpers.addElementToObject(this.trades, symbol, stored);
             }
-            for (var j = 0; j < ((List<?>)trades).size(); j++)
+            for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(trades)); j++)
             {
-                Helpers.callDynamically(stored, "append", new Object[]{(trades == null || j < 0 || j >= trades.size() ? null : trades.get(j))});
+                Helpers.callDynamically(stored, "append", new Object[]{Helpers.GetValue(trades, j)});
             }
             client.resolve(stored, messageHash);
         }
@@ -785,11 +784,11 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            Object since = Helpers.getArg(optionalArgs, 0, null);
+            Object limit = Helpers.getArg(optionalArgs, 1, null);
+            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             return (this.watchTradesForSymbols((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -798,17 +797,17 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Client client = this.client(url);
             String messageHash = "authenticated";
             io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
-            if (java.util.Objects.equals(authenticated, null))
+            if (Helpers.isTrue(Helpers.isEqual(authenticated, null)))
             {
                 this.checkRequiredCredentials();
                 Long timestamp = this.milliseconds();
-                String payload = (("GET" + "/realtime") + String.valueOf(timestamp));
+                Object payload = Helpers.add(Helpers.add("GET", "/realtime"), String.valueOf(timestamp));
                 Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256());
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "op", "authKeyExpires" );
@@ -822,11 +821,11 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
 
     }
 
-    public void handleAuthenticationMessage(Client client, Map<String, Object> message)
+    public void handleAuthenticationMessage(Client client, Object message)
     {
-        Boolean authenticated = (Boolean) this.safeBool(message, "success", false);
+        Object authenticated = this.safeBool(message, "success", false);
         String messageHash = "authenticated";
-        if (java.util.Objects.equals(authenticated, true))
+        if (Helpers.isTrue(Helpers.isEqual(authenticated, true)))
         {
             // we resolve the future here permanently so authentication only happens once
             Object future = this.safeValue(client.futures, messageHash);
@@ -835,7 +834,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
         {
             var error = new AuthenticationError(this.json(message));
             client.reject(error, messageHash);
-            if (((Map<?, ?>)client.subscriptions).containsKey(messageHash))
+            if (Helpers.isTrue(Helpers.inOp(client.subscriptions, messageHash)))
             {
                 ((Map<String,Object>)client.subscriptions).remove(messageHash);
             }
@@ -858,38 +857,38 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object symbols = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             (this.authenticate()).join();
             String subscriptionHash = "position";
             String messageHash = "positions";
-            if (!this.isEmpty(symbols))
+            if (!Helpers.isTrue(this.isEmpty(symbols)))
             {
                 symbols = this.marketSymbols(symbols);
-                messageHash = ("positions::" + String.join(",", (List<String>)(List<String>)(symbols)));
+                messageHash = Helpers.add("positions::", String.join(",", (List<String>)(List<String>)(symbols)));
             }
-            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "op", "subscribe" );
                 put( "args", new ArrayList<Object>(Arrays.asList(subscriptionHash)) );
             }};
             Object newPositions = (this.watch(url, messageHash, request, subscriptionHash, null)).join();
-            if (this.newUpdates)
+            if (Helpers.isTrue(this.newUpdates))
             {
                 return newPositions;
             }
             return this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit, true);
-        }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
 
     }
 
-    public void handlePositions(Client client, Map<String, Object> message)
+    public void handlePositions(Client client, Object message)
     {
         //
         // partial
@@ -1039,35 +1038,35 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
         //        ]
         //    }
         //
-        if (java.util.Objects.equals(this.positions, null))
+        if (Helpers.isTrue(Helpers.isEqual(this.positions, null)))
         {
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
         Object cache = this.positions;
-        List<Object> rawPositions = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        Object rawPositions = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)rawPositions).size(); i++)
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawPositions)); i++)
         {
-            Object rawPosition = (rawPositions == null || i < 0 || i >= rawPositions.size() ? null : rawPositions.get(i));
-            Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) (rawPosition));
+            Object rawPosition = Helpers.GetValue(rawPositions, i);
+            Object position = this.parsePosition(rawPosition);
             Object side = this.safeString(position, "side");
-            if (java.util.Objects.equals(side, null))
+            if (Helpers.isTrue(Helpers.isEqual(side, null)))
             {
                 // BitMEX 'update' rows are deltas and may omit homeNotional, so
                 // parsePosition returns side = undefined. Carry the side forward from
                 // the cached position for this symbol, otherwise appending would break
                 // the ArrayCacheBySymbolBySide index (see issue #29001).
                 String symbol = this.safeString(position, "symbol");
-                Map<String, Object> cachedBySide = (Map<String, Object>) this.safeDict(((io.github.ccxt.ws.ArrayCache)cache).hashmap, symbol, new HashMap<String, Object>() {{}});
-                List<Object> cachedSides = new ArrayList<Object>(cachedBySide.keySet());
-                Object sidesLength = ((List<?>)cachedSides).size();
-                if (java.util.Objects.equals(sidesLength, 1))
+                Object cachedBySide = this.safeDict(((io.github.ccxt.ws.ArrayCache)cache).hashmap, symbol, new HashMap<String, Object>() {{}});
+                Object cachedSides = Helpers.objectKeys(cachedBySide);
+                Object sidesLength = Helpers.getArrayLength(cachedSides);
+                if (Helpers.isTrue(Helpers.isEqual(sidesLength, 1)))
                 {
-                    side = (cachedSides == null || 0 >= ((List<?>)cachedSides).size() ? null : ((List<?>)cachedSides).get(0));
+                    side = Helpers.GetValue(cachedSides, 0);
                     Helpers.addElementToObject(position, "side", side);
                 }
             }
-            if (java.util.Objects.equals(side, null))
+            if (Helpers.isTrue(Helpers.isEqual(side, null)))
             {
                 continue;
             }
@@ -1075,14 +1074,14 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
             Helpers.callDynamically(cache, "append", new Object[]{position});
         }
         Object messageHashes = this.findMessageHashes(client, "positions::");
-        for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(messageHashes)); i++)
         {
-            Object messageHash = (messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i));
-            Object parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
+            Object messageHash = Helpers.GetValue(messageHashes, i);
+            Object parts = Helpers.split(messageHash, "::");
             String symbolsString = (String) Helpers.GetValue(parts, 1);
-            Object symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));
+            Object symbols = Helpers.split(symbolsString, ",");
             Object positions = this.filterByArray(newPositions, "symbol", symbols, false);
-            if (!this.isEmpty(positions))
+            if (!Helpers.isTrue(this.isEmpty(positions)))
             {
                 client.resolve(positions, messageHash);
             }
@@ -1106,11 +1105,11 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
@@ -1118,27 +1117,27 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
             String name = "order";
             String subscriptionHash = name;
             Object messageHash = name;
-            if (!java.util.Objects.equals(symbol, null))
+            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 symbol = this.symbol(symbol);
-                messageHash = (messageHash + (":" + symbol));
+                messageHash = Helpers.add(messageHash, Helpers.add(":", symbol));
             }
-            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "op", "subscribe" );
                 put( "args", new ArrayList<Object>(Arrays.asList(subscriptionHash)) );
             }};
             Object orders = (this.watch(url, messageHash, request, subscriptionHash, null)).join();
-            if (this.newUpdates)
+            if (Helpers.isTrue(this.newUpdates))
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
 
     }
 
-    public void handleOrders(Client client, Map<String, Object> message)
+    public void handleOrders(Client client, Object message)
     {
         //
         //     {
@@ -1289,13 +1288,13 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
         //         ]
         //     }
         //
-        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         String messageHash = "order";
         // initial subscription response with multiple orders
-        Object dataLength = ((List<?>)data).size();
-        if (Helpers.isGreaterThan(dataLength, 0))
+        Object dataLength = Helpers.getArrayLength(data);
+        if (Helpers.isTrue(Helpers.isGreaterThan(dataLength, 0)))
         {
-            if (java.util.Objects.equals(this.orders, null))
+            if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
             {
                 Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
                 this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
@@ -1304,25 +1303,25 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
             Map<String, Object> symbols = new HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, dataLength); i++)
             {
-                Object currentOrder = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
+                Object currentOrder = Helpers.GetValue(data, i);
                 String orderId = this.safeString(currentOrder, "orderID");
-                Map<String, Object> previousOrder = (Map<String, Object>) this.safeDict(((io.github.ccxt.ws.ArrayCache)stored).hashmap, orderId);
+                Object previousOrder = this.safeValue(((io.github.ccxt.ws.ArrayCache)stored).hashmap, orderId);
                 Object rawOrder = currentOrder;
-                if (!java.util.Objects.equals(previousOrder, null))
+                if (Helpers.isTrue(!Helpers.isEqual(previousOrder, null)))
                 {
-                    rawOrder = this.extend(((Map<String, Object>)previousOrder).get("info"), currentOrder);
+                    rawOrder = this.extend(Helpers.GetValue(previousOrder, "info"), currentOrder);
                 }
-                Map<String, Object> order = (Map<String, Object>) this.parseOrder(rawOrder);
+                Object order = this.parseOrder(rawOrder);
                 Helpers.callDynamically(stored, "append", new Object[]{order});
-                Object symbol = ((Map<String, Object>)order).get("symbol");
-                ((Map<String, Object>)symbols).put((String)((String)symbol), true);
+                Object symbol = Helpers.GetValue(order, "symbol");
+                Helpers.addElementToObject(symbols, ((String)symbol), true);
             }
             client.resolve(this.orders, messageHash);
-            List<Object> keys = new ArrayList<Object>(symbols.keySet());
-            for (var i = 0; i < ((List<?>)keys).size(); i++)
+            Object keys = Helpers.objectKeys(symbols);
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
-                Object symbol = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-                client.resolve(this.orders, ((messageHash + ":") + symbol));
+                Object symbol = Helpers.GetValue(keys, i);
+                client.resolve(this.orders, Helpers.add(Helpers.add(messageHash, ":"), symbol));
             }
         }
     }
@@ -1343,11 +1342,11 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
@@ -1355,27 +1354,27 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
             String name = "execution";
             String subscriptionHash = name;
             Object messageHash = name;
-            if (!java.util.Objects.equals(symbol, null))
+            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 symbol = this.symbol(symbol);
-                messageHash = (messageHash + (":" + symbol));
+                messageHash = Helpers.add(messageHash, Helpers.add(":", symbol));
             }
-            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "op", "subscribe" );
                 put( "args", new ArrayList<Object>(Arrays.asList(subscriptionHash)) );
             }};
             Object trades = (this.watch(url, messageHash, request, subscriptionHash, null)).join();
-            if (this.newUpdates)
+            if (Helpers.isTrue(this.newUpdates))
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
-    public void handleMyTrades(Client client, Map<String, Object> message)
+    public void handleMyTrades(Client client, Object message)
     {
         //
         //     {
@@ -1435,33 +1434,33 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
         //     }
         //
         String messageHash = this.safeString(message, "table");
-        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        Object data = this.safeValue(message, "data", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> dataByExecType = this.groupBy(data, "execType");
-        List<Object> rawTrades = (List<Object>) this.safeList(dataByExecType, "Trade", new ArrayList<Object>(Arrays.asList()));
+        Object rawTrades = this.safeValue(dataByExecType, "Trade", new ArrayList<Object>(Arrays.asList()));
         List<Object> trades = this.parseTrades(rawTrades);
-        if (java.util.Objects.equals(this.myTrades, null))
+        if (Helpers.isTrue(Helpers.isEqual(this.myTrades, null)))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object stored = this.myTrades;
         Map<String, Object> symbols = new HashMap<String, Object>() {{}};
-        for (var j = 0; j < ((List<?>)trades).size(); j++)
+        for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(trades)); j++)
         {
-            Object trade = (trades == null || j < 0 || j >= trades.size() ? null : trades.get(j));
-            Object symbol = ((Map<String, Object>)trade).get("symbol");
+            Object trade = Helpers.GetValue(trades, j);
+            Object symbol = Helpers.GetValue(trade, "symbol");
             Helpers.callDynamically(stored, "append", new Object[]{trade});
-            ((Map<String, Object>)symbols).put((String)((String)symbol), trade);
+            Helpers.addElementToObject(symbols, ((String)symbol), trade);
         }
-        Object numTrades = ((List<?>)trades).size();
-        if (Helpers.isGreaterThan(numTrades, 0))
+        Object numTrades = Helpers.getArrayLength(trades);
+        if (Helpers.isTrue(Helpers.isGreaterThan(numTrades, 0)))
         {
             client.resolve(stored, messageHash);
         }
-        List<Object> keys = new ArrayList<Object>(symbols.keySet());
-        for (var i = 0; i < ((List<?>)keys).size(); i++)
+        Object keys = Helpers.objectKeys(symbols);
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
-            client.resolve(stored, Helpers.add((messageHash + ":"), (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i))));
+            client.resolve(stored, Helpers.add(Helpers.add(messageHash, ":"), Helpers.GetValue(keys, i)));
         }
     }
 
@@ -1480,8 +1479,8 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object limit = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             return (this.watchOrderBookForSymbols((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(limit), (Object)(parameters))).join();
         }).thenApply(OrderBook::new);
 
@@ -1502,44 +1501,44 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
         final Object symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object limit = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             String table = null;
-            if (java.util.Objects.equals(limit, null))
+            if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
                 table = this.safeString(this.options, "watchOrderBookLevel", "orderBookL2");
-            } else if (Helpers.isEqual(limit, 25))
+            } else if (Helpers.isTrue(Helpers.isEqual(limit, 25)))
             {
                 table = "orderBookL2_25";
-            } else if (Helpers.isEqual(limit, 10))
+            } else if (Helpers.isTrue(Helpers.isEqual(limit, 10)))
             {
                 table = "orderBookL10";
             } else
             {
-                throw new ExchangeError((this.id + " watchOrderBookForSymbols limit argument must be undefined (L2), 25 (L2) or 10 (L3)")) ;
+                throw new ExchangeError(Helpers.add(this.id, " watchOrderBookForSymbols limit argument must be undefined (L2), 25 (L2) or 10 (L3)")) ;
             }
-            if (java.util.Objects.equals(this.markets, null))
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
             List<Object> topics = new ArrayList<Object>(Arrays.asList());
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)symbols).size(); i++)
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
-                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
+                Object symbol = Helpers.GetValue(symbols, i);
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                Object topic = ((table + ":") + ((Map<String, Object>)market).get("id"));
+                Object topic = Helpers.add(Helpers.add(table, ":"), Helpers.GetValue(market, "id"));
                 ((List<Object>)topics).add(topic);
-                String messageHash = ((table + ":") + symbol);
+                Object messageHash = Helpers.add(Helpers.add(table, ":"), symbol);
                 ((List<Object>)messageHashes).add(messageHash);
             }
-            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "op", "subscribe" );
                 put( "args", topics );
             }};
-            Object orderbook = (this.watchMultiple((String) (url), messageHashes, this.deepExtend(request, parameters), topics, null)).join();
+            Object orderbook = (this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), topics, null)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(OrderBook::new);
 
@@ -1561,10 +1560,10 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
         final Object symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object since = Helpers.getArg(optionalArgs, 0, null);
+            Object limit = Helpers.getArg(optionalArgs, 1, null);
+            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
@@ -1572,29 +1571,29 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
             String table = "trade";
             List<Object> topics = new ArrayList<Object>(Arrays.asList());
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)symbols).size(); i++)
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
-                Object symbol = (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i));
+                Object symbol = Helpers.GetValue(symbols, i);
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                Object topic = ((table + ":") + ((Map<String, Object>)market).get("id"));
+                Object topic = Helpers.add(Helpers.add(table, ":"), Helpers.GetValue(market, "id"));
                 ((List<Object>)topics).add(topic);
-                String messageHash = ((table + ":") + symbol);
+                Object messageHash = Helpers.add(Helpers.add(table, ":"), symbol);
                 ((List<Object>)messageHashes).add(messageHash);
             }
-            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "op", "subscribe" );
                 put( "args", topics );
             }};
-            Object trades = (this.watchMultiple((String) (url), messageHashes, this.deepExtend(request, parameters), topics, null)).join();
-            if (this.newUpdates)
+            Object trades = (this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), topics, null)).join();
+            if (Helpers.isTrue(this.newUpdates))
             {
-                Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0);
+                Object first = this.safeValue(trades, 0);
                 String tradeSymbol = this.safeString(first, "symbol");
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
 
     }
 
@@ -1615,34 +1614,34 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
         final Object symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
-            Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
-            String table = ("tradeBin" + this.safeString(this.timeframes, timeframe, timeframe));
-            Object messageHash = ((table + ":") + ((Map<String, Object>)market).get("id"));
-            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            symbol = Helpers.GetValue(market, "symbol");
+            String table = Helpers.add("tradeBin", this.safeString(this.timeframes, timeframe, timeframe));
+            Object messageHash = Helpers.add(Helpers.add(table, ":"), Helpers.GetValue(market, "id"));
+            Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "op", "subscribe" );
                 put( "args", new ArrayList<Object>(Arrays.asList(messageHash)) );
             }};
             Object ohlcv = (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
-            if (this.newUpdates)
+            if (Helpers.isTrue(this.newUpdates))
             {
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
-        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
-    public void handleOHLCV(Client client, Map<String, Object> message)
+    public void handleOHLCV(Client client, Object message)
     {
         //
         //     {
@@ -1713,32 +1712,32 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
         Object interval = Helpers.replace(table, (String)"tradeBin", (String)"");
         Object timeframe = this.findTimeframe(interval);
         Object duration = this.parseTimeframe(timeframe);
-        List<Object> candles = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        Object candles = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> results = new HashMap<String, Object>() {{}};
-        for (var i = 0; i < ((List<?>)candles).size(); i++)
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(candles)); i++)
         {
-            Object candle = (candles == null || i < 0 || i >= candles.size() ? null : candles.get(i));
+            Object candle = Helpers.GetValue(candles, i);
             String marketId = this.safeString(candle, "symbol");
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-            Object symbol = ((Map<String, Object>)market).get("symbol");
-            Object messageHash = Helpers.add((table + ":"), ((Map<String, Object>)market).get("id"));
-            List<Object> result = new ArrayList<Object>(Arrays.asList(Helpers.subtract(this.parseToInt(this.parse8601(this.safeString(candle, "timestamp"))), (((long) duration) * 1000L)), null, this.safeFloat(candle, "high"), this.safeFloat(candle, "low"), this.safeFloat(candle, "close"), this.safeFloat(candle, "volume")));
-            Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
-            Object stored = this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
-            if (java.util.Objects.equals(stored, null))
+            Object symbol = Helpers.GetValue(market, "symbol");
+            Object messageHash = Helpers.add(Helpers.add(table, ":"), Helpers.GetValue(market, "id"));
+            List<Object> result = new ArrayList<Object>(Arrays.asList(Helpers.subtract(this.parseToInt(this.parse8601(this.safeString(candle, "timestamp"))), Helpers.multiply(duration, 1000)), null, this.safeFloat(candle, "high"), this.safeFloat(candle, "low"), this.safeFloat(candle, "close"), this.safeFloat(candle, "volume")));
+            Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
+            Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
+            if (Helpers.isTrue(Helpers.isEqual(stored, null)))
             {
                 Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                 stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-                Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)timeframe), stored);
+                Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe), stored);
             }
             Helpers.callDynamically(stored, "append", new Object[]{result});
-            ((Map<String, Object>)results).put((String)messageHash, stored);
+            Helpers.addElementToObject(results, messageHash, stored);
         }
-        List<Object> messageHashes = new ArrayList<Object>(results.keySet());
-        for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
+        Object messageHashes = Helpers.objectKeys(results);
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(messageHashes)); i++)
         {
-            Object messageHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
-            client.resolve((results == null || messageHash == null ? null : results.get(messageHash)), messageHash);
+            Object messageHash = Helpers.GetValue(messageHashes, i);
+            client.resolve(Helpers.GetValue(results, messageHash), messageHash);
         }
     }
 
@@ -1747,19 +1746,19 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(this.markets, null))
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             String eventVar = "heartbeat";
-            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             return (this.watch(url, eventVar, null, null, null)).join();
         });
 
     }
 
-    public void handleOrderBook(Client client, Map<String, Object> message)
+    public void handleOrderBook(Client client, Object message)
     {
         //
         // first snapshot
@@ -1812,92 +1811,92 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
         //
         String action = this.safeString(message, "action");
         String table = this.safeString(message, "table");
-        if (java.util.Objects.equals(table, null))
+        if (Helpers.isTrue(Helpers.isEqual(table, null)))
         {
             return;  // protecting from weird updates
         }
-        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         // if it's an initial snapshot
-        if (java.util.Objects.equals(action, "partial"))
+        if (Helpers.isTrue(Helpers.isEqual(action, "partial")))
         {
-            Map<String, Object> filter = (Map<String, Object>) this.safeDict(message, "filter", new HashMap<String, Object>() {{}});
-            String marketId = this.safeString(filter, "symbol");
-            if (java.util.Objects.equals(marketId, null))
+            Object filter = this.safeDict(message, "filter", new HashMap<String, Object>() {{}});
+            Object marketId = this.safeValue(filter, "symbol");
+            if (Helpers.isTrue(Helpers.isEqual(marketId, null)))
             {
                 return;  // protecting from weird update
             }
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-            Object symbol = ((Map<String, Object>)market).get("symbol");
-            if (java.util.Objects.equals(table, "orderBookL2"))
+            Object symbol = Helpers.GetValue(market, "symbol");
+            if (Helpers.isTrue(Helpers.isEqual(table, "orderBookL2")))
             {
                 Helpers.addElementToObject(this.orderbooks, symbol, this.indexedOrderBook());
-            } else if (java.util.Objects.equals(table, "orderBookL2_25"))
+            } else if (Helpers.isTrue(Helpers.isEqual(table, "orderBookL2_25")))
             {
                 Helpers.addElementToObject(this.orderbooks, symbol, this.indexedOrderBook(new HashMap<String, Object>() {{}}, 25));
-            } else if (java.util.Objects.equals(table, "orderBook10"))
+            } else if (Helpers.isTrue(Helpers.isEqual(table, "orderBook10")))
             {
                 Helpers.addElementToObject(this.orderbooks, symbol, this.indexedOrderBook(new HashMap<String, Object>() {{}}, 10));
             }
-            Object orderbook = ((Map<?, ?>)this.orderbooks).get(symbol);
+            Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
             Helpers.addElementToObject(orderbook, "symbol", symbol);
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
-                Double price = this.safeFloat((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "price");
-                Object size = this.convertFromRawQuantity((String) (symbol), this.safeString((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "size"));
-                String id = this.safeString((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "id");
-                String side = this.safeString((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "side");
-                side = (((java.util.Objects.equals(side, "Buy")))) ? "bids" : "asks";
+                Double price = this.safeFloat(Helpers.GetValue(data, i), "price");
+                Object size = this.convertFromRawQuantity(symbol, this.safeString(Helpers.GetValue(data, i), "size"));
+                String id = this.safeString(Helpers.GetValue(data, i), "id");
+                String side = this.safeString(Helpers.GetValue(data, i), "side");
+                side = ((Helpers.isTrue((Helpers.isEqual(side, "Buy"))))) ? "bids" : "asks";
                 Object bookside = Helpers.GetValue(orderbook, side);
                 Helpers.callDynamically(bookside, "storeArray", new Object[]{new ArrayList<Object>(Arrays.asList(price, size, id))});
-                String datetime = this.safeString((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "timestamp");
+                String datetime = this.safeString(Helpers.GetValue(data, i), "timestamp");
                 Helpers.addElementToObject(orderbook, "timestamp", this.parse8601(datetime));
                 Helpers.addElementToObject(orderbook, "datetime", datetime);
             }
-            String messageHash = ((table + ":") + symbol);
+            Object messageHash = Helpers.add(Helpers.add(table, ":"), symbol);
             client.resolve(orderbook, messageHash);
         } else
         {
             Map<String, Object> numUpdatesByMarketId = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
-                String marketId = this.safeString((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "symbol");
-                if (java.util.Objects.equals(marketId, null))
+                Object marketId = this.safeValue(Helpers.GetValue(data, i), "symbol");
+                if (Helpers.isTrue(Helpers.isEqual(marketId, null)))
                 {
                     return;  // protecting from weird update
                 }
-                if (!(numUpdatesByMarketId.containsKey(marketId)))
+                if (!Helpers.isTrue((Helpers.inOp(numUpdatesByMarketId, marketId))))
                 {
-                    ((Map<String, Object>)numUpdatesByMarketId).put((String)marketId, 0);
+                    Helpers.addElementToObject(numUpdatesByMarketId, marketId, 0);
                 }
-                ((Map<String, Object>)numUpdatesByMarketId).put((String)marketId, this.sum((numUpdatesByMarketId == null || marketId == null ? null : numUpdatesByMarketId.get(marketId)), 1));
+                Helpers.addElementToObject(numUpdatesByMarketId, marketId, this.sum(Helpers.GetValue(numUpdatesByMarketId, marketId), 1));
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-                Object symbol = ((Map<String, Object>)market).get("symbol");
-                Object orderbook = ((Map<?, ?>)this.orderbooks).get(symbol);
-                Double price = this.safeNumber((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "price");
-                Object size = (((java.util.Objects.equals(action, "delete")))) ? 0 : this.convertFromRawQuantity((String) (symbol), this.safeString((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "size", "0"));
-                String id = this.safeString((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "id");
-                String side = this.safeString((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "side");
-                side = (((java.util.Objects.equals(side, "Buy")))) ? "bids" : "asks";
+                Object symbol = Helpers.GetValue(market, "symbol");
+                Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
+                Double price = this.safeNumber(Helpers.GetValue(data, i), "price");
+                Object size = ((Helpers.isTrue((Helpers.isEqual(action, "delete"))))) ? 0 : this.convertFromRawQuantity(symbol, this.safeString(Helpers.GetValue(data, i), "size", "0"));
+                String id = this.safeString(Helpers.GetValue(data, i), "id");
+                String side = this.safeString(Helpers.GetValue(data, i), "side");
+                side = ((Helpers.isTrue((Helpers.isEqual(side, "Buy"))))) ? "bids" : "asks";
                 Object bookside = Helpers.GetValue(orderbook, side);
                 Helpers.callDynamically(bookside, "storeArray", new Object[]{new ArrayList<Object>(Arrays.asList(price, size, id))});
-                String datetime = this.safeString((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "timestamp");
+                String datetime = this.safeString(Helpers.GetValue(data, i), "timestamp");
                 Helpers.addElementToObject(orderbook, "timestamp", this.parse8601(datetime));
                 Helpers.addElementToObject(orderbook, "datetime", datetime);
             }
-            List<Object> marketIds = new ArrayList<Object>(numUpdatesByMarketId.keySet());
-            for (var i = 0; i < ((List<?>)marketIds).size(); i++)
+            Object marketIds = Helpers.objectKeys(numUpdatesByMarketId);
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
             {
-                Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
+                Object marketId = Helpers.GetValue(marketIds, i);
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-                Object symbol = ((Map<String, Object>)market).get("symbol");
-                String messageHash = ((table + ":") + symbol);
-                Object orderbook = ((Map<?, ?>)this.orderbooks).get(symbol);
+                Object symbol = Helpers.GetValue(market, "symbol");
+                Object messageHash = Helpers.add(Helpers.add(table, ":"), symbol);
+                Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
                 client.resolve(orderbook, messageHash);
             }
         }
     }
 
-    public Map<String, Object> handleSystemStatus(Client client, Map<String, Object> message)
+    public Object handleSystemStatus(Client client, Object message)
     {
         //
         // todo answer the question whether handleSystemStatus should be renamed
@@ -1915,7 +1914,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
         return message;
     }
 
-    public Map<String, Object> handleSubscriptionStatus(Client client, Map<String, Object> message)
+    public Object handleSubscriptionStatus(Client client, Object message)
     {
         //
         //     {
@@ -1927,7 +1926,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
         return message;
     }
 
-    public Boolean handleErrorMessage(Client client, Object message)
+    public Object handleErrorMessage(Client client, Object message)
     {
         //
         // generic error format
@@ -1946,18 +1945,18 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
         //     { "error": "Rate limit exceeded, retry in 29 seconds." }
         //
         String error = this.safeString(message, "error");
-        if (!java.util.Objects.equals(error, null))
+        if (Helpers.isTrue(!Helpers.isEqual(error, null)))
         {
-            Map<String, Object> request = (Map<String, Object>) this.safeDict(message, "request", new HashMap<String, Object>() {{}});
-            List<Object> args = (List<Object>) this.safeList(request, "args", new ArrayList<Object>(Arrays.asList()));
-            Object numArgs = ((List<?>)args).size();
-            if (Helpers.isGreaterThan(numArgs, 0))
+            Object request = this.safeValue(message, "request", new HashMap<String, Object>() {{}});
+            Object args = this.safeList(request, "args", new ArrayList<Object>(Arrays.asList()));
+            Object numArgs = Helpers.getArrayLength(args);
+            if (Helpers.isTrue(Helpers.isGreaterThan(numArgs, 0)))
             {
-                Object messageHash = (args == null || 0 >= ((List<?>)args).size() ? null : ((List<?>)args).get(0));
-                Object broad = Helpers.GetValue(((Map<String, Object>)this.exceptions).get("ws"), "broad");
+                Object messageHash = Helpers.GetValue(args, 0);
+                Object broad = Helpers.GetValue(Helpers.GetValue(this.exceptions, "ws"), "broad");
                 Object broadKey = this.findBroadlyMatchedKey(broad, error);
                 Object exception = null;
-                if (java.util.Objects.equals(broadKey, null))
+                if (Helpers.isTrue(Helpers.isEqual(broadKey, null)))
                 {
                     exception = new ExchangeError(                    ((String)error)); // c# requirement for now
                 } else
@@ -2007,7 +2006,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
         //         ]
         //     }
         //
-        if (java.util.Objects.equals(this.handleErrorMessage(client, message), true))
+        if (Helpers.isTrue(Helpers.isEqual(this.handleErrorMessage(client, message), true)))
         {
             String table = this.safeString(message, "table");
             Map<String, Object> methods = new HashMap<String, Object>() {{
@@ -2027,13 +2026,13 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
                 put( "position", "handlePositions");
             }};
             Object method = this.safeValue(methods, table);
-            if (java.util.Objects.equals(method, null))
+            if (Helpers.isTrue(Helpers.isEqual(method, null)))
             {
-                Map<String, Object> request = (Map<String, Object>) this.safeDict(message, "request", new HashMap<String, Object>() {{}});
-                String op = this.safeString(request, "op");
-                if (java.util.Objects.equals(op, "authKeyExpires"))
+                Object request = this.safeValue(message, "request", new HashMap<String, Object>() {{}});
+                Object op = this.safeValue(request, "op");
+                if (Helpers.isTrue(Helpers.isEqual(op, "authKeyExpires")))
                 {
-                    this.handleAuthenticationMessage(client, (Map<String, Object>) (message));
+                    this.handleAuthenticationMessage(client, message);
                 }
             } else
             {

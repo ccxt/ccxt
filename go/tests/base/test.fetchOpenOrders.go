@@ -19,7 +19,7 @@ func testFetchOpenOrdersBody(ch chan any, exchange ccxt.ICoreExchange, skippedPr
 	PanicOnError(orders)
 	AssertNonEmtpyArray(exchange, skippedProperties, method, orders, symbol)
 	var now int64 = exchange.Milliseconds()
-	for i := 0; i < GetArrayLength(orders); i++ {
+	for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
 		var order any = GetValue(orders, i)
 		TestOrder(exchange, skippedProperties, method, order, symbol, now)
 		AssertInArray(exchange, skippedProperties, method, order, "status", []any{"open"})

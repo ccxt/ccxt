@@ -4,7 +4,6 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -21,9 +20,9 @@ public class TestFetchTransfers extends BaseTest {
         String method = "fetchTransfers";
         Object transfers = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchTransfers", new Object[]{code})).join();
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, transfers, code);
-        for (var i = 0; i < ((List<?>)transfers).size(); i++)
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(transfers)); i++)
         {
-            TestTransfer.testTransfer(exchange, skippedProperties, method, (transfers == null || i < 0 || i >= ((List<?>)transfers).size() ? null : ((List<?>)transfers).get(i)), code);
+            TestTransfer.testTransfer(exchange, skippedProperties, method, Helpers.GetValue(transfers, i), code);
         }
         TestSharedMethods.AssertTimestampOrder(exchange, method, code, transfers);
         return true;

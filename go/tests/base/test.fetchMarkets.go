@@ -20,13 +20,8 @@ func testFetchMarketsBody(ch chan any, exchange ccxt.ICoreExchange, skippedPrope
 	AssertDictionaryResponse(exchange, method, markets)
 	var marketValues []any = ObjectValues(markets)
 	AssertNonEmtpyArray(exchange, skippedProperties, method, marketValues)
-	for i := 0; i < len(marketValues); i++ {
-		TestMarket(exchange, skippedProperties, method, func() any {
-			if i >= 0 && i < len(marketValues) {
-				return DerefScalar(marketValues[i])
-			}
-			return nil
-		}())
+	for i := 0; IsLessThan(i, GetArrayLength(marketValues)); i++ {
+		TestMarket(exchange, skippedProperties, method, GetValue(marketValues, i))
 	}
 	DetectMarketConflicts(exchange, markets)
 
@@ -36,7 +31,7 @@ func testFetchMarketsBody(ch chan any, exchange ccxt.ICoreExchange, skippedPrope
 func DetectMarketConflicts(exchange ccxt.ICoreExchange, marketValues any) any {
 	// detect if there are markets with different ids for the same symbol
 	var ids map[string]any = map[string]any{}
-	for i := 0; i < GetArrayLength(marketValues); i++ {
+	for i := 0; IsLessThan(i, GetArrayLength(marketValues)); i++ {
 		var market any = GetValue(marketValues, i)
 		var symbol any = GetValue(market, "symbol")
 		if !(InOp(ids, symbol)) {
