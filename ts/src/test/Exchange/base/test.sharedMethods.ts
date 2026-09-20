@@ -710,7 +710,7 @@ function assertAmountPriceCost (exchange: Exchange, skippedProperties: any, meth
     // let consider contractSize too for non-spot markets
     let amountWithContractSize: Str = amount;
     if (!market['spot']) {
-        const contractSize = exchange.safeString (market, 'contractSize');
+        const contractSize = exchange.safeString (market, 'contractSize', '1'); // todo: handle missing contractSize better
         amountWithContractSize = Precise.stringMul (amount, contractSize);
     }
     const price = exchange.safeString (entry, priceKey);
