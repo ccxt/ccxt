@@ -128,7 +128,7 @@ export default class lighter extends lighterRest {
         }
     }
 
-    handleOrderBookMessage (client: Client, message: Dict, orderbook: Dict): Dict {
+    handleOrderBookMessage (client: Client, message: Dict, orderbook: any) {
         const data = this.safeDict (message, 'order_book', {});
         this.handleDeltas (orderbook['asks'], this.safeList (data, 'asks', []));
         this.handleDeltas (orderbook['bids'], this.safeList (data, 'bids', []));
