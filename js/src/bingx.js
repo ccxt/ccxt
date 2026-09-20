@@ -1581,7 +1581,7 @@ export default class bingx extends Exchange {
             }
         }
         return this.safeTrade({
-            'id': this.safeString2(trade, 'id', 't'),
+            'id': this.safeStringN(trade, ['id', 't', 'fillId']),
             'info': trade,
             'timestamp': time,
             'datetime': this.iso8601(time),
