@@ -38,7 +38,7 @@ async function testWatchTradesForSymbols (exchange: Exchange, skippedProperties:
                     returnedSymbols.push (symbol);
                 }
             }
-            if (elapsedMs > maxIdleTime) {
+            if ((elapsedMs > maxIdleTime) && (returnedSymbols.length === symbols.length)) {
                 idle = true;
             }
         }
