@@ -1940,6 +1940,7 @@ func (this *Bitstamp) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
  * @param {int} [limit] the maximum amount of candles to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] timestamp in ms of the latest candle to fetch
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
 func (this *Bitstamp) FetchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
@@ -1960,8 +1961,8 @@ func (this *Bitstamp) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes133912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes133912)
+		retRes134012 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes134012)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1969,24 +1970,44 @@ func (this *Bitstamp) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		"step": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
 	var duration any = this.ParseTimeframe(timeframe)
+	var until *int64 = this.SafeInteger(params, "until")
+	var untilIsDefined bool = (until != nil)
 	if IsEqual(limit, nil) {
+		limit = 1000
 		if IsEqual(since, nil) {
-			AddElementToObject(request, "limit", 1000) // we need to specify an allowed amount of `limit` if no `since` is set and there is no default limit by exchange
+			AddElementToObject(request, "limit", limit)
+			if untilIsDefined {
+				var end any = this.ParseToInt(Divide(until, 1000))
+				AddElementToObject(request, "start", Subtract(Subtract(end, (Multiply(duration, limit))), 1))
+				AddElementToObject(request, "end", end)
+			}
 		} else {
-			limit = 1000
 			var start int64 = this.ParseToInt(Divide(since, 1000))
 			AddElementToObject(request, "start", start)
-			AddElementToObject(request, "end", this.Sum(start, Multiply(duration, (Subtract(limit, 1)))))
+			if untilIsDefined {
+				AddElementToObject(request, "end", this.ParseToInt(Divide(until, 1000)))
+			} else {
+				AddElementToObject(request, "end", this.Sum(start, Subtract(Multiply(duration, limit), 1)))
+			}
 			AddElementToObject(request, "limit", limit)
 		}
 	} else {
 		if !IsEqual(since, nil) {
 			var start int64 = this.ParseToInt(Divide(since, 1000))
 			AddElementToObject(request, "start", start)
-			AddElementToObject(request, "end", this.Sum(start, Multiply(duration, (Subtract(limit, 1)))))
+			var end any = this.Sum(start, Subtract(Multiply(duration, limit), 1))
+			if untilIsDefined {
+				end = mathMin(end, this.ParseToInt(Divide(until, 1000)))
+			}
+			AddElementToObject(request, "end", end)
+		} else if untilIsDefined {
+			var end any = this.ParseToInt(Divide(until, 1000))
+			AddElementToObject(request, "end", end)
+			AddElementToObject(request, "start", Subtract(Subtract(end, (Multiply(duration, limit))), 1))
 		}
 		AddElementToObject(request, "limit", mathMin(limit, 1000)) // min 1, max 1000
 	}
+	params = this.Omit(params, "until")
 
 	response := (<-this.PublicGetOhlcPair(this.Extend(request, params)))
 	PanicOnError(response)
@@ -2053,8 +2074,8 @@ func (this *Bitstamp) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes141812 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes141812)
+		retRes143912 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes143912)
 	}
 
 	response := (<-this.PrivatePostAccountBalances(params))
@@ -2096,8 +2117,8 @@ func (this *Bitstamp) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs 
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes144612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes144612)
+		retRes146712 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes146712)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -2177,8 +2198,8 @@ func (this *Bitstamp) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes151012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes151012)
+		retRes153112 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes153112)
 	}
 
 	response := (<-this.PrivatePostFeesTrading(params))
@@ -2226,8 +2247,8 @@ func (this *Bitstamp) fetchTransactionFeesBody(ch chan any, optionalArgs ...any)
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes154212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes154212)
+		retRes156312 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes156312)
 	}
 
 	response := (<-this.PrivatePostFeesWithdrawal(params))
@@ -2293,8 +2314,8 @@ func (this *Bitstamp) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes159112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes159112)
+		retRes161212 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes161212)
 	}
 
 	response := (<-this.PrivatePostFeesWithdrawal(params))
@@ -2376,8 +2397,8 @@ func (this *Bitstamp) createOrderBody(ch chan any, symbol any, typeVar any, side
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes165612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes165612)
+		retRes167712 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes167712)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -2464,8 +2485,8 @@ func (this *Bitstamp) editOrderBody(ch chan any, id any, symbol any, typeVar any
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes171512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes171512)
+		retRes173612 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes173612)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -2513,8 +2534,8 @@ func (this *Bitstamp) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes174712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes174712)
+		retRes176812 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes176812)
 	}
 	var request map[string]any = map[string]any{
 		"id": id,
@@ -2560,8 +2581,8 @@ func (this *Bitstamp) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes177712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes177712)
+		retRes179812 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes179812)
 	}
 	var market any = nil
 	var request map[string]any = map[string]any{}
@@ -2621,8 +2642,8 @@ func (this *Bitstamp) fetchOrderStatusBody(ch chan any, id any, optionalArgs ...
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes182112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes182112)
+		retRes184212 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes184212)
 	}
 	var clientOrderId any = this.SafeValue2(params, "client_order_id", "clientOrderId")
 	var request map[string]any = map[string]any{}
@@ -2664,8 +2685,8 @@ func (this *Bitstamp) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes184712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes184712)
+		retRes186812 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes186812)
 	}
 	var market any = nil
 	if !IsEqual(symbol, nil) {
@@ -2735,8 +2756,8 @@ func (this *Bitstamp) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes189712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes189712)
+		retRes191812 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes191812)
 	}
 	var request map[string]any = map[string]any{}
 	var market any = nil
@@ -2799,15 +2820,15 @@ func (this *Bitstamp) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
-		retRes193619 := (<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params))
-		PanicOnError(retRes193619)
-		ch <- retRes193619
+		retRes195719 := (<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params))
+		PanicOnError(retRes195719)
+		ch <- retRes195719
 		return nil
 	}
 	if IsEqual(this.Markets, nil) {
 
-		retRes193912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes193912)
+		retRes196012 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes196012)
 	}
 	var request any = map[string]any{}
 	var market any = nil
@@ -2891,8 +2912,8 @@ func (this *Bitstamp) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes200012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes200012)
+		retRes202112 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes202112)
 	}
 	var request map[string]any = map[string]any{}
 	if !IsEqual(limit, nil) {
@@ -2966,8 +2987,8 @@ func (this *Bitstamp) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes205412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes205412)
+		retRes207512 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes207512)
 	}
 	var request map[string]any = map[string]any{}
 	if !IsEqual(since, nil) {
@@ -3381,8 +3402,8 @@ func (this *Bitstamp) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes244712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes244712)
+		retRes246812 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes246812)
 	}
 	var request map[string]any = map[string]any{}
 	if !IsEqual(limit, nil) {
@@ -3421,8 +3442,8 @@ func (this *Bitstamp) fetchFundingRateBody(ch chan any, symbol any, optionalArgs
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes247212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes247212)
+		retRes249312 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes249312)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -3512,8 +3533,8 @@ func (this *Bitstamp) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 	var market any = nil
 	if IsEqual(this.Markets, nil) {
 
-		retRes254112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes254112)
+		retRes256212 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes256212)
 	}
 	if !IsEqual(symbol, nil) {
 		market = this.Market(symbol)
@@ -3628,8 +3649,8 @@ func (this *Bitstamp) withdrawBody(ch chan any, code any, amount any, address an
 	params = GetValue(tagparamsVariable, 1)
 	if IsEqual(this.Markets, nil) {
 
-		retRes262712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes262712)
+		retRes264812 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes264812)
 	}
 	this.CheckAddress(address)
 	var request map[string]any = map[string]any{
@@ -3692,8 +3713,8 @@ func (this *Bitstamp) transferBody(ch chan any, code any, amount any, fromAccoun
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes267412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes267412)
+		retRes269512 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes269512)
 	}
 	var currency any = this.Currency(code)
 	var request map[string]any = map[string]any{
@@ -4029,6 +4050,7 @@ func (this *Bitstamp) FetchTrades(symbol string, options ...FetchTradesOptions) 
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
  * @param {int} [limit] the maximum amount of candles to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] timestamp in ms of the latest candle to fetch
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
 func (this *Bitstamp) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OHLCV, error) {

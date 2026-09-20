@@ -1417,11 +1417,6 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if is_true(&(is_equal(&self.safe_number_k(parsed.clone(), "amount", &[]), &Value::Null))) && is_true(&(!is_equal(&amount, &Value::Null))) {
             add_element_to_object(&mut parsed, &Value::Str("amount".to_string()), amount.clone());
         }
-        if is_equal(&self.safe_integer_k(parsed.clone(), "timestamp", &[]), &Value::Null) {
-            let mut now: Value = self.milliseconds();
-            add_element_to_object(&mut parsed, &Value::Str("timestamp".to_string()), now.clone());
-            add_element_to_object(&mut parsed, &Value::Str("datetime".to_string()), self.iso8601(now.clone()));
-        }
         if is_equal(&self.safe_string_k(parsed.clone(), "status", &[]), &Value::Null) {
             add_element_to_object(&mut parsed, &Value::Str("status".to_string()), Value::Str("open".to_string()));
         }
@@ -3401,7 +3396,6 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
         }
         }
-        let mut now: Value = self.milliseconds();
         // priceChange24h is an ABSOLUTE price delta; derive the previous close and the TRUE
         // percentage from it — setting percentage = the absolute change (as before) was wrong
         let mut previousClose: Value = Value::Null;
@@ -3421,8 +3415,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("outcomeId".to_string(), self.safe_string_k(market.clone(), "id", &[]));
         m.insert("label".to_string(), self.safe_string_k(market.clone(), "label", &[]));
         m.insert("market".to_string(), self.safe_string_k(market.clone(), "market", &[]));
-        m.insert("timestamp".to_string(), now.clone());
-        m.insert("datetime".to_string(), self.iso8601(now.clone()));
+        m.insert("timestamp".to_string(), Value::Null);
+        m.insert("datetime".to_string(), Value::Null);
         m.insert("high".to_string(), Value::Null);
         m.insert("low".to_string(), Value::Null);
         m.insert("bid".to_string(), price.clone());
@@ -3574,7 +3568,6 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
         }
         }
-        let mut timestamp: Value = self.milliseconds();
         // AMM: synthesize a single bid/ask pair around the current implied price, clamped into the valid (0, 1) range
         let mut bid: Value = Value::Null;
         let mut ask: Value = Value::Null;
@@ -3601,8 +3594,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("outcome".to_string(), self.safe_outcome_symbol(outcome.clone(), &[outcomeObj.clone()]));
                 m.insert("bids".to_string(), bids.clone());
                 m.insert("asks".to_string(), asks.clone());
-                m.insert("timestamp".to_string(), timestamp.clone());
-                m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
+                m.insert("timestamp".to_string(), Value::Null);
+                m.insert("datetime".to_string(), Value::Null);
                 m.insert("nonce".to_string(), Value::Null);
             m
         });
@@ -3647,14 +3640,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             append_to_array(&mut asks, Value::List(vec![self.parse_number(rowPrice.clone(), &[]), self.parse_number(rowAmount.clone(), &[])]));
         }
         }
-        let mut timestamp: Value = self.milliseconds();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("outcome".to_string(), outcome.clone());
         m.insert("bids".to_string(), self.sort_by(bids.clone(), Value::Int(0), &[Value::Bool(true)]));
         m.insert("asks".to_string(), self.sort_by(asks.clone(), Value::Int(0), &[]));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
+        m.insert("timestamp".to_string(), Value::Null);
+        m.insert("datetime".to_string(), Value::Null);
         m.insert("nonce".to_string(), Value::Null);
     m
 });

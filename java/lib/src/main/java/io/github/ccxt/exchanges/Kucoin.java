@@ -11189,7 +11189,7 @@ public class Kucoin extends KucoinApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String timestampId = this.safeString2(info, "createdAt", "timestamp");
-        Long timestamp = this.milliseconds();
+        Object timestamp = null;
         if (Helpers.isTrue(!Helpers.isEqual(timestampId, null)))
         {
             timestamp = this.parseToInt(Helpers.slice(timestampId, 0, 13));
@@ -11844,15 +11844,14 @@ public class Kucoin extends KucoinApi
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Long timestamp = this.milliseconds();
         String currencyId = this.safeString(info, "currency");
         return new HashMap<String, Object>() {{
             put( "id", Kucoin.this.safeString(info, "orderNo") );
             put( "currency", Kucoin.this.safeCurrencyCode(currencyId, currency) );
             put( "amount", Kucoin.this.safeNumber(info, "actualSize") );
             put( "symbol", null );
-            put( "timestamp", timestamp );
-            put( "datetime", Kucoin.this.iso8601(timestamp) );
+            put( "timestamp", null );
+            put( "datetime", null );
             put( "info", info );
         }};
     }

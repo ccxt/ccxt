@@ -630,7 +630,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             if mid is None:
                 continue
             # Build minimal ticker from mid price
-            ticker = self.parse_prediction_ticker({'levels': [[], []], 'mid': mid, 'time': self.milliseconds()}, outcomeObj)
+            ticker = self.parse_prediction_ticker({'levels': [[], []], 'mid': mid}, outcomeObj)
             tickers[outcomeHandle] = ticker
         return tickers
 
@@ -652,8 +652,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         #         "time": 1704290104840
         #     }
         #
-        now = self.milliseconds()
-        timestamp = self.safe_integer(raw, 'time', now)
+        timestamp = self.safe_integer(raw, 'time')
         # the 2nd arg carries the outcome object (callers pass the resolved outcome)
         mkt = self.safe_outcome(None, market)
         outcome = self.safe_string(mkt, 'outcome')
@@ -1188,8 +1187,8 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             'id': oid,
             'clientOrderId': clientOrderId,
             'info': response,
-            'timestamp': nonce,
-            'datetime': self.iso8601(nonce),
+            'timestamp': None,
+            'datetime': None,
             'status': orderStatus,
             'outcome': self.safe_string(outcomeObj, 'outcome', outcome),
             'outcomeId': self.safe_string(outcomeObj, 'id'),
@@ -1297,8 +1296,8 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
                 'outcomeId': self.safe_string(outcomeObj, 'id'),
                 'label': self.safe_string(outcomeObj, 'label'),
                 'market': self.safe_string(outcomeObj, 'market'),
-                'timestamp': self.milliseconds(),
-                'datetime': self.iso8601(self.milliseconds()),
+                'timestamp': None,
+                'datetime': None,
             }
             orders.append(self.safe_prediction_order(order))
         return orders

@@ -692,12 +692,11 @@ impl ApexCore {
         // }
         // }
         //
-        let mut timestamp: Value = self.milliseconds();
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
-                m.insert("timestamp".to_string(), timestamp.clone());
-                m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
+                m.insert("timestamp".to_string(), Value::Null);
+                m.insert("datetime".to_string(), Value::Null);
             m
         });
         let mut code: Value = Value::Str("USDT".to_string());
@@ -1138,7 +1137,6 @@ impl ApexCore {
         //     "tradeCount": 100
         // }
         //
-        let mut timestamp: Value = self.milliseconds();
         let mut marketId: Value = self.safe_string_k(ticker.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone()]);
@@ -1151,8 +1149,8 @@ impl ApexCore {
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.clone());
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
+        m.insert("timestamp".to_string(), Value::Null);
+        m.insert("datetime".to_string(), Value::Null);
         m.insert("high".to_string(), high.clone());
         m.insert("low".to_string(), low.clone());
         m.insert("bid".to_string(), Value::Null);
@@ -1525,7 +1523,6 @@ impl ApexCore {
         //     "tradeCount": 100
         // }
         //
-        let mut timestamp: Value = self.milliseconds();
         let mut marketId: Value = self.safe_string_k(interest.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone()]);
@@ -1534,8 +1531,8 @@ impl ApexCore {
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("openInterestAmount".to_string(), self.safe_string_k(interest.clone(), "openInterest", &[]));
         m.insert("openInterestValue".to_string(), Value::Null);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
+        m.insert("timestamp".to_string(), Value::Null);
+        m.insert("datetime".to_string(), Value::Null);
         m.insert("info".to_string(), interest.clone());
     m
 }), &[market.clone()]);

@@ -1203,7 +1203,7 @@ class polymarket extends Exchange {
             $last = $mid;
         }
         $outcome = $this->safe_outcome_symbol(null, $market);
-        $timestamp = $this->safe_integer($bookData, 'timestamp', $this->milliseconds());
+        $timestamp = $this->safe_integer($bookData, 'timestamp');
         $quoteVolume = null;
         if ($market !== null) {
             $quoteVolume = $this->safe_number_2($market['info'], 'volume24hr', 'volume');
@@ -1487,15 +1487,14 @@ class polymarket extends Exchange {
         //
         //     { "market": "0x7976b8...92", "value": 4925662.470476 }
         //
-        $timestamp = $this->milliseconds();
         $openInterest = $this->safe_open_interest(array(
             'symbol' => $this->safe_outcome_symbol(null, $market),
             'openInterestAmount' => null,
             'openInterestValue' => $this->safe_number($interest, 'value'),
             'baseVolume' => null,
             'quoteVolume' => null,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
             'info' => $interest,
         ), $market);
         $openInterest['outcome'] = $this->safe_outcome_symbol(null, $market);
@@ -3474,13 +3473,13 @@ class polymarket extends Exchange {
         return $this->safe_string_2($market, 'market', 'symbol');
     }
 
-    public function parse_poly_timestamp(?string $raw): float {
+    public function parse_poly_timestamp(?string $raw): ?int {
         if ($raw === null) {
-            return $this->milliseconds();
+            return null;
         }
         $n = $this->parse_to_int($raw);
         if ($n === null) {
-            return $this->milliseconds();
+            return null;
         }
         return $n;
     }

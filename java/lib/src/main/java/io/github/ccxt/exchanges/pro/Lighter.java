@@ -401,7 +401,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
      * @name lighter#watchTicker
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
-     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {string} symbol unified symbol of the market to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
@@ -417,6 +417,10 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
+            {
+                throw new NotSupported(Helpers.add(this.id, " watchTicker() is only supported for swap markets")) ;
+            }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "channel", Helpers.add("market_stats/", Helpers.GetValue(market, "id")) );
             }};
@@ -431,7 +435,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
      * @name lighter#unWatchTicker
      * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
-     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {string} symbol unified symbol of the market to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
@@ -447,6 +451,10 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
+            {
+                throw new NotSupported(Helpers.add(this.id, " unWatchTicker() is only supported for swap markets")) ;
+            }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "channel", Helpers.add("market_stats/", Helpers.GetValue(market, "id")) );
             }};
@@ -462,9 +470,8 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
      * @name lighter#watchTickers
      * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-     * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public CompletableFuture<Tickers> watchTickers(Object... optionalArgs)
@@ -478,7 +485,12 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             {
                 (this.loadMarkets()).join();
             }
-            symbols = this.marketSymbols(symbols);
+            symbols = this.marketSymbols(symbols, null, true, true);
+            Object firstMarket = this.getMarketFromSymbols(symbols);
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(firstMarket, null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(firstMarket, "swap"), true)))))
+            {
+                throw new NotSupported(Helpers.add(this.id, " watchTickers() is only supported for swap markets")) ;
+            }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "channel", "market_stats/all" );
             }};
@@ -516,7 +528,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
      * @name lighter#unWatchTickers
      * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
-     * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
@@ -530,6 +542,12 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
+            }
+            symbols = this.marketSymbols(symbols, null, true, true);
+            Object firstMarket = this.getMarketFromSymbols(symbols);
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(firstMarket, null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(firstMarket, "swap"), true)))))
+            {
+                throw new NotSupported(Helpers.add(this.id, " unWatchTickers() is only supported for swap markets")) ;
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "channel", "market_stats/all" );

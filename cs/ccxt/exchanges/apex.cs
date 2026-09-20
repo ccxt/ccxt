@@ -399,11 +399,10 @@ public partial class apex : Exchange
         // }
         // }
         //
-        Int64 timestamp = this.milliseconds();
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
-            { "timestamp", timestamp },
-            { "datetime", this.iso8601(timestamp) },
+            { "timestamp", null },
+            { "datetime", null },
         };
         string code = "USDT";
         Dictionary<string, object> account = this.account();
@@ -814,7 +813,6 @@ public partial class apex : Exchange
         //     "tradeCount": 100
         // }
         //
-        Int64 timestamp = this.milliseconds();
         string? marketId = this.safeString(ticker, "symbol");
         market = this.safeMarket(marketId, market);
         string? symbol = this.safeSymbol(marketId, market);
@@ -826,8 +824,8 @@ public partial class apex : Exchange
         string? low = this.safeString(ticker, "lowPrice24h");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
-            { "timestamp", timestamp },
-            { "datetime", this.iso8601(timestamp) },
+            { "timestamp", null },
+            { "datetime", null },
             { "high", high },
             { "low", low },
             { "bid", null },
@@ -1163,7 +1161,6 @@ public partial class apex : Exchange
         //     "tradeCount": 100
         // }
         //
-        Int64 timestamp = this.milliseconds();
         string? marketId = this.safeString(interest, "symbol");
         market = this.safeMarket(marketId, market);
         string? symbol = this.safeSymbol(marketId, market);
@@ -1171,8 +1168,8 @@ public partial class apex : Exchange
             { "symbol", symbol },
             { "openInterestAmount", this.safeString(interest, "openInterest") },
             { "openInterestValue", null },
-            { "timestamp", timestamp },
-            { "datetime", this.iso8601(timestamp) },
+            { "timestamp", null },
+            { "datetime", null },
             { "info", interest },
         }, market);
     }

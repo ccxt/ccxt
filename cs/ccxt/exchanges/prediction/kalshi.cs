@@ -1020,9 +1020,9 @@ public partial class kalshi : PredictionExchange
     public override object parsePredictionOpenInterest(object interest, object market = null)
     {
         //
-        //     { "ticker": "...", "open_interest_fp": "60802.01", ... }   // open interest in contracts
+        //     { "ticker": "...", "open_interest_fp": "60802.01", "updated_time": "2026-04-09T10:32:47.890506Z", ... }   // the market object of GET /markets/{ticker}, open interest in contracts
         //
-        Int64 timestamp = this.milliseconds();
+        Int64? timestamp = this.parse8601(this.safeString(interest, "updated_time"));
         Dictionary<string, object> openInterest = this.safeOpenInterest(new Dictionary<string, object>() {
             { "symbol", this.safeSymbol(null, market) },
             { "openInterestAmount", this.safeNumber2(interest, "open_interest_fp", "open_interest") },
@@ -1109,7 +1109,7 @@ public partial class kalshi : PredictionExchange
         object outcomeObj = this.safeOutcome(this.safeString(marketAny, "outcome"), marketAny);
         string? outcomeLabel = ((bool) isTrue((isTrue(!isEqual(market, null)) && isTrue(!isEqual(market, null))))) ? this.safeString(market, "label", this.safeString(getValue(market, "info"), "outcomeLabel", "YES")) : "YES";
         bool isNo = isEqual(((string)outcomeLabel).ToUpper(), "NO");
-        Int64 now = this.milliseconds();
+        Int64? timestamp = this.parse8601(this.safeString(raw, "updated_time"));
         string? outcome = this.safeString(outcomeObj, "outcome");
         double? yesAsk = this.safeNumber(raw, "yes_ask_dollars");
         double? yesBid = this.safeNumber(raw, "yes_bid_dollars");
@@ -1155,8 +1155,8 @@ public partial class kalshi : PredictionExchange
             { "outcomeId", this.safeString2(outcomeObj, "outcomeId", "id") },
             { "label", this.safeString(outcomeObj, "label") },
             { "market", this.safeString2(outcomeObj, "market", "outcome") },
-            { "timestamp", now },
-            { "datetime", this.iso8601(now) },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
             { "high", null },
             { "low", null },
             { "bid", bid },
@@ -1301,7 +1301,6 @@ public partial class kalshi : PredictionExchange
         //     }
         //
         object book = this.safeValue(response, "orderbook_fp", response);
-        Int64 timestamp = this.milliseconds();
         // Kalshi uses YES-side perspective: `yes` = bids, `no` = asks (inverted)
         List<object> rawYes = this.safeList(book, "yes_dollars", new List<object>() {});
         List<object> rawNo = this.safeList(book, "no_dollars", new List<object>() {});
@@ -1337,7 +1336,7 @@ public partial class kalshi : PredictionExchange
                 ((IList<object>)asks).Add(new List<object>() {price, this.safeNumber(getValue(rawNo, ai), 1)});
             }
         }
-        return ccxt.BaseExchange.ToPredictionOrderBook(this.safePredictionOrderBook(this.sortedOrders(this.safeString(outcomeObj, "outcome", outcome), timestamp, bids, asks), outcomeObj));
+        return ccxt.BaseExchange.ToPredictionOrderBook(this.safePredictionOrderBook(this.sortedOrders(this.safeString(outcomeObj, "outcome", outcome), null, bids, asks), outcomeObj));
     }
 
     /**

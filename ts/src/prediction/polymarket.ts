@@ -6,8 +6,7 @@ import { ecdsa } from '../base/functions/crypto.js';
 import { TRUNCATE, ROUND, DECIMAL_PLACES } from '../base/functions/number.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByOutcomeById } from '../base/ws/Cache.js';
-import type {
-    Int, Str, Num, Dict,
+import type { Int, Str, Num, Dict,
     Market, PredictionTickers, PredictionOrderBook, OHLCV,
     PredictionOrderRequest, Balances,
     Strings, PredictionOpenInterest, PredictionTradingFee,
@@ -1178,7 +1177,7 @@ export default class polymarket extends Exchange {
             last = mid;
         }
         const outcome = this.safeOutcomeSymbol (undefined, market);
-        const timestamp = this.safeInteger (bookData, 'timestamp', this.milliseconds ());
+        const timestamp = this.safeInteger (bookData, 'timestamp');
         let quoteVolume: Num = undefined;
         if (market !== undefined) {
             quoteVolume = this.safeNumber2 (market['info'], 'volume24hr', 'volume');
@@ -1443,15 +1442,14 @@ export default class polymarket extends Exchange {
         //
         //     { "market": "0x7976b8...92", "value": 4925662.470476 }
         //
-        const timestamp = this.milliseconds ();
         const openInterest: Dict = this.safeOpenInterest ({
             'symbol': this.safeOutcomeSymbol (undefined, market),
             'openInterestAmount': undefined,
             'openInterestValue': this.safeNumber (interest, 'value'),
             'baseVolume': undefined,
             'quoteVolume': undefined,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'info': interest,
         }, market);
         openInterest['outcome'] = this.safeOutcomeSymbol (undefined, market);
@@ -3346,13 +3344,13 @@ export default class polymarket extends Exchange {
         return this.safeString2 (market, 'market', 'symbol');
     }
 
-    parsePolyTimestamp (raw: Str): number {
+    parsePolyTimestamp (raw: Str): Int {
         if (raw === undefined) {
-            return this.milliseconds ();
+            return undefined;
         }
         const n = this.parseToInt (raw);
         if (n === undefined) {
-            return this.milliseconds ();
+            return undefined;
         }
         return n;
     }

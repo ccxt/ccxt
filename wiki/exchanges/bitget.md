@@ -1072,17 +1072,21 @@ fetch the history of changes, actions done by the user or operations that altere
 
 - https://www.bitget.com/api-doc/spot/account/Get-Account-Bills
 - https://www.bitget.com/api-doc/contract/account/Get-Account-Bill
+- https://www.bitget.com/docs/catalog/account/assets-balance#get-financial-records
+- https://www.bitget.com/docs/catalog/account/assets-balance#get-funding-financial-records
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | code | <code>string</code> | No | unified currency code, default is undefined |
-| since | <code>int</code> | No | timestamp in ms of the earliest ledger entry, default is undefined |
+| since | <code>int</code> | No | timestamp in ms of the earliest ledger entry, default is undefined, the uta endpoints allow a window of at most 30 days between since and until |
 | limit | <code>int</code> | No | max number of ledger entries to return, default is undefined |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | end time in ms |
 | params.symbol | <code>string</code> | No | *contract only* unified market symbol |
-| params.productType | <code>string</code> | No | *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES' |
+| params.productType | <code>string</code> | No | *contract and uta only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES' |
+| params.type | <code>string</code> | No | set to 'funding' with uta to fetch the funding account ledger instead of the trading account ledger |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
 | params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 
 

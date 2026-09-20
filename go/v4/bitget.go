@@ -10418,13 +10418,17 @@ func (this *Bitget) fetchUtaCanceledAndClosedOrdersBody(ch chan any, optionalArg
  * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
  * @see https://www.bitget.com/api-doc/spot/account/Get-Account-Bills
  * @see https://www.bitget.com/api-doc/contract/account/Get-Account-Bill
+ * @see https://www.bitget.com/docs/catalog/account/assets-balance#get-financial-records
+ * @see https://www.bitget.com/docs/catalog/account/assets-balance#get-funding-financial-records
  * @param {string} [code] unified currency code, default is undefined
- * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
+ * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined, the uta endpoints allow a window of at most 30 days between since and until
  * @param {int} [limit] max number of ledger entries to return, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] end time in ms
  * @param {string} [params.symbol] *contract only* unified market symbol
- * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+ * @param {string} [params.productType] *contract and uta only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+ * @param {string} [params.type] set to 'funding' with uta to fetch the funding account ledger instead of the trading account ledger
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
@@ -10446,8 +10450,8 @@ func (this *Bitget) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes795512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes795512)
+		retRes795912 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes795912)
 	}
 	var symbol *string = this.SafeString(params, "symbol")
 	params = this.Omit(params, "symbol")
@@ -10459,19 +10463,48 @@ func (this *Bitget) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchLedger", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
+	var uta any = nil
+	utaparamsVariable := (<-this.HandleUTAAndParamsAsync(params, "fetchLedger", false))
+	uta = GetValue(utaparamsVariable, 0)
+	params = GetValue(utaparamsVariable, 1)
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchLedger", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
+		if IsEqual(uta, true) {
+			// re-inject the resolved modes, the handle* helpers stripped them from params and the recursive paginated calls would silently fall back to the defaults
+			params = this.Extend(params, map[string]any{
+				"uta":  true,
+				"type": marketType,
+			})
+			if symbol != nil {
+				params = this.Extend(params, map[string]any{
+					"symbol": symbol,
+				})
+			}
+
+			retRes798023 := (<-this.FetchPaginatedCallCursorAsync("fetchLedger", code, since, limit, params, "id", "cursor", nil, 100))
+			PanicOnError(retRes798023)
+			ch <- retRes798023
+			return nil
+		}
 		var cursorReceived any = nil
 		if !IsEqual(marketType, "spot") {
 			cursorReceived = "endId"
 		}
+		params = this.Extend(params, map[string]any{
+			"type": marketType,
+		})
+		if symbol != nil {
+			params = this.Extend(params, map[string]any{
+				"symbol": symbol,
+			})
+		}
 
-		retRes797219 := (<-this.FetchPaginatedCallCursorAsync("fetchLedger", symbol, since, limit, params, cursorReceived, "idLessThan"))
-		PanicOnError(retRes797219)
-		ch <- retRes797219
+		retRes799019 := (<-this.FetchPaginatedCallCursorAsync("fetchLedger", code, since, limit, params, cursorReceived, "idLessThan"))
+		PanicOnError(retRes799019)
+		ch <- retRes799019
 		return nil
 	}
 	var currency any = nil
@@ -10490,6 +10523,42 @@ func (this *Bitget) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		AddElementToObject(request, "limit", limit)
 	}
 	var response any = nil
+	if IsEqual(uta, true) {
+		if IsEqual(marketType, "funding") {
+
+			response = (<-this.PrivateUtaGetV3AccountFundingFinancialRecords(this.Extend(request, params)))
+			PanicOnError(response)
+		} else {
+			var marginMode any = nil
+			marginModeparamsVariable := this.HandleMarginModeAndParams("fetchLedger", params)
+			marginMode = GetValue(marginModeparamsVariable, 0)
+			params = GetValue(marginModeparamsVariable, 1)
+			if IsEqual(marketType, "spot") {
+				if !IsEqual(marginMode, nil) {
+					AddElementToObject(request, "category", "MARGIN")
+				} else {
+					AddElementToObject(request, "category", "SPOT")
+				}
+			} else {
+				var productType any = nil
+				productTypeparamsVariable := this.HandleProductTypeAndParams(market, params)
+				productType = GetValue(productTypeparamsVariable, 0)
+				params = GetValue(productTypeparamsVariable, 1)
+				AddElementToObject(request, "category", productType)
+			}
+			if symbol != nil {
+				AddElementToObject(request, "symbol", this.SafeString(market, "id"))
+			}
+
+			response = (<-this.PrivateUtaGetV3AccountFinancialRecords(this.Extend(request, params)))
+			PanicOnError(response)
+		}
+		var utaData any = this.SafeDict(response, "data", map[string]any{})
+		var list any = this.SafeList(utaData, "list", []any{})
+
+		ch <- this.ParseLedger(list, currency, since, limit)
+		return nil
+	}
 	if IsEqual(marketType, "spot") {
 
 		response = (<-this.PrivateSpotGetV2SpotAccountBills(this.Extend(request, params)))
@@ -10590,83 +10659,264 @@ func (this *Bitget) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	//         "cTime": "1700728034996"
 	//     }
 	//
+	// uta financial records
+	//
+	//     {
+	//         "category": "Margin",
+	//         "id": "13111111111111111",
+	//         "symbol": "BTCUSDT",
+	//         "coin": "BTC",
+	//         "type": "ORDER_DEALT_IN",
+	//         "positionType": "crossed",
+	//         "fee": "-0.00000531",
+	//         "positionAmount": "0.001",
+	//         "positionBalance": "0.001",
+	//         "amount": "0.00531168",
+	//         "balance": "55.10017801",
+	//         "ts": "1745853486185"
+	//     }
+	//
+	// uta funding financial records
+	//
+	//     {
+	//         "id": "1477183363639320585",
+	//         "coin": "USDT",
+	//         "groupType": "transfer",
+	//         "type": "transfer_out",
+	//         "amount": "-30.00000000",
+	//         "balance": "0.00000000",
+	//         "ts": "1787913879280"
+	//     }
+	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var currencyId *string = this.SafeString(item, "coin")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	currency = this.SafeCurrency(currencyId, currency)
-	var timestamp *int64 = this.SafeInteger(item, "cTime")
-	var after *float64 = this.SafeNumber(item, "balance")
-	var fee *float64 = this.SafeNumber2(item, "fees", "fee")
+	var timestamp *int64 = this.SafeInteger2(item, "cTime", "ts")
+	var balanceString *string = this.SafeString(item, "balance")
+	var after any = this.ParseNumber(balanceString)
+	var feeCostString *string = this.SafeString2(item, "fees", "fee")
+	var feeCost any = nil
+	if feeCostString != nil {
+		feeCost = this.ParseNumber(Precise.StringAbs(feeCostString)) // deliberate for both generations, uta reports charged fees as negative values and the v2 fields hold signed values too
+	}
 	var amountRaw *string = this.SafeString2(item, "size", "amount", "")
 	var amount any = this.ParseNumber(Precise.StringAbs(amountRaw))
+	var before any = nil
+	if (balanceString != nil) && (amountRaw == nil || *amountRaw != "") {
+		before = this.ParseNumber(Precise.StringSub(balanceString, amountRaw)) // subtract the signed change from the after-balance, the base derivation assumes a signed amount and would produce a negative before on outflows
+	}
 	var direction string = "in"
 	if IsGreaterThanOrEqual(GetIndexOf(amountRaw, "-"), 0) {
 		direction = "out"
 	}
 	return this.SafeLedgerEntry(map[string]any{
 		"info":             item,
-		"id":               this.SafeString(item, "billId"),
+		"id":               this.SafeString2(item, "billId", "id"),
 		"timestamp":        timestamp,
 		"datetime":         this.Iso8601(timestamp),
 		"direction":        direction,
 		"account":          nil,
 		"referenceId":      nil,
 		"referenceAccount": nil,
-		"type":             this.ParseLedgerType(this.SafeString(item, "businessType")),
+		"type":             this.ParseLedgerType(this.SafeStringN(item, []any{"businessType", "groupType", "type"})),
 		"currency":         code,
 		"amount":           amount,
-		"before":           nil,
+		"before":           before,
 		"after":            after,
 		"status":           nil,
 		"fee": map[string]any{
 			"currency": code,
-			"cost":     fee,
+			"cost":     feeCost,
 		},
 	}, currency)
 }
 func (this *Bitget) ParseLedgerType(typeVar any) *string {
 	var types map[string]any = map[string]any{
-		"trans_to_cross":                  "transfer",
-		"trans_from_cross":                "transfer",
-		"trans_to_exchange":               "transfer",
-		"trans_from_exchange":             "transfer",
-		"trans_to_isolated":               "transfer",
-		"trans_from_isolated":             "transfer",
-		"trans_to_contract":               "transfer",
-		"trans_from_contract":             "transfer",
-		"trans_to_otc":                    "transfer",
-		"trans_from_otc":                  "transfer",
-		"open_long":                       "trade",
-		"close_long":                      "trade",
-		"open_short":                      "trade",
-		"close_short":                     "trade",
-		"force_close_long":                "trade",
-		"force_close_short":               "trade",
-		"burst_long_loss_query":           "trade",
-		"burst_short_loss_query":          "trade",
-		"force_buy":                       "trade",
-		"force_sell":                      "trade",
-		"burst_buy":                       "trade",
-		"burst_sell":                      "trade",
-		"delivery_long":                   "settlement",
-		"delivery_short":                  "settlement",
-		"contract_settle_fee":             "fee",
-		"append_margin":                   "transaction",
-		"adjust_down_lever_append_margin": "transaction",
-		"reduce_margin":                   "transaction",
-		"auto_append_margin":              "transaction",
-		"cash_gift_issue":                 "cashback",
-		"cash_gift_recycle":               "cashback",
-		"bonus_issue":                     "rebate",
-		"bonus_recycle":                   "rebate",
-		"bonus_expired":                   "rebate",
-		"transfer_in":                     "transfer",
-		"transfer_out":                    "transfer",
-		"deposit":                         "deposit",
-		"withdraw":                        "withdrawal",
-		"buy":                             "trade",
-		"sell":                            "trade",
+		"trans_to_cross":                          "transfer",
+		"trans_from_cross":                        "transfer",
+		"trans_to_exchange":                       "transfer",
+		"trans_from_exchange":                     "transfer",
+		"trans_to_isolated":                       "transfer",
+		"trans_from_isolated":                     "transfer",
+		"trans_to_contract":                       "transfer",
+		"trans_from_contract":                     "transfer",
+		"trans_to_otc":                            "transfer",
+		"trans_from_otc":                          "transfer",
+		"open_long":                               "trade",
+		"close_long":                              "trade",
+		"open_short":                              "trade",
+		"close_short":                             "trade",
+		"force_close_long":                        "trade",
+		"force_close_short":                       "trade",
+		"burst_long_loss_query":                   "trade",
+		"burst_short_loss_query":                  "trade",
+		"force_buy":                               "trade",
+		"force_sell":                              "trade",
+		"burst_buy":                               "trade",
+		"burst_sell":                              "trade",
+		"delivery_long":                           "settlement",
+		"delivery_short":                          "settlement",
+		"contract_settle_fee":                     "fee",
+		"append_margin":                           "transaction",
+		"adjust_down_lever_append_margin":         "transaction",
+		"reduce_margin":                           "transaction",
+		"auto_append_margin":                      "transaction",
+		"cash_gift_issue":                         "cashback",
+		"cash_gift_recycle":                       "cashback",
+		"bonus_issue":                             "rebate",
+		"bonus_recycle":                           "rebate",
+		"bonus_expired":                           "rebate",
+		"transfer_in":                             "transfer",
+		"transfer_out":                            "transfer",
+		"deposit":                                 "deposit",
+		"withdraw":                                "withdrawal",
+		"buy":                                     "trade",
+		"sell":                                    "trade",
+		"transaction":                             "transaction",
+		"transfer":                                "transfer",
+		"financial":                               "transaction",
+		"strategy":                                "trade",
+		"trace":                                   "trade",
+		"loan":                                    "transaction",
+		"fait":                                    "transaction",
+		"convert":                                 "trade",
+		"ipo_prime":                               "transaction",
+		"pre_c2c":                                 "trade",
+		"paptrading":                              "trade",
+		"on_chain":                                "transaction",
+		"debit":                                   "transaction",
+		"cfd":                                     "trade",
+		"pay":                                     "transaction",
+		"compliance_wall":                         "transaction",
+		"live":                                    "transaction",
+		"broker":                                  "transaction",
+		"rwa":                                     "transaction",
+		"stock":                                   "trade",
+		"TRANSFER_IN":                             "transfer",
+		"TRANSFER_OUT":                            "transfer",
+		"RESERVE_TRANSFER_IN":                     "transfer",
+		"RESERVE_TRANSFER_OUT":                    "transfer",
+		"LIQ_TRANSFER_IN":                         "transfer",
+		"LIQ_TRANSFER_OUT":                        "transfer",
+		"ON_CHAIN_TRANSFER_REFUND":                "transfer",
+		"ON_CHAIN_TRANSFER_OUT":                   "transfer",
+		"MT5_TRANSFER_IN":                         "transfer",
+		"MT5_REFUND_IN":                           "transfer",
+		"MT5_TRANSFER_OUT":                        "transfer",
+		"TRACE_TRANSFER_USER_OUT":                 "transfer",
+		"TRACE_TRANSFER_USER_IN":                  "transfer",
+		"TRACE_TRANSFER_REFUND_IN":                "transfer",
+		"FINANCIAL_TRANSFER_OUT":                  "transfer",
+		"FINANCIAL_TRANSFER_IN":                   "transfer",
+		"CONVERT_TRANSFER_IN":                     "transfer",
+		"CONVERT_TRANSFER_OUT":                    "transfer",
+		"BGPAY_TRANSFER_OUT":                      "transfer",
+		"BGPAY_REFUND_IN":                         "transfer",
+		"ORDER_DEALT_FROZEN_OUT":                  "trade",
+		"ORDER_DEALT_IN":                          "trade",
+		"OPEN_LONG":                               "trade",
+		"OPEN_SHORT":                              "trade",
+		"BUY_DEAL":                                "trade",
+		"SELL_DEAL":                               "trade",
+		"CLOSE_LONG":                              "trade",
+		"CLOSE_SHORT":                             "trade",
+		"FORCE_CLOSE_LONG":                        "trade",
+		"FORCE_CLOSE_SHORT":                       "trade",
+		"BURST_CLOSE_LONG":                        "trade",
+		"BURST_CLOSE_SHORT":                       "trade",
+		"OFFSET_REDUCE_CLOSE_LONG":                "trade",
+		"OFFSET_REDUCE_CLOSE_SHORT":               "trade",
+		"FORCE_BUY_SSM":                           "trade",
+		"FORCE_SELL_SSM":                          "trade",
+		"BURST_BUY_SSM":                           "trade",
+		"BURST_SELL_SSM":                          "trade",
+		"RISK_LIQ_USER_IN":                        "trade",
+		"RISK_LIQ_USER_OUT":                       "trade",
+		"LIQ_FUND_OUT":                            "trade",
+		"LIQ_FUND_IN":                             "trade",
+		"LIQ_CONVERT_USER_OUT":                    "trade",
+		"LIQ_CONVERT_SYS_IN":                      "trade",
+		"LIQ_CONVERT_SYS_OUT":                     "trade",
+		"LIQ_CONVERT_USER_IN":                     "trade",
+		"MARGIN_OPEN_LONG":                        "trade",
+		"MARGIN_OPEN_SHORT":                       "trade",
+		"MARIN_BUY_DEAL":                          "trade",
+		"MARIN_SELL_DEAL":                         "trade",
+		"MARGIN_BACK":                             "trade",
+		"MARGIN_OFFSET_IN_SSM_LONG":               "trade",
+		"MARGIN_OFFSET_IN_SSM_SHORT":              "trade",
+		"FIXED_OFFSET_IN_SSM_LONG":                "trade",
+		"FIXED_OFFSET_IN_SSM_SHORT":               "trade",
+		"FIXED_CLOSE_LONG":                        "trade",
+		"FIXED_CLOSE_SHORT":                       "trade",
+		"FIXED_FORCE_CLOSE_LONG":                  "trade",
+		"FIXED_FORCE_CLOSE_SHORT":                 "trade",
+		"FIXED_BURST_CLOSE_LONG":                  "trade",
+		"FIXED_BURST_CLOSE_SHORT":                 "trade",
+		"FIXED_ADL_CLOSE_LONG":                    "trade",
+		"FIXED_ADL_CLOSE_SHORT":                   "trade",
+		"FIXED_RISK_LIQ_USER_IN":                  "trade",
+		"FIXED_RISK_LIQ_USER_OUT":                 "trade",
+		"FIXED_FORCE_BUY_SSM":                     "trade",
+		"FIXED_FORCE_SELL_SSM":                    "trade",
+		"FIXED_BURST_BUY_SSM":                     "trade",
+		"FIXED_BURST_SELL_SSM":                    "trade",
+		"RWA_CONTRACT_REBASE_USER_OPEN_LONG":      "trade",
+		"RWA_CONTRACT_REBASE_USER_OPEN_SHORT":     "trade",
+		"RWA_CONTRACT_REBASE_USER_CLOSE_LONG":     "trade",
+		"RWA_CONTRACT_REBASE_USER_CLOSE_SHORT":    "trade",
+		"RWA_CONTRACT_REBASE_USER_BUY_IN_SSM":     "trade",
+		"RWA_CONTRACT_REBASE_USER_SELL_IN_SSM":    "trade",
+		"ORDER_PLF_FEE_OUT":                       "fee",
+		"INTEREST_SETTLEMENT_OUT":                 "fee",
+		"INTEREST_REPAYMENT":                      "fee",
+		"CONTRACT_MAIN_SETTLE_FEE_USER_IN":        "fee",
+		"CONTRACT_MAIN_SETTLE_FEE_USER_OUT":       "fee",
+		"MARGIN_SETTLE_FEE_USER_IN":               "fee",
+		"MARGIN_SETTLE_FEE_USER_OUT":              "fee",
+		"LIQ_FEE":                                 "fee",
+		"SMALL_ASSET_FEE_SYS_IN":                  "fee",
+		"RWA_FIXED_SETTLE_FEE_USER_IN":            "fee",
+		"RWA_FIXED_SETTLE_FEE_USER_OUT":           "fee",
+		"RWA_CONTRACT_MAIN_SETTLE_FEE_SYSTEM_IN":  "fee",
+		"RWA_CONTRACT_MAIN_SETTLE_FEE_SYSTEM_OUT": "fee",
+		"RWA_CONTRACT_MAIN_SETTLE_FEE_SYSTEM_KEEP_IN":  "fee",
+		"RWA_CONTRACT_MAIN_SETTLE_FEE_SYSTEM_KEEP_OUT": "fee",
+		"RWA_CONTRACT_MAIN_SETTLE_FEE_USER_IN":         "fee",
+		"RWA_CONTRACT_MAIN_SETTLE_FEE_USER_OUT":        "fee",
+		"INCREASE_MARGIN":                              "margin",
+		"REDUCE_MARGIN":                                "margin",
+		"MARGIN_LEVER_ORDER_REFROZEN":                  "margin",
+		"MARGIN_LEVER_ORDER_FROZEN":                    "margin",
+		"MARGIN_LEVER_POS_IN":                          "margin",
+		"CONVERSION_UPON_DELISTING":                    "transaction",
+		"EXCHANGE_SOURCE_TOKEN_USER_OUT":               "transaction",
+		"EXCHANGE_TARGET_TOKEN_USER_IN":                "transaction",
+		"BORROW":                                       "transaction",
+		"REPAYMENT":                                    "transaction",
+		"LIQ_REPAYMENT":                                "transaction",
+		"DELIST_MARGIN_TOKEN_SOURCE_USER_OUT":          "transaction",
+		"DELIST_MARGIN_TOKEN_SOURCE_SYS_IN":            "transaction",
+		"DELIST_MARGIN_TOKEN_TARGET_SYS_OUT":           "transaction",
+		"DELIST_MARGIN_TOKEN_TARGET_USER_IN":           "transaction",
+		"CONFISCATE_TOKEN_USER_OUT":                    "transaction",
+		"CONFISCATE_TOKEN_SYS_IN":                      "transaction",
+		"DELIST_SMALL_BALANCE_USER_OUT":                "transaction",
+		"DELIST_SMALL_BALANCE_SYS_IN":                  "transaction",
+		"DELIST_SMALL_LIABILITY_SYS_OUT":               "transaction",
+		"DELIST_SMALL_LIABILITY_USER_IN":               "transaction",
+		"SMALL_ASSET_SOURCE_TOKEN_USER_OUT":            "transaction",
+		"SMALL_ASSET_SOURCE_TOKEN_SYS_IN":              "transaction",
+		"SMALL_ASSET_TARGET_TOKEN_SYS_OUT":             "transaction",
+		"SMALL_ASSET_TARGET_TOKEN_USER_IN":             "transaction",
+		"TRACE_LOCK_USER_OUT":                          "transaction",
+		"TRACE_LOCK_USER_IN":                           "transaction",
+		"TRACE_SHARE_BENEFIT_USER_OUT":                 "referral",
+		"TRACE_SHARE_BENEFIT_SYSTEM_IN":                "referral",
+		"TRACE_SHARE_BENEFIT_SYSTEM_OUT":               "referral",
+		"TRACE_SHARE_BENEFIT_USER_IN":                  "referral",
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
@@ -10714,8 +10964,8 @@ func (this *Bitget) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	if IsEqual(this.Markets, nil) {
 
-		retRes818412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes818412)
+		retRes845812 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes845812)
 	}
 	var market any = this.Market(symbol)
 	var request any = map[string]any{}
@@ -10752,9 +11002,9 @@ func (this *Bitget) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 			cursorSent = "idLessThan"
 		}
 
-		retRes821419 := (<-this.FetchPaginatedCallCursorAsync("fetchMyTrades", symbol, since, limit, params, cursorReceived, cursorSent))
-		PanicOnError(retRes821419)
-		ch <- retRes821419
+		retRes848819 := (<-this.FetchPaginatedCallCursorAsync("fetchMyTrades", symbol, since, limit, params, cursorReceived, cursorSent))
+		PanicOnError(retRes848819)
+		ch <- retRes848819
 		return nil
 	}
 	var response any = nil
@@ -10970,8 +11220,8 @@ func (this *Bitget) fetchPositionBody(ch chan any, symbol any, optionalArgs ...a
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes839912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes839912)
+		retRes867312 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes867312)
 	}
 	var market any = this.Market(symbol)
 	var productType any = nil
@@ -11107,8 +11357,8 @@ func (this *Bitget) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes851312 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes851312)
+		retRes878712 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes878712)
 	}
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchPositions", "paginate")
@@ -11116,9 +11366,9 @@ func (this *Bitget) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
-		retRes851819 := (<-this.FetchPaginatedCallCursorAsync("fetchPositions", nil, nil, nil, params, "endId", "idLessThan"))
-		PanicOnError(retRes851819)
-		ch <- retRes851819
+		retRes879219 := (<-this.FetchPaginatedCallCursorAsync("fetchPositions", nil, nil, nil, params, "endId", "idLessThan"))
+		PanicOnError(retRes879219)
+		ch <- retRes879219
 		return nil
 	}
 	var method any = nil
@@ -11564,8 +11814,8 @@ func (this *Bitget) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	}
 	if IsEqual(this.Markets, nil) {
 
-		retRes893212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes893212)
+		retRes920612 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes920612)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -11614,9 +11864,9 @@ func (this *Bitget) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 		params = GetValue(paginateparamsVariable, 1)
 		if EvalTruthy(paginate) {
 
-			retRes897223 := (<-this.FetchPaginatedCallIncrementalAsync("fetchFundingRateHistory", symbol, since, limit, params, "pageNo", 100))
-			PanicOnError(retRes897223)
-			ch <- retRes897223
+			retRes924623 := (<-this.FetchPaginatedCallIncrementalAsync("fetchFundingRateHistory", symbol, since, limit, params, "pageNo", 100))
+			PanicOnError(retRes924623)
+			ch <- retRes924623
 			return nil
 		}
 		if !IsEqual(limit, nil) {
@@ -11687,8 +11937,8 @@ func (this *Bitget) fetchFundingRateBody(ch chan any, symbol any, optionalArgs .
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes902812 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes902812)
+		retRes930212 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes930212)
 	}
 	var market any = this.Market(symbol)
 	if !IsEqual(GetValue(market, "swap"), true) {
@@ -11758,8 +12008,8 @@ func (this *Bitget) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes912012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes912012)
+		retRes939412 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes939412)
 	}
 	var market any = nil
 	if !IsEqual(symbols, nil) {
@@ -11866,16 +12116,16 @@ func (this *Bitget) fetchFundingIntervalsBody(ch chan any, optionalArgs ...any) 
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes920512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes920512)
+		retRes947912 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes947912)
 	}
 	params = this.Extend(map[string]any{
 		"method": "publicMixGetV2MixMarketCurrentFundRate",
 	}, params)
 
-	retRes920815 := (<-this.FetchFundingRatesAsync(symbols, params))
-	PanicOnError(retRes920815)
-	ch <- retRes920815
+	retRes948215 := (<-this.FetchFundingRatesAsync(symbols, params))
+	PanicOnError(retRes948215)
+	ch <- retRes948215
 	return nil
 }
 func (this *Bitget) ParseFundingRate(contract any, optionalArgs ...any) any {
@@ -12001,8 +12251,8 @@ func (this *Bitget) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes931612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes931612)
+		retRes959012 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes959012)
 	}
 	if IsEqual(symbol, nil) {
 		panic(ArgumentsRequired(Add(this.Id, " fetchFundingHistory() requires a symbol argument")))
@@ -12018,15 +12268,15 @@ func (this *Bitget) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 	if EvalTruthy(paginate) {
 		if IsEqual(uta, true) {
 
-			retRes932723 := (<-this.FetchPaginatedCallCursorAsync("fetchFundingHistory", symbol, since, limit, params, "cursor", "cursor"))
-			PanicOnError(retRes932723)
-			ch <- retRes932723
+			retRes960123 := (<-this.FetchPaginatedCallCursorAsync("fetchFundingHistory", symbol, since, limit, params, "cursor", "cursor"))
+			PanicOnError(retRes960123)
+			ch <- retRes960123
 			return nil
 		}
 
-		retRes932919 := (<-this.FetchPaginatedCallCursorAsync("fetchFundingHistory", symbol, since, limit, params, "endId", "idLessThan"))
-		PanicOnError(retRes932919)
-		ch <- retRes932919
+		retRes960319 := (<-this.FetchPaginatedCallCursorAsync("fetchFundingHistory", symbol, since, limit, params, "endId", "idLessThan"))
+		PanicOnError(retRes960319)
+		ch <- retRes960319
 		return nil
 	}
 	var market any = this.Market(symbol)
@@ -12148,8 +12398,8 @@ func (this *Bitget) modifyMarginHelperBody(ch chan any, symbol any, amount any, 
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes947012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes947012)
+		retRes974412 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes974412)
 	}
 	var holdSide *string = this.SafeString(params, "holdSide")
 	var market any = this.Market(symbol)
@@ -12240,9 +12490,9 @@ func (this *Bitget) reduceMarginBody(ch chan any, symbol any, amount any, option
 		panic(ArgumentsRequired(Add(this.Id, " reduceMargin() requires a holdSide parameter, either long or short")))
 	}
 
-	retRes954415 := (<-this.ModifyMarginHelperAsync(symbol, amount, "reduce", params))
-	PanicOnError(retRes954415)
-	ch <- retRes954415
+	retRes981815 := (<-this.ModifyMarginHelperAsync(symbol, amount, "reduce", params))
+	PanicOnError(retRes981815)
+	ch <- retRes981815
 	return nil
 }
 
@@ -12271,9 +12521,9 @@ func (this *Bitget) addMarginBody(ch chan any, symbol any, amount any, optionalA
 		panic(ArgumentsRequired(Add(this.Id, " addMargin() requires a holdSide parameter, either long or short")))
 	}
 
-	retRes956215 := (<-this.ModifyMarginHelperAsync(symbol, amount, "add", params))
-	PanicOnError(retRes956215)
-	ch <- retRes956215
+	retRes983615 := (<-this.ModifyMarginHelperAsync(symbol, amount, "add", params))
+	PanicOnError(retRes983615)
+	ch <- retRes983615
 	return nil
 }
 
@@ -12298,8 +12548,8 @@ func (this *Bitget) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...a
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes957612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes957612)
+		retRes985012 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes985012)
 	}
 	var market any = this.Market(symbol)
 	var productType any = nil
@@ -12393,8 +12643,8 @@ func (this *Bitget) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
 	}
 	if IsEqual(this.Markets, nil) {
 
-		retRes965112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes965112)
+		retRes992512 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes992512)
 	}
 	var market any = this.Market(symbol)
 	var productType any = nil
@@ -12471,8 +12721,8 @@ func (this *Bitget) setMarginModeBody(ch chan any, marginMode any, optionalArgs 
 	}
 	if IsEqual(this.Markets, nil) {
 
-		retRes972712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes972712)
+		retRes1000112 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes1000112)
 	}
 	var market any = this.Market(symbol)
 	var productType any = nil
@@ -12534,8 +12784,8 @@ func (this *Bitget) setPositionModeBody(ch chan any, hedged any, optionalArgs ..
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes977112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes977112)
+		retRes1004512 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes1004512)
 	}
 	var posMode string = Ternary(EvalTruthy(hedged), "hedge_mode", "one_way_mode").(string)
 	var request map[string]any = map[string]any{}
@@ -12592,8 +12842,8 @@ func (this *Bitget) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs 
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes982612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes982612)
+		retRes1010012 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes1010012)
 	}
 	var market any = this.Market(symbol)
 	if !IsEqual(GetValue(market, "contract"), true) {
@@ -12701,8 +12951,8 @@ func (this *Bitget) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	}
 	if IsEqual(this.Markets, nil) {
 
-		retRes993912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes993912)
+		retRes1021312 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes1021312)
 	}
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchTransfers", nil, params)
@@ -12784,8 +13034,8 @@ func (this *Bitget) transferBody(ch chan any, code any, amount any, fromAccount 
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes1000312 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes1000312)
+		retRes1027712 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes1027712)
 	}
 	var uta any = nil
 	utaparamsVariable := (<-this.HandleUTAAndParamsAsync(params, "transfer", false))
@@ -12975,8 +13225,8 @@ func (this *Bitget) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...an
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes1016612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes1016612)
+		retRes1044012 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes1044012)
 	}
 
 	response := (<-this.PublicSpotGetV2SpotPublicCoins(params))
@@ -13038,8 +13288,8 @@ func (this *Bitget) borrowCrossMarginBody(ch chan any, code any, amount any, opt
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes1021412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes1021412)
+		retRes1048812 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes1048812)
 	}
 	var currency any = this.Currency(code)
 	var request map[string]any = map[string]any{
@@ -13090,8 +13340,8 @@ func (this *Bitget) borrowIsolatedMarginBody(ch chan any, symbol any, code any, 
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes1025112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes1025112)
+		retRes1052512 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes1052512)
 	}
 	var currency any = this.Currency(code)
 	var market any = this.Market(symbol)
@@ -13145,8 +13395,8 @@ func (this *Bitget) repayIsolatedMarginBody(ch chan any, symbol any, code any, a
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes1029112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes1029112)
+		retRes1056512 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes1056512)
 	}
 	var currency any = this.Currency(code)
 	var market any = this.Market(symbol)
@@ -13200,8 +13450,8 @@ func (this *Bitget) repayCrossMarginBody(ch chan any, code any, amount any, opti
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes1033112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes1033112)
+		retRes1060512 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes1060512)
 	}
 	var currency any = this.Currency(code)
 	var request map[string]any = map[string]any{
@@ -13321,8 +13571,8 @@ func (this *Bitget) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) an
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes1042812 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes1042812)
+		retRes1070212 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes1070212)
 	}
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyLiquidations", "paginate")
@@ -13330,9 +13580,9 @@ func (this *Bitget) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) an
 	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
-		retRes1043319 := (<-this.FetchPaginatedCallCursorAsync("fetchMyLiquidations", symbol, since, limit, params, "minId", "idLessThan"))
-		PanicOnError(retRes1043319)
-		ch <- retRes1043319
+		retRes1070719 := (<-this.FetchPaginatedCallCursorAsync("fetchMyLiquidations", symbol, since, limit, params, "minId", "idLessThan"))
+		PanicOnError(retRes1070719)
+		ch <- retRes1070719
 		return nil
 	}
 	var market any = nil
@@ -13506,8 +13756,8 @@ func (this *Bitget) fetchIsolatedBorrowRateBody(ch chan any, symbol any, optiona
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes1058312 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes1058312)
+		retRes1085712 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes1085712)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -13643,8 +13893,8 @@ func (this *Bitget) fetchCrossBorrowRateBody(ch chan any, code any, optionalArgs
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes1070412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes1070412)
+		retRes1097812 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes1097812)
 	}
 	var currency any = this.Currency(code)
 	var request map[string]any = map[string]any{
@@ -13790,8 +14040,8 @@ func (this *Bitget) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) an
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes1082312 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes1082312)
+		retRes1109712 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes1109712)
 	}
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchBorrowInterest", "paginate")
@@ -13799,9 +14049,9 @@ func (this *Bitget) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) an
 	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
-		retRes1082819 := (<-this.FetchPaginatedCallCursorAsync("fetchBorrowInterest", symbol, since, limit, params, "minId", "idLessThan"))
-		PanicOnError(retRes1082819)
-		ch <- retRes1082819
+		retRes1110219 := (<-this.FetchPaginatedCallCursorAsync("fetchBorrowInterest", symbol, since, limit, params, "minId", "idLessThan"))
+		PanicOnError(retRes1110219)
+		ch <- retRes1110219
 		return nil
 	}
 	var market any = nil
@@ -13971,8 +14221,8 @@ func (this *Bitget) closePositionBody(ch chan any, symbol any, optionalArgs ...a
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes1097612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes1097612)
+		retRes1125012 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes1125012)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -14034,8 +14284,8 @@ func (this *Bitget) closeAllPositionsBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes1105012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes1105012)
+		retRes1132412 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes1132412)
 	}
 	var request map[string]any = map[string]any{}
 	var productType any = nil
@@ -14086,8 +14336,8 @@ func (this *Bitget) fetchMarginModeBody(ch chan any, symbol any, optionalArgs ..
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes1111312 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes1111312)
+		retRes1138712 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes1138712)
 	}
 	var market any = this.Market(symbol)
 	var productType any = nil
@@ -14180,8 +14430,8 @@ func (this *Bitget) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) 
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes1118312 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes1118312)
+		retRes1145712 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes1145712)
 	}
 	var request any = map[string]any{}
 	var market any = nil
@@ -14253,8 +14503,8 @@ func (this *Bitget) fetchConvertQuoteBody(ch chan any, fromCode any, toCode any,
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes1129212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes1129212)
+		retRes1156612 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes1156612)
 	}
 	var request map[string]any = map[string]any{
 		"fromCoin":     fromCode,
@@ -14318,8 +14568,8 @@ func (this *Bitget) createConvertTradeBody(ch chan any, id any, fromCode any, to
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes1134012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes1134012)
+		retRes1161412 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes1161412)
 	}
 	var price *string = this.SafeString2(params, "price", "cnvtPrice")
 	if price == nil {
@@ -14391,8 +14641,8 @@ func (this *Bitget) fetchConvertTradeHistoryBody(ch chan any, optionalArgs ...an
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes1139212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes1139212)
+		retRes1166612 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes1166612)
 	}
 	var request map[string]any = map[string]any{}
 	var msInDay int = 86400000
@@ -14522,8 +14772,8 @@ func (this *Bitget) fetchConvertCurrenciesBody(ch chan any, optionalArgs ...any)
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes1150512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes1150512)
+		retRes1177912 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes1177912)
 	}
 
 	response := (<-this.PrivateConvertGetV2ConvertCurrencies(params))
@@ -14608,8 +14858,8 @@ func (this *Bitget) fetchFundingIntervalBody(ch chan any, symbol any, optionalAr
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes1157612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes1157612)
+		retRes1185012 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes1185012)
 	}
 	var market any = this.Market(symbol)
 	var productType any = nil
@@ -14674,8 +14924,8 @@ func (this *Bitget) fetchLongShortRatioHistoryBody(ch chan any, optionalArgs ...
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes1164412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes1164412)
+		retRes1191812 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes1191812)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -15755,13 +16005,17 @@ func (this *Bitget) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClos
  * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
  * @see https://www.bitget.com/api-doc/spot/account/Get-Account-Bills
  * @see https://www.bitget.com/api-doc/contract/account/Get-Account-Bill
+ * @see https://www.bitget.com/docs/catalog/account/assets-balance#get-financial-records
+ * @see https://www.bitget.com/docs/catalog/account/assets-balance#get-funding-financial-records
  * @param {string} [code] unified currency code, default is undefined
- * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
+ * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined, the uta endpoints allow a window of at most 30 days between since and until
  * @param {int} [limit] max number of ledger entries to return, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] end time in ms
  * @param {string} [params.symbol] *contract only* unified market symbol
- * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+ * @param {string} [params.productType] *contract and uta only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+ * @param {string} [params.type] set to 'funding' with uta to fetch the funding account ledger instead of the trading account ledger
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */

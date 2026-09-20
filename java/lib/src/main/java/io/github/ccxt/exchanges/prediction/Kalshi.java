@@ -1106,10 +1106,10 @@ final Object finalOi = oi;
     public Object parsePredictionOpenInterest(Object interest, Object... optionalArgs)
     {
         //
-        //     { "ticker": "...", "open_interest_fp": "60802.01", ... }   // open interest in contracts
+        //     { "ticker": "...", "open_interest_fp": "60802.01", "updated_time": "2026-04-09T10:32:47.890506Z", ... }   // the market object of GET /markets/{ticker}, open interest in contracts
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Long timestamp = this.milliseconds();
+        Long timestamp = this.parse8601(this.safeString(interest, "updated_time"));
         Object openInterest = this.safeOpenInterest(new HashMap<String, Object>() {{
             put( "symbol", Kalshi.this.safeSymbol(null, market) );
             put( "openInterestAmount", Kalshi.this.safeNumber2(interest, "open_interest_fp", "open_interest") );
@@ -1197,7 +1197,7 @@ final Object finalOi = oi;
         Object outcomeObj = this.safeOutcome(this.safeString(marketAny, "outcome"), marketAny);
         String outcomeLabel = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(market, null)) && Helpers.isTrue(!Helpers.isEqual(market, null)))))) ? this.safeString(market, "label", this.safeString(Helpers.GetValue(market, "info"), "outcomeLabel", "YES")) : "YES";
         Boolean isNo = Helpers.isEqual(outcomeLabel.toUpperCase(), "NO");
-        Long now = this.milliseconds();
+        Long timestamp = this.parse8601(this.safeString(raw, "updated_time"));
         String outcome = this.safeString(outcomeObj, "outcome");
         Double yesAsk = this.safeNumber(raw, "yes_ask_dollars");
         Double yesBid = this.safeNumber(raw, "yes_bid_dollars");
@@ -1249,8 +1249,8 @@ final Object finalOi = oi;
             put( "outcomeId", Kalshi.this.safeString2(outcomeObj, "outcomeId", "id") );
             put( "label", Kalshi.this.safeString(outcomeObj, "label") );
             put( "market", Kalshi.this.safeString2(outcomeObj, "market", "outcome") );
-            put( "timestamp", now );
-            put( "datetime", Kalshi.this.iso8601(now) );
+            put( "timestamp", timestamp );
+            put( "datetime", Kalshi.this.iso8601(timestamp) );
             put( "high", null );
             put( "low", null );
             put( "bid", finalBid );
@@ -1405,7 +1405,6 @@ final Object finalOi = oi;
             //     }
             //
             Object book = this.safeValue(response, "orderbook_fp", response);
-            Long timestamp = this.milliseconds();
             // Kalshi uses YES-side perspective: `yes` = bids, `no` = asks (inverted)
             Object rawYes = this.safeList(book, "yes_dollars", new ArrayList<Object>(Arrays.asList()));
             Object rawNo = this.safeList(book, "no_dollars", new ArrayList<Object>(Arrays.asList()));
@@ -1441,7 +1440,7 @@ final Object finalOi = oi;
                     ((List<Object>)asks).add(new ArrayList<Object>(Arrays.asList(price, this.safeNumber(Helpers.GetValue(rawNo, ai), 1))));
                 }
             }
-            return this.safePredictionOrderBook(this.sortedOrders(this.safeString(outcomeObj, "outcome", outcome), timestamp, bids, asks), outcomeObj);
+            return this.safePredictionOrderBook(this.sortedOrders(this.safeString(outcomeObj, "outcome", outcome), null, bids, asks), outcomeObj);
         }).thenApply(PredictionOrderBook::new);
 
     }

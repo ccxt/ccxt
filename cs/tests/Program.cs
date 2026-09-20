@@ -147,6 +147,7 @@ public class Tests
                 WsOrderBookCopyAtomicityTests();
                 await WsClientKeepAliveLivenessTests();
                 await WsClientKeepAliveTimeoutTests();
+                await WsClientRetirementRaceTests();
                 Helper.Green("[C#] base WS tests passed");
             }
             else
@@ -218,6 +219,12 @@ public class Tests
     {
         baseTestInstance.testWsOrderBook();
         Helper.Green(" [C#] OrderBook tests passed");
+    }
+
+    static async Task WsClientRetirementRaceTests()
+    {
+        await baseTestInstance.testWsClientRetirementRace();
+        Helper.Green(" [C#] WebSocketClient retirement race tests passed");
     }
 
     static void RaceConditionTests()

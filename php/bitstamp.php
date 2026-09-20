@@ -1326,6 +1326,7 @@ class bitstamp extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
          * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
@@ -1337,24 +1338,44 @@ class bitstamp extends Exchange {
             'step' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         $duration = $this->parse_timeframe($timeframe);
+        $until = $this->safe_integer($params, 'until');
+        $untilIsDefined = ($until !== null);
         if ($limit === null) {
+            $limit = 1000;
             if ($since === null) {
-                $request['limit'] = 1000; // we need to specify an allowed amount of `limit` if no `since` is set and there is no default limit by exchange
+                $request['limit'] = $limit;
+                if ($untilIsDefined) {
+                    $end = $this->parse_to_int($until / 1000);
+                    $request['start'] = $end - ($duration * $limit) - 1;
+                    $request['end'] = $end;
+                }
             } else {
-                $limit = 1000;
                 $start = $this->parse_to_int($since / 1000);
                 $request['start'] = $start;
-                $request['end'] = $this->sum($start, $duration * ($limit - 1));
+                if ($untilIsDefined) {
+                    $request['end'] = $this->parse_to_int($until / 1000);
+                } else {
+                    $request['end'] = $this->sum($start, $duration * $limit - 1);
+                }
                 $request['limit'] = $limit;
             }
         } else {
             if ($since !== null) {
                 $start = $this->parse_to_int($since / 1000);
                 $request['start'] = $start;
-                $request['end'] = $this->sum($start, $duration * ($limit - 1));
+                $end = $this->sum($start, $duration * $limit - 1);
+                if ($untilIsDefined) {
+                    $end = min($end, $this->parse_to_int($until / 1000));
+                }
+                $request['end'] = $end;
+            } elseif ($untilIsDefined) {
+                $end = $this->parse_to_int($until / 1000);
+                $request['end'] = $end;
+                $request['start'] = $end - ($duration * $limit) - 1;
             }
             $request['limit'] = min($limit, 1000); // min 1, max 1000
         }
+        $params = $this->omit($params, 'until');
         $response = $this->publicGetOhlcPair($this->extend($request, $params));
         //
         //     {
