@@ -239,7 +239,7 @@ public partial class hashkey : ccxt.hashkey
         //     }
         //
         List<object> data = this.safeList(message, "data", new List<object>() {});
-        Dictionary<string, object> ticker = this.parseTicker(this.safeDict(data, 0));
+        Dictionary<string, object> ticker = this.parseTicker(this.safeDict(data, 0, new Dictionary<string, object>() {}));
         string? symbol = ((string)(ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("symbol") ? ((IDictionary<string, object>)ticker)["symbol"] : null));
         string messageHash = ("ticker:" + symbol);
         ((IDictionary<string,object>)this.tickers)[(string)((string)symbol)] = ticker;

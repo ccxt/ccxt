@@ -1366,7 +1366,7 @@ public partial class bybit : ccxt.bybit
         //     }
         //
         string? id = this.safeStringN(trade, new List<object>() {"i", "T", "v"});
-        bool isContract = (inOp(trade, "BT"));
+        bool isContract = ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("BT")));
         object marketType = isContract ? "contract" : "spot";
         if ((market != null))
         {

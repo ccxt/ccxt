@@ -708,7 +708,7 @@ public partial class coinmate : Exchange
         for (int i = 0; i < keys.Count; i++)
         {
             Dictionary<string, object> market = this.market(keys[i]);
-            Dictionary<string, object> ticker = this.parseTicker(this.safeDict(data, keys[i]), market);
+            Dictionary<string, object> ticker = this.parseTicker(this.safeValue(data, keys[i]), market);
             ((IDictionary<string,object>)result)[(string)(market.ContainsKey("symbol") ? market["symbol"] : null)] = ticker;
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbols));
@@ -969,7 +969,7 @@ public partial class coinmate : Exchange
         //         }
         //     }
         //
-        IDictionary<string, object> data = this.safeDict(response, "data");
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         IDictionary<string, object> transaction = ((IDictionary<string, object>)this.parseTransaction(data, currency));
         bool? fillResponseFromRequest = this.safeBool(withdrawOptions, "fillResponseFromRequest", true);
         if ((fillResponseFromRequest == true))

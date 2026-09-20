@@ -2437,7 +2437,7 @@ public partial class xt : Exchange
         //
         string? marketId = this.safeString(ticker, "s");
         object marketType = ((market != null)) ? getValue(market, "type") : null;
-        bool hasSpotKeys = (inOp(ticker, "cv")) || (inOp(ticker, "aq"));
+        bool hasSpotKeys = ((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("cv"))) || ((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("aq")));
         if ((marketType == null))
         {
             marketType = hasSpotKeys ? "spot" : "contract";
@@ -2799,7 +2799,7 @@ public partial class xt : Exchange
         //
         string? marketId = this.safeString2(trade, "s", "symbol");
         object marketType = ((market != null)) ? getValue(market, "type") : null;
-        bool hasSpotKeys = (inOp(trade, "b")) || (inOp(trade, "bizType")) || (inOp(trade, "oi"));
+        bool hasSpotKeys = ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("b"))) || ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("bizType"))) || ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("oi")));
         if ((marketType == null))
         {
             marketType = hasSpotKeys ? "spot" : "contract";

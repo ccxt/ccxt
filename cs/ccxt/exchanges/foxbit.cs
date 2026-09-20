@@ -2114,7 +2114,7 @@ public partial class foxbit : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override object parseTransaction(object transaction, object currency = null)
+    public override object parseTransaction(object transaction, object currency = null, object since = null, object limit = null)
     {
         IDictionary<string, object> cryptoDetails = this.safeDict(transaction, "details_crypto");
         string? address = this.safeString2(cryptoDetails, "receiving_address", "destination_address");

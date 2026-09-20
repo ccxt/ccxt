@@ -1721,19 +1721,19 @@ public partial class binance : ccxt.binance
             }
         }
         string? marketId = this.safeString(trade, "s");
-        string fallbackType = (inOp(trade, "ps")) ? "contract" : "spot";
+        string fallbackType = ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("ps"))) ? "contract" : "spot";
         object marketType = ((market != null)) ? getValue(market, "type") : fallbackType;
         string? symbol = this.safeSymbol(marketId, market, null, marketType);
         string? side = this.safeStringLower(trade, "S");
         string? takerOrMaker = null;
         string? orderId = this.safeString(trade, "i");
-        if (inOp(trade, "m"))
+        if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("m")))
         {
             if ((side == null))
             {
-                side = (isEqual(getValue(trade, "m"), true)) ? "sell" : "buy"; // this is reversed intentionally
+                side = (isEqual(((IDictionary<string,object>)trade)["m"], true)) ? "sell" : "buy"; // this is reversed intentionally
             }
-            takerOrMaker = (isEqual(getValue(trade, "m"), true)) ? "maker" : "taker";
+            takerOrMaker = (isEqual(((IDictionary<string,object>)trade)["m"], true)) ? "maker" : "taker";
         }
         Dictionary<string, object> fee = null;
         string? feeCost = this.safeString(trade, "n");
@@ -5228,7 +5228,7 @@ public partial class binance : ccxt.binance
         string? executionType = this.safeString(order, "x");
         string? marketId = this.safeString(order, "s");
         // futures user-data events carry the position side field, spot ones do not
-        string marketType = (inOp(order, "ps")) ? "contract" : "spot";
+        string marketType = ((order != null && ((IDictionary<string, object>)order).ContainsKey("ps"))) ? "contract" : "spot";
         string? symbol = this.safeSymbol(marketId, null, null, marketType);
         Int64? timestamp = this.safeInteger(order, "O");
         Int64? T = this.safeInteger(order, "T");

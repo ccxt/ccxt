@@ -1001,7 +1001,7 @@ public partial class xt : ccxt.xt
         //       }
         //    }
         //
-        IDictionary<string, object> data = this.safeDict(message, "data");
+        IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         string? marketId = this.safeString(data, "s");
         if ((marketId != null))
         {
@@ -1222,7 +1222,7 @@ public partial class xt : ccxt.xt
         //        }
         //    }
         //
-        IDictionary<string, object> data = this.safeDict(message, "data");
+        IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         string? marketId = this.safeStringLower(data, "s");
         if ((marketId != null))
         {

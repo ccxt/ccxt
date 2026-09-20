@@ -12531,7 +12531,7 @@ public partial class kucoin : Exchange
         //        "msg":"Position does not exist"
         //    }
         //
-        IDictionary<string, object> data = this.safeDict(response, "data");
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.extend(this.parseMarginModification(data, market), new Dictionary<string, object>() {
             { "amount", this.amountToPrecision(symbol, amount) },
             { "direction", "in" },
