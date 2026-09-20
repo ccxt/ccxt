@@ -12759,17 +12759,17 @@ public Object describe()
     public void cleanUnsubscription(Client client, String subHash, String unsubHash, Object... optionalArgs)
     {
         Object subHashIsPrefix = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : false;
-        if ((!java.util.Objects.equals(unsubHash, null)) && (((Map<?, ?>)client.subscriptions).containsKey(unsubHash)))
+        if ((!java.util.Objects.equals(unsubHash, null)) && (Helpers.inOp(client.subscriptions, unsubHash)))
         {
             ((Map<String,Object>)client.subscriptions).remove((String)unsubHash);
         }
         if (!Helpers.isTrue(subHashIsPrefix))
         {
-            if ((!java.util.Objects.equals(subHash, null)) && (((Map<?, ?>)client.subscriptions).containsKey(subHash)))
+            if ((!java.util.Objects.equals(subHash, null)) && (Helpers.inOp(client.subscriptions, subHash)))
             {
                 ((Map<String,Object>)client.subscriptions).remove((String)subHash);
             }
-            if ((!java.util.Objects.equals(subHash, null)) && (((Map<?, ?>)client.futures).containsKey(subHash)))
+            if ((!java.util.Objects.equals(subHash, null)) && (Helpers.inOp(client.futures, subHash)))
             {
                 var error = new UnsubscribeError(((this.id + " ") + subHash));
                 client.reject(error, subHash);
