@@ -1238,9 +1238,10 @@ const GO_TESTS_PREFIX = './go/tests';
 // which resolves in package ccxt (go/v4) only. The test tier is a separate package
 // (`go/tests/base`, `go/tests/exchange`) that imports ccxt by name, so its copy of the same
 // call must carry the qualifier — otherwise `go build ./tests/main.go` fails with
-// "undefined: DerefScalar". Hand-edit-free: the same call is qualified once, here.
+// "undefined: DerefScalar". Files whose package does not import ccxt at all (the cache
+// tier) keep the bare call: that package's hand-written helper.go aliases it instead.
 function qualifyCcxtHelpersInTests (path: string, content: string): string {
-    if (!path.startsWith (GO_TESTS_PREFIX)) {
+    if (!path.startsWith (GO_TESTS_PREFIX) || !content.includes ('"github.com/ccxt/ccxt/go/v4"')) {
         return content;
     }
     return content.replace (/(?<![.\w])DerefScalar\(/g, 'ccxt.DerefScalar(');
