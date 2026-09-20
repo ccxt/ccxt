@@ -1662,7 +1662,7 @@ pub fn run() -> Result<usize, String> {
         ("a fee the router already subtracted is not subtracted a second time", Box::new(|| fee_is_not_subtracted_twice(&router()?))),
         ("a router that ignored the balances is caught, including when the wallet is empty", Box::new(|| balances_echo_is_verified(&router()?))),
         ("streamUrl upgrades the scheme, and close codes keep the REST vocabulary", Box::new(|| stream_url_and_close_codes(&router()?))),
-        ("execute: dry_run is the default and a forgotten live flag places nothing", Box::new(|| dry_run_places_nothing(&router()?))),
+        ("execute: a rehearsal is asked for by dryRun and places nothing", Box::new(|| dry_run_places_nothing(&router()?))),
         ("execute: an unknown strategy is refused even in dry run", Box::new(|| an_unknown_strategy_is_refused_even_in_dry_run(&router()?))),
         ("execute: sequential places IOC limit orders in plan order", Box::new(|| sequential_places_and_fills(&router()?))),
         ("execute: a failure BEFORE dispatch records no open order", Box::new(|| a_failure_before_dispatch_records_no_open_order(&router()?))),
@@ -1951,31 +1951,33 @@ fn execute_options(live: bool, strategy: &str) -> Value {
     markets.insert("stub".to_string(), Value::Map(by_symbol));
     let mut options = HashMap::new();
     options.insert("strategy".to_string(), Value::Str(strategy.to_string()));
-    options.insert("live".to_string(), Value::Bool(live));
+    //  ONE knob: `dryRun` says whether, `strategy` says how. The helper keeps its
+    //  live-shaped argument so every call site still reads the way it did — live=false
+    //  means rehearse — and expresses it with the field the implementation now reads.
+    options.insert("dryRun".to_string(), Value::Bool(!live));
     options.insert("usdRates".to_string(), Value::Map(usd_rates));
     options.insert("markets".to_string(), Value::Map(markets));
     Value::Map(options)
 }
 
 fn dry_run_places_nothing(r: &OrderRouter) -> Result<(), String> {
-    // The default, and the one that matters most: a caller who forgets `live`
-    // must get a rehearsal, not a trade. Asserted by counting createOrder calls
-    // rather than by reading the report, because the report is exactly what a
-    // buggy implementation would still fill in correctly.
+    // Asserted by counting createOrder calls rather than by reading the report,
+    // because the report is exactly what a buggy implementation would still fill
+    // in correctly. Placing is the DEFAULT now; this is the opt-out.
     let plan = one_leg_plan(r)?;
     let venue = StubVenue::new("stub");
     let counter = StdArc::clone(&venue.orders_placed);
     let mut venues: BTreeMap<String, Box<dyn RouterVenue>> = BTreeMap::new();
     venues.insert("stub".to_string(), Box::new(venue));
 
-    // strategy: sequential, but live is FALSE — this is the forgotten-flag case.
+    // strategy: sequential, but dryRun is TRUE — how and whether are independent.
     let report = block_on(r.execute(&plan, &venues, &execute_options(false, "sequential")))
         .map_err(|e| e.to_string())?;
     if counter.load(Ordering::SeqCst) != 0 {
         return Err("a non-live execute placed an order".to_string());
     }
-    if r.string_at(&report, "strategy", "") != "dry_run" {
-        return Err("live=false must force dry_run".to_string());
+    if r.string_at(&report, "strategy", "") != "sequential" {
+        return Err("the strategy survives the rehearsal: how is not what".to_string());
     }
     if !r.bool_at(&report, "dryRun", false) {
         return Err("the report must say it was a dry run".to_string());

@@ -127,7 +127,10 @@ class OrderRouter {
         'price_precision' => 'the limit price does not sit on the market price precision',
     );
 
-    const KNOWN_STRATEGIES = array('dry_run', 'sequential', 'parallel_within_hop', 'limit_protected', 'best_effort', 'atomic_ish');
+    //  HOW the orders go out, and nothing else. Whether they go out at all is `dryRun`, which
+    //  is a separate question: 'rehearse a limit_protected run' has to be sayable, and it is not
+    //  if the two share one field.
+    const KNOWN_STRATEGIES = array('sequential', 'parallel_within_hop', 'limit_protected', 'best_effort', 'atomic_ish');
 
     //  the query keys forwarded to GET /route, in a fixed order so that two ports
     //  build a byte-identical URL
@@ -163,6 +166,9 @@ class OrderRouter {
             $baseUrl = substr($baseUrl, 0, strlen($baseUrl) - 1);
         }
         $this->baseUrl = $baseUrl;
+        //  The venues this router trades through, held once instead of passed to every call.
+        //  fetchRoute and execute both fall back to these; a call-site argument always wins.
+        $this->venues = $this->dictAt($config, 'venues');
         $this->timeoutMs = $this->numberAt($config, 'timeoutMs', self::DEFAULT_TIMEOUT_MS);
         $maxNotionalUsd = $this->numberAt($config, 'maxNotionalUsd', self::NO_CAP);
         if ($maxNotionalUsd < 0) {
@@ -602,6 +608,25 @@ class OrderRouter {
             throw new ArgumentsRequired('fetchRoute requires fromAsset and toAsset');
         }
         $this->assertRouteAmounts($params, 'fetchRoute');
+        //  THE STORED VENUES ANSWER TWO QUESTIONS HERE, and a caller-supplied value wins both.
+        //  `exchanges` is cheap and always right; `balances` reads every venue's wallet, so it
+        //  happens only when venues were handed to the router and the caller supplied none.
+        $storedIds = array_keys($this->venues);
+        sort($storedIds, SORT_STRING);
+        if (count($storedIds) > 0) {
+            $merged = array();
+            foreach ($params as $key => $value) {
+                $merged[$key] = $value;
+            }
+            if (!isset($merged['exchanges'])) {
+                $merged['exchanges'] = implode(',', $storedIds);
+            }
+            if (!isset($merged['balances'])) {
+                $collected = $this->collectBalances($this->venues);
+                $merged['balances'] = $collected['balances'];
+            }
+            $params = $merged;
+        }
         //  HOLDINGS NEVER TRAVEL IN A URL. The service scrubs balances out of its own
         //  logs, but a URL does not stay inside that process: the standard deployment
         //  puts a reverse proxy in front, and nginx, an ALB and a CDN all log the full
@@ -1065,7 +1090,11 @@ class OrderRouter {
      *     bool requireBalancesApplied throw when the router did not echo balancesApplied, default true
      * @return array the RouteResult, with the client-side keys balancesUsed and balancesDropped added
      */
-    public function fetchRouteWithBalances($fromAsset, $toAsset, $venues, $params = array()) {
+    /**
+     * @ignore
+     * reads every supplied venue's wallet and renders it as the router's balances string
+     */
+    public function collectBalances($venues) {
         $this->assertSyncVenues($venues);
         $exchangeIds = array_keys($venues);
         sort($exchangeIds, SORT_STRING);
@@ -1125,6 +1154,17 @@ class OrderRouter {
             $dropped[] = $removed;
             $balances = $this->joinBalances($entries);
         }
+        return array('balances' => $balances, 'dropped' => $dropped);
+    }
+
+    public function fetchRouteWithBalances($fromAsset, $toAsset, $venues = array(), $params = array()) {
+        $this->assertSyncVenues($venues);
+        if (count($venues) === 0) {
+            $venues = $this->venues;
+        }
+        $collected = $this->collectBalances($venues);
+        $balances = $this->stringAt($collected, 'balances', '');
+        $dropped = $this->listAt($collected, 'dropped');
         $routeParams = array();
         $keys = array_keys($params);
         for ($i = 0; $i < count($keys); $i++) {
@@ -2041,7 +2081,12 @@ class OrderRouter {
         return $value;
     }
 
-    public function execute($plan, $venues, $options = array()) {
+    public function execute($plan, $venues = array(), $options = array()) {
+        //  the argument wins; the router's own venues are the fallback. Nothing is ever
+        //  CONSTRUCTED here - this is the money path.
+        if (count($venues) === 0) {
+            $venues = $this->venues;
+        }
         $this->assertSyncVenues($venues);
         //  A ROUTE is accepted here as well as a plan. buildExecutionPlan is pure and derives
         //  entirely from the route, so requiring the caller to run it first was ceremony: two
@@ -2051,15 +2096,20 @@ class OrderRouter {
         if (count($this->listAt($plan, 'steps')) === 0 && count($this->listAt($plan, 'hops')) > 0) {
             $plan = $this->buildExecutionPlan($plan, $options);
         }
-        $requestedStrategy = $this->stringAt($options, 'strategy', 'dry_run');
+        $requestedStrategy = $this->stringAt($options, 'strategy', 'sequential');
         if (!in_array($requestedStrategy, self::KNOWN_STRATEGIES, true)) {
             throw new BadRequest('OrderRouter: unknown execution strategy ' . $requestedStrategy);
         }
-        $live = ($this->fieldAt($options, 'live') === true);
-        //  THE default. Anything short of an explicit true is a rehearsal.
-        $strategy = $live ? $requestedStrategy : 'dry_run';
+        //  PLACING IS THE DEFAULT. `execute` is an imperative verb, and ccxt's own createOrder
+        //  needs no permission flag beside it; a method that silently does nothing is the same
+        //  failure this class guards against everywhere else. The guardrails that do the work
+        //  all still run BEFORE anything is sent.
+        //
+        //  ONE knob, not two. `strategy` says only HOW, `dryRun` says only WHETHER.
+        $strategy = $requestedStrategy;
+        $dryRun = ($this->fieldAt($options, 'dryRun') === true);
         $steps = $this->cloneSteps($plan);
-        $report = $this->emptyReport($plan, $strategy, $requestedStrategy, $live, $steps);
+        $report = $this->emptyReport($plan, $strategy, $dryRun, $steps);
         //  resolved from BOTH the plan and the options, so a hand-assembled plan can carry an
         //  identity too; reported on every report, rehearsals included
         $planId = $this->planIdentity($plan, $options);
@@ -2075,7 +2125,7 @@ class OrderRouter {
         $planAgeMs = ($calculatedAt > 0) ? ($this->nowMs() - $calculatedAt) : -1;
         $report['planAgeMs'] = $planAgeMs;
         $maxPlanAgeMs = $this->numberAt($options, 'maxPlanAgeMs', 0);
-        if ($live && $maxPlanAgeMs > 0) {
+        if (!$dryRun && $maxPlanAgeMs > 0) {
             if ($planAgeMs < 0) {
                 throw new ExchangeError('OrderRouter: refusing to execute, the plan carries no calculatedAt and maxPlanAgeMs was set');
             }
@@ -2083,7 +2133,7 @@ class OrderRouter {
                 throw new ExchangeError('OrderRouter: refusing to execute a plan older than maxPlanAgeMs, recompute the route');
             }
         }
-        if ($strategy === 'dry_run') {
+        if ($dryRun) {
             //  not one call is made against a venue on this path, not even a read
             $report['wouldPlaceOrders'] = count($steps);
             return $report;
@@ -2257,7 +2307,7 @@ class OrderRouter {
      * @param array $steps the working copy of the plan's steps
      * @return array the report
      */
-    public function emptyReport($plan, $strategy, $requestedStrategy, $live, $steps) {
+    public function emptyReport($plan, $strategy, $dryRun, $steps) {
         $results = array();
         for ($i = 0; $i < count($steps); $i++) {
             $step = $steps[$i];
@@ -2290,9 +2340,8 @@ class OrderRouter {
             //  options and overwrites it before anything reads this field
             'planId' => '',
             'strategy' => $strategy,
-            'requestedStrategy' => $requestedStrategy,
-            'dryRun' => ($strategy === 'dry_run'),
-            'live' => $live,
+            'dryRun' => $dryRun,
+            'live' => !$dryRun,
             'from' => $this->stringAt($plan, 'from', ''),
             'to' => $this->stringAt($plan, 'to', ''),
             'slippageBps' => $this->numberAt($plan, 'slippageBps', self::DEFAULT_SLIPPAGE_BPS),

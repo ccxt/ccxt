@@ -13,9 +13,8 @@
 // checkExecutionPlanSafety) for when you want to inspect or change what happens
 // in between; see order-router-custom-plan.ts. You just don't have to.
 //
-// This example PLACES NOTHING: execute defaults to dry_run, and anything short
-// of an explicit `live: true` stays a rehearsal, so a call that looks live but
-// forgot the flag places nothing.
+// THIS EXAMPLE PLACES NOTHING because it passes `dryRun: true`. Take that line
+// out and it trades: execute places orders by default, exactly like createOrder.
 //
 // Usage:
 //   npm run tsBuild && node js/examples/ts/order-router.js
@@ -68,14 +67,15 @@ async function main() {
             }
         }
     }
-    // Going live means real orders with real money: set `live: true`, read the
-    // strategy table in wiki/Manual.md first, and keep maxNotionalUsd on. The
-    // cap is opt-in and honoured exactly as passed; usdRates is what lets it be
-    // evaluated at all. A live run also needs an identity, which the route's
-    // requestId supplies, so a re-run cannot re-place a filled order.
+    // dryRun is the ONLY thing keeping this a rehearsal. Remove it and this places
+    // real orders with real money — read the strategy table in wiki/Manual.md
+    // first, and keep maxNotionalUsd on. The cap is opt-in and honoured exactly as
+    // passed; usdRates is what lets it be evaluated at all. A live run also needs
+    // an identity, which the route's requestId supplies, so a re-run cannot
+    // re-place a filled order.
     const report = await router.execute(route, venues, {
         'strategy': 'sequential',
-        'live': false,
+        'dryRun': true,
         'usdRates': { 'USDT': 1 },
         'maxNotionalUsd': 25,
         //  Called after each step completes and reconciles, never mid-order. Return 'halt' to
@@ -86,7 +86,7 @@ async function main() {
             return '';
         },
     });
-    console.log('strategy        ', report['strategy'], '(requested', report['requestedStrategy'] + ')');
+    console.log('strategy        ', report['strategy'], report['dryRun'] ? '(rehearsal)' : '(LIVE)');
     console.log('would place     ', report['wouldPlaceOrders'], 'order(s)');
     // -1 means the route carried no calculatedAt: unknown, not fresh.
     console.log('plan age        ', report['planAgeMs'], 'ms');

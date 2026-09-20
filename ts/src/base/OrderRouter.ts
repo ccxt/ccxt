@@ -67,7 +67,10 @@ const VIOLATION_MESSAGES: Dict = {
     'amount_precision': 'the amount does not sit on the market amount precision',
     'price_precision': 'the limit price does not sit on the market price precision',
 };
-const KNOWN_STRATEGIES = [ 'dry_run', 'sequential', 'parallel_within_hop', 'limit_protected', 'best_effort', 'atomic_ish' ];
+//  HOW the orders go out, and nothing else. Whether they go out at all is `dryRun`, which
+//  is a separate question: 'rehearse a limit_protected run' has to be sayable, and it is not
+//  if the two share one field.
+const KNOWN_STRATEGIES = [ 'sequential', 'parallel_within_hop', 'limit_protected', 'best_effort', 'atomic_ish' ];
 //  the query keys forwarded to GET /route, in a fixed order so that two ports
 //  build a byte-identical URL
 const ROUTE_QUERY_KEYS = [ 'amountIn', 'amountOut', 'strategy', 'maxVenues', 'bridges', 'exchanges', 'balances', 'balanceMode', 'includeQuotes', 'includeFees', 'certified', 'requireFullFill', 'hopPenaltyBps', 'minLegNotional' ];
@@ -132,6 +135,9 @@ class OrderRouter {
 
     baseUrl: string;
 
+    //  exchangeId -> ccxt exchange instance, optional. See the constructor.
+    venues: Dict;
+
     timeoutMs: number;
 
     maxNotionalUsd: number;
@@ -171,6 +177,12 @@ class OrderRouter {
             baseUrl = baseUrl.slice (0, baseUrl.length - 1);
         }
         this.baseUrl = baseUrl;
+        //  The venues this router trades through, held once instead of passed to every call.
+        //  They are the answer to three separate questions that were all being asked by hand:
+        //  which venues may a route name (you cannot trade where you hold no keys), what can
+        //  it be funded from, and where do the orders go. fetchRoute and execute both fall
+        //  back to these, and an argument passed at the call site always wins.
+        this.venues = this.dictAt (config, 'venues');
         this.timeoutMs = this.numberAt (config, 'timeoutMs', OrderRouter.DEFAULT_TIMEOUT_MS);
         const maxNotionalUsd = this.numberAt (config, 'maxNotionalUsd', OrderRouter.NO_CAP);
         if (maxNotionalUsd < 0) {
@@ -540,6 +552,34 @@ class OrderRouter {
             throw new ArgumentsRequired ('fetchRoute requires fromAsset and toAsset');
         }
         this.assertRouteAmounts (params, 'fetchRoute');
+        //  THE STORED VENUES ANSWER TWO QUESTIONS HERE, and a caller-supplied value wins both.
+        //
+        //  `exchanges` is the cheap one and the one that is always right: a route naming a
+        //  venue you hold no keys for is not a route you can take, and filtering costs nothing
+        //  — no network, nothing that can go stale.
+        //
+        //  `balances` is the expensive one: it reads every venue's wallet, so it happens only
+        //  when venues were handed to the router and the caller did not supply holdings of
+        //  their own. It is what turns "the best price anywhere" into "the best price you can
+        //  actually fund". Pass balances yourself, or construct the router without venues, to
+        //  keep a quote to a single HTTP call.
+        const storedIds = Object.keys (this.venues);
+        storedIds.sort ();
+        if (storedIds.length > 0) {
+            const merged: Dict = {};
+            const given = Object.keys (params);
+            for (let i = 0; i < given.length; i++) {
+                merged[given[i]] = params[given[i]];
+            }
+            if (merged['exchanges'] === undefined || merged['exchanges'] === null) {
+                merged['exchanges'] = storedIds.join (',');
+            }
+            if (merged['balances'] === undefined || merged['balances'] === null) {
+                const collected = await this.collectBalances (this.venues);
+                merged['balances'] = collected['balances'];
+            }
+            params = merged;
+        }
         //  HOLDINGS NEVER TRAVEL IN A URL. The service scrubs balances out of its own
         //  logs, but a URL does not stay inside that process: the standard deployment
         //  puts a reverse proxy in front, and nginx, an ALB and a CDN all log the full
@@ -1227,12 +1267,20 @@ class OrderRouter {
      * @description reads the live balances of the supplied venues, sends them to the router, and returns a route you can actually fund
      * @param {string} fromAsset the asset being spent
      * @param {string} toAsset the asset being acquired
-     * @param {object} venues a dictionary of exchangeId to a ccxt exchange instance
+     * @param {object} [venues] a dictionary of exchangeId to a ccxt exchange instance; defaults to the venues the router was constructed with
      * @param {object} params the same parameters fetchRoute accepts, minus balances which this method builds
      * @param {bool} [params.requireBalancesApplied] throw when the router did not echo balancesApplied, default true
      * @returns {object} the RouteResult, with the client-side keys balancesUsed and balancesDropped added
      */
-    async fetchRouteWithBalances (fromAsset: string, toAsset: string, venues: Dict, params: Dict = {}): Promise<Dict> {
+    /**
+     * @method
+     * @name OrderRouter#collectBalances
+     * @ignore
+     * @description reads every supplied venue's wallet and renders it as the router's balances string, trimmed to the router's caps
+     * @param {object} venues a dictionary of exchangeId to a ccxt exchange instance
+     * @returns {object} balances, the rendered string, and dropped, the entries that did not fit
+     */
+    async collectBalances (venues: Dict): Promise<Dict> {
         const exchangeIds = Object.keys (venues);
         exchangeIds.sort ();
         const entries: Dict[] = [];
@@ -1289,6 +1337,18 @@ class OrderRouter {
             dropped.push (removed);
             balances = this.joinBalances (entries);
         }
+        return { 'balances': balances, 'dropped': dropped };
+    }
+
+    async fetchRouteWithBalances (fromAsset: string, toAsset: string, venues: Dict, params: Dict = {}): Promise<Dict> {
+        //  the venues argument wins; the router's own are the fallback, so a router built with
+        //  venues can be asked for a funded route without naming them again
+        if (Object.keys (venues).length === 0) {
+            venues = this.venues;
+        }
+        const collected = await this.collectBalances (venues);
+        const balances = this.stringAt (collected, 'balances', '');
+        const dropped = this.listAt (collected, 'dropped');
         const routeParams: Dict = {};
         const keys = Object.keys (params);
         for (let i = 0; i < keys.length; i++) {
@@ -2131,14 +2191,14 @@ class OrderRouter {
     /**
      * @method
      * @name OrderRouter#execute
-     * @description executes a plan against live exchange instances. THE ONLY IMPURE METHOD. dry_run is the default and options.live !== true forces dry_run regardless of the strategy requested, so a call that looks live but forgot the flag places nothing
+     * @description executes a plan against live exchange instances. THE ONLY IMPURE METHOD, and IT PLACES ORDERS: calling it is the instruction, there is no permission flag beside it. Pass options.dryRun true to rehearse instead, which makes not one call against a venue
      * @param {object} plan a RouteResult from fetchRoute, a plan from buildExecutionPlan, or a caller-assembled plan of the same shape — this method never assumes it came from the routing service. A route is turned into a plan here, so the simple path is fetchRoute then execute; build the plan yourself when you want to inspect or change it first
      * @param {object} venues a dictionary of exchangeId to a ccxt exchange instance
      * @param {object} [options] execution options
-     * @param {string} [options.strategy] dry_run, sequential, parallel_within_hop, limit_protected, best_effort or atomic_ish
+     * @param {string} [options.strategy] HOW the orders go out: sequential (the default), parallel_within_hop, limit_protected, best_effort or atomic_ish. Whether they go out at all is options.dryRun
      * @param {float} [options.slippageBps] only when a route is passed: how far the limit sits from the expected price, default 25
      * @param {float} [options.reconcileToleranceRatio] only when a route is passed: the shortfall ratio reconcileExecutionStep halts on, default 0.02
-     * @param {bool} [options.live] must be exactly true for any order to be placed
+     * @param {bool} [options.dryRun] exactly true rehearses: the plan is built, checked and reported on, and not one call is made against a venue. Anything else, including absent, PLACES ORDERS
      * @param {object} [options.usdRates] currency code to USD price, required when live because the notional cap cannot be enforced without it
      * @param {bool} [options.allowMarketOrders] permit a market order when the venue cannot do IOC, default false
      * @param {int} [options.maxOrders] hard order-count cap, required by best_effort
@@ -2153,7 +2213,13 @@ class OrderRouter {
      * @param {function} [options.onStep] called after each step completes and reconciles, never mid-order, with one event object describing that step. Return 'halt' to stop the route cleanly (haltReason becomes halted_by_on_step); any other value continues. It can only STOP a route, never resume one already halted. Do NO network I/O here — it sits between orders on the money path. A hook that throws is recorded as on_step_hook_failed and the run continues, because losing the report would destroy the only account of orders that are already live
      * @returns {object} an execution report with per-step results, openOrders, errors and the halt verdict
      */
-    async execute (plan: Dict, venues: Dict, options: Dict = {}): Promise<Dict> {
+    async execute (plan: Dict, venues: Dict = {}, options: Dict = {}): Promise<Dict> {
+        //  the argument wins; the router's own venues are the fallback. Nothing is ever
+        //  CONSTRUCTED here — an exchange instance the caller never made is one whose
+        //  credentials they never chose, and this is the money path.
+        if (Object.keys (venues).length === 0) {
+            venues = this.venues;
+        }
         //  A ROUTE is accepted here as well as a plan. buildExecutionPlan is pure and derives
         //  entirely from the route, so requiring the caller to run it first was ceremony: two
         //  calls that can only ever happen in that order, with nothing to do in between unless
@@ -2164,15 +2230,26 @@ class OrderRouter {
         if (this.listAt (plan, 'steps').length === 0 && this.listAt (plan, 'hops').length > 0) {
             plan = this.buildExecutionPlan (plan, options);
         }
-        const requestedStrategy = this.stringAt (options, 'strategy', 'dry_run');
+        const requestedStrategy = this.stringAt (options, 'strategy', 'sequential');
         if (KNOWN_STRATEGIES.indexOf (requestedStrategy) < 0) {
             throw new BadRequest ('OrderRouter: unknown execution strategy ' + requestedStrategy);
         }
-        const live = (options['live'] === true);
-        //  THE default. Anything short of an explicit true is a rehearsal.
-        const strategy = live ? requestedStrategy : 'dry_run';
+        //  PLACING IS THE DEFAULT. `execute` is an imperative verb, and ccxt's own createOrder
+        //  needs no permission flag beside it; a method that silently does nothing is the same
+        //  failure this class guards against everywhere else — a caller who believes they
+        //  traded and did not. The guardrails that actually do the work are elsewhere and all
+        //  still run BEFORE anything is sent: the notional cap, the plan-age check, the safety
+        //  check that throws on a blocking violation, and the re-execution ledger.
+        //
+        //  ONE knob, not two. This used to be a `live` flag AND a `dry_run` member of the
+        //  strategy enum, which is one decision wearing two hats: it made 'rehearse a
+        //  limit_protected run' unsayable, and it forced a `requestedStrategy` field on every
+        //  report to recover the strategy the conflation had overwritten. `strategy` now says
+        //  only HOW, `dryRun` says only WHETHER, and the report needs no second strategy field.
+        const strategy = requestedStrategy;
+        const dryRun = (options['dryRun'] === true);
         const steps = this.cloneSteps (plan);
-        const report = this.emptyReport (plan, strategy, requestedStrategy, live, steps);
+        const report = this.emptyReport (plan, strategy, dryRun, steps);
         //  resolved from BOTH the plan and the options, so a hand-assembled plan can carry an
         //  identity too; reported on every report, rehearsals included
         const planId = this.planIdentity (plan, options);
@@ -2190,7 +2267,7 @@ class OrderRouter {
         //  limit, because a freshness check that silently passes when the timestamp is missing is
         //  not a freshness check.
         const maxPlanAgeMs = this.numberAt (options, 'maxPlanAgeMs', 0);
-        if (live && maxPlanAgeMs > 0) {
+        if (!dryRun && maxPlanAgeMs > 0) {
             if (planAgeMs < 0) {
                 throw new ExchangeError ('OrderRouter: refusing to execute, the plan carries no calculatedAt and maxPlanAgeMs was set');
             }
@@ -2198,7 +2275,7 @@ class OrderRouter {
                 throw new ExchangeError ('OrderRouter: refusing to execute a plan older than maxPlanAgeMs, recompute the route');
             }
         }
-        if (strategy === 'dry_run') {
+        if (dryRun) {
             //  not one call is made against a venue on this path, not even a read
             report['wouldPlaceOrders'] = steps.length;
             return report;
@@ -2380,7 +2457,7 @@ class OrderRouter {
      * @param {object[]} steps the working copy of the plan's steps
      * @returns {object} the report
      */
-    emptyReport (plan: Dict, strategy: string, requestedStrategy: string, live: boolean, steps: Dict[]): Dict {
+    emptyReport (plan: Dict, strategy: string, dryRun: boolean, steps: Dict[]): Dict {
         const results: Dict[] = [];
         for (let i = 0; i < steps.length; i++) {
             const step = steps[i];
@@ -2413,9 +2490,8 @@ class OrderRouter {
             //  options and overwrites it before anything reads this field
             'planId': '',
             'strategy': strategy,
-            'requestedStrategy': requestedStrategy,
-            'dryRun': (strategy === 'dry_run'),
-            'live': live,
+            'dryRun': dryRun,
+            'live': !dryRun,
             'from': this.stringAt (plan, 'from', ''),
             'to': this.stringAt (plan, 'to', ''),
             'slippageBps': this.numberAt (plan, 'slippageBps', OrderRouter.DEFAULT_SLIPPAGE_BPS),

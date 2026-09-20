@@ -228,6 +228,14 @@ pub struct OrderRouter {
     /// field in this port and an options key in the other five. `execute` takes
     /// `&self`, so this is only ever read, never written, during a run.
     on_step: Option<OnStepHook>,
+
+    //  The venues this router trades through, held once instead of passed to every call.
+    //  Rust diverges from the other five ports HERE, and for the same reason it diverges
+    //  on the onStep hook: `Value` is a closed enum and cannot carry a `Box<dyn RouterVenue>`,
+    //  so they cannot arrive through the constructor config. The BEHAVIOUR is identical —
+    //  fetch_route filters and funds on them, execute falls back to them — only the
+    //  installation is a setter.
+    venues: std::collections::BTreeMap<String, Box<dyn RouterVenue>>,
 }
 
 // ---------------------------------------------------------------------------
@@ -422,6 +430,12 @@ impl OrderRouter {
     }
 
     /// Reads a boolean field, with a default for missing and null values.
+    /// Whether the key holds the boolean `true` and nothing else. A config that
+    /// stringifies its booleans must not silently stop trading, so `"true"` is NOT true here.
+    pub fn is_exactly_true(&self, container: &Value, key: &str) -> bool {
+        matches!(field(container, key), Some(Value::Bool(true)))
+    }
+
     pub fn bool_at(&self, container: &Value, key: &str, default_value: bool) -> bool {
         match field(container, key) {
             Some(Value::Bool(flag)) => *flag,
@@ -558,6 +572,7 @@ impl OrderRouter {
             now_ms_override: None,
             executed_plan_ids: std::sync::Mutex::new(ExecutedPlanLedger::new()),
             on_step: None,
+            venues: std::collections::BTreeMap::new(),
         };
         // The service dropped API keys in favour of per-IP rate limiting, so an empty key is
         // the normal case and must not error. A key supplied anyway is CARRIED rather than
@@ -587,6 +602,7 @@ impl OrderRouter {
             now_ms_override: None,
             executed_plan_ids: std::sync::Mutex::new(ExecutedPlanLedger::new()),
             on_step: None,
+            venues: std::collections::BTreeMap::new(),
         })
     }
 
@@ -600,6 +616,22 @@ impl OrderRouter {
     /// would destroy the only account of orders that are already live.
     pub fn set_on_step(&mut self, hook: OnStepHook) {
         self.on_step = Some(hook);
+    }
+
+    /// Installs the venues this router trades through. See the `venues` field for why this
+    /// is a setter in Rust and a constructor key everywhere else.
+    pub fn set_venues(&mut self, venues: std::collections::BTreeMap<String, Box<dyn RouterVenue>>) {
+        self.venues = venues;
+    }
+
+    /// Removes the stored venues, so fetch_route stops filtering and funding on them.
+    pub fn clear_venues(&mut self) {
+        self.venues = std::collections::BTreeMap::new();
+    }
+
+    /// The venues this router holds, empty when none were installed.
+    pub fn venues(&self) -> &std::collections::BTreeMap<String, Box<dyn RouterVenue>> {
+        &self.venues
     }
 
     /// Removes the `onStep` hook.
@@ -1941,6 +1973,29 @@ impl OrderRouter {
         to_asset: &str,
         params: &Value,
     ) -> RouterResult<Value> {
+        //  THE STORED VENUES ANSWER TWO QUESTIONS HERE, and a caller-supplied value wins both.
+        //  `exchanges` is cheap and always right: a route naming a venue you hold no keys for
+        //  is not a route you can take. `balances` reads every venue's wallet, so it happens
+        //  only when venues were installed and the caller supplied none of their own.
+        let owned_params;
+        let params = if self.venues.is_empty() {
+            params
+        } else {
+            let mut map = match params.as_map() {
+                Some(existing) => existing.clone(),
+                None => HashMap::new(),
+            };
+            if field(params, "exchanges").is_none() {
+                let ids: Vec<String> = self.venues.keys().cloned().collect();
+                map.insert("exchanges".into(), Value::Str(ids.join(",")));
+            }
+            if field(params, "balances").is_none() {
+                let (balances, _dropped) = self.collect_balances(&self.venues).await?;
+                map.insert("balances".into(), Value::Str(balances));
+            }
+            owned_params = Value::Map(map);
+            &owned_params
+        };
         // A request carrying no holdings still goes as a GET: cacheable,
         // linkable, and what every existing caller already uses. One that
         // carries them is POSTed — see build_route_body for why.
@@ -2238,8 +2293,9 @@ impl OrderRouter {
 
 /// The strategies `execute` accepts. Anything else is refused before a venue is
 /// touched, rather than silently falling through to a default.
-const KNOWN_STRATEGIES: [&str; 6] = [
-    "dry_run", "sequential", "parallel_within_hop", "limit_protected", "best_effort", "atomic_ish",
+//  HOW the orders go out, and nothing else. Whether they go out at all is `dryRun`.
+const KNOWN_STRATEGIES: [&str; 5] = [
+    "sequential", "parallel_within_hop", "limit_protected", "best_effort", "atomic_ish",
 ];
 
 impl OrderRouter {
@@ -2325,8 +2381,7 @@ impl OrderRouter {
         &self,
         plan: &Value,
         strategy: &str,
-        requested_strategy: &str,
-        live: bool,
+        dry_run: bool,
         steps: &[Value],
     ) -> Value {
         let mut results = Vec::new();
@@ -2362,9 +2417,8 @@ impl OrderRouter {
         // options and overwrites it before anything reads this field.
         report.insert("planId".into(), Value::Str(String::new()));
         report.insert("strategy".into(), Value::Str(strategy.to_string()));
-        report.insert("requestedStrategy".into(), Value::Str(requested_strategy.to_string()));
-        report.insert("dryRun".into(), Value::Bool(strategy == "dry_run"));
-        report.insert("live".into(), Value::Bool(live));
+        report.insert("dryRun".into(), Value::Bool(dry_run));
+        report.insert("live".into(), Value::Bool(!dry_run));
         report.insert("from".into(), Value::Str(self.string_at(plan, "from", "")));
         report.insert("to".into(), Value::Str(self.string_at(plan, "to", "")));
         report.insert("slippageBps".into(), Value::Float(self.number_at(plan, "slippageBps", DEFAULT_SLIPPAGE_BPS)));
@@ -3365,6 +3419,9 @@ impl OrderRouter {
         venues: &std::collections::BTreeMap<String, Box<dyn RouterVenue>>,
         options: &Value,
     ) -> RouterResult<Value> {
+        //  the argument wins; the router's own venues are the fallback. Nothing is ever
+        //  CONSTRUCTED here - this is the money path.
+        let venues = if venues.is_empty() { &self.venues } else { venues };
         //  A ROUTE is accepted here as well as a plan. buildExecutionPlan is pure and derives
         //  entirely from the route, so requiring the caller to run it first was ceremony: two
         //  calls that can only ever happen in that order, with nothing to do in between unless
@@ -3377,17 +3434,19 @@ impl OrderRouter {
         } else {
             plan
         };
-        let requested_strategy = self.string_at(options, "strategy", "dry_run");
+        let requested_strategy = self.string_at(options, "strategy", "sequential");
         if !KNOWN_STRATEGIES.contains(&requested_strategy.as_str()) {
             return Err(bad_request(&format!(
                 "OrderRouter: unknown execution strategy {requested_strategy}"
             )));
         }
-        let live = self.bool_at(options, "live", false);
-        // THE default. Anything short of an explicit true is a rehearsal.
-        let strategy = if live { requested_strategy.clone() } else { "dry_run".to_string() };
+        //  PLACING IS THE DEFAULT, and ONE knob decides it: `strategy` says only HOW,
+        //  `dryRun` says only WHETHER. The guardrails that do the work all still run
+        //  BEFORE anything is sent.
+        let strategy = requested_strategy.clone();
+        let dry_run = self.is_exactly_true(options, "dryRun");
         let mut steps = self.clone_steps(plan);
-        let mut report = self.empty_report(plan, &strategy, &requested_strategy, live, &steps);
+        let mut report = self.empty_report(plan, &strategy, dry_run, &steps);
         // Resolved from BOTH the plan and the options, so a hand-assembled plan can
         // carry an identity too; reported on every report, rehearsals included.
         let plan_id = self.plan_identity(plan, options);
@@ -3403,7 +3462,7 @@ impl OrderRouter {
         let plan_age_ms = if calculated_at > 0.0 { self.now_ms() - calculated_at } else { -1.0 };
         Self::put(&mut report, "planAgeMs", Value::Float(plan_age_ms));
         let max_plan_age_ms = self.number_at(options, "maxPlanAgeMs", 0.0);
-        if live && max_plan_age_ms > 0.0 {
+        if !dry_run && max_plan_age_ms > 0.0 {
             if plan_age_ms < 0.0 {
                 return Err(exchange_error("OrderRouter: refusing to execute, the plan carries no calculatedAt and maxPlanAgeMs was set"));
             }
@@ -3411,7 +3470,7 @@ impl OrderRouter {
                 return Err(exchange_error("OrderRouter: refusing to execute a plan older than maxPlanAgeMs, recompute the route"));
             }
         }
-        if strategy == "dry_run" {
+        if dry_run {
             // Not one call is made against a venue on this path, not even a read.
             Self::put(&mut report, "wouldPlaceOrders", Value::Float(steps.len() as f64));
             return Ok(report);
@@ -3618,14 +3677,12 @@ impl OrderRouter {
     /// The returned route carries two client-side additions: `balancesUsed`,
     /// the exact string sent, and `balancesDropped`, everything that did not fit
     /// and why.
-    pub async fn fetch_route_with_balances(
+    /// Reads every supplied venue's wallet and renders it as the router's balances string,
+    /// trimmed to the router's caps. Returns the string and the entries that did not fit.
+    pub async fn collect_balances(
         &self,
-        from_asset: &str,
-        to_asset: &str,
         venues: &std::collections::BTreeMap<String, Box<dyn RouterVenue>>,
-        params: &Value,
-    ) -> RouterResult<Value> {
-        let require_applied = self.bool_at(params, "requireBalancesApplied", true);
+    ) -> RouterResult<(String, Vec<Value>)> {
         let mut entries: Vec<Value> = Vec::new();
         let mut dropped: Vec<Value> = Vec::new();
         // BTreeMap iterates in key order, which is the sort the other five ports
@@ -3694,6 +3751,19 @@ impl OrderRouter {
             dropped.push(removed);
             balances = self.join_balances(&entries)?;
         }
+        Ok((balances, dropped))
+    }
+
+    pub async fn fetch_route_with_balances(
+        &self,
+        from_asset: &str,
+        to_asset: &str,
+        venues: &std::collections::BTreeMap<String, Box<dyn RouterVenue>>,
+        params: &Value,
+    ) -> RouterResult<Value> {
+        let require_applied = self.bool_at(params, "requireBalancesApplied", true);
+        let venues = if venues.is_empty() { &self.venues } else { venues };
+        let (balances, dropped) = self.collect_balances(venues).await?;
         let mut route_params = HashMap::new();
         if let Some(map) = params.as_map() {
             for (key, value) in map.iter() {

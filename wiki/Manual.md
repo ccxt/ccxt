@@ -8797,8 +8797,12 @@ plan can be inspected, logged, diffed and tested before anything is placed.
 
 ## Executing
 
-`execute` defaults to `dry_run`, and **`options.live !== true` forces `dry_run` regardless of the
-strategy requested** — a call that looks live but forgot the flag places nothing.
+**`execute` places orders.** Calling it is the instruction; there is no permission flag beside it,
+exactly as `createOrder` has none. Pass `dryRun: true` to rehearse instead, which makes not one
+call against a venue, not even a read.
+
+`strategy` and `dryRun` are independent on purpose: `strategy` says only HOW the orders go out,
+`dryRun` says only WHETHER. That is why rehearsing a `limit_protected` run is sayable.
 
 **The whole pipeline is two calls.** `execute` accepts the route itself, and does the rest: it
 builds the plan, loads each venue's markets if they are not loaded, runs `checkExecutionPlanSafety`
@@ -8809,8 +8813,7 @@ forget to read is not a refusal, so it is not returned for inspection — it is 
 const route = await router.fetchRoute ('USDT', 'BTC', { 'amountIn': 1000 });
 const report = await router.execute (route, { 'binance': binance, 'kraken': kraken }, {
     'strategy': 'sequential',
-    'live': true,
-    'usdRates': { 'USDT': 1 },
+        'usdRates': { 'USDT': 1 },
 });
 ```
 
@@ -8825,8 +8828,7 @@ const violations = router.checkExecutionPlanSafety (plan, markets, { 'maxNotiona
 if (violations.length === 0) {
     const report = await router.execute (plan, { 'binance': binance, 'kraken': kraken }, {
         'strategy': 'sequential',
-        'live': true,
-        'usdRates': { 'USDT': 1 },
+                'usdRates': { 'USDT': 1 },
     });
 }
 ```
@@ -8838,8 +8840,7 @@ When a route is passed, `buildExecutionPlan`'s own options — `slippageBps` and
 
 | Strategy | Behaviour |
 |---|---|
-| `dry_run` | the default; places nothing and returns the report it would have produced |
-| `sequential` | one order at a time in plan order, reconciling after each and obeying the halt verdict |
+| `sequential` | **the default.** One order at a time in plan order, reconciling after each and obeying the halt verdict |
 | `parallel_within_hop` | the legs of a hop concurrently, the hops strictly in order |
 | `limit_protected` | rests a limit order instead of taking, polling it every `pollIntervalMs` (default 1000, must be positive) until it fills or `orderTimeoutMs` (default 20000) elapses, then cancels. A partial fill is kept and reconciled; an order the venue already closed is not cancelled again; a cancel that fails is recorded in `openOrders` rather than assumed |
 | `atomic_ish` | sequential, but requires the whole route pre-funded so a hop's shortfall does not resize the next |
@@ -8929,8 +8930,7 @@ const plan = {
 };
 const report = await router.execute (plan, { 'binance': binance, 'kraken': kraken }, {
     'strategy': 'parallel_within_hop',
-    'live': true,
-    'usdRates': { 'USDT': 1 },
+        'usdRates': { 'USDT': 1 },
     'maxNotionalUsd': 25,
 });
 ```
@@ -8948,7 +8948,7 @@ of the same plan is refused before any venue is contacted.
 Supply it as `plan['requestId']` (routed plans carry one already) or as `options.idempotencyKey`:
 
 ```javascript
-await router.execute (plan, venues, { 'live': true, 'idempotencyKey': 'my-strategy-0001', ... });
+await router.execute (plan, venues, { 'idempotencyKey': 'my-strategy-0001', ... });
 ```
 
 Make it stable and unique to the *intent* — a strategy name plus a signal timestamp is a good one,
@@ -8985,7 +8985,7 @@ the route continues:
 #### **Javascript**
 ```javascript
 const report = await router.execute (plan, venues, {
-    'strategy': 'sequential', 'live': true, 'usdRates': { 'USDT': 1 },
+    'strategy': 'sequential', 'usdRates': { 'USDT': 1 },
     'onStep': (event) => {
         console.log (event['stepIndex'], event['status'], event['outAmount']);
         //  return 'halt' to stop the route; anything else continues
@@ -9000,13 +9000,13 @@ def on_step(event):
     return 'halt' if event['status'] == 'partial' else ''
 
 report = router.execute(plan, venues, {
-    'strategy': 'sequential', 'live': True, 'usdRates': {'USDT': 1}, 'onStep': on_step,
+    'strategy': 'sequential', 'usdRates': {'USDT': 1}, 'onStep': on_step,
 })
 ```
 #### **PHP**
 ```php
 $report = $router->execute($plan, $venues, array(
-    'strategy' => 'sequential', 'live' => true, 'usdRates' => array('USDT' => 1),
+    'strategy' => 'sequential', 'usdRates' => array('USDT' => 1),
     'onStep' => function ($event) {
         return $event['status'] === 'partial' ? 'halt' : '';
     },
@@ -9015,16 +9015,14 @@ $report = $router->execute($plan, $venues, array(
 #### **C#**
 ```csharp
 var report = await router.Execute(plan, venues, new Dictionary<string, object> {
-    { "strategy", "sequential" }, { "live", true },
-    { "onStep", (Func<IDictionary<string, object>, string>)(ev =>
+    { "strategy", "sequential" },     { "onStep", (Func<IDictionary<string, object>, string>)(ev =>
         (string)ev["status"] == "partial" ? "halt" : "") },
 });
 ```
 #### **Go**
 ```go
 report, err := router.Execute(plan, venues, map[string]any{
-    "strategy": "sequential", "live": true,
-    "onStep": func(event map[string]any) string {
+    "strategy": "sequential",     "onStep": func(event map[string]any) string {
         if event["status"] == "partial" { return "halt" }
         return ""
     },

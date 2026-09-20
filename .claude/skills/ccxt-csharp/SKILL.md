@@ -975,7 +975,6 @@ var route = await router.FetchRoute("USDT", "BTC", new dict() { { "amountIn", 10
 var venues = new Dictionary<string, Exchange>() { { "binance", binance }, { "kraken", kraken } };
 var report = await router.Execute(route, venues, new dict() {
     { "strategy", "sequential" },
-    { "live", true },
     { "usdRates", new dict() { { "USDT", 1 } } },
 });
 // want to see or change the plan first? the steps in between are public and PURE (no I/O):
@@ -1075,7 +1074,7 @@ reconciliation — never mid-order — and its return value decides whether the 
 
 ```csharp
 var report = await router.Execute(plan, venues, new Dictionary<string, object> {
-    { "strategy", "sequential" }, { "live", true },
+    { "strategy", "sequential" },
     { "retryFailedSteps", 2 },        // only a DEFINITIVELY REJECTED step is retried
     { "onStep", (Func<IDictionary<string, object>, string>)(ev =>
         (string)ev["status"] == "partial" ? "halt" : "") },   // "halt" stops the route
@@ -1129,7 +1128,7 @@ var plan = new Dictionary<string, object> {
     } },
 };
 var report = await router.Execute(plan, venues, new Dictionary<string, object> {
-    { "strategy", "sequential" }, { "live", true }, { "maxNotionalUsd", 25 },
+    { "strategy", "sequential" }, { "maxNotionalUsd", 25 },
 });
 ```
 

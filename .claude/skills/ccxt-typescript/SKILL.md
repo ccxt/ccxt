@@ -1004,7 +1004,6 @@ console.log (route['effectiveRate'], route['impactBps'], route['fillRatio']);
 //  runs the safety check itself, refusing to place anything on a blocking violation
 const report = await router.execute (route, { 'binance': binance, 'kraken': kraken }, {
     'strategy': 'sequential',
-    'live': true,
     'usdRates': { 'USDT': 1 },
 });
 //  want to see or change the plan first? the steps in between are public and PURE (no I/O):
@@ -1103,7 +1102,7 @@ reconciliation — never mid-order — and its return value decides whether the 
 
 ```typescript
 const report = await router.execute (plan, venues, {
-    'strategy': 'sequential', 'live': true, 'usdRates': { 'USDT': 1 },
+    'strategy': 'sequential', 'usdRates': { 'USDT': 1 },
     'retryFailedSteps': 2,               // only a DEFINITIVELY REJECTED step is retried
     'onStep': (event) => {
         console.log (event['stepIndex'], event['status'], event['outAmount']);
@@ -1156,7 +1155,7 @@ const plan = {
     ],
 };
 const report = await router.execute (plan, { 'binance': binance }, {
-    'strategy': 'sequential', 'live': true, 'usdRates': { 'USDT': 1 }, 'maxNotionalUsd': 25,
+    'strategy': 'sequential', 'usdRates': { 'USDT': 1 }, 'maxNotionalUsd': 25,
 });
 ```
 

@@ -976,7 +976,6 @@ echo $route['effectiveRate'], ' ', $route['impactBps'], ' ', $route['fillRatio']
 // runs the safety check itself, refusing to place anything on a blocking violation
 $report = $router->execute($route, array('binance' => $binance, 'kraken' => $kraken), array(
     'strategy' => 'sequential',
-    'live' => true,
     'usdRates' => array('USDT' => 1),
 ));
 // want to see or change the plan first? the steps in between are public and PURE (no I/O):
@@ -1076,7 +1075,7 @@ reconciliation — never mid-order — and its return value decides whether the 
 
 ```php
 $report = $router->execute($plan, $venues, array(
-    'strategy' => 'sequential', 'live' => true,
+    'strategy' => 'sequential',
     'retryFailedSteps' => 2,             // only a DEFINITIVELY REJECTED step is retried
     'onStep' => function ($event) {
         return $event['status'] === 'partial' ? 'halt' : '';   // 'halt' stops the route
@@ -1129,7 +1128,7 @@ $plan = array(
     ),
 );
 $report = $router->execute($plan, array('binance' => $binance), array(
-    'strategy' => 'sequential', 'live' => true,
+    'strategy' => 'sequential',
     'usdRates' => array('USDT' => 1), 'maxNotionalUsd' => 25,
 ));
 ```

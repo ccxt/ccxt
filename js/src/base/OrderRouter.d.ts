@@ -16,6 +16,7 @@ declare class OrderRouter {
     static TOLERANCE: number;
     apiKey: string;
     baseUrl: string;
+    venues: Dict;
     timeoutMs: number;
     maxNotionalUsd: number;
     webSocketImpl: any;
@@ -355,11 +356,20 @@ declare class OrderRouter {
      * @description reads the live balances of the supplied venues, sends them to the router, and returns a route you can actually fund
      * @param {string} fromAsset the asset being spent
      * @param {string} toAsset the asset being acquired
-     * @param {object} venues a dictionary of exchangeId to a ccxt exchange instance
+     * @param {object} [venues] a dictionary of exchangeId to a ccxt exchange instance; defaults to the venues the router was constructed with
      * @param {object} params the same parameters fetchRoute accepts, minus balances which this method builds
      * @param {bool} [params.requireBalancesApplied] throw when the router did not echo balancesApplied, default true
      * @returns {object} the RouteResult, with the client-side keys balancesUsed and balancesDropped added
      */
+    /**
+     * @method
+     * @name OrderRouter#collectBalances
+     * @ignore
+     * @description reads every supplied venue's wallet and renders it as the router's balances string, trimmed to the router's caps
+     * @param {object} venues a dictionary of exchangeId to a ccxt exchange instance
+     * @returns {object} balances, the rendered string, and dropped, the entries that did not fit
+     */
+    collectBalances(venues: Dict): Promise<Dict>;
     fetchRouteWithBalances(fromAsset: string, toAsset: string, venues: Dict, params?: Dict): Promise<Dict>;
     /**
      * @ignore
@@ -523,14 +533,14 @@ declare class OrderRouter {
     /**
      * @method
      * @name OrderRouter#execute
-     * @description executes a plan against live exchange instances. THE ONLY IMPURE METHOD. dry_run is the default and options.live !== true forces dry_run regardless of the strategy requested, so a call that looks live but forgot the flag places nothing
+     * @description executes a plan against live exchange instances. THE ONLY IMPURE METHOD, and IT PLACES ORDERS: calling it is the instruction, there is no permission flag beside it. Pass options.dryRun true to rehearse instead, which makes not one call against a venue
      * @param {object} plan a RouteResult from fetchRoute, a plan from buildExecutionPlan, or a caller-assembled plan of the same shape — this method never assumes it came from the routing service. A route is turned into a plan here, so the simple path is fetchRoute then execute; build the plan yourself when you want to inspect or change it first
      * @param {object} venues a dictionary of exchangeId to a ccxt exchange instance
      * @param {object} [options] execution options
-     * @param {string} [options.strategy] dry_run, sequential, parallel_within_hop, limit_protected, best_effort or atomic_ish
+     * @param {string} [options.strategy] HOW the orders go out: sequential (the default), parallel_within_hop, limit_protected, best_effort or atomic_ish. Whether they go out at all is options.dryRun
      * @param {float} [options.slippageBps] only when a route is passed: how far the limit sits from the expected price, default 25
      * @param {float} [options.reconcileToleranceRatio] only when a route is passed: the shortfall ratio reconcileExecutionStep halts on, default 0.02
-     * @param {bool} [options.live] must be exactly true for any order to be placed
+     * @param {bool} [options.dryRun] exactly true rehearses: the plan is built, checked and reported on, and not one call is made against a venue. Anything else, including absent, PLACES ORDERS
      * @param {object} [options.usdRates] currency code to USD price, required when live because the notional cap cannot be enforced without it
      * @param {bool} [options.allowMarketOrders] permit a market order when the venue cannot do IOC, default false
      * @param {int} [options.maxOrders] hard order-count cap, required by best_effort
@@ -545,7 +555,7 @@ declare class OrderRouter {
      * @param {function} [options.onStep] called after each step completes and reconciles, never mid-order, with one event object describing that step. Return 'halt' to stop the route cleanly (haltReason becomes halted_by_on_step); any other value continues. It can only STOP a route, never resume one already halted. Do NO network I/O here — it sits between orders on the money path. A hook that throws is recorded as on_step_hook_failed and the run continues, because losing the report would destroy the only account of orders that are already live
      * @returns {object} an execution report with per-step results, openOrders, errors and the halt verdict
      */
-    execute(plan: Dict, venues: Dict, options?: Dict): Promise<Dict>;
+    execute(plan: Dict, venues?: Dict, options?: Dict): Promise<Dict>;
     /**
      * @ignore
      * @method
@@ -576,7 +586,7 @@ declare class OrderRouter {
      * @param {object[]} steps the working copy of the plan's steps
      * @returns {object} the report
      */
-    emptyReport(plan: Dict, strategy: string, requestedStrategy: string, live: boolean, steps: Dict[]): Dict;
+    emptyReport(plan: Dict, strategy: string, dryRun: boolean, steps: Dict[]): Dict;
     /**
      * @ignore
      * @method

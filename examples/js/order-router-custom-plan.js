@@ -97,7 +97,7 @@ async function main() {
         'strategy': 'parallel_within_hop',
         //  THE default. Anything short of an explicit true is a rehearsal, and
         //  a call that looks live but forgot this flag places nothing.
-        'live': false,
+        'dryRun': true,
         'usdRates': { 'USDT': 1 },
         'maxNotionalUsd': 25,
         //  alternative to plan.requestId; either satisfies the identity rule

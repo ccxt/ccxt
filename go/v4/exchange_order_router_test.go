@@ -344,8 +344,7 @@ func TestOrderRouterFixtureFeeNetting(t *testing.T) {
 		}
 		report, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": venue}), map[string]any{
 			"strategy": "sequential",
-			"live":     true,
-			"usdRates": map[string]any{"USDT": 1.0},
+						"usdRates": map[string]any{"USDT": 1.0},
 		})
 		if err != nil {
 			t.Fatalf("feeNettingCase %s: %v", id, err)
@@ -1210,47 +1209,86 @@ func TestOrderRouterPlanAgeIsReportedAndRefusedOnlyWhenAsked(t *testing.T) {
 	}
 }
 
-func TestOrderRouterDryRunIsTheDefault(t *testing.T) {
+func TestOrderRouterExecutePlacesByDefault(t *testing.T) {
+	// `Execute` is an imperative verb and ccxt's own CreateOrder needs no permission flag
+	// beside it. A method that silently does nothing is the same failure this class guards
+	// against everywhere else.
 	router := routerTestRouter(t)
 	plan := routerMustPlan(router.BuildExecutionPlan(routerOneLegRoute("buy", "BTC", "USDT", 0.2, 100), nil))
 	venue := newOrderRouterStubVenue(1, false)
-	// everything a real call would carry, EXCEPT live
 	report, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": venue}), map[string]any{
-		"strategy":          "sequential",
-		"usdRates":          map[string]any{"USDT": 1.0},
-		"allowMarketOrders": true,
+		"usdRates":       map[string]any{"USDT": 1.0},
+		"idempotencyKey": "default-is-live",
 	})
 	if err != nil {
-		t.Fatalf("a dry run never fails: %v", err)
+		t.Fatalf("execute failed: %v", err)
 	}
-	if report["dryRun"] != true || report["strategy"] != "dry_run" {
-		t.Fatalf("dry_run is the default, got %v %v", report["dryRun"], report["strategy"])
+	if report["dryRun"] != false || report["strategy"] != "sequential" {
+		t.Fatalf("execute places by default and sequential is the default strategy, got %v %v", report["dryRun"], report["strategy"])
 	}
-	if report["requestedStrategy"] != "sequential" {
-		t.Fatal("the report says what was asked for as well as what happened")
+	if routerNumberAt(report, "ordersPlaced", -1) != 1 {
+		t.Fatalf("one order placed, got %v", report["ordersPlaced"])
+	}
+	if routerStringAt(report["steps"].([]map[string]any)[0], "status", "") != "filled" {
+		t.Fatal("the step filled")
+	}
+	if len(venue.callLog()) == 0 {
+		t.Fatal("the venue was actually called")
+	}
+}
+
+func TestOrderRouterRehearsalIsDryRun(t *testing.T) {
+	// ONE knob. `dryRun` says whether; `strategy` says how, and the two are independent.
+	router := routerTestRouter(t)
+	plan := routerMustPlan(router.BuildExecutionPlan(routerOneLegRoute("buy", "BTC", "USDT", 0.2, 100), nil))
+	rehearsed := newOrderRouterStubVenue(1, false)
+	report, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": rehearsed}), map[string]any{
+		"strategy": "limit_protected",
+		"dryRun":   true,
+		"usdRates": map[string]any{"USDT": 1.0},
+	})
+	if err != nil {
+		t.Fatalf("a rehearsal never fails: %v", err)
+	}
+	if report["dryRun"] != true || report["strategy"] != "limit_protected" {
+		t.Fatalf("the strategy survives the rehearsal: how is not what, got %v %v", report["dryRun"], report["strategy"])
 	}
 	if routerNumberAt(report, "ordersPlaced", -1) != 0 || routerNumberAt(report, "wouldPlaceOrders", -1) != 1 {
-		t.Fatalf("a dry run places nothing, got %v %v", report["ordersPlaced"], report["wouldPlaceOrders"])
+		t.Fatalf("a rehearsal places nothing, got %v %v", report["ordersPlaced"], report["wouldPlaceOrders"])
 	}
 	if routerStringAt(report["steps"].([]map[string]any)[0], "status", "") != "planned" {
-		t.Fatal("every step stays planned in a dry run")
+		t.Fatal("every step stays planned in a rehearsal")
 	}
-	if len(venue.callLog()) != 0 {
-		t.Fatalf("not one call reached the venue — not even a read, got %v", venue.callLog())
+	if len(rehearsed.callLog()) != 0 {
+		t.Fatalf("not one call reached the venue, got %v", rehearsed.callLog())
 	}
-	// live must be exactly the boolean true; "true" and 1 are not-true
-	for _, notLive := range []any{false, nil, "true", 1} {
-		other := newOrderRouterStubVenue(1, false)
-		again, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": other}), map[string]any{"strategy": "sequential", "live": notLive, "usdRates": map[string]any{"USDT": 1.0}})
-		if err != nil {
-			t.Fatalf("live=%v: %v", notLive, err)
-		}
-		if again["dryRun"] != true {
-			t.Fatalf("live=%v must not be live", notLive)
-		}
-		if len(other.callLog()) != 0 {
-			t.Fatalf("live=%v reached the venue: %v", notLive, other.callLog())
-		}
+	// only an exact true rehearses
+	loose := newOrderRouterStubVenue(1, false)
+	ran, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": loose}), map[string]any{
+		"dryRun":         "true",
+		"usdRates":       map[string]any{"USDT": 1.0},
+		"idempotencyKey": "loose-dryrun",
+	})
+	if err != nil {
+		t.Fatalf("execute failed: %v", err)
+	}
+	if ran["dryRun"] != false {
+		t.Fatal("dryRun must be exactly true to rehearse")
+	}
+	if len(loose.callLog()) == 0 {
+		t.Fatal("it traded")
+	}
+}
+
+func TestOrderRouterDryRunIsNotAStrategy(t *testing.T) {
+	router := routerTestRouter(t)
+	plan := routerMustPlan(router.BuildExecutionPlan(routerOneLegRoute("buy", "BTC", "USDT", 0.2, 100), nil))
+	venue := newOrderRouterStubVenue(1, false)
+	if _, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": venue}), map[string]any{
+		"strategy": "dry_run",
+		"usdRates": map[string]any{"USDT": 1.0},
+	}); routerErrorCode(err) != "BadRequest" {
+		t.Fatalf("dry_run is not a strategy, got %v", err)
 	}
 }
 
@@ -2292,7 +2330,7 @@ func TestOrderRouterLiveRequiresAnIdentity(t *testing.T) {
 		t.Fatalf("refused before a single call reached the venue, got %v", venue.callLog())
 	}
 	// a rehearsal needs no identity: it places nothing
-	dry, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": venue}), map[string]any{"strategy": "sequential", "usdRates": rates})
+	dry, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": venue}), map[string]any{"strategy": "sequential", "dryRun": true, "usdRates": rates})
 	if err != nil || dry["dryRun"] != true {
 		t.Fatalf("a dry run needs no identity, got %v %v", dry["dryRun"], err)
 	}
@@ -2430,10 +2468,10 @@ func TestOrderRouterDryRunDoesNotConsumeAPlan(t *testing.T) {
 	router := routerTestRouter(t)
 	rates := map[string]any{"USDT": 1.0}
 	plan := routerMustPlan(router.BuildExecutionPlan(routerOneLegRoute("buy", "BTC", "USDT", 0.2, 100), nil))
-	if _, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": newOrderRouterStubVenue(1, false)}), map[string]any{"strategy": "sequential", "usdRates": rates}); err != nil {
+	if _, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": newOrderRouterStubVenue(1, false)}), map[string]any{"strategy": "sequential", "dryRun": true, "usdRates": rates}); err != nil {
 		t.Fatalf("rehearsal: %v", err)
 	}
-	report, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": newOrderRouterStubVenue(1, false)}), map[string]any{"strategy": "sequential", "live": true, "usdRates": rates})
+	report, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": newOrderRouterStubVenue(1, false)}), map[string]any{"strategy": "sequential", "usdRates": rates})
 	if err != nil {
 		t.Fatalf("the rehearsal did not burn the plan: %v", err)
 	}

@@ -605,7 +605,7 @@ function order_router_test_fixture_fee_netting($router) {
             $venue->feeToCharge = $testCase['fee'];
         }
         $venue->tradeFeesToCharge = $testCase['tradeFees'];
-        $report = $router->execute($plan, array('stub' => $venue), array('strategy' => 'sequential', 'live' => true, 'usdRates' => array('USDT' => 1)));
+        $report = $router->execute($plan, array('stub' => $venue), array('strategy' => 'sequential', 'usdRates' => array('USDT' => 1)));
         $step = $report['steps'][0];
         $expected = $testCase['expected'];
         $where = 'feeNettingCase ' . $testCase['id'];
@@ -968,12 +968,12 @@ function order_router_test_execute_takes_a_route_directly($router) {
     $route = order_router_one_leg_route('buy', 'BTC', 'USDT', 0.2, 100);
     $viaRoute = new OrderRouterStubVenue('stub');
     $fromRoute = $router->execute($route, array('stub' => $viaRoute), array(
-        'strategy' => 'sequential', 'live' => true, 'usdRates' => array('USDT' => 1), 'idempotencyKey' => 'via-route',
+        'strategy' => 'sequential', 'usdRates' => array('USDT' => 1), 'idempotencyKey' => 'via-route',
     ));
     $viaPlan = new OrderRouterStubVenue('stub');
     $plan = $router->buildExecutionPlan($route, array());
     $fromPlan = $router->execute($plan, array('stub' => $viaPlan), array(
-        'strategy' => 'sequential', 'live' => true, 'usdRates' => array('USDT' => 1), 'idempotencyKey' => 'via-plan',
+        'strategy' => 'sequential', 'usdRates' => array('USDT' => 1), 'idempotencyKey' => 'via-plan',
     ));
     order_router_assert(count($fromRoute['steps']) === count($fromPlan['steps']), 'the same number of steps either way');
     order_router_assert($fromRoute['steps'][0]['status'] === 'filled', 'the route path filled');
@@ -981,37 +981,53 @@ function order_router_test_execute_takes_a_route_directly($router) {
     order_router_assert($viaRoute->calls === $viaPlan->calls, 'the same orders reach the venue either way');
 }
 
-function order_router_test_dry_run_is_the_default($router) {
+function order_router_test_execute_places_by_default($router) {
+    //  `execute` is an imperative verb and ccxt's own createOrder needs no permission flag
+    //  beside it. A method that silently does nothing is the same failure this class guards
+    //  against everywhere else.
     $plan = $router->buildExecutionPlan(order_router_one_leg_route('buy', 'BTC', 'USDT', 0.2, 100), array());
     $venue = new OrderRouterStubVenue('stub');
-    //  everything a real call would carry, EXCEPT live
-    $report = $router->execute($plan, array('stub' => $venue), array(
-        'strategy' => 'sequential',
+    $report = $router->execute($plan, array('stub' => $venue), array('usdRates' => array('USDT' => 1), 'idempotencyKey' => 'default-is-live'));
+    order_router_assert($report['dryRun'] === false, 'execute places by default');
+    order_router_assert($report['strategy'] === 'sequential', 'sequential is the default strategy');
+    order_router_assert($report['ordersPlaced'] === 1, 'one order placed');
+    order_router_assert($report['steps'][0]['status'] === 'filled', 'the step filled');
+    order_router_assert(count($venue->calls) > 0, 'the venue was actually called');
+}
+
+function order_router_test_rehearsal_is_dry_run($router) {
+    //  ONE knob. `dryRun` says whether; `strategy` says how, and the two are independent.
+    $plan = $router->buildExecutionPlan(order_router_one_leg_route('buy', 'BTC', 'USDT', 0.2, 100), array());
+    $rehearsed = new OrderRouterStubVenue('stub');
+    $report = $router->execute($plan, array('stub' => $rehearsed), array(
+        'strategy' => 'limit_protected',
+        'dryRun' => true,
         'usdRates' => array('USDT' => 1),
-        'allowMarketOrders' => true,
     ));
-    order_router_assert($report['dryRun'] === true, 'dry run by default');
-    order_router_assert($report['strategy'] === 'dry_run', 'the strategy in force is dry_run');
-    order_router_assert($report['requestedStrategy'] === 'sequential', 'the report says what was asked for as well as what happened');
-    order_router_assert($report['ordersPlaced'] === 0, 'nothing was placed');
+    order_router_assert($report['dryRun'] === true, 'a rehearsal');
+    order_router_assert($report['strategy'] === 'limit_protected', 'the strategy survives the rehearsal: how is not what');
+    order_router_assert($report['ordersPlaced'] === 0, 'nothing placed');
     order_router_assert($report['wouldPlaceOrders'] === 1, 'one order would have been placed');
-    order_router_assert($report['steps'][0]['status'] === 'planned', 'the step is still only planned');
-    order_router_assert(count($venue->calls) === 0, 'not one call reached the venue — not even a read');
-    //  live: false, absent, 'true' and 1 are all not-true
-    $notLiveValues = array(false, null, 'true', 1);
-    for ($i = 0; $i < count($notLiveValues); $i++) {
-        $other = new OrderRouterStubVenue('stub');
-        $again = $router->execute($plan, array('stub' => $other), array('strategy' => 'sequential', 'live' => $notLiveValues[$i], 'usdRates' => array('USDT' => 1)));
-        order_router_assert($again['dryRun'] === true, 'live must be exactly true');
-        order_router_assert(count($other->calls) === 0, 'no call reached the venue');
-    }
+    order_router_assert($report['steps'][0]['status'] === 'planned', 'still only planned');
+    order_router_assert(count($rehearsed->calls) === 0, 'not one call reached the venue');
+    $loose = new OrderRouterStubVenue('stub');
+    $ran = $router->execute($plan, array('stub' => $loose), array('dryRun' => 'true', 'usdRates' => array('USDT' => 1), 'idempotencyKey' => 'loose-dryrun'));
+    order_router_assert($ran['dryRun'] === false, 'dryRun must be exactly true to rehearse');
+    order_router_assert(count($loose->calls) > 0, 'it traded');
+}
+
+function order_router_test_dry_run_is_not_a_strategy($router) {
+    $plan = $router->buildExecutionPlan(order_router_one_leg_route('buy', 'BTC', 'USDT', 0.2, 100), array());
+    order_router_assert_throws(function () use ($router, $plan) {
+        $router->execute($plan, array('stub' => new OrderRouterStubVenue('stub')), array('strategy' => 'dry_run', 'usdRates' => array('USDT' => 1)));
+    }, BadRequest::class, 'dry_run is not a strategy');
 }
 
 function order_router_test_execute_refuses_unvaluable($router) {
     $plan = $router->buildExecutionPlan(order_router_one_leg_route('buy', 'BTC', 'USDT', 0.2, 100), array());
     $venue = new OrderRouterStubVenue('stub');
     order_router_assert_throws(function () use ($router, $plan, $venue) {
-        $router->execute($plan, array('stub' => $venue), array('strategy' => 'sequential', 'live' => true, 'maxNotionalUsd' => 25));
+        $router->execute($plan, array('stub' => $venue), array('strategy' => 'sequential', 'maxNotionalUsd' => 25));
     }, ExchangeError::class, 'a live run under a cap it cannot evaluate is refused');
     for ($i = 0; $i < count($venue->calls); $i++) {
         order_router_assert(strpos($venue->calls[$i], 'createOrder') === false, 'no order was placed');
@@ -1019,7 +1035,7 @@ function order_router_test_execute_refuses_unvaluable($router) {
     //  and with NO cap asked for, usdRates is not required: there is no cap to evaluate,
     //  so demanding the inputs for one would be asking for something nobody wanted.
     $uncapped = new OrderRouterStubVenue('stub');
-    $report = $router->execute($plan, array('stub' => $uncapped), array('strategy' => 'sequential', 'live' => true));
+    $report = $router->execute($plan, array('stub' => $uncapped), array('strategy' => 'sequential'));
     order_router_assert($report['steps'][0]['status'] === 'filled', 'no cap asked for, no usdRates needed');
 }
 
@@ -1030,7 +1046,7 @@ function order_router_test_execute_refuses_above_cap($router) {
     $plan = $router->buildExecutionPlan(order_router_one_leg_route('buy', 'BTC', 'USDT', 5, 100), array());
     $venue = new OrderRouterStubVenue('stub');
     order_router_assert_throws(function () use ($router, $plan, $venue) {
-        $router->execute($plan, array('stub' => $venue), array('strategy' => 'sequential', 'live' => true, 'usdRates' => array('USDT' => 1), 'maxNotionalUsd' => 25));
+        $router->execute($plan, array('stub' => $venue), array('strategy' => 'sequential', 'usdRates' => array('USDT' => 1), 'maxNotionalUsd' => 25));
     }, ExchangeError::class, 'a 500 USD step is refused');
     for ($i = 0; $i < count($venue->calls); $i++) {
         order_router_assert(strpos($venue->calls[$i], 'createOrder') === false, 'no order was placed');
@@ -1038,14 +1054,14 @@ function order_router_test_execute_refuses_above_cap($router) {
     //  the same 500 USD trade with no cap set goes through: that is the point of the
     //  guardrail being opt-in
     $uncapped = new OrderRouterStubVenue('stub');
-    $report = $router->execute($plan, array('stub' => $uncapped), array('strategy' => 'sequential', 'live' => true, 'usdRates' => array('USDT' => 1)));
+    $report = $router->execute($plan, array('stub' => $uncapped), array('strategy' => 'sequential', 'usdRates' => array('USDT' => 1)));
     order_router_assert($report['steps'][0]['status'] === 'filled', '500 USD is a normal trade when nobody asked for a cap');
 }
 
 function order_router_test_sequential_places_ioc($router) {
     $plan = $router->buildExecutionPlan(order_router_one_leg_route('buy', 'BTC', 'USDT', 0.2, 100), array('slippageBps' => 100));
     $venue = new OrderRouterStubVenue('stub');
-    $report = $router->execute($plan, array('stub' => $venue), array('strategy' => 'sequential', 'live' => true, 'usdRates' => array('USDT' => 1)));
+    $report = $router->execute($plan, array('stub' => $venue), array('strategy' => 'sequential', 'usdRates' => array('USDT' => 1)));
     order_router_assert($report['dryRun'] === false, 'a live run is not a dry run');
     order_router_assert($report['ordersPlaced'] === 1, 'one order placed');
     order_router_assert($report['steps'][0]['status'] === 'filled', 'the step filled');
@@ -1060,7 +1076,7 @@ function order_router_test_sequential_obeys_halt($router) {
     $plan = $router->buildExecutionPlan(order_router_two_hop_route(), array());
     //  hop 0 fills half: a 50% shortfall against a 2% tolerance
     $venue = new OrderRouterStubVenue('stub', 0.5);
-    $report = $router->execute($plan, array('stub' => $venue), array('strategy' => 'sequential', 'live' => true, 'usdRates' => array('USDT' => 1)));
+    $report = $router->execute($plan, array('stub' => $venue), array('strategy' => 'sequential', 'usdRates' => array('USDT' => 1)));
     order_router_assert($report['halted'] === true, 'the route halted');
     order_router_assert($report['haltReason'] === 'shortfall_exceeds_tolerance', 'and says why');
     order_router_assert($report['haltStepIndex'] === 0, 'at the first step');
@@ -1079,13 +1095,13 @@ function order_router_test_market_orders_need_both($router) {
     //  a venue that advertises GTC only
     $noIoc = new OrderRouterStubVenue('stub');
     $noIoc->features = array('spot' => array('createOrder' => array('timeInForce' => array('GTC'))));
-    $refused = $router->execute($plan, array('stub' => $noIoc), array('strategy' => 'sequential', 'live' => true, 'usdRates' => array('USDT' => 1)));
+    $refused = $router->execute($plan, array('stub' => $noIoc), array('strategy' => 'sequential', 'usdRates' => array('USDT' => 1)));
     order_router_assert($refused['steps'][0]['status'] === 'failed', 'the step failed rather than falling back');
     order_router_assert($refused['steps'][0]['errorCode'] === 'NotSupported', 'and names the refusal');
     order_router_assert(count($noIoc->calls) === 0, 'defaulting to a market order is the decision the caller did not delegate');
     $allowed = new OrderRouterStubVenue('stub');
     $allowed->features = array('spot' => array('createOrder' => array('timeInForce' => array('GTC'))));
-    $placed = $router->execute($plan, array('stub' => $allowed), array('strategy' => 'sequential', 'live' => true, 'usdRates' => array('USDT' => 1), 'allowReexecution' => true, 'allowMarketOrders' => true));
+    $placed = $router->execute($plan, array('stub' => $allowed), array('strategy' => 'sequential', 'usdRates' => array('USDT' => 1), 'allowReexecution' => true, 'allowMarketOrders' => true));
     order_router_assert($placed['steps'][0]['status'] === 'filled', 'with the opt-in the market order goes out');
     order_router_assert($allowed->calls === array('createOrder:market:buy:0.2'), 'and it is a market order');
     //  ...but not under a cap. assertUnderCap values the order at the plan's LIMIT price and the
@@ -1093,7 +1109,7 @@ function order_router_test_market_orders_need_both($router) {
     //  computed from is a cap that silently disappears. The two options are refused together.
     $capped = new OrderRouterStubVenue('stub');
     $capped->features = array('spot' => array('createOrder' => array('timeInForce' => array('GTC'))));
-    $underCap = $router->execute($plan, array('stub' => $capped), array('strategy' => 'sequential', 'live' => true, 'usdRates' => array('USDT' => 1), 'allowReexecution' => true, 'allowMarketOrders' => true, 'maxNotionalUsd' => 1000));
+    $underCap = $router->execute($plan, array('stub' => $capped), array('strategy' => 'sequential', 'usdRates' => array('USDT' => 1), 'allowReexecution' => true, 'allowMarketOrders' => true, 'maxNotionalUsd' => 1000));
     order_router_assert($underCap['steps'][0]['status'] === 'failed', 'a market order under a cap is refused');
     order_router_assert($underCap['steps'][0]['errorCode'] === 'NotSupported', 'and names the refusal');
     order_router_assert(count($capped->calls) === 0, 'refused BEFORE dispatch: a cap checked against a price that is then discarded is worse than no cap');
@@ -1101,7 +1117,7 @@ function order_router_test_market_orders_need_both($router) {
     //  rejected IOC is loud and cheap, an unintended market order is not
     $unknown = new OrderRouterStubVenue('stub');
     $unknown->features = array();
-    $assumed = $router->execute($plan, array('stub' => $unknown), array('strategy' => 'sequential', 'live' => true, 'usdRates' => array('USDT' => 1), 'allowReexecution' => true));
+    $assumed = $router->execute($plan, array('stub' => $unknown), array('strategy' => 'sequential', 'usdRates' => array('USDT' => 1), 'allowReexecution' => true));
     order_router_assert($assumed['steps'][0]['status'] === 'filled', 'an unknown venue is assumed to do IOC');
     order_router_assert($unknown->calls === array('createOrder:limit:buy:0.2'), 'and gets a limit order');
 }
@@ -1117,7 +1133,7 @@ function order_router_test_parallel_contains_a_failing_leg($router) {
     $good = new OrderRouterStubVenue('good');
     $bad = new OrderRouterStubVenue('bad', 1, true);
     $good2 = new OrderRouterStubVenue('good2');
-    $report = $router->execute($plan, array('good' => $good, 'bad' => $bad, 'good2' => $good2), array('strategy' => 'parallel_within_hop', 'live' => true, 'usdRates' => array('USDT' => 1)));
+    $report = $router->execute($plan, array('good' => $good, 'bad' => $bad, 'good2' => $good2), array('strategy' => 'parallel_within_hop', 'usdRates' => array('USDT' => 1)));
     order_router_assert($report['steps'][0]['status'] === 'filled', 'the first leg filled');
     order_router_assert($report['steps'][1]['status'] === 'failed', 'the second leg failed');
     order_router_assert($report['steps'][2]['status'] === 'filled', 'the sibling behind the failure still ran');
@@ -1131,14 +1147,14 @@ function order_router_test_best_effort_refuses_multi_hop($router) {
     $multiHop = $router->buildExecutionPlan(order_router_two_hop_route(), array());
     $venue = new OrderRouterStubVenue('stub');
     order_router_assert_throws(function () use ($router, $multiHop, $venue) {
-        $router->execute($multiHop, array('stub' => $venue), array('strategy' => 'best_effort', 'live' => true, 'usdRates' => array('USDT' => 1), 'acknowledgeDispersion' => true, 'maxOrders' => 5));
+        $router->execute($multiHop, array('stub' => $venue), array('strategy' => 'best_effort', 'usdRates' => array('USDT' => 1), 'acknowledgeDispersion' => true, 'maxOrders' => 5));
     }, NotSupported::class, 'best_effort refuses multi-hop');
     $singleHop = $router->buildExecutionPlan(order_router_one_leg_route('buy', 'BTC', 'USDT', 0.2, 100), array());
     order_router_assert_throws(function () use ($router, $singleHop, $venue) {
-        $router->execute($singleHop, array('stub' => $venue), array('strategy' => 'best_effort', 'live' => true, 'usdRates' => array('USDT' => 1), 'maxOrders' => 5));
+        $router->execute($singleHop, array('stub' => $venue), array('strategy' => 'best_effort', 'usdRates' => array('USDT' => 1), 'maxOrders' => 5));
     }, BadRequest::class, 'best_effort demands acknowledgeDispersion');
     order_router_assert_throws(function () use ($router, $singleHop, $venue) {
-        $router->execute($singleHop, array('stub' => $venue), array('strategy' => 'best_effort', 'live' => true, 'usdRates' => array('USDT' => 1), 'acknowledgeDispersion' => true));
+        $router->execute($singleHop, array('stub' => $venue), array('strategy' => 'best_effort', 'usdRates' => array('USDT' => 1), 'acknowledgeDispersion' => true));
     }, BadRequest::class, 'best_effort demands maxOrders');
     order_router_assert(count($venue->calls) === 0, 'nothing reached the venue');
 }
@@ -1152,7 +1168,7 @@ function order_router_test_best_effort_stops_at_max_orders($router) {
     );
     $plan = $router->buildExecutionPlan($route, array());
     $venues = array('a' => new OrderRouterStubVenue('a'), 'b' => new OrderRouterStubVenue('b', 0.01), 'c' => new OrderRouterStubVenue('c'));
-    $report = $router->execute($plan, $venues, array('strategy' => 'best_effort', 'live' => true, 'usdRates' => array('USDT' => 1), 'acknowledgeDispersion' => true, 'maxOrders' => 2));
+    $report = $router->execute($plan, $venues, array('strategy' => 'best_effort', 'usdRates' => array('USDT' => 1), 'acknowledgeDispersion' => true, 'maxOrders' => 2));
     order_router_assert($report['ordersPlaced'] === 2, 'two orders placed');
     order_router_assert($report['steps'][2]['status'] === 'skipped', 'the third was skipped');
     order_router_assert($report['steps'][2]['errorCode'] === 'max_orders_reached', 'and says why');
@@ -1184,7 +1200,7 @@ function order_router_test_plan_age_is_reported_and_refused_only_when_asked($rou
     $plan = $router->buildExecutionPlan($route, array());
     $pinned = new OrderRouterPinnedClock(array('apiKey' => 'k'));
     $pinned->pinnedNowMs = 1060000;   //  the plan is exactly 60s old
-    $opts = array('strategy' => 'sequential', 'live' => true, 'usdRates' => array('USDT' => 1), 'allowReexecution' => true);
+    $opts = array('strategy' => 'sequential', 'usdRates' => array('USDT' => 1), 'allowReexecution' => true);
 
     //  Always reported, even with nothing enforced, and nothing is refused by default.
     $report = $pinned->execute($plan, array('stub' => new OrderRouterStubVenue('stub')), $opts);
@@ -1213,12 +1229,12 @@ function order_router_test_atomic_ish_demands_prefunding($router) {
     $plan = $router->buildExecutionPlan(order_router_two_hop_route(), array());
     //  hop 0 needs 20 USDT and hop 1 needs 0.2 BTC, both already sitting there
     $rich = new OrderRouterStubVenue('stub');
-    $report = $router->execute($plan, array('stub' => $rich), array('strategy' => 'atomic_ish', 'live' => true, 'usdRates' => array('USDT' => 1)));
+    $report = $router->execute($plan, array('stub' => $rich), array('strategy' => 'atomic_ish', 'usdRates' => array('USDT' => 1)));
     order_router_assert($report['ordersPlaced'] === 2, 'a pre-funded route runs end to end');
     $broke = new OrderRouterStubVenue('stub');
     $broke->balance = array('free' => array('USDT' => 1, 'BTC' => 0));
     order_router_assert_throws(function () use ($router, $plan, $broke) {
-        $router->execute($plan, array('stub' => $broke), array('strategy' => 'atomic_ish', 'live' => true, 'usdRates' => array('USDT' => 1)));
+        $router->execute($plan, array('stub' => $broke), array('strategy' => 'atomic_ish', 'usdRates' => array('USDT' => 1)));
     }, ExchangeError::class, 'an underfunded route is refused');
 }
 
@@ -1371,7 +1387,7 @@ function order_router_test_best_effort_derives_hop_count($router) {
     order_router_assert(count($withoutHopCount['steps']) === 2, 'and it really has two hops worth of steps');
     $venue = new OrderRouterStubVenue('stub', 0.1);
     order_router_assert_throws(function () use ($router, $withoutHopCount, $venue) {
-        $router->execute($withoutHopCount, array('stub' => $venue), array('strategy' => 'best_effort', 'live' => true, 'usdRates' => array('USDT' => 1), 'acknowledgeDispersion' => true, 'maxOrders' => 5));
+        $router->execute($withoutHopCount, array('stub' => $venue), array('strategy' => 'best_effort', 'usdRates' => array('USDT' => 1), 'acknowledgeDispersion' => true, 'maxOrders' => 5));
     }, NotSupported::class, 'best_effort across a bridge is refused however the plan reached us');
     order_router_assert(count($venue->calls) === 0, 'not one order was placed');
 }
@@ -1396,12 +1412,12 @@ function order_router_test_venue_supports_ioc_dictionary($router) {
     order_router_assert($router->venueSupportsIoc($silent) === true, 'silence is still assumed to be yes');
     //  end to end: the documented market-order fallback is reachable again
     $plan = $router->buildExecutionPlan(order_router_one_leg_route('buy', 'BTC', 'USDT', 0.2, 100), array());
-    $refused = $router->execute($plan, array('stub' => $noIoc), array('strategy' => 'sequential', 'live' => true, 'usdRates' => array('USDT' => 1)));
+    $refused = $router->execute($plan, array('stub' => $noIoc), array('strategy' => 'sequential', 'usdRates' => array('USDT' => 1)));
     order_router_assert($refused['steps'][0]['errorCode'] === 'NotSupported', 'the step refuses rather than sending an IOC');
     order_router_assert(count($noIoc->calls) === 0, 'an IOC was never sent to a venue that cannot do one');
     $allowed = new OrderRouterStubVenue('stub');
     $allowed->features = $noIoc->features;
-    $placed = $router->execute($plan, array('stub' => $allowed), array('strategy' => 'sequential', 'live' => true, 'usdRates' => array('USDT' => 1), 'allowReexecution' => true, 'allowMarketOrders' => true));
+    $placed = $router->execute($plan, array('stub' => $allowed), array('strategy' => 'sequential', 'usdRates' => array('USDT' => 1), 'allowReexecution' => true, 'allowMarketOrders' => true));
     order_router_assert($placed['steps'][0]['status'] === 'filled', 'the opt-in reaches the market order');
     order_router_assert($allowed->calls === array('createOrder:market:buy:0.2'), 'and it is a market order');
 }
@@ -1416,7 +1432,7 @@ function order_router_test_limit_protected_refuses_a_zero_poll_interval($router)
         $venue = new OrderRouterStubVenue('stub');
         $venue->createdStatus = 'open';
         order_router_assert_throws(function () use ($router, $plan, $venue, $interval) {
-            $router->execute($plan, array('stub' => $venue), array('strategy' => 'limit_protected', 'live' => true, 'usdRates' => array('USDT' => 1), 'orderTimeoutMs' => 4, 'pollIntervalMs' => $interval));
+            $router->execute($plan, array('stub' => $venue), array('strategy' => 'limit_protected', 'usdRates' => array('USDT' => 1), 'orderTimeoutMs' => 4, 'pollIntervalMs' => $interval));
         }, BadRequest::class, 'pollIntervalMs ' . $interval . ' must be refused');
         order_router_assert(count($venue->calls) === 0, 'nothing may reach the venue');
     }
@@ -1425,7 +1441,7 @@ function order_router_test_limit_protected_refuses_a_zero_poll_interval($router)
     $ok->fetchOrderResults = array(
         array('id' => 'stub-order', 'status' => 'closed', 'filled' => 0.0002, 'average' => 100000, 'cost' => 20),
     );
-    $report = $router->execute($plan, array('stub' => $ok), array('strategy' => 'limit_protected', 'live' => true, 'usdRates' => array('USDT' => 1), 'orderTimeoutMs' => 4, 'pollIntervalMs' => 1));
+    $report = $router->execute($plan, array('stub' => $ok), array('strategy' => 'limit_protected', 'usdRates' => array('USDT' => 1), 'orderTimeoutMs' => 4, 'pollIntervalMs' => 1));
     order_router_assert($report['steps'][0]['status'] === 'filled', 'an ordinary interval still works');
 }
 
@@ -1441,7 +1457,7 @@ function order_router_test_limit_protected_keeps_a_venue_side_cancel_fill($route
         array('id' => 'stub-order', 'status' => 'canceled', 'filled' => 0.0001, 'average' => 100000, 'cost' => 10),
     );
     $venue->cancelThrows = true;
-    $report = $router->execute($plan, array('stub' => $venue), array('strategy' => 'limit_protected', 'live' => true, 'usdRates' => array('USDT' => 1), 'orderTimeoutMs' => 2, 'pollIntervalMs' => 1));
+    $report = $router->execute($plan, array('stub' => $venue), array('strategy' => 'limit_protected', 'usdRates' => array('USDT' => 1), 'orderTimeoutMs' => 2, 'pollIntervalMs' => 1));
     order_router_assert(!in_array('cancelOrder:stub-order', $venue->calls, true), 'an order the venue already closed is not cancelled again');
     order_router_assert($report['steps'][0]['status'] === 'partial', 'the fill is kept');
     order_router_assert(order_router_numbers_match(floatval($report['steps'][0]['filledAmount']), 0.0001), 'and it is the right size');
@@ -1460,7 +1476,7 @@ function order_router_test_order_id_survives_a_failure_after_create($router) {
     $venue->createdStatus = 'open';
     //  createOrder succeeded; the first poll never comes back
     $venue->fetchOrderThrows = true;
-    $report = $router->execute($plan, array('stub' => $venue), array('strategy' => 'limit_protected', 'live' => true, 'usdRates' => array('USDT' => 1), 'orderTimeoutMs' => 4, 'pollIntervalMs' => 1));
+    $report = $router->execute($plan, array('stub' => $venue), array('strategy' => 'limit_protected', 'usdRates' => array('USDT' => 1), 'orderTimeoutMs' => 4, 'pollIntervalMs' => 1));
     //  NOT 'failed'. A step whose id is known had createOrder RETURN, so an order exists;
     //  calling that "failed" reads as "nothing happened" while openOrders, three lines down, says
     //  the opposite. One report must not carry both readings.
@@ -1474,7 +1490,7 @@ function order_router_test_order_id_survives_a_failure_after_create($router) {
     //  the same holds for an immediate order, which has no poll loop at all
     $other = new OrderRouterStubVenue('stub');
     $other->createdStatus = 'open';
-    $okReport = $router->execute($plan, array('stub' => $other), array('strategy' => 'sequential', 'live' => true, 'usdRates' => array('USDT' => 1), 'allowReexecution' => true));
+    $okReport = $router->execute($plan, array('stub' => $other), array('strategy' => 'sequential', 'usdRates' => array('USDT' => 1), 'allowReexecution' => true));
     order_router_assert($okReport['steps'][0]['orderId'] === 'stub-order', 'an immediate order reports its id too');
     //  and an "immediate" order the venue reports as STILL OPEN is a resting
     //  order, which is what a venue that silently drops timeInForce leaves you
@@ -1492,7 +1508,7 @@ function order_router_test_a_resting_order_is_cancelled($router) {
     $strategies = array('sequential', 'parallel_within_hop', 'best_effort');
     for ($i = 0; $i < count($strategies); $i++) {
         $strategy = $strategies[$i];
-        $options = array('strategy' => $strategy, 'live' => true, 'usdRates' => array('USDT' => 1));
+        $options = array('strategy' => $strategy, 'usdRates' => array('USDT' => 1));
         if ($strategy === 'best_effort') {
             $options['acknowledgeDispersion'] = true;
             $options['maxOrders'] = 4;
@@ -1540,7 +1556,7 @@ function order_router_test_refuses_async_venues($router) {
     $plan = $router->buildExecutionPlan(order_router_one_leg_route('buy', 'BTC', 'USDT', 0.1, 100), array());
     $threw = false;
     try {
-        $router->execute($plan, array('stub' => $venue), array('strategy' => 'sequential', 'live' => true, 'usdRates' => array('USDT' => 1)));
+        $router->execute($plan, array('stub' => $venue), array('strategy' => 'sequential', 'usdRates' => array('USDT' => 1)));
     } catch (\ccxt\NotSupported $e) {
         $threw = true;
     }
@@ -1563,29 +1579,29 @@ function order_router_test_live_requires_an_identity($router) {
     $plan = $router->buildExecutionPlan($route, array());
     $venue = new OrderRouterStubVenue('stub');
     order_router_assert_throws(function () use ($router, $plan, $venue) {
-        $router->execute($plan, array('stub' => $venue), array('strategy' => 'sequential', 'live' => true, 'usdRates' => array('USDT' => 1)));
+        $router->execute($plan, array('stub' => $venue), array('strategy' => 'sequential', 'usdRates' => array('USDT' => 1)));
     }, BadRequest::class, 'a live plan with no identity is refused');
     order_router_assert(count($venue->calls) === 0, 'refused before a single call reached the venue');
     //  a rehearsal needs no identity: it places nothing
-    $dry = $router->execute($plan, array('stub' => $venue), array('strategy' => 'sequential', 'usdRates' => array('USDT' => 1)));
+    $dry = $router->execute($plan, array('stub' => $venue), array('strategy' => 'sequential', 'dryRun' => true, 'usdRates' => array('USDT' => 1)));
     order_router_assert($dry['dryRun'] === true, 'a dry run needs no identity');
     //  ...and a HAND-ASSEMBLED plan is a supported input: execute() takes any array of the
     //  plan shape, and such a plan never went through a routing request, so requestId is the
     //  one identity it cannot have. options idempotencyKey is how it supplies one.
     $supplied = new OrderRouterStubVenue('stub');
-    $keyed = $router->execute($plan, array('stub' => $supplied), array('strategy' => 'sequential', 'live' => true, 'usdRates' => array('USDT' => 1), 'idempotencyKey' => 'hand-built-1'));
+    $keyed = $router->execute($plan, array('stub' => $supplied), array('strategy' => 'sequential', 'usdRates' => array('USDT' => 1), 'idempotencyKey' => 'hand-built-1'));
     order_router_assert($keyed['planId'] === 'hand-built-1', 'the supplied key is the identity');
     order_router_assert($keyed['steps'][0]['status'] === 'filled', 'and the plan executes');
     order_router_assert(!array_key_exists('clientOrderId', $supplied->paramsSeen[0]), 'and no client order id is injected');
     //  and the guard keys off it, exactly as it does off a requestId
     order_router_assert_throws(function () use ($router, $plan) {
-        $router->execute($plan, array('stub' => new OrderRouterStubVenue('stub')), array('strategy' => 'sequential', 'live' => true, 'usdRates' => array('USDT' => 1), 'idempotencyKey' => 'hand-built-1'));
+        $router->execute($plan, array('stub' => new OrderRouterStubVenue('stub')), array('strategy' => 'sequential', 'usdRates' => array('USDT' => 1), 'idempotencyKey' => 'hand-built-1'));
     }, BadRequest::class, 'the same key is refused a second time');
     //  an explicit key OVERRIDES a plan's requestId: passing one is a deliberate statement
     //  about what this execution is, and the caller is closer to that than the plan is
     $routed = $router->buildExecutionPlan(order_router_one_leg_route('buy', 'BTC', 'USDT', 0.2, 100), array());
     $overridden = new OrderRouterStubVenue('stub');
-    $report = $router->execute($routed, array('stub' => $overridden), array('strategy' => 'sequential', 'live' => true, 'usdRates' => array('USDT' => 1), 'idempotencyKey' => 'override-1'));
+    $report = $router->execute($routed, array('stub' => $overridden), array('strategy' => 'sequential', 'usdRates' => array('USDT' => 1), 'idempotencyKey' => 'override-1'));
     order_router_assert($report['planId'] === 'override-1', 'the option overrides the requestId');
     order_router_assert(!array_key_exists('clientOrderId', $overridden->paramsSeen[0]), 'and no client order id is injected');
 }
@@ -1597,7 +1613,7 @@ function order_router_test_client_order_id_is_never_injected($router) {
     //  by default nothing is injected: each exchange's createOrder sends whatever identifier
     //  it generates on its own
     $bare = new OrderRouterStubVenue('stub');
-    $report = $router->execute($plan, array('stub' => $bare), array('strategy' => 'sequential', 'live' => true, 'usdRates' => array('USDT' => 1)));
+    $report = $router->execute($plan, array('stub' => $bare), array('strategy' => 'sequential', 'usdRates' => array('USDT' => 1)));
     order_router_assert($report['planId'] === 'fixed-req', 'the report names the plan identity');
     order_router_assert(count($bare->paramsSeen) === 2, 'two orders were placed');
     order_router_assert(!array_key_exists('clientOrderId', $bare->paramsSeen[0]), 'no client order id is forced onto the order');
@@ -1607,7 +1623,7 @@ function order_router_test_client_order_id_is_never_injected($router) {
     $second = new OrderRouter(array('apiKey' => 'test-key'));
     $venue = new OrderRouterStubVenue('stub');
     $supplied = $second->execute($router->buildExecutionPlan($route, array()), array('stub' => $venue), array(
-        'strategy' => 'sequential', 'live' => true, 'usdRates' => array('USDT' => 1),
+        'strategy' => 'sequential', 'usdRates' => array('USDT' => 1),
         'orderParams' => array('clientOrderId' => 'caller-supplied', 'reduceOnly' => true),
     ));
     order_router_assert($venue->paramsSeen[0]['clientOrderId'] === 'caller-supplied', 'the caller\'s id travels untouched');
@@ -1618,7 +1634,7 @@ function order_router_test_client_order_id_is_never_injected($router) {
 
 function order_router_test_reexecution_is_refused($router) {
     $plan = $router->buildExecutionPlan(order_router_one_leg_route('buy', 'BTC', 'USDT', 0.2, 100), array());
-    $opts = array('strategy' => 'sequential', 'live' => true, 'usdRates' => array('USDT' => 1));
+    $opts = array('strategy' => 'sequential', 'usdRates' => array('USDT' => 1));
     $first = new OrderRouterStubVenue('stub');
     $report = $router->execute($plan, array('stub' => $first), $opts);
     order_router_assert($report['steps'][0]['status'] === 'filled', 'the first run places the order');
@@ -1638,7 +1654,7 @@ function order_router_test_reexecution_is_refused($router) {
     order_router_assert(count($third->calls) === 0, 'and places nothing');
     //  ...and the legitimate retry path is explicit
     $allowed = new OrderRouterStubVenue('stub');
-    $retry = $router->execute($plan, array('stub' => $allowed), array('strategy' => 'sequential', 'live' => true, 'usdRates' => array('USDT' => 1), 'allowReexecution' => true));
+    $retry = $router->execute($plan, array('stub' => $allowed), array('strategy' => 'sequential', 'usdRates' => array('USDT' => 1), 'allowReexecution' => true));
     order_router_assert($retry['steps'][0]['status'] === 'filled', 'an explicit opt-in runs it again');
     order_router_assert(count($allowed->calls) > 0, 'and really does place the order');
 }
@@ -1646,19 +1662,19 @@ function order_router_test_reexecution_is_refused($router) {
 function order_router_test_dry_run_does_not_consume_a_plan($router) {
     $plan = $router->buildExecutionPlan(order_router_one_leg_route('buy', 'BTC', 'USDT', 0.2, 100), array());
     $rehearsal = new OrderRouterStubVenue('stub');
-    $router->execute($plan, array('stub' => $rehearsal), array('strategy' => 'sequential', 'usdRates' => array('USDT' => 1)));
+    $router->execute($plan, array('stub' => $rehearsal), array('strategy' => 'sequential', 'dryRun' => true, 'usdRates' => array('USDT' => 1)));
     $real = new OrderRouterStubVenue('stub');
-    $report = $router->execute($plan, array('stub' => $real), array('strategy' => 'sequential', 'live' => true, 'usdRates' => array('USDT' => 1)));
+    $report = $router->execute($plan, array('stub' => $real), array('strategy' => 'sequential', 'usdRates' => array('USDT' => 1)));
     order_router_assert($report['steps'][0]['status'] === 'filled', 'the rehearsal did not burn the plan');
     //  a run that FAILED still placed orders — or may have — so the retry is refused just the
     //  same. The ledger records the attempt, not the outcome.
     $failedPlan = $router->buildExecutionPlan(order_router_one_leg_route('buy', 'BTC', 'USDT', 0.2, 100), array());
     $broken = new OrderRouterStubVenue('stub', 1, true);
-    $failedReport = $router->execute($failedPlan, array('stub' => $broken), array('strategy' => 'sequential', 'live' => true, 'usdRates' => array('USDT' => 1)));
+    $failedReport = $router->execute($failedPlan, array('stub' => $broken), array('strategy' => 'sequential', 'usdRates' => array('USDT' => 1)));
     order_router_assert($failedReport['halted'] === true, 'the run halted');
     $retry = new OrderRouterStubVenue('stub');
     order_router_assert_throws(function () use ($router, $failedPlan, $retry) {
-        $router->execute($failedPlan, array('stub' => $retry), array('strategy' => 'sequential', 'live' => true, 'usdRates' => array('USDT' => 1)));
+        $router->execute($failedPlan, array('stub' => $retry), array('strategy' => 'sequential', 'usdRates' => array('USDT' => 1)));
     }, BadRequest::class, 'a failed run still consumed the plan');
     order_router_assert(count($retry->calls) === 0, 'and the retry placed nothing');
 }
@@ -1686,7 +1702,7 @@ function order_router_test_on_step_sees_every_step($router) {
         return ($event['stepIndex'] === 0) ? 'halt' : '';
     };
     $report = $router->execute($plan, array('stub' => $venue), array(
-        'strategy' => 'sequential', 'live' => true, 'usdRates' => array('USDT' => 1),
+        'strategy' => 'sequential', 'usdRates' => array('USDT' => 1),
         'onStep' => $onStep,
     ));
     order_router_assert(count($seen) === 1, 'the hook is not called for steps that never ran');
@@ -1712,7 +1728,7 @@ function order_router_test_on_step_that_throws_is_recorded($router) {
         throw new \RuntimeException('hook is broken');
     };
     $report = $router->execute($plan, array('stub' => $venue), array(
-        'strategy' => 'sequential', 'live' => true, 'usdRates' => array('USDT' => 1),
+        'strategy' => 'sequential', 'usdRates' => array('USDT' => 1),
         'onStep' => $onStep,
     ));
     order_router_assert($report['halted'] === false, 'the route finished');
@@ -1737,7 +1753,7 @@ function order_router_test_on_step_can_only_narrow($router) {
         return 'continue';
     };
     $report = $router->execute($plan, array('stub' => $starved), array(
-        'strategy' => 'sequential', 'live' => true, 'usdRates' => array('USDT' => 1),
+        'strategy' => 'sequential', 'usdRates' => array('USDT' => 1),
         'onStep' => $onStep,
     ));
     order_router_assert($report['halted'] === true, 'the route still halted');
@@ -1754,7 +1770,7 @@ function order_router_test_retry_failed_steps($router) {
     $relents = new OrderRouterStubVenue('stub');
     $relents->failCreateTimes = 1;
     $report = $router->execute($plan, array('stub' => $relents), array(
-        'strategy' => 'sequential', 'live' => true, 'usdRates' => array('USDT' => 1),
+        'strategy' => 'sequential', 'usdRates' => array('USDT' => 1),
         'retryFailedSteps' => 2, 'retryDelayMs' => 0,
     ));
     order_router_assert($report['steps'][0]['status'] === 'filled', 'the retry succeeded');
@@ -1767,7 +1783,7 @@ function order_router_test_retry_failed_steps($router) {
     $unknown->timeoutCreate = true;
     $plan2 = $router->buildExecutionPlan(order_router_one_leg_route('buy', 'BTC', 'USDT', 0.2, 100), array());
     $second = $router->execute($plan2, array('stub' => $unknown), array(
-        'strategy' => 'sequential', 'live' => true, 'usdRates' => array('USDT' => 1),
+        'strategy' => 'sequential', 'usdRates' => array('USDT' => 1),
         'retryFailedSteps' => 5, 'retryDelayMs' => 0,
     ));
     order_router_assert($second['steps'][0]['status'] === 'outcome_unknown', 'the outcome is unknown, not failed');
@@ -1803,7 +1819,7 @@ function order_router_test_ledger_is_bounded($router) {
     //  AND THE TRADEOFF, STATED AS A TEST: an evicted plan is no longer refused. This is the
     //  documented weakening at the cap, not an accident — if this assertion ever has to
     //  change, the comment on MAX_EXECUTED_PLAN_IDS has to change with it.
-    $opts = array('strategy' => 'sequential', 'live' => true, 'usdRates' => array('USDT' => 1));
+    $opts = array('strategy' => 'sequential', 'usdRates' => array('USDT' => 1));
     $plan = $bounded->buildExecutionPlan(order_router_one_leg_route('buy', 'BTC', 'USDT', 0.2, 100), array());
     $first = new OrderRouterStubVenue('stub');
     $bounded->execute($plan, array('stub' => $first), $opts);
@@ -1856,7 +1872,9 @@ function test_order_router() {
         'buildUnwindPlan is never automatic and never nets across venues' => 'ccxt\order_router_test_unwind_is_never_automatic',
         'a buy-side unwind order never spends more quote than the residual actually holds' => 'ccxt\order_router_test_unwind_buy_is_fundable',
         'execute takes a route directly, so the simple path is fetchRoute then execute' => 'ccxt\order_router_test_execute_takes_a_route_directly',
-        'dry_run is the default: a live-looking call with live unset places nothing' => 'ccxt\order_router_test_dry_run_is_the_default',
+        'execute places orders: calling it is the instruction, not a flag beside it' => 'ccxt\order_router_test_execute_places_by_default',
+        'a rehearsal is asked for once, by dryRun, and places nothing' => 'ccxt\order_router_test_rehearsal_is_dry_run',
+        'dry_run is no longer a strategy: how and whether are separate fields' => 'ccxt\order_router_test_dry_run_is_not_a_strategy',
         'execute refuses to go live without a way to value the trade in USD — when a cap is set' => 'ccxt\order_router_test_execute_refuses_unvaluable',
         'execute refuses to go live above a cap the caller set' => 'ccxt\order_router_test_execute_refuses_above_cap',
         'sequential places IOC limit orders in plan order' => 'ccxt\order_router_test_sequential_places_ioc',

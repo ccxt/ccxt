@@ -1068,7 +1068,6 @@ print(route['effectiveRate'], route['impactBps'], route['fillRatio'])
 # runs the safety check itself, refusing to place anything on a blocking violation
 report = router.execute(route, {'binance': binance, 'kraken': kraken}, {
     'strategy': 'sequential',
-    'live': True,
     'usdRates': {'USDT': 1},
 })
 # want to see or change the plan first? the steps in between are public and PURE (no I/O):

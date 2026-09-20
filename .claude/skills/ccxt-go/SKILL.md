@@ -989,7 +989,6 @@ route, err := router.FetchRoute("USDT", "BTC", map[string]any{"amountIn": 1000.0
 venues := map[string]ccxt.IExchange{"binance": binance, "kraken": kraken}
 report, err := router.Execute(route, venues, map[string]any{
     "strategy":  "sequential",
-    "live":      true,
     "usdRates":  map[string]any{"USDT": 1.0},
 })
 // want to see or change the plan first? the steps in between are public and PURE (no I/O):
@@ -1092,7 +1091,7 @@ reconciliation — never mid-order — and its return value decides whether the 
 
 ```go
 report, err := router.Execute(plan, venues, map[string]any{
-    "strategy": "sequential", "live": true,
+    "strategy": "sequential",
     "retryFailedSteps": 2, // only a DEFINITIVELY REJECTED step is retried
     "onStep": func(event map[string]any) string {
         if event["status"] == "partial" { return "halt" } // "halt" stops the route
@@ -1148,7 +1147,7 @@ plan := map[string]any{
     },
 }
 report, err := router.Execute(plan, venues, map[string]any{
-    "strategy": "sequential", "live": true, "maxNotionalUsd": 25,
+    "strategy": "sequential", "maxNotionalUsd": 25,
 })
 ```
 

@@ -87,7 +87,8 @@ var orderRouterViolationMessages = map[string]string{
 	"price_precision":      "the limit price does not sit on the market price precision",
 }
 
-var orderRouterKnownStrategies = []string{"dry_run", "sequential", "parallel_within_hop", "limit_protected", "best_effort", "atomic_ish"}
+// HOW the orders go out, and nothing else. Whether they go out at all is `dryRun`.
+var orderRouterKnownStrategies = []string{"sequential", "parallel_within_hop", "limit_protected", "best_effort", "atomic_ish"}
 
 // the query keys forwarded to GET /route, in a fixed order so that two ports
 // build a byte-identical URL
@@ -164,6 +165,11 @@ const (
 type OrderRouter struct {
 	ApiKey         string
 	BaseUrl        string
+
+	// Venues this router trades through, held once instead of passed to every call.
+	// FetchRoute and Execute both fall back to these; a call-site argument wins.
+	Venues map[string]IExchange
+
 	TimeoutMs      float64
 	MaxNotionalUsd float64
 
@@ -219,6 +225,7 @@ func NewOrderRouter(config map[string]any) (*OrderRouter, error) {
 	router := &OrderRouter{
 		ApiKey:          apiKey,
 		BaseUrl:         baseUrl,
+		Venues:          routerVenuesAt(config, "venues"),
 		TimeoutMs:       timeoutMs,
 		MaxNotionalUsd:  maxNotionalUsd,
 		ExecutedPlanIds: []string{},
@@ -444,6 +451,48 @@ func routerStringAt(container any, key string, defaultValue string) string {
 
 // routerBoolAt reads a boolean field out of a container, with a default for
 // missing and nil values.
+// routerIsExactlyTrue reports whether the key holds the boolean true and nothing
+// else. A config that stringifies its booleans must not silently stop trading, so
+// "true" is NOT true here.
+func routerIsExactlyTrue(container any, key string) bool {
+	dict := routerContainer(container)
+	if dict == nil {
+		return false
+	}
+	value, present := dict[key]
+	if !present {
+		return false
+	}
+	flag, ok := value.(bool)
+	return ok && flag
+}
+
+// routerVenuesAt reads the optional venues map off the constructor config,
+// tolerating both a typed map and a loose one.
+func routerVenuesAt(config map[string]any, key string) map[string]IExchange {
+	venues := map[string]IExchange{}
+	if config == nil {
+		return venues
+	}
+	value, present := config[key]
+	if !present || value == nil {
+		return venues
+	}
+	if typed, ok := value.(map[string]IExchange); ok {
+		return typed
+	}
+	loose, ok := value.(map[string]any)
+	if !ok {
+		return venues
+	}
+	for id, entry := range loose {
+		if venue, ok := entry.(IExchange); ok {
+			venues[id] = venue
+		}
+	}
+	return venues
+}
+
 func routerBoolAt(container any, key string, defaultValue bool) bool {
 	dict := routerContainer(container)
 	if dict == nil {
@@ -597,6 +646,31 @@ func (this *OrderRouter) FetchRoute(fromAsset string, toAsset string, params map
 	}
 	if err := routerAssertRouteAmounts(params, "fetchRoute"); err != nil {
 		return nil, err
+	}
+	// THE STORED VENUES ANSWER TWO QUESTIONS HERE, and a caller-supplied value wins both.
+	// `exchanges` is cheap and always right; `balances` reads every venue's wallet, so it
+	// happens only when venues were handed to the router and the caller supplied none.
+	if len(this.Venues) > 0 {
+		storedIds := make([]string, 0, len(this.Venues))
+		for id := range this.Venues {
+			storedIds = append(storedIds, id)
+		}
+		sort.Strings(storedIds)
+		merged := map[string]any{}
+		for key, value := range params {
+			merged[key] = value
+		}
+		if merged["exchanges"] == nil {
+			merged["exchanges"] = strings.Join(storedIds, ",")
+		}
+		if merged["balances"] == nil {
+			collectedBalances, _, collectErr := this.CollectBalances(this.Venues)
+			if collectErr != nil {
+				return nil, collectErr
+			}
+			merged["balances"] = collectedBalances
+		}
+		params = merged
 	}
 	// HOLDINGS NEVER TRAVEL IN A URL. The service scrubs balances out of its own
 	// logs, but a URL does not stay inside that process: the standard deployment
@@ -1139,18 +1213,9 @@ func (this *OrderRouter) FetchCachedOrderBook(exchangeId string, symbol string) 
 	return this.Transport(url, "GET", nil)
 }
 
-// FetchRouteWithBalances reads the live balances of the supplied venues, sends
-// them to the router, and returns a route you can actually fund. This is the ONE
-// method that needs live exchange objects for a READ.
-//
-// params accepts everything FetchRoute accepts minus balances, which this method
-// builds, plus requireBalancesApplied (default true) which decides whether a
-// router that silently ignored the balances is an error.
-//
-// The returned route carries the client-side keys balancesUsed and
-// balancesDropped.
-func (this *OrderRouter) FetchRouteWithBalances(fromAsset string, toAsset string, venues map[string]IExchange, params map[string]any) (map[string]any, error) {
-	requireApplied := routerBoolAt(params, "requireBalancesApplied", true)
+// CollectBalances reads every supplied venue's wallet and renders it as the
+// router's balances string, trimmed to the router's caps.
+func (this *OrderRouter) CollectBalances(venues map[string]IExchange) (string, []map[string]any, error) {
 	exchangeIds := routerSortedVenueIds(venues)
 	entries := make([]map[string]any, 0)
 	dropped := make([]map[string]any, 0)
@@ -1159,7 +1224,7 @@ func (this *OrderRouter) FetchRouteWithBalances(fromAsset string, toAsset string
 		venue := venues[exchangeId]
 		balance, err := venue.FetchBalance()
 		if err != nil {
-			return nil, err
+			return "", nil, err
 		}
 		holdings := balance.Free
 		if len(holdings) == 0 {
@@ -1214,7 +1279,7 @@ func (this *OrderRouter) FetchRouteWithBalances(fromAsset string, toAsset string
 	}
 	balances, err := this.joinBalances(entries)
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
 	for len(balances) > OrderRouterMaxBalanceChars && len(entries) > 0 {
 		removed := entries[len(entries)-1]
@@ -1223,8 +1288,30 @@ func (this *OrderRouter) FetchRouteWithBalances(fromAsset string, toAsset string
 		dropped = append(dropped, removed)
 		balances, err = this.joinBalances(entries)
 		if err != nil {
-			return nil, err
+			return "", nil, err
 		}
+	}
+	return balances, dropped, nil
+}
+
+// FetchRouteWithBalances reads the live balances of the supplied venues, sends
+// them to the router, and returns a route you can actually fund. This is the ONE
+// method that needs live exchange objects for a READ.
+//
+// params accepts everything FetchRoute accepts minus balances, which this method
+// builds, plus requireBalancesApplied (default true) which decides whether a
+// router that silently ignored the balances is an error.
+//
+// The returned route carries the client-side keys balancesUsed and
+// balancesDropped.
+func (this *OrderRouter) FetchRouteWithBalances(fromAsset string, toAsset string, venues map[string]IExchange, params map[string]any) (map[string]any, error) {
+	requireApplied := routerBoolAt(params, "requireBalancesApplied", true)
+	if len(venues) == 0 {
+		venues = this.Venues
+	}
+	balances, dropped, collectErr := this.CollectBalances(venues)
+	if collectErr != nil {
+		return nil, collectErr
 	}
 	routeParams := map[string]any{}
 	for key, value := range params {
@@ -2041,7 +2128,7 @@ func (this *OrderRouter) Execute(plan map[string]any, venues map[string]IExchang
 		}
 		plan = built
 	}
-	requestedStrategy := routerStringAt(options, "strategy", "dry_run")
+	requestedStrategy := routerStringAt(options, "strategy", "sequential")
 	known := false
 	for i := 0; i < len(orderRouterKnownStrategies); i++ {
 		if orderRouterKnownStrategies[i] == requestedStrategy {
@@ -2051,14 +2138,13 @@ func (this *OrderRouter) Execute(plan map[string]any, venues map[string]IExchang
 	if !known {
 		return nil, BadRequest("OrderRouter: unknown execution strategy " + requestedStrategy)
 	}
-	live := routerBoolAt(options, "live", false)
-	// THE default. Anything short of an explicit true is a rehearsal.
-	strategy := "dry_run"
-	if live {
-		strategy = requestedStrategy
-	}
+	// PLACING IS THE DEFAULT, and ONE knob decides it: `strategy` says only HOW,
+	// `dryRun` says only WHETHER. The guardrails that do the work all still run
+	// BEFORE anything is sent.
+	strategy := requestedStrategy
+	dryRun := routerIsExactlyTrue(options, "dryRun")
 	steps := this.cloneSteps(plan)
-	report, results := this.emptyReport(plan, strategy, requestedStrategy, live, steps)
+	report, results := this.emptyReport(plan, strategy, dryRun, steps)
 	// resolved from BOTH the plan and the options, so a hand-assembled plan can carry
 	// an identity too; reported on every report, rehearsals included
 	planId := this.PlanIdentity(plan, options)
@@ -2077,7 +2163,7 @@ func (this *OrderRouter) Execute(plan map[string]any, venues map[string]IExchang
 	}
 	report["planAgeMs"] = planAgeMs
 	maxPlanAgeMs := routerNumberAt(options, "maxPlanAgeMs", 0)
-	if live && maxPlanAgeMs > 0 {
+	if !dryRun && maxPlanAgeMs > 0 {
 		if planAgeMs < 0 {
 			return nil, ExchangeError("OrderRouter: refusing to execute, the plan carries no calculatedAt and maxPlanAgeMs was set")
 		}
@@ -2085,7 +2171,7 @@ func (this *OrderRouter) Execute(plan map[string]any, venues map[string]IExchang
 			return nil, ExchangeError("OrderRouter: refusing to execute a plan older than maxPlanAgeMs, recompute the route")
 		}
 	}
-	if strategy == "dry_run" {
+	if dryRun {
 		// not one call is made against a venue on this path, not even a read
 		report["wouldPlaceOrders"] = float64(len(steps))
 		return report, nil
@@ -2268,7 +2354,7 @@ func (this *OrderRouter) cloneSteps(plan map[string]any) []map[string]any {
 // emptyReport builds the report skeleton with every step marked planned, and
 // hands back the results slice the strategies write into. The slice is the same
 // one stored under report["steps"], so an element written here is visible there.
-func (this *OrderRouter) emptyReport(plan map[string]any, strategy string, requestedStrategy string, live bool, steps []map[string]any) (map[string]any, []map[string]any) {
+func (this *OrderRouter) emptyReport(plan map[string]any, strategy string, dryRun bool, steps []map[string]any) (map[string]any, []map[string]any) {
 	results := make([]map[string]any, 0, len(steps))
 	for i := 0; i < len(steps); i++ {
 		step := steps[i]
@@ -2301,9 +2387,8 @@ func (this *OrderRouter) emptyReport(plan map[string]any, strategy string, reque
 		// options and overwrites it before anything reads this field
 		"planId":                  "",
 		"strategy":                strategy,
-		"requestedStrategy":       requestedStrategy,
-		"dryRun":                  strategy == "dry_run",
-		"live":                    live,
+		"dryRun":                  dryRun,
+		"live":                    !dryRun,
 		"from":                    routerStringAt(plan, "from", ""),
 		"to":                      routerStringAt(plan, "to", ""),
 		"slippageBps":             routerNumberAt(plan, "slippageBps", OrderRouterDefaultSlippageBps),

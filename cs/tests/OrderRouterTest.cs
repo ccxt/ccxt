@@ -95,7 +95,9 @@ public class OrderRouterTest
         Run("buildUnwindPlan is never automatic and never nets across venues", UnwindNeverNetsAcrossVenues);
         Run("a buy-side unwind order never spends more quote than the residual actually holds", UnwindBuyIsFundable);
         //  3. execute — stub venues only, and not one real order anywhere
-        RunAsync("dry_run is the default: a live-looking call with live unset places nothing", DryRunIsTheDefault);
+        RunAsync("execute places orders: calling it is the instruction, not a flag beside it", ExecutePlacesByDefault);
+        RunAsync("a rehearsal is asked for once, by dryRun, and places nothing", RehearsalIsDryRun);
+        RunAsync("dry_run is no longer a strategy: how and whether are separate fields", DryRunIsNotAStrategy);
         RunAsync("execute refuses to go live without a way to value the trade in USD — when a cap is set", RefusesLiveWithoutRates);
         RunAsync("execute refuses to go live above a cap the caller set", RefusesLiveAboveTheCap);
         RunAsync("sequential places IOC limit orders in plan order", SequentialPlacesIoc);
@@ -803,7 +805,7 @@ public class OrderRouterTest
             {
                 venue.tradeFeesOverride = tradeFees;
             }
-            var report = await router.Execute(plan, Venues(venue), new dict() { { "strategy", "sequential" }, { "live", true }, { "usdRates", new dict() { { "USDT", 1.0 } } } });
+            var report = await router.Execute(plan, Venues(venue), new dict() { { "strategy", "sequential" }, { "usdRates", new dict() { { "USDT", 1.0 } } } });
             var step = ToDict(ToList(report["steps"])[0]);
             var expected = ToDict(testCase["expected"]);
             EqualNumber(step.ContainsKey("filledAmount") ? ToDouble(step["filledAmount"]) : 0, ToDouble(expected["filledAmount"]), "feeNettingCase " + id + ": filledAmount");
@@ -1638,34 +1640,55 @@ public class OrderRouterTest
         }
     }
 
-    private static async Task DryRunIsTheDefault()
+    private static async Task ExecutePlacesByDefault()
     {
+        //  `Execute` is an imperative verb and ccxt's own CreateOrder needs no permission flag
+        //  beside it. A method that silently does nothing is the same failure this class
+        //  guards against everywhere else.
         var router = NewRouter();
         var plan = router.BuildExecutionPlan(OneLegRoute("buy", "BTC", "USDT", 0.2, 100), new dict());
         var venue = new StubVenue("stub");
-        //  everything a real call would carry, EXCEPT live
         var report = await router.Execute(plan, Venues(venue), new dict()
         {
-            { "strategy", "sequential" },
             { "usdRates", new dict() { { "USDT", 1.0 } } },
-            { "allowMarketOrders", true },
+            { "idempotencyKey", "default-is-live" },
         });
-        EqualBool((bool)report["dryRun"], true, "dry run");
-        EqualString((string)report["strategy"], "dry_run", "the strategy in force");
-        EqualString((string)report["requestedStrategy"], "sequential", "the report says what was asked for as well as what happened");
+        EqualBool((bool)report["dryRun"], false, "execute places by default");
+        EqualString((string)report["strategy"], "sequential", "sequential is the default strategy");
+        EqualNumber(ToDouble(report["ordersPlaced"]), 1, "one order placed");
+        EqualString((string)ToDict(ToList(report["steps"])[0])["status"], "filled", "the step filled");
+        Ok(venue.calls.Count > 0, "the venue was actually called");
+    }
+
+    private static async Task RehearsalIsDryRun()
+    {
+        //  ONE knob. `dryRun` says whether; `strategy` says how, and the two are independent.
+        var router = NewRouter();
+        var plan = router.BuildExecutionPlan(OneLegRoute("buy", "BTC", "USDT", 0.2, 100), new dict());
+        var rehearsed = new StubVenue("stub");
+        var report = await router.Execute(plan, Venues(rehearsed), new dict()
+        {
+            { "strategy", "limit_protected" },
+            { "dryRun", true },
+            { "usdRates", new dict() { { "USDT", 1.0 } } },
+        });
+        EqualBool((bool)report["dryRun"], true, "a rehearsal");
+        EqualString((string)report["strategy"], "limit_protected", "the strategy survives the rehearsal: how is not what");
         EqualNumber(ToDouble(report["ordersPlaced"]), 0, "nothing was placed");
         EqualNumber(ToDouble(report["wouldPlaceOrders"]), 1, "one order would have been placed");
         EqualString((string)ToDict(ToList(report["steps"])[0])["status"], "planned", "the step stayed planned");
-        EqualCalls(venue.calls, new List<string>(), "not one call reached the venue — not even a read");
-        //  live: false, absent, "true" and 1 are all not-true
-        var notLive = new list() { false, null, "true", 1 };
-        for (var i = 0; i < notLive.Count; i++)
-        {
-            var other = new StubVenue("stub");
-            var again = await router.Execute(plan, Venues(other), new dict() { { "strategy", "sequential" }, { "live", notLive[i] }, { "usdRates", new dict() { { "USDT", 1.0 } } } });
-            EqualBool((bool)again["dryRun"], true, "live must be exactly true");
-            EqualCalls(other.calls, new List<string>(), "not one call reached the venue");
-        }
+        EqualCalls(rehearsed.calls, new List<string>(), "not one call reached the venue — not even a read");
+        var loose = new StubVenue("stub");
+        var ran = await router.Execute(plan, Venues(loose), new dict() { { "dryRun", "true" }, { "usdRates", new dict() { { "USDT", 1.0 } } }, { "idempotencyKey", "loose-dryrun" } });
+        EqualBool((bool)ran["dryRun"], false, "dryRun must be exactly true to rehearse");
+        Ok(loose.calls.Count > 0, "it traded");
+    }
+
+    private static async Task DryRunIsNotAStrategy()
+    {
+        var router = NewRouter();
+        var plan = router.BuildExecutionPlan(OneLegRoute("buy", "BTC", "USDT", 0.2, 100), new dict());
+        await Rejects<BadRequest>(async () => await router.Execute(plan, Venues(new StubVenue("stub")), new dict() { { "strategy", "dry_run" }, { "usdRates", new dict() { { "USDT", 1.0 } } } }), "dry_run is not a strategy");
     }
 
     private static async Task RefusesLiveWithoutRates()
@@ -1673,7 +1696,7 @@ public class OrderRouterTest
         var router = NewRouter();
         var plan = router.BuildExecutionPlan(OneLegRoute("buy", "BTC", "USDT", 0.2, 100), new dict());
         var venue = new StubVenue("stub");
-        await Rejects<ExchangeError>(async () => await router.Execute(plan, Venues(venue), new dict() { { "strategy", "sequential" }, { "live", true }, { "maxNotionalUsd", 25.0 } }), "an unvaluable plan is refused");
+        await Rejects<ExchangeError>(async () => await router.Execute(plan, Venues(venue), new dict() { { "strategy", "sequential" }, { "maxNotionalUsd", 25.0 } }), "an unvaluable plan is refused");
         for (var i = 0; i < venue.calls.Count; i++)
         {
             Ok(venue.calls[i].IndexOf("createOrder", StringComparison.Ordinal) < 0, "no order was placed");
@@ -1682,7 +1705,7 @@ public class OrderRouterTest
         //  evaluate, so demanding the inputs for one would be asking for something
         //  nobody wanted.
         var uncapped = new StubVenue("stub");
-        var report = await router.Execute(plan, Venues(uncapped), new dict() { { "strategy", "sequential" }, { "live", true } });
+        var report = await router.Execute(plan, Venues(uncapped), new dict() { { "strategy", "sequential" } });
         EqualString((string)ToDict(ToList(report["steps"])[0])["status"], "filled", "no cap, no valuation demanded");
     }
 
@@ -1694,7 +1717,7 @@ public class OrderRouterTest
         var router = NewRouter();
         var plan = router.BuildExecutionPlan(OneLegRoute("buy", "BTC", "USDT", 5, 100), new dict());
         var venue = new StubVenue("stub");
-        await Rejects<ExchangeError>(async () => await router.Execute(plan, Venues(venue), new dict() { { "strategy", "sequential" }, { "live", true }, { "usdRates", new dict() { { "USDT", 1.0 } } }, { "maxNotionalUsd", 25.0 } }), "500 USD is refused");
+        await Rejects<ExchangeError>(async () => await router.Execute(plan, Venues(venue), new dict() { { "strategy", "sequential" }, { "usdRates", new dict() { { "USDT", 1.0 } } }, { "maxNotionalUsd", 25.0 } }), "500 USD is refused");
         for (var i = 0; i < venue.calls.Count; i++)
         {
             Ok(venue.calls[i].IndexOf("createOrder", StringComparison.Ordinal) < 0, "no order was placed");
@@ -1702,7 +1725,7 @@ public class OrderRouterTest
         //  the same 500 USD trade with no cap set goes through: that is the point of
         //  the guardrail being opt-in
         var uncapped = new StubVenue("stub");
-        var report = await router.Execute(plan, Venues(uncapped), new dict() { { "strategy", "sequential" }, { "live", true }, { "usdRates", new dict() { { "USDT", 1.0 } } } });
+        var report = await router.Execute(plan, Venues(uncapped), new dict() { { "strategy", "sequential" }, { "usdRates", new dict() { { "USDT", 1.0 } } } });
         EqualString((string)ToDict(ToList(report["steps"])[0])["status"], "filled", "500 USD is a normal trade when nobody asked for a cap");
     }
 
@@ -1711,7 +1734,7 @@ public class OrderRouterTest
         var router = NewRouter();
         var plan = router.BuildExecutionPlan(OneLegRoute("buy", "BTC", "USDT", 0.2, 100), new dict() { { "slippageBps", 100.0 } });
         var venue = new StubVenue("stub");
-        var report = await router.Execute(plan, Venues(venue), new dict() { { "strategy", "sequential" }, { "live", true }, { "usdRates", new dict() { { "USDT", 1.0 } } } });
+        var report = await router.Execute(plan, Venues(venue), new dict() { { "strategy", "sequential" }, { "usdRates", new dict() { { "USDT", 1.0 } } } });
         EqualBool((bool)report["dryRun"], false, "this one is live");
         EqualNumber(ToDouble(report["ordersPlaced"]), 1, "one order");
         var first = ToDict(ToList(report["steps"])[0]);
@@ -1729,7 +1752,7 @@ public class OrderRouterTest
         var plan = router.BuildExecutionPlan(TwoHopRoute(), new dict());
         //  hop 0 fills half: a 50% shortfall against a 2% tolerance
         var venue = new StubVenue("stub", 0.5);
-        var report = await router.Execute(plan, Venues(venue), new dict() { { "strategy", "sequential" }, { "live", true }, { "usdRates", new dict() { { "USDT", 1.0 } } } });
+        var report = await router.Execute(plan, Venues(venue), new dict() { { "strategy", "sequential" }, { "usdRates", new dict() { { "USDT", 1.0 } } } });
         EqualBool((bool)report["halted"], true, "it halted");
         EqualString((string)report["haltReason"], "shortfall_exceeds_tolerance", "and said why");
         EqualNumber(ToDouble(report["haltStepIndex"]), 0, "at step 0");
@@ -1790,7 +1813,7 @@ public class OrderRouterTest
         Ok(!withoutHopCount.ContainsKey("hopCount"), "the plan really has no hopCount");
         EqualNumber(ToList(withoutHopCount["steps"]).Count, 2, "and it really has two hops worth of steps");
         var venue = new StubVenue("stub", 0.1);
-        await Rejects<NotSupported>(async () => await router.Execute(withoutHopCount, Venues(venue), new dict() { { "strategy", "best_effort" }, { "live", true }, { "usdRates", new dict() { { "USDT", 1.0 } } }, { "acknowledgeDispersion", true }, { "maxOrders", 5.0 } }), "best_effort across a bridge is refused however the plan reached us");
+        await Rejects<NotSupported>(async () => await router.Execute(withoutHopCount, Venues(venue), new dict() { { "strategy", "best_effort" }, { "usdRates", new dict() { { "USDT", 1.0 } } }, { "acknowledgeDispersion", true }, { "maxOrders", 5.0 } }), "best_effort across a bridge is refused however the plan reached us");
         EqualCalls(venue.calls, new List<string>(), "not one order was placed");
     }
 
@@ -1821,14 +1844,14 @@ public class OrderRouterTest
         //  end to end: the documented market-order fallback is reachable again
         var plan = router.BuildExecutionPlan(OneLegRoute("buy", "BTC", "USDT", 0.2, 100), new dict());
         var rates = new dict() { { "USDT", 1.0 } };
-        var refused = await router.Execute(plan, Venues(noIoc), new dict() { { "strategy", "sequential" }, { "live", true }, { "usdRates", rates } });
+        var refused = await router.Execute(plan, Venues(noIoc), new dict() { { "strategy", "sequential" }, { "usdRates", rates } });
         EqualString((string)ToDict(ToList(refused["steps"])[0])["errorCode"], "NotSupported", "the step refuses rather than sending an IOC");
         EqualCalls(noIoc.calls, new List<string>(), "an IOC was never sent to a venue that cannot do one");
         var allowed = new StubVenue("stub");
         allowed.features = noIocFeatures;
         //  the same plan again on purpose: this test is about the market-order opt-in, not
         //  about idempotency, so the re-execution guard is explicitly waived
-        var placed = await router.Execute(plan, Venues(allowed), new dict() { { "strategy", "sequential" }, { "live", true }, { "usdRates", rates }, { "allowMarketOrders", true }, { "allowReexecution", true } });
+        var placed = await router.Execute(plan, Venues(allowed), new dict() { { "strategy", "sequential" }, { "usdRates", rates }, { "allowMarketOrders", true }, { "allowReexecution", true } });
         EqualString((string)ToDict(ToList(placed["steps"])[0])["status"], "filled", "the opt-in reaches the market order");
         EqualCalls(allowed.calls, new List<string>() { "createOrder:market:buy:0.2" }, "and it is a market order");
         //  ...but not under a cap. AssertUnderCap values the order at the plan's LIMIT price and
@@ -1836,7 +1859,7 @@ public class OrderRouterTest
         //  it was computed from is a cap that silently disappears. Refused together.
         var capped = new StubVenue("stub");
         capped.features = noIocFeatures;
-        var underCap = await router.Execute(plan, Venues(capped), new dict() { { "strategy", "sequential" }, { "live", true }, { "usdRates", rates }, { "allowMarketOrders", true }, { "maxNotionalUsd", 1000.0 }, { "allowReexecution", true } });
+        var underCap = await router.Execute(plan, Venues(capped), new dict() { { "strategy", "sequential" }, { "usdRates", rates }, { "allowMarketOrders", true }, { "maxNotionalUsd", 1000.0 }, { "allowReexecution", true } });
         EqualString((string)ToDict(ToList(underCap["steps"])[0])["status"], "failed", "a market order under a cap is refused");
         EqualString((string)ToDict(ToList(underCap["steps"])[0])["errorCode"], "NotSupported", "and names the refusal");
         EqualCalls(capped.calls, new List<string>(), "refused BEFORE dispatch: a cap checked against a price that is then discarded is worse than no cap");
@@ -1860,7 +1883,7 @@ public class OrderRouterTest
             var venue = new StubVenue("stub");
             venue.createdStatus = "open";
             await Rejects<BadRequest>(async () => await router.Execute(plan, Venues(venue), new dict() {
-                { "strategy", "limit_protected" }, { "live", true },
+                { "strategy", "limit_protected" },
                 { "usdRates", new dict() { { "USDT", 1.0 } } },
                 { "orderTimeoutMs", 4.0 }, { "pollIntervalMs", interval },
             }), "pollIntervalMs " + interval.ToString() + " must be refused");
@@ -1872,7 +1895,7 @@ public class OrderRouterTest
             new dict() { { "id", "stub-order" }, { "status", "closed" }, { "filled", 0.0002 }, { "average", 100000.0 }, { "cost", 20.0 } },
         };
         var report = await router.Execute(plan, Venues(ok), new dict() {
-            { "strategy", "limit_protected" }, { "live", true },
+            { "strategy", "limit_protected" },
             { "usdRates", new dict() { { "USDT", 1.0 } } },
             { "orderTimeoutMs", 4.0 }, { "pollIntervalMs", 1.0 },
         });
@@ -1888,7 +1911,7 @@ public class OrderRouterTest
         venue.fetchOrderResults.Add(new dict() { { "id", "stub-order" }, { "status", "open" }, { "filled", 0.0 }, { "average", 0.0 }, { "cost", 0.0 } });
         venue.fetchOrderResults.Add(new dict() { { "id", "stub-order" }, { "status", "canceled" }, { "filled", 0.0001 }, { "average", 100000.0 }, { "cost", 10.0 } });
         venue.cancelThrows = true;
-        var report = await router.Execute(plan, Venues(venue), new dict() { { "strategy", "limit_protected" }, { "live", true }, { "usdRates", new dict() { { "USDT", 1.0 } } }, { "orderTimeoutMs", 2.0 }, { "pollIntervalMs", 1.0 } });
+        var report = await router.Execute(plan, Venues(venue), new dict() { { "strategy", "limit_protected" }, { "usdRates", new dict() { { "USDT", 1.0 } } }, { "orderTimeoutMs", 2.0 }, { "pollIntervalMs", 1.0 } });
         Ok(!venue.calls.Contains("cancelOrder:stub-order"), "an order the venue already closed is not cancelled again");
         var step = ToDict(ToList(report["steps"])[0]);
         EqualString((string)step["status"], "partial", "the fill is kept");
@@ -1914,7 +1937,7 @@ public class OrderRouterTest
         var venue = new StubVenue("stub");
         venue.createdStatus = "open";
         venue.fetchOrderThrows = true;
-        var report = await router.Execute(plan, Venues(venue), new dict() { { "strategy", "limit_protected" }, { "live", true }, { "usdRates", new dict() { { "USDT", 1.0 } } }, { "orderTimeoutMs", 4.0 }, { "pollIntervalMs", 1.0 } });
+        var report = await router.Execute(plan, Venues(venue), new dict() { { "strategy", "limit_protected" }, { "usdRates", new dict() { { "USDT", 1.0 } } }, { "orderTimeoutMs", 4.0 }, { "pollIntervalMs", 1.0 } });
         var step = ToDict(ToList(report["steps"])[0]);
         //  NOT "failed". A step whose id is known had CreateOrder RETURN, so an order exists;
         //  calling that "failed" reads as "nothing happened" while openOrders, a few lines down,
@@ -1931,7 +1954,7 @@ public class OrderRouterTest
         //  the same holds for an immediate order, which has no poll loop at all
         var other = new StubVenue("stub");
         other.createdStatus = "open";
-        var okReport = await router.Execute(plan, Venues(other), new dict() { { "strategy", "sequential" }, { "live", true }, { "usdRates", new dict() { { "USDT", 1.0 } } }, { "allowReexecution", true } });
+        var okReport = await router.Execute(plan, Venues(other), new dict() { { "strategy", "sequential" }, { "usdRates", new dict() { { "USDT", 1.0 } } }, { "allowReexecution", true } });
         EqualString((string)ToDict(ToList(okReport["steps"])[0])["orderId"], "stub-order", "an immediate order reports its id too");
         //  and an "immediate" order the venue reports as STILL OPEN is a resting
         //  order — which is what a venue that silently drops timeInForce leaves you.
@@ -1952,7 +1975,7 @@ public class OrderRouterTest
         for (var i = 0; i < strategies.Count; i++)
         {
             var strategy = strategies[i];
-            var options = new dict() { { "strategy", strategy }, { "live", true }, { "usdRates", new dict() { { "USDT", 1.0 } } } };
+            var options = new dict() { { "strategy", strategy }, { "usdRates", new dict() { { "USDT", 1.0 } } } };
             if (strategy == "best_effort")
             {
                 options["acknowledgeDispersion"] = true;
@@ -2005,7 +2028,7 @@ public class OrderRouterTest
         //  a venue that advertises GTC only
         var noIoc = new StubVenue("stub");
         noIoc.features = new dict() { { "spot", new dict() { { "createOrder", new dict() { { "timeInForce", new list() { "GTC" } } } } } } };
-        var refused = await router.Execute(plan, Venues(noIoc), new dict() { { "strategy", "sequential" }, { "live", true }, { "usdRates", rates } });
+        var refused = await router.Execute(plan, Venues(noIoc), new dict() { { "strategy", "sequential" }, { "usdRates", rates } });
         var refusedStep = ToDict(ToList(refused["steps"])[0]);
         EqualString((string)refusedStep["status"], "failed", "the leg failed");
         EqualString((string)refusedStep["errorCode"], "NotSupported", "with the class name of the refusal");
@@ -2014,14 +2037,14 @@ public class OrderRouterTest
         allowed.features = new dict() { { "spot", new dict() { { "createOrder", new dict() { { "timeInForce", new list() { "GTC" } } } } } } };
         //  the same plan again on purpose: this test is about the market-order opt-in, not
         //  about idempotency, so the re-execution guard is explicitly waived
-        var placed = await router.Execute(plan, Venues(allowed), new dict() { { "strategy", "sequential" }, { "live", true }, { "usdRates", rates }, { "allowMarketOrders", true }, { "allowReexecution", true } });
+        var placed = await router.Execute(plan, Venues(allowed), new dict() { { "strategy", "sequential" }, { "usdRates", rates }, { "allowMarketOrders", true }, { "allowReexecution", true } });
         EqualString((string)ToDict(ToList(placed["steps"])[0])["status"], "filled", "the market order went through");
         EqualCalls(allowed.calls, new List<string>() { "createOrder:market:buy:0.2" }, "a market order");
         //  a venue that says nothing about timeInForce is assumed to do IOC: a
         //  rejected IOC is loud and cheap, an unintended market order is not
         var unknown = new StubVenue("stub");
         unknown.features = new dict();
-        var assumed = await router.Execute(plan, Venues(unknown), new dict() { { "strategy", "sequential" }, { "live", true }, { "usdRates", rates }, { "allowReexecution", true } });
+        var assumed = await router.Execute(plan, Venues(unknown), new dict() { { "strategy", "sequential" }, { "usdRates", rates }, { "allowReexecution", true } });
         EqualString((string)ToDict(ToList(assumed["steps"])[0])["status"], "filled", "it filled");
         EqualCalls(unknown.calls, new List<string>() { "createOrder:limit:buy:0.2" }, "an IOC limit order");
     }
@@ -2042,7 +2065,7 @@ public class OrderRouterTest
         var good = new StubVenue("good");
         var bad = new StubVenue("bad", 1, true);
         var good2 = new StubVenue("good2");
-        var report = await router.Execute(plan, Venues(good, bad, good2), new dict() { { "strategy", "parallel_within_hop" }, { "live", true }, { "usdRates", new dict() { { "USDT", 1.0 } } } });
+        var report = await router.Execute(plan, Venues(good, bad, good2), new dict() { { "strategy", "parallel_within_hop" }, { "usdRates", new dict() { { "USDT", 1.0 } } } });
         var steps = ToList(report["steps"]);
         EqualString((string)ToDict(steps[0])["status"], "filled", "the first leg filled");
         EqualString((string)ToDict(steps[1])["status"], "failed", "the second leg failed");
@@ -2060,10 +2083,10 @@ public class OrderRouterTest
         var rates = new dict() { { "USDT", 1.0 } };
         var multiHop = router.BuildExecutionPlan(TwoHopRoute(), new dict());
         var venue = new StubVenue("stub");
-        await Rejects<NotSupported>(async () => await router.Execute(multiHop, Venues(venue), new dict() { { "strategy", "best_effort" }, { "live", true }, { "usdRates", rates }, { "acknowledgeDispersion", true }, { "maxOrders", 5 } }), "best_effort refuses multi-hop");
+        await Rejects<NotSupported>(async () => await router.Execute(multiHop, Venues(venue), new dict() { { "strategy", "best_effort" }, { "usdRates", rates }, { "acknowledgeDispersion", true }, { "maxOrders", 5 } }), "best_effort refuses multi-hop");
         var singleHop = router.BuildExecutionPlan(OneLegRoute("buy", "BTC", "USDT", 0.2, 100), new dict());
-        await Rejects<BadRequest>(async () => await router.Execute(singleHop, Venues(venue), new dict() { { "strategy", "best_effort" }, { "live", true }, { "usdRates", rates }, { "maxOrders", 5 } }), "best_effort demands acknowledgeDispersion");
-        await Rejects<BadRequest>(async () => await router.Execute(singleHop, Venues(venue), new dict() { { "strategy", "best_effort" }, { "live", true }, { "usdRates", rates }, { "acknowledgeDispersion", true } }), "best_effort demands maxOrders");
+        await Rejects<BadRequest>(async () => await router.Execute(singleHop, Venues(venue), new dict() { { "strategy", "best_effort" }, { "usdRates", rates }, { "maxOrders", 5 } }), "best_effort demands acknowledgeDispersion");
+        await Rejects<BadRequest>(async () => await router.Execute(singleHop, Venues(venue), new dict() { { "strategy", "best_effort" }, { "usdRates", rates }, { "acknowledgeDispersion", true } }), "best_effort demands maxOrders");
         EqualCalls(venue.calls, new List<string>(), "nothing reached the venue");
     }
 
@@ -2083,7 +2106,7 @@ public class OrderRouterTest
         var a = new StubVenue("a");
         var b = new StubVenue("b", 0.01);
         var c = new StubVenue("c");
-        var report = await router.Execute(plan, Venues(a, b, c), new dict() { { "strategy", "best_effort" }, { "live", true }, { "usdRates", new dict() { { "USDT", 1.0 } } }, { "acknowledgeDispersion", true }, { "maxOrders", 2 } });
+        var report = await router.Execute(plan, Venues(a, b, c), new dict() { { "strategy", "best_effort" }, { "usdRates", new dict() { { "USDT", 1.0 } } }, { "acknowledgeDispersion", true }, { "maxOrders", 2 } });
         EqualNumber(ToDouble(report["ordersPlaced"]), 2, "two orders");
         var third = ToDict(ToList(report["steps"])[2]);
         EqualString((string)third["status"], "skipped", "the third was skipped");
@@ -2106,7 +2129,7 @@ public class OrderRouterTest
         var plan = router.BuildExecutionPlan(route, new dict());
         var rates = new dict() { { "USDT", 1.0 } };
         var venue = new StubVenue("stub");
-        await Rejects<BadRequest>(async () => await router.Execute(plan, Venues(venue), new dict() { { "strategy", "sequential" }, { "live", true }, { "usdRates", rates } }), "a live plan with no identity is refused");
+        await Rejects<BadRequest>(async () => await router.Execute(plan, Venues(venue), new dict() { { "strategy", "sequential" }, { "usdRates", rates } }), "a live plan with no identity is refused");
         EqualCalls(venue.calls, new List<string>(), "refused before a single call reached the venue");
         //  a rehearsal needs no identity: it places nothing
         var dry = await router.Execute(plan, Venues(venue), new dict() { { "strategy", "sequential" }, { "usdRates", rates } });
@@ -2115,19 +2138,19 @@ public class OrderRouterTest
         //  the plan shape, and such a plan never went through a routing request, so requestId
         //  is the one identity it cannot have. options idempotencyKey is how it supplies one.
         var supplied = new StubVenue("stub");
-        var keyed = await router.Execute(plan, Venues(supplied), new dict() { { "strategy", "sequential" }, { "live", true }, { "usdRates", rates }, { "idempotencyKey", "hand-built-1" } });
+        var keyed = await router.Execute(plan, Venues(supplied), new dict() { { "strategy", "sequential" }, { "usdRates", rates }, { "idempotencyKey", "hand-built-1" } });
         EqualString((string)keyed["planId"], "hand-built-1", "the supplied key is the identity");
         EqualString((string)ToDict(ToList(keyed["steps"])[0])["status"], "filled", "and the plan executes");
         EqualBool(supplied.paramsSeen[0].ContainsKey("clientOrderId"), false, "and no client order id is injected");
         //  and the guard keys off it, exactly as it does off a requestId
         var again = new StubVenue("stub");
-        await Rejects<BadRequest>(async () => await router.Execute(plan, Venues(again), new dict() { { "strategy", "sequential" }, { "live", true }, { "usdRates", rates }, { "idempotencyKey", "hand-built-1" } }), "the same key is refused a second time");
+        await Rejects<BadRequest>(async () => await router.Execute(plan, Venues(again), new dict() { { "strategy", "sequential" }, { "usdRates", rates }, { "idempotencyKey", "hand-built-1" } }), "the same key is refused a second time");
         EqualCalls(again.calls, new List<string>(), "and places nothing");
         //  an explicit key OVERRIDES a plan's requestId: passing one is a deliberate statement
         //  about what this execution is, and the caller is closer to that than the plan is
         var routed = router.BuildExecutionPlan(OneLegRoute("buy", "BTC", "USDT", 0.2, 100), new dict());
         var overridden = new StubVenue("stub");
-        var report = await router.Execute(routed, Venues(overridden), new dict() { { "strategy", "sequential" }, { "live", true }, { "usdRates", rates }, { "idempotencyKey", "override-1" } });
+        var report = await router.Execute(routed, Venues(overridden), new dict() { { "strategy", "sequential" }, { "usdRates", rates }, { "idempotencyKey", "override-1" } });
         EqualString((string)report["planId"], "override-1", "the option overrides the requestId");
         EqualBool(overridden.paramsSeen[0].ContainsKey("clientOrderId"), false, "and no client order id is injected");
     }
@@ -2141,7 +2164,7 @@ public class OrderRouterTest
         //  by default nothing is injected: each exchange's CreateOrder sends whatever identifier
         //  it generates on its own
         var bare = new StubVenue("stub");
-        var report = await router.Execute(plan, Venues(bare), new dict() { { "strategy", "sequential" }, { "live", true }, { "usdRates", new dict() { { "USDT", 1.0 } } } });
+        var report = await router.Execute(plan, Venues(bare), new dict() { { "strategy", "sequential" }, { "usdRates", new dict() { { "USDT", 1.0 } } } });
         EqualString((string)report["planId"], "fixed-req", "the report names the plan identity");
         EqualNumber(bare.paramsSeen.Count, 2, "two orders were placed");
         EqualBool(bare.paramsSeen[0].ContainsKey("clientOrderId"), false, "no client order id is forced onto the order");
@@ -2169,21 +2192,21 @@ public class OrderRouterTest
         var plan = router.BuildExecutionPlan(OneLegRoute("buy", "BTC", "USDT", 0.2, 100), new dict());
         var rates = new dict() { { "USDT", 1.0 } };
         var first = new StubVenue("stub");
-        var report = await router.Execute(plan, Venues(first), new dict() { { "strategy", "sequential" }, { "live", true }, { "usdRates", rates } });
+        var report = await router.Execute(plan, Venues(first), new dict() { { "strategy", "sequential" }, { "usdRates", rates } });
         EqualString((string)ToDict(ToList(report["steps"])[0])["status"], "filled", "the first run places the order");
         var again = new StubVenue("stub");
-        await Rejects<BadRequest>(async () => await router.Execute(plan, Venues(again), new dict() { { "strategy", "sequential" }, { "live", true }, { "usdRates", rates } }), "the second run is refused");
+        await Rejects<BadRequest>(async () => await router.Execute(plan, Venues(again), new dict() { { "strategy", "sequential" }, { "usdRates", rates } }), "the second run is refused");
         EqualCalls(again.calls, new List<string>(), "not one order was re-placed");
         //  a plan rebuilt from the same route is the same plan: the identity travels with it
         var rebuiltRoute = OneLegRoute("buy", "BTC", "USDT", 0.2, 100);
         rebuiltRoute["requestId"] = plan["requestId"];
         var rebuilt = router.BuildExecutionPlan(rebuiltRoute, new dict());
         var third = new StubVenue("stub");
-        await Rejects<BadRequest>(async () => await router.Execute(rebuilt, Venues(third), new dict() { { "strategy", "sequential" }, { "live", true }, { "usdRates", rates } }), "a rebuilt plan with the same identity is refused too");
+        await Rejects<BadRequest>(async () => await router.Execute(rebuilt, Venues(third), new dict() { { "strategy", "sequential" }, { "usdRates", rates } }), "a rebuilt plan with the same identity is refused too");
         EqualCalls(third.calls, new List<string>(), "and places nothing");
         //  ...and the legitimate retry path is explicit
         var allowed = new StubVenue("stub");
-        var retry = await router.Execute(plan, Venues(allowed), new dict() { { "strategy", "sequential" }, { "live", true }, { "usdRates", rates }, { "allowReexecution", true } });
+        var retry = await router.Execute(plan, Venues(allowed), new dict() { { "strategy", "sequential" }, { "usdRates", rates }, { "allowReexecution", true } });
         EqualString((string)ToDict(ToList(retry["steps"])[0])["status"], "filled", "an explicit opt-in runs it again");
         EqualCalls(allowed.calls, new List<string>() { "createOrder:limit:buy:0.2" }, "and really does place the order");
     }
@@ -2195,17 +2218,17 @@ public class OrderRouterTest
         var plan = router.BuildExecutionPlan(OneLegRoute("buy", "BTC", "USDT", 0.2, 100), new dict());
         await router.Execute(plan, Venues(new StubVenue("stub")), new dict() { { "strategy", "sequential" }, { "usdRates", rates } });
         var real = new StubVenue("stub");
-        var report = await router.Execute(plan, Venues(real), new dict() { { "strategy", "sequential" }, { "live", true }, { "usdRates", rates } });
+        var report = await router.Execute(plan, Venues(real), new dict() { { "strategy", "sequential" }, { "usdRates", rates } });
         EqualString((string)ToDict(ToList(report["steps"])[0])["status"], "filled", "the rehearsal did not burn the plan");
         //  a run that FAILED still placed orders — or may have — so the retry is refused just
         //  the same. The ledger records the attempt, not the outcome.
         var failedPlan = router.BuildExecutionPlan(OneLegRoute("buy", "BTC", "USDT", 0.2, 100), new dict());
         var broken = new StubVenue("stub");
         broken.failCreate = true;
-        var failedReport = await router.Execute(failedPlan, Venues(broken), new dict() { { "strategy", "sequential" }, { "live", true }, { "usdRates", rates } });
+        var failedReport = await router.Execute(failedPlan, Venues(broken), new dict() { { "strategy", "sequential" }, { "usdRates", rates } });
         EqualBool((bool)failedReport["halted"], true, "the run halted");
         var retry = new StubVenue("stub");
-        await Rejects<BadRequest>(async () => await router.Execute(failedPlan, Venues(retry), new dict() { { "strategy", "sequential" }, { "live", true }, { "usdRates", rates } }), "a failed run still consumed the plan");
+        await Rejects<BadRequest>(async () => await router.Execute(failedPlan, Venues(retry), new dict() { { "strategy", "sequential" }, { "usdRates", rates } }), "a failed run still consumed the plan");
         EqualCalls(retry.calls, new List<string>(), "and the retry placed nothing");
     }
 
@@ -2242,7 +2265,7 @@ public class OrderRouterTest
         //  the documented weakening at the cap, not an accident — if this assertion ever has
         //  to change, the comment on MaxExecutedPlanIds has to change with it.
         var rates = new dict() { { "USDT", 1.0 } };
-        var options = new dict() { { "strategy", "sequential" }, { "live", true }, { "usdRates", rates } };
+        var options = new dict() { { "strategy", "sequential" }, { "usdRates", rates } };
         var plan = bounded.BuildExecutionPlan(OneLegRoute("buy", "BTC", "USDT", 0.2, 100), new dict());
         await bounded.Execute(plan, Venues(new StubVenue("stub")), options);
         var refused = new StubVenue("stub");
@@ -2277,7 +2300,7 @@ public class OrderRouterTest
         var venue = new StubVenue("stub");
         //  0.2 BTC bought, 0.0002 BTC taken as the taker fee — charged in the asset acquired
         venue.feeOverride = new dict() { { "currency", "BTC" }, { "cost", 0.0002 } };
-        var report = await router.Execute(plan, Venues(venue), new dict() { { "strategy", "sequential" }, { "live", true }, { "usdRates", new dict() { { "USDT", 1.0 } } } });
+        var report = await router.Execute(plan, Venues(venue), new dict() { { "strategy", "sequential" }, { "usdRates", new dict() { { "USDT", 1.0 } } } });
         var step = ToDict(ToList(report["steps"])[0]);
         EqualNumber(ToDouble(step["feeCost"]), 0.0002, "the fee reaches the report at all");
         EqualString((string)step["feeCurrency"], "BTC", "and names the asset it was taken in");
@@ -2290,7 +2313,7 @@ public class OrderRouterTest
         //  ledger refuses the second run, as it should.
         var other = new StubVenue("stub");
         other.feeOverride = new dict() { { "currency", "USDT" }, { "cost", 0.02 } };
-        var quoteFeeReport = await router.Execute(plan, Venues(other), new dict() { { "strategy", "sequential" }, { "live", true }, { "usdRates", new dict() { { "USDT", 1.0 } } }, { "allowReexecution", true } });
+        var quoteFeeReport = await router.Execute(plan, Venues(other), new dict() { { "strategy", "sequential" }, { "usdRates", new dict() { { "USDT", 1.0 } } }, { "allowReexecution", true } });
         var quoteFeeStep = ToDict(ToList(quoteFeeReport["steps"])[0]);
         EqualNumber(ToDouble(quoteFeeStep["outAmount"]), 0.2, "a fee in the spent asset leaves the acquired amount alone");
     }
@@ -2309,7 +2332,7 @@ public class OrderRouterTest
         var rates = new dict() { { "USDT", 1.0 } };
         //  this test deliberately runs the same plan several times to isolate the age check,
         //  which is exactly what allowReexecution is for
-        Func<dict> opts = () => new dict() { { "strategy", "sequential" }, { "live", true }, { "usdRates", rates }, { "allowReexecution", true } };
+        Func<dict> opts = () => new dict() { { "strategy", "sequential" }, { "usdRates", rates }, { "allowReexecution", true } };
 
         //  Always reported, even with nothing enforced, and nothing is refused by default.
         var report = await pinned.Execute(plan, Venues(new StubVenue("stub")), opts());
@@ -2342,11 +2365,11 @@ public class OrderRouterTest
         var plan = router.BuildExecutionPlan(TwoHopRoute(), new dict());
         //  hop 0 needs 20 USDT and hop 1 needs 0.2 BTC, both already sitting there
         var funded = new StubVenue("stub");
-        var rich = await router.Execute(plan, Venues(funded), new dict() { { "strategy", "atomic_ish" }, { "live", true }, { "usdRates", new dict() { { "USDT", 1.0 } } } });
+        var rich = await router.Execute(plan, Venues(funded), new dict() { { "strategy", "atomic_ish" }, { "usdRates", new dict() { { "USDT", 1.0 } } } });
         EqualNumber(ToDouble(rich["ordersPlaced"]), 2, "a pre-funded route runs end to end");
         var broke = new StubVenue("stub");
         broke.balanceOverride = new dict() { { "free", new dict() { { "USDT", 1.0 }, { "BTC", 0.0 } } } };
-        await Rejects<ExchangeError>(async () => await router.Execute(plan, Venues(broke), new dict() { { "strategy", "atomic_ish" }, { "live", true }, { "usdRates", new dict() { { "USDT", 1.0 } } } }), "an underfunded route is refused");
+        await Rejects<ExchangeError>(async () => await router.Execute(plan, Venues(broke), new dict() { { "strategy", "atomic_ish" }, { "usdRates", new dict() { { "USDT", 1.0 } } } }), "an underfunded route is refused");
     }
 
     //  -----------------------------------------------------------------------

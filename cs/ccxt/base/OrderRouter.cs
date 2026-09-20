@@ -100,7 +100,8 @@ public class OrderRouter
         { "price_precision", "the limit price does not sit on the market price precision" },
     };
 
-    private static readonly List<string> KNOWN_STRATEGIES = new List<string>() { "dry_run", "sequential", "parallel_within_hop", "limit_protected", "best_effort", "atomic_ish" };
+    //  HOW the orders go out, and nothing else. Whether they go out at all is `dryRun`.
+    private static readonly List<string> KNOWN_STRATEGIES = new List<string>() { "sequential", "parallel_within_hop", "limit_protected", "best_effort", "atomic_ish" };
 
     //  the query keys forwarded to GET /route, in a fixed order so that two
     //  ports build a byte-identical URL
@@ -165,6 +166,9 @@ public class OrderRouter
 
     public string baseUrl { get; private set; }
 
+    //  exchangeId -> ccxt exchange instance, optional. See the constructor.
+    public Dictionary<string, Exchange> venues { get; private set; }
+
     public double timeoutMs { get; private set; }
 
     public double maxNotionalUsd { get; private set; }
@@ -207,6 +211,8 @@ public class OrderRouter
             url = url.Substring(0, url.Length - 1);
         }
         this.baseUrl = url;
+        //  The venues this router trades through, held once instead of passed to every call.
+        this.venues = this.VenuesAt(config, "venues");
         this.timeoutMs = this.NumberAt(config, "timeoutMs", DefaultTimeoutMs);
         var configuredCap = this.NumberAt(config, "maxNotionalUsd", NoCap);
         if (configuredCap < 0)
@@ -749,6 +755,27 @@ public class OrderRouter
             throw new ArgumentsRequired("fetchRoute requires fromAsset and toAsset");
         }
         this.AssertRouteAmounts(parameters, "fetchRoute");
+        //  THE STORED VENUES ANSWER TWO QUESTIONS HERE, and a caller-supplied value wins both.
+        var storedIds = new List<string>(this.venues.Keys);
+        storedIds.Sort(StringComparer.Ordinal);
+        if (storedIds.Count > 0)
+        {
+            var merged = new dict();
+            foreach (var pair in parameters)
+            {
+                merged[pair.Key] = pair.Value;
+            }
+            if (!merged.ContainsKey("exchanges") || merged["exchanges"] == null)
+            {
+                merged["exchanges"] = string.Join(",", storedIds);
+            }
+            if (!merged.ContainsKey("balances") || merged["balances"] == null)
+            {
+                var collected = await this.CollectBalances(this.venues);
+                merged["balances"] = this.StringAt(collected, "balances", "");
+            }
+            parameters = merged;
+        }
         //  HOLDINGS NEVER TRAVEL IN A URL. The service scrubs balances out of its own
         //  logs, but a URL does not stay inside that process: the standard deployment
         //  puts a reverse proxy in front, and nginx, an ALB and a CDN all log the full
@@ -797,6 +824,35 @@ public class OrderRouter
     /// WatchRoute because the service runs ONE parser for both and they must not disagree about
     /// what is valid.
     /// </summary>
+    /// <summary>reads the optional venues map off the constructor config, tolerating its absence</summary>
+    public Dictionary<string, Exchange> VenuesAt(dict config, string key)
+    {
+        var empty = new Dictionary<string, Exchange>();
+        if (config == null || !config.ContainsKey(key) || config[key] == null)
+        {
+            return empty;
+        }
+        var typed = config[key] as Dictionary<string, Exchange>;
+        if (typed != null)
+        {
+            return typed;
+        }
+        var loose = config[key] as dict;
+        if (loose == null)
+        {
+            return empty;
+        }
+        foreach (var pair in loose)
+        {
+            var venue = pair.Value as Exchange;
+            if (venue != null)
+            {
+                empty[pair.Key] = venue;
+            }
+        }
+        return empty;
+    }
+
     public void AssertRouteAmounts(dict parameters, string method)
     {
         var hasAmountIn = this.ValueAt(parameters, "amountIn") != null;
@@ -1423,7 +1479,8 @@ public class OrderRouter
         return new dict() { { "free", free }, { "total", total } };
     }
 
-    public async Task<dict> FetchRouteWithBalances(string fromAsset, string toAsset, Dictionary<string, Exchange> venues, dict parameters = null)
+    /// <summary>reads every supplied venue's wallet and renders it as the router's balances string</summary>
+    public async Task<dict> CollectBalances(Dictionary<string, Exchange> venues)
     {
         var exchangeIds = this.SortedKeys(venues);
         var entries = new list();
@@ -1480,6 +1537,18 @@ public class OrderRouter
             dropped.Add(removed);
             balances = this.JoinBalances(entries);
         }
+        return new dict() { { "balances", balances }, { "dropped", dropped } };
+    }
+
+    public async Task<dict> FetchRouteWithBalances(string fromAsset, string toAsset, Dictionary<string, Exchange> venues = null, dict parameters = null)
+    {
+        if (venues == null || venues.Count == 0)
+        {
+            venues = this.venues;
+        }
+        var collected = await this.CollectBalances(venues);
+        var balances = this.StringAt(collected, "balances", "");
+        var dropped = this.ListAt(collected, "dropped");
         var routeParams = new dict();
         if (parameters != null)
         {
@@ -2519,8 +2588,13 @@ public class OrderRouter
     /// an execution report with per-step results, openOrders, errors and the
     /// halt verdict.
     /// </returns>
-    public async Task<dict> Execute(dict plan, Dictionary<string, Exchange> venues, dict options = null)
+    public async Task<dict> Execute(dict plan, Dictionary<string, Exchange> venues = null, dict options = null)
     {
+        //  the argument wins; the router's own venues are the fallback
+        if (venues == null || venues.Count == 0)
+        {
+            venues = this.venues;
+        }
         //  A ROUTE is accepted here as well as a plan. buildExecutionPlan is pure and derives
         //  entirely from the route, so requiring the caller to run it first was ceremony: two
         //  calls that can only ever happen in that order, with nothing to do in between unless
@@ -2530,16 +2604,18 @@ public class OrderRouter
         {
             plan = this.BuildExecutionPlan(plan, options);
         }
-        var requestedStrategy = this.StringAt(options, "strategy", "dry_run");
+        var requestedStrategy = this.StringAt(options, "strategy", "sequential");
         if (!KNOWN_STRATEGIES.Contains(requestedStrategy))
         {
             throw new BadRequest("OrderRouter: unknown execution strategy " + requestedStrategy);
         }
-        var live = this.IsExactlyTrue(options, "live");
-        //  THE default. Anything short of an explicit true is a rehearsal.
-        var strategy = live ? requestedStrategy : "dry_run";
+        //  PLACING IS THE DEFAULT, and ONE knob decides it: `strategy` says only HOW,
+        //  `dryRun` says only WHETHER. The guardrails that do the work all still run
+        //  BEFORE anything is sent.
+        var strategy = requestedStrategy;
+        var dryRun = this.IsExactlyTrue(options, "dryRun");
         var steps = this.CloneSteps(plan);
-        var report = this.EmptyReport(plan, strategy, requestedStrategy, live, steps);
+        var report = this.EmptyReport(plan, strategy, dryRun, steps);
         //  resolved from BOTH the plan and the options, so a hand-assembled plan can
         //  carry an identity too; reported on every report, rehearsals included
         var planId = this.PlanIdentity(plan, options);
@@ -2555,7 +2631,7 @@ public class OrderRouter
         var planAgeMs = (calculatedAt > 0) ? (this.NowMs() - calculatedAt) : -1;
         report["planAgeMs"] = planAgeMs;
         var maxPlanAgeMs = this.NumberAt(options, "maxPlanAgeMs", 0);
-        if (live && maxPlanAgeMs > 0)
+        if (!dryRun && maxPlanAgeMs > 0)
         {
             if (planAgeMs < 0)
             {
@@ -2566,7 +2642,7 @@ public class OrderRouter
                 throw new ExchangeError("OrderRouter: refusing to execute a plan older than maxPlanAgeMs, recompute the route");
             }
         }
-        if (strategy == "dry_run")
+        if (dryRun)
         {
             //  not one call is made against a venue on this path, not even a read
             report["wouldPlaceOrders"] = steps.Count;
@@ -2762,7 +2838,7 @@ public class OrderRouter
     /// <summary>
     /// Builds the report skeleton, with every step marked planned.
     /// </summary>
-    public dict EmptyReport(dict plan, string strategy, string requestedStrategy, bool live, list steps)
+    public dict EmptyReport(dict plan, string strategy, bool dryRun, list steps)
     {
         var results = new list();
         for (var i = 0; i < steps.Count; i++)
@@ -2799,9 +2875,8 @@ public class OrderRouter
             //  options and overwrites it before anything reads this field
             { "planId", "" },
             { "strategy", strategy },
-            { "requestedStrategy", requestedStrategy },
-            { "dryRun", strategy == "dry_run" },
-            { "live", live },
+            { "dryRun", dryRun },
+            { "live", !dryRun },
             { "from", this.StringAt(plan, "from", "") },
             { "to", this.StringAt(plan, "to", "") },
             { "slippageBps", this.NumberAt(plan, "slippageBps", DefaultSlippageBps) },

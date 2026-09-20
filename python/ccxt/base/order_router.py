@@ -109,7 +109,10 @@ VIOLATION_MESSAGES = {
     'price_precision': 'the limit price does not sit on the market price precision',
 }
 
-KNOWN_STRATEGIES = ['dry_run', 'sequential', 'parallel_within_hop', 'limit_protected', 'best_effort', 'atomic_ish']
+# HOW the orders go out, and nothing else. Whether they go out at all is `dryRun`, which
+# is a separate question: 'rehearse a limit_protected run' has to be sayable, and it is not
+# if the two share one field.
+KNOWN_STRATEGIES = ['sequential', 'parallel_within_hop', 'limit_protected', 'best_effort', 'atomic_ish']
 
 # the query keys forwarded to GET /route, in a fixed order so that two ports
 # build a byte-identical URL
@@ -189,6 +192,11 @@ class OrderRouter:
         while len(base_url) > 0 and base_url[-1] == '/':
             base_url = base_url[:-1]
         self.base_url = base_url
+        # The venues this router trades through, held once instead of passed to every call.
+        # They answer three questions that were all being asked by hand: which venues may a
+        # route name, what can it be funded from, and where do the orders go. fetch_route and
+        # execute both fall back to these, and a call-site argument always wins.
+        self.venues = self.dict_at(config, 'venues')
         self.timeout_ms = self.number_at(config, 'timeoutMs', OrderRouter.DEFAULT_TIMEOUT_MS)
         max_notional_usd = self.number_at(config, 'maxNotionalUsd', OrderRouter.NO_CAP)
         if max_notional_usd < 0:
@@ -542,6 +550,21 @@ class OrderRouter:
         if from_asset is None or to_asset is None or from_asset == '' or to_asset == '':
             raise ArgumentsRequired('fetch_route requires from_asset and to_asset')
         self.assert_route_amounts(params, 'fetch_route')
+        # THE STORED VENUES ANSWER TWO QUESTIONS HERE, and a caller-supplied value wins both.
+        # `exchanges` is cheap and always right: a route naming a venue you hold no keys for is
+        # not a route you can take. `balances` is expensive - it reads every venue's wallet - so
+        # it happens only when venues were handed to the router and the caller supplied none.
+        stored_ids = sorted(self.venues.keys())
+        if len(stored_ids) > 0:
+            merged = {}
+            for key in params:
+                merged[key] = params[key]
+            if merged.get('exchanges') is None:
+                merged['exchanges'] = ','.join(stored_ids)
+            if merged.get('balances') is None:
+                collected = self.collect_balances(self.venues)
+                merged['balances'] = collected['balances']
+            params = merged
         # HOLDINGS NEVER TRAVEL IN A URL. The service scrubs balances out of its own
         # logs, but a URL does not stay inside that process: the standard deployment
         # puts a reverse proxy in front, and nginx, an ALB and a CDN all log the full
@@ -913,16 +936,12 @@ class OrderRouter:
         self.stream_url(from_asset, to_asset, params)
         raise NotSupported('OrderRouter.watch_route needs a websocket, which synchronous ccxt has no client for. Use fetch_route, or consume /stream/route from ccxt.pro / a server-side proxy')
 
-    def fetch_route_with_balances(self, from_asset, to_asset, venues, params={}):
+    def collect_balances(self, venues):
         """
-        reads the live balances of the supplied venues, sends them to the router, and returns a route you can actually fund
+        reads every supplied venue's wallet and renders it as the router's balances string, trimmed to the router's caps
 
-        :param str from_asset: the asset being spent
-        :param str to_asset: the asset being acquired
         :param dict venues: a dictionary of exchangeId to a ccxt exchange instance
-        :param dict params: the same parameters fetch_route accepts, minus balances which this method builds
-        :param bool [params['requireBalancesApplied']]: raise when the router did not echo balancesApplied, default True
-        :returns dict: the RouteResult, with the client-side keys balancesUsed and balancesDropped added
+        :returns dict: balances, the rendered string, and dropped, the entries that did not fit
         """
         exchange_ids = sorted(venues.keys())
         entries = []
@@ -960,6 +979,24 @@ class OrderRouter:
             removed['reason'] = 'char_cap'
             dropped.append(removed)
             balances = self.join_balances(entries)
+        return {'balances': balances, 'dropped': dropped}
+
+    def fetch_route_with_balances(self, from_asset, to_asset, venues=None, params={}):
+        """
+        reads the live balances of the supplied venues, sends them to the router, and returns a route you can actually fund
+
+        :param str from_asset: the asset being spent
+        :param str to_asset: the asset being acquired
+        :param dict venues: a dictionary of exchangeId to a ccxt exchange instance
+        :param dict params: the same parameters fetch_route accepts, minus balances which this method builds
+        :param bool [params['requireBalancesApplied']]: raise when the router did not echo balancesApplied, default True
+        :returns dict: the RouteResult, with the client-side keys balancesUsed and balancesDropped added
+        """
+        if venues is None or len(venues) == 0:
+            venues = self.venues
+        collected = self.collect_balances(venues)
+        balances = self.string_at(collected, 'balances', '')
+        dropped = self.list_at(collected, 'dropped')
         route_params = {}
         for key in params:
             route_params[key] = params[key]
@@ -1678,7 +1715,7 @@ class OrderRouter:
     # IMPURE: execute
     # -----------------------------------------------------------------------
 
-    def execute(self, plan, venues, options={}):
+    def execute(self, plan, venues=None, options={}):
         """
         executes a plan against live exchange instances. THE ONLY IMPURE METHOD. dry_run is the default and options['live'] is not True forces dry_run regardless of the strategy requested, so a call that looks live but forgot the flag places nothing
 
@@ -1701,6 +1738,11 @@ class OrderRouter:
         :param callable [options['onStep']]: called after each step completes and reconciles, never mid-order, with one event dict describing that step. Return 'halt' to stop the route cleanly(haltReason becomes halted_by_on_step); any other value continues. It can only STOP a route, never resume one already halted. Do NO network I/O here — it sits between orders on the money path. A hook that raises is recorded as on_step_hook_failed and the run continues, because losing the report would destroy the only account of orders that are already live
         :returns dict: an execution report with per-step results, openOrders, errors and the halt verdict
         """
+        # the argument wins; the router's own venues are the fallback. Nothing is ever
+        # CONSTRUCTED here - an exchange instance the caller never made is one whose
+        # credentials they never chose, and this is the money path.
+        if venues is None or len(venues) == 0:
+            venues = self.venues
         # A ROUTE is accepted here as well as a plan. buildExecutionPlan is pure and derives
         # entirely from the route, so requiring the caller to run it first was ceremony: two
         # calls that can only ever happen in that order, with nothing to do in between unless
@@ -1708,15 +1750,21 @@ class OrderRouter:
         # route carries `hops`, a plan carries `steps`, and nothing carries both.
         if len(self.list_at(plan, 'steps')) == 0 and len(self.list_at(plan, 'hops')) > 0:
             plan = self.build_execution_plan(plan, options)
-        requested_strategy = self.string_at(options, 'strategy', 'dry_run')
+        requested_strategy = self.string_at(options, 'strategy', 'sequential')
         if requested_strategy not in KNOWN_STRATEGIES:
             raise BadRequest('OrderRouter: unknown execution strategy ' + requested_strategy)
-        # THE default. Anything short of an explicit True is a rehearsal — and
-        # `is True` is deliberate, so that 1 and 'true' are not-live too.
-        live = options.get('live') is True
-        strategy = requested_strategy if live else 'dry_run'
+        # PLACING IS THE DEFAULT. `execute` is an imperative verb, and ccxt's own create_order
+        # needs no permission flag beside it; a method that silently does nothing is the same
+        # failure this class guards against everywhere else - a caller who believes they traded
+        # and did not. The guardrails that do the work all still run BEFORE anything is sent:
+        # the notional cap, the plan-age check, the safety check, and the re-execution ledger.
+        #
+        # ONE knob, not two. `strategy` says only HOW, `dryRun` says only WHETHER. `is True` is
+        # deliberate: a config that stringifies its booleans must not silently stop trading.
+        strategy = requested_strategy
+        dry_run = options.get('dryRun') is True
         steps = self.clone_steps(plan)
-        report = self.empty_report(plan, strategy, requested_strategy, live, steps)
+        report = self.empty_report(plan, strategy, dry_run, steps)
         # resolved from BOTH the plan and the options, so a hand-assembled plan can carry an
         # identity too; reported on every report, rehearsals included
         plan_id = self.plan_identity(plan, options)
@@ -1732,12 +1780,12 @@ class OrderRouter:
         plan_age_ms = (self.now_ms() - calculated_at) if calculated_at > 0 else -1
         report['planAgeMs'] = plan_age_ms
         max_plan_age_ms = self.number_at(options, 'maxPlanAgeMs', 0)
-        if live and max_plan_age_ms > 0:
+        if not dry_run and max_plan_age_ms > 0:
             if plan_age_ms < 0:
                 raise ExchangeError('OrderRouter: refusing to execute, the plan carries no calculatedAt and maxPlanAgeMs was set')
             if plan_age_ms > max_plan_age_ms:
                 raise ExchangeError('OrderRouter: refusing to execute a plan older than maxPlanAgeMs, recompute the route')
-        if strategy == 'dry_run':
+        if dry_run:
             # not one call is made against a venue on this path, not even a read
             report['wouldPlaceOrders'] = len(steps)
             return report
@@ -1871,7 +1919,7 @@ class OrderRouter:
             })
         return copies
 
-    def empty_report(self, plan, strategy, requested_strategy, live, steps):
+    def empty_report(self, plan, strategy, dry_run, steps):
         """
         builds the report skeleton, with every step marked planned
 
@@ -1913,9 +1961,8 @@ class OrderRouter:
             # and overwrites it before anything reads this field
             'planId': '',
             'strategy': strategy,
-            'requestedStrategy': requested_strategy,
-            'dryRun': strategy == 'dry_run',
-            'live': live,
+            'dryRun': dry_run,
+            'live': not dry_run,
             'from': self.string_at(plan, 'from', ''),
             'to': self.string_at(plan, 'to', ''),
             'slippageBps': self.number_at(plan, 'slippageBps', OrderRouter.DEFAULT_SLIPPAGE_BPS),
