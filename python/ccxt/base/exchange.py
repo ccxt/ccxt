@@ -5598,13 +5598,13 @@ class BaseExchange(object):
     def incrementing_nonce(self):
         """
  @ignore
-        returns the current timestamp in milliseconds, bumped past the previously issued value when both land in the same millisecond — for venues that reject duplicate nonces per signer; the counter is per exchange instance, so it narrows the duplicate-nonce race but does not remove it across instances or processes
-        :returns int: a strictly-increasing millisecond nonce
+        returns a strictly-increasing nonce for venues that reject duplicate nonces per signer; the unit is whatever nonce() returns — the base default is seconds, so a venue that does not override nonce() gets a second-resolution counter that drifts ahead of wall clock under load, while venues needing milliseconds override nonce() as hyperliquid does. The counter is per exchange instance, so it narrows the duplicate-nonce race but does not remove it across instances or processes.
+        :returns int: a strictly-increasing nonce in the unit returned by nonce()
         """
+        currentNonce = self.nonce()
         self.lock_last_nonce()
-        currentMilliseconds = self.milliseconds()
         lastNonce = self.safe_integer(self.options, 'lastNonce', 0)
-        result = currentMilliseconds if (currentMilliseconds > lastNonce) else lastNonce + 1
+        result = currentNonce if (currentNonce > lastNonce) else lastNonce + 1
         self.options['lastNonce'] = result
         self.unlock_last_nonce()
         return result
