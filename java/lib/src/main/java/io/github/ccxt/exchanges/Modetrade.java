@@ -3094,7 +3094,7 @@ public class Modetrade extends ModetradeApi
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
                 currency = this.currency(code);
-                Helpers.addElementToObject(request, "balance_token", Helpers.GetValue(currency, "id"));
+                Helpers.addElementToObject(request, "token", Helpers.GetValue(currency, "id"));
             }
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
@@ -3102,7 +3102,7 @@ public class Modetrade extends ModetradeApi
             }
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
-                Helpers.addElementToObject(request, "pageSize", limit);
+                Helpers.addElementToObject(request, "size", limit);
             }
             String transactionType = this.safeString(parameters, "type");
             parameters = this.omit(parameters, "type");
@@ -3144,30 +3144,59 @@ public class Modetrade extends ModetradeApi
 
     public Object parseLedgerEntry(Object item, Object... optionalArgs)
     {
+        //
+        //     {
+        //         "id": "230707030600002",
+        //         "tx_id": "0x4b0714c63cc7abae72bf68e84e25860b88ca651b7d27dad1e32bf4c027fa5326",
+        //         "side": "WITHDRAW",
+        //         "token": "USDC",
+        //         "amount": 555,
+        //         "fee": 123,
+        //         "trans_status": "FAILED",
+        //         "created_time": 1688699193034,
+        //         "updated_time": 1688699193096,
+        //         "chain_id": "986532"
+        //     }
+        //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString(item, "token");
         String code = this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
         Double amount = this.safeNumber(item, "amount");
-        String side = this.safeString(item, "token_side");
-        String direction = ((Helpers.isTrue((Helpers.isEqual(side, "DEPOSIT"))))) ? "in" : "out";
+        String side = this.safeString(item, "side");
+        String direction = null;
+        if (Helpers.isTrue(!Helpers.isEqual(side, null)))
+        {
+            direction = ((Helpers.isTrue((Helpers.isEqual(side, "DEPOSIT"))))) ? "in" : "out";
+        }
         Long timestamp = this.safeInteger(item, "created_time");
-        Object fee = this.parseTokenAndFeeTemp(item, "fee_token", "fee_amount");
+        Object feeCost = this.parseNumber(this.safeString(item, "fee"));
+        Object fee = null;
+        if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
+        {
+            final Object finalFeeCost = feeCost;
+            fee = new HashMap<String, Object>() {{
+                put( "currency", code );
+                put( "cost", finalFeeCost );
+            }};
+        }
+        final Object finalFee = fee;
+        final Object finalDirection = direction;
         return this.safeLedgerEntry(new HashMap<String, Object>() {{
             put( "id", Modetrade.this.safeString(item, "id") );
             put( "currency", code );
-            put( "account", Modetrade.this.safeString(item, "account") );
+            put( "account", null );
             put( "referenceAccount", null );
             put( "referenceId", Modetrade.this.safeString(item, "tx_id") );
-            put( "status", Modetrade.this.parseTransactionStatus(Modetrade.this.safeString(item, "status")) );
+            put( "status", Modetrade.this.parseTransactionStatus(Modetrade.this.safeString(item, "trans_status")) );
             put( "amount", amount );
             put( "before", null );
             put( "after", null );
-            put( "fee", fee );
-            put( "direction", direction );
+            put( "fee", finalFee );
+            put( "direction", finalDirection );
             put( "timestamp", timestamp );
             put( "datetime", Modetrade.this.iso8601(timestamp) );
-            put( "type", Modetrade.this.parseLedgerEntryType(Modetrade.this.safeString(item, "type")) );
+            put( "type", Modetrade.this.parseLedgerEntryType(Modetrade.this.safeString2(item, "type", "side")) );
             put( "info", item );
         }}, currency);
     }
@@ -3177,6 +3206,8 @@ public class Modetrade extends ModetradeApi
         Map<String, Object> types = new HashMap<String, Object>() {{
             put( "BALANCE", "transaction" );
             put( "COLLATERAL", "transfer" );
+            put( "DEPOSIT", "transaction" );
+            put( "WITHDRAW", "transaction" );
         }};
         return this.safeString(types, ((String)type), type);
     }
@@ -3211,19 +3242,41 @@ public class Modetrade extends ModetradeApi
 
     public Object parseTransaction(Object transaction, Object... optionalArgs)
     {
-        // example in fetchLedger
+        //
+        //     {
+        //         "id": "230707030600002",
+        //         "tx_id": "0x4b0714c63cc7abae72bf68e84e25860b88ca651b7d27dad1e32bf4c027fa5326",
+        //         "side": "WITHDRAW",
+        //         "token": "USDC",
+        //         "amount": 555,
+        //         "fee": 123,
+        //         "trans_status": "FAILED",
+        //         "created_time": 1688699193034,
+        //         "updated_time": 1688699193096,
+        //         "chain_id": "986532"
+        //     }
+        //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        String code = this.safeString(transaction, "token");
-        String movementDirection = this.safeStringLower(transaction, "token_side");
+        String currencyId = this.safeString(transaction, "token");
+        String code = this.safeCurrencyCode(currencyId, currency);
+        String movementDirection = this.safeStringLower(transaction, "side");
         if (Helpers.isTrue(Helpers.isEqual(movementDirection, "withdraw")))
         {
             movementDirection = "withdrawal";
         }
-        Object fee = this.parseTokenAndFeeTemp(transaction, "fee_token", "fee_amount");
-        String addressTo = this.safeString(transaction, "target_address");
-        String addressFrom = this.safeString(transaction, "source_address");
+        Object feeCost = this.parseNumber(this.safeString(transaction, "fee"));
+        Object fee = null;
+        if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
+        {
+            final Object finalFeeCost = feeCost;
+            fee = new HashMap<String, Object>() {{
+                put( "currency", code );
+                put( "cost", finalFeeCost );
+            }};
+        }
         Long timestamp = this.safeInteger(transaction, "created_time");
         final Object finalMovementDirection = movementDirection;
+        final Object finalFee = fee;
         return new HashMap<String, Object>() {{
             put( "info", transaction );
             put( "id", Modetrade.this.safeString2(transaction, "id", "withdraw_id") );
@@ -3231,19 +3284,19 @@ public class Modetrade extends ModetradeApi
             put( "timestamp", timestamp );
             put( "datetime", Modetrade.this.iso8601(timestamp) );
             put( "address", null );
-            put( "addressFrom", addressFrom );
-            put( "addressTo", addressTo );
-            put( "tag", Modetrade.this.safeString(transaction, "extra") );
+            put( "addressFrom", null );
+            put( "addressTo", null );
+            put( "tag", null );
             put( "tagFrom", null );
             put( "tagTo", null );
             put( "type", finalMovementDirection );
             put( "amount", Modetrade.this.safeNumber(transaction, "amount") );
             put( "currency", code );
-            put( "status", Modetrade.this.parseTransactionStatus(Modetrade.this.safeString(transaction, "status")) );
+            put( "status", Modetrade.this.parseTransactionStatus(Modetrade.this.safeString(transaction, "trans_status")) );
             put( "updated", Modetrade.this.safeInteger(transaction, "updated_time") );
             put( "comment", null );
             put( "internal", null );
-            put( "fee", fee );
+            put( "fee", finalFee );
             put( "network", null );
         }};
     }
@@ -3253,8 +3306,11 @@ public class Modetrade extends ModetradeApi
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "NEW", "pending" );
             put( "CONFIRMING", "pending" );
+            put( "PENDING", "pending" );
+            put( "PENDING_REBALANCE", "pending" );
             put( "PROCESSING", "pending" );
             put( "COMPLETED", "ok" );
+            put( "FAILED", "failed" );
             put( "CANCELED", "canceled" );
         }};
         if (Helpers.isTrue(Helpers.isEqual(status, null)))
@@ -3355,6 +3411,7 @@ public class Modetrade extends ModetradeApi
             //         "success":true
             //     }
             //
+            parameters = this.omit(parameters, "side"); // request-side filter, not a unified transaction field
             return this.parseTransactions(rows, currency, since, limit, parameters);
         }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
 

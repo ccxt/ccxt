@@ -1550,7 +1550,7 @@ public partial class polymarket : PredictionExchange
             last = mid;
         }
         string? outcome = this.safeOutcomeSymbol(null, market);
-        Int64? timestamp = this.safeInteger(bookData, "timestamp", this.milliseconds());
+        Int64? timestamp = this.safeInteger(bookData, "timestamp");
         double? quoteVolume = null;
         if (isTrue(!isEqual(market, null)))
         {
@@ -1840,15 +1840,14 @@ public partial class polymarket : PredictionExchange
         //
         //     { "market": "0x7976b8...92", "value": 4925662.470476 }
         //
-        Int64 timestamp = this.milliseconds();
         Dictionary<string, object> openInterest = this.safeOpenInterest(new Dictionary<string, object>() {
             { "symbol", this.safeOutcomeSymbol(null, market) },
             { "openInterestAmount", null },
             { "openInterestValue", this.safeNumber(interest, "value") },
             { "baseVolume", null },
             { "quoteVolume", null },
-            { "timestamp", timestamp },
-            { "datetime", this.iso8601(timestamp) },
+            { "timestamp", null },
+            { "datetime", null },
             { "info", interest },
         }, market);
         ((IDictionary<string,object>)openInterest)["outcome"] = this.safeOutcomeSymbol(null, market);
@@ -4047,12 +4046,12 @@ public partial class polymarket : PredictionExchange
     {
         if (isTrue(isEqual(raw, null)))
         {
-            return this.milliseconds();
+            return null;
         }
         Int64? n = this.parseToInt(raw);
         if (isTrue(isEqual(n, null)))
         {
-            return this.milliseconds();
+            return null;
         }
         return n;
     }

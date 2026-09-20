@@ -1836,6 +1836,34 @@ public partial class bingx : ccxt.bingx
         }
         object stored = this.orders;
         Dictionary<string, object> parsedOrder = this.parseOrder(data);
+        if (!isTrue(isSpot))
+        {
+            // The envelope T is the order update time; o.T is the trade time.
+            Int64? updateTimestamp = this.safeInteger(message, "T");
+            if (isTrue(isTrue((!isEqual(updateTimestamp, null))) && isTrue((isGreaterThan(updateTimestamp, 0)))))
+            {
+                string? orderId = this.safeString(parsedOrder, "id");
+                if (isTrue(!isEqual(orderId, null)))
+                {
+                    // Linear scan bounded by ordersLimit (default 1000), avoiding cache-specific maps.
+                    // Match both id and symbol: several cached orders can share a symbol.
+                    for (int i = 0; isLessThan(i, getArrayLength(stored)); postFixIncrement(ref i))
+                    {
+                        object previousOrder = getValue(stored, i);
+                        if (isTrue(isTrue((isEqual(getValue(previousOrder, "id"), orderId))) && isTrue((isEqual(getValue(previousOrder, "symbol"), getValue(parsedOrder, "symbol"))))))
+                        {
+                            Int64? previousTimestamp = this.safeInteger(previousOrder, "lastUpdateTimestamp");
+                            if (isTrue(isTrue((!isEqual(previousTimestamp, null))) && isTrue((isLessThan(updateTimestamp, previousTimestamp)))))
+                            {
+                                return;
+                            }
+                            break;
+                        }
+                    }
+                }
+                ((IDictionary<string,object>)parsedOrder)["lastUpdateTimestamp"] = updateTimestamp;
+            }
+        }
         callDynamically(stored, "append", new object[] {parsedOrder});
         object symbol = getValue(parsedOrder, "symbol");
         string spotHash = "spot:order";

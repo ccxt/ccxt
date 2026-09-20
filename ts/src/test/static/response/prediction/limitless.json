@@ -1,10 +1,7 @@
 {
 	"exchange": "limitless",
 	"asyncOnly": true,
-	"skipKeys": [
-		"timestamp",
-		"datetime"
-	],
+	"skipKeys": [],
 	"options": {},
 	"methods": {
 		"fetchTicker": [
@@ -193,8 +190,8 @@
 					"outcomeId": "86754852064474869881286364251658764942266025328391522221494274517474936254814",
 					"label": "yes",
 					"market": "USA_AUSTRALIA_BOTH_SCORE_1779980360817",
-					"timestamp": 1781915899427,
-					"datetime": "2026-06-20T00:38:19.427Z",
+					"timestamp": null,
+					"datetime": null,
 					"high": null,
 					"low": null,
 					"bid": 0.466,
@@ -679,8 +676,8 @@
 							500
 						]
 					],
-					"timestamp": 1781915899630,
-					"datetime": "2026-06-20T00:38:19.630Z",
+					"timestamp": null,
+					"datetime": null,
 					"nonce": null,
 					"outcomeId": "86754852064474869881286364251658764942266025328391522221494274517474936254814",
 					"market": "USA_AUSTRALIA_BOTH_SCORE_1779980360817"

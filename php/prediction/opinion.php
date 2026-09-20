@@ -716,7 +716,10 @@ class opinion extends Exchange {
         $bestBid = $this->safe_dict($bids, 0, array());
         $bestAsk = $this->safe_dict($asks, 0, array());
         $last = $this->safe_number($priceResult, 'price');
-        $timestamp = $this->safe_integer($priceResult, 'timestamp', $this->milliseconds());
+        $timestamp = $this->safe_integer($priceResult, 'timestamp');
+        if ($timestamp === 0) {
+            $timestamp = null; // the venue reports timestamp 0 for outcomes that have not traded yet
+        }
         return $this->safe_prediction_ticker(array(
             'outcome' => $this->safe_string($marketAny, 'outcome'),
             'outcomeId' => $this->safe_string_2($marketAny, 'outcomeId', 'id'),
@@ -1900,9 +1903,8 @@ class opinion extends Exchange {
         $price = $this->safe_number($message, 'price');
         $size = $this->safe_number($message, 'size');
         $bookSide->storeArray(array( $price, $size ));
-        $now = $this->milliseconds();
-        $orderbook['timestamp'] = $now;
-        $orderbook['datetime'] = $this->iso8601($now);
+        $orderbook['timestamp'] = null;
+        $orderbook['datetime'] = null;
         $client->resolve($orderbook, 'orderbook::' . $sym);
     }
 
@@ -1944,15 +1946,14 @@ class opinion extends Exchange {
         if ($sym === null) {
             return;
         }
-        $now = $this->milliseconds();
         $last = $this->safe_number($message, 'price');
         $ticker = $this->safe_prediction_ticker(array(
             'outcome' => $sym,
             'outcomeId' => $tokenId,
             'label' => $this->safe_string($outcomeObj, 'label'),
             'market' => $this->safe_string($outcomeObj, 'market'),
-            'timestamp' => $now,
-            'datetime' => $this->iso8601($now),
+            'timestamp' => null,
+            'datetime' => null,
             'close' => $last,
             'last' => $last,
             'info' => $message,
@@ -2005,12 +2006,11 @@ class opinion extends Exchange {
         if ($sym === null) {
             return;
         }
-        $now = $this->milliseconds();
         $trade = $this->safe_prediction_trade(array(
             'id' => null,
             'info' => $message,
-            'timestamp' => $now,
-            'datetime' => $this->iso8601($now),
+            'timestamp' => null,
+            'datetime' => null,
             'outcome' => $sym,
             'outcomeId' => $tokenId,
             'label' => $this->safe_string($outcomeObj, 'label'),

@@ -1008,7 +1008,7 @@ func (this *Cex) ParseWsOrderUpdate(order any, optionalArgs ...any) any {
 		symbol = ccxt.Add(ccxt.Add(base, "/"), quote)
 	}
 	market = this.SafeMarket(symbol, market)
-	var time *int64 = this.SafeInteger(order, "time", this.Milliseconds())
+	var time *int64 = this.SafeInteger(order, "time")
 	var timestamp *int64 = time
 	if isTransaction {
 		timestamp = this.Parse8601(time)

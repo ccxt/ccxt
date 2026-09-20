@@ -9267,7 +9267,7 @@ export default class kucoin extends Exchange {
         //     }
         //
         const timestampId = this.safeString2 (info, 'createdAt', 'timestamp');
-        let timestamp = this.milliseconds ();
+        let timestamp: Int = undefined;
         if (timestampId !== undefined) {
             timestamp = this.parseToInt (timestampId.slice (0, 13));
         }
@@ -9816,15 +9816,14 @@ export default class kucoin extends Exchange {
         //         "actualSize": 10
         //     }
         //
-        const timestamp = this.milliseconds ();
         const currencyId = this.safeString (info, 'currency');
         return {
             'id': this.safeString (info, 'orderNo'),
             'currency': this.safeCurrencyCode (currencyId, currency),
             'amount': this.safeNumber (info, 'actualSize'),
             'symbol': undefined,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'info': info,
         };
     }

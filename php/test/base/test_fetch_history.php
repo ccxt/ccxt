@@ -15,6 +15,7 @@ function test_fetch_history_base() {
         $exchange = new \ccxt\async\Exchange(array(
             'id' => 'sampleexchange',
             'fetchHistoryCacheSize' => 2,
+            'enableRateLimit' => false,
         ));
         assert(exchange_prop($exchange, 'fetchHistoryCacheSize') === 2, 'fetchHistoryCacheSize should be 2');
         $true_assertion = $exchange->parse_number(null) === null;

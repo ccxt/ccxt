@@ -265,7 +265,7 @@ class bybit(ccxt.async_support.bybit):
         if self.markets is None:
             await self.load_markets()
         orderRequest = self.create_order_request(symbol, type, side, amount, price, params, True)
-        url = self.urls['api']['ws']['private']['trade']
+        url = self.implode_hostname(self.urls['api']['ws']['private']['trade'])
         await self.authenticate(url)
         requestId = str(self.request_id())
         request = {
@@ -310,7 +310,7 @@ class bybit(ccxt.async_support.bybit):
         if self.markets is None:
             await self.load_markets()
         orderRequest = self.edit_order_request(id, symbol, type, side, amount, price, params)
-        url = self.urls['api']['ws']['private']['trade']
+        url = self.implode_hostname(self.urls['api']['ws']['private']['trade'])
         await self.authenticate(url)
         requestId = str(self.request_id())
         request = {
@@ -345,7 +345,7 @@ class bybit(ccxt.async_support.bybit):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrderWs() requires a symbol argument')
         orderRequest = self.cancel_order_request(id, symbol, params)
-        url = self.urls['api']['ws']['private']['trade']
+        url = self.implode_hostname(self.urls['api']['ws']['private']['trade'])
         await self.authenticate(url)
         requestId = str(self.request_id())
         if 'orderFilter' in orderRequest:

@@ -566,12 +566,15 @@ class okx(ccxt.async_support.okx):
         #         ]
         #     }
         #
-        self.handle_bid_ask(client, message)
         arg = self.safe_value(message, 'arg', {})
         marketId = self.safe_string(arg, 'instId')
         market = self.safe_market(marketId, None, '-')
         symbol = market['symbol']
         channel = self.safe_string(arg, 'channel')
+        if channel == 'tickers':
+            # of the five feeds routed here, only the plain one carries bidPx/askPx —
+            # mark-price and index frames lack them and must not overwrite the bid-ask cache
+            self.handle_bid_ask(client, message)
         data = self.safe_list(message, 'data', [])
         newTickers = {}
         for i in range(0, len(data)):

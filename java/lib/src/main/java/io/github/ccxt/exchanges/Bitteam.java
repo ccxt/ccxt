@@ -2458,11 +2458,10 @@ public class Bitteam extends BitteamApi
         //         }
         //     }
         //
-        Long timestamp = this.milliseconds();
         Map<String, Object> balance = new HashMap<String, Object>() {{
             put( "info", response );
-            put( "timestamp", timestamp );
-            put( "datetime", Bitteam.this.iso8601(timestamp) );
+            put( "timestamp", null );
+            put( "datetime", null );
         }};
         Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
         Object balanceByCurrencies = this.omit(result, new ArrayList<Object>(Arrays.asList("free", "used", "total")));

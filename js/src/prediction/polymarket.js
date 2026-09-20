@@ -1170,7 +1170,7 @@ export default class polymarket extends Exchange {
             last = mid;
         }
         const outcome = this.safeOutcomeSymbol(undefined, market);
-        const timestamp = this.safeInteger(bookData, 'timestamp', this.milliseconds());
+        const timestamp = this.safeInteger(bookData, 'timestamp');
         let quoteVolume = undefined;
         if (market !== undefined) {
             quoteVolume = this.safeNumber2(market['info'], 'volume24hr', 'volume');
@@ -1431,15 +1431,14 @@ export default class polymarket extends Exchange {
         //
         //     { "market": "0x7976b8...92", "value": 4925662.470476 }
         //
-        const timestamp = this.milliseconds();
         const openInterest = this.safeOpenInterest({
             'symbol': this.safeOutcomeSymbol(undefined, market),
             'openInterestAmount': undefined,
             'openInterestValue': this.safeNumber(interest, 'value'),
             'baseVolume': undefined,
             'quoteVolume': undefined,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'info': interest,
         }, market);
         openInterest['outcome'] = this.safeOutcomeSymbol(undefined, market);
@@ -3300,11 +3299,11 @@ export default class polymarket extends Exchange {
     }
     parsePolyTimestamp(raw) {
         if (raw === undefined) {
-            return this.milliseconds();
+            return undefined;
         }
         const n = this.parseToInt(raw);
         if (n === undefined) {
-            return this.milliseconds();
+            return undefined;
         }
         return n;
     }

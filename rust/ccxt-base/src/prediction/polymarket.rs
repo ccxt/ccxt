@@ -2077,7 +2077,7 @@ impl PolymarketCore {
             last = mid.clone();
         }
         let mut outcome: Value = self.safe_outcome_symbol(Value::Null, &[market.clone()]);
-        let mut timestamp: Value = self.safe_integer_k(bookData.clone(), "timestamp", &[self.milliseconds()]);
+        let mut timestamp: Value = self.safe_integer_k(bookData.clone(), "timestamp", &[]);
         let mut quoteVolume: Value = Value::Null;
         if !is_equal(&market, &Value::Null) {
             quoteVolume = self.safe_number2(get_value(&market, &Value::Str("info".to_string())), Value::Str("volume24hr".to_string()), Value::Str("volume".to_string()), &[]);
@@ -2410,7 +2410,6 @@ impl PolymarketCore {
         //
         //     { "market": "0x7976b8...92", "value": 4925662.470476 }
         //
-        let mut timestamp: Value = self.milliseconds();
         let mut openInterest: Value = self.safe_open_interest(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), self.safe_outcome_symbol(Value::Null, &[market.clone()]));
@@ -2418,8 +2417,8 @@ impl PolymarketCore {
         m.insert("openInterestValue".to_string(), self.safe_number_k(interest.clone(), "value", &[]));
         m.insert("baseVolume".to_string(), Value::Null);
         m.insert("quoteVolume".to_string(), Value::Null);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
+        m.insert("timestamp".to_string(), Value::Null);
+        m.insert("datetime".to_string(), Value::Null);
         m.insert("info".to_string(), interest.clone());
     m
 }), &[market.clone()]);
@@ -5015,11 +5014,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub fn parse_poly_timestamp(&self, mut raw: Value) -> Value {
         if is_equal(&raw, &Value::Null) {
-            return self.milliseconds();
+            return Value::Null;
         }
         let mut n: Value = self.parse_to_int(raw.clone());
         if is_equal(&n, &Value::Null) {
-            return self.milliseconds();
+            return Value::Null;
         }
         return n;
 
