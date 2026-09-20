@@ -365,6 +365,68 @@ export function goParamNativeNilCompares (content: string, isEqualFn: string): s
     return content.replace (/\nfunc [\s\S]*?\n\}/g, ((fn: string) => goParamNilCompareText (fn, isEqualFn)) as any);
 }
 
+// One level out from the caller-fed parameter above: a local `any` boxed from a method THIS FILE
+// declares with a pointer result. The printer types a `Str` return as `*string`, so
+// `var timeInForce any = this.ParseOrderTimeInForce(…)` (mexc.go) boxes the pointer itself, and
+// the printer's own local proof (goAnyLocalHoldsPointer) only knows its helper-return table —
+// it prints a native `timeInForce == nil`, false for `(*string)(nil)`, so the guard never runs
+// and the parsed order loses its timeInForce (mexc createOrder, STATIC_RESPONSE: `[timeInForce]
+// computed: <empty> stored: IOC/FOK`). The method's Go result type is read off the text being
+// written (the only place that spells it) and IsEqual() derefs the box, which is the comparison
+// master emitted. Resolved per function body: the same name can be a proven local elsewhere.
+function goPointerReturnMethods (content: string): Set<string> {
+    const methods = new Set<string> ();
+    const signature = /\nfunc \(this \*[\w.]+\) (\w+)\([^)\n]*\) \*[\w.[\]]+ \{/g;
+    let match: RegExpExecArray | null;
+    while ((match = signature.exec (content)) !== null) {
+        methods.add (match[1]);
+    }
+    return methods;
+}
+
+function goPointerLocalNilCompareText (fn: string, methods: Set<string>, isEqualFn: string): string {
+    if (!methods.size) {
+        return fn;
+    }
+    const sigEnd = fn.indexOf ('{');
+    if (sigEnd < 0) {
+        return fn;
+    }
+    const body = fn.slice (sigEnd);
+    const callee = 'this\\.(?:Exchange\\.|BaseExchange\\.)?(?:' + Array.from (methods).join ('|') + ')\\(';
+    const anyLocals = new Set ((fn.match (/var (\w+) any\b/g) || []).map ((decl: string) => decl.split (' ')[1]));
+    const names = new Set<string> ();
+    // the declaration and the reassignment form, the two shapes the printer's local proof reads
+    const decl = new RegExp ('var (\\w+) any = ' + callee, 'g');
+    const assign = new RegExp ('(?<![.\\w*"])(\\w+) = ' + callee, 'g');
+    let match: RegExpExecArray | null;
+    while ((match = decl.exec (body)) !== null) {
+        if (anyLocals.has (match[1])) {
+            names.add (match[1]);
+        }
+    }
+    while ((match = assign.exec (body)) !== null) {
+        if (anyLocals.has (match[1])) {
+            names.add (match[1]);
+        }
+    }
+    for (const name of names) {
+        fn = fn.replace (new RegExp ('(?<![.\\w*"])' + name + ' (==|!=) nil\\b', 'g'), ((_m: string, op: string) => (op === '==') ? isEqualFn + name + ', nil)' : '!' + isEqualFn + name + ', nil)') as any);
+    }
+    return fn;
+}
+
+// whole-file form of goPointerLocalNilCompareText; the method table comes from the same text the
+// pass rewrites, so every caller (base methods, prediction base, each exchange) is complete on
+// its own file.
+export function goPointerLocalNativeNilCompares (content: string, isEqualFn: string): string {
+    const methods = goPointerReturnMethods (content);
+    if (!methods.size) {
+        return content;
+    }
+    return content.replace (/\nfunc [\s\S]*?\n\}/g, ((fn: string) => goPointerLocalNilCompareText (fn, methods, isEqualFn)) as any);
+}
+
 // Self-test for the caller-fed `any` parameter rule: the bare parameter keeps the deref-aware
 // helper, the GetArg-bound optional and the typed local keep the printer's native comparison,
 // and a second application is a no-op.
@@ -546,6 +608,30 @@ function goBoxedPointerSelfTest (): string[] {
     ok (scoped.indexOf ('if currency == nil {') >= 0, 'a block with no pointer feed must stay untouched');
     const literal = pass ('\nfunc (this *X) f() any {\n\tvar requested *string = this.SafeString("x", "y")\n\tvar identity any = requested\n\tvar myidentity any = identity\n\tif myidentity == nil {\n\t\treturn nil\n\t}\n\treturn myidentity\n}\n');
     ok (literal.indexOf ('if IsEqual(myidentity, nil) {') >= 0, 'a name must not be rewritten inside a longer identifier');
+    return problems;
+}
+
+// Self-test for the same-file pointer-returning method rule: the boxed local keeps the
+// deref-aware helper, a scalar-returning or unknown method and a typed local keep the native
+// comparison, the reassignment form is caught too and a second application is a no-op.
+function goPointerLocalNilSelfTest (): string[] {
+    const problems: string[] = [];
+    const ok = (condition: boolean, message: string) => { if (!condition) { problems.push (message); } };
+    const pass = (text: string): string => goPointerLocalNativeNilCompares (text, 'IsEqual(');
+    const pointer = '\nfunc (this *X) ParseOrderTimeInForce(status *string) *string {\n\treturn status\n}\n\nfunc (this *X) ParseOrder(order any) any {\n\tvar timeInForce any = this.ParseOrderTimeInForce(this.SafeString(order, "timeInForce"))\n\tvar typeRaw *string = this.SafeString(order, "type")\n\tif timeInForce == nil {\n\t\ttimeInForce = this.GetTifFromRawOrderType(typeRaw)\n\t}\n\tif typeRaw != nil {\n\t\treturn timeInForce\n\t}\n\treturn nil\n}\n';
+    const rewritten = pass (pointer);
+    ok (rewritten.indexOf ('if IsEqual(timeInForce, nil) {') >= 0, 'a local boxed from a same-file pointer method must keep the helper');
+    ok (rewritten.indexOf ('if typeRaw != nil {') >= 0, 'a typed local must keep the native comparison');
+    ok (rewritten.indexOf ('timeInForce == nil') < 0, 'the native comparison on the boxed local must be gone');
+    const reassigned = pass ('\nfunc (this *X) M(a any) *string {\n\treturn nil\n}\n\nfunc (this *X) N(order any) any {\n\tvar code any = nil\n\tcode = this.M(order)\n\tif code != nil {\n\t\treturn code\n\t}\n\treturn nil\n}\n');
+    ok (reassigned.indexOf ('if !IsEqual(code, nil) {') >= 0, 'a local reassigned from a pointer method must keep the helper');
+    const scalar = pass ('\nfunc (this *X) M(a any) string {\n\treturn ""\n}\n\nfunc (this *X) N(order any) any {\n\tvar code any = this.M(order)\n\tif code == nil {\n\t\treturn nil\n\t}\n\treturn code\n}\n');
+    ok (scalar.indexOf ('if code == nil {') >= 0, 'a scalar-returning method keeps the native comparison');
+    const unknown = pass ('\nfunc (this *X) N(order any) any {\n\tvar code any = this.SomeOtherFileMethod(order)\n\tif code == nil {\n\t\treturn nil\n\t}\n\treturn code\n}\n');
+    ok (unknown.indexOf ('if code == nil {') >= 0, 'a method this file does not declare keeps the native comparison');
+    const twice = pass (pass (pointer));
+    ok (twice.indexOf ('IsEqual(IsEqual(') < 0, 'a second application must be a no-op');
+    ok (twice.indexOf ('if IsEqual(timeInForce, nil) {') >= 0, 'the rewritten comparison must survive a second application');
     return problems;
 }
 
@@ -3863,7 +3949,7 @@ ${constStatements.join('\n')}
                 this.createGeneratedHeader().join('\n'),
             ]).join("\n");
 
-            const file = goBoxedPointerNilCompares (goParamNativeNilCompares (coerceGoBoolMethodReturns (fileHeader + baseMethods + "\n", CCXT_GO_BOOL_METHOD_NAMES), 'IsEqual('), 'IsEqual(');
+            const file = goPointerLocalNativeNilCompares (goBoxedPointerNilCompares (goParamNativeNilCompares (coerceGoBoolMethodReturns (fileHeader + baseMethods + "\n", CCXT_GO_BOOL_METHOD_NAMES), 'IsEqual('), 'IsEqual('), 'IsEqual(');
             // repeated base passes (REST / prediction recursion / WS) emit identical bytes —
             // skip the rewrite of this ~390 KB file after the first
             this.writeGeneratedOnce (goExchangeBase, file);
@@ -3968,7 +4054,7 @@ ${constStatements.join('\n')}
             ].join('\n');
             // `shims` ends with the single trailing newline gofmt wants at EOF
             // (the caller-fed `any` parameters keep the helper here too — see goParamNativeNilCompares)
-            const file = goBoxedPointerNilCompares (goParamNativeNilCompares (fileHeader + '\n' + structDef + methods + shims, 'IsEqual('), 'IsEqual(');
+            const file = goPointerLocalNativeNilCompares (goBoxedPointerNilCompares (goParamNativeNilCompares (fileHeader + '\n' + structDef + methods + shims, 'IsEqual('), 'IsEqual('), 'IsEqual(');
             // this is the one generated .go write that does not go through
             // overwriteFileAndFolder()/formatGoSource(), so guard its async cores here
             // (and add the element-access assertions formatGoSource would have added)
@@ -4962,6 +5048,10 @@ ${caseStatements.join('\n')}
         // A prediction exchange lives in package ccxtprediction, which reaches the helper as
         // `ccxt.IsEqual` too (its generated file uses no bare form).
         content = goBoxedPointerNilCompares (content, (isWs || isPrediction) ? 'ccxt.IsEqual(' : 'IsEqual(');
+        // ... and the same for a local boxed from a method this file types with a pointer result
+        // (`var timeInForce any = this.ParseOrderTimeInForce(…)`): the printer cannot see that
+        // signature, so its native `timeInForce == nil` never fires on the boxed (*string)(nil).
+        content = goPointerLocalNativeNilCompares (content, isWs ? 'ccxt.IsEqual(' : 'IsEqual(');
 
         if (!isWs) {
             content = this.regexAll(content, [
@@ -6233,7 +6323,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = goDerefWrapSelfTest ().concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ());
+        const problems = goDerefWrapSelfTest ().concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
