@@ -152,4 +152,40 @@ public partial class BaseTest
         await task2;
 
     }
+
+    public void testWsSubscriptionDictionarySnapshot()
+    {
+        var ordinary = new Dictionary<string, object>() { { "first", true } };
+        var ordinaryEnumerator = ordinary.Keys.GetEnumerator();
+        Assert(ordinaryEnumerator.MoveNext(), "ordinary dictionary fixture must contain a key");
+        ordinary["second"] = true;
+        var ordinaryThrows = false;
+        try
+        {
+            ordinaryEnumerator.MoveNext();
+        }
+        catch (InvalidOperationException)
+        {
+            ordinaryThrows = true;
+        }
+        Assert(ordinaryThrows, "ordinary dictionary keys must expose the live-enumeration hazard");
+
+        var exchange = new BaseExchange();
+        var subscriptions = exchange.createSafeDictionary(true);
+        Assert(subscriptions is CustomConcurrentDictionary<string, object>, "WS subscription maps must use the concurrent dictionary implementation");
+        var subscriptionEnumerator = subscriptions.Keys.GetEnumerator();
+        subscriptions["second"] = true;
+        var subscriptionThrows = false;
+        try
+        {
+            while (subscriptionEnumerator.MoveNext())
+            {
+            }
+        }
+        catch (InvalidOperationException)
+        {
+            subscriptionThrows = true;
+        }
+        Assert(!subscriptionThrows, "subscription key enumeration must tolerate concurrent mutation");
+    }
 }
