@@ -393,6 +393,7 @@ class BaseExchange {
         'bullish',
         'bybit',
         'bybiteu',
+        'bybitid',
         'bydfi',
         'cex',
         'coinbase',
