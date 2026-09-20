@@ -360,7 +360,7 @@ export default class extended extends Exchange {
         return markets;
     }
 
-    indexByStringifiedNumericId (input: Dict): NullableDict {
+    indexByStringifiedNumericId (input: Dict) {
         const result: Dict = {};
         if (input === undefined) {
             return undefined;

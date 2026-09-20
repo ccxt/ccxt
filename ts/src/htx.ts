@@ -3872,7 +3872,7 @@ export default class htx extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    parseMarginBalanceHelper (balance: Dict, code: string, result: Dict): NullableDict {
+    parseMarginBalanceHelper (balance: Dict, code: string, result: Dict) {
         let account: NullableDict = undefined;
         if (code in result) {
             account = result[code];

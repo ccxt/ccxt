@@ -1275,7 +1275,7 @@ export default class dydx extends Exchange {
         return credentials;
     }
 
-    async fetchDydxAccount (): Promise<NullableDict> {
+    async fetchDydxAccount () {
         // required in js
         await this.loadDydxProtos ();
         const dydxAccount = this.safeDict (this.options, 'dydxAccount');

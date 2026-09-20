@@ -829,7 +829,7 @@ export default class hibachi extends Exchange {
         return result;
     }
 
-    orderMessage (market: Market, nonce: number, feeRate: number, type: Str, side: Str, amount: Num, price: Num = undefined): Uint8Array {
+    orderMessage (market: Market, nonce: number, feeRate: number, type: Str, side: Str, amount: Num, price: Num = undefined) {
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a type argument');
         }
@@ -1239,7 +1239,7 @@ export default class hibachi extends Exchange {
         ];
     }
 
-    encodeWithdrawMessage (amount: Num, maxFees: Num, address: string): Uint8Array {
+    encodeWithdrawMessage (amount: Num, maxFees: Num, address: string) {
         // Converting them to internal representation:
         // - Quantity: Internal = External * (10^6)
         // - maxFees: Internal = External * (10^6)

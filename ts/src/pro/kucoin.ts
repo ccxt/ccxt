@@ -2905,7 +2905,7 @@ export default class kucoin extends kucoinRest {
         return this.filterBySymbolsSinceLimit (cache, symbols, since, limit, true);
     }
 
-    getCurrentPosition (symbol: string): NullableDict {
+    getCurrentPosition (symbol: string) {
         if (this.positions === undefined) {
             return undefined;
         }
