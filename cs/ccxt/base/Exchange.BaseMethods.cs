@@ -4217,7 +4217,7 @@ public partial class BaseExchange
         Int64 currentNonce = this.nonce();
         this.lockLastNonce();
         Int64? lastNonce = this.safeInteger(this.options, "lastNonce", 0);
-        object result = ((bool) isTrue((isGreaterThan(currentNonce, lastNonce)))) ? currentNonce : add(lastNonce, 1);
+        object result = (isGreaterThan(currentNonce, lastNonce)) ? currentNonce : (lastNonce + 1);
         ((IDictionary<string,object>)this.options)["lastNonce"] = result;
         this.unlockLastNonce();
         return result;
