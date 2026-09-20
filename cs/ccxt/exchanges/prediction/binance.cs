@@ -913,14 +913,13 @@ public partial class binance : PredictionExchange
                 last = this.parseNumber(lastString);
             }
         }
-        Int64 now = this.milliseconds();
         return ((Dictionary<string, object>)((object)(this.safePredictionTicker(new Dictionary<string, object>() {
             { "outcome", this.safeString(outcomeObj, "outcome") },
             { "outcomeId", this.safeString2(outcomeObj, "outcomeId", "id") },
             { "label", this.safeString(outcomeObj, "label") },
             { "market", this.safeString(outcomeObj, "market") },
-            { "timestamp", now },
-            { "datetime", this.iso8601(now) },
+            { "timestamp", null },
+            { "datetime", null },
             { "high", null },
             { "low", null },
             { "bid", null },
@@ -2096,8 +2095,8 @@ public partial class binance : PredictionExchange
                 { "outcomeId", this.safeString(outcomeObj, "id") },
                 { "label", this.safeString(outcomeObj, "label") },
                 { "market", this.safeString(outcomeObj, "market") },
-                { "timestamp", this.milliseconds() },
-                { "datetime", this.iso8601(this.milliseconds()) },
+                { "timestamp", null },
+                { "datetime", null },
             };
             ((IList<object>)orders).Add(this.safePredictionOrder(order));
         }

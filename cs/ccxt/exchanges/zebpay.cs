@@ -2168,7 +2168,6 @@ public partial class zebpay : Exchange
         //         "status": "ok"
         //    }
         //
-        Int64 timestamp = this.milliseconds();
         return new Dictionary<string, object>() {
             { "info", info },
             { "symbol", this.safeString(market, "id") },
@@ -2178,8 +2177,8 @@ public partial class zebpay : Exchange
             { "total", null },
             { "code", this.safeString(info, "code") },
             { "status", this.safeString(info, "status") },
-            { "timestamp", timestamp },
-            { "datetime", this.iso8601(timestamp) },
+            { "timestamp", null },
+            { "datetime", null },
         };
     }
 
