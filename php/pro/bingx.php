@@ -1709,6 +1709,28 @@ class bingx extends \ccxt\async\bingx {
         }
         $stored = $this->orders;
         $parsedOrder = $this->parse_order($data);
+        if (!$isSpot) {
+            // The envelope T is the order update time; o.T is the trade time.
+            $updateTimestamp = $this->safe_integer($message, 'T');
+            if (($updateTimestamp !== null) && ($updateTimestamp > 0)) {
+                $orderId = $this->safe_string($parsedOrder, 'id');
+                if ($orderId !== null) {
+                    // Linear scan bounded by ordersLimit (default 1000), avoiding cache-specific maps.
+                    // Match both id and symbol: several cached orders can share a symbol.
+                    for ($i = 0; $i < count($stored); $i++) {
+                        $previousOrder = $stored[$i];
+                        if (($previousOrder['id'] === $orderId) && ($previousOrder['symbol'] === $parsedOrder['symbol'])) {
+                            $previousTimestamp = $this->safe_integer($previousOrder, 'lastUpdateTimestamp');
+                            if (($previousTimestamp !== null) && ($updateTimestamp < $previousTimestamp)) {
+                                return;
+                            }
+                            break;
+                        }
+                    }
+                }
+                $parsedOrder['lastUpdateTimestamp'] = $updateTimestamp;
+            }
+        }
         $stored->append($parsedOrder);
         $symbol = $parsedOrder['symbol'];
         $spotHash = 'spot:order';

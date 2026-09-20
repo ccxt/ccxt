@@ -41,7 +41,7 @@ import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, Account
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.5.80';
+const version = '4.5.81';
 
 //-----------------------------------------------------------------------------
 
@@ -80,6 +80,7 @@ import btse from  './src/btse.js'
 import bullish from  './src/bullish.js'
 import bybit from  './src/bybit.js'
 import bybiteu from  './src/bybiteu.js'
+import bybitid from  './src/bybitid.js'
 import bydfi from  './src/bydfi.js'
 import cex from  './src/cex.js'
 import coinbase from  './src/coinbase.js'
@@ -176,6 +177,7 @@ import blofinPro from  './src/pro/blofin.js'
 import bullishPro from  './src/pro/bullish.js'
 import bybitPro from  './src/pro/bybit.js'
 import bybiteuPro from  './src/pro/bybiteu.js'
+import bybitidPro from  './src/pro/bybitid.js'
 import bydfiPro from  './src/pro/bydfi.js'
 import cexPro from  './src/pro/cex.js'
 import coinbasePro from  './src/pro/coinbase.js'
@@ -273,6 +275,7 @@ const exchanges = {
     'bullish':                bullish,
     'bybit':                  bybit,
     'bybiteu':                bybiteu,
+    'bybitid':                bybitid,
     'bydfi':                  bydfi,
     'cex':                    cex,
     'coinbase':               coinbase,
@@ -369,6 +372,7 @@ const pro = {
     'bullish':                bullishPro,
     'bybit':                  bybitPro,
     'bybiteu':                bybiteuPro,
+    'bybitid':                bybitidPro,
     'bydfi':                  bydfiPro,
     'cex':                    cexPro,
     'coinbase':               coinbasePro,
@@ -638,6 +642,7 @@ export {
     bullish,
     bybit,
     bybiteu,
+    bybitid,
     bydfi,
     cex,
     coinbase,

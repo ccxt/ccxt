@@ -2195,6 +2195,31 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut stored: Value = self.orders.clone();
         let mut parsedOrder: Value = self.parse_order(data.clone(), &[]);
+        if !is_true(&isSpot) {
+            // The envelope T is the order update time; o.T is the trade time.
+            let mut updateTimestamp: Value = self.safe_integer_k(message.clone(), "T", &[]);
+            if is_true(&(!is_equal(&updateTimestamp, &Value::Null))) && is_true(&(is_greater_than(&updateTimestamp, &Value::Int(0)))) {
+                let mut orderId: Value = self.safe_string_k(parsedOrder.clone(), "id", &[]);
+                if !is_equal(&orderId, &Value::Null) {
+                    {
+                                                let mut i: Value = Value::Int(0);
+                        let mut __for_first_98: bool = true;
+                        while { if !__for_first_98 { i = add(&i, &Value::Int(1)); } __for_first_98 = false; is_less_than(&i, &get_array_length(&stored)) } {
+                        let mut previousOrder: Value = get_value(&stored, &i);
+                        let mut previousOrder: Value = get_value(&stored, &i);
+                        if is_true(&(is_equal(&get_value(&previousOrder, &Value::Str("id".to_string())), &orderId))) && is_true(&(is_equal(&get_value(&previousOrder, &Value::Str("symbol".to_string())), &get_value(&parsedOrder, &Value::Str("symbol".to_string()))))) {
+                            let mut previousTimestamp: Value = self.safe_integer_k(previousOrder.clone(), "lastUpdateTimestamp", &[]);
+                            if is_true(&(!is_equal(&previousTimestamp, &Value::Null))) && is_true(&(is_less_than(&updateTimestamp, &previousTimestamp))) {
+                                return;
+                            }
+                            break;
+                        }
+                    }
+                    }
+                }
+                add_element_to_object(&mut parsedOrder, &Value::Str("lastUpdateTimestamp".to_string()), updateTimestamp.clone());
+            }
+        }
         stored.append(parsedOrder.clone());
         let mut symbol: Value = get_value(&parsedOrder, &Value::Str("symbol".to_string()));
         let mut spotHash: Value = Value::Str("spot:order".to_string());
@@ -2342,8 +2367,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         { let __be_tmp = self.iso8601(timestamp.clone()); add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &type_var), &Value::Str("datetime".to_string()), __be_tmp); };
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_98: bool = true;
-            while { if !__for_first_98 { i = add(&i, &Value::Int(1)); } __for_first_98 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_99: bool = true;
+            while { if !__for_first_99 { i = add(&i, &Value::Int(1)); } __for_first_99 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut balance: Value = get_value(&data, &i);
             let mut balance: Value = get_value(&data, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "a", &[]);
@@ -2455,8 +2480,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut subMessageHashes: Value = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_99: bool = true;
-            while { if !__for_first_99 { i = add(&i, &Value::Int(1)); } __for_first_99 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
+            let mut __for_first_100: bool = true;
+            while { if !__for_first_100 { i = add(&i, &Value::Int(1)); } __for_first_100 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
             let mut unsubHash: Value = get_value(&messageHashes, &i);
             let mut unsubHash: Value = get_value(&messageHashes, &i);
             let mut subHash: Value = get_value(&subMessageHashes, &i);

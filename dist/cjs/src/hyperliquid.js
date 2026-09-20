@@ -365,6 +365,11 @@ class hyperliquid extends hyperliquid$1["default"] {
         super.setSandboxMode(enabled);
         this.options['sandboxMode'] = enabled;
     }
+    nonce() {
+        // the venue nonce is a millisecond timestamp and must be strictly increasing per signer
+        // incrementingNonce () reads this and bumps past the previous value when two signed actions share a millisecond
+        return this.milliseconds();
+    }
     market(symbol) {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' market() requires a symbol argument');
@@ -1813,7 +1818,7 @@ class hyperliquid extends hyperliquid$1["default"] {
             'type': 'setReferrer',
             'code': this.safeString(this.options, 'ref', 'CCXT1'),
         };
-        const nonce = this.milliseconds();
+        const nonce = this.incrementingNonce();
         const signature = this.signL1Action(action, nonce);
         const request = {
             'action': action,
@@ -1831,7 +1836,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         return response;
     }
     async approveBuilderFee(builder, maxFeeRate) {
-        const nonce = this.milliseconds();
+        const nonce = this.incrementingNonce();
         const isSandboxMode = this.safeBool(this.options, 'sandboxMode', false);
         const payload = {
             'hyperliquidChain': (isSandboxMode === true) ? 'Testnet' : 'Mainnet',
@@ -1960,7 +1965,7 @@ class hyperliquid extends hyperliquid$1["default"] {
     async setUserAbstraction(abstraction, params = {}) {
         let userAddress = undefined;
         [userAddress, params] = this.handlePublicAddress('setUserAbstraction', params);
-        const nonce = this.milliseconds();
+        const nonce = this.incrementingNonce();
         const isSandboxMode = this.safeBool(this.options, 'sandboxMode', false);
         const type = this.safeString(params, 'type', 'userSetAbstraction');
         params = this.omit(params, 'type');
@@ -2007,7 +2012,7 @@ class hyperliquid extends hyperliquid$1["default"] {
     async enableUserDexAbstraction(enabled, params = {}) {
         let userAddress = undefined;
         [userAddress, params] = this.handlePublicAddress('enableUserDexAbstraction', params);
-        const nonce = this.milliseconds();
+        const nonce = this.incrementingNonce();
         const isSandboxMode = this.safeBool(this.options, 'sandboxMode', false);
         const type = this.safeString(params, 'type', 'userDexAbstraction');
         params = this.omit(params, 'type');
@@ -2051,7 +2056,7 @@ class hyperliquid extends hyperliquid$1["default"] {
      * @returns dictionary response from the exchange
      */
     async setAgentAbstraction(abstraction, params = {}) {
-        const nonce = this.milliseconds();
+        const nonce = this.incrementingNonce();
         const request = {
             'nonce': nonce,
         };
@@ -2115,7 +2120,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         }
         await this.initializeClient();
         const market = this.market(symbol);
-        const nonce = this.milliseconds();
+        const nonce = this.incrementingNonce();
         const isBuy = (side === 'BUY');
         let vaultAddress = undefined;
         const randomize = this.safeBool(params, 'randomize', false);
@@ -2327,7 +2332,7 @@ class hyperliquid extends hyperliquid$1["default"] {
             }
         }
         params = this.omit(params, ['slippage', 'clientOrderId', 'client_id', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce']);
-        const nonce = this.milliseconds();
+        const nonce = this.incrementingNonce();
         const orderReq = [];
         let grouping = 'na';
         for (let i = 0; i < orders.length; i++) {
@@ -2404,7 +2409,8 @@ class hyperliquid extends hyperliquid$1["default"] {
             'grouping': grouping,
         };
         if (this.safeBool(this.options, 'approvedBuilderFee', false)) {
-            const wallet = this.safeStringLower(this.options, 'builder', '0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6');
+            const builder = '0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6';
+            const wallet = this.safeStringLower(this.options, 'builder', builder.toLowerCase());
             // when builderFee is disabled the builder is still attached but with a 0% fee (f = 0), for statistics purposes only
             let feeInt = this.safeInteger(this.options, 'feeInt', 10);
             if (!this.safeBool(this.options, 'builderFee', true)) {
@@ -2527,7 +2533,7 @@ class hyperliquid extends hyperliquid$1["default"] {
             'a': this.parseToInt(market['baseId']),
             't': this.parseToNumeric(id),
         };
-        const nonce = this.milliseconds();
+        const nonce = this.incrementingNonce();
         const signature = this.signL1Action(action, nonce, vaultAddress);
         const request = {
             'action': action,
@@ -2576,7 +2582,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         const market = this.market(symbol);
         let clientOrderId = this.safeValue2(params, 'clientOrderId', 'client_id');
         params = this.omit(params, ['clientOrderId', 'client_id']);
-        const nonce = this.milliseconds();
+        const nonce = this.incrementingNonce();
         const request = {
             'nonce': nonce,
             // 'vaultAddress': vaultAddress,
@@ -2640,7 +2646,7 @@ class hyperliquid extends hyperliquid$1["default"] {
             await this.loadMarkets();
         }
         await this.initializeClient();
-        const nonce = this.milliseconds();
+        const nonce = this.incrementingNonce();
         const request = {
             'nonce': nonce,
             // 'vaultAddress': vaultAddress,
@@ -2718,7 +2724,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         }
         await this.initializeClient();
         params = this.omit(params, ['clientOrderId', 'client_id']);
-        const nonce = this.milliseconds();
+        const nonce = this.incrementingNonce();
         const request = {
             'nonce': nonce,
             // 'vaultAddress': vaultAddress,
@@ -2850,7 +2856,7 @@ class hyperliquid extends hyperliquid$1["default"] {
             };
             modifies.push(modifyReq);
         }
-        const nonce = this.milliseconds();
+        const nonce = this.incrementingNonce();
         const modifyAction = {
             'type': 'batchModify',
             'modifies': modifies,
@@ -2973,7 +2979,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const nonce = this.milliseconds();
+        const nonce = this.incrementingNonce();
         const request = {
             'nonce': nonce,
         };
@@ -3902,7 +3908,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         }
         const asset = this.parseToInt(market['baseId']);
         const isCross = (marginMode === 'cross');
-        const nonce = this.milliseconds();
+        const nonce = this.incrementingNonce();
         params = this.omit(params, ['leverage']);
         const updateAction = {
             'type': 'updateLeverage',
@@ -3959,7 +3965,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         const marginMode = this.safeString(params, 'marginMode', 'cross');
         const isCross = (marginMode === 'cross');
         const asset = this.parseToInt(market['baseId']);
-        const nonce = this.milliseconds();
+        const nonce = this.incrementingNonce();
         params = this.omit(params, 'marginMode');
         const updateAction = {
             'type': 'updateLeverage',
@@ -4032,7 +4038,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         if (type === 'reduce') {
             sz = -sz;
         }
-        const nonce = this.milliseconds();
+        const nonce = this.incrementingNonce();
         const updateAction = {
             'type': 'updateIsolatedMargin',
             'asset': asset,
@@ -4103,7 +4109,7 @@ class hyperliquid extends hyperliquid$1["default"] {
             await this.loadMarkets();
         }
         const isSandboxMode = this.safeBool(this.options, 'sandboxMode');
-        const nonce = this.milliseconds();
+        const nonce = this.incrementingNonce();
         if (this.inArray(fromAccount, ['spot', 'swap', 'perp'])) {
             // handle swap <> spot account transfer
             if (!this.inArray(toAccount, ['spot', 'swap', 'perp'])) {
@@ -4260,7 +4266,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         [vaultAddress, params] = this.handleOptionAndParams(params, 'withdraw', 'vaultAddress');
         vaultAddress = this.formatVaultAddress(vaultAddress);
         params = this.omit(params, 'vaultAddress');
-        const nonce = this.milliseconds();
+        const nonce = this.incrementingNonce();
         let action = {};
         let sig;
         if (vaultAddress !== undefined) {
@@ -4863,7 +4869,7 @@ class hyperliquid extends hyperliquid$1["default"] {
      * @returns {object} a response object
      */
     async reserveRequestWeight(weight, params = {}) {
-        const nonce = this.milliseconds();
+        const nonce = this.incrementingNonce();
         const request = {
             'nonce': nonce,
         };
@@ -4887,7 +4893,7 @@ class hyperliquid extends hyperliquid$1["default"] {
      * @returns {object} a response object
      */
     async createSubAccount(name, params = {}) {
-        const nonce = this.milliseconds();
+        const nonce = this.incrementingNonce();
         const request = {
             'nonce': nonce,
         };

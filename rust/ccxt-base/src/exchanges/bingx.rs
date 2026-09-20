@@ -348,7 +348,7 @@ impl BingxCore {
         m.insert("fetchPositionHistory".to_string(), Value::Bool(true));
         m.insert("fetchPositionMode".to_string(), Value::Bool(true));
         m.insert("fetchPositions".to_string(), Value::Bool(true));
-        m.insert("fetchPositionsHistory".to_string(), Value::Bool(true));
+        m.insert("fetchPositionsHistory".to_string(), Value::Bool(false));
         m.insert("fetchTicker".to_string(), Value::Bool(true));
         m.insert("fetchTickers".to_string(), Value::Bool(true));
         m.insert("fetchTime".to_string(), Value::Bool(true));
@@ -2026,7 +2026,7 @@ impl BingxCore {
         m.insert("trailing".to_string(), Value::Bool(true));
         m.insert("leverage".to_string(), Value::Bool(false));
         m.insert("marketBuyRequiresPrice".to_string(), Value::Bool(false));
-        m.insert("marketBuyByCost".to_string(), Value::Bool(true));
+        m.insert("marketBuyByCost".to_string(), Value::Bool(false));
         m.insert("selfTradePrevention".to_string(), Value::Bool(false));
         m.insert("iceberg".to_string(), Value::Bool(false));
     m
@@ -2123,6 +2123,7 @@ impl BingxCore {
 }));
         m.insert("createOrder".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
+        m.insert("marketBuyByCost".to_string(), Value::Bool(true));
         m.insert("triggerPriceType".to_string(), Value::Null);
         m.insert("attachedStopLossTakeProfit".to_string(), Value::Null);
         m.insert("trailing".to_string(), Value::Bool(false));
@@ -3024,7 +3025,7 @@ impl BingxCore {
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), self.safe_string2(trade.clone(), Value::Str("id".to_string()), Value::Str("t".to_string()), &[]));
+        m.insert("id".to_string(), self.safe_string_n(trade.clone(), Value::List(vec![Value::Str("id".to_string()), Value::Str("t".to_string()), Value::Str("fillId".to_string())]), &[]));
         m.insert("info".to_string(), trade.clone());
         m.insert("timestamp".to_string(), time.clone());
         m.insert("datetime".to_string(), self.iso8601(time.clone()));

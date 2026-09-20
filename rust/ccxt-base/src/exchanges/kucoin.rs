@@ -12129,7 +12129,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         //     }
         //
         let mut timestampId: Value = self.safe_string2(info.clone(), Value::Str("createdAt".to_string()), Value::Str("timestamp".to_string()), &[]);
-        let mut timestamp: Value = self.milliseconds();
+        let mut timestamp: Value = Value::Null;
         if !is_equal(&timestampId, &Value::Null) {
             timestamp = self.parse_to_int(slice(&timestampId, &Value::Int(0), &Value::Int(13)));
         }
@@ -12808,7 +12808,6 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         //         "actualSize": 10
         //     }
         //
-        let mut timestamp: Value = self.milliseconds();
         let mut currencyId: Value = self.safe_string_k(info.clone(), "currency", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -12816,8 +12815,8 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         m.insert("currency".to_string(), self.safe_currency_code(currencyId.clone(), &[currency.clone()]));
         m.insert("amount".to_string(), self.safe_number_k(info.clone(), "actualSize", &[]));
         m.insert("symbol".to_string(), Value::Null);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
+        m.insert("timestamp".to_string(), Value::Null);
+        m.insert("datetime".to_string(), Value::Null);
         m.insert("info".to_string(), info.clone());
     m
 });

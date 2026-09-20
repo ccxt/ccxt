@@ -45,6 +45,7 @@ pub(crate) use ccxt::exchanges::{
     bullish::BullishCore,
     bybit::BybitCore,
     bybiteu::BybiteuCore,
+    bybitid::BybitidCore,
     bydfi::BydfiCore,
     cex::CexCore,
     coinbase::CoinbaseCore,
@@ -152,6 +153,7 @@ pub(crate) use ccxt_pro::pro::{
     bullish::BullishCore as WsBullishCore,
     bybit::BybitCore as WsBybitCore,
     bybiteu::BybiteuCore as WsBybiteuCore,
+    bybitid::BybitidCore as WsBybitidCore,
     bydfi::BydfiCore as WsBydfiCore,
     cex::CexCore as WsCexCore,
     coinbase::CoinbaseCore as WsCoinbaseCore,
@@ -243,6 +245,7 @@ macro_rules! for_each_core {
         $cb!(bullish, BullishCore);
         $cb!(bybit, BybitCore);
         $cb!(bybiteu, BybiteuCore);
+        $cb!(bybitid, BybitidCore);
         $cb!(bydfi, BydfiCore);
         $cb!(cex, CexCore);
         $cb!(coinbase, CoinbaseCore);
@@ -347,6 +350,7 @@ macro_rules! for_each_ws_core {
         $cb!(bullish, WsBullishCore);
         $cb!(bybit, WsBybitCore);
         $cb!(bybiteu, WsBybiteuCore);
+        $cb!(bybitid, WsBybitidCore);
         $cb!(bydfi, WsBydfiCore);
         $cb!(cex, WsCexCore);
         $cb!(coinbase, WsCoinbaseCore);

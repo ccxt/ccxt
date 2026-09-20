@@ -2179,11 +2179,10 @@ export default class bitteam extends Exchange {
         //         }
         //     }
         //
-        const timestamp = this.milliseconds ();
         const balance: Dict = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
         };
         const result = this.safeValue (response, 'result', {});
         const balanceByCurrencies = this.omit (result, [ 'free', 'used', 'total' ]);

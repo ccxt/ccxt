@@ -105,7 +105,7 @@ class bingx extends bingx$1["default"] {
                 'fetchPositionHistory': true,
                 'fetchPositionMode': true,
                 'fetchPositions': true,
-                'fetchPositionsHistory': true,
+                'fetchPositionsHistory': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -714,7 +714,7 @@ class bingx extends bingx$1["default"] {
                         'trailing': true,
                         'leverage': false,
                         'marketBuyRequiresPrice': false,
-                        'marketBuyByCost': true,
+                        'marketBuyByCost': false,
                         'selfTradePrevention': false,
                         'iceberg': false,
                     },
@@ -786,6 +786,7 @@ class bingx extends bingx$1["default"] {
                         'private': true,
                     },
                     'createOrder': {
+                        'marketBuyByCost': true,
                         'triggerPriceType': undefined,
                         'attachedStopLossTakeProfit': undefined,
                         'trailing': false,
@@ -1579,7 +1580,7 @@ class bingx extends bingx$1["default"] {
             }
         }
         return this.safeTrade({
-            'id': this.safeString2(trade, 'id', 't'),
+            'id': this.safeStringN(trade, ['id', 't', 'fillId']),
             'info': trade,
             'timestamp': time,
             'datetime': this.iso8601(time),

@@ -464,8 +464,8 @@ impl LighterCore {
     pub fn handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_475: bool = true;
-            while { if !__for_first_475 { i = add(&i, &Value::Int(1)); } __for_first_475 = false; is_less_than(&i, &get_array_length(&deltas)) } {
+            let mut __for_first_476: bool = true;
+            while { if !__for_first_476 { i = add(&i, &Value::Int(1)); } __for_first_476 = false; is_less_than(&i, &get_array_length(&deltas)) } {
             self.handle_delta(bookside.clone(), get_value(&deltas, &i));
         }
         }
@@ -666,8 +666,8 @@ impl LighterCore {
             let mut marketIds: Value = object_keys(&data);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_476: bool = true;
-                while { if !__for_first_476 { i = add(&i, &Value::Int(1)); } __for_first_476 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+                let mut __for_first_477: bool = true;
+                while { if !__for_first_477 { i = add(&i, &Value::Int(1)); } __for_first_477 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
                 let mut marketId: Value = get_value(&marketIds, &i);
                 let mut marketId: Value = get_value(&marketIds, &i);
                 let mut market: Value = self.safe_market(&[marketId.clone()]);
@@ -693,7 +693,7 @@ impl LighterCore {
  * @name lighter#watchTicker
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
  * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
- * @param {string} symbol unified symbol of the market to fetch the ticker for
+ * @param {string} symbol unified symbol of the market to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
@@ -707,6 +707,9 @@ impl LighterCore {
         }
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
+        if !is_equal(&get_value(&market, &Value::Str("swap".to_string())), &Value::Bool(true)) {
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchTicker() is only supported for swap markets".to_string()))));
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("channel".to_string(), add(&Value::Str("market_stats/".to_string()), &get_value(&market, &Value::Str("id".to_string()))));
@@ -724,7 +727,7 @@ impl LighterCore {
  * @name lighter#unWatchTicker
  * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
  * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
- * @param {string} symbol unified symbol of the market to fetch the ticker for
+ * @param {string} symbol unified symbol of the market to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
@@ -738,6 +741,9 @@ impl LighterCore {
         }
         let mut market: Value = self.market(symbol.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
+        if !is_equal(&get_value(&market, &Value::Str("swap".to_string())), &Value::Bool(true)) {
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchTicker() is only supported for swap markets".to_string()))));
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("channel".to_string(), add(&Value::Str("market_stats/".to_string()), &get_value(&market, &Value::Str("id".to_string()))));
@@ -756,9 +762,8 @@ impl LighterCore {
  * @name lighter#watchTickers
  * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
- * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+ * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
     pub async fn watch_tickers(&mut self, optional_args: &[Value]) -> Value {
@@ -770,7 +775,11 @@ impl LighterCore {
         if is_equal(&self.markets, &Value::Null) {
             self.load_markets(&[]).await;
         }
-        symbols = self.market_symbols(&[symbols.clone()]);
+        symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(true), Value::Bool(true)]);
+        let mut firstMarket: Value = self.get_market_from_symbols(&[symbols.clone()]);
+        if is_true(&(!is_equal(&firstMarket, &Value::Null))) && is_true(&(!is_equal(&get_value(&firstMarket, &Value::Str("swap".to_string())), &Value::Bool(true)))) {
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchTickers() is only supported for swap markets".to_string()))));
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("channel".to_string(), Value::Str("market_stats/all".to_string()));
@@ -786,8 +795,8 @@ impl LighterCore {
         }  else {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_477: bool = true;
-                while { if !__for_first_477 { i = add(&i, &Value::Int(1)); } __for_first_477 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_478: bool = true;
+                while { if !__for_first_478 { i = add(&i, &Value::Int(1)); } __for_first_478 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbol: Value = get_value(&symbols, &i);
                 append_to_array(&mut messageHashes, self.get_message_hash(Value::Str("ticker".to_string()), &[symbol.clone()]));
@@ -814,7 +823,7 @@ impl LighterCore {
  * @name lighter#unWatchTickers
  * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
  * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
- * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+ * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
@@ -826,6 +835,11 @@ impl LighterCore {
 }));
         if is_equal(&self.markets, &Value::Null) {
             self.load_markets(&[]).await;
+        }
+        symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(true), Value::Bool(true)]);
+        let mut firstMarket: Value = self.get_market_from_symbols(&[symbols.clone()]);
+        if is_true(&(!is_equal(&firstMarket, &Value::Null))) && is_true(&(!is_equal(&get_value(&firstMarket, &Value::Str("swap".to_string())), &Value::Bool(true)))) {
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchTickers() is only supported for swap markets".to_string()))));
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1032,8 +1046,8 @@ impl LighterCore {
         let mut dataLength: Value = get_array_length(&data);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_478: bool = true;
-            while { if !__for_first_478 { i = add(&i, &Value::Int(1)); } __for_first_478 = false; is_less_than(&i, &dataLength) } {
+            let mut __for_first_479: bool = true;
+            while { if !__for_first_479 { i = add(&i, &Value::Int(1)); } __for_first_479 = false; is_less_than(&i, &dataLength) } {
             let mut iReversed: Value = subtract(&subtract(&dataLength, &Value::Int(1)), &i);
             let mut trade: Value = self.parse_ws_trade(get_value(&data, &iReversed), &[market.clone()]);
             stored.append(trade.clone());
@@ -1256,8 +1270,8 @@ impl LighterCore {
         let mut messageHash: Value = self.get_message_hash(Value::Str("myTrades".to_string()), &[]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_480: bool = true;
-            while { if !__for_first_480 { i = add(&i, &Value::Int(1)); } __for_first_480 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+            let mut __for_first_481: bool = true;
+            while { if !__for_first_481 { i = add(&i, &Value::Int(1)); } __for_first_481 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
@@ -1265,8 +1279,8 @@ impl LighterCore {
             let mut tradesLength: Value = get_array_length(&trades);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_479: bool = true;
-                while { if !__for_first_479 { j = add(&j, &Value::Int(1)); } __for_first_479 = false; is_less_than(&j, &tradesLength) } {
+                let mut __for_first_480: bool = true;
+                while { if !__for_first_480 { j = add(&j, &Value::Int(1)); } __for_first_480 = false; is_less_than(&j, &tradesLength) } {
                 let mut jReversed: Value = subtract(&subtract(&tradesLength, &Value::Int(1)), &j);
                 let mut tradeRaw: Value = get_value(&trades, &jReversed);
                 add_element_to_object(&mut tradeRaw, &Value::Str("accountIndex".to_string()), accountIndex.clone());
@@ -1478,8 +1492,8 @@ impl LighterCore {
         let mut dataLength: Value = get_array_length(&data);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_481: bool = true;
-            while { if !__for_first_481 { i = add(&i, &Value::Int(1)); } __for_first_481 = false; is_less_than(&i, &dataLength) } {
+            let mut __for_first_482: bool = true;
+            while { if !__for_first_482 { i = add(&i, &Value::Int(1)); } __for_first_482 = false; is_less_than(&i, &dataLength) } {
             let mut iReversed: Value = subtract(&subtract(&dataLength, &Value::Int(1)), &i);
             let mut liquidation: Value = self.parse_ws_liquidation(get_value(&data, &iReversed), &[market.clone()]);
             stored.append(liquidation.clone());
@@ -1635,8 +1649,8 @@ impl LighterCore {
             let mut assetIds: Value = object_keys(&assets);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_482: bool = true;
-                while { if !__for_first_482 { i = add(&i, &Value::Int(1)); } __for_first_482 = false; is_less_than(&i, &get_array_length(&assetIds)) } {
+                let mut __for_first_483: bool = true;
+                while { if !__for_first_483 { i = add(&i, &Value::Int(1)); } __for_first_483 = false; is_less_than(&i, &get_array_length(&assetIds)) } {
                 let mut assetId: Value = get_value(&assetIds, &i);
                 let mut assetId: Value = get_value(&assetIds, &i);
                 let mut asset: Value = get_value(&assets, &assetId);
@@ -1969,16 +1983,16 @@ impl LighterCore {
         let mut messageHash: Value = self.get_message_hash(Value::Str("orders".to_string()), &[]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_484: bool = true;
-            while { if !__for_first_484 { i = add(&i, &Value::Int(1)); } __for_first_484 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+            let mut __for_first_485: bool = true;
+            while { if !__for_first_485 { i = add(&i, &Value::Int(1)); } __for_first_485 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
             let mut orders: Value = self.safe_list(data.clone(), marketId.clone(), &[Value::List(vec![])]);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_483: bool = true;
-                while { if !__for_first_483 { j = add(&j, &Value::Int(1)); } __for_first_483 = false; is_less_than(&j, &get_array_length(&orders)) } {
+                let mut __for_first_484: bool = true;
+                while { if !__for_first_484 { j = add(&j, &Value::Int(1)); } __for_first_484 = false; is_less_than(&j, &get_array_length(&orders)) } {
                 let mut order: Value = self.parse_order(get_value(&orders, &j), &[market.clone()]);
                 stored.append(order.clone());
                 let mut symbol: Value = get_value(&order, &Value::Str("symbol".to_string()));
@@ -2023,8 +2037,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut subscriptionKeys: Value = object_keys(&get_value(&client, &Value::Str("subscriptions".to_string())));
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_485: bool = true;
-                    while { if !__for_first_485 { i = add(&i, &Value::Int(1)); } __for_first_485 = false; is_less_than(&i, &get_array_length(&subscriptionKeys)) } {
+                    let mut __for_first_486: bool = true;
+                    while { if !__for_first_486 { i = add(&i, &Value::Int(1)); } __for_first_486 = false; is_less_than(&i, &get_array_length(&subscriptionKeys)) } {
                     let mut subscriptionHash: Value = get_value(&subscriptionKeys, &i);
                     let mut subscriptionHash: Value = get_value(&subscriptionKeys, &i);
                     let mut subscriptionId: Value = self.safe_string(get_value(&get_value(&client, &Value::Str("subscriptions".to_string())), &subscriptionHash), Value::Str("id".to_string()), &[]);
@@ -2160,8 +2174,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut subscriptionHashes: Value = object_keys(&get_value(&client, &Value::Str("subscriptions".to_string())));
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_486: bool = true;
-                while { if !__for_first_486 { i = add(&i, &Value::Int(1)); } __for_first_486 = false; is_less_than(&i, &get_array_length(&subscriptionHashes)) } {
+                let mut __for_first_487: bool = true;
+                while { if !__for_first_487 { i = add(&i, &Value::Int(1)); } __for_first_487 = false; is_less_than(&i, &get_array_length(&subscriptionHashes)) } {
                 let mut subscriptionHash: Value = get_value(&subscriptionHashes, &i);
                 let mut subscriptionHash: Value = get_value(&subscriptionHashes, &i);
                 if is_true(&Value::Bool(starts_with(&subscriptionHash, &Value::Str("ticker".to_string())))) {

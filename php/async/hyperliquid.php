@@ -378,6 +378,12 @@ class hyperliquid extends Exchange {
         $this->options['sandboxMode'] = $enabled;
     }
 
+    public function nonce() {
+        // the venue nonce is a millisecond timestamp and must be strictly increasing per signer
+        // incrementingNonce () reads this and bumps past the previous value when two signed actions share a millisecond
+        return $this->milliseconds();
+    }
+
     public function market(?string $symbol): array {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' market() requires a $symbol argument');
@@ -1914,7 +1920,7 @@ class hyperliquid extends Exchange {
             'type' => 'setReferrer',
             'code' => $this->safe_string($this->options, 'ref', 'CCXT1'),
         );
-        $nonce = $this->milliseconds();
+        $nonce = $this->incrementing_nonce();
         $signature = $this->sign_l1_action($action, $nonce);
         $request = array(
             'action' => $action,
@@ -1936,7 +1942,7 @@ class hyperliquid extends Exchange {
     }
 
     private function do_approve_builder_fee(string $builder, string $maxFeeRate) {
-        $nonce = $this->milliseconds();
+        $nonce = $this->incrementing_nonce();
         $isSandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         $payload = array(
             'hyperliquidChain' => ($isSandboxMode === true) ? 'Testnet' : 'Mainnet',
@@ -2081,7 +2087,7 @@ class hyperliquid extends Exchange {
          */
         $userAddress = null;
         list($userAddress, $params) = $this->handle_public_address('setUserAbstraction', $params);
-        $nonce = $this->milliseconds();
+        $nonce = $this->incrementing_nonce();
         $isSandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         $type = $this->safe_string($params, 'type', 'userSetAbstraction');
         $params = $this->omit($params, 'type');
@@ -2131,7 +2137,7 @@ class hyperliquid extends Exchange {
          */
         $userAddress = null;
         list($userAddress, $params) = $this->handle_public_address('enableUserDexAbstraction', $params);
-        $nonce = $this->milliseconds();
+        $nonce = $this->incrementing_nonce();
         $isSandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         $type = $this->safe_string($params, 'type', 'userDexAbstraction');
         $params = $this->omit($params, 'type');
@@ -2178,7 +2184,7 @@ class hyperliquid extends Exchange {
          * @param {array} [$params]
          * @return dictionary $response from the exchange
          */
-        $nonce = $this->milliseconds();
+        $nonce = $this->incrementing_nonce();
         $request = array(
             'nonce' => $nonce,
         );
@@ -2250,7 +2256,7 @@ class hyperliquid extends Exchange {
         }
         Async\await($this->initialize_client());
         $market = $this->market($symbol);
-        $nonce = $this->milliseconds();
+        $nonce = $this->incrementing_nonce();
         $isBuy = ($side === 'BUY');
         $vaultAddress = null;
         $randomize = $this->safe_bool($params, 'randomize', false);
@@ -2463,7 +2469,7 @@ class hyperliquid extends Exchange {
             }
         }
         $params = $this->omit($params, array( 'slippage', 'clientOrderId', 'client_id', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce' ));
-        $nonce = $this->milliseconds();
+        $nonce = $this->incrementing_nonce();
         $orderReq = array();
         $grouping = 'na';
         for ($i = 0; $i < count($orders); $i++) {
@@ -2536,7 +2542,8 @@ class hyperliquid extends Exchange {
             'grouping' => $grouping,
         );
         if ($this->safe_bool($this->options, 'approvedBuilderFee', false)) {
-            $wallet = $this->safe_string_lower($this->options, 'builder', '0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6');
+            $builder = '0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6';
+            $wallet = $this->safe_string_lower($this->options, 'builder', strtolower($builder));
             // when builderFee is disabled the builder is still attached but with a 0% fee (f = 0), for statistics purposes only
             $feeInt = $this->safe_integer($this->options, 'feeInt', 10);
             if (!$this->safe_bool($this->options, 'builderFee', true)) {
@@ -2674,7 +2681,7 @@ class hyperliquid extends Exchange {
             'a' => $this->parse_to_int($market['baseId']),
             't' => $this->parse_to_numeric($id),
         );
-        $nonce = $this->milliseconds();
+        $nonce = $this->incrementing_nonce();
         $signature = $this->sign_l1_action($action, $nonce, $vaultAddress);
         $request = array(
             'action' => $action,
@@ -2722,7 +2729,7 @@ class hyperliquid extends Exchange {
         $market = $this->market($symbol);
         $clientOrderId = $this->safe_value_2($params, 'clientOrderId', 'client_id');
         $params = $this->omit($params, array( 'clientOrderId', 'client_id' ));
-        $nonce = $this->milliseconds();
+        $nonce = $this->incrementing_nonce();
         $request = array(
             'nonce' => $nonce,
             // 'vaultAddress': vaultAddress,
@@ -2790,7 +2797,7 @@ class hyperliquid extends Exchange {
             Async\await($this->load_markets());
         }
         Async\await($this->initialize_client());
-        $nonce = $this->milliseconds();
+        $nonce = $this->incrementing_nonce();
         $request = array(
             'nonce' => $nonce,
             // 'vaultAddress': vaultAddress,
@@ -2871,7 +2878,7 @@ class hyperliquid extends Exchange {
         }
         Async\await($this->initialize_client());
         $params = $this->omit($params, array( 'clientOrderId', 'client_id' ));
-        $nonce = $this->milliseconds();
+        $nonce = $this->incrementing_nonce();
         $request = array(
             'nonce' => $nonce,
             // 'vaultAddress': vaultAddress,
@@ -3001,7 +3008,7 @@ class hyperliquid extends Exchange {
             );
             $modifies[] = $modifyReq;
         }
-        $nonce = $this->milliseconds();
+        $nonce = $this->incrementing_nonce();
         $modifyAction = array(
             'type' => 'batchModify',
             'modifies' => $modifies,
@@ -3137,7 +3144,7 @@ class hyperliquid extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $nonce = $this->milliseconds();
+        $nonce = $this->incrementing_nonce();
         $request = array(
             'nonce' => $nonce,
         );
@@ -4110,7 +4117,7 @@ class hyperliquid extends Exchange {
         }
         $asset = $this->parse_to_int($market['baseId']);
         $isCross = ($marginMode === 'cross');
-        $nonce = $this->milliseconds();
+        $nonce = $this->incrementing_nonce();
         $params = $this->omit($params, array( 'leverage' ));
         $updateAction = array(
             'type' => 'updateLeverage',
@@ -4170,7 +4177,7 @@ class hyperliquid extends Exchange {
         $marginMode = $this->safe_string($params, 'marginMode', 'cross');
         $isCross = ($marginMode === 'cross');
         $asset = $this->parse_to_int($market['baseId']);
-        $nonce = $this->milliseconds();
+        $nonce = $this->incrementing_nonce();
         $params = $this->omit($params, 'marginMode');
         $updateAction = array(
             'type' => 'updateLeverage',
@@ -4258,7 +4265,7 @@ class hyperliquid extends Exchange {
         if ($type === 'reduce') {
             $sz = -$sz;
         }
-        $nonce = $this->milliseconds();
+        $nonce = $this->incrementing_nonce();
         $updateAction = array(
             'type' => 'updateIsolatedMargin',
             'asset' => $asset,
@@ -4335,7 +4342,7 @@ class hyperliquid extends Exchange {
             Async\await($this->load_markets());
         }
         $isSandboxMode = $this->safe_bool($this->options, 'sandboxMode');
-        $nonce = $this->milliseconds();
+        $nonce = $this->incrementing_nonce();
         if ($this->in_array($fromAccount, array( 'spot', 'swap', 'perp' ))) {
             // handle swap <> spot account transfer
             if (!$this->in_array($toAccount, array( 'spot', 'swap', 'perp' ))) {
@@ -4495,7 +4502,7 @@ class hyperliquid extends Exchange {
         list($vaultAddress, $params) = $this->handle_option_and_params($params, 'withdraw', 'vaultAddress');
         $vaultAddress = $this->format_vault_address($vaultAddress);
         $params = $this->omit($params, 'vaultAddress');
-        $nonce = $this->milliseconds();
+        $nonce = $this->incrementing_nonce();
         $action = array();
         if ($vaultAddress !== null) {
             $action = array(
@@ -5124,7 +5131,7 @@ class hyperliquid extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a $response object
          */
-        $nonce = $this->milliseconds();
+        $nonce = $this->incrementing_nonce();
         $request = array(
             'nonce' => $nonce,
         );
@@ -5151,7 +5158,7 @@ class hyperliquid extends Exchange {
          * @param {int} [$params->expiresAfter] time in ms after which the sub-account will expire
          * @return {array} a $response object
          */
-        $nonce = $this->milliseconds();
+        $nonce = $this->incrementing_nonce();
         $request = array(
             'nonce' => $nonce,
         );

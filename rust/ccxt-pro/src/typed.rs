@@ -1510,6 +1510,7 @@ pub use crate::pro_typed::blofin_typed::Blofin;
 pub use crate::pro_typed::bullish_typed::Bullish;
 pub use crate::pro_typed::bybit_typed::Bybit;
 pub use crate::pro_typed::bybiteu_typed::Bybiteu;
+pub use crate::pro_typed::bybitid_typed::Bybitid;
 pub use crate::pro_typed::bydfi_typed::Bydfi;
 pub use crate::pro_typed::cex_typed::Cex;
 pub use crate::pro_typed::coinbase_typed::Coinbase;
@@ -1593,6 +1594,7 @@ pub fn from_id(id: &str, config: Option<crate::Value>) -> Option<Box<dyn TypedEx
         "bullish" => Some(Box::new(Bullish::new(config))),
         "bybit" => Some(Box::new(Bybit::new(config))),
         "bybiteu" => Some(Box::new(Bybiteu::new(config))),
+        "bybitid" => Some(Box::new(Bybitid::new(config))),
         "bydfi" => Some(Box::new(Bydfi::new(config))),
         "cex" => Some(Box::new(Cex::new(config))),
         "coinbase" => Some(Box::new(Coinbase::new(config))),

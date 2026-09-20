@@ -1285,15 +1285,14 @@ public partial class limitless : PredictionExchange
         {
             askSizeStr = Precise.stringDiv(askSizeStr, "1000000");
         }
-        Int64 now = this.milliseconds();
         string? outcomeSymbol = this.safeOutcomeSymbol(null, market);
         return ((Dictionary<string, object>)((object)(this.safePredictionTicker(new Dictionary<string, object>() {
             { "outcome", outcomeSymbol },
             { "outcomeId", this.safeString(market, "outcomeId") },
             { "label", this.safeString(market, "label") },
             { "market", this.safeString(market, "market") },
-            { "timestamp", now },
-            { "datetime", this.iso8601(now) },
+            { "timestamp", null },
+            { "datetime", null },
             { "high", null },
             { "low", null },
             { "bid", this.parseNumber(bidStr) },
@@ -1500,7 +1499,6 @@ public partial class limitless : PredictionExchange
         //         "lastTradePrice": "0.161"
         //     }
         //
-        Int64 timestamp = this.milliseconds();
         object decimals = this.safeInteger(this.options, "usdcDecimals", 6);
         // sizes are scaled by 10^decimals, USDC uses 6 decimals
         string? scaleStr = this.parsePrecision(this.numberToString(prefixUnaryNeg(ref decimals)));
@@ -1545,8 +1543,8 @@ public partial class limitless : PredictionExchange
             { "outcome", this.safeOutcomeSymbol(outcome, outcomeObj) },
             { "bids", this.sortBy(bids, 0, true) },
             { "asks", this.sortBy(asks, 0) },
-            { "timestamp", timestamp },
-            { "datetime", this.iso8601(timestamp) },
+            { "timestamp", null },
+            { "datetime", null },
             { "nonce", null },
         };
         return ccxt.BaseExchange.ToPredictionOrderBook(this.safePredictionOrderBook(orderbook, outcomeObj));

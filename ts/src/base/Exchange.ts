@@ -192,7 +192,7 @@ export class BaseExchange {
     [key: string]: any;
 
     // this is updated by vss.js when building
-    static ccxtVersion = '4.5.80';
+    static ccxtVersion = '4.5.81';
 
     options: Dict;
 
@@ -2425,6 +2425,14 @@ export class BaseExchange {
     }
 
     unlockId () {
+        return undefined;  // c# stub
+    }
+
+    lockLastNonce () {
+        return undefined; // c# stub
+    }
+
+    unlockLastNonce () {
         return undefined;  // c# stub
     }
 
@@ -6239,6 +6247,23 @@ export class BaseExchange {
         return this.seconds ();
     }
 
+    /**
+     * @method
+     * @ignore
+     * @name Exchange#incrementingNonce
+     * @description returns a strictly-increasing nonce for venues that reject duplicate nonces per signer; the unit is whatever nonce () returns — the base default is seconds, so a venue that does not override nonce () gets a second-resolution counter that drifts ahead of wall clock under load, while venues needing milliseconds override nonce () as hyperliquid does. The counter is per exchange instance, so it narrows the duplicate-nonce race but does not remove it across instances or processes.
+     * @returns {int} a strictly-increasing nonce in the unit returned by nonce ()
+     */
+    incrementingNonce () {
+        const currentNonce = this.nonce ();
+        this.lockLastNonce ();
+        const lastNonce = this.safeInteger (this.options, 'lastNonce', 0);
+        const result = (currentNonce > lastNonce) ? currentNonce : lastNonce + 1;
+        this.options['lastNonce'] = result;
+        this.unlockLastNonce ();
+        return result;
+    }
+
     setHeaders (headers: any) {
         return headers;
     }
@@ -6785,7 +6810,11 @@ export class BaseExchange {
         if (key in mapping) {
             return mapping[key];
         } else {
-            throw new NotSupported (this.id + ' ' + key + ' does not have a value in mapping');
+            const keys = Object.keys (mapping);
+            // "mapping" must stay literal-final and the list must not be introduced with ": ":
+            // the php transpiler rewrites a param name inside string literals ("$mapping",
+            // "mapping->") and turns ": " after a non-space into " => ".
+            throw new NotSupported (this.id + ' ' + key + ' does not have a value in mapping' + ', must be one of ' + keys.join (', '));
         }
     }
 

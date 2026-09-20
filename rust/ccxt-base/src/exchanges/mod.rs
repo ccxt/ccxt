@@ -71,6 +71,8 @@ pub mod bybit;
 pub mod bybit_api;
 pub mod bybiteu;
 pub mod bybiteu_api;
+pub mod bybitid;
+pub mod bybitid_api;
 pub mod bydfi;
 pub mod bydfi_api;
 pub mod cex;

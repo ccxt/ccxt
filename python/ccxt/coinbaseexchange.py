@@ -892,7 +892,6 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         symbol = None if (market is None) else market['symbol']
         if isinstance(ticker, list):
             last = self.safe_string(ticker, 4)
-            timestamp = self.milliseconds()
         else:
             timestamp = self.parse8601(self.safe_value(ticker, 'time'))
             bid = self.safe_string(ticker, 'bid')

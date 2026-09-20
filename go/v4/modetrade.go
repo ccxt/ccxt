@@ -3187,13 +3187,13 @@ func (this *Modetrade) getAssetHistoryRowsBody(ch chan any, optionalArgs ...any)
 	var currency any = nil
 	if !IsEqual(code, nil) {
 		currency = this.Currency(code)
-		AddElementToObject(request, "balance_token", GetValue(currency, "id"))
+		AddElementToObject(request, "token", GetValue(currency, "id"))
 	}
 	if !IsEqual(since, nil) {
 		AddElementToObject(request, "start_t", since)
 	}
 	if !IsEqual(limit, nil) {
-		AddElementToObject(request, "pageSize", limit)
+		AddElementToObject(request, "size", limit)
 	}
 	var transactionType *string = this.SafeString(params, "type")
 	params = this.Omit(params, "type")
@@ -3234,23 +3234,47 @@ func (this *Modetrade) getAssetHistoryRowsBody(ch chan any, optionalArgs ...any)
 	return nil
 }
 func (this *Modetrade) ParseLedgerEntry(item any, optionalArgs ...any) any {
+	//
+	//     {
+	//         "id": "230707030600002",
+	//         "tx_id": "0x4b0714c63cc7abae72bf68e84e25860b88ca651b7d27dad1e32bf4c027fa5326",
+	//         "side": "WITHDRAW",
+	//         "token": "USDC",
+	//         "amount": 555,
+	//         "fee": 123,
+	//         "trans_status": "FAILED",
+	//         "created_time": 1688699193034,
+	//         "updated_time": 1688699193096,
+	//         "chain_id": "986532"
+	//     }
+	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var currencyId *string = this.SafeString(item, "token")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	currency = this.SafeCurrency(currencyId, currency)
 	var amount *float64 = this.SafeNumber(item, "amount")
-	var side *string = this.SafeString(item, "token_side")
-	var direction string = Ternary((side != nil && *side == "DEPOSIT"), "in", "out").(string)
+	var side *string = this.SafeString(item, "side")
+	var direction any = nil
+	if side != nil {
+		direction = Ternary((side != nil && *side == "DEPOSIT"), "in", "out")
+	}
 	var timestamp *int64 = this.SafeInteger(item, "created_time")
-	var fee any = this.ParseTokenAndFeeTemp(item, "fee_token", "fee_amount")
+	var feeCost any = this.ParseNumber(this.SafeString(item, "fee"))
+	var fee any = nil
+	if !IsEqual(feeCost, nil) {
+		fee = map[string]any{
+			"currency": code,
+			"cost":     feeCost,
+		}
+	}
 	return this.SafeLedgerEntry(map[string]any{
 		"id":               this.SafeString(item, "id"),
 		"currency":         code,
-		"account":          this.SafeString(item, "account"),
+		"account":          nil,
 		"referenceAccount": nil,
 		"referenceId":      this.SafeString(item, "tx_id"),
-		"status":           this.ParseTransactionStatus(this.SafeString(item, "status")),
+		"status":           this.ParseTransactionStatus(this.SafeString(item, "trans_status")),
 		"amount":           amount,
 		"before":           nil,
 		"after":            nil,
@@ -3258,7 +3282,7 @@ func (this *Modetrade) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		"direction":        direction,
 		"timestamp":        timestamp,
 		"datetime":         this.Iso8601(timestamp),
-		"type":             this.ParseLedgerEntryType(this.SafeString(item, "type")),
+		"type":             this.ParseLedgerEntryType(this.SafeString2(item, "type", "side")),
 		"info":             item,
 	}, currency)
 }
@@ -3266,6 +3290,8 @@ func (this *Modetrade) ParseLedgerEntryType(typeVar any) *string {
 	var types map[string]any = map[string]any{
 		"BALANCE":    "transaction",
 		"COLLATERAL": "transfer",
+		"DEPOSIT":    "transaction",
+		"WITHDRAW":   "transaction",
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
@@ -3307,17 +3333,36 @@ func (this *Modetrade) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	return nil
 }
 func (this *Modetrade) ParseTransaction(transaction any, optionalArgs ...any) any {
-	// example in fetchLedger
+	//
+	//     {
+	//         "id": "230707030600002",
+	//         "tx_id": "0x4b0714c63cc7abae72bf68e84e25860b88ca651b7d27dad1e32bf4c027fa5326",
+	//         "side": "WITHDRAW",
+	//         "token": "USDC",
+	//         "amount": 555,
+	//         "fee": 123,
+	//         "trans_status": "FAILED",
+	//         "created_time": 1688699193034,
+	//         "updated_time": 1688699193096,
+	//         "chain_id": "986532"
+	//     }
+	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var code *string = this.SafeString(transaction, "token")
-	var movementDirection any = this.SafeStringLower(transaction, "token_side")
+	var currencyId *string = this.SafeString(transaction, "token")
+	var code *string = this.SafeCurrencyCode(currencyId, currency)
+	var movementDirection any = this.SafeStringLower(transaction, "side")
 	if IsEqual(movementDirection, "withdraw") {
 		movementDirection = "withdrawal"
 	}
-	var fee any = this.ParseTokenAndFeeTemp(transaction, "fee_token", "fee_amount")
-	var addressTo *string = this.SafeString(transaction, "target_address")
-	var addressFrom *string = this.SafeString(transaction, "source_address")
+	var feeCost any = this.ParseNumber(this.SafeString(transaction, "fee"))
+	var fee any = nil
+	if !IsEqual(feeCost, nil) {
+		fee = map[string]any{
+			"currency": code,
+			"cost":     feeCost,
+		}
+	}
 	var timestamp *int64 = this.SafeInteger(transaction, "created_time")
 	return map[string]any{
 		"info":        transaction,
@@ -3326,15 +3371,15 @@ func (this *Modetrade) ParseTransaction(transaction any, optionalArgs ...any) an
 		"timestamp":   timestamp,
 		"datetime":    this.Iso8601(timestamp),
 		"address":     nil,
-		"addressFrom": addressFrom,
-		"addressTo":   addressTo,
-		"tag":         this.SafeString(transaction, "extra"),
+		"addressFrom": nil,
+		"addressTo":   nil,
+		"tag":         nil,
 		"tagFrom":     nil,
 		"tagTo":       nil,
 		"type":        movementDirection,
 		"amount":      this.SafeNumber(transaction, "amount"),
 		"currency":    code,
-		"status":      this.ParseTransactionStatus(this.SafeString(transaction, "status")),
+		"status":      this.ParseTransactionStatus(this.SafeString(transaction, "trans_status")),
 		"updated":     this.SafeInteger(transaction, "updated_time"),
 		"comment":     nil,
 		"internal":    nil,
@@ -3344,11 +3389,14 @@ func (this *Modetrade) ParseTransaction(transaction any, optionalArgs ...any) an
 }
 func (this *Modetrade) ParseTransactionStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
-		"NEW":        "pending",
-		"CONFIRMING": "pending",
-		"PROCESSING": "pending",
-		"COMPLETED":  "ok",
-		"CANCELED":   "canceled",
+		"NEW":               "pending",
+		"CONFIRMING":        "pending",
+		"PENDING":           "pending",
+		"PENDING_REBALANCE": "pending",
+		"PROCESSING":        "pending",
+		"COMPLETED":         "ok",
+		"FAILED":            "failed",
+		"CANCELED":          "canceled",
 	}
 	if IsEqual(status, nil) {
 		return nil
@@ -3387,9 +3435,9 @@ func (this *Modetrade) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		"side": "DEPOSIT",
 	}
 
-	retRes258415 := (<-this.FetchDepositsWithdrawalsAsync(code, since, limit, this.Extend(request, params)))
-	PanicOnError(retRes258415)
-	ch <- retRes258415
+	retRes263215 := (<-this.FetchDepositsWithdrawalsAsync(code, since, limit, this.Extend(request, params)))
+	PanicOnError(retRes263215)
+	ch <- retRes263215
 	return nil
 }
 
@@ -3424,9 +3472,9 @@ func (this *Modetrade) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) an
 		"side": "WITHDRAW",
 	}
 
-	retRes260215 := (<-this.FetchDepositsWithdrawalsAsync(code, since, limit, this.Extend(request, params)))
-	PanicOnError(retRes260215)
-	ch <- retRes260215
+	retRes265015 := (<-this.FetchDepositsWithdrawalsAsync(code, since, limit, this.Extend(request, params)))
+	PanicOnError(retRes265015)
+	ch <- retRes265015
 	return nil
 }
 
@@ -3463,7 +3511,6 @@ func (this *Modetrade) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ..
 	PanicOnError(currencyRows)
 	var currency any = this.SafeValue(currencyRows, 0)
 	var rows any = this.SafeList(currencyRows, 1, []any{})
-
 	//
 	//     {
 	//         "rows":[],
@@ -3475,6 +3522,8 @@ func (this *Modetrade) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ..
 	//         "success":true
 	//     }
 	//
+	params = this.Omit(params, "side") // request-side filter, not a unified transaction field
+
 	ch <- this.ParseTransactions(rows, currency, since, limit, params)
 	return nil
 }
@@ -3545,8 +3594,8 @@ func (this *Modetrade) withdrawBody(ch chan any, code any, amount any, address a
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes268012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes268012)
+		retRes272912 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes272912)
 	}
 	this.CheckAddress(address)
 	if !IsEqual(code, nil) {
@@ -3667,8 +3716,8 @@ func (this *Modetrade) fetchLeverageBody(ch chan any, symbol any, optionalArgs .
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes277112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes277112)
+		retRes282012 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes282012)
 	}
 	var market any = this.Market(symbol)
 
@@ -3731,8 +3780,8 @@ func (this *Modetrade) setLeverageBody(ch chan any, leverage any, optionalArgs .
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes281812 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes281812)
+		retRes286712 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes286712)
 	}
 	var isMinLeverage bool = IsLessThan(leverage, 1)
 	var isMaxLeverage bool = IsGreaterThan(leverage, 50)
@@ -3743,9 +3792,9 @@ func (this *Modetrade) setLeverageBody(ch chan any, leverage any, optionalArgs .
 		"leverage": leverage,
 	}
 
-	retRes282815 := (<-this.V1PrivatePostClientLeverage(this.Extend(request, params)))
-	PanicOnError(retRes282815)
-	ch <- retRes282815
+	retRes287715 := (<-this.V1PrivatePostClientLeverage(this.Extend(request, params)))
+	PanicOnError(retRes287715)
+	ch <- retRes287715
 	return nil
 }
 func (this *Modetrade) ParsePosition(position any, optionalArgs ...any) any {
@@ -3842,8 +3891,8 @@ func (this *Modetrade) fetchPositionBody(ch chan any, symbol any, optionalArgs .
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes291312 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes291312)
+		retRes296212 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes296212)
 	}
 	if IsEqual(symbol, nil) {
 		panic(ArgumentsRequired(Add(this.Id, " fetchPosition() requires a symbol argument")))
@@ -3910,8 +3959,8 @@ func (this *Modetrade) fetchPositionsBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes296412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes296412)
+		retRes301312 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes301312)
 	}
 
 	response := (<-this.V1PrivateGetPositions(params))

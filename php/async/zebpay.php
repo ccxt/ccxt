@@ -2031,7 +2031,6 @@ class zebpay extends Exchange {
         //         "status": "ok"
         //    }
         //
-        $timestamp = $this->milliseconds();
         return array(
             'info' => $info,
             'symbol' => $this->safe_string($market, 'id'),
@@ -2041,8 +2040,8 @@ class zebpay extends Exchange {
             'total' => null,
             'code' => $this->safe_string($info, 'code'),
             'status' => $this->safe_string($info, 'status'),
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
         );
     }
 

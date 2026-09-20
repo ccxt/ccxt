@@ -10547,7 +10547,7 @@ public partial class kucoin : Exchange
         //     }
         //
         string? timestampId = this.safeString2(info, "createdAt", "timestamp");
-        Int64? timestamp = this.milliseconds();
+        Int64? timestamp = null;
         if (isTrue(!isEqual(timestampId, null)))
         {
             timestamp = this.parseToInt(slice(timestampId, 0, 13));
@@ -11146,15 +11146,14 @@ public partial class kucoin : Exchange
         //         "actualSize": 10
         //     }
         //
-        Int64 timestamp = this.milliseconds();
         string? currencyId = this.safeString(info, "currency");
         return new Dictionary<string, object>() {
             { "id", this.safeString(info, "orderNo") },
             { "currency", this.safeCurrencyCode(currencyId, currency) },
             { "amount", this.safeNumber(info, "actualSize") },
             { "symbol", null },
-            { "timestamp", timestamp },
-            { "datetime", this.iso8601(timestamp) },
+            { "timestamp", null },
+            { "datetime", null },
             { "info", info },
         };
     }

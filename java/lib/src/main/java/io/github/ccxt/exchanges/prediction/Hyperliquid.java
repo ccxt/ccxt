@@ -825,7 +825,6 @@ public class Hyperliquid extends HyperliquidApi
                 Object ticker = this.parsePredictionTicker(new HashMap<String, Object>() {{
                     put( "levels", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList()), new ArrayList<Object>(Arrays.asList()))) );
                     put( "mid", finalMid );
-                    put( "time", Hyperliquid.this.milliseconds() );
                 }}, ((Object)outcomeObj));
                 Helpers.addElementToObject(tickers, outcomeHandle, ticker);
             }
@@ -856,8 +855,7 @@ public class Hyperliquid extends HyperliquidApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Long now = this.milliseconds();
-        Long timestamp = this.safeInteger(raw, "time", now);
+        Long timestamp = this.safeInteger(raw, "time");
         // the 2nd arg carries the outcome object (callers pass the resolved outcome)
         Object mkt = this.safeOutcome(null, market);
         String outcome = this.safeString(mkt, "outcome");
@@ -1582,8 +1580,8 @@ public class Hyperliquid extends HyperliquidApi
                 put( "id", oid );
                 put( "clientOrderId", finalClientOrderId );
                 put( "info", response );
-                put( "timestamp", nonce );
-                put( "datetime", Hyperliquid.this.iso8601(nonce) );
+                put( "timestamp", null );
+                put( "datetime", null );
                 put( "status", finalOrderStatus );
                 put( "outcome", Hyperliquid.this.safeString(outcomeObj, "outcome", outcome) );
                 put( "outcomeId", Hyperliquid.this.safeString(outcomeObj, "id") );
@@ -1745,8 +1743,8 @@ public class Hyperliquid extends HyperliquidApi
                     put( "outcomeId", Hyperliquid.this.safeString(outcomeObj, "id") );
                     put( "label", Hyperliquid.this.safeString(outcomeObj, "label") );
                     put( "market", Hyperliquid.this.safeString(outcomeObj, "market") );
-                    put( "timestamp", Hyperliquid.this.milliseconds() );
-                    put( "datetime", Hyperliquid.this.iso8601(Hyperliquid.this.milliseconds()) );
+                    put( "timestamp", null );
+                    put( "datetime", null );
                 }};
                 ((List<Object>)orders).add(this.safePredictionOrder(order));
             }

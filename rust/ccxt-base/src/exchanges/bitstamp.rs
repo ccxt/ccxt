@@ -2680,6 +2680,7 @@ impl BitstampCore {
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
  * @param {int} [limit] the maximum amount of candles to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] timestamp in ms of the latest candle to fetch
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
     pub async fn fetch_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
@@ -2701,24 +2702,44 @@ impl BitstampCore {
             m
         });
         let mut duration: Value = self.parse_timeframe(timeframe.clone());
+        let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
+        let mut untilIsDefined: bool = !is_equal(&until, &Value::Null);
         if is_equal(&limit, &Value::Null) {
+            limit = Value::Int(1000);
             if is_equal(&since, &Value::Null) {
-                add_element_to_object(&mut request, &Value::Str("limit".to_string()), Value::Int(1000)); // we need to specify an allowed amount of `limit` if no `since` is set and there is no default limit by exchange
+                add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
+                if is_true(&untilIsDefined) {
+                    let mut end: Value = self.parse_to_int(divide(&until, &Value::Int(1000)));
+                    add_element_to_object(&mut request, &Value::Str("start".to_string()), subtract(&subtract(&end, &(multiply(&duration, &limit))), &Value::Int(1)));
+                    add_element_to_object(&mut request, &Value::Str("end".to_string()), end.clone());
+                }
             }  else {
-                limit = Value::Int(1000);
                 let mut start: Value = self.parse_to_int(divide(&since, &Value::Int(1000)));
                 add_element_to_object(&mut request, &Value::Str("start".to_string()), start.clone());
-                add_element_to_object(&mut request, &Value::Str("end".to_string()), self.sum(&[start.clone(), multiply(&duration, &(subtract(&limit, &Value::Int(1))))]));
+                if is_true(&untilIsDefined) {
+                    add_element_to_object(&mut request, &Value::Str("end".to_string()), self.parse_to_int(divide(&until, &Value::Int(1000))));
+                }  else {
+                    add_element_to_object(&mut request, &Value::Str("end".to_string()), self.sum(&[start.clone(), subtract(&multiply(&duration, &limit), &Value::Int(1))]));
+                }
                 add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
             }
         }  else {
             if !is_equal(&since, &Value::Null) {
                 let mut start: Value = self.parse_to_int(divide(&since, &Value::Int(1000)));
                 add_element_to_object(&mut request, &Value::Str("start".to_string()), start.clone());
-                add_element_to_object(&mut request, &Value::Str("end".to_string()), self.sum(&[start.clone(), multiply(&duration, &(subtract(&limit, &Value::Int(1))))]));
+                let mut end: Value = self.sum(&[start.clone(), subtract(&multiply(&duration, &limit), &Value::Int(1))]);
+                if is_true(&untilIsDefined) {
+                    end = crate::runtime::Math::min(&end, &self.parse_to_int(divide(&until, &Value::Int(1000))));
+                }
+                add_element_to_object(&mut request, &Value::Str("end".to_string()), end.clone());
+            }  else if is_true(&untilIsDefined) {
+                let mut end: Value = self.parse_to_int(divide(&until, &Value::Int(1000)));
+                add_element_to_object(&mut request, &Value::Str("end".to_string()), end.clone());
+                add_element_to_object(&mut request, &Value::Str("start".to_string()), subtract(&subtract(&end, &(multiply(&duration, &limit))), &Value::Int(1)));
             }
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), crate::runtime::Math::min(&limit, &Value::Int(1000))); // min 1, max 1000
         }
+        params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
         let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.public_get_ohlc_pair(&[__ws_arg_3]).await;
         //

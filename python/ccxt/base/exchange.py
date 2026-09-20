@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.80'
+__version__ = '4.5.81'
 
 # -----------------------------------------------------------------------------
 
@@ -103,6 +103,9 @@ from ccxt.base.types import Int
 
 class BaseExchange(object):
     """Base exchange class"""
+    # snake_case -> camelCase attribute names, shared by every instance since
+    # the conversion is a pure function of the name
+    _camelcase_cache = {}
     id = 'Exchange'
     name = None
     countries = None
@@ -396,12 +399,16 @@ class BaseExchange(object):
 
         # convert all properties from underscore notation foo_bar to camelcase notation fooBar
         cls = type(self)
+        camelcase_cache = self._camelcase_cache
         for name in dir(self):
             if name[0] != '_' and name[-1] != '_' and '_' in name:
-                parts = name.split('_')
-                # fetch_ohlcv → fetchOHLCV (not fetchOhlcv!)
-                exceptions = {'ohlcv': 'OHLCV', 'le': 'LE', 'be': 'BE', 'adl': 'ADL'}
-                camelcase = parts[0] + ''.join(exceptions.get(i, self.capitalize(i)) for i in parts[1:])
+                camelcase = camelcase_cache.get(name)
+                if camelcase is None:
+                    parts = name.split('_')
+                    # fetch_ohlcv → fetchOHLCV (not fetchOhlcv!)
+                    exceptions = {'ohlcv': 'OHLCV', 'le': 'LE', 'be': 'BE', 'adl': 'ADL'}
+                    camelcase = parts[0] + ''.join(exceptions.get(i, self.capitalize(i)) for i in parts[1:])
+                    camelcase_cache[name] = camelcase
                 attr = getattr(self, name)
                 if isinstance(attr, types.MethodType):
                     setattr(cls, camelcase, getattr(cls, name))
@@ -2390,6 +2397,12 @@ class BaseExchange(object):
         return None
 
     def unlock_id(self):
+        return None
+
+    def lock_last_nonce(self):
+        return None
+
+    def unlock_last_nonce(self):
         return None
 
     def load_lighter_library(self, path, chainId, privateKey, apiKeyIndex, accountIndex, createClient):
@@ -5589,6 +5602,20 @@ class BaseExchange(object):
     def nonce(self):
         return self.seconds()
 
+    def incrementing_nonce(self):
+        """
+ @ignore
+        returns a strictly-increasing nonce for venues that reject duplicate nonces per signer; the unit is whatever nonce() returns — the base default is seconds, so a venue that does not override nonce() gets a second-resolution counter that drifts ahead of wall clock under load, while venues needing milliseconds override nonce() as hyperliquid does. The counter is per exchange instance, so it narrows the duplicate-nonce race but does not remove it across instances or processes.
+        :returns int: a strictly-increasing nonce in the unit returned by nonce()
+        """
+        currentNonce = self.nonce()
+        self.lock_last_nonce()
+        lastNonce = self.safe_integer(self.options, 'lastNonce', 0)
+        result = currentNonce if (currentNonce > lastNonce) else lastNonce + 1
+        self.options['lastNonce'] = result
+        self.unlock_last_nonce()
+        return result
+
     def set_headers(self, headers: object):
         return headers
 
@@ -6009,7 +6036,11 @@ class BaseExchange(object):
         if key in mapping:
             return mapping[key]
         else:
-            raise NotSupported(self.id + ' ' + key + ' does not have a value in mapping')
+            keys = list(mapping.keys())
+            # "mapping" must stay literal-final and the list must not be introduced with ": ":
+            # the php transpiler rewrites a param name inside string literals ("$mapping",
+            # "mapping->") and turns ": " after a non-space into " => ".
+            raise NotSupported(self.id + ' ' + key + ' does not have a value in mapping' + ', must be one of ' + ', '.join(keys))
 
     def fetch_cross_borrow_rate(self, code: str, params={}):
         self.load_markets()

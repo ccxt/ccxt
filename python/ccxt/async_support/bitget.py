@@ -7534,14 +7534,18 @@ class bitget(Exchange, ImplicitAPI):
 
         https://www.bitget.com/api-doc/spot/account/Get-Account-Bills
         https://www.bitget.com/api-doc/contract/account/Get-Account-Bill
+        https://www.bitget.com/docs/catalog/account/assets-balance#get-financial-records
+        https://www.bitget.com/docs/catalog/account/assets-balance#get-funding-financial-records
 
         :param str [code]: unified currency code, default is None
-        :param int [since]: timestamp in ms of the earliest ledger entry, default is None
+        :param int [since]: timestamp in ms of the earliest ledger entry, default is None, the uta endpoints allow a window of at most 30 days between since and until
         :param int [limit]: max number of ledger entries to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: end time in ms
         :param str [params.symbol]: *contract only* unified market symbol
-        :param str [params.productType]: *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+        :param str [params.productType]: *contract and uta only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+        :param str [params.type]: set to 'funding' with uta to fetch the funding account ledger instead of the trading account ledger
+        :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
@@ -7554,13 +7558,24 @@ class bitget(Exchange, ImplicitAPI):
             market = self.market(symbol)
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchLedger', market, params)
+        uta = None
+        uta, params = await self.handle_uta_and_params(params, 'fetchLedger', False)
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchLedger', 'paginate')
         if paginate:
+            if uta is True:
+                # re-inject the resolved modes, the handle* helpers stripped them from params and the recursive paginated calls would silently fall back to the defaults
+                params = self.extend(params, {'uta': True, 'type': marketType})
+                if symbol is not None:
+                    params = self.extend(params, {'symbol': symbol})
+                return await self.fetch_paginated_call_cursor('fetchLedger', code, since, limit, params, 'id', 'cursor', None, 100)
             cursorReceived = None
             if marketType != 'spot':
                 cursorReceived = 'endId'
-            return await self.fetch_paginated_call_cursor('fetchLedger', symbol, since, limit, params, cursorReceived, 'idLessThan')
+            params = self.extend(params, {'type': marketType})
+            if symbol is not None:
+                params = self.extend(params, {'symbol': symbol})
+            return await self.fetch_paginated_call_cursor('fetchLedger', code, since, limit, params, cursorReceived, 'idLessThan')
         currency = None
         request = {}
         if code is not None:
@@ -7572,6 +7587,74 @@ class bitget(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit
         response = None
+        if uta is True:
+            if marketType == 'funding':
+                response = await self.privateUtaGetV3AccountFundingFinancialRecords(self.extend(request, params))
+                #
+                #     {
+                #         "code": "00000",
+                #         "msg": "success",
+                #         "requestTime": 1789303180637,
+                #         "data": {
+                #             "list": [
+                #                 {
+                #                     "id": "1477183363639320585",
+                #                     "coin": "USDT",
+                #                     "groupType": "transfer",
+                #                     "type": "transfer_out",
+                #                     "amount": "-30.00000000",
+                #                     "balance": "0.00000000",
+                #                     "ts": "1787913879280"
+                #                 }
+                #             ],
+                #             "cursor": "1477183354042753024"
+                #         }
+                #     }
+                #
+            else:
+                marginMode = None
+                marginMode, params = self.handle_margin_mode_and_params('fetchLedger', params)
+                if marketType == 'spot':
+                    if marginMode is not None:
+                        request['category'] = 'MARGIN'
+                    else:
+                        request['category'] = 'SPOT'
+                else:
+                    productType = None
+                    productType, params = self.handle_product_type_and_params(market, params)
+                    request['category'] = productType
+                if symbol is not None:
+                    request['symbol'] = self.safe_string(market, 'id')
+                response = await self.privateUtaGetV3AccountFinancialRecords(self.extend(request, params))
+                #
+                #     {
+                #         "code": "00000",
+                #         "msg": "success",
+                #         "requestTime": 1750135478641,
+                #         "data": {
+                #             "list": [
+                #                 {
+                #                     "category": "Margin",
+                #                     "id": "13111111111111111",
+                #                     "symbol": "BTCUSDT",
+                #                     "coin": "BTC",
+                #                     "type": "ORDER_DEALT_IN",
+                #                     "positionType": "crossed",
+                #                     "fee": "-0.00000531",
+                #                     "positionAmount": "0.001",
+                #                     "positionBalance": "0.001",
+                #                     "amount": "0.00531168",
+                #                     "balance": "55.10017801",
+                #                     "ts": "1745853486185"
+                #                 }
+                #             ],
+                #             "cursor": "122222222222222222"
+                #         }
+                #     }
+                #
+            utaData = self.safe_dict(response, 'data', {})
+            list = self.safe_list(utaData, 'list', [])
+            return self.parse_ledger(list, currency, since, limit)
         if marketType == 'spot':
             response = await self.privateSpotGetV2SpotAccountBills(self.extend(request, params))
         else:
@@ -7659,35 +7742,71 @@ class bitget(Exchange, ImplicitAPI):
         #         "cTime": "1700728034996"
         #     }
         #
+        # uta financial records
+        #
+        #     {
+        #         "category": "Margin",
+        #         "id": "13111111111111111",
+        #         "symbol": "BTCUSDT",
+        #         "coin": "BTC",
+        #         "type": "ORDER_DEALT_IN",
+        #         "positionType": "crossed",
+        #         "fee": "-0.00000531",
+        #         "positionAmount": "0.001",
+        #         "positionBalance": "0.001",
+        #         "amount": "0.00531168",
+        #         "balance": "55.10017801",
+        #         "ts": "1745853486185"
+        #     }
+        #
+        # uta funding financial records
+        #
+        #     {
+        #         "id": "1477183363639320585",
+        #         "coin": "USDT",
+        #         "groupType": "transfer",
+        #         "type": "transfer_out",
+        #         "amount": "-30.00000000",
+        #         "balance": "0.00000000",
+        #         "ts": "1787913879280"
+        #     }
+        #
         currencyId = self.safe_string(item, 'coin')
         code = self.safe_currency_code(currencyId, currency)
         currency = self.safe_currency(currencyId, currency)
-        timestamp = self.safe_integer(item, 'cTime')
-        after = self.safe_number(item, 'balance')
-        fee = self.safe_number_2(item, 'fees', 'fee')
+        timestamp = self.safe_integer_2(item, 'cTime', 'ts')
+        balanceString = self.safe_string(item, 'balance')
+        after = self.parse_number(balanceString)
+        feeCostString = self.safe_string_2(item, 'fees', 'fee')
+        feeCost = None
+        if feeCostString is not None:
+            feeCost = self.parse_number(Precise.string_abs(feeCostString))  # deliberate for both generations, uta reports charged fees as negative values and the v2 fields hold signed values too
         amountRaw = self.safe_string_2(item, 'size', 'amount', '')
         amount = self.parse_number(Precise.string_abs(amountRaw))
+        before = None
+        if (balanceString is not None) and (amountRaw != ''):
+            before = self.parse_number(Precise.string_sub(balanceString, amountRaw))  # subtract the signed change from the after-balance, the base derivation assumes a signed amount and would produce a negative before on outflows
         direction = 'in'
         if amountRaw.find('-') >= 0:
             direction = 'out'
         return self.safe_ledger_entry({
             'info': item,
-            'id': self.safe_string(item, 'billId'),
+            'id': self.safe_string_2(item, 'billId', 'id'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'direction': direction,
             'account': None,
             'referenceId': None,
             'referenceAccount': None,
-            'type': self.parse_ledger_type(self.safe_string(item, 'businessType')),
+            'type': self.parse_ledger_type(self.safe_string_n(item, ['businessType', 'groupType', 'type'])),
             'currency': code,
             'amount': amount,
-            'before': None,
+            'before': before,
             'after': after,
             'status': None,
             'fee': {
                 'currency': code,
-                'cost': fee,
+                'cost': feeCost,
             },
         }, currency)
 
@@ -7733,6 +7852,151 @@ class bitget(Exchange, ImplicitAPI):
             'withdraw': 'withdrawal',
             'buy': 'trade',
             'sell': 'trade',
+            # uta funding financial records groupType values
+            'transaction': 'transaction',
+            'transfer': 'transfer',
+            'financial': 'transaction',
+            'strategy': 'trade',
+            'trace': 'trade',
+            'loan': 'transaction',
+            'fait': 'transaction',
+            'convert': 'trade',
+            'ipo_prime': 'transaction',
+            'pre_c2c': 'trade',
+            'paptrading': 'trade',
+            'on_chain': 'transaction',
+            'debit': 'transaction',
+            'cfd': 'trade',
+            'pay': 'transaction',
+            'compliance_wall': 'transaction',
+            'live': 'transaction',
+            'broker': 'transaction',
+            'rwa': 'transaction',
+            'stock': 'trade',
+            # uta financial records type values
+            'TRANSFER_IN': 'transfer',
+            'TRANSFER_OUT': 'transfer',
+            'RESERVE_TRANSFER_IN': 'transfer',
+            'RESERVE_TRANSFER_OUT': 'transfer',
+            'LIQ_TRANSFER_IN': 'transfer',
+            'LIQ_TRANSFER_OUT': 'transfer',
+            'ON_CHAIN_TRANSFER_REFUND': 'transfer',
+            'ON_CHAIN_TRANSFER_OUT': 'transfer',
+            'MT5_TRANSFER_IN': 'transfer',
+            'MT5_REFUND_IN': 'transfer',
+            'MT5_TRANSFER_OUT': 'transfer',
+            'TRACE_TRANSFER_USER_OUT': 'transfer',
+            'TRACE_TRANSFER_USER_IN': 'transfer',
+            'TRACE_TRANSFER_REFUND_IN': 'transfer',
+            'FINANCIAL_TRANSFER_OUT': 'transfer',
+            'FINANCIAL_TRANSFER_IN': 'transfer',
+            'CONVERT_TRANSFER_IN': 'transfer',
+            'CONVERT_TRANSFER_OUT': 'transfer',
+            'BGPAY_TRANSFER_OUT': 'transfer',
+            'BGPAY_REFUND_IN': 'transfer',
+            'ORDER_DEALT_FROZEN_OUT': 'trade',
+            'ORDER_DEALT_IN': 'trade',
+            'OPEN_LONG': 'trade',
+            'OPEN_SHORT': 'trade',
+            'BUY_DEAL': 'trade',
+            'SELL_DEAL': 'trade',
+            'CLOSE_LONG': 'trade',
+            'CLOSE_SHORT': 'trade',
+            'FORCE_CLOSE_LONG': 'trade',
+            'FORCE_CLOSE_SHORT': 'trade',
+            'BURST_CLOSE_LONG': 'trade',
+            'BURST_CLOSE_SHORT': 'trade',
+            'OFFSET_REDUCE_CLOSE_LONG': 'trade',
+            'OFFSET_REDUCE_CLOSE_SHORT': 'trade',
+            'FORCE_BUY_SSM': 'trade',
+            'FORCE_SELL_SSM': 'trade',
+            'BURST_BUY_SSM': 'trade',
+            'BURST_SELL_SSM': 'trade',
+            'RISK_LIQ_USER_IN': 'trade',
+            'RISK_LIQ_USER_OUT': 'trade',
+            'LIQ_FUND_OUT': 'trade',
+            'LIQ_FUND_IN': 'trade',
+            'LIQ_CONVERT_USER_OUT': 'trade',
+            'LIQ_CONVERT_SYS_IN': 'trade',
+            'LIQ_CONVERT_SYS_OUT': 'trade',
+            'LIQ_CONVERT_USER_IN': 'trade',
+            'MARGIN_OPEN_LONG': 'trade',
+            'MARGIN_OPEN_SHORT': 'trade',
+            'MARIN_BUY_DEAL': 'trade',
+            'MARIN_SELL_DEAL': 'trade',
+            'MARGIN_BACK': 'trade',
+            'MARGIN_OFFSET_IN_SSM_LONG': 'trade',
+            'MARGIN_OFFSET_IN_SSM_SHORT': 'trade',
+            'FIXED_OFFSET_IN_SSM_LONG': 'trade',
+            'FIXED_OFFSET_IN_SSM_SHORT': 'trade',
+            'FIXED_CLOSE_LONG': 'trade',
+            'FIXED_CLOSE_SHORT': 'trade',
+            'FIXED_FORCE_CLOSE_LONG': 'trade',
+            'FIXED_FORCE_CLOSE_SHORT': 'trade',
+            'FIXED_BURST_CLOSE_LONG': 'trade',
+            'FIXED_BURST_CLOSE_SHORT': 'trade',
+            'FIXED_ADL_CLOSE_LONG': 'trade',
+            'FIXED_ADL_CLOSE_SHORT': 'trade',
+            'FIXED_RISK_LIQ_USER_IN': 'trade',
+            'FIXED_RISK_LIQ_USER_OUT': 'trade',
+            'FIXED_FORCE_BUY_SSM': 'trade',
+            'FIXED_FORCE_SELL_SSM': 'trade',
+            'FIXED_BURST_BUY_SSM': 'trade',
+            'FIXED_BURST_SELL_SSM': 'trade',
+            'RWA_CONTRACT_REBASE_USER_OPEN_LONG': 'trade',
+            'RWA_CONTRACT_REBASE_USER_OPEN_SHORT': 'trade',
+            'RWA_CONTRACT_REBASE_USER_CLOSE_LONG': 'trade',
+            'RWA_CONTRACT_REBASE_USER_CLOSE_SHORT': 'trade',
+            'RWA_CONTRACT_REBASE_USER_BUY_IN_SSM': 'trade',
+            'RWA_CONTRACT_REBASE_USER_SELL_IN_SSM': 'trade',
+            'ORDER_PLF_FEE_OUT': 'fee',
+            'INTEREST_SETTLEMENT_OUT': 'fee',
+            'INTEREST_REPAYMENT': 'fee',
+            'CONTRACT_MAIN_SETTLE_FEE_USER_IN': 'fee',
+            'CONTRACT_MAIN_SETTLE_FEE_USER_OUT': 'fee',
+            'MARGIN_SETTLE_FEE_USER_IN': 'fee',
+            'MARGIN_SETTLE_FEE_USER_OUT': 'fee',
+            'LIQ_FEE': 'fee',
+            'SMALL_ASSET_FEE_SYS_IN': 'fee',
+            'RWA_FIXED_SETTLE_FEE_USER_IN': 'fee',
+            'RWA_FIXED_SETTLE_FEE_USER_OUT': 'fee',
+            'RWA_CONTRACT_MAIN_SETTLE_FEE_SYSTEM_IN': 'fee',
+            'RWA_CONTRACT_MAIN_SETTLE_FEE_SYSTEM_OUT': 'fee',
+            'RWA_CONTRACT_MAIN_SETTLE_FEE_SYSTEM_KEEP_IN': 'fee',
+            'RWA_CONTRACT_MAIN_SETTLE_FEE_SYSTEM_KEEP_OUT': 'fee',
+            'RWA_CONTRACT_MAIN_SETTLE_FEE_USER_IN': 'fee',
+            'RWA_CONTRACT_MAIN_SETTLE_FEE_USER_OUT': 'fee',
+            'INCREASE_MARGIN': 'margin',
+            'REDUCE_MARGIN': 'margin',
+            'MARGIN_LEVER_ORDER_REFROZEN': 'margin',
+            'MARGIN_LEVER_ORDER_FROZEN': 'margin',
+            'MARGIN_LEVER_POS_IN': 'margin',
+            'CONVERSION_UPON_DELISTING': 'transaction',
+            'EXCHANGE_SOURCE_TOKEN_USER_OUT': 'transaction',
+            'EXCHANGE_TARGET_TOKEN_USER_IN': 'transaction',
+            'BORROW': 'transaction',
+            'REPAYMENT': 'transaction',
+            'LIQ_REPAYMENT': 'transaction',
+            'DELIST_MARGIN_TOKEN_SOURCE_USER_OUT': 'transaction',
+            'DELIST_MARGIN_TOKEN_SOURCE_SYS_IN': 'transaction',
+            'DELIST_MARGIN_TOKEN_TARGET_SYS_OUT': 'transaction',
+            'DELIST_MARGIN_TOKEN_TARGET_USER_IN': 'transaction',
+            'CONFISCATE_TOKEN_USER_OUT': 'transaction',
+            'CONFISCATE_TOKEN_SYS_IN': 'transaction',
+            'DELIST_SMALL_BALANCE_USER_OUT': 'transaction',
+            'DELIST_SMALL_BALANCE_SYS_IN': 'transaction',
+            'DELIST_SMALL_LIABILITY_SYS_OUT': 'transaction',
+            'DELIST_SMALL_LIABILITY_USER_IN': 'transaction',
+            'SMALL_ASSET_SOURCE_TOKEN_USER_OUT': 'transaction',
+            'SMALL_ASSET_SOURCE_TOKEN_SYS_IN': 'transaction',
+            'SMALL_ASSET_TARGET_TOKEN_SYS_OUT': 'transaction',
+            'SMALL_ASSET_TARGET_TOKEN_USER_IN': 'transaction',
+            'TRACE_LOCK_USER_OUT': 'transaction',
+            'TRACE_LOCK_USER_IN': 'transaction',
+            'TRACE_SHARE_BENEFIT_USER_OUT': 'referral',
+            'TRACE_SHARE_BENEFIT_SYSTEM_IN': 'referral',
+            'TRACE_SHARE_BENEFIT_SYSTEM_OUT': 'referral',
+            'TRACE_SHARE_BENEFIT_USER_IN': 'referral',
         }
         return self.safe_string(types, type, type)
 
