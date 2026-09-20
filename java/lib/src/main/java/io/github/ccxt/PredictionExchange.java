@@ -178,7 +178,7 @@ public Object describe()
             List<Object> filtered = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)result).size(); i++)
             {
-                Object eventVar = Helpers.GetValue(result, i);
+                Object eventVar = (result == null || i < 0 || i >= ((List<?>)result).size() ? null : ((List<?>)result).get(i));
                 Boolean idMatch = (!java.util.Objects.equals(eventId, null)) && (java.util.Objects.equals(this.safeString(eventVar, "id"), eventId));
                 Boolean slugMatch = (!java.util.Objects.equals(slug, null)) && (java.util.Objects.equals(this.safeString(eventVar, "slug"), slug));
                 if (Boolean.TRUE.equals(idMatch) || Boolean.TRUE.equals(slugMatch))
@@ -222,7 +222,7 @@ public Object describe()
                 // venue's parsed event omits the field (JS alone tolerates the miss)
                 for (var i = 0; i < ((List<?>)result).size(); i++)
                 {
-                    Helpers.addElementToObject(Helpers.GetValue(result, i), sortKey, this.safeNumber(Helpers.GetValue(result, i), sortKey, 0));
+                    Helpers.addElementToObject(Helpers.GetValue(result, i), sortKey, this.safeNumber((result == null || i < 0 || i >= ((List<?>)result).size() ? null : ((List<?>)result).get(i)), sortKey, 0));
                 }
                 result = this.sortBy(result, sortKey, true, 0);
             }
@@ -255,7 +255,7 @@ public Object describe()
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)events).size(); i++)
         {
-            Object eventVar = Helpers.GetValue(events, i);
+            Object eventVar = (events == null || i < 0 || i >= ((List<?>)events).size() ? null : ((List<?>)events).get(i));
             Boolean isActive = (Boolean) this.safeBool(eventVar, "active");
             // keep events whose status is unknown (already filtered server-side, no `active` field)
             if ((java.util.Objects.equals(isActive, null)) || (java.util.Objects.equals(isActive, wantActive)))
@@ -285,13 +285,13 @@ public Object describe()
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)events).size(); i++)
         {
-            Object eventVar = Helpers.GetValue(events, i);
+            Object eventVar = (events == null || i < 0 || i >= ((List<?>)events).size() ? null : ((List<?>)events).get(i));
             String title = this.safeStringLower(eventVar, "title", "");
             String description = this.safeStringLower(eventVar, "description", "");
             Boolean matched = false;
             for (var qi = 0; qi < ((List<?>)queries).size(); qi++)
             {
-                Object q = ((String)Helpers.GetValue(queries, qi)).toLowerCase();
+                Object q = ((String)(queries == null || qi < 0 || qi >= ((List<?>)queries).size() ? null : ((List<?>)queries).get(qi))).toLowerCase();
                 if (java.util.Objects.equals(title, null))
                 {
                     throw new ExchangeError((this.id + " filterEventsBySearchIn() missing title")) ;
@@ -333,7 +333,7 @@ public Object describe()
         Boolean pendingSep = false;
         for (var i = 0; i < ((List<?>)chars).size(); i++)
         {
-            Object ch = Helpers.GetValue(chars, i);
+            Object ch = (chars == null || i < 0 || i >= ((List<?>)chars).size() ? null : ((List<?>)chars).get(i));
             if (((String)allowed).indexOf(((String)ch)) >= 0)
             {
                 if (Boolean.TRUE.equals(pendingSep) && (!java.util.Objects.equals(s, "")))
@@ -362,7 +362,7 @@ public Object describe()
         List<Object> wanted = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)tags).size(); i++)
         {
-            Object wantedKey = this.normalizeTagKey(Helpers.GetValue(tags, i));
+            Object wantedKey = this.normalizeTagKey((tags == null || i < 0 || i >= ((List<?>)tags).size() ? null : ((List<?>)tags).get(i)));
             if (!java.util.Objects.equals(wantedKey, ""))
             {
                 // an empty normalized key would substring-match every tag
@@ -372,7 +372,7 @@ public Object describe()
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)events).size(); i++)
         {
-            Object eventVar = Helpers.GetValue(events, i);
+            Object eventVar = (events == null || i < 0 || i >= ((List<?>)events).size() ? null : ((List<?>)events).get(i));
             List<Object> eventTags = (List<Object>) this.safeList(eventVar, "tags", new ArrayList<Object>(Arrays.asList()));
             Boolean matched = false;
             for (var ti = 0; ti < ((List<?>)eventTags).size(); ti++)
@@ -448,7 +448,7 @@ public Object describe()
         }
         for (var i = 0; i < ((List<?>)events).size(); i++)
         {
-            Object eventVar = Helpers.GetValue(events, i);
+            Object eventVar = (events == null || i < 0 || i >= ((List<?>)events).size() ? null : ((List<?>)events).get(i));
             String id = this.safeString(eventVar, "id");
             String slug = this.safeString(eventVar, "slug");
             String handle = this.safeString(eventVar, "event");
@@ -656,7 +656,7 @@ public Object describe()
         Boolean lastDash = true; // start true to drop leading separators
         for (var i = 0; i < ((List<?>)chars).size(); i++)
         {
-            Object ch = Helpers.GetValue(chars, i);
+            Object ch = (chars == null || i < 0 || i >= ((List<?>)chars).size() ? null : ((List<?>)chars).get(i));
             if (((String)allowed).indexOf(((String)ch)) >= 0)
             {
                 s = Helpers.add(s, ch);
@@ -730,7 +730,7 @@ public Object describe()
         Boolean pendingSep = false;
         for (var i = 0; i < ((List<?>)chars).size(); i++)
         {
-            Object ch = Helpers.GetValue(chars, i);
+            Object ch = (chars == null || i < 0 || i >= ((List<?>)chars).size() ? null : ((List<?>)chars).get(i));
             if (((String)allowed).indexOf(((String)ch)) >= 0)
             {
                 if (Boolean.TRUE.equals(pendingSep) && (!java.util.Objects.equals(label, "")))
@@ -910,9 +910,9 @@ public Object describe()
                 List<Object> missing = new ArrayList<Object>(Arrays.asList());
                 for (var i = 0; i < ((List<?>)outcomes).size(); i++)
                 {
-                    if (Helpers.isTrue(reload) || !Boolean.TRUE.equals(this.hasOutcome(Helpers.GetValue(outcomes, i))))
+                    if (Helpers.isTrue(reload) || !Boolean.TRUE.equals(this.hasOutcome((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i)))))
                     {
-                        ((List<Object>)missing).add(Helpers.GetValue(outcomes, i));
+                        ((List<Object>)missing).add((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i)));
                     }
                 }
                 Object missingLength = ((List<?>)missing).size();
@@ -964,7 +964,7 @@ public Object describe()
 
             for (var i = 0; i < ((List<?>)outcomeSymbols).size(); i++)
             {
-                (this.fetchOutcome(Helpers.GetValue(outcomeSymbols, i))).join();
+                (this.fetchOutcome((outcomeSymbols == null || i < 0 || i >= ((List<?>)outcomeSymbols).size() ? null : ((List<?>)outcomeSymbols).get(i)))).join();
             }
             return this.outcomes;
         });
@@ -1060,7 +1060,7 @@ public Object describe()
             Object chars = this.stringToCharsArray(word);
             for (var ci = 0; ci < ((List<?>)chars).size(); ci++)
             {
-                if (Helpers.getIndexOf(letters, Helpers.GetValue(chars, ci)) >= 0)
+                if (Helpers.getIndexOf(letters, (chars == null || ci < 0 || ci >= ((List<?>)chars).size() ? null : ((List<?>)chars).get(ci))) >= 0)
                 {
                     wordHasLetters = true;
                     break;
@@ -1779,7 +1779,7 @@ public Object describe()
             }
             for (var i = 0; Helpers.isLessThan(i, tradesLength); i++)
             {
-                Object trade = Helpers.GetValue(trades, i);
+                Object trade = (trades == null || i < 0 || i >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(i));
                 String tradeAmount = this.safeString(trade, "amount");
                 if (!java.util.Objects.equals(tradeAmount, null))
                 {
@@ -2293,12 +2293,12 @@ public Object describe()
         }
         if (Helpers.isLessThan(byteLength, 56))
         {
-            return Helpers.add(this.intToBase16(Helpers.add(128, byteLength)), hex);
+            return Helpers.add(this.intToBase16((128L + byteLength)), hex);
         }
         Object lengthHex = this.intToBase16(byteLength);
         lengthHex = this.padHexToEven(lengthHex);
         Long lengthOfLength = this.parseToInt(Helpers.divide(((String)lengthHex).length(), 2));
-        return Helpers.add(Helpers.add(this.intToBase16(Helpers.add(183, lengthOfLength)), lengthHex), hex);
+        return Helpers.add(Helpers.add(this.intToBase16((183L + lengthOfLength)), lengthHex), hex);
     }
 
     public Object rlpEncodeList(Object items)
@@ -2306,17 +2306,17 @@ public Object describe()
         Object concatenated = "";
         for (var i = 0; i < ((List<?>)items).size(); i++)
         {
-            concatenated = Helpers.add(concatenated, Helpers.GetValue(items, i));
+            concatenated = Helpers.add(concatenated, (items == null || i < 0 || i >= ((List<?>)items).size() ? null : ((List<?>)items).get(i)));
         }
         Long byteLength = this.parseToInt(Helpers.divide(((String)concatenated).length(), 2));
         if (Helpers.isLessThan(byteLength, 56))
         {
-            return Helpers.add(this.intToBase16(Helpers.add(192, byteLength)), concatenated);
+            return Helpers.add(this.intToBase16((192L + byteLength)), concatenated);
         }
         Object lengthHex = this.intToBase16(byteLength);
         lengthHex = this.padHexToEven(lengthHex);
         Long lengthOfLength = this.parseToInt(Helpers.divide(((String)lengthHex).length(), 2));
-        return Helpers.add(Helpers.add(this.intToBase16(Helpers.add(247, lengthOfLength)), lengthHex), concatenated);
+        return Helpers.add(Helpers.add(this.intToBase16((247L + lengthOfLength)), lengthHex), concatenated);
     }
 
     public Object intToRlpHex(Object value)
@@ -2422,7 +2422,7 @@ public Object describe()
 
             Object timeout = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : 60000;
             Long start = this.milliseconds();
-            while (Helpers.isLessThan((Helpers.subtract(this.milliseconds(), start)), timeout))
+            while (Helpers.isLessThan(((this.milliseconds() - start)), timeout))
             {
                 Object receipt = (this.ethRpc(rpcUrl, "eth_getTransactionReceipt", new ArrayList<Object>(Arrays.asList(txHash)))).join();
                 if ((!java.util.Objects.equals(receipt, null)) && (!java.util.Objects.equals(receipt, null)))

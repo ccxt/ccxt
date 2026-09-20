@@ -224,11 +224,11 @@ public class Binance extends BinanceApi
                 List<Object> queryMarkets = new ArrayList<Object>(Arrays.asList());
                 for (var ei = 0; Helpers.isLessThan(ei, eventsLength); ei++)
                 {
-                    Object eventMarkets = (List<Object>)(this.safeList(Helpers.GetValue(events, ei), "markets", new ArrayList<Object>(Arrays.asList())));
+                    Object eventMarkets = (List<Object>)(this.safeList((events == null || ei < 0 || ei >= ((List<?>)events).size() ? null : ((List<?>)events).get(ei)), "markets", new ArrayList<Object>(Arrays.asList())));
                     Object eventMarketsLength = ((List<?>)eventMarkets).size();
                     for (var mi = 0; Helpers.isLessThan(mi, eventMarketsLength); mi++)
                     {
-                        ((List<Object>)queryMarkets).add(Helpers.GetValue(eventMarkets, mi));
+                        ((List<Object>)queryMarkets).add((eventMarkets == null || mi < 0 || mi >= ((List<?>)eventMarkets).size() ? null : ((List<?>)eventMarkets).get(mi)));
                     }
                 }
                 return queryMarkets;
@@ -241,13 +241,13 @@ public class Binance extends BinanceApi
             Object rawTopicsLength = ((List<?>)rawTopics).size();
             for (var i = 0; Helpers.isLessThan(i, rawTopicsLength); i++)
             {
-                Object parsedEvent = this.parseEvent((Map<String, Object>) (Helpers.GetValue(rawTopics, i)));
+                Object parsedEvent = this.parseEvent((Map<String, Object>) ((rawTopics == null || i < 0 || i >= ((List<?>)rawTopics).size() ? null : ((List<?>)rawTopics).get(i))));
                 ((List<Object>)parsedEvents).add(parsedEvent);
                 Object eventMarkets = (List<Object>)(this.safeList(parsedEvent, "markets", new ArrayList<Object>(Arrays.asList())));
                 Object eventMarketsLength = ((List<?>)eventMarkets).size();
                 for (var mi = 0; Helpers.isLessThan(mi, eventMarketsLength); mi++)
                 {
-                    ((List<Object>)flatMarkets).add(Helpers.GetValue(eventMarkets, mi));
+                    ((List<Object>)flatMarkets).add((eventMarkets == null || mi < 0 || mi >= ((List<?>)eventMarkets).size() ? null : ((List<?>)eventMarkets).get(mi)));
                 }
             }
             this.setEvents(parsedEvents);
@@ -339,7 +339,7 @@ public class Binance extends BinanceApi
                 Object pageTopicsLength = ((List<?>)pageTopics).size();
                 for (var i = 0; Helpers.isLessThan(i, pageTopicsLength); i++)
                 {
-                    ((List<Object>)collected).add(Helpers.GetValue(pageTopics, i));
+                    ((List<Object>)collected).add((pageTopics == null || i < 0 || i >= ((List<?>)pageTopics).size() ? null : ((List<?>)pageTopics).get(i)));
                 }
                 Boolean hasMore = (Boolean) this.safeBool(response, "hasMore", false);
                 if ((!java.util.Objects.equals(hasMore, true)) || (Helpers.isLessThan(pageTopicsLength, reqLimit)))
@@ -393,7 +393,7 @@ public class Binance extends BinanceApi
             Object rawTopicsLength = ((List<?>)rawTopics).size();
             for (var i = 0; Helpers.isLessThan(i, rawTopicsLength); i++)
             {
-                Object rawTopic = Helpers.GetValue(rawTopics, i);
+                Object rawTopic = (rawTopics == null || i < 0 || i >= ((List<?>)rawTopics).size() ? null : ((List<?>)rawTopics).get(i));
                 Object rawMarkets = (List<Object>)(this.safeList(rawTopic, "markets", new ArrayList<Object>(Arrays.asList())));
                 Object rawMarketsLength = ((List<?>)rawMarkets).size();
                 Boolean hasOutcomes = false;
@@ -459,7 +459,7 @@ public class Binance extends BinanceApi
             List<Object> allQueries = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)queries).size(); i++)
             {
-                ((List<Object>)allQueries).add(Helpers.GetValue(queries, i));
+                ((List<Object>)allQueries).add((queries == null || i < 0 || i >= ((List<?>)queries).size() ? null : ((List<?>)queries).get(i)));
             }
             for (var i = 0; Helpers.isLessThan(i, tagsLength); i++)
             {
@@ -527,13 +527,13 @@ public class Binance extends BinanceApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, rawTopicsLength); i++)
             {
-                Object parsedEvent = this.parseEvent((Map<String, Object>) (Helpers.GetValue(rawTopics, i)));
+                Object parsedEvent = this.parseEvent((Map<String, Object>) ((rawTopics == null || i < 0 || i >= ((List<?>)rawTopics).size() ? null : ((List<?>)rawTopics).get(i))));
                 ((List<Object>)result).add(parsedEvent);
                 Object parsedMarkets = (List<Object>)(this.safeList(parsedEvent, "markets", new ArrayList<Object>(Arrays.asList())));
                 Object parsedMarketsLength = ((List<?>)parsedMarkets).size();
                 for (var mi = 0; Helpers.isLessThan(mi, parsedMarketsLength); mi++)
                 {
-                    Object m = Helpers.GetValue(parsedMarkets, mi);
+                    Object m = (parsedMarkets == null || mi < 0 || mi >= ((List<?>)parsedMarkets).size() ? null : ((List<?>)parsedMarkets).get(mi));
                     // prediction market rows are keyed by the unified 'market' handle
                     String handle = this.safeString(m, "market");
                     if (!java.util.Objects.equals(handle, null))
@@ -602,7 +602,7 @@ public class Binance extends BinanceApi
                 Object responseLength = ((List<?>)response).size();
                 for (var i = 0; Helpers.isLessThan(i, responseLength); i++)
                 {
-                    Object rawTopic = Helpers.GetValue(response, i);
+                    Object rawTopic = (response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i));
                     String topicId = this.safeString(rawTopic, "marketTopicId");
                     if (!java.util.Objects.equals(topicId, null))
                     {
@@ -693,7 +693,7 @@ public class Binance extends BinanceApi
         Object rawMarketsLength = ((List<?>)rawMarkets).size();
         for (var i = 0; Helpers.isLessThan(i, rawMarketsLength); i++)
         {
-            Object parsed = this.parseTopicMarket((Map<String, Object>) (Helpers.GetValue(rawMarkets, i)), (Map<String, Object>) (rawTopic));
+            Object parsed = this.parseTopicMarket((Map<String, Object>) ((rawMarkets == null || i < 0 || i >= ((List<?>)rawMarkets).size() ? null : ((List<?>)rawMarkets).get(i))), (Map<String, Object>) (rawTopic));
             ((List<Object>)marketsList).add(parsed);
             if (Boolean.TRUE.equals(this.safeBool(parsed, "active", false)))
             {
@@ -802,7 +802,7 @@ public class Binance extends BinanceApi
         Object rawOutcomesLength = ((List<?>)rawOutcomes).size();
         for (var oi = 0; Helpers.isLessThan(oi, rawOutcomesLength); oi++)
         {
-            Object rawOutcome = Helpers.GetValue(rawOutcomes, oi);
+            Object rawOutcome = (rawOutcomes == null || oi < 0 || oi >= ((List<?>)rawOutcomes).size() ? null : ((List<?>)rawOutcomes).get(oi));
             String label = this.safeStringUpper(rawOutcome, "name");
             String tokenId = this.safeString(rawOutcome, "tokenId");
             Object outcomeHandle = ((marketSymbol + ":") + label);
@@ -1050,7 +1050,7 @@ final Object finalMarketSymbol = marketSymbol;
             Object outcomesLength = ((List<?>)outcomes).size();
             for (var i = 0; Helpers.isLessThan(i, outcomesLength); i++)
             {
-                Object outcomeObj = this.outcome(Helpers.GetValue(outcomes, i));
+                Object outcomeObj = this.outcome((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i)));
                 Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
                 String marketId = this.safeString(info, "marketId");
                 if (java.util.Objects.equals(marketId, null))
@@ -1068,7 +1068,7 @@ final Object finalMarketSymbol = marketSymbol;
                     ((Map<String, Object>)responsesByMarketId).put((String)marketId, response);
                 }
                 Object ticker = this.parsePredictionTicker(response, ((Object)outcomeObj));
-                String symbolKey = this.safeString(ticker, "outcome", Helpers.GetValue(outcomes, i));
+                String symbolKey = this.safeString(ticker, "outcome", (outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i)));
                 ((Map<String, Object>)result).put((String)symbolKey, ticker);
             }
             return result;
@@ -1508,7 +1508,7 @@ final Object finalMarketSymbol = marketSymbol;
             {
                 for (var i = 0; i < ((List<?>)outcomes).size(); i++)
                 {
-                    Object requested = Helpers.GetValue(outcomes, i);
+                    Object requested = (outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i));
                     Object requestedOutcomeObj = this.safeOutcome(requested);
                     String requestedOutcome = this.safeString(requestedOutcomeObj, "outcome", requested);
                     ((Map<String, Object>)requestedOutcomeSymbols).put((String)requestedOutcome, true);
@@ -1578,7 +1578,7 @@ final Object finalMarketSymbol = marketSymbol;
             Object positionsLength = ((List<?>)positions).size();
             for (var i = 0; Helpers.isLessThan(i, positionsLength); i++)
             {
-                Object position = Helpers.GetValue(positions, i);
+                Object position = (positions == null || i < 0 || i >= ((List<?>)positions).size() ? null : ((List<?>)positions).get(i));
                 String positionOutcome = this.safeString(position, "outcome");
                 if ((!java.util.Objects.equals(positionOutcome, null)) && (requestedOutcomeSymbols.containsKey(positionOutcome)))
                 {
@@ -2249,7 +2249,7 @@ final Object finalMarketSymbol = marketSymbol;
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
                 String key = (("cancelInfoList[" + this.numberToString(i)) + "].orderId");
-                ((Map<String, Object>)request).put((String)key, Helpers.GetValue(ids, i));
+                ((Map<String, Object>)request).put((String)key, (ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i)));
             }
             Object response = (this.sapiPrivatePostTradeBatchCancel(this.extend(request, parameters))).join();
             //
