@@ -99,7 +99,7 @@ class bingx extends Exchange {
                 'fetchPositionHistory' => true,
                 'fetchPositionMode' => true,
                 'fetchPositions' => true,
-                'fetchPositionsHistory' => true,
+                'fetchPositionsHistory' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
