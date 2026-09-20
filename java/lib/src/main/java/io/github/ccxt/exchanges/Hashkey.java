@@ -5157,10 +5157,10 @@ final Object finalI = i;
         }
         if ((!Helpers.isEqual(code, 200)) || Boolean.TRUE.equals(errorInArray))
         {
-            Object feedback = Helpers.add((this.id + " "), body);
+            String feedback = ((this.id + " ") + body);
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), responseCodeString, feedback);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), responseCodeString, feedback);
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         }
         return null;
     }

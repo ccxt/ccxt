@@ -4412,7 +4412,7 @@ public class Pacifica extends PacificaApi
         String host = (String) this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, urlKey), api));
         String url = ((((host + "/api/") + this.version) + "/") + this.implodeParams(path, parameters));
         parameters = this.omit(parameters, this.extractParams(path));
-        Object paramsLen = ((List<?>)Helpers.objectKeys(parameters)).size();
+        Object paramsLen = ((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size();
         headers = new HashMap<String, Object>() {{
             put( "Content-Type", "application/json" );
         }};

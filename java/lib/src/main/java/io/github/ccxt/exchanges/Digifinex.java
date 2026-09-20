@@ -5605,10 +5605,10 @@ final Object finalI = i;
         {
             return null;  // no error
         }
-        Object feedback = Helpers.add((this.id + " "), responseBody);
+        String feedback = ((this.id + " ") + responseBody);
         if (java.util.Objects.equals(code, null))
         {
-            throw new BadResponse((String)feedback) ;
+            throw new BadResponse(feedback) ;
         }
         List<Object> unknownError = new ArrayList<Object>(Arrays.asList(ExchangeError.class, feedback));
         var ExceptionClassmessageVariable = this.safeValue(((Map<String, Object>)this.exceptions).get("exact"), code, unknownError);

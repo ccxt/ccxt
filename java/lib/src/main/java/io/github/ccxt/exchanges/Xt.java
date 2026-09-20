@@ -2935,7 +2935,7 @@ public class Xt extends XtApi
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString2(trade, "s", "symbol");
         Object marketType = (((!java.util.Objects.equals(market, null)))) ? ((Map<String, Object>)market).get("type") : null;
-        Boolean hasSpotKeys = (Helpers.inOp(trade, "b")) || (Helpers.inOp(trade, "bizType")) || (Helpers.inOp(trade, "oi"));
+        Boolean hasSpotKeys = (((Map<?, ?>)trade).containsKey("b")) || (((Map<?, ?>)trade).containsKey("bizType")) || (((Map<?, ?>)trade).containsKey("oi"));
         if (java.util.Objects.equals(marketType, null))
         {
             marketType = ((Boolean.TRUE.equals(hasSpotKeys))) ? "spot" : "contract";
@@ -7146,7 +7146,7 @@ final Object finalMarket = market;
         String status = this.safeStringUpper2(response, "msgInfo", "mc");
         if (!java.util.Objects.equals(status, null) && !java.util.Objects.equals(status, "SUCCESS"))
         {
-            Object feedback = Helpers.add((this.id + " "), body);
+            String feedback = ((this.id + " ") + body);
             Map<String, Object> error = (Map<String, Object>) this.safeDict(response, "error", new HashMap<String, Object>() {{}});
             String spotErrorCode = this.safeString(response, "mc");
             String errorCode = this.safeString(error, "code", spotErrorCode);
@@ -7154,7 +7154,7 @@ final Object finalMarket = market;
             String message = this.safeString(error, "msg", spotMessage);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         }
         return null;
     }

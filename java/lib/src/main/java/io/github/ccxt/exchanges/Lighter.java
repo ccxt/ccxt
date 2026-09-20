@@ -4325,7 +4325,7 @@ public class Lighter extends LighterApi
                 put( "Authorization", Lighter.this.createAuth(parameters) );
             }};
         }
-        if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
+        if (((List<?>)Helpers.objectKeys(parameters)).size() > 0)
         {
             if (java.util.Objects.equals(method, "POST"))
             {

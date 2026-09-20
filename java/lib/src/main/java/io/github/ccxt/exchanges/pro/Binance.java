@@ -1864,9 +1864,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         {
             if (java.util.Objects.equals(side, null))
             {
-                side = (((java.util.Objects.equals(trade.get("m"), true)))) ? "sell" : "buy"; // this is reversed intentionally
+                side = (((java.util.Objects.equals(((Map<String, Object>)trade).get("m"), true)))) ? "sell" : "buy"; // this is reversed intentionally
             }
-            takerOrMaker = (((java.util.Objects.equals(trade.get("m"), true)))) ? "maker" : "taker";
+            takerOrMaker = (((java.util.Objects.equals(((Map<String, Object>)trade).get("m"), true)))) ? "maker" : "taker";
         }
         Object fee = null;
         String feeCost = this.safeString(trade, "n");

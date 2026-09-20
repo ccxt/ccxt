@@ -3757,7 +3757,7 @@ public class Nado extends NadoApi
         headers = new HashMap<String, Object>() {{}};
         if ((java.util.Objects.equals(endpoint, "gateway")) || (java.util.Objects.equals(endpoint, "archive")))
         {
-            Helpers.addElementToObject(headers, "Accept-Encoding", "gzip, br, deflate");
+            ((Map<String, Object>)headers).put("Accept-Encoding", "gzip, br, deflate");
         }
         if (java.util.Objects.equals(method, "GET"))
         {
@@ -3767,7 +3767,7 @@ public class Nado extends NadoApi
             }
         } else
         {
-            Helpers.addElementToObject(headers, "Content-Type", "application/json");
+            ((Map<String, Object>)headers).put("Content-Type", "application/json");
             body = this.json(query);
         }
         final Object finalUrl = url;

@@ -3867,10 +3867,10 @@ public class Bitfinex extends BitfinexApi
             if (!(response instanceof List))
             {
                 String message = this.safeString2(response, "message", "error");
-                Object feedback = Helpers.add((this.id + " "), body);
+                String feedback = ((this.id + " ") + body);
                 this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), message, feedback);
                 this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
-                throw new ExchangeError(Helpers.add((this.id + " "), body)) ;
+                throw new ExchangeError(((this.id + " ") + body)) ;
             }
         } else if (java.util.Objects.equals(response, ""))
         {
@@ -3878,7 +3878,7 @@ public class Bitfinex extends BitfinexApi
         }
         if (Helpers.isEqual(statusCode, 429))
         {
-            throw new RateLimitExceeded(Helpers.add((this.id + " "), body)) ;
+            throw new RateLimitExceeded(((this.id + " ") + body)) ;
         }
         if (Helpers.isEqual(statusCode, 500))
         {

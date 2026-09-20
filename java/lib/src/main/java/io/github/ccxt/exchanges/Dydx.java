@@ -3109,7 +3109,7 @@ public class Dydx extends DydxApi
         url = Helpers.add(url, ("/" + pathWithParams));
         if (java.util.Objects.equals(method, "GET"))
         {
-            if (((List<?>)Helpers.objectKeys(parameters)).size() > 0)
+            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
             {
                 url = Helpers.add(url, ("?" + this.urlencode(parameters)));
             }

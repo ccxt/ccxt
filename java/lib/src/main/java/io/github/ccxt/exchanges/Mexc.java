@@ -7417,7 +7417,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             parameters = this.omit(parameters, this.extractParams(path));
             if (java.util.Objects.equals(access, "public"))
             {
-                if (((List<?>)Helpers.objectKeys(parameters)).size() > 0)
+                if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
                 {
                     url = (url + ("?" + this.urlencode(parameters)));
                 }
@@ -7439,7 +7439,7 @@ final Object finalRiskIncrVol = riskIncrVol;
                 } else
                 {
                     parameters = this.keysort(parameters);
-                    if (((List<?>)Helpers.objectKeys(parameters)).size() > 0)
+                    if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
                     {
                         auth = Helpers.add(auth, this.urlencode(parameters));
                         url = (url + ("?" + auth));
