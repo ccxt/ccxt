@@ -1712,7 +1712,7 @@ export default class bybit extends Exchange {
         return amountString;
     }
 
-    getPrice (symbol: Str, price: Str) {
+    getPrice (symbol: Str, price: any) {
         if (price === undefined) {
             return price;
         }

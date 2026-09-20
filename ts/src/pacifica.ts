@@ -1996,7 +1996,7 @@ export default class pacifica extends Exchange {
         return this.safeOrder ({ 'id': id, 'status': status, 'info': response, 'symbol': symbol });
     }
 
-    cancelOrderRequest (id: Str, symbol: Str = undefined, params: Dict = {}): Dict {
+    cancelOrderRequest (id: any, symbol: Str = undefined, params: Dict = {}): Dict {
         const market = this.market (symbol);
         const isStopOrder = this.safeBool2 (params, 'trigger', 'stop', false);
         let operationType: Str = undefined;
