@@ -399,6 +399,40 @@ declare class OrderRouter {
      * @param {object[]} entries the entries to render
      * @returns {string} the balances query value
      */
+    /**
+     * @method
+     * @name OrderRouter#looksLikeOptions
+     * @ignore
+     * @description tells execute's optional venues argument from its options argument by shape: a venues map holds exchange instances, which are objects carrying a createOrder
+     * @param {object} candidate the second argument as given
+     * @returns {bool} true when it should be read as options
+     */
+    looksLikeOptions(candidate: Dict): boolean;
+    /**
+     * @method
+     * @name OrderRouter#assertNoPlanShapingOptions
+     * @ignore
+     * @description refuses slippageBps and reconcileToleranceRatio when they arrive alongside an already-built plan, where they cannot be honoured
+     * @param {object} options the execution options
+     * @returns {undefined}
+     */
+    assertNoPlanShapingOptions(options: Dict): undefined;
+    /**
+     * @method
+     * @name OrderRouter#marketsOf
+     * @description loads each venue's markets and keys them by exchange id, which is the shape checkExecutionPlanSafety wants. execute does this for you; this is for calling the check yourself
+     * @param {object} venues a dictionary of exchangeId to a ccxt exchange instance
+     * @returns {object} exchangeId to that venue's markets
+     */
+    marketsOf(venues: Dict): Promise<Dict>;
+    /**
+     * @method
+     * @name OrderRouter#renderBalances
+     * @description turns whatever a caller wrote for `balances` into the router's wire form. Accepts the rendered string itself, a list of entries, a per-venue wallet ({ mexc: { USDT: 100 } }) and a flat single-venue wallet ({ USDT: 100 })
+     * @param {object|string} value the holdings, in any accepted shape
+     * @returns {string} the `[exchangeId.]ASSET:amount` string the service reads
+     */
+    renderBalances(value: any): string;
     joinBalances(entries: any[]): string;
     /**
      * @ignore

@@ -694,6 +694,65 @@ def two_hop_route():
     }
 
 
+@test('balances accept the shape a caller actually writes, and refuse what cannot be rendered')
+def test_balances_shapes():
+    # {'mexc': {'USDT': 100}} is the obvious thing to write - it is what a ccxt balance looks
+    # like - and it used to stringify and travel to the server, which rejected it with a
+    # message naming neither the shape sent nor the shape wanted.
+    nested = router.route_query('USDT', 'BTC', {'balances': {'mexc': {'USDT': 100, 'BTC': 0.5}}})
+    assert 'mexc.BTC%3A0.5' in nested, nested
+    assert 'mexc.USDT%3A100' in nested, nested
+    flat = router.route_query('USDT', 'BTC', {'balances': {'USDT': 100}})
+    assert 'USDT%3A100' in flat, flat
+    already = router.route_query('USDT', 'BTC', {'balances': 'mexc.USDT:100'})
+    assert 'mexc.USDT%3A100' in already, already
+    # the body renders balances FIRST, before the number shortcut every other param takes
+    body = router.route_body('USDT', 'BTC', {'balances': {'mexc': {'USDT': 100}}, 'amountIn': 20})
+    assert body['balances'] == 'mexc.USDT:100', body
+    assert body['amountIn'] == 20, 'numbers still travel as numbers'
+    assert_raises(BadRequest, lambda: router.route_body('USDT', 'BTC', {'balances': 12345}), 'a number is not a wallet')
+    # and no route param is silently stringified any more
+    assert_raises(BadRequest, lambda: router.route_query('USDT', 'BTC', {'bridges': {'nope': True}}), 'an unrenderable param is refused')
+
+
+@test('execute takes options as its second argument, with no placeholder for venues')
+def test_execute_two_arg():
+    venue = StubVenue('stub')
+    held = OrderRouter({'venues': {'stub': venue}})
+    route = one_leg_route('buy', 'BTC', 'USDT', 0.2, 100)
+    short = held.execute(route, {'usdRates': {'USDT': 1}, 'idempotencyKey': 'two-arg'})
+    assert short['steps'][0]['status'] == 'filled'
+    assert short['dryRun'] is False
+    other = StubVenue('stub')
+    long = held.execute(route, {'stub': other}, {'usdRates': {'USDT': 1}, 'idempotencyKey': 'three-arg'})
+    assert long['steps'][0]['status'] == 'filled'
+    assert len(other.calls) > 0, 'the venues argument won'
+
+
+@test('plan-shaping options passed with an already-built plan are refused, not ignored')
+def test_plan_shaping_refused():
+    plan = router.build_execution_plan(one_leg_route('buy', 'BTC', 'USDT', 0.2, 100), {})
+    assert_raises(BadRequest, lambda: router.execute(plan, {'stub': StubVenue('stub')}, {'slippageBps': 1000, 'usdRates': {'USDT': 1}}), 'shaping a built plan is refused')
+
+
+@test('a cap with no way to value the trade says which half is missing')
+def test_cap_names_missing_half():
+    plan = router.build_execution_plan(one_leg_route('buy', 'BTC', 'USDT', 0.2, 100), {})
+    try:
+        router.execute(plan, {'stub': StubVenue('stub')}, {'maxNotionalUsd': 25})
+        raise AssertionError('should have refused')
+    except Exception as e:
+        assert 'usdRates' in str(e), 'it names the missing half: ' + str(e)
+
+
+@test('marketsOf builds the dict check_execution_plan_safety wants')
+def test_markets_of():
+    venue = StubVenue('stub')
+    markets = router.markets_of({'stub': venue})
+    assert 'stub' in markets
+    assert 'BTC/USDT' in markets['stub']
+
+
 @test('execute places orders: calling it is the instruction, not a flag beside it')
 def test_execute_places_by_default():
     # `execute` is an imperative verb and ccxt's own create_order needs no permission flag

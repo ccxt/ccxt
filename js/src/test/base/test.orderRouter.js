@@ -612,6 +612,116 @@ function twoHopRoute() {
         ],
     };
 }
+test('balances accept the shape a caller actually writes, and refuse what cannot be rendered', () => {
+    //  `{ mexc: { USDT: 100 } }` is the obvious thing to write — it is what a ccxt balance
+    //  looks like — and it used to stringify to the literal "[object Object]" and travel to
+    //  the server, which rejected it with a message naming neither the shape sent nor the
+    //  shape wanted. Silently sending a value you cannot render is the failure this class
+    //  refuses everywhere else.
+    const nested = router.routeQuery('USDT', 'BTC', { 'balances': { 'mexc': { 'USDT': 100, 'BTC': 0.5 } } });
+    assert.ok(nested.indexOf('object%20Object') < 0, 'never ships [object Object]: ' + nested);
+    assert.ok(nested.indexOf(encodeURIComponent('mexc.BTC:0.5')) >= 0, nested);
+    assert.ok(nested.indexOf(encodeURIComponent('mexc.USDT:100')) >= 0, nested);
+    //  a flat wallet, with no venue, is the single-venue spelling the router also accepts
+    const flat = router.routeQuery('USDT', 'BTC', { 'balances': { 'USDT': 100 } });
+    assert.ok(flat.indexOf(encodeURIComponent('USDT:100')) >= 0, flat);
+    //  the rendered string still passes through untouched
+    const already = router.routeQuery('USDT', 'BTC', { 'balances': 'mexc.USDT:100' });
+    assert.ok(already.indexOf(encodeURIComponent('mexc.USDT:100')) >= 0, already);
+    //  the POST body renders balances FIRST, before the number/boolean shortcut every other
+    //  param takes: a numeric balances is not a wallet, and letting it through as a JSON
+    //  number sent it to the server to be refused there — the round trip this exists to stop
+    assert.throws(() => {
+        router.routeBody('USDT', 'BTC', { 'balances': 12345 });
+    }, /ASSET:amount/);
+    const body = router.routeBody('USDT', 'BTC', { 'balances': { 'mexc': { 'USDT': 100 } }, 'amountIn': 20 });
+    assert.strictEqual(body['balances'], 'mexc.USDT:100', 'rendered in the body too, not only the query');
+    assert.strictEqual(body['amountIn'], 20, 'and numbers still travel as numbers');
+    //  and a value that is neither is refused HERE, naming both shapes, rather than at the far end
+    assert.throws(() => {
+        router.routeQuery('USDT', 'BTC', { 'balances': 12345 });
+    }, (e) => {
+        assert.strictEqual(e.constructor.name, 'BadRequest');
+        assert.ok(e.message.indexOf('ASSET:amount') >= 0, e.message);
+        return true;
+    });
+});
+test('a route param that cannot be rendered is refused rather than stringified', () => {
+    //  the same hole, one level up: every route param went through toString(), so ANY object
+    //  became "[object Object]" on the wire. Only balances has a meaningful object form.
+    assert.throws(() => {
+        router.routeQuery('USDT', 'BTC', { 'bridges': { 'nope': true } });
+    }, /BadRequest|cannot be rendered/);
+    //  arrays and scalars are unaffected
+    const ok = router.routeQuery('USDT', 'BTC', { 'bridges': ['USDT', 'BTC'], 'maxVenues': 3, 'certified': true });
+    assert.ok(ok.indexOf(encodeURIComponent('USDT,BTC')) >= 0, ok);
+    assert.ok(ok.indexOf('maxVenues=3') >= 0, ok);
+    assert.ok(ok.indexOf('certified=true') >= 0, ok);
+});
+test('execute takes options as its second argument, with no placeholder for venues', async () => {
+    //  venues default to the router's, so the three-arg form made the common call pass a
+    //  placeholder — `undefined as any` in TypeScript, which is a signature telling you it is
+    //  wrong. Both forms work: a second argument holding exchange instances is venues,
+    //  anything else is options.
+    const venue = new StubVenue('stub');
+    const held = new OrderRouter({ 'venues': { 'stub': venue } });
+    const route = oneLegRoute('buy', 'BTC', 'USDT', 0.2, 100);
+    const short = await held.execute(route, { 'usdRates': { 'USDT': 1 }, 'idempotencyKey': 'two-arg' });
+    assert.strictEqual(short['steps'][0]['status'], 'filled');
+    assert.strictEqual(short['dryRun'], false);
+    //  and the explicit three-arg form still routes to the venues given
+    const other = new StubVenue('stub');
+    const long = await held.execute(route, { 'stub': other }, { 'usdRates': { 'USDT': 1 }, 'idempotencyKey': 'three-arg' });
+    assert.strictEqual(long['steps'][0]['status'], 'filled');
+    assert.ok(other.calls.length > 0, 'the venues argument won');
+});
+test('marketsOf builds the dict checkExecutionPlanSafety wants, so callers stop hand-rolling it', async () => {
+    //  execute assembles this itself; anyone calling the safety check directly was looping
+    //  venues, awaiting loadMarkets and keying by id — the exact boilerplate the example used
+    //  to carry.
+    const venue = new StubVenue('stub');
+    const markets = await router.marketsOf({ 'stub': venue });
+    assert.ok('stub' in markets, 'keyed by exchange id');
+    assert.ok('BTC/USDT' in markets['stub'], 'and holds that venue markets');
+    //  a venue whose markets are already loaded is not reloaded
+    assert.strictEqual(venue.calls.indexOf('loadMarkets'), -1, 'loaded markets are reused');
+    //  one whose markets are empty IS loaded
+    const cold = new StubVenue('stub');
+    cold.markets = {};
+    await router.marketsOf({ 'stub': cold });
+    assert.ok(cold.calls.indexOf('loadMarkets') >= 0, 'empty markets are loaded');
+    const plan = router.buildExecutionPlan(oneLegRoute('buy', 'BTC', 'USDT', 0.2, 100), {});
+    const violations = router.checkExecutionPlanSafety(plan, markets, {});
+    assert.ok(Array.isArray(violations), 'and feeds straight into the safety check');
+});
+test('plan-shaping options passed with an already-built plan are refused, not ignored', async () => {
+    //  slippageBps and reconcileToleranceRatio shape a plan. Passing them WITH a plan cannot
+    //  do anything — the limit prices are already baked in — and silently ignoring them means
+    //  trading at a different limit than the caller asked for.
+    const plan = router.buildExecutionPlan(oneLegRoute('buy', 'BTC', 'USDT', 0.2, 100), {});
+    await assert.rejects(async () => {
+        await router.execute(plan, { 'stub': new StubVenue('stub') }, { 'slippageBps': 1000, 'usdRates': { 'USDT': 1 } });
+    }, (e) => {
+        assert.strictEqual(e.constructor.name, 'BadRequest');
+        assert.ok(e.message.indexOf('slippageBps') >= 0, e.message);
+        return true;
+    });
+    //  with a ROUTE they are exactly how you shape the plan, so they are accepted
+    const route = oneLegRoute('buy', 'BTC', 'USDT', 0.2, 100);
+    const shaped = await router.execute(route, { 'stub': new StubVenue('stub') }, { 'slippageBps': 1000, 'usdRates': { 'USDT': 1 }, 'idempotencyKey': 'shaping-ok' });
+    assert.strictEqual(shaped['slippageBps'], 1000);
+});
+test('a cap with no way to value the trade says which half is missing', async () => {
+    //  maxNotionalUsd and usdRates are one guardrail in two parts. It fails CLOSED, which is
+    //  right, but the refusal used to describe the symptom rather than the cause.
+    const plan = router.buildExecutionPlan(oneLegRoute('buy', 'BTC', 'USDT', 0.2, 100), {});
+    await assert.rejects(async () => {
+        await router.execute(plan, { 'stub': new StubVenue('stub') }, { 'maxNotionalUsd': 25 });
+    }, (e) => {
+        assert.ok(e.message.indexOf('usdRates') >= 0, 'it names the missing half: ' + e.message);
+        return true;
+    });
+});
 test('venues alone filter but never read a wallet: balance tracking is a mode you ask for', async () => {
     //  TWO decisions, and they were riding on one config key. Handing the router your venues
     //  says where you can trade — a filter that costs nothing and cannot go stale. It does NOT

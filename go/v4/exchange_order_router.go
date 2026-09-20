@@ -946,7 +946,14 @@ func (this *OrderRouter) RouteQuery(fromAsset string, toAsset string, params map
 		if !present || value == nil {
 			continue
 		}
-		text, err := this.routerQueryValue(value)
+		// balances is the one key with a meaningful map form
+		var text string
+		var err error
+		if key == "balances" {
+			text, err = this.RenderBalances(value)
+		} else {
+			text, err = this.routerQueryValue(value)
+		}
 		if err != nil {
 			return "", err
 		}
@@ -971,6 +978,17 @@ func (this *OrderRouter) RouteBody(fromAsset string, toAsset string, params map[
 		// service's own schema types amountIn as a number. Everything else uses
 		// the same text form the query string uses, so one handler reads both
 		// verbs.
+		// FIRST, before the number/boolean shortcut below: a numeric balances is not a
+		// wallet, and letting it through as a JSON number sent it to the server to be
+		// refused there.
+		if key == "balances" {
+			rendered, renderErr := this.RenderBalances(value)
+			if renderErr != nil {
+				return nil, renderErr
+			}
+			body[key] = rendered
+			continue
+		}
 		switch value.(type) {
 		case bool:
 			body[key] = value
@@ -1046,7 +1064,11 @@ func (this *OrderRouter) routerQueryValue(value any) (string, error) {
 	if !math.IsNaN(number) {
 		return this.FormatNumber(number)
 	}
-	return ToString(value), nil
+	// REFUSED rather than stringified. This used to end in ToString(value), which renders a
+	// map as Go's own debug form and ships it: the server then rejects a value naming neither
+	// what was sent nor what was wanted. `balances` is the one param with a meaningful map
+	// form and it is rendered before it reaches here.
+	return "", BadRequest(fmt.Sprintf("OrderRouter: a route parameter must be a string, number, boolean or list; got %T", value))
 }
 
 // Request performs the authenticated call and maps router status codes onto CCXT
@@ -1379,6 +1401,82 @@ func (this *OrderRouter) FetchRouteWithBalances(fromAsset string, toAsset string
 
 // joinBalances renders balance entries as the router's [exchangeId.]ASSET:amount
 // comma-separated form.
+// RenderBalances turns whatever a caller wrote for `balances` into the router's
+// wire form: the rendered string itself, a list of entries, a per-venue wallet
+// (map[string]any{"mexc": map[string]any{"USDT": 100}}) or a flat single-venue
+// wallet (map[string]any{"USDT": 100}).
+func (this *OrderRouter) RenderBalances(value any) (string, error) {
+	if text, ok := value.(string); ok {
+		return text, nil
+	}
+	wallet, ok := value.(map[string]any)
+	if !ok {
+		switch value.(type) {
+		case []any, []string:
+			return this.routerQueryValue(value)
+		}
+		return "", BadRequest("OrderRouter: balances must be \"[exchangeId.]ASSET:amount\" entries, or a wallet like map[string]any{\"mexc\": map[string]any{\"USDT\": 100}} or map[string]any{\"USDT\": 100}")
+	}
+	// Two shapes, told apart by what the values are: a per-venue wallet nests one
+	// level, a flat wallet does not. Zero holdings are dropped.
+	outerKeys := make([]string, 0, len(wallet))
+	for id := range wallet {
+		outerKeys = append(outerKeys, id)
+	}
+	sort.Strings(outerKeys)
+	entries := make([]map[string]any, 0)
+	for i := 0; i < len(outerKeys); i++ {
+		outer := outerKeys[i]
+		if inner, nested := wallet[outer].(map[string]any); nested {
+			codes := make([]string, 0, len(inner))
+			for code := range inner {
+				codes = append(codes, code)
+			}
+			sort.Strings(codes)
+			for j := 0; j < len(codes); j++ {
+				amount := routerNumberAt(inner, codes[j], 0)
+				if amount > 0 {
+					entries = append(entries, map[string]any{"exchangeId": outer, "asset": codes[j], "amount": amount})
+				}
+			}
+			continue
+		}
+		amount := routerNumberAt(wallet, outer, 0)
+		if amount > 0 {
+			// no venue: a bare ASSET:amount means "wherever you hold it"
+			entries = append(entries, map[string]any{"exchangeId": "", "asset": outer, "amount": amount})
+		}
+	}
+	return this.joinBalances(entries)
+}
+
+// MarketsOf loads each venue's markets and keys them by exchange id, which is the
+// shape CheckExecutionPlanSafety wants. Execute does this for you.
+func (this *OrderRouter) MarketsOf(venues map[string]IExchange) (map[string]any, error) {
+	markets := map[string]any{}
+	ids := routerSortedVenueIds(venues)
+	for i := 0; i < len(ids); i++ {
+		venue := venues[ids[i]]
+		loaded, err := venue.LoadMarkets()
+		if err != nil {
+			return nil, err
+		}
+		markets[ids[i]] = loaded
+	}
+	return markets, nil
+}
+
+// assertNoPlanShapingOptions refuses plan-shaping options alongside a built plan.
+func (this *OrderRouter) assertNoPlanShapingOptions(options map[string]any) error {
+	shaping := []string{"slippageBps", "reconcileToleranceRatio"}
+	for i := 0; i < len(shaping); i++ {
+		if value, present := options[shaping[i]]; present && value != nil {
+			return BadRequest("OrderRouter: " + shaping[i] + " shapes a plan and this plan is already built, so it cannot be applied - pass it to BuildExecutionPlan, or hand Execute the route instead of the plan")
+		}
+	}
+	return nil
+}
+
 func (this *OrderRouter) joinBalances(entries []map[string]any) (string, error) {
 	var builder strings.Builder
 	for i := 0; i < len(entries); i++ {
@@ -2157,6 +2255,13 @@ func (this *OrderRouter) RecordExecutedPlan(planId string) {
 }
 
 func (this *OrderRouter) Execute(plan map[string]any, venues map[string]IExchange, options map[string]any) (map[string]any, error) {
+	// plan-shaping options cannot be honoured once the plan exists - the limit prices are
+	// already in it - so passing them WITH a plan is refused rather than ignored.
+	if len(routerListAt(plan, "steps")) > 0 {
+		if shapingErr := this.assertNoPlanShapingOptions(options); shapingErr != nil {
+			return nil, shapingErr
+		}
+	}
 	// A ROUTE is accepted here as well as a plan. buildExecutionPlan is pure and derives
 	// entirely from the route, so requiring the caller to run it first was ceremony: two
 	// calls that can only ever happen in that order, with nothing to do in between unless
@@ -2296,7 +2401,12 @@ func (this *OrderRouter) Execute(plan map[string]any, venues map[string]IExchang
 	if blockers != "" {
 		// returned as an error, not reported. A refusal a caller can forget to
 		// read is not a refusal.
-		return nil, ExchangeError("OrderRouter: refusing to execute, blocking safety violations: " + blockers)
+		// notional_unvaluable gets its CAUSE named rather than its symptom
+		hint := ""
+		if strings.Contains(blockers, "notional_unvaluable") && len(usdRates) == 0 {
+			hint = " - maxNotionalUsd is set but options usdRates is empty, and the cap cannot be evaluated without a USD price for the quote currency"
+		}
+		return nil, ExchangeError("OrderRouter: refusing to execute, blocking safety violations: " + blockers + hint)
 	}
 	if strategy == "atomic_ish" {
 		if err := this.assertPrefunded(steps, venues); err != nil {

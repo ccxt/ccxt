@@ -794,11 +794,23 @@ class OrderRouter {
             return $this->formatNumber($value);
         }
         if (is_array($value)) {
+            //  A LIST joins; an associative array does not. PHP makes no distinction between
+            //  the two, so implode() on a wallet like array('mexc' => array('USDT' => 100))
+            //  used to yield the literal "Array" and ship it. Only `balances` has a meaningful
+            //  associative form and it is rendered before it reaches here.
+            if (array_keys($value) !== range(0, count($value) - 1)) {
+                throw new BadRequest('OrderRouter: a route parameter must be a string, number, boolean or list; got an associative array');
+            }
             //  bridges, exchanges and balances are all comma-separated on the wire, in
             //  both verbs: the body is read by the same handler as the query string
             return implode(',', $value);
         }
-        return strval($value);
+        if (is_string($value)) {
+            return $value;
+        }
+        //  REFUSED rather than stringified: a value this cannot render used to be cast and
+        //  shipped, and the server then rejected something naming neither shape.
+        throw new BadRequest('OrderRouter: a route parameter must be a string, number, boolean or list; got ' . gettype($value));
     }
 
     /**
@@ -818,7 +830,9 @@ class OrderRouter {
             if ($value === null) {
                 continue;
             }
-            $query = $query . '&' . $key . '=' . $this->encodeUriComponent($this->routeParamText($value));
+            //  balances is the one key with a meaningful object form
+            $text = ($key === 'balances') ? $this->renderBalances($value) : $this->routeParamText($value);
+            $query = $query . '&' . $key . '=' . $this->encodeUriComponent($text);
         }
         return $query;
     }
@@ -845,7 +859,12 @@ class OrderRouter {
             //  numbers and booleans travel as themselves — the body is JSON and the
             //  service's own schema types amountIn as a number. Everything else uses the
             //  same text form the query string uses, so one handler reads both verbs.
-            if (is_bool($value) || is_int($value) || is_float($value)) {
+            if ($key === 'balances') {
+                //  FIRST, before the number/boolean shortcut below: a numeric balances is not
+                //  a wallet, and letting it through as a JSON number sent it to the server to
+                //  be refused there.
+                $body[$key] = $this->renderBalances($value);
+            } elseif (is_bool($value) || is_int($value) || is_float($value)) {
                 $body[$key] = $value;
             } else {
                 $body[$key] = $this->routeParamText($value);
@@ -1227,6 +1246,95 @@ class OrderRouter {
      * @param array $entries the entries to render
      * @return string the balances query value
      */
+    /**
+     * turns whatever a caller wrote for `balances` into the router's wire form: the rendered
+     * string itself, a list of entries, a per-venue wallet, or a flat single-venue wallet
+     */
+    public function renderBalances($value) {
+        if (is_string($value)) {
+            return $value;
+        }
+        if (!is_array($value)) {
+            throw new BadRequest('OrderRouter: balances must be "[exchangeId.]ASSET:amount" entries, or a wallet like array(\'mexc\' => array(\'USDT\' => 100)) or array(\'USDT\' => 100)');
+        }
+        //  a LIST is already entries; an associative array is a wallet
+        if (array_keys($value) === range(0, count($value) - 1)) {
+            return implode(',', $value);
+        }
+        $entries = array();
+        $outerKeys = array_keys($value);
+        sort($outerKeys, SORT_STRING);
+        for ($i = 0; $i < count($outerKeys); $i++) {
+            $outer = $outerKeys[$i];
+            $inner = $value[$outer];
+            if (is_array($inner)) {
+                $codes = array_keys($inner);
+                sort($codes, SORT_STRING);
+                for ($j = 0; $j < count($codes); $j++) {
+                    $amount = $this->numberAt($inner, $codes[$j], 0);
+                    if ($amount > 0) {
+                        $entries[] = array('exchangeId' => $outer, 'asset' => $codes[$j], 'amount' => $amount);
+                    }
+                }
+            } else {
+                $amount = $this->numberAt($value, $outer, 0);
+                if ($amount > 0) {
+                    //  no venue: a bare ASSET:amount means "wherever you hold it"
+                    $entries[] = array('exchangeId' => '', 'asset' => $outer, 'amount' => $amount);
+                }
+            }
+        }
+        return $this->joinBalances($entries);
+    }
+
+    /**
+     * loads each venue's markets and keys them by exchange id, which is the shape
+     * checkExecutionPlanSafety wants. execute does this for you
+     */
+    public function marketsOf($venues) {
+        $markets = array();
+        $exchangeIds = array_keys($venues);
+        sort($exchangeIds, SORT_STRING);
+        for ($i = 0; $i < count($exchangeIds); $i++) {
+            $exchangeId = $exchangeIds[$i];
+            $venue = $venues[$exchangeId];
+            if (count($this->dictAt($venue, 'markets')) === 0) {
+                $venue->load_markets();
+            }
+            $markets[$exchangeId] = $this->dictAt($venue, 'markets');
+        }
+        return $markets;
+    }
+
+    /**
+     * refuses slippageBps and reconcileToleranceRatio alongside an already-built plan
+     */
+    public function assertNoPlanShapingOptions($options) {
+        $shaping = array('slippageBps', 'reconcileToleranceRatio');
+        for ($i = 0; $i < count($shaping); $i++) {
+            if ($this->fieldAt($options, $shaping[$i]) !== null) {
+                throw new BadRequest('OrderRouter: ' . $shaping[$i] . ' shapes a plan and this plan is already built, so it cannot be applied - pass it to buildExecutionPlan, or hand execute the route instead of the plan');
+            }
+        }
+    }
+
+    /**
+     * tells execute's optional venues argument from its options argument by shape
+     */
+    public function looksLikeOptions($candidate) {
+        if (!is_array($candidate) || count($candidate) === 0) {
+            return false;
+        }
+        foreach ($candidate as $entry) {
+            //  both spellings: ccxt PHP exposes create_order, hand-written venues and the
+            //  test stubs use createOrder
+            if (is_object($entry) && (method_exists($entry, 'createOrder') || method_exists($entry, 'create_order'))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public function joinBalances($entries) {
         $text = '';
         for ($i = 0; $i < count($entries); $i++) {
@@ -2123,12 +2231,23 @@ class OrderRouter {
     }
 
     public function execute($plan, $venues = array(), $options = array()) {
+        //  TWO CALL SHAPES. Venues default to the router's, so demanding them positionally
+        //  made the common call pass a placeholder. A second argument whose values are
+        //  exchange instances is venues; anything else is options.
+        if ($this->looksLikeOptions($venues)) {
+            $options = $venues;
+            $venues = array();
+        }
         //  the argument wins; the router's own venues are the fallback. Nothing is ever
         //  CONSTRUCTED here - this is the money path.
         if (count($venues) === 0) {
             $venues = $this->venues;
         }
         $this->assertSyncVenues($venues);
+        //  plan-shaping options cannot be honoured once the plan exists
+        if (count($this->listAt($plan, 'steps')) > 0) {
+            $this->assertNoPlanShapingOptions($options);
+        }
         //  A ROUTE is accepted here as well as a plan. buildExecutionPlan is pure and derives
         //  entirely from the route, so requiring the caller to run it first was ceremony: two
         //  calls that can only ever happen in that order, with nothing to do in between unless
@@ -2255,7 +2374,12 @@ class OrderRouter {
         if ($blockers !== '') {
             //  thrown, not reported. A refusal a caller can forget to read is
             //  not a refusal.
-            throw new ExchangeError('OrderRouter: refusing to execute, blocking safety violations: ' . $blockers);
+            //  notional_unvaluable gets its CAUSE named rather than its symptom
+            $hint = '';
+            if (strpos($blockers, 'notional_unvaluable') !== false && count($usdRates) === 0) {
+                $hint = ' - maxNotionalUsd is set but options["usdRates"] is empty, and the cap cannot be evaluated without a USD price for the quote currency';
+            }
+            throw new ExchangeError('OrderRouter: refusing to execute, blocking safety violations: ' . $blockers . $hint);
         }
         if ($strategy === 'atomic_ish') {
             $this->assertPrefunded($steps, $venues);

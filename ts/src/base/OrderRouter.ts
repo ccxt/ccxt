@@ -823,7 +823,15 @@ class OrderRouter {
             //  both verbs: the body is read by the same handler as the query string
             return value.join (',');
         }
-        return value.toString ();
+        if (typeof value === 'string') {
+            return value;
+        }
+        //  REFUSED rather than stringified. This used to end in value.toString(), which turns
+        //  every object into the literal "[object Object]" and ships it: the server then
+        //  rejects a value naming neither what was sent nor what was wanted, and the caller is
+        //  left reading a message about a shape they never wrote. `balances` is the one param
+        //  with a meaningful object form and it is rendered before it reaches here.
+        throw new BadRequest ('OrderRouter: a route parameter must be a string, number, boolean or array; got ' + typeof value);
     }
 
     /**
@@ -844,7 +852,10 @@ class OrderRouter {
             if (value === undefined || value === null) {
                 continue;
             }
-            query = query + '&' + key + '=' + encodeURIComponent (this.routeParamText (value));
+            //  balances is the one key with a meaningful object form; rendered here so the
+            //  generic stringifier never sees it
+            const text = (key === 'balances') ? this.renderBalances (value) : this.routeParamText (value);
+            query = query + '&' + key + '=' + encodeURIComponent (text);
         }
         return query;
     }
@@ -872,7 +883,12 @@ class OrderRouter {
             //  numbers and booleans travel as themselves — the body is JSON and the
             //  service's own schema types amountIn as a number. Everything else uses the
             //  same text form the query string uses, so one handler reads both verbs.
-            if (typeof value === 'number' || typeof value === 'boolean') {
+            if (key === 'balances') {
+                //  FIRST, before the number/boolean shortcut below: a numeric balances is not a
+                //  wallet, and letting it through as a JSON number sent it to the server to be
+                //  refused there — the exact round trip renderBalances exists to prevent.
+                body[key] = this.renderBalances (value);
+            } else if (typeof value === 'number' || typeof value === 'boolean') {
                 body[key] = value;
             } else {
                 body[key] = this.routeParamText (value);
@@ -1426,6 +1442,116 @@ class OrderRouter {
      * @param {object[]} entries the entries to render
      * @returns {string} the balances query value
      */
+    /**
+     * @method
+     * @name OrderRouter#looksLikeOptions
+     * @ignore
+     * @description tells execute's optional venues argument from its options argument by shape: a venues map holds exchange instances, which are objects carrying a createOrder
+     * @param {object} candidate the second argument as given
+     * @returns {bool} true when it should be read as options
+     */
+    looksLikeOptions (candidate: Dict): boolean {
+        const keys = Object.keys (candidate);
+        if (keys.length === 0) {
+            //  empty means "not given"; either reading is harmless
+            return false;
+        }
+        for (let i = 0; i < keys.length; i++) {
+            const value = candidate[keys[i]];
+            if ((value !== null) && (typeof value === 'object') && (typeof value['createOrder'] === 'function')) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * @method
+     * @name OrderRouter#assertNoPlanShapingOptions
+     * @ignore
+     * @description refuses slippageBps and reconcileToleranceRatio when they arrive alongside an already-built plan, where they cannot be honoured
+     * @param {object} options the execution options
+     * @returns {undefined}
+     */
+    assertNoPlanShapingOptions (options: Dict) {
+        const shaping = [ 'slippageBps', 'reconcileToleranceRatio' ];
+        for (let i = 0; i < shaping.length; i++) {
+            const key = shaping[i];
+            if ((options[key] !== undefined) && (options[key] !== null)) {
+                throw new BadRequest ('OrderRouter: ' + key + ' shapes a plan and this plan is already built, so it cannot be applied — pass it to buildExecutionPlan, or hand execute the route instead of the plan');
+            }
+        }
+        return undefined;
+    }
+
+    /**
+     * @method
+     * @name OrderRouter#marketsOf
+     * @description loads each venue's markets and keys them by exchange id, which is the shape checkExecutionPlanSafety wants. execute does this for you; this is for calling the check yourself
+     * @param {object} venues a dictionary of exchangeId to a ccxt exchange instance
+     * @returns {object} exchangeId to that venue's markets
+     */
+    async marketsOf (venues: Dict): Promise<Dict> {
+        const markets: Dict = {};
+        const exchangeIds = Object.keys (venues);
+        exchangeIds.sort ();
+        for (let i = 0; i < exchangeIds.length; i++) {
+            const exchangeId = exchangeIds[i];
+            const venue = venues[exchangeId];
+            if (Object.keys (this.dictAt (venue, 'markets')).length === 0) {
+                await venue.loadMarkets ();
+            }
+            markets[exchangeId] = this.dictAt (venue, 'markets');
+        }
+        return markets;
+    }
+
+    /**
+     * @method
+     * @name OrderRouter#renderBalances
+     * @description turns whatever a caller wrote for `balances` into the router's wire form. Accepts the rendered string itself, a list of entries, a per-venue wallet ({ mexc: { USDT: 100 } }) and a flat single-venue wallet ({ USDT: 100 })
+     * @param {object|string} value the holdings, in any accepted shape
+     * @returns {string} the `[exchangeId.]ASSET:amount` string the service reads
+     */
+    renderBalances (value: any): string {
+        if (typeof value === 'string') {
+            return value;
+        }
+        if (Array.isArray (value)) {
+            return value.join (',');
+        }
+        if ((value === null) || (typeof value !== 'object')) {
+            throw new BadRequest ('OrderRouter: balances must be "[exchangeId.]ASSET:amount" entries, or a wallet like { mexc: { USDT: 100 } } or { USDT: 100 }');
+        }
+        //  Two shapes, told apart by what the values are: a per-venue wallet nests one level,
+        //  a flat wallet does not. Zero holdings are dropped — a zero is not information and
+        //  it costs one of the router's 64 entries.
+        const entries: Dict[] = [];
+        const outerKeys = Object.keys (value);
+        outerKeys.sort ();
+        for (let i = 0; i < outerKeys.length; i++) {
+            const outer = outerKeys[i];
+            const inner = value[outer];
+            if ((inner !== null) && (typeof inner === 'object') && !Array.isArray (inner)) {
+                const codes = Object.keys (inner);
+                codes.sort ();
+                for (let j = 0; j < codes.length; j++) {
+                    const amount = this.numberAt (inner, codes[j], 0);
+                    if (amount > 0) {
+                        entries.push ({ 'exchangeId': outer, 'asset': codes[j], 'amount': amount });
+                    }
+                }
+            } else {
+                const amount = this.numberAt (value, outer, 0);
+                if (amount > 0) {
+                    //  no venue: the service reads a bare ASSET:amount as "wherever you hold it"
+                    entries.push ({ 'exchangeId': '', 'asset': outer, 'amount': amount });
+                }
+            }
+        }
+        return this.joinBalances (entries);
+    }
+
     joinBalances (entries: any[]): string {
         let text = '';
         for (let i = 0; i < entries.length; i++) {
@@ -1433,7 +1559,9 @@ class OrderRouter {
             if (i > 0) {
                 text = text + ',';
             }
-            text = text + entry['exchangeId'] + '.' + entry['asset'] + ':' + this.formatNumber (entry['amount']);
+            const venuePrefix = this.stringAt (entry, 'exchangeId', '');
+            const scope = (venuePrefix === '') ? '' : (venuePrefix + '.');
+            text = text + scope + entry['asset'] + ':' + this.formatNumber (entry['amount']);
         }
         return text;
     }
@@ -2268,11 +2396,26 @@ class OrderRouter {
      * @returns {object} an execution report with per-step results, openOrders, errors and the halt verdict
      */
     async execute (plan: Dict, venues: Dict = {}, options: Dict = {}): Promise<Dict> {
+        //  TWO CALL SHAPES. Venues default to the router's, so demanding them positionally made
+        //  the common call pass a placeholder — `undefined as any` in TypeScript, which is a
+        //  signature telling you it is wrong. A second argument whose values are exchange
+        //  instances is venues; anything else is options. Told apart by shape, like the
+        //  route-or-plan first argument, rather than by an overload nobody can see.
+        if (this.looksLikeOptions (venues)) {
+            options = venues;
+            venues = {};
+        }
         //  the argument wins; the router's own venues are the fallback. Nothing is ever
         //  CONSTRUCTED here — an exchange instance the caller never made is one whose
         //  credentials they never chose, and this is the money path.
         if (Object.keys (venues).length === 0) {
             venues = this.venues;
+        }
+        //  #4: plan-shaping options cannot be honoured once the plan exists — the limit prices
+        //  are already in it — so passing them WITH a plan is refused rather than ignored.
+        //  Checked before the route-to-plan conversion below, which is where they DO apply.
+        if (this.listAt (plan, 'steps').length > 0) {
+            this.assertNoPlanShapingOptions (options);
         }
         //  A ROUTE is accepted here as well as a plan. buildExecutionPlan is pure and derives
         //  entirely from the route, so requiring the caller to run it first was ceremony: two
@@ -2412,7 +2555,16 @@ class OrderRouter {
         if (blockers !== '') {
             //  thrown, not reported. A refusal a caller can forget to read is
             //  not a refusal.
-            throw new ExchangeError ('OrderRouter: refusing to execute, blocking safety violations: ' + blockers);
+            //
+            //  notional_unvaluable gets its cause named rather than its symptom: the cap and
+            //  the rates are ONE guardrail in two parts, and a caller who set maxNotionalUsd
+            //  believes they are protected. Telling them a step "cannot be valued" describes
+            //  what the checker saw; telling them usdRates is missing tells them what to do.
+            let hint = '';
+            if (blockers.indexOf ('notional_unvaluable') >= 0 && Object.keys (usdRates).length === 0) {
+                hint = ' — maxNotionalUsd is set but options.usdRates is empty, and the cap cannot be evaluated without a USD price for the quote currency';
+            }
+            throw new ExchangeError ('OrderRouter: refusing to execute, blocking safety violations: ' + blockers + hint);
         }
         if (strategy === 'atomic_ish') {
             await this.assertPrefunded (steps, venues);

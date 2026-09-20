@@ -671,7 +671,13 @@ class OrderRouter:
             # bridges, exchanges and balances are all comma-separated on the wire, in
             # both verbs: the body is read by the same handler as the query string
             return ','.join([str(item) for item in value])
-        return str(value)
+        if isinstance(value, str):
+            return value
+        # REFUSED rather than stringified. This used to end in str(value), which turns every
+        # dict into "{'mexc': ...}" and ships it: the server then rejects a value naming
+        # neither what was sent nor what was wanted. `balances` is the one param with a
+        # meaningful object form and it is rendered before it reaches here.
+        raise BadRequest('OrderRouter: a route parameter must be a string, number, boolean or list; got ' + type(value).__name__)
 
     def route_query(self, from_asset, to_asset, params):
         """
@@ -687,7 +693,10 @@ class OrderRouter:
             value = params.get(key)
             if value is None:
                 continue
-            query = query + '&' + key + '=' + quote(self.route_param_text(value), safe=URL_COMPONENT_SAFE)
+            # balances is the one key with a meaningful object form; rendered here so the
+            # generic stringifier never sees it
+            text = self.render_balances(value) if key == 'balances' else self.route_param_text(value)
+            query = query + '&' + key + '=' + quote(text, safe=URL_COMPONENT_SAFE)
         return query
 
     def route_body(self, from_asset, to_asset, params):
@@ -709,7 +718,12 @@ class OrderRouter:
             # numbers and booleans travel as themselves — the body is JSON and the
             # service's own schema types amountIn as a number. Everything else uses the
             # same text form the query string uses, so one handler reads both verbs.
-            if isinstance(value, bool) or isinstance(value, (int, float)):
+            if key == 'balances':
+                # FIRST, before the number/boolean shortcut below: a numeric balances is not a
+                # wallet, and letting it through as a JSON number sent it to the server to be
+                # refused there - the exact round trip render_balances exists to prevent.
+                body[key] = self.render_balances(value)
+            elif isinstance(value, bool) or isinstance(value, (int, float)):
                 body[key] = value
             else:
                 body[key] = self.route_param_text(value)
@@ -1045,6 +1059,71 @@ class OrderRouter:
         route['balancesDropped'] = dropped
         return route
 
+    def render_balances(self, value):
+        """
+        turns whatever a caller wrote for `balances` into the router's wire form. Accepts the rendered string itself, a list of entries, a per-venue wallet ({'mexc': {'USDT': 100}}) and a flat single-venue wallet ({'USDT': 100})
+
+        :param value: the holdings, in any accepted shape
+        :returns str: the [exchangeId.]ASSET:amount string the service reads
+        """
+        if isinstance(value, str):
+            return value
+        if isinstance(value, (list, tuple)):
+            return ','.join([str(item) for item in value])
+        if not isinstance(value, dict):
+            raise BadRequest('OrderRouter: balances must be "[exchangeId.]ASSET:amount" entries, or a wallet like {\'mexc\': {\'USDT\': 100}} or {\'USDT\': 100}')
+        # Two shapes, told apart by what the values are: a per-venue wallet nests one level, a
+        # flat wallet does not. Zero holdings are dropped - a zero is not information and it
+        # costs one of the router's 64 entries.
+        entries = []
+        for outer in sorted(value.keys()):
+            inner = value[outer]
+            if isinstance(inner, dict):
+                for code in sorted(inner.keys()):
+                    amount = self.number_at(inner, code, 0)
+                    if amount > 0:
+                        entries.append({'exchangeId': outer, 'asset': code, 'amount': amount})
+            else:
+                amount = self.number_at(value, outer, 0)
+                if amount > 0:
+                    # no venue: the service reads a bare ASSET:amount as "wherever you hold it"
+                    entries.append({'exchangeId': '', 'asset': outer, 'amount': amount})
+        return self.join_balances(entries)
+
+    def markets_of(self, venues):
+        """
+        loads each venue's markets and keys them by exchange id, which is the shape check_execution_plan_safety wants. execute does this for you; this is for calling the check yourself
+
+        :param dict venues: a dictionary of exchangeId to a ccxt exchange instance
+        :returns dict: exchangeId to that venue's markets
+        """
+        markets = {}
+        for exchange_id in sorted(venues.keys()):
+            venue = venues[exchange_id]
+            if len(self.dict_at(venue, 'markets')) == 0:
+                venue.load_markets()
+            markets[exchange_id] = self.dict_at(venue, 'markets')
+        return markets
+
+    def assert_no_plan_shaping_options(self, options):
+        """
+        refuses slippageBps and reconcileToleranceRatio when they arrive alongside an already-built plan, where they cannot be honoured
+        """
+        for key in ['slippageBps', 'reconcileToleranceRatio']:
+            if options.get(key) is not None:
+                raise BadRequest('OrderRouter: ' + key + ' shapes a plan and this plan is already built, so it cannot be applied - pass it to build_execution_plan, or hand execute the route instead of the plan')
+
+    def looks_like_options(self, candidate):
+        """
+        tells execute's optional venues argument from its options argument by shape: a venues map holds exchange instances, which carry a create_order
+        """
+        if not candidate:
+            return False
+        for key in candidate:
+            if hasattr(candidate[key], 'create_order'):
+                return False
+        return True
+
     def join_balances(self, entries):
         """
         renders balance entries as the router's [exchangeId.]ASSET:amount comma-separated form
@@ -1054,7 +1133,9 @@ class OrderRouter:
         """
         parts = []
         for entry in entries:
-            parts.append(entry['exchangeId'] + '.' + entry['asset'] + ':' + self.format_number(entry['amount']))
+            venue_prefix = self.string_at(entry, 'exchangeId', '')
+            scope = '' if venue_prefix == '' else (venue_prefix + '.')
+            parts.append(scope + entry['asset'] + ':' + self.format_number(entry['amount']))
         return ','.join(parts)
 
     # -----------------------------------------------------------------------
@@ -1774,11 +1855,21 @@ class OrderRouter:
         :param callable [options['onStep']]: called after each step completes and reconciles, never mid-order, with one event dict describing that step. Return 'halt' to stop the route cleanly(haltReason becomes halted_by_on_step); any other value continues. It can only STOP a route, never resume one already halted. Do NO network I/O here — it sits between orders on the money path. A hook that raises is recorded as on_step_hook_failed and the run continues, because losing the report would destroy the only account of orders that are already live
         :returns dict: an execution report with per-step results, openOrders, errors and the halt verdict
         """
+        # TWO CALL SHAPES. Venues default to the router's, so demanding them positionally made
+        # the common call pass a placeholder. A second argument whose values are exchange
+        # instances is venues; anything else is options.
+        if venues is not None and self.looks_like_options(venues):
+            options = venues
+            venues = None
         # the argument wins; the router's own venues are the fallback. Nothing is ever
         # CONSTRUCTED here - an exchange instance the caller never made is one whose
         # credentials they never chose, and this is the money path.
         if venues is None or len(venues) == 0:
             venues = self.venues
+        # plan-shaping options cannot be honoured once the plan exists - the limit prices are
+        # already in it - so passing them WITH a plan is refused rather than ignored.
+        if len(self.list_at(plan, 'steps')) > 0:
+            self.assert_no_plan_shaping_options(options)
         # A ROUTE is accepted here as well as a plan. buildExecutionPlan is pure and derives
         # entirely from the route, so requiring the caller to run it first was ceremony: two
         # calls that can only ever happen in that order, with nothing to do in between unless
@@ -1883,7 +1974,13 @@ class OrderRouter:
         if blockers != '':
             # raised, not reported. A refusal a caller can forget to read is not
             # a refusal.
-            raise ExchangeError('OrderRouter: refusing to execute, blocking safety violations: ' + blockers)
+            # notional_unvaluable gets its CAUSE named rather than its symptom: the cap and the
+            # rates are one guardrail in two parts, and a caller who set maxNotionalUsd believes
+            # they are protected.
+            hint = ''
+            if 'notional_unvaluable' in blockers and len(usd_rates) == 0:
+                hint = ' - maxNotionalUsd is set but options["usdRates"] is empty, and the cap cannot be evaluated without a USD price for the quote currency'
+            raise ExchangeError('OrderRouter: refusing to execute, blocking safety violations: ' + blockers + hint)
         if strategy == 'atomic_ish':
             self.assert_prefunded(steps, venues)
         # the ledger is written BEFORE the first order goes out, never after: a run that

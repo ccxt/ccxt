@@ -1679,7 +1679,15 @@ impl OrderRouter {
                 .collect::<Vec<String>>()
                 .join(","),
             Value::Str(s) => s.clone(),
-            other => format!("{other:?}"),
+            //  REFUSED rather than debug-formatted. This used to end in `format!("{other:?}")`,
+            //  which renders a map as Rust's own debug form and ships it: the server then
+            //  rejects a value naming neither what was sent nor what was wanted. `balances` is
+            //  the one param with a meaningful map form and it is rendered before it gets here.
+            other => {
+                return Err(bad_request(&format!(
+                    "OrderRouter: a route parameter must be a string, number, boolean or list; got {other:?}"
+                )))
+            }
         })
     }
 
@@ -1972,11 +1980,18 @@ impl OrderRouter {
             // the service's own schema types amountIn as a number. Everything
             // else uses the same text form the query string uses, so one handler
             // reads both verbs.
-            let encoded = match value {
-                Value::Bool(flag) => Value::Bool(*flag),
-                Value::Int(n) => Value::Int(*n),
-                Value::Float(n) => Value::Float(*n),
-                other => Value::Str(self.query_text(other)?),
+            //  balances FIRST, before the number/boolean shortcut: a numeric balances is not
+            //  a wallet, and letting it through as a JSON number sent it to the server to be
+            //  refused there.
+            let encoded = if *key == "balances" {
+                Value::Str(self.render_balances(value)?)
+            } else {
+                match value {
+                    Value::Bool(flag) => Value::Bool(*flag),
+                    Value::Int(n) => Value::Int(*n),
+                    Value::Float(n) => Value::Float(*n),
+                    other => Value::Str(self.query_text(other)?),
+                }
             };
             Self::put(&mut body, key, encoded);
         }
@@ -3443,6 +3458,10 @@ impl OrderRouter {
         //  the argument wins; the router's own venues are the fallback. Nothing is ever
         //  CONSTRUCTED here - this is the money path.
         let venues = if venues.is_empty() { &self.venues } else { venues };
+        //  plan-shaping options cannot be honoured once the plan exists
+        if !self.list_at(plan, "steps").is_empty() {
+            self.assert_no_plan_shaping_options(options)?;
+        }
         //  A ROUTE is accepted here as well as a plan. buildExecutionPlan is pure and derives
         //  entirely from the route, so requiring the caller to run it first was ceremony: two
         //  calls that can only ever happen in that order, with nothing to do in between unless
@@ -3578,8 +3597,18 @@ impl OrderRouter {
             // Returned as an error, not reported. A refusal a caller can forget
             // to read is not a refusal.
             return Err(exchange_error(&format!(
-                "OrderRouter: refusing to execute, blocking safety violations: {}",
-                blockers.join(", ")
+                "OrderRouter: refusing to execute, blocking safety violations: {}{}",
+                blockers.join(", "),
+                //  notional_unvaluable gets its CAUSE named rather than its symptom: the cap
+                //  and the rates are one guardrail in two parts, and a caller who set
+                //  maxNotionalUsd believes they are protected.
+                if blockers.iter().any(|code| code == "notional_unvaluable")
+                    && usd_rates.as_map().map(|m| m.is_empty()).unwrap_or(true)
+                {
+                    " - maxNotionalUsd is set but options.usdRates is empty, and the cap cannot be evaluated without a USD price for the quote currency"
+                } else {
+                    ""
+                }
             )));
         }
         if strategy == "atomic_ish" {
@@ -3681,6 +3710,79 @@ impl OrderRouter {
 
     /// Renders balance entries as the router's `[exchangeId.]ASSET:amount`
     /// comma-separated form.
+    //  NO markets_of HERE, and it is not an omission. The other five ports offer one because
+    //  their venues expose their markets; `RouterVenue` deliberately does not — it is narrowed
+    //  to the operations the money path performs — so Rust's execute reads `options.markets`
+    //  and the caller assembles that dict either way. A helper taking venues would have
+    //  nothing to read.
+
+    /// Refuses plan-shaping options alongside an already-built plan, where they cannot apply.
+    pub fn assert_no_plan_shaping_options(&self, options: &Value) -> RouterResult<()> {
+        for key in ["slippageBps", "reconcileToleranceRatio"] {
+            if field(options, key).is_some() {
+                return Err(bad_request(&format!(
+                    "OrderRouter: {key} shapes a plan and this plan is already built, so it cannot be applied - pass it to build_execution_plan, or hand execute the route instead of the plan"
+                )));
+            }
+        }
+        Ok(())
+    }
+
+    /// Turns whatever a caller wrote for `balances` into the router's wire form: the rendered
+    /// string itself, a list of entries, a per-venue wallet, or a flat single-venue wallet.
+    pub fn render_balances(&self, value: &Value) -> RouterResult<String> {
+        if let Value::Str(text) = value {
+            return Ok(text.clone());
+        }
+        if let Value::Arr(_) = value {
+            return self.query_text(value);
+        }
+        match value.as_map() {
+            Some(map) => {
+                //  Two shapes, told apart by what the values are: a per-venue wallet nests one
+                //  level, a flat wallet does not. Zero holdings are dropped.
+                let mut outer_keys: Vec<String> = map.keys().cloned().collect();
+                outer_keys.sort();
+                let mut entries: Vec<Value> = Vec::new();
+                for outer in outer_keys.iter() {
+                    let inner = map.get(outer);
+                    let nested = match inner {
+                        Some(found) => found.as_map(),
+                        None => None,
+                    };
+                    if let Some(wallet) = nested {
+                        let mut codes: Vec<String> = wallet.keys().cloned().collect();
+                        codes.sort();
+                        for code in codes.iter() {
+                            let amount = self.number_at(inner.unwrap(), code, 0.0);
+                            if amount > 0.0 {
+                                let mut entry = HashMap::new();
+                                entry.insert("exchangeId".to_string(), Value::Str(outer.clone()));
+                                entry.insert("asset".to_string(), Value::Str(code.clone()));
+                                entry.insert("amount".to_string(), Value::Float(amount));
+                                entries.push(Value::Map(entry));
+                            }
+                        }
+                        continue;
+                    }
+                    let amount = self.number_at(value, outer, 0.0);
+                    if amount > 0.0 {
+                        //  no venue: a bare ASSET:amount means "wherever you hold it"
+                        let mut entry = HashMap::new();
+                        entry.insert("exchangeId".to_string(), Value::Str(String::new()));
+                        entry.insert("asset".to_string(), Value::Str(outer.clone()));
+                        entry.insert("amount".to_string(), Value::Float(amount));
+                        entries.push(Value::Map(entry));
+                    }
+                }
+                self.join_balances(&entries)
+            }
+            None => Err(bad_request(
+                "OrderRouter: balances must be \"[exchangeId.]ASSET:amount\" entries, or a wallet like {\"mexc\": {\"USDT\": 100}} or {\"USDT\": 100}",
+            )),
+        }
+    }
+
     fn join_balances(&self, entries: &[Value]) -> RouterResult<String> {
         let mut text = String::new();
         for (i, entry) in entries.iter().enumerate() {

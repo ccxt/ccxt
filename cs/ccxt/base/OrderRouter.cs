@@ -742,7 +742,11 @@ public class OrderRouter
         {
             return this.FormatNumber(Convert.ToDouble(value, CultureInfo.InvariantCulture));
         }
-        return Convert.ToString(value, CultureInfo.InvariantCulture);
+        //  REFUSED rather than stringified. This used to end in Convert.ToString, which turns a
+        //  dictionary into its type name and ships it: the server then rejects a value naming
+        //  neither what was sent nor what was wanted. `balances` is the one param with a
+        //  meaningful object form and it is rendered before it reaches here.
+        throw new BadRequest("OrderRouter: a route parameter must be a string, number, boolean or list; got " + value.GetType().Name);
     }
 
     //  -----------------------------------------------------------------------
@@ -1147,7 +1151,9 @@ public class OrderRouter
             {
                 continue;
             }
-            query = query + "&" + key + "=" + EncodeUriComponent(this.QueryText(value));
+            //  balances is the one key with a meaningful object form
+            var text = (key == "balances") ? this.RenderBalances(value) : this.QueryText(value);
+            query = query + "&" + key + "=" + EncodeUriComponent(text);
         }
         return query;
     }
@@ -1172,7 +1178,14 @@ public class OrderRouter
             //  numbers and booleans travel as themselves — the body is JSON and the
             //  service's own schema types amountIn as a number. Everything else uses the
             //  same text form the query string uses, so one handler reads both verbs.
-            if (value is bool || value is double || value is float || value is decimal || value is int || value is long || value is short || value is uint || value is ulong || value is ushort || value is byte || value is sbyte)
+            if (key == "balances")
+            {
+                //  FIRST, before the number/boolean shortcut below: a numeric balances is not
+                //  a wallet, and letting it through as a JSON number sent it to the server to
+                //  be refused there.
+                body[key] = this.RenderBalances(value);
+            }
+            else if (value is bool || value is double || value is float || value is decimal || value is int || value is long || value is short || value is uint || value is ulong || value is ushort || value is byte || value is sbyte)
             {
                 body[key] = value;
             }
@@ -1637,6 +1650,97 @@ public class OrderRouter
     /// Renders balance entries as the router's [exchangeId.]ASSET:amount
     /// comma-separated form.
     /// </summary>
+    /// <summary>
+    /// Turns whatever a caller wrote for `balances` into the router's wire form: the rendered
+    /// string itself, a list of entries, a per-venue wallet, or a flat single-venue wallet.
+    /// </summary>
+    public string RenderBalances(object value)
+    {
+        if (value is string)
+        {
+            return (string)value;
+        }
+        var wallet = value as IDictionary<string, object>;
+        if (wallet == null)
+        {
+            if ((value is IEnumerable) && !(value is string))
+            {
+                return this.QueryText(value);
+            }
+            throw new BadRequest("OrderRouter: balances must be \"[exchangeId.]ASSET:amount\" entries, or a wallet like { \"mexc\", new dict() { { \"USDT\", 100 } } } or { \"USDT\", 100 }");
+        }
+        //  Two shapes, told apart by what the values are: a per-venue wallet nests one level,
+        //  a flat wallet does not. Zero holdings are dropped.
+        var entries = new list();
+        var outerKeys = new List<string>(wallet.Keys);
+        outerKeys.Sort(StringComparer.Ordinal);
+        for (var i = 0; i < outerKeys.Count; i++)
+        {
+            var outer = outerKeys[i];
+            var inner = wallet[outer] as IDictionary<string, object>;
+            if (inner != null)
+            {
+                var codes = new List<string>(inner.Keys);
+                codes.Sort(StringComparer.Ordinal);
+                for (var j = 0; j < codes.Count; j++)
+                {
+                    var amount = this.NumberAt(inner, codes[j], 0);
+                    if (amount > 0)
+                    {
+                        entries.Add(new dict() { { "exchangeId", outer }, { "asset", codes[j] }, { "amount", amount } });
+                    }
+                }
+            }
+            else
+            {
+                var amount = this.NumberAt(wallet, outer, 0);
+                if (amount > 0)
+                {
+                    //  no venue: a bare ASSET:amount means "wherever you hold it"
+                    entries.Add(new dict() { { "exchangeId", "" }, { "asset", outer }, { "amount", amount } });
+                }
+            }
+        }
+        return this.JoinBalances(entries);
+    }
+
+    /// <summary>
+    /// Loads each venue's markets and keys them by exchange id, which is the shape
+    /// CheckExecutionPlanSafety wants. Execute does this for you.
+    /// </summary>
+    public async Task<dict> MarketsOf(Dictionary<string, Exchange> venues)
+    {
+        var markets = new dict();
+        var exchangeIds = new List<string>(venues.Keys);
+        exchangeIds.Sort(StringComparer.Ordinal);
+        for (var i = 0; i < exchangeIds.Count; i++)
+        {
+            var exchangeId = exchangeIds[i];
+            var venue = venues[exchangeId];
+            //  the same read Execute uses, so a venue whose markets are already loaded is
+            //  not loaded a second time
+            if (this.DictAt(venue, "markets").Count == 0)
+            {
+                await venue.loadMarkets();
+            }
+            markets[exchangeId] = this.DictAt(venue, "markets");
+        }
+        return markets;
+    }
+
+    /// <summary>Refuses plan-shaping options alongside an already-built plan.</summary>
+    public void AssertNoPlanShapingOptions(dict options)
+    {
+        var shaping = new List<string>() { "slippageBps", "reconcileToleranceRatio" };
+        for (var i = 0; i < shaping.Count; i++)
+        {
+            if (this.ValueAt(options, shaping[i]) != null)
+            {
+                throw new BadRequest("OrderRouter: " + shaping[i] + " shapes a plan and this plan is already built, so it cannot be applied - pass it to BuildExecutionPlan, or hand Execute the route instead of the plan");
+            }
+        }
+    }
+
     public string JoinBalances(list entries)
     {
         var text = "";
@@ -2633,12 +2737,28 @@ public class OrderRouter
     /// an execution report with per-step results, openOrders, errors and the
     /// halt verdict.
     /// </returns>
+    /// <summary>
+    /// Executes against the venues the router was constructed with. C# has overloads, so the
+    /// two-argument form is a real signature here rather than the shape-sniffing the dynamic
+    /// ports need: `dict` and `Dictionary&lt;string, Exchange&gt;` are different types.
+    /// </summary>
+    public async Task<dict> Execute(dict plan, dict options)
+    {
+        return await this.Execute(plan, null, options);
+    }
+
     public async Task<dict> Execute(dict plan, Dictionary<string, Exchange> venues = null, dict options = null)
     {
         //  the argument wins; the router's own venues are the fallback
         if (venues == null || venues.Count == 0)
         {
             venues = this.venues;
+        }
+        //  plan-shaping options cannot be honoured once the plan exists - the limit prices are
+        //  already in it - so passing them WITH a plan is refused rather than ignored.
+        if (this.ListAt(plan, "steps").Count > 0)
+        {
+            this.AssertNoPlanShapingOptions(options);
         }
         //  A ROUTE is accepted here as well as a plan. buildExecutionPlan is pure and derives
         //  entirely from the route, so requiring the caller to run it first was ceremony: two
@@ -2786,7 +2906,13 @@ public class OrderRouter
         {
             //  thrown, not reported. A refusal a caller can forget to read is
             //  not a refusal.
-            throw new ExchangeError("OrderRouter: refusing to execute, blocking safety violations: " + blockers);
+            //  notional_unvaluable gets its CAUSE named rather than its symptom
+            var hint = "";
+            if (blockers.IndexOf("notional_unvaluable", StringComparison.Ordinal) >= 0 && usdRates.Count == 0)
+            {
+                hint = " - maxNotionalUsd is set but options[\"usdRates\"] is empty, and the cap cannot be evaluated without a USD price for the quote currency";
+            }
+            throw new ExchangeError("OrderRouter: refusing to execute, blocking safety violations: " + blockers + hint);
         }
         if (strategy == "atomic_ish")
         {

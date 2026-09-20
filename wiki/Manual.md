@@ -8791,7 +8791,8 @@ plan can be inspected, logged, diffed and tested before anything is placed.
 | `fetchRouteWithBalances (from, to, venues, params)` | HTTP + venues | reads live balances from the supplied exchange instances first, so the route is one you can actually fund |
 | `buildExecutionPlan (route, options)` | none | flattens hops and legs into an ordered list of concrete orders |
 | `checkExecutionPlanSafety (plan, markets, options)` | none | checks each step against per-venue market rules and the hard per-trade USD notional cap |
-| `execute (routeOrPlan, venues, options)` | **places orders** | the only impure method. Takes a route as well as a plan, building the plan itself when given one |
+| `execute (routeOrPlan, [venues], options)` | **places orders** | the only impure method. Takes a route as well as a plan, building the plan itself when given one. Venues default to the router's, so the options may be the second argument |
+| `marketsOf (venues)` | loads markets | the dict `checkExecutionPlanSafety` wants; `execute` builds it for you |
 | `reconcileExecutionStep (plan, i, realisedOut)` | none | compares what a step produced against what the route predicted; resizes downstream hops, or halts |
 | `buildUnwindPlan (report)` | none | for a halted run, the reverse orders that sell each stranded residual back toward the from-asset |
 
@@ -8834,6 +8835,16 @@ then `router.invalidateBalances ()`. The router never opens a socket you did not
 
 Anything you pass at the call site wins: your own `exchanges`, your own `balances`, your own
 venues argument to `execute`.
+
+**`balances` takes the shape you would naturally write.** A per-venue wallet, a flat one, or the
+rendered string — all three are accepted, and anything that cannot be rendered is refused here
+rather than at the far end:
+
+```javascript
+{ 'balances': { 'mexc': { 'USDT': 100, 'BTC': 0.5 } } }   // per venue
+{ 'balances': { 'USDT': 100 } }                            // wherever you hold it
+{ 'balances': 'mexc.USDT:100,mexc.BTC:0.5' }               // already rendered
+```
 
 **The whole pipeline is two calls.** `execute` accepts the route itself, and does the rest: it
 builds the plan, loads each venue's markets if they are not loaded, runs `checkExecutionPlanSafety`
