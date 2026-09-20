@@ -605,13 +605,696 @@ function resolveGofmt (): string | null {
 }
 
 // Semantic post-passes over the printer text: a leaked body goroutine and a missing type
-// assertion are fixed here; layout is the printer's job and is already gofmt-clean.
+// assertion are fixed here; layout is the printer's job and is gofmt-clean except where an
+// emitter splices operand text into a call it prints (see goGofmtSplicedText).
 function formatGoSource (filePath: string, content: string): string {
     if (!filePath.endsWith ('.go')) {
         return content;
     }
     content = guardMultiSendCores (content);
-    return assertTypedElementAccess (content);
+    content = assertTypedElementAccess (content);
+    return goGofmtSplicedText (content);
+}
+
+// ------------------------------------------------------------------------------------
+// gofmt spacing of the arithmetic an emitter splices into a call or an index
+// ------------------------------------------------------------------------------------
+// go/printer (src/go/printer/nodes.go) prints a level-4/5 operator (`+ - * / % << >>
+// & &^ | ^`) with a blank on each side only when cutoff() asks for it: 6 for the
+// operator tree on top of a statement, 5 when that tree mixes level 4 and level 5, and
+// 4 - both blanks dropped - one level down. The level is 1 at the start of every
+// statement, one deeper for the argument list of a call with more than one argument and
+// for an index or slice expression, one shallower inside parentheses (never below 1),
+// and 1 again inside a composite literal.
+//
+// The printer prints the operand text of the helper call it emits - the key of
+// `AddElementToObject(container, key, value)`, the index of `GetValue(list, index)`, a
+// string slice's bounds, the terms of `Add`/`Subtract` - at the level of the TS
+// expression it was read from, not at the level of the Go text it lands in: the TS
+// `trades[length - 1] = lastTrade` comes out as `AddElementToObject(trades, length - 1,
+// lastTrade)`, while gofmt prints that call as `AddElementToObject(trades, length-1,
+// lastTrade)`, because the argument list of a three-argument call is level 2. Text the
+// printer has already produced cannot be re-printed, so normalise it once, here:
+//   * every level-4/5 operator at level >= 2 loses both blanks, except where dropping
+//     them would glue two tokens into a different one (`/*`, `//`, `++`, `--`, `&&`,
+//     `&^`): walkBinary() raises the cutoff for exactly those pairs, so their blanks stay;
+//   * a string slice's `:` takes the blanks go/printer's SliceExpr block gives it;
+//   * `if (cond) {` / `for (cond) {` / `switch (cond) {` lose the redundant parens
+//     controlClause() strips off a control expression.
+function goGofmtSplicedText (content: string): string {
+    if (content.indexOf ('(') < 0) {
+        return content;
+    }
+    return goGofmtTightenSplicedArithmetic (goGofmtLevelOneChains (goGofmtSliceColons (content)));
+}
+
+// the characters a Go operand can end with, i.e. the left neighbour of a binary operator
+const GO_OPERAND_ENDER = /[A-Za-z0-9_)\]}"'`]/;
+
+// go/printer's walkBinary() raises the cutoff - and so keeps both blanks - for exactly the
+// operand pairs that would otherwise glue into another token: `/*`, `//`, `&&`, `&^`,
+// `++`, `--`. Every other pair (`+ *p`, `x & y`, ...) is compacted normally.
+function goOperatorGluesTokens (operator: string, right: string): boolean {
+    const pair = operator + right;
+    return (pair === '/*') || (pair === '//') || (pair === '&&') || (pair === '&^') ||
+        (pair === '++') || (pair === '--');
+}
+
+// index of the last byte of the Go literal that starts at `index`
+function goSkipLiteralText (content: string, index: number): number {
+    const quote = content[index];
+    for (let i = index + 1; i < content.length; i++) {
+        const char = content[i];
+        if (char === '\\' && quote !== '`') {
+            i += 1;
+        } else if (char === quote) {
+            return i;
+        } else if (char === '\n' && quote !== '`') {
+            return i - 1;                 // unterminated: stop at the line end
+        }
+    }
+    return content.length - 1;
+}
+
+// index of the last byte of the comment that starts at `index`
+function goSkipCommentText (content: string, index: number): number {
+    if (content[index + 1] === '/') {
+        const end = content.indexOf ('\n', index);
+        return end < 0 ? content.length - 1 : end;
+    }
+    const end = content.indexOf ('*/', index + 2);
+    return end < 0 ? content.length - 1 : end + 1;
+}
+
+// number of comma separated entries between the bracket at `opener` and its matching
+// closer (strings and comments ignored); 0 when unbalanced
+function goCountFrameArgsText (content: string, opener: number): number {
+    let depth = 0;
+    let entries = 0;
+    let seen = false;
+    for (let i = opener + 1; i < content.length; i++) {
+        const char = content[i];
+        if (char === '"' || char === '\'' || char === '`') {
+            i = goSkipLiteralText (content, i);
+            seen = true;
+        } else if (char === '/' && (content[i + 1] === '/' || content[i + 1] === '*')) {
+            i = goSkipCommentText (content, i);
+        } else if (char === '(' || char === '[' || char === '{') {
+            depth += 1;
+        } else if (char === ')' || char === ']' || char === '}') {
+            if (depth === 0) {
+                return seen || entries > 0 ? entries + 1 : 0;
+            }
+            depth -= 1;
+            seen = true;
+        } else if (char === ',' && depth === 0) {
+            entries += 1;
+        } else if (char !== ' ' && char !== '\t' && char !== '\n' && char !== '\r') {
+            seen = true;
+        }
+    }
+    return 0;
+}
+
+// a `(` opens a call's (or a conversion's, or a func literal's) argument list when an
+// operand or a selector ends right in front of it; every other `(` only groups, and
+// go/printer prints a grouped expression one level shallower
+function goIsCallParenText (content: string, open: number): boolean {
+    let i = open - 1;
+    while ((i >= 0) && ((content[i] === ' ') || (content[i] === '\t'))) {
+        i -= 1;
+    }
+    return (i >= 0) && GO_OPERAND_ENDER.test (content[i]);
+}
+
+// a `(` that opens the parameter list of a function declaration, a method or a func type
+// rather than a call: the names and types in there are declarations, so a `*` in there is a
+// pointer, never a multiplication - nothing inside a signature is a level-4/5 expression
+function goIsSignatureParenText (content: string, open: number): boolean {
+    const head = content.slice (content.lastIndexOf ('\n', open - 1) + 1, open);
+    const keyword = head.lastIndexOf ('func');
+    return (keyword >= 0) && (head.indexOf ('{', keyword) < 0);
+}
+
+// the level-4/5 operator token at `index`, or null when the text there is none: level 6
+// is unary, `++`/`--` and the `//`/`/*` openers are not operators, `*=` & co assign, and
+// level 3 and below (`<`, `<-`, comparisons) always keep their blanks
+function goLevel45OperatorText (content: string, index: number): string | null {
+    const char = content[index];
+    const next = content[index + 1];
+    if ((char === '+') || (char === '-') || (char === '*') || (char === '/') ||
+            (char === '%') || (char === '|') || (char === '^')) {
+        return ((next === '=') || (next === '>') || (next === char) || (next === '-')) ? null : char;
+    }
+    if (char === '&') {
+        if ((next === '&') || (next === '=')) {
+            return null;
+        }
+        return (next === '^') ? '&^' : '&';
+    }
+    if ((char === '<') || (char === '>')) {
+        if (next !== char) {
+            return null;                  // a comparison, or the `<-` receive operator
+        }
+        return (content[index + 2] === '=') ? null : char + char;
+    }
+    return null;
+}
+
+// the `)` of a `if (cond) {` style control clause, i.e. of exactly the parens that wrap a
+// whole control expression on one line: -1 when this `(` is anything else (a composite
+// literal in the condition, a condition spanning lines, or no control keyword in front)
+function goControlClauseClose (content: string, open: number): number {
+    const head = content.slice (content.lastIndexOf ('\n', open - 1) + 1, open);
+    if (!/^[ \t]*(?:\} else )?(?:if|for|switch)[ \t]+$/.test (head)) {
+        return -1;
+    }
+    let depth = 0;
+    for (let i = open; i < content.length; i++) {
+        const char = content[i];
+        if (char === '"' || char === '\'' || char === '`') {
+            i = goSkipLiteralText (content, i);
+        } else if (char === '(') {
+            depth += 1;
+        } else if (char === ')') {
+            depth -= 1;
+            if (depth === 0) {
+                const lineEnd = content.indexOf ('\n', i);
+                const tail = content.slice (i + 1, lineEnd < 0 ? content.length : lineEnd);
+                return /^[ \t]*\{[ \t]*$/.test (tail) ? i : -1;
+            }
+        } else if ((char === '{') || (char === '}') || (char === '\n')) {
+            return -1;                    // not the whole condition: gofmt keeps the parens
+        }
+    }
+    return -1;
+}
+
+// go/printer's SliceExpr case prints a slice's bounds one level deeper than the slice, so
+// their level-4/5 operators lose the blanks, and pads the `:` on both sides when the
+// slice itself sits at level <= 1, has both bounds and at least one bound is a binary
+// expression: `s[0:len(s) - 3]` is emitted by the printer, gofmt prints `s[0 : len(s)-3]`
+function goGofmtSliceColons (content: string): string {
+    const fixes: { 'start': number, 'end': number, 'text': string }[] = [];
+    const stack: { 'open': number, 'level': number }[] = [];
+    let level = 1;
+    let i = 0;
+    while (i < content.length) {
+        const char = content[i];
+        if (char === '"' || char === '\'' || char === '`') {
+            i = goSkipLiteralText (content, i) + 1;
+            continue;
+        }
+        if (char === '/' && (content[i + 1] === '/' || content[i + 1] === '*')) {
+            i = goSkipCommentText (content, i) + 1;
+            continue;
+        }
+        if (char === '(' || char === '[' || char === '{') {
+            stack.push ({ 'open': i + 1, 'level': level });
+            if (char === '{') {
+                level = 1;
+            } else if (char === '[') {
+                level += 1;
+            } else if (goIsCallParenText (content, i)) {
+                if (goCountFrameArgsText (content, i) > 1) {
+                    level += 1;
+                }
+            } else if (level > 1) {
+                level -= 1;
+            }
+            i += 1;
+            continue;
+        }
+        if (char === ')' || char === ']' || char === '}') {
+            const frame = stack.pop ();
+            if (frame !== undefined) {
+                if (char === ']') {
+                    const fix = goSliceColonFix (content, frame.open, i, frame.level);
+                    if (fix !== null) {
+                        fixes.push (fix);
+                    }
+                }
+                level = frame.level;
+            }
+            i += 1;
+            continue;
+        }
+        i += 1;
+    }
+    fixes.sort ((a, b) => b.start - a.start);     // back to front: every edit keeps its offsets
+    for (let f = 0; f < fixes.length; f++) {
+        content = content.slice (0, fixes[f].start) + fixes[f].text + content.slice (fixes[f].end);
+    }
+    return content;
+}
+
+// the `colon : high` text of the slice whose bounds are `content[open : close]`, or null
+// when the brackets hold anything but one `low:high` pair
+function goSliceColonFix (content: string, open: number, close: number, level: number) {
+    const bounds = content.slice (open, close);
+    let depth = 0;
+    let colon = -1;
+    for (let i = 0; i < bounds.length; i++) {
+        const char = bounds[i];
+        if (char === '"' || char === '\'' || char === '`') {
+            i = goSkipLiteralText (bounds, i);
+        } else if (char === '(' || char === '[' || char === '{') {
+            depth += 1;
+        } else if (char === ')' || char === ']' || char === '}') {
+            depth -= 1;
+        } else if (char === ':' && depth === 0) {
+            if (colon >= 0) {
+                return null;              // `low:high:max` and anything else: leave it alone
+            }
+            colon = i;
+        }
+    }
+    if (colon < 0) {
+        return null;
+    }
+    const low = bounds.slice (0, colon).replace (/[ \t]+$/, '');
+    const high = bounds.slice (colon + 1).replace (/^[ \t]+/, '');
+    const needsBlanks = (level <= 1) && (low.trim () !== '') && (high.trim () !== '') &&
+        (goBoundIsBinary (low) || goBoundIsBinary (high));
+    const blank = needsBlanks ? ' ' : '';
+    return { 'start': open, 'end': close, 'text': low + blank + ':' + blank + high };
+}
+
+// true when the slice bound `text` is a binary expression for go/printer's isBinary(),
+// i.e. when it has a binary operator of its own - one nested in a call or a bracket does
+// not count, and neither does a unary sign
+function goBoundIsBinary (text: string): boolean {
+    let depth = 0;
+    for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        if (char === '"' || char === '\'' || char === '`') {
+            i = goSkipLiteralText (text, i);
+        } else if (char === '(' || char === '[' || char === '{') {
+            depth += 1;
+        } else if (char === ')' || char === ']' || char === '}') {
+            depth -= 1;
+        } else if ((depth === 0) && ('+-*/%&|^<>=!'.indexOf (char) >= 0)) {
+            let before = i - 1;
+            while ((before >= 0) && ((text[before] === ' ') || (text[before] === '\t'))) {
+                before -= 1;
+            }
+            if ((before >= 0) && GO_OPERAND_ENDER.test (text[before])) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+// the same level rule for the operators the printer printed, with the control-clause
+// parens dropped on the way through
+function goGofmtTightenSplicedArithmetic (content: string): string {
+    const out: string[] = [];
+    const stack: { 'kind': string, 'level': number }[] = [];
+    const strippedClosers = new Set<number> ();
+    let level = 1;
+    let lastChar = '';
+    let i = 0;
+    while (i < content.length) {
+        const char = content[i];
+        if (char === '"' || char === '\'' || char === '`') {
+            const literal = content.slice (i, goSkipLiteralText (content, i) + 1);
+            out.push (literal);
+            lastChar = literal[literal.length - 1];
+            i += literal.length;
+            continue;
+        }
+        if (char === '/' && (content[i + 1] === '/' || content[i + 1] === '*')) {
+            const comment = content.slice (i, goSkipCommentText (content, i) + 1);
+            out.push (comment);                                 // a line comment keeps its newline
+            i += comment.length;
+            continue;
+        }
+        if (strippedClosers.has (i)) {
+            i += 1;
+            continue;
+        }
+        if ((char === '(') && (level > 0)) {
+            const close = goControlClauseClose (content, i);
+            if (close > 0) {
+                strippedClosers.add (close);                    // stripParens(cond)
+                i += 1;
+                continue;
+            }
+        }
+        if (char === '(' || char === '[' || char === '{') {
+            stack.push ({ 'kind': char, 'level': level });
+            if (char === '{') {
+                level = 1;
+            } else if (char === '[') {
+                level += 1;
+            } else if (goIsSignatureParenText (content, i)) {
+                level = 0;                                      // declarations: no operators in there
+            } else if (goIsCallParenText (content, i)) {
+                if (goCountFrameArgsText (content, i) > 1) {
+                    level += 1;
+                }
+            } else if (level > 1) {
+                level -= 1;
+            }
+            out.push (char);
+            lastChar = char;
+            i += 1;
+            continue;
+        }
+        if (char === ')' || char === ']' || char === '}') {
+            const frame = stack.pop ();
+            if (frame !== undefined) {
+                level = frame.level;
+            }
+            out.push (char);
+            lastChar = char;
+            i += 1;
+            continue;
+        }
+        const operator = goLevel45OperatorText (content, i);
+        if ((operator !== null) && (level > 1) && GO_OPERAND_ENDER.test (lastChar)) {
+            const tightened = goTightenedOperatorText (content, i, operator);
+            if (tightened !== null) {
+                if ((out.length > 0) && ((out[out.length - 1] === ' ') || (out[out.length - 1] === '\t'))) {
+                    out.pop ();
+                }
+                out.push (operator);
+                i = tightened.end;
+                lastChar = '';
+                continue;
+            }
+        }
+        out.push (char);
+        if ((char !== ' ') && (char !== '\t')) {
+            lastChar = char;
+        }
+        i += 1;
+    }
+    return out.join ('');
+}
+
+// the blanks an operator printed at level >= 2 may not keep: the span to replace with the
+// bare operator, or null when a blank has to stay there (a line break on either side, or a
+// right operand that would glue with the operator into another token)
+function goTightenedOperatorText (content: string, index: number, operator: string) {
+    let start = index;
+    while ((start > 0) && ((content[start - 1] === ' ') || (content[start - 1] === '\t'))) {
+        start -= 1;
+    }
+    if ((start === 0) || (content[start - 1] === '\n')) {
+        return null;                      // the operator starts a line: go/printer's linebreak
+    }
+    let end = index + operator.length;
+    while ((end < content.length) && ((content[end] === ' ') || (content[end] === '\t'))) {
+        end += 1;
+    }
+    const right = content[end] ?? '';
+    if ((right === '') || (right === '\n') || goOperatorGluesTokens (operator, right)) {
+        return null;
+    }
+    return { 'start': start, 'end': end };
+}
+
+// drop the blanks around every level-4/5 operator of `text` (level >= 2 throughout: the
+// cutoff is 4, so no level-4/5 operator keeps a blank), strings and comments untouched
+function goSqueezeLevel45Text (text: string): string {
+    const out: string[] = [];
+    let lastChar = '';
+    let i = 0;
+    while (i < text.length) {
+        const char = text[i];
+        if (char === '"' || char === '\'' || char === '`') {
+            const literal = text.slice (i, goSkipLiteralText (text, i) + 1);
+            out.push (literal);
+            lastChar = literal[literal.length - 1];
+            i += literal.length;
+            continue;
+        }
+        if (char === '/' && (text[i + 1] === '/' || text[i + 1] === '*')) {
+            const comment = text.slice (i, goSkipCommentText (text, i) + 1);
+            out.push (comment);
+            i += comment.length;
+            continue;
+        }
+        const operator = goLevel45OperatorText (text, i);
+        if ((operator !== null) && GO_OPERAND_ENDER.test (lastChar)) {
+            const tightened = goTightenedOperatorText (text, i, operator);
+            if (tightened !== null) {
+                if ((out.length > 0) && ((out[out.length - 1] === ' ') || (out[out.length - 1] === '\t'))) {
+                    out.pop ();
+                }
+                out.push (operator);
+                i = tightened.end;
+                lastChar = '';
+                continue;
+            }
+        }
+        out.push (char);
+        if ((char !== ' ') && (char !== '\t')) {
+            lastChar = char;
+        }
+        i += 1;
+    }
+    return out.join ('');
+}
+
+// go/printer threads the level it prints an expression at through the operator tree: the
+// operands of a comparison or a logical operator print (at least) one level deeper, and in a
+// chain that mixes level 4 and level 5 every level-5 operator sits one level deeper than the
+// level-4 operator it hangs under (diffPrec()) - its grouped operand lands at level 2 with
+// it (reduceDepth()). The frame walk above only counts brackets, so the level-1 chains are
+// the one place left where the printer's own level bookkeeping shows: the composite literal
+// element `(90 * 86400) * 1000 - 1` is gofmt's `(90*86400)*1000 - 1`, while the same chain
+// without its level-4 operator keeps every blank (`(90 * 86400) * 1000`).
+function goGofmtLevelOneChains (content: string): string {
+    const fixes: { 'start': number, 'end': number, 'text': string }[] = [];
+    const stack: { 'level': number }[] = [];
+    let level = 1;
+    let lineStart = 0;
+    let i = 0;
+    while (i <= content.length) {
+        const char = content[i];
+        if ((i === content.length) || (char === '\n')) {
+            if (level === 1) {
+                goCollectLevelOneChainFixes (content, lineStart, i, fixes);
+            }
+            lineStart = i + 1;
+            i += 1;
+            continue;
+        }
+        if (char === '"' || char === '\'' || char === '`') {
+            i = goSkipLiteralText (content, i) + 1;
+            continue;
+        }
+        if (char === '/' && (content[i + 1] === '/' || content[i + 1] === '*')) {
+            i = goSkipCommentText (content, i);              // a line comment stops at its newline
+            continue;
+        }
+        if (char === '(' || char === '[' || char === '{') {
+            stack.push ({ 'level': level });
+            if (char === '{') {
+                level = 1;
+            } else if (char === '[') {
+                level += 1;
+            } else if (goIsSignatureParenText (content, i)) {
+                level = 0;
+            } else if (goIsCallParenText (content, i)) {
+                if (goCountFrameArgsText (content, i) > 1) {
+                    level += 1;
+                }
+            } else if (level > 1) {
+                level -= 1;
+            }
+            i += 1;
+            continue;
+        }
+        if (char === ')' || char === ']' || char === '}') {
+            const frame = stack.pop ();
+            if (frame !== undefined) {
+                level = frame.level;
+            }
+            i += 1;
+            continue;
+        }
+        i += 1;
+    }
+    fixes.sort ((a, b) => b.start - a.start);     // back to front: every edit keeps its offsets
+    for (let f = 0; f < fixes.length; f++) {
+        content = content.slice (0, fixes[f].start) + fixes[f].text + content.slice (fixes[f].end);
+    }
+    return content;
+}
+
+// every Go operator token with go/token's precedence (0 for the ones that only delimit an
+// expression: `=` & co assign, `<-` receives), or null when the text is not an operator
+function goGoOperatorText (content: string, index: number) {
+    const char = content[index];
+    const next = content[index + 1];
+    if (char === '<') {
+        if (next === '<') { return (content[index + 2] === '=') ? null : { 'token': '<<', 'precedence': 5 }; }
+        if (next === '-') { return { 'token': '<-', 'precedence': 0 }; }
+        if (next === '=') { return { 'token': '<=', 'precedence': 3 }; }
+        return { 'token': '<', 'precedence': 3 };
+    }
+    if (char === '>') {
+        if (next === '>') { return (content[index + 2] === '=') ? null : { 'token': '>>', 'precedence': 5 }; }
+        if (next === '=') { return { 'token': '>=', 'precedence': 3 }; }
+        return { 'token': '>', 'precedence': 3 };
+    }
+    if (char === '&') {
+        if (next === '&') { return { 'token': '&&', 'precedence': 2 }; }
+        if (next === '^') { return (content[index + 2] === '=') ? null : { 'token': '&^', 'precedence': 5 }; }
+        if (next === '=') { return null; }
+        return { 'token': '&', 'precedence': 5 };
+    }
+    if (char === '|') {
+        if (next === '|') { return { 'token': '||', 'precedence': 1 }; }
+        if (next === '=') { return null; }
+        return { 'token': '|', 'precedence': 4 };
+    }
+    if ((char === '+') || (char === '-')) {
+        if ((next === char) || (next === '=') || (next === '>')) { return null; }   // `++`/`--`, `+=`, `->`
+        return { 'token': char, 'precedence': 4 };
+    }
+    if ((char === '*') || (char === '/') || (char === '%') || (char === '^')) {
+        if (next === '=') { return null; }
+        return { 'token': char, 'precedence': (char === '^') ? 4 : 5 };
+    }
+    if (char === '=') {
+        if (next === '=') { return { 'token': '==', 'precedence': 3 }; }
+        return null;                      // a plain assignment is a separator
+    }
+    if (char === '!') {
+        if (next === '=') { return { 'token': '!=', 'precedence': 3 }; }
+        return null;                      // unary not
+    }
+    return null;
+}
+
+// the keywords that can stand in front of an expression: an operator right after one of
+// them is unary, not binary
+const GO_EXPRESSION_KEYWORDS = new Set ([ 'break', 'case', 'chan', 'const', 'continue', 'default',
+    'defer', 'else', 'fallthrough', 'for', 'func', 'go', 'goto', 'if', 'import', 'interface',
+    'map', 'package', 'range', 'return', 'select', 'struct', 'switch', 'type', 'var' ]);
+
+// the level-1 chain of the line [start, end): a mix of level 4 and level 5 makes the level-5
+// operators print at level 2 - and with them the grouped operand they own
+function goCollectLevelOneChainFixes (content: string, start: number, end: number, fixes: { 'start': number, 'end': number, 'text': string }[]) {
+    const tokens: { 'operator': string | null, 'start': number, 'end': number, 'keyword': boolean }[] = [];
+    let has4 = false;
+    let has5 = false;
+    let i = start;
+    while (i < end) {
+        const char = content[i];
+        if (char === '"' || char === '\'' || char === '`') {
+            const literalEnd = goSkipLiteralText (content, i);
+            tokens.push ({ 'operator': null, 'start': i, 'end': literalEnd + 1, 'keyword': false });
+            i = literalEnd + 1;
+            continue;
+        }
+        if (char === '/' && (content[i + 1] === '/' || content[i + 1] === '*')) {
+            i = goSkipCommentText (content, i) + 1;
+            continue;
+        }
+        const value = goGoOperatorText (content, i);
+        if (value !== null) {
+            const previous = tokens[tokens.length - 1];
+            const binary = (previous !== undefined) && (previous.operator === null) && !previous.keyword;
+            const precedence = (binary ? value.precedence : 0);
+            if (precedence === 4) {
+                has4 = true;
+            } else if (precedence === 5) {
+                has5 = true;
+            }
+            tokens.push ({ 'operator': (value.precedence >= 4) ? value.token : null, 'start': i, 'end': i + value.token.length, 'keyword': binary && (value.precedence < 4) });
+            i += value.token.length;
+            continue;
+        }
+        // an operand: everything up to the next operator, blank or separator of this level
+        const operandStart = i;
+        let depth = 0;
+        while (i < end) {
+            const operandChar = content[i];
+            if (operandChar === '"' || operandChar === '\'' || operandChar === '`') {
+                i = goSkipLiteralText (content, i) + 1;
+                continue;
+            }
+            if (operandChar === '/' && (content[i + 1] === '/' || content[i + 1] === '*')) {
+                i = goSkipCommentText (content, i) + 1;
+                continue;
+            }
+            if (operandChar === '(' || operandChar === '[' || operandChar === '{') {
+                depth += 1;
+            } else if (operandChar === ')' || operandChar === ']' || operandChar === '}') {
+                if (depth === 0) {
+                    break;
+                }
+                depth -= 1;
+            } else if (depth === 0) {
+                if (' \t:,='.indexOf (operandChar) >= 0) {
+                    break;
+                }
+                if (goGoOperatorText (content, i) !== null) {
+                    break;
+                }
+            }
+            i += 1;
+        }
+        if (i > operandStart) {
+            const operand = content.slice (operandStart, i);
+            tokens.push ({ 'operator': null, 'start': operandStart, 'end': i, 'keyword': GO_EXPRESSION_KEYWORDS.has (operand) });
+        } else {
+            if (':,;='.indexOf (content[i]) >= 0) {
+                // a separator ends the operand before it: what follows starts a new expression
+                tokens.push ({ 'operator': null, 'start': i, 'end': i + 1, 'keyword': true });
+            }
+            i += 1;                       // a blank or a bracket: nothing to tokenize here
+        }
+    }
+    if (!(has4 && has5)) {
+        return;
+    }
+    for (let t = 0; t < tokens.length; t++) {
+        const token = tokens[t];
+        if (goOperatorPrecedenceText (token.operator as string) !== 5) {
+            continue;
+        }
+        const previous = tokens[t - 1];
+        if ((previous === undefined) || (previous.operator !== null) || previous.keyword) {
+            continue;                     // a unary `*` owns no blanks and never mixes a chain
+        }
+        const tightened = goTightenedOperatorText (content, token.start, token.operator as string);
+        if (tightened !== null) {
+            fixes.push ({ 'start': tightened.start, 'end': tightened.end, 'text': token.operator as string });
+        }
+        // the operand of this level-5 operator prints one level deeper too: a grouped one
+        // lands at level 2 with it, so every operator inside it loses its blanks
+        const neighbours = [ t - 1, t + 1 ];
+        for (let n = 0; n < neighbours.length; n++) {
+            const neighbour = tokens[neighbours[n]];
+            if ((neighbour !== undefined) && (neighbour.operator === null)) {
+                const text = content.slice (neighbour.start, neighbour.end);
+                if ((text[0] === '(') && (text[text.length - 1] === ')')) {
+                    const squeezed = goSqueezeLevel45Text (text.slice (1, text.length - 1));
+                    if (squeezed !== text.slice (1, text.length - 1)) {
+                        fixes.push ({ 'start': neighbour.start + 1, 'end': neighbour.end - 1, 'text': squeezed });
+                    }
+                }
+            }
+        }
+    }
+}
+
+// go/token precedence of the operators the Go printer can print
+function goOperatorPrecedenceText (operator: string): number {
+    switch (operator) {
+    case '*': case '/': case '%': case '<<': case '>>': case '&': case '&^':
+        return 5;
+    case '+': case '-': case '|': case '^':
+        return 4;
+    }
+    return 0;
 }
 
 // gofmt's printer starts the file at the package clause, writes exactly one blank line
@@ -862,6 +1545,10 @@ function overwriteFileAndFolder (path: string, content: string) {
     // the transpiled ones). It is a no-op on text that is already aligned. The nil-check collapse
     // runs last so its match sees the canonical spacing.
     content = collapseRedundantNilChecks (formatGoSource (path, normalizeGoFileHeader (alignGoTrailingComments (content))));
+    // the collapse rewrites `if (x != nil) && (x != nil) {` into `if (x != nil) {`, and the
+    // parens of that form are exactly the ones gofmt's stripParens() takes off a control
+    // expression - so the spacing pass runs once more over its output
+    content = goGofmtSplicedText (content);
     // overwriteFile() already opens+truncates+writes the file; the extra
     // fs.writeFileSync below wrote every generated file a second time
     overwriteFile (path, content);
@@ -3903,58 +4590,18 @@ ${caseStatements.join('\n')}
 
     // index of the last byte of the Go literal that starts at `index`
     goSkipGoLiteral (content: string, index: number): number {
-        const quote = content[index];
-        for (let i = index + 1; i < content.length; i++) {
-            const char = content[i];
-            if (char === '\\' && quote !== '`') {
-                i += 1;
-            } else if (char === quote) {
-                return i;
-            } else if (char === '\n' && quote !== '`') {
-                return i - 1;                 // unterminated: stop at the line end
-            }
-        }
-        return content.length - 1;
+        return goSkipLiteralText (content, index);
     }
 
     // index of the last byte of the comment that starts at `index`
     goSkipGoComment (content: string, index: number): number {
-        if (content[index + 1] === '/') {
-            const end = content.indexOf ('\n', index);
-            return end < 0 ? content.length - 1 : end;
-        }
-        const end = content.indexOf ('*/', index + 2);
-        return end < 0 ? content.length - 1 : end + 1;
+        return goSkipCommentText (content, index);
     }
 
     // number of comma separated entries between the bracket at `opener` and its
     // matching closer (strings and comments ignored); 0 when unbalanced
     goCountFrameArgs (content: string, opener: number): number {
-        let depth = 0;
-        let entries = 0;
-        let seen = false;
-        for (let i = opener + 1; i < content.length; i++) {
-            const char = content[i];
-            if (char === '"' || char === '\'' || char === '`') {
-                i = this.goSkipGoLiteral (content, i);
-                seen = true;
-            } else if (char === '/' && (content[i + 1] === '/' || content[i + 1] === '*')) {
-                i = this.goSkipGoComment (content, i);
-            } else if (char === '(' || char === '[' || char === '{') {
-                depth += 1;
-            } else if (char === ')' || char === ']' || char === '}') {
-                if (depth === 0) {
-                    return seen || entries > 0 ? entries + 1 : 0;
-                }
-                depth -= 1;
-                seen = true;
-            } else if (char === ',' && depth === 0) {
-                entries += 1;
-            } else if (char !== ' ' && char !== '\t' && char !== '\n' && char !== '\r') {
-                seen = true;
-            }
-        }
-        return 0;
+        return goCountFrameArgsText (content, opener);
     }
 
     // the two-literal concatenation a `"\0"` string literal is rewritten into,
