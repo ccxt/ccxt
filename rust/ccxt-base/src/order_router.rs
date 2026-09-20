@@ -236,6 +236,11 @@ pub struct OrderRouter {
     //  fetch_route filters and funds on them, execute falls back to them — only the
     //  installation is a setter.
     venues: std::collections::BTreeMap<String, Box<dyn RouterVenue>>,
+
+    //  The rendered balances string for `venues`, read once and reused. fetch_route is ONE
+    //  HTTP request and must stay that way. Placing an order is what makes balances wrong,
+    //  so a live execute drops it. A Mutex because fetch_route takes &self.
+    balances_cache: std::sync::Mutex<Option<String>>,
 }
 
 // ---------------------------------------------------------------------------
@@ -573,6 +578,7 @@ impl OrderRouter {
             executed_plan_ids: std::sync::Mutex::new(ExecutedPlanLedger::new()),
             on_step: None,
             venues: std::collections::BTreeMap::new(),
+            balances_cache: std::sync::Mutex::new(None),
         };
         // The service dropped API keys in favour of per-IP rate limiting, so an empty key is
         // the normal case and must not error. A key supplied anyway is CARRIED rather than
@@ -603,6 +609,7 @@ impl OrderRouter {
             executed_plan_ids: std::sync::Mutex::new(ExecutedPlanLedger::new()),
             on_step: None,
             venues: std::collections::BTreeMap::new(),
+            balances_cache: std::sync::Mutex::new(None),
         })
     }
 
@@ -1990,8 +1997,7 @@ impl OrderRouter {
                 map.insert("exchanges".into(), Value::Str(ids.join(",")));
             }
             if field(params, "balances").is_none() {
-                let (balances, _dropped) = self.collect_balances(&self.venues).await?;
-                map.insert("balances".into(), Value::Str(balances));
+                map.insert("balances".into(), Value::Str(self.load_balances(false).await?));
             }
             owned_params = Value::Map(map);
             &owned_params
@@ -3577,6 +3583,10 @@ impl OrderRouter {
             let mut ledger = self.executed_plan_ids.lock().unwrap();
             ledger.record(plan_id.clone());
         }
+        // From here orders go out, so whatever balances were cached are about to be
+        // wrong. Dropped BEFORE dispatch, for the same reason the ledger is written
+        // here: a run that fails half way through has still moved money.
+        self.invalidate_balances();
         if strategy == "parallel_within_hop" {
             self.execute_parallel_within_hop(&mut report, &mut steps, venues, options, &usd_rates).await;
         } else if strategy == "best_effort" {
@@ -3677,6 +3687,34 @@ impl OrderRouter {
     /// The returned route carries two client-side additions: `balancesUsed`,
     /// the exact string sent, and `balancesDropped`, everything that did not fit
     /// and why.
+    /// Reads the venues' wallets once and caches the result, so a quote stays a single HTTP
+    /// request. Called for you by `fetch_route`; call it yourself to prime the cache at
+    /// start-up, or with `reload` to refresh it.
+    pub async fn load_balances(&self, reload: bool) -> RouterResult<String> {
+        if self.venues.is_empty() {
+            return Ok(String::new());
+        }
+        if !reload {
+            if let Ok(guard) = self.balances_cache.lock() {
+                if let Some(cached) = guard.as_ref() {
+                    return Ok(cached.clone());
+                }
+            }
+        }
+        let (balances, _dropped) = self.collect_balances(&self.venues).await?;
+        if let Ok(mut guard) = self.balances_cache.lock() {
+            *guard = Some(balances.clone());
+        }
+        Ok(balances)
+    }
+
+    /// Drops the cached balances, so the next quote re-reads the wallets.
+    pub fn invalidate_balances(&self) {
+        if let Ok(mut guard) = self.balances_cache.lock() {
+            *guard = None;
+        }
+    }
+
     /// Reads every supplied venue's wallet and renders it as the router's balances string,
     /// trimmed to the router's caps. Returns the string and the entries that did not fit.
     pub async fn collect_balances(

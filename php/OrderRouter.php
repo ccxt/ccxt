@@ -169,6 +169,11 @@ class OrderRouter {
         //  The venues this router trades through, held once instead of passed to every call.
         //  fetchRoute and execute both fall back to these; a call-site argument always wins.
         $this->venues = $this->dictAt($config, 'venues');
+        //  The rendered balances string for `venues`, read once and reused. fetchRoute is ONE
+        //  HTTP request and must stay that way. Placing an order is what makes balances wrong,
+        //  so a live execute drops it.
+        $this->balancesCache = '';
+        $this->balancesLoaded = false;
         $this->timeoutMs = $this->numberAt($config, 'timeoutMs', self::DEFAULT_TIMEOUT_MS);
         $maxNotionalUsd = $this->numberAt($config, 'maxNotionalUsd', self::NO_CAP);
         if ($maxNotionalUsd < 0) {
@@ -622,8 +627,7 @@ class OrderRouter {
                 $merged['exchanges'] = implode(',', $storedIds);
             }
             if (!isset($merged['balances'])) {
-                $collected = $this->collectBalances($this->venues);
-                $merged['balances'] = $collected['balances'];
+                $merged['balances'] = $this->loadBalances();
             }
             $params = $merged;
         }
@@ -1090,6 +1094,35 @@ class OrderRouter {
      *     bool requireBalancesApplied throw when the router did not echo balancesApplied, default true
      * @return array the RouteResult, with the client-side keys balancesUsed and balancesDropped added
      */
+    /**
+     * reads the venues' wallets once and caches the result, so a quote stays a single HTTP
+     * request. Called for you by fetchRoute; call it yourself to prime the cache at start-up,
+     * or with $reload to refresh it
+     *
+     * @param bool $reload true re-reads the wallets even when they are already cached
+     * @return string the rendered balances string, empty when the router holds no venues
+     */
+    public function loadBalances($reload = false) {
+        if (count($this->venues) === 0) {
+            return '';
+        }
+        if ($this->balancesLoaded && !$reload) {
+            return $this->balancesCache;
+        }
+        $collected = $this->collectBalances($this->venues);
+        $this->balancesCache = $this->stringAt($collected, 'balances', '');
+        $this->balancesLoaded = true;
+        return $this->balancesCache;
+    }
+
+    /**
+     * drops the cached balances, so the next quote re-reads the wallets
+     */
+    public function invalidateBalances() {
+        $this->balancesLoaded = false;
+        $this->balancesCache = '';
+    }
+
     /**
      * @ignore
      * reads every supplied venue's wallet and renders it as the router's balances string
@@ -2223,6 +2256,8 @@ class OrderRouter {
         //  throws half way through has still placed orders, and a guard that only recorded
         //  completed runs would wave through exactly the retry that double-fills.
         $this->recordExecutedPlan($planId);
+        //  From here orders go out, so whatever balances were cached are about to be wrong.
+        $this->invalidateBalances();
         if ($strategy === 'parallel_within_hop') {
             $this->executeParallelWithinHop($report, $steps, $venues, $options, $usdRates);
         } elseif ($strategy === 'best_effort') {

@@ -17,6 +17,8 @@ declare class OrderRouter {
     apiKey: string;
     baseUrl: string;
     venues: Dict;
+    balancesCache: string;
+    balancesLoaded: boolean;
     timeoutMs: number;
     maxNotionalUsd: number;
     webSocketImpl: any;
@@ -361,6 +363,21 @@ declare class OrderRouter {
      * @param {bool} [params.requireBalancesApplied] throw when the router did not echo balancesApplied, default true
      * @returns {object} the RouteResult, with the client-side keys balancesUsed and balancesDropped added
      */
+    /**
+     * @method
+     * @name OrderRouter#loadBalances
+     * @description reads the venues' wallets once and caches the result, so a quote stays a single HTTP request. Called for you by fetchRoute; call it yourself to prime the cache at start-up, or with reload to refresh it
+     * @param {bool} [reload] true re-reads the wallets even when they are already cached
+     * @returns {string} the rendered balances string, empty when the router holds no venues
+     */
+    loadBalances(reload?: boolean): Promise<string>;
+    /**
+     * @method
+     * @name OrderRouter#invalidateBalances
+     * @description drops the cached balances, so the next quote re-reads the wallets. Called for you after any run that reached a venue
+     * @returns {undefined}
+     */
+    invalidateBalances(): undefined;
     /**
      * @method
      * @name OrderRouter#collectBalances

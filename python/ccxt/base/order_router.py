@@ -197,6 +197,12 @@ class OrderRouter:
         # route name, what can it be funded from, and where do the orders go. fetch_route and
         # execute both fall back to these, and a call-site argument always wins.
         self.venues = self.dict_at(config, 'venues')
+        # The rendered balances string for `venues`, read once and reused. fetch_route is ONE
+        # HTTP request and must stay that way. Cached as load_markets caches, with one
+        # difference markets do not need - placing an order is precisely what makes balances
+        # wrong, so a live execute drops it.
+        self.balances_cache = ''
+        self.balances_loaded = False
         self.timeout_ms = self.number_at(config, 'timeoutMs', OrderRouter.DEFAULT_TIMEOUT_MS)
         max_notional_usd = self.number_at(config, 'maxNotionalUsd', OrderRouter.NO_CAP)
         if max_notional_usd < 0:
@@ -562,8 +568,7 @@ class OrderRouter:
             if merged.get('exchanges') is None:
                 merged['exchanges'] = ','.join(stored_ids)
             if merged.get('balances') is None:
-                collected = self.collect_balances(self.venues)
-                merged['balances'] = collected['balances']
+                merged['balances'] = self.load_balances()
             params = merged
         # HOLDINGS NEVER TRAVEL IN A URL. The service scrubs balances out of its own
         # logs, but a URL does not stay inside that process: the standard deployment
@@ -935,6 +940,29 @@ class OrderRouter:
         """
         self.stream_url(from_asset, to_asset, params)
         raise NotSupported('OrderRouter.watch_route needs a websocket, which synchronous ccxt has no client for. Use fetch_route, or consume /stream/route from ccxt.pro / a server-side proxy')
+
+    def load_balances(self, reload=False):
+        """
+        reads the venues' wallets once and caches the result, so a quote stays a single HTTP request. Called for you by fetch_route; call it yourself to prime the cache at start-up, or with reload to refresh it
+
+        :param bool [reload]: True re-reads the wallets even when they are already cached
+        :returns str: the rendered balances string, empty when the router holds no venues
+        """
+        if len(self.venues) == 0:
+            return ''
+        if self.balances_loaded and not reload:
+            return self.balances_cache
+        collected = self.collect_balances(self.venues)
+        self.balances_cache = self.string_at(collected, 'balances', '')
+        self.balances_loaded = True
+        return self.balances_cache
+
+    def invalidate_balances(self):
+        """
+        drops the cached balances, so the next quote re-reads the wallets. Called for you after any run that reached a venue
+        """
+        self.balances_loaded = False
+        self.balances_cache = ''
 
     def collect_balances(self, venues):
         """
@@ -1854,6 +1882,9 @@ class OrderRouter:
         # raises half way through has still placed orders, and a guard that only recorded
         # completed runs would wave through exactly the retry that double-fills.
         self.record_executed_plan(plan_id)
+        # From here orders go out, so whatever balances were cached are about to be wrong.
+        # Dropped BEFORE dispatch: a run that raises half way through has still moved money.
+        self.invalidate_balances()
         if strategy == 'parallel_within_hop':
             self.execute_parallel_within_hop(report, steps, venues, options, usd_rates)
         elif strategy == 'best_effort':

@@ -170,6 +170,12 @@ type OrderRouter struct {
 	// FetchRoute and Execute both fall back to these; a call-site argument wins.
 	Venues map[string]IExchange
 
+	// The rendered balances string for Venues, read once and reused. FetchRoute is ONE
+	// HTTP request and must stay that way. Placing an order is what makes balances wrong,
+	// so a live Execute drops it.
+	balancesCache  string
+	balancesLoaded bool
+
 	TimeoutMs      float64
 	MaxNotionalUsd float64
 
@@ -664,11 +670,11 @@ func (this *OrderRouter) FetchRoute(fromAsset string, toAsset string, params map
 			merged["exchanges"] = strings.Join(storedIds, ",")
 		}
 		if merged["balances"] == nil {
-			collectedBalances, _, collectErr := this.CollectBalances(this.Venues)
-			if collectErr != nil {
-				return nil, collectErr
+			loaded, loadErr := this.LoadBalances(false)
+			if loadErr != nil {
+				return nil, loadErr
 			}
-			merged["balances"] = collectedBalances
+			merged["balances"] = loaded
 		}
 		params = merged
 	}
@@ -1211,6 +1217,31 @@ func (this *OrderRouter) FetchCachedOrderBook(exchangeId string, symbol string) 
 	// segments and reach a route that does not exist
 	url := this.BaseUrl + "/orderbook/" + routerEncodeURIComponent(exchangeId) + "/" + routerEncodeURIComponent(symbol)
 	return this.Transport(url, "GET", nil)
+}
+
+// LoadBalances reads the venues' wallets once and caches the result, so a quote
+// stays a single HTTP request. Called for you by FetchRoute; call it yourself to
+// prime the cache at start-up, or with reload to refresh it.
+func (this *OrderRouter) LoadBalances(reload bool) (string, error) {
+	if len(this.Venues) == 0 {
+		return "", nil
+	}
+	if this.balancesLoaded && !reload {
+		return this.balancesCache, nil
+	}
+	balances, _, err := this.CollectBalances(this.Venues)
+	if err != nil {
+		return "", err
+	}
+	this.balancesCache = balances
+	this.balancesLoaded = true
+	return this.balancesCache, nil
+}
+
+// InvalidateBalances drops the cached balances, so the next quote re-reads the wallets.
+func (this *OrderRouter) InvalidateBalances() {
+	this.balancesLoaded = false
+	this.balancesCache = ""
 }
 
 // CollectBalances reads every supplied venue's wallet and renders it as the

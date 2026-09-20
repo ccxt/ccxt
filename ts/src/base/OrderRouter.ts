@@ -138,6 +138,15 @@ class OrderRouter {
     //  exchangeId -> ccxt exchange instance, optional. See the constructor.
     venues: Dict;
 
+    //  The rendered balances string for `venues`, read once and reused. fetchRoute is ONE
+    //  HTTP request and must stay that way: reading every wallet on every quote turns a
+    //  call made in a loop into one request per venue plus one. Cached exactly as
+    //  loadMarkets caches, with one difference markets do not need — placing an order is
+    //  precisely what makes balances wrong, so a live execute drops it.
+    balancesCache: string;
+
+    balancesLoaded: boolean;
+
     timeoutMs: number;
 
     maxNotionalUsd: number;
@@ -183,6 +192,8 @@ class OrderRouter {
         //  it be funded from, and where do the orders go. fetchRoute and execute both fall
         //  back to these, and an argument passed at the call site always wins.
         this.venues = this.dictAt (config, 'venues');
+        this.balancesCache = '';
+        this.balancesLoaded = false;
         this.timeoutMs = this.numberAt (config, 'timeoutMs', OrderRouter.DEFAULT_TIMEOUT_MS);
         const maxNotionalUsd = this.numberAt (config, 'maxNotionalUsd', OrderRouter.NO_CAP);
         if (maxNotionalUsd < 0) {
@@ -575,8 +586,7 @@ class OrderRouter {
                 merged['exchanges'] = storedIds.join (',');
             }
             if (merged['balances'] === undefined || merged['balances'] === null) {
-                const collected = await this.collectBalances (this.venues);
-                merged['balances'] = collected['balances'];
+                merged['balances'] = await this.loadBalances ();
             }
             params = merged;
         }
@@ -1272,6 +1282,38 @@ class OrderRouter {
      * @param {bool} [params.requireBalancesApplied] throw when the router did not echo balancesApplied, default true
      * @returns {object} the RouteResult, with the client-side keys balancesUsed and balancesDropped added
      */
+    /**
+     * @method
+     * @name OrderRouter#loadBalances
+     * @description reads the venues' wallets once and caches the result, so a quote stays a single HTTP request. Called for you by fetchRoute; call it yourself to prime the cache at start-up, or with reload to refresh it
+     * @param {bool} [reload] true re-reads the wallets even when they are already cached
+     * @returns {string} the rendered balances string, empty when the router holds no venues
+     */
+    async loadBalances (reload = false): Promise<string> {
+        if (Object.keys (this.venues).length === 0) {
+            return '';
+        }
+        if (this.balancesLoaded && !reload) {
+            return this.balancesCache;
+        }
+        const collected = await this.collectBalances (this.venues);
+        this.balancesCache = this.stringAt (collected, 'balances', '');
+        this.balancesLoaded = true;
+        return this.balancesCache;
+    }
+
+    /**
+     * @method
+     * @name OrderRouter#invalidateBalances
+     * @description drops the cached balances, so the next quote re-reads the wallets. Called for you after any run that reached a venue
+     * @returns {undefined}
+     */
+    invalidateBalances () {
+        this.balancesLoaded = false;
+        this.balancesCache = '';
+        return undefined;
+    }
+
     /**
      * @method
      * @name OrderRouter#collectBalances
@@ -2367,6 +2409,12 @@ class OrderRouter {
         //  throws half way through has still placed orders, and a guard that only records
         //  completed runs would wave through exactly the retry that double-fills.
         this.recordExecutedPlan (planId);
+        //  From here orders go out, so whatever balances were cached are about to be wrong.
+        //  Dropped BEFORE dispatch rather than after: a run that throws half way through has
+        //  still moved money, and a cache invalidated only on the success path would leave the
+        //  next quote funded against holdings that no longer exist. dry_run never reaches this
+        //  line, so a rehearsal keeps the cache.
+        this.invalidateBalances ();
         if (strategy === 'parallel_within_hop') {
             await this.executeParallelWithinHop (report, steps, venues, options, usdRates);
         } else if (strategy === 'best_effort') {

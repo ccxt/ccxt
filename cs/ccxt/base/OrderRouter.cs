@@ -169,6 +169,13 @@ public class OrderRouter
     //  exchangeId -> ccxt exchange instance, optional. See the constructor.
     public Dictionary<string, Exchange> venues { get; private set; }
 
+    //  The rendered balances string for `venues`, read once and reused. FetchRoute is ONE
+    //  HTTP request and must stay that way. Placing an order is what makes balances wrong,
+    //  so a live Execute drops it.
+    private string balancesCache = "";
+
+    private bool balancesLoaded = false;
+
     public double timeoutMs { get; private set; }
 
     public double maxNotionalUsd { get; private set; }
@@ -771,8 +778,7 @@ public class OrderRouter
             }
             if (!merged.ContainsKey("balances") || merged["balances"] == null)
             {
-                var collected = await this.CollectBalances(this.venues);
-                merged["balances"] = this.StringAt(collected, "balances", "");
+                merged["balances"] = await this.LoadBalances();
             }
             parameters = merged;
         }
@@ -1477,6 +1483,34 @@ public class OrderRouter
             }
         }
         return new dict() { { "free", free }, { "total", total } };
+    }
+
+    /// <summary>
+    /// Reads the venues' wallets once and caches the result, so a quote stays a single HTTP
+    /// request. Called for you by FetchRoute; call it yourself to prime the cache at start-up,
+    /// or with reload to refresh it.
+    /// </summary>
+    public async Task<string> LoadBalances(bool reload = false)
+    {
+        if (this.venues.Count == 0)
+        {
+            return "";
+        }
+        if (this.balancesLoaded && !reload)
+        {
+            return this.balancesCache;
+        }
+        var collected = await this.CollectBalances(this.venues);
+        this.balancesCache = this.StringAt(collected, "balances", "");
+        this.balancesLoaded = true;
+        return this.balancesCache;
+    }
+
+    /// <summary>Drops the cached balances, so the next quote re-reads the wallets.</summary>
+    public void InvalidateBalances()
+    {
+        this.balancesLoaded = false;
+        this.balancesCache = "";
     }
 
     /// <summary>reads every supplied venue's wallet and renders it as the router's balances string</summary>
@@ -2753,6 +2787,8 @@ public class OrderRouter
         //  recorded completed runs would wave through exactly the retry that
         //  double-fills.
         this.RecordExecutedPlan(planId);
+        //  From here orders go out, so whatever balances were cached are about to be wrong.
+        this.InvalidateBalances();
         if (strategy == "parallel_within_hop")
         {
             await this.ExecuteParallelWithinHop(report, steps, venues, options, usdRates);

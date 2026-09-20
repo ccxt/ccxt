@@ -8804,6 +8804,20 @@ call against a venue, not even a read.
 `strategy` and `dryRun` are independent on purpose: `strategy` says only HOW the orders go out,
 `dryRun` says only WHETHER. That is why rehearsing a `limit_protected` run is sayable.
 
+**Hold your venues on the router and a quote stays one call.** `new OrderRouter ({ venues })`
+answers three questions at once: which venues a route may name — you cannot trade where you hold
+no keys — what it can be funded from, and where the orders go. The `exchanges` filter costs
+nothing and cannot go stale. The balances behind it are read **once and cached**, exactly as
+`loadMarkets` caches, so `fetchRoute` stays a single HTTP request however often you call it.
+
+`loadBalances ()` primes that cache at start-up and `loadBalances (true)` refreshes it. You rarely
+need either: a live `execute` **drops the cache itself**, because placing an order is precisely
+what makes the cached holdings wrong, and it drops it *before* dispatch — a run that throws half
+way through has still moved money. A rehearsal places nothing and keeps the cache.
+
+Anything you pass at the call site wins: your own `exchanges`, your own `balances`, your own
+venues argument to `execute`.
+
 **The whole pipeline is two calls.** `execute` accepts the route itself, and does the rest: it
 builds the plan, loads each venue's markets if they are not loaded, runs `checkExecutionPlanSafety`
 and **throws rather than place anything** when a violation is blocking. A refusal a caller can
