@@ -253,8 +253,16 @@ const permissiveStubMarkets = {
         },
     },
 };
-test('constructor: apiKey is required, and maxNotionalUsd is an opt-in guardrail at any size', () => {
-    assert.throws(() => new OrderRouter({}), ArgumentsRequired);
+test('constructor: the service is public, and maxNotionalUsd is an opt-in guardrail at any size', () => {
+    //  The router service dropped API keys in favour of per-IP rate limiting, so a bare
+    //  constructor is the documented way to build one and must not throw.
+    const keyless = new OrderRouter({});
+    assert.strictEqual(keyless.apiKey, '', 'no key is the normal case now');
+    //  A key supplied anyway is still CARRIED, not rejected. The keyless server ignores the
+    //  header; a server still expecting one gets it. That is what lets this client ship
+    //  before the deploy lands instead of after it.
+    const keyed = new OrderRouter({ 'apiKey': 'still-works' });
+    assert.strictEqual(keyed.apiKey, 'still-works', 'a supplied key is kept and sent');
     //  No ceiling. A caller trading thousands is using this correctly, and the class
     //  does not get to decide otherwise — the old hard 25 USD limit came from this
     //  repository's own live-test safety rule, which is not a rule about anyone's money.
@@ -1257,6 +1265,44 @@ test('a cold cache never borrows the rate-limit window as its retry interval', a
         stub.restore();
     }
 });
+test('the stream handshake maps 403 the same way the REST path does', async () => {
+    //  A failed upgrade reaches the client only as transport text — "Unexpected server
+    //  response: 403" — so the status has to be recovered from the string. Both paths face
+    //  the same ipv4-only refusal and must name it identically; a socket that reports an
+    //  authentication failure where the REST call reports an address problem is worse than
+    //  either alone, because the two disagree about a service that has no credentials.
+    const router = new OrderRouter({});
+    const forbidden = router.streamHandshakeError('Unexpected server response: 403');
+    assert.strictEqual(forbidden.constructor.name, 'PermissionDenied');
+    assert.ok(forbidden.message.indexOf('IPv4') >= 0, forbidden.message);
+    //  401 stays an authentication failure: it is the status a deployment fronting the
+    //  router with its own auth would send, and the only one a credential can fix
+    const unauthorized = router.streamHandshakeError('Unexpected server response: 401');
+    assert.strictEqual(unauthorized.constructor.name, 'AuthenticationError');
+    const throttled = router.streamHandshakeError('Unexpected server response: 429');
+    assert.strictEqual(throttled.constructor.name, 'RateLimitExceeded');
+});
+test('a 403 is the ipv4-only refusal, not an authentication failure', async () => {
+    //  The service has no API key at all: it rate-limits by client IP instead. Its only 403
+    //  is components/responses/Ipv4Only — the resolved client address is not a dotted quad,
+    //  so the request is refused BEFORE rate limiting. Reporting that as AuthenticationError
+    //  sends an IPv6 caller hunting for a credential that does not exist for any user of this
+    //  service, and the fix they actually need — reach it over IPv4 — is never mentioned.
+    const stub = stubFetch(403, JSON.stringify({ 'error': 'ipv4_only' }), {});
+    try {
+        const router = new OrderRouter({});
+        await assert.rejects(async () => {
+            await router.fetchRoute('USDT', 'BTC', { 'amountIn': 10 });
+        }, (e) => {
+            assert.strictEqual(e.constructor.name, 'PermissionDenied');
+            assert.ok(e.message.indexOf('IPv4') >= 0, e.message);
+            return true;
+        });
+    }
+    finally {
+        stub.restore();
+    }
+});
 test('a 429 names how long to wait, falling back to the window rollover', async () => {
     const stub = stubFetch(429, JSON.stringify({ 'error': 'rate limit exceeded' }), { 'retry-after': '30' });
     try {
@@ -1359,6 +1405,22 @@ test('a cached book encodes the symbol as ONE path segment', async () => {
     await assert.rejects(async () => {
         await router.fetchCachedOrderBook('binance', '');
     }, ArgumentsRequired);
+});
+test('a keyless client sends no x-api-key header at all, rather than an empty one', async () => {
+    //  An empty x-api-key is NOT the same as no x-api-key. A server that still authenticates
+    //  reads "" as a malformed credential rather than an anonymous caller, so the header has
+    //  to be absent, not blank. REST and the websocket upgrade both.
+    const stub = stubFetch(200, JSON.stringify({ 'hops': [] }), {});
+    try {
+        const router = new OrderRouter({ 'baseUrl': 'https://example.test/api' });
+        await router.fetchRoute('USDT', 'BTC', { 'amountIn': 10 });
+        const headers = stub.calls[0]['options']['headers'];
+        assert.strictEqual('x-api-key' in headers, false, 'the header is omitted entirely');
+        assert.strictEqual(headers['Accept'], 'application/json', 'the rest of the headers are untouched');
+    }
+    finally {
+        stub.restore();
+    }
 });
 test('a POST carries a JSON body and the key, a GET carries no body at all', async () => {
     const stub = stubFetch(200, JSON.stringify({ 'hops': [] }), {});

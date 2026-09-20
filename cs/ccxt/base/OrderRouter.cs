@@ -190,19 +190,17 @@ public class OrderRouter
     /// Creates a client for the CCXT order-router service.
     /// </summary>
     /// <param name="config">
-    /// apiKey (required, sent as the x-api-key header), baseUrl (defaults to
+    /// apiKey (optional; the service is public and rate-limits by IP, but a key supplied here is still sent as the x-api-key header), baseUrl (defaults to
     /// https://docs.ccxt.com/router/api), timeoutMs (defaults to 30000) and
     /// maxNotionalUsd (an opt-in guardrail honoured exactly at whatever value
     /// you choose; omit it, or pass 0, for no cap).
     /// </param>
     public OrderRouter(dict config = null)
     {
-        var key = this.StringAt(config, "apiKey", "");
-        if (key == "")
-        {
-            throw new ArgumentsRequired("OrderRouter requires an apiKey");
-        }
-        this.apiKey = key;
+        //  The service dropped API keys in favour of per-IP rate limiting, so an empty key is
+        //  the normal case and must not throw. A key supplied anyway is CARRIED rather than
+        //  ignored, so the same client works against both servers.
+        this.apiKey = this.StringAt(config, "apiKey", "");
         var url = this.StringAt(config, "baseUrl", DefaultBaseUrl);
         while (url.Length > 0 && url[url.Length - 1] == '/')
         {
@@ -905,7 +903,12 @@ public class OrderRouter
         dict lastRoute = new dict();
         using (var socket = new ClientWebSocket())
         {
-            socket.Options.SetRequestHeader("x-api-key", this.apiKey);
+            //  omitted entirely when absent: an empty x-api-key reads as a malformed
+            //  credential to a server that still authenticates, not as an anonymous caller
+            if (this.apiKey != "")
+            {
+                socket.Options.SetRequestHeader("x-api-key", this.apiKey);
+            }
             if (requestId != "" && requestId.Length <= 200)
             {
                 socket.Options.SetRequestHeader("x-request-id", requestId);
@@ -1013,9 +1016,15 @@ public class OrderRouter
         {
             message = "the route stream failed";
         }
-        if (message.IndexOf("401", StringComparison.Ordinal) >= 0 || message.IndexOf("403", StringComparison.Ordinal) >= 0)
+        if (message.IndexOf("401", StringComparison.Ordinal) >= 0)
         {
             return new AuthenticationError("OrderRouter: unauthorized");
+        }
+        if (message.IndexOf("403", StringComparison.Ordinal) >= 0)
+        {
+            //  same ipv4-only refusal as the REST path, and the same reason not to call it an
+            //  authentication failure: this service has no credential to get wrong
+            return new PermissionDenied("OrderRouter: the router resolved this client to a non-IPv4 address and refused it; reach it over IPv4");
         }
         if (message.IndexOf("429", StringComparison.Ordinal) >= 0)
         {
@@ -1154,7 +1163,10 @@ public class OrderRouter
                 var verb = (method == "POST") ? HttpMethod.Post : HttpMethod.Get;
                 using (var message = new HttpRequestMessage(verb, url))
                 {
-                    message.Headers.TryAddWithoutValidation("x-api-key", this.apiKey);
+                    if (this.apiKey != "")
+                    {
+                        message.Headers.TryAddWithoutValidation("x-api-key", this.apiKey);
+                    }
                     message.Headers.TryAddWithoutValidation("Accept", "application/json");
                     if (requestId != "" && requestId.Length <= 200)
                     {
@@ -1225,9 +1237,19 @@ public class OrderRouter
         {
             throw new BadRequest("OrderRouter: " + message2);
         }
-        if (status == 401 || status == 403)
+        if (status == 401)
         {
+            //  The public service never answers 401 - it has no credentials to reject. This is
+            //  here for a deployment that fronts the router with its own authentication.
             throw new AuthenticationError("OrderRouter: " + message2);
+        }
+        if (status == 403)
+        {
+            //  NOT an authentication failure. The service has no API key; its only 403 is the
+            //  ipv4-only refusal, raised before rate limiting when the resolved client address
+            //  is not a dotted quad. Calling it an auth error sends the caller looking for a
+            //  credential that exists for nobody, while the real remedy goes unsaid.
+            throw new PermissionDenied("OrderRouter: " + message2 + " — the router resolved this client to a non-IPv4 address and refused it; reach it over IPv4");
         }
         if (status == 429)
         {

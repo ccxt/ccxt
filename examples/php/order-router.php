@@ -12,9 +12,9 @@
 // which defaults to dry_run and refuses to trade unless explicitly told to.
 //
 // Usage:
-//   ORDER_ROUTER_API_KEY=or_live_... php examples/php/order-router.php
+//   php examples/php/order-router.php
 //
-// Get a key from https://docs.ccxt.com/router
+// The router service is public: no API key, no signup.
 
 $root = dirname(dirname(dirname(__FILE__)));
 
@@ -22,14 +22,7 @@ include $root . '/ccxt.php';
 
 date_default_timezone_set('UTC');
 
-$apiKey = getenv('ORDER_ROUTER_API_KEY');
-if (!$apiKey) {
-    echo "set ORDER_ROUTER_API_KEY (get one at https://docs.ccxt.com/router)\n";
-    exit(0);
-}
-
 $router = new \ccxt\OrderRouter(array(
-    'apiKey' => $apiKey,
     // 'baseUrl' => 'https://docs.ccxt.com/router/api',  // the default
 ));
 

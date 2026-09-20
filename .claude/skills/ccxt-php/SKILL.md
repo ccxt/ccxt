@@ -966,7 +966,7 @@ service and no API key. It is **not** an exchange: it does not extend `Exchange`
 methods, and is constructed directly.
 
 ```php
-$router = new \ccxt\OrderRouter(array('apiKey' => getenv('ORDER_ROUTER_API_KEY')));
+$router = new \ccxt\OrderRouter();
 
 // exactly one of amountIn / amountOut
 $route = $router->fetchRoute('USDT', 'BTC', array('amountIn' => 1000));
@@ -992,11 +992,14 @@ regardless of the strategy requested** — a call that looks live but forgot the
 
 ### The service, and what it costs
 
-`https://docs.ccxt.com/router/api`. Everything except `/health` and `/ready` needs the key, sent
-as `x-api-key`; get one at [docs.ccxt.com/router/signup](https://docs.ccxt.com/router/signup).
+`https://docs.ccxt.com/router/api`. **Every endpoint is public**: there is no API key, no signup
+and no login. The service rate-limits by client IP address instead.
 
-**The full contract is published as OpenAPI 3.1 at
-`https://docs.ccxt.com/router/openapi.yaml`, and it is public — no key needed.**
+The client still accepts an `apiKey` and still sends it as `x-api-key` when you pass one, so a
+deployment that fronts the service with its own authentication keeps working. With no key the
+header is omitted entirely rather than sent empty.
+
+**The full contract is published as OpenAPI 3.1 at `https://docs.ccxt.com/router/openapi.yaml`.**
 `curl -O https://docs.ccxt.com/router/openapi.yaml` and point codegen at it, import it into
 Postman/Insomnia, or diff it between deploys. It is the authority on every field this client
 reads; where the two disagree, the spec is right. Rendered prose version:

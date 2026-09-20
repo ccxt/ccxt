@@ -559,10 +559,10 @@ impl OrderRouter {
             executed_plan_ids: std::sync::Mutex::new(ExecutedPlanLedger::new()),
             on_step: None,
         };
+        // The service dropped API keys in favour of per-IP rate limiting, so an empty key is
+        // the normal case and must not error. A key supplied anyway is CARRIED rather than
+        // ignored, so the same client works against both servers.
         let api_key = reader.string_at(config, "apiKey", "");
-        if api_key.is_empty() {
-            return Err(arguments_required("OrderRouter requires an apiKey"));
-        }
         let mut base_url = reader.string_at(config, "baseUrl", DEFAULT_BASE_URL);
         while base_url.ends_with('/') {
             base_url.pop();
@@ -1751,10 +1751,14 @@ impl OrderRouter {
         })?;
         {
             let headers = request.headers_mut();
-            let key = self.api_key.parse().map_err(|_| {
-                bad_request("OrderRouter: the apiKey cannot be sent as a header")
-            })?;
-            headers.insert("x-api-key", key);
+            // omitted entirely when absent: an empty x-api-key reads as a malformed
+            // credential to a server that still authenticates, not as an anonymous caller
+            if !self.api_key.is_empty() {
+                let key = self.api_key.parse().map_err(|_| {
+                    bad_request("OrderRouter: the apiKey cannot be sent as a header")
+                })?;
+                headers.insert("x-api-key", key);
+            }
             let request_id = self.string_at(params, "requestId", "");
             if !request_id.is_empty() && request_id.len() <= 200 {
                 if let Ok(value) = request_id.parse() {
@@ -1827,8 +1831,13 @@ impl OrderRouter {
     /// status. 401, 429 and 503 happen BEFORE the upgrade, so they never arrive as close
     /// codes, and the transport reports them only as text.
     pub fn stream_handshake_error(&self, message: &str) -> ExchangeError {
-        if message.contains("401") || message.contains("403") {
+        if message.contains("401") {
             return ExchangeError::new("AuthenticationError", "OrderRouter: unauthorized".to_string());
+        }
+        if message.contains("403") {
+            //  same ipv4-only refusal as the REST path, and the same reason not to call it an
+            //  authentication failure: this service has no credential to get wrong
+            return ExchangeError::new("PermissionDenied", "OrderRouter: the router resolved this client to a non-IPv4 address and refused it; reach it over IPv4".to_string());
         }
         if message.contains("429") {
             return ExchangeError::new("RateLimitExceeded", "OrderRouter: rate limit exceeded".to_string());
@@ -2043,9 +2052,10 @@ impl OrderRouter {
         } else {
             client.get(url)
         };
-        builder = builder
-            .header("x-api-key", &self.api_key)
-            .header("Accept", "application/json");
+        builder = builder.header("Accept", "application/json");
+        if !self.api_key.is_empty() {
+            builder = builder.header("x-api-key", &self.api_key);
+        }
         if !request_id.is_empty() && request_id.len() <= 200 {
             // the service caps this at 200 characters and mints its own when absent, so a
             // longer one is dropped rather than sent and rejected
@@ -2135,9 +2145,19 @@ impl OrderRouter {
                 format!("OrderRouter: {message}{retry}"),
             ));
         }
+        if status == 403 {
+            //  NOT an authentication failure. The service has no API key; its only 403 is the
+            //  ipv4-only refusal, raised before rate limiting when the resolved client address
+            //  is not a dotted quad. Calling it an auth error sends the caller looking for a
+            //  credential that exists for nobody, while the real remedy goes unsaid.
+            return Err(ExchangeError::new(
+                "PermissionDenied",
+                format!("OrderRouter: {message} — the router resolved this client to a non-IPv4 address and refused it; reach it over IPv4"),
+            ));
+        }
         let kind = match status {
             400 => "BadRequest",
-            401 | 403 => "AuthenticationError",
+            401 => "AuthenticationError",
             408 | 504 => "RequestTimeout",
             _ => "ExchangeError",
         };

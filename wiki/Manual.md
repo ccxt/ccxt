@@ -8526,30 +8526,30 @@ directly:
 <!-- tabs:start -->
 #### **Javascript**
 ```javascript
-const router = new ccxt.OrderRouter ({ 'apiKey': process.env.ORDER_ROUTER_API_KEY });
+const router = new ccxt.OrderRouter ();
 const route = await router.fetchRoute ('USDT', 'BTC', { 'amountIn': 1000 });
 console.log (route['effectiveRate'], route['impactBps'], route['fillRatio']);
 ```
 #### **Python**
 ```python
-router = ccxt.OrderRouter({'apiKey': os.environ['ORDER_ROUTER_API_KEY']})
+router = ccxt.OrderRouter()
 route = router.fetch_route('USDT', 'BTC', {'amountIn': 1000})
 print(route['effectiveRate'], route['impactBps'], route['fillRatio'])
 ```
 #### **PHP**
 ```php
-$router = new \ccxt\OrderRouter(array('apiKey' => getenv('ORDER_ROUTER_API_KEY')));
+$router = new \ccxt\OrderRouter();
 $route = $router->fetchRoute('USDT', 'BTC', array('amountIn' => 1000));
 echo $route['effectiveRate'], ' ', $route['impactBps'], ' ', $route['fillRatio'];
 ```
 #### **C#**
 ```csharp
-var router = new ccxt.OrderRouter(new dict() { { "apiKey", apiKey } });
+var router = new ccxt.OrderRouter();
 var route = await router.FetchRoute("USDT", "BTC", new dict() { { "amountIn", 1000 } });
 ```
 #### **Go**
 ```go
-router, err := ccxt.NewOrderRouter(map[string]any{"apiKey": apiKey})
+router, err := ccxt.NewOrderRouter(nil)
 route, err := router.FetchRoute("USDT", "BTC", map[string]any{"amountIn": 1000.0})
 ```
 #### **Rust**
@@ -8557,9 +8557,7 @@ route, err := router.FetchRoute("USDT", "BTC", map[string]any{"amountIn": 1000.0
 use ccxt::{OrderRouter, Value};
 use ccxt::value::HashMap;
 
-let mut config = HashMap::new();
-config.insert("apiKey".to_string(), Value::Str(api_key));
-let router = OrderRouter::new(&Value::Map(config))?;
+let router = OrderRouter::new(&Value::Map(HashMap::new()))?;
 
 let mut params = HashMap::new();
 params.insert("amountIn".to_string(), Value::Float(1000.0));
@@ -8578,14 +8576,19 @@ hold.
 
 ## The service
 
-`OrderRouter` talks to `https://docs.ccxt.com/router/api`. Everything except `/health` and
-`/ready` needs an API key, sent as `x-api-key`; you get one at
-[docs.ccxt.com/router/signup](https://docs.ccxt.com/router/signup).
+`OrderRouter` talks to `https://docs.ccxt.com/router/api`. **Every endpoint is public**: there is
+no API key, no signup and no login. The service rate-limits by client IP address instead, so the
+constructor takes no credential and `new OrderRouter ()` is the normal way to build one.
+
+The client still accepts an `apiKey` and still sends it as `x-api-key` when you pass one. Nothing
+needs it today — a keyless server ignores the header — but a deployment that has not yet dropped
+authentication is satisfied by it, so the same client works either side of that change. With no key
+the header is omitted entirely rather than sent empty, because a server that does still
+authenticate reads an empty credential as malformed rather than as an anonymous caller.
 
 ### The OpenAPI spec
 
-The full contract is published as OpenAPI 3.1 and is **public — no key, no signup, no
-`x-api-key`**:
+The full contract is published as OpenAPI 3.1:
 
 ```
 https://docs.ccxt.com/router/openapi.yaml
@@ -8607,8 +8610,7 @@ Prefer prose? The same contract is rendered at
 
 **The service is free to use for now, up to the published rate limit.** That is not a permanent
 commitment: it holds live books for ~60 venues and running it costs real money, so expect a paid
-tier at some point. Nothing about the client changes if that happens — the key you already hold is
-how you will be billed.
+tier at some point.
 
 Every response carries the limit headers, and they are the number to trust rather than any figure
 written down here:
@@ -8623,19 +8625,26 @@ written down here:
 Exceeding it raises `RateLimitExceeded`, and the client folds the retry interval into the message
 so you do not have to read the headers yourself to back off sensibly.
 
+**A `403` from this service is never an authentication failure** — it has no credentials to reject.
+Its only `403` is the IPv4-only refusal: the router resolves the client address before rate
+limiting, accepts a dotted quad (normalising `::ffff:a.b.c.d` to `a.b.c.d`), and refuses everything
+else, IPv6 included. The client raises `PermissionDenied` and says so in the message, because
+reporting it as an `AuthenticationError` would send you looking for a key that exists for nobody.
+The remedy is to reach the service over IPv4.
+
 ### The read-only endpoints
 
-Besides routing, the service answers a handful of questions about itself. They are cheap, and two
-of them need no key at all:
+Besides routing, the service answers a handful of questions about itself. They are cheap, and like
+every other endpoint they are public:
 
-| Method | Endpoint | Key? | What it answers |
-|---|---|---|---|
-| `fetchHealth ()` | `/health` | no | is the process alive. Answers `200` from the first millisecond of boot |
-| `fetchReadiness ()` | `/ready` | no | can it actually route yet — book counts and how many are fresh |
-| `fetchVersion ()` | `/version` | yes | which commit is deployed |
-| `fetchSymbols ()` | `/symbols` | yes | the unified symbols it currently holds a book for |
-| `fetchExchangesStatus ()` | `/exchanges/status` | yes | per-venue connection health |
-| `fetchCachedOrderBook (exchangeId, symbol)` | `/orderbook/{exchange}/{symbol}` | yes | the exact book a route was ranked on |
+| Method | Endpoint | What it answers |
+|---|---|---|
+| `fetchHealth ()` | `/health` | is the process alive. Answers `200` from the first millisecond of boot |
+| `fetchReadiness ()` | `/ready` | can it actually route yet — book counts and how many are fresh |
+| `fetchVersion ()` | `/version` | which commit is deployed |
+| `fetchSymbols ()` | `/symbols` | the unified symbols it currently holds a book for |
+| `fetchExchangesStatus ()` | `/exchanges/status` | per-venue connection health |
+| `fetchCachedOrderBook (exchangeId, symbol)` | `/orderbook/{exchange}/{symbol}` | the exact book a route was ranked on |
 
 `fetchHealth` and `fetchReadiness` answer different questions and the difference matters: `/health`
 is `200` before a single websocket has connected, so a deploy gate pointed at it sends traffic to a
@@ -8688,7 +8697,8 @@ client's:
   as a `400` (including a bridged exact-out, which REST refuses as a `501`), and `1013` for a cold
   cache. The client raises the same exceptions the REST path raises for those — `BadRequest` and
   `ExchangeNotAvailable` — so you do not have to learn a second vocabulary. A failed upgrade is
-  still an ordinary status: `401` raises `AuthenticationError`, `429` `RateLimitExceeded`.
+  still an ordinary status: `401` raises `AuthenticationError`, `403` `PermissionDenied`, `429`
+`RateLimitExceeded` — the same mapping the REST path uses, for the same reasons.
 
 A hook that throws stops the stream and the exception reaches you — the opposite of `execute`'s
 `onStep`, which is protected because losing that report would destroy the only account of orders

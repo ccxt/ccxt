@@ -16,17 +16,12 @@
 // recommendation repeatedly, it does not trade.
 //
 // Usage:
-//   ORDER_ROUTER_API_KEY=or_live_... npm run tsBuild && node js/examples/ts/order-router-stream.js
+//   npm run tsBuild && node js/examples/ts/order-router-stream.js
 //
-// Get a key from https://docs.ccxt.com/router
+// The router service is public: no API key, no signup.
 import ccxt from '../../js/ccxt.js';
 async function main() {
-    const apiKey = process.env.ORDER_ROUTER_API_KEY;
-    if (apiKey === undefined || apiKey === '') {
-        console.log('set ORDER_ROUTER_API_KEY (get one at https://docs.ccxt.com/router)');
-        return;
-    }
-    const router = new ccxt.OrderRouter({ 'apiKey': apiKey });
+    const router = new ccxt.OrderRouter();
     // ---------------------------------------------------------------------
     // Is it up, and can it price anything?
     // ---------------------------------------------------------------------

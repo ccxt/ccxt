@@ -76,6 +76,7 @@ from requests.exceptions import RequestException, Timeout
 
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ExchangeNotAvailable
@@ -173,16 +174,17 @@ class OrderRouter:
         creates a client for the CCXT order-router service
 
         :param dict config: client configuration
-        :param str config['apiKey']: the router API key, sent as the x-api-key header(required)
+        :param str config['apiKey']: optional. The service is public and rate-limits by IP, so no key is needed; one supplied here is still sent as the x-api-key header
         :param str [config['baseUrl']]: router base url, defaults to https://docs.ccxt.com/router/api
         :param int [config['timeoutMs']]: request timeout in milliseconds, defaults to 30000
         :param float [config['maxNotionalUsd']]: per-trade USD notional cap, an opt-in guardrail honoured exactly at whatever value you choose; omit it, or pass 0, for no cap
         :returns OrderRouter: a router client
         """
-        api_key = self.string_at(config, 'apiKey', '')
-        if api_key == '':
-            raise ArgumentsRequired('OrderRouter requires an apiKey')
-        self.api_key = api_key
+        # The service dropped API keys in favour of per-IP rate limiting, so an empty key is
+        # the normal case and must not raise. A key supplied anyway is CARRIED rather than
+        # ignored, so the same client works against a keyless server and one still expecting
+        # a credential.
+        self.api_key = self.string_at(config, 'apiKey', '')
         base_url = self.string_at(config, 'baseUrl', OrderRouter.DEFAULT_BASE_URL)
         while len(base_url) > 0 and base_url[-1] == '/':
             base_url = base_url[:-1]
@@ -714,9 +716,13 @@ class OrderRouter:
         :returns dict: the decoded JSON body
         """
         headers = {
-            'x-api-key': self.api_key,
             'Accept': 'application/json',
         }
+        # only when there is one. An empty x-api-key is not the same as no x-api-key: a server
+        # that still authenticates reads it as a malformed credential rather than an anonymous
+        # caller, so the keyless client omits the header entirely.
+        if self.api_key != '':
+            headers['x-api-key'] = self.api_key
         if request_id != '':
             # the service caps this at 200 characters and mints its own when absent, so a
             # longer one is dropped rather than sent and rejected
@@ -767,8 +773,16 @@ class OrderRouter:
         message = self.string_at(body, 'error', 'http status ' + str(status))
         if status == 400:
             raise BadRequest('OrderRouter: ' + message)
-        if status == 401 or status == 403:
+        if status == 401:
+            # The public service never answers 401 - it has no credentials to reject. This is
+            # here for a deployment that fronts the router with its own authentication.
             raise AuthenticationError('OrderRouter: ' + message)
+        if status == 403:
+            # NOT an authentication failure. The service has no API key; its only 403 is the
+            # ipv4-only refusal, raised before rate limiting when the resolved client address
+            # is not a dotted quad. Calling it an auth error sends the caller looking for a
+            # credential that exists for nobody, while the real remedy goes unsaid.
+            raise PermissionDenied('OrderRouter: ' + message + ' — the router resolved this client to a non-IPv4 address and refused it; reach it over IPv4')
         if status == 429:
             # the window rollover IS the retry interval here, so it stands in when the
             # service sent no retry-after

@@ -633,9 +633,13 @@ function order_router_test_fixture_build_unwind_plan($router) {
 //  ---------------------------------------------------------------------------
 
 function order_router_test_constructor_cap($router) {
-    order_router_assert_throws(function () {
-        new OrderRouter(array());
-    }, ArgumentsRequired::class, 'an apiKey is required');
+    //  The router service dropped API keys in favour of per-IP rate limiting, so a bare
+    //  constructor is the documented way to build one and must not throw. A key supplied
+    //  anyway is kept and sent, so the same client works against both servers.
+    $keyless = new OrderRouter(array());
+    order_router_assert($keyless->apiKey === '', 'no key is the normal case now');
+    $keyed = new OrderRouter(array('apiKey' => 'still-works'));
+    order_router_assert($keyed->apiKey === 'still-works', 'a supplied key is kept and sent');
     //  No ceiling. A caller trading thousands is using this correctly, and the class
     //  does not get to decide otherwise — the old hard 25 USD limit came from this
     //  repository's own live-test safety rule, which is not a rule about anyone's money.
@@ -1814,7 +1818,7 @@ function test_order_router() {
         'fixture: formatNumber spells one number one way in all six languages' => 'ccxt\order_router_test_fixture_format_number',
         'fixture: a fee in the acquired asset resizes what the next hop is sized on' => 'ccxt\order_router_test_fixture_fee_netting',
         'fixture: numberAt reads one number grammar in all six languages' => 'ccxt\order_router_test_fixture_number_at',
-        'constructor: apiKey is required, and maxNotionalUsd is an opt-in guardrail at any size' => 'ccxt\order_router_test_constructor_cap',
+        'constructor: the service is public, and maxNotionalUsd is an opt-in guardrail at any size' => 'ccxt\order_router_test_constructor_cap',
         'a hand-built plan carrying only the required fields is executable' => 'ccxt\order_router_test_hand_built_plan_is_executable',
         'the derived limit price and notional follow amount and expectedPrice' => 'ccxt\order_router_test_derived_limit_price_and_notional',
         'the limit price sits on the side that costs you, and only there' => 'ccxt\order_router_test_limit_price_side',

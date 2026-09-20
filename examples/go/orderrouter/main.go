@@ -11,27 +11,19 @@
 //
 // Usage:
 //
-//	ORDER_ROUTER_API_KEY=or_live_... go run .
+//	go run .
 //
-// Get a key from https://docs.ccxt.com/router
+// The router service is public: no API key, no signup.
 package main
 
 import (
 	"fmt"
-	"os"
 
 	ccxt "github.com/ccxt/ccxt/go/v4"
 )
 
 func main() {
-	apiKey := os.Getenv("ORDER_ROUTER_API_KEY")
-	if apiKey == "" {
-		fmt.Println("set ORDER_ROUTER_API_KEY (get one at https://docs.ccxt.com/router)")
-		return
-	}
-
 	router, err := ccxt.NewOrderRouter(map[string]any{
-		"apiKey": apiKey,
 		// "baseUrl": "https://docs.ccxt.com/router/api",  // the default
 	})
 	if err != nil {

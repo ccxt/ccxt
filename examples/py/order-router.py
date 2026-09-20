@@ -12,9 +12,9 @@
 # which defaults to dry_run and refuses to trade unless explicitly told to.
 #
 # Usage:
-#   ORDER_ROUTER_API_KEY=or_live_... python examples/py/order-router.py
+#   python examples/py/order-router.py
 #
-# Get a key from https://docs.ccxt.com/router
+# The router service is public: no API key, no signup.
 
 import os
 import sys
@@ -26,13 +26,7 @@ import ccxt  # noqa: E402
 
 
 def main():
-    api_key = os.environ.get('ORDER_ROUTER_API_KEY')
-    if not api_key:
-        print('set ORDER_ROUTER_API_KEY (get one at https://docs.ccxt.com/router)')
-        return
-
     router = ccxt.OrderRouter({
-        'apiKey': api_key,
         # 'baseUrl': 'https://docs.ccxt.com/router/api',  # the default
     })
 

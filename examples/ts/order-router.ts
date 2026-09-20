@@ -13,22 +13,15 @@
 // read. See the comment on the execute() call for what turning it live costs.
 //
 // Usage:
-//   ORDER_ROUTER_API_KEY=or_live_... npm run tsBuild && node js/examples/ts/order-router.js
+//   npm run tsBuild && node js/examples/ts/order-router.js
 //
-// Get a key from https://docs.ccxt.com/router
+// The router service is public: no API key, no signup.
 
 import ccxt from '../../js/ccxt.js';
 import type { Dict } from '../../js/src/base/types.js';
 
 async function main () {
-    const apiKey = process.env.ORDER_ROUTER_API_KEY;
-    if (apiKey === undefined || apiKey === '') {
-        console.log ('set ORDER_ROUTER_API_KEY (get one at https://docs.ccxt.com/router)');
-        return;
-    }
-
     const router = new ccxt.OrderRouter ({
-        'apiKey': apiKey,
         // 'baseUrl': 'https://docs.ccxt.com/router/api',  // the default
     });
 
@@ -101,10 +94,23 @@ async function main () {
         'maxNotionalUsd': 25,
         'usdRates': { 'USDT': 1 },
     });
-    if (violations.length > 0) {
+    // A violation is not automatically fatal. `blocking: true` means do not send this
+    // plan; `blocking: false` is advisory — the commonest being amount_precision and
+    // price_precision, which simply say the router's unrounded numbers need putting on
+    // the market's tick before they go out. Treating every violation as a refusal makes
+    // the rest of this pipeline unreachable on a perfectly ordinary route.
+    const blocking = [];
+    for (let i = 0; i < violations.length; i++) {
+        if (violations[i]['blocking']) {
+            blocking.push (violations[i]);
+        } else {
+            console.log ('advisory:', violations[i]['code'], '-', violations[i]['message']);
+        }
+    }
+    if (blocking.length > 0) {
         console.log ('plan rejected before any venue was contacted:');
-        for (let i = 0; i < violations.length; i++) {
-            console.log ('   ', violations[i]);
+        for (let i = 0; i < blocking.length; i++) {
+            console.log ('   ', blocking[i]);
         }
         await closeAll (venues);
         return;

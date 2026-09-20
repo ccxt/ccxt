@@ -1532,18 +1532,18 @@ public class OrderRouterTest
             return new ccxt.Order(new dict() { { "id", id }, { "status", "canceled" } });
         }
 
-        public override Task<object> loadMarkets(object reload2 = null, object parameters2 = null)
+        public override Task<IDictionary<string, object>> loadMarkets(object reload2 = null, object parameters2 = null)
         {
             this.calls.Add("loadMarkets");
-            return Task.FromResult((object)this.markets);
+            return Task.FromResult((IDictionary<string, object>)this.markets);
         }
 
-        public override object amountToPrecision(object symbol, object amount)
+        public override string? amountToPrecision(object symbol, object amount)
         {
             return Convert.ToString(amount, CultureInfo.InvariantCulture);
         }
 
-        public override object priceToPrecision(object symbol, object price)
+        public override string? priceToPrecision(object symbol, object price)
         {
             return Convert.ToString(price, CultureInfo.InvariantCulture);
         }

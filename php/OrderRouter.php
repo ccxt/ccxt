@@ -148,17 +148,16 @@ class OrderRouter {
     /**
      * creates a client for the CCXT order-router service
      * @param array $config client configuration
-     *     string  apiKey          the router API key, sent as the x-api-key header (required)
+     *     string  apiKey          optional. The service is public and rate-limits by IP; a key supplied here is still sent as the x-api-key header
      *     string  baseUrl         router base url, defaults to https://docs.ccxt.com/router/api
      *     int     timeoutMs       request timeout in milliseconds, defaults to 30000
      *     float   maxNotionalUsd  per-trade USD notional cap, an OPT-IN guardrail; defaults to 0, which is NO CAP
      */
     public function __construct($config = array()) {
-        $apiKey = $this->stringAt($config, 'apiKey', '');
-        if ($apiKey === '') {
-            throw new ArgumentsRequired('OrderRouter requires an apiKey');
-        }
-        $this->apiKey = $apiKey;
+        //  The service dropped API keys in favour of per-IP rate limiting, so an empty key is
+        //  the normal case and must not throw. A key supplied anyway is CARRIED rather than
+        //  ignored, so the same client works against both servers.
+        $this->apiKey = $this->stringAt($config, 'apiKey', '');
         $baseUrl = $this->stringAt($config, 'baseUrl', self::DEFAULT_BASE_URL);
         while ((strlen($baseUrl) > 0) && (substr($baseUrl, -1) === '/')) {
             $baseUrl = substr($baseUrl, 0, strlen($baseUrl) - 1);
@@ -884,9 +883,14 @@ class OrderRouter {
      */
     public function request($url, $method = 'GET', $requestBody = array(), $requestId = '') {
         $headers = array(
-            'x-api-key: ' . $this->apiKey,
             'Accept: application/json',
         );
+        //  only when there is one. An empty x-api-key is not the same as no x-api-key: a server
+        //  that still authenticates reads it as a malformed credential rather than an anonymous
+        //  caller, so the keyless client omits the header entirely.
+        if ($this->apiKey !== '') {
+            $headers[] = 'x-api-key: ' . $this->apiKey;
+        }
         if ($requestId !== '') {
             //  the service caps this at 200 characters and mints its own when absent, so a
             //  longer one is dropped rather than sent and rejected
@@ -955,8 +959,17 @@ class OrderRouter {
         if ($status === 400) {
             throw new BadRequest('OrderRouter: ' . $message);
         }
-        if (($status === 401) || ($status === 403)) {
+        if ($status === 401) {
+            //  The public service never answers 401 - it has no credentials to reject. This is
+            //  here for a deployment that fronts the router with its own authentication.
             throw new AuthenticationError('OrderRouter: ' . $message);
+        }
+        if ($status === 403) {
+            //  NOT an authentication failure. The service has no API key; its only 403 is the
+            //  ipv4-only refusal, raised before rate limiting when the resolved client address
+            //  is not a dotted quad. Calling it an auth error sends the caller looking for a
+            //  credential that exists for nobody, while the real remedy goes unsaid.
+            throw new PermissionDenied('OrderRouter: ' . $message . ' — the router resolved this client to a non-IPv4 address and refused it; reach it over IPv4');
         }
         if ($status === 429) {
             //  the window rollover IS the retry interval here, so it stands in when the

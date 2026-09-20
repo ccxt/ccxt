@@ -14,23 +14,15 @@ namespace examples;
 // which defaults to dry_run and refuses to trade unless explicitly told to.
 //
 // Usage:
-//   ORDER_ROUTER_API_KEY=or_live_... dotnet run
+//   dotnet run
 //
-// Get a key from https://docs.ccxt.com/router
+// The router service is public: no API key, no signup.
 
 partial class Examples
 {
     public async static Task OrderRouterExample()
     {
-        var apiKey = Environment.GetEnvironmentVariable("ORDER_ROUTER_API_KEY");
-        if (string.IsNullOrEmpty(apiKey))
-        {
-            Console.WriteLine("set ORDER_ROUTER_API_KEY (get one at https://docs.ccxt.com/router)");
-            return;
-        }
-
         var router = new OrderRouter(new Dictionary<string, object>() {
-            { "apiKey", apiKey },
             // { "baseUrl", "https://docs.ccxt.com/router/api" },  // the default
         });
 

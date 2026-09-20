@@ -194,15 +194,15 @@ type OrderRouter struct {
 //
 // config keys:
 //
-//	apiKey         string  the router API key, sent as the x-api-key header (required)
+//	apiKey         string  optional; the service is public and rate-limits by IP, but a key supplied here is still sent as the x-api-key header
 //	baseUrl        string  router base url, defaults to https://docs.ccxt.com/router/api
 //	timeoutMs      float   request timeout in milliseconds, defaults to 30000
 //	maxNotionalUsd float   per-trade USD notional cap, an opt-in guardrail; 0 (the default) means NO CAP
 func NewOrderRouter(config map[string]any) (*OrderRouter, error) {
+	// The service dropped API keys in favour of per-IP rate limiting, so an empty key is the
+	// normal case and must not error. A key supplied anyway is CARRIED rather than ignored, so
+	// the same client works against both servers.
 	apiKey := routerStringAt(config, "apiKey", "")
-	if apiKey == "" {
-		return nil, ArgumentsRequired("OrderRouter requires an apiKey")
-	}
 	baseUrl := routerStringAt(config, "baseUrl", OrderRouterDefaultBaseUrl)
 	for len(baseUrl) > 0 && baseUrl[len(baseUrl)-1] == '/' {
 		baseUrl = baseUrl[:len(baseUrl)-1]
@@ -743,7 +743,11 @@ func (this *OrderRouter) WatchRoute(fromAsset string, toAsset string, params map
 		return nil, err
 	}
 	header := http.Header{}
-	header.Set("x-api-key", this.ApiKey)
+	// omitted entirely when absent: an empty x-api-key reads as a malformed credential to a
+	// server that still authenticates, not as an anonymous caller
+	if this.ApiKey != "" {
+		header.Set("x-api-key", this.ApiKey)
+	}
 	if requestId := routerStringAt(params, "requestId", ""); requestId != "" && len(requestId) <= 200 {
 		header.Set("x-request-id", requestId)
 	}
@@ -758,8 +762,13 @@ func (this *OrderRouter) WatchRoute(fromAsset string, toAsset string, params map
 		// upgrade, so they never arrive as close codes. A caller who gets ExchangeNotAvailable
 		// for a bad key cannot tell a wrong key from a dead router.
 		if response != nil {
-			if response.StatusCode == 401 || response.StatusCode == 403 {
+			if response.StatusCode == 401 {
 				return nil, AuthenticationError("OrderRouter: unauthorized")
+			}
+			if response.StatusCode == 403 {
+				// same ipv4-only refusal as the REST path, and the same reason not to call it
+				// an authentication failure: this service has no credential to get wrong
+				return nil, PermissionDenied("OrderRouter: the router resolved this client to a non-IPv4 address and refused it; reach it over IPv4")
 			}
 			if response.StatusCode == 429 {
 				return nil, RateLimitExceeded("OrderRouter: rate limit exceeded")
@@ -974,7 +983,9 @@ func (this *OrderRouter) Request(url string, method string, requestBody map[stri
 	if err != nil {
 		return nil, ExchangeNotAvailable("OrderRouter request failed: " + err.Error())
 	}
-	request.Header.Set("x-api-key", this.ApiKey)
+	if this.ApiKey != "" {
+		request.Header.Set("x-api-key", this.ApiKey)
+	}
 	request.Header.Set("Accept", "application/json")
 	if method == "POST" {
 		request.Header.Set("Content-Type", "application/json")
@@ -1029,7 +1040,14 @@ func (this *OrderRouter) Request(url string, method string, requestBody map[stri
 	if status == 400 {
 		return nil, BadRequest("OrderRouter: " + message)
 	}
-	if status == 401 || status == 403 {
+	if status == 403 {
+		// NOT an authentication failure. The service has no API key; its only 403 is the
+		// ipv4-only refusal, raised before rate limiting when the resolved client address is
+		// not a dotted quad. Calling it an auth error sends the caller looking for a
+		// credential that exists for nobody, while the real remedy goes unsaid.
+		return nil, PermissionDenied("OrderRouter: " + message + " — the router resolved this client to a non-IPv4 address and refused it; reach it over IPv4")
+	}
+	if status == 401 {
 		return nil, AuthenticationError("OrderRouter: " + message)
 	}
 	if status == 429 {

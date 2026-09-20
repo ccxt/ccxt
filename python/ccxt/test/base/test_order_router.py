@@ -339,9 +339,15 @@ PERMISSIVE_STUB_MARKETS = {
 }
 
 
-@test('constructor: apiKey is required, and maxNotionalUsd is an opt-in guardrail at any size')
+@test('constructor: the service is public, and maxNotionalUsd is an opt-in guardrail at any size')
 def test_constructor():
-    assert_raises(ArgumentsRequired, lambda: OrderRouter({}), 'an apiKey is required')
+    # The router service dropped API keys in favour of per-IP rate limiting, so a bare
+    # constructor is the documented way to build one and must not raise. A key supplied
+    # anyway is kept and sent, so the same client works against both servers.
+    keyless = OrderRouter({})
+    assert_matches(keyless.api_key, '', 'no key is the normal case now')
+    keyed = OrderRouter({'apiKey': 'still-works'})
+    assert_matches(keyed.api_key, 'still-works', 'a supplied key is kept and sent')
     # No ceiling. A caller trading thousands is using this correctly, and the class
     # does not get to decide otherwise — the old hard 25 USD limit came from this
     # repository's own live-test safety rule, which is not a rule about anyone's money.

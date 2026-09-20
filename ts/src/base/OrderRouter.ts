@@ -42,7 +42,7 @@
 //  funds-transfer endpoint anywhere in it, deliberately and permanently.
 //  ---------------------------------------------------------------------------
 
-import { ArgumentsRequired, AuthenticationError, BadRequest, ExchangeError, ExchangeNotAvailable, InsufficientFunds, NotSupported, RateLimitExceeded, RequestTimeout } from './errors.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest, ExchangeError, ExchangeNotAvailable, InsufficientFunds, NotSupported, PermissionDenied, RateLimitExceeded, RequestTimeout } from './errors.js';
 import { Dict } from './types.js';
 
 //  ---------------------------------------------------------------------------
@@ -150,18 +150,18 @@ class OrderRouter {
      * @name OrderRouter#constructor
      * @description creates a client for the CCXT order-router service
      * @param {object} config client configuration
-     * @param {string} config.apiKey the router API key, sent as the x-api-key header (required)
+     * @param {string} [config.apiKey] optional. The router service is public and rate-limits by IP, so no key is needed; one supplied here is still sent as the x-api-key header, which a keyless server ignores
      * @param {string} [config.baseUrl] router base url, defaults to https://docs.ccxt.com/router/api
      * @param {int} [config.timeoutMs] request timeout in milliseconds, defaults to 30000
      * @param {float} [config.maxNotionalUsd] optional per-trade USD notional guardrail. Omitted or 0 means NO cap and no notional check at all; any positive value is honoured exactly, never clamped
      * @returns {OrderRouter} a router client
      */
     constructor (config: Dict = {}) {
-        const apiKey = this.stringAt (config, 'apiKey', '');
-        if (apiKey === '') {
-            throw new ArgumentsRequired ('OrderRouter requires an apiKey');
-        }
-        this.apiKey = apiKey;
+        //  The service dropped API keys in favour of per-IP rate limiting, so an empty key is
+        //  the normal case and must not throw. A key supplied anyway is CARRIED rather than
+        //  ignored: the keyless server drops the header, a server still expecting one is
+        //  satisfied by it, and the same client works against both across the deploy.
+        this.apiKey = this.stringAt (config, 'apiKey', '');
         let baseUrl = this.stringAt (config, 'baseUrl', OrderRouter.DEFAULT_BASE_URL);
         while (baseUrl.length > 0 && baseUrl[baseUrl.length - 1] === '/') {
             baseUrl = baseUrl.slice (0, baseUrl.length - 1);
@@ -655,8 +655,13 @@ class OrderRouter {
         const at = message.indexOf (marker);
         if (at >= 0) {
             const status = this.parseNumber (message.slice (at + marker.length, at + marker.length + 3), 0);
-            if (status === 401 || status === 403) {
+            if (status === 401) {
                 return new AuthenticationError ('OrderRouter: unauthorized');
+            }
+            if (status === 403) {
+                //  same ipv4-only refusal as the REST path, and the same reason not to call
+                //  it an authentication failure: this service has no credential to get wrong
+                return new PermissionDenied ('OrderRouter: the router resolved this client to a non-IPv4 address and refused it; reach it over IPv4');
             }
             if (status === 429) {
                 return new RateLimitExceeded ('OrderRouter: rate limit exceeded');
@@ -857,9 +862,14 @@ class OrderRouter {
      */
     async request (url: string, method: string = 'GET', requestBody: Dict = {}, requestId: string = ''): Promise<Dict> {
         const headers: Dict = {
-            'x-api-key': this.apiKey,
             'Accept': 'application/json',
         };
+        //  only when there is one. An empty x-api-key is not the same as no x-api-key: a
+        //  server that still authenticates reads it as a malformed credential rather than
+        //  an anonymous caller, so the keyless client must omit the header entirely.
+        if (this.apiKey !== '') {
+            headers['x-api-key'] = this.apiKey;
+        }
         if (requestId !== '') {
             //  the service caps this at 200 characters and mints its own when absent, so a
             //  longer one is dropped rather than sent and rejected
@@ -933,8 +943,21 @@ class OrderRouter {
         if (status === 400) {
             throw new BadRequest ('OrderRouter: ' + message);
         }
-        if (status === 401 || status === 403) {
+        if (status === 401) {
+            //  The public service never answers 401 — it has no credentials to reject. This
+            //  is here for a deployment that fronts the router with its own authentication,
+            //  which is also why the client still carries an apiKey when one is supplied.
             throw new AuthenticationError ('OrderRouter: ' + message);
+        }
+        if (status === 403) {
+            //  NOT an authentication failure, and this is the one status where saying so
+            //  would actively mislead. The service has no API key; its only 403 is the
+            //  ipv4-only refusal, raised before rate limiting when the resolved client
+            //  address is not a dotted quad (`::ffff:a.b.c.d` is normalised and accepted,
+            //  every other IPv6 form is not). An AuthenticationError sends the caller
+            //  looking for a credential that exists for nobody, while the actual remedy —
+            //  reach the service over IPv4 — goes unsaid, so it is said here.
+            throw new PermissionDenied ('OrderRouter: ' + message + ' — the router resolved this client to a non-IPv4 address and refused it; reach it over IPv4');
         }
         if (status === 429) {
             //  the window rollover IS the retry interval here, so it stands in when the
@@ -1060,7 +1083,11 @@ class OrderRouter {
         const url = this.streamUrl (fromAsset, toAsset, params);
         const requestId = this.stringAt (params, 'requestId', '');
         const WebSocketImpl = await this.loadWebSocket ();
-        const headers: Dict = { 'x-api-key': this.apiKey };
+        const headers: Dict = {};
+        //  same rule as request(): omitted entirely when absent, never sent empty
+        if (this.apiKey !== '') {
+            headers['x-api-key'] = this.apiKey;
+        }
         if (requestId !== '' && requestId.length <= 200) {
             headers['x-request-id'] = requestId;
         }

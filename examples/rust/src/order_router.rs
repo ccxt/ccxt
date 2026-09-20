@@ -10,25 +10,16 @@
 // which defaults to dry_run and refuses to trade unless explicitly told to.
 //
 // Usage:
-//   ORDER_ROUTER_API_KEY=or_live_... cargo run --manifest-path examples/rust/Cargo.toml --bin order_router
+//   cargo run --manifest-path examples/rust/Cargo.toml --bin order_router
 //
-// Get a key from https://docs.ccxt.com/router
+// The router service is public: no API key, no signup.
 
 use ccxt::value::HashMap;
 use ccxt::{OrderRouter, Value};
 
 #[tokio::main]
 async fn main() {
-    let api_key = match std::env::var("ORDER_ROUTER_API_KEY") {
-        Ok(key) if !key.is_empty() => key,
-        _ => {
-            println!("set ORDER_ROUTER_API_KEY (get one at https://docs.ccxt.com/router)");
-            return;
-        }
-    };
-
-    let mut config = HashMap::new();
-    config.insert("apiKey".to_string(), Value::Str(api_key));
+    let config = HashMap::new();
     // config.insert("baseUrl".to_string(), Value::Str("https://docs.ccxt.com/router/api".into()));  // the default
     let router = match OrderRouter::new(&Value::Map(config)) {
         Ok(client) => client,
