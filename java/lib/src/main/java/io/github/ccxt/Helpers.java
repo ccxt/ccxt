@@ -19,6 +19,16 @@ import io.github.ccxt.base.JsonHelper;
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class Helpers {
 
+    /**
+     * Converts a raw List<Object> into a typed List<T>; used by the committed
+     * TypedSurface / PredictionTypedSurface default methods and by the exchange
+     * dumps the pipeline does not regenerate (java STATIC_RESPONSE/request tiers).
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> List<T> toTypedList(Object raw, java.util.function.Function<Object, T> ctor) {
+        return ((List<Object>) raw).stream().map(ctor).collect(java.util.stream.Collectors.toList());
+    }
+
     private static final ObjectMapper mapper = new ObjectMapper();
 
     /**
@@ -376,6 +386,15 @@ public class Helpers {
         double first = toDouble(a);
         double second = toDouble(b);
         return (first < second) ? a : b;
+    }
+
+    public static double mathPow(Object base, Object exp) {
+        if (base instanceof Number && exp instanceof Number) {
+            double baseFloat = ((Number) base).doubleValue();
+            double expFloat = ((Number) exp).doubleValue();
+            return Math.pow(baseFloat, expFloat);
+        }
+        return 0;
     }
 
     public static Object mathMax(Object a, Object b) {

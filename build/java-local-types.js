@@ -7736,6 +7736,68 @@ export function patchJavaParamTypes (transpiler) {
     printer._javaParamTypesPatched = true;
 }
 
+// ===== hx7 java-03: row-builder PARAMETER positions the pin boxes to `Object` =====
+//
+// The pinned printer types a fixed parameter `Map<String, Object>` when its TS annotation names a
+// native-carriable alias (Dict / Market / Currency — JAVA_NATIVE_PARAMETER_TYPES) and then wraps
+// EVERY argument that position receives in the matching checkcast (javaPrintCallArguments), on the
+// proof "the checker proved the argument assignable to the parameter, so the declared type describes
+// the value received". The proof covers the TS TYPE, not the runtime BOX: a venue handing a raw
+// response straight into the method passes a value the checker accepts as `any`/`List`, and the cast
+// then throws — java STATIC_RESPONSE `[whitebit][transfer][transfer: empty array response (live)]`:
+//
+//     List<Object> response = (this.v4PrivatePostMainAccountTransfer(..)).join();
+//     return this.parseTransfer((Map<String, Object>) (response), currency);
+//     -> java.lang.ClassCastException: class java.util.ArrayList cannot be cast to class java.util.Map
+//        @ io.github.ccxt.exchanges.Whitebit.lambda$transfer$46(Whitebit.java:3944)
+//
+// The pin keeps its own JAVA_NATIVE_PARAMETER_EXCLUDED_POSITIONS table for exactly this class of
+// position (parseMarket / parseTrade / parseOrder / parseOrderBook / safeSymbol / market / symbol /
+// ...), but that table lives inside the frozen pin, so the downstream exclusion lives here. Java
+// overrides are invariant on parameter types, so one name+position boxes every declaration of the
+// name at once: javaNativeParameterType is the single funnel for a parameter's printed Java type
+// (printParameterType, javaNativeCallParameterTypes, javaParameterAssignmentCast and the element
+// reads of the parameter all read it), so boxing there moves the declaration and every consumer
+// together — exactly what the pin's own exclusion does for its positions.
+//
+// Only positions whose every call site is a raw row/response: parseCurrencies hands each element of
+// the raw map to parseCurrency, parseTickers hands the raw ticker element to parseTicker, and
+// whitebit's transfer hands the endpoint's empty-array response to parseTransfer.
+export const JAVA_OBJECT_PARAM_POSITIONS = {
+    'parseCurrency': [ 0 ],
+    'parseTicker': [ 0 ],
+    'parseTransfer': [ 0 ],
+};
+
+// the parameter node sits at an excluded position of the closed name table above
+function javaObjectParamPosition (node) {
+    if (node?.kind !== ts.SyntaxKind.Parameter) {
+        return false;
+    }
+    const method = node.parent;
+    if (method?.kind !== ts.SyntaxKind.MethodDeclaration || !Array.isArray (method.parameters)) {
+        return false;
+    }
+    const name = method.name?.escapedText;
+    const positions = name === undefined ? undefined : JAVA_OBJECT_PARAM_POSITIONS[name];
+    return positions !== undefined && positions.indexOf (method.parameters.indexOf (node)) !== -1;
+}
+
+export function installJavaObjectParamPositions (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.javaNativeParameterType !== 'function' || printer._javaObjectParamPositionsPatched) {
+        return;
+    }
+    const upstream = printer.javaNativeParameterType.bind (printer);
+    printer.javaNativeParameterType = function (node) {
+        if (javaObjectParamPosition (node)) {
+            return undefined;
+        }
+        return upstream (node);
+    };
+    printer._javaObjectParamPositionsPatched = true;
+}
+
 // ===== 10. safeList* locals (hx2 java-02): `Object x = this.safeList(..)` -> java.util.List<Object>
 // The accessor hands back the found element only when Helpers.isArray(value) (a List<?> or a java
 // array) and otherwise the caller's default, so the default argument is proven list-shaped first.
