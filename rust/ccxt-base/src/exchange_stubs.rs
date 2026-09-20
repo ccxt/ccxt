@@ -824,7 +824,7 @@ impl Exchange {
         let v = self.safe_string(obj, key, &[]);
         if !v.is_null() {
             if let Value::Str(s) = v {
-                return Value::Str(s);
+                return Value::Str(s.to_uppercase().into());
             }
             return v;
         }
@@ -837,7 +837,7 @@ impl Exchange {
         let v = self.safe_string_k(obj, key, &[]);
         if !v.is_null() {
             if let Value::Str(s) = v {
-                return Value::Str(s);
+                return Value::Str(s.to_uppercase().into());
             }
             return v;
         }
@@ -850,7 +850,7 @@ impl Exchange {
                 let v = self.safe_string(obj.clone(), k, &[]);
                 if !v.is_null() {
                     if let Value::Str(s) = v {
-                        return Value::Str(s);
+                        return Value::Str(s.to_lowercase().into());
                     }
                     return v;
                 }
@@ -865,7 +865,7 @@ impl Exchange {
                 let v = self.safe_string(obj.clone(), k, &[]);
                 if !v.is_null() {
                     if let Value::Str(s) = v {
-                        return Value::Str(s);
+                        return Value::Str(s.to_uppercase().into());
                     }
                     return v;
                 }
@@ -878,7 +878,7 @@ impl Exchange {
         let v = self.safe_string(obj, key, &[]);
         if !v.is_null() {
             if let Value::Str(s) = v {
-                return Value::Str(s);
+                return Value::Str(s.to_lowercase().into());
             }
             return v;
         }
@@ -892,7 +892,7 @@ impl Exchange {
         let v = self.safe_string_k(obj, key, &[]);
         if !v.is_null() {
             if let Value::Str(s) = v {
-                return Value::Str(s);
+                return Value::Str(s.to_lowercase().into());
             }
             return v;
         }
@@ -909,7 +909,7 @@ impl Exchange {
         let v = self.safe_string2(obj, k1, k2, &[]);
         if !v.is_null() {
             if let Value::Str(s) = v {
-                return Value::Str(s);
+                return Value::Str(s.to_lowercase().into());
             }
             return v;
         }
@@ -926,7 +926,7 @@ impl Exchange {
         let v = self.safe_string2(obj, k1, k2, &[]);
         if !v.is_null() {
             if let Value::Str(s) = v {
-                return Value::Str(s);
+                return Value::Str(s.to_uppercase().into());
             }
             return v;
         }
