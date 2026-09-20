@@ -2331,7 +2331,7 @@ export default class btse extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    encodeTriggerPriceType (priceType: Str): Str {
+    encodeTriggerPriceType (priceType: Str) {
         const priceTypes = {
             'last': 'LAST_PRICE',
             'mark': 'MARK_PRICE',
@@ -2734,7 +2734,7 @@ export default class btse extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status: Str): Str {
+    parseOrderStatus (status: Str) {
         const statuses = {
             '2': 'open', // Order Inserted
             '3': 'closed', // Order Transacted
@@ -2759,7 +2759,7 @@ export default class btse extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderType (type: Str): Str {
+    parseOrderType (type: Str) {
         const types = {
             // the unified futures place order response reports a degenerate 0
             // in the type field regardless of the real order type, observed
@@ -2771,7 +2771,7 @@ export default class btse extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseTimeInForce (timeInForce: Str): Str {
+    parseTimeInForce (timeInForce: Str) {
         const values = {
             'GTC': 'GTC',
             'IOC': 'IOC',
@@ -3380,7 +3380,7 @@ export default class btse extends Exchange {
         });
     }
 
-    parseMarginModeType (marginMode: Str): Str {
+    parseMarginModeType (marginMode: Str) {
         const marginModes = {
             '91': 'cross',
             '92': 'isolated',
@@ -3390,7 +3390,7 @@ export default class btse extends Exchange {
         return this.safeString (marginModes, marginMode, marginMode);
     }
 
-    parsePositionSide (side: Str): Str {
+    parsePositionSide (side: Str) {
         const sides = {
             'buy': 'long',
             'sell': 'short',
@@ -3827,7 +3827,7 @@ export default class btse extends Exchange {
         return this.safeString (market['info'], 'tradeCurrency', market['id']);
     }
 
-    cleanPath (path: string): string {
+    cleanPath (path: string) {
         let result = path.replace ('spot', '');
         result = result.replace ('futures', '');
         result = result.replace ('otc', '');

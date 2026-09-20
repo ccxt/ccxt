@@ -52,7 +52,7 @@ export default class cex extends cexRest {
         });
     }
 
-    requestId (): string {
+    requestId () {
         this.lockId ();
         const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
@@ -187,7 +187,7 @@ export default class cex extends cexRest {
         this.handleTradesInner (client, message);
     }
 
-    parseWsOldTrade (trade: any, market: Market = undefined): Trade {
+    parseWsOldTrade (trade: any, market: Market = undefined) {
         //
         //  snapshot trade
         //    "sell:1665467367741:3888551:19058.8:14541219"
@@ -386,7 +386,7 @@ export default class cex extends cexRest {
         }
     }
 
-    parseWsTicker (ticker: Dict, market: Market = undefined): Ticker {
+    parseWsTicker (ticker: Dict, market: Market = undefined) {
         //
         //  public
         //    {
@@ -913,7 +913,7 @@ export default class cex extends cexRest {
         return this.safeOrder (parsedOrder, market);
     }
 
-    fromPrecision (amount: any, scale: any): Str {
+    fromPrecision (amount: any, scale: any) {
         if (amount === undefined) {
             return undefined;
         }
@@ -923,7 +923,7 @@ export default class cex extends cexRest {
         return precise.toString ();
     }
 
-    currencyFromPrecision (currency: any, amount: any): Str {
+    currencyFromPrecision (currency: any, amount: any) {
         const scale = this.safeInteger (this.currencies[currency], 'precision', 0);
         return this.fromPrecision (amount, scale);
     }
@@ -1043,7 +1043,7 @@ export default class cex extends cexRest {
         client.resolve (orderbook, messageHash);
     }
 
-    pairToSymbol (pair: any): string {
+    pairToSymbol (pair: any) {
         const parts = pair.split (':');
         const baseId = this.safeString (parts, 0);
         const quoteId = this.safeString (parts, 1);

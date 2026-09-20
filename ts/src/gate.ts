@@ -1901,7 +1901,7 @@ export default class gate extends Exchange {
         return underlyings;
     }
 
-    prepareRequest (market: Market = undefined, type: Str = undefined, params: Dict = {}): [Dict, Dict] {
+    prepareRequest (market: Market = undefined, type: Str = undefined, params: Dict = {}) {
         /**
          * @ignore
          * @method
@@ -1936,7 +1936,7 @@ export default class gate extends Exchange {
         return [ request, params ];
     }
 
-    spotOrderPrepareRequest (market: Market = undefined, trigger: Bool = false, params: Dict = {}): [Dict, Dict] {
+    spotOrderPrepareRequest (market: Market = undefined, trigger: Bool = false, params: Dict = {}) {
         /**
          * @ignore
          * @method
@@ -1959,7 +1959,7 @@ export default class gate extends Exchange {
         return [ request, query ];
     }
 
-    multiOrderSpotPrepareRequest (market: Market = undefined, trigger: Bool = false, params: Dict = {}): [Dict, Dict] {
+    multiOrderSpotPrepareRequest (market: Market = undefined, trigger: Bool = false, params: Dict = {}) {
         /**
          * @ignore
          * @method
@@ -4254,7 +4254,7 @@ export default class gate extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    parseTransactionStatus (status: Str): Str {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'PEND': 'pending',
             'REQUEST': 'pending',
@@ -4985,7 +4985,7 @@ export default class gate extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    parseOrderStatus (status: Str): Str {
+    parseOrderStatus (status: Str) {
         const statuses: Dict = {
             'open': 'open',
             '_new': 'open',

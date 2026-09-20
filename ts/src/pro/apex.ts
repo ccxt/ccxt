@@ -270,7 +270,7 @@ export default class apex extends apexRest {
         return await this.watchMultiple (url, messageHashes, message, messageHashes);
     }
 
-    getWsPublicUrl (): string {
+    getWsPublicUrl () {
         // apex appends a millisecond timestamp to the WS URL for connection-time
         // signing. CCXT's client manager keys clients by URL, so recomputing the
         // timestamp on every watch* call would open a new connection each time.
@@ -284,7 +284,7 @@ export default class apex extends apexRest {
         return url;
     }
 
-    getWsPrivateUrl (): string {
+    getWsPrivateUrl () {
         let url = this.safeString (this.options, 'wsPrivateUrl');
         if (url === undefined) {
             const timeStamp = this.milliseconds ().toString ();

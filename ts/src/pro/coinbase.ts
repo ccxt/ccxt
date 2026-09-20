@@ -258,7 +258,7 @@ export default class coinbase extends coinbaseRest {
         return res;
     }
 
-    createWSAuth (name: string, productIds: Str[]): Dict {
+    createWSAuth (name: string, productIds: Str[]) {
         const subscribe: Dict = {};
         const timestamp = this.numberToString (this.seconds ());
         this.checkRequiredCredentials ();
@@ -485,7 +485,7 @@ export default class coinbase extends coinbaseRest {
         }
     }
 
-    parseWsTicker (ticker: Dict, market: Market = undefined): Ticker {
+    parseWsTicker (ticker: Dict, market: Market = undefined) {
         //
         //     {
         //         "type": "ticker",

@@ -1045,7 +1045,7 @@ export default class bitopro extends Exchange {
         return this.parseBalance (balances);
     }
 
-    parseOrderStatus (status: Str): Str {
+    parseOrderStatus (status: Str) {
         const statuses: Dict = {
             '-1': 'open',
             '0': 'open',
@@ -1249,7 +1249,7 @@ export default class bitopro extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    parseCancelOrders (data: any): Order[] {
+    parseCancelOrders (data: any) {
         const dataKeys = Object.keys (data);
         const orders: Order[] = [];
         for (let i = 0; i < dataKeys.length; i++) {
@@ -1547,7 +1547,7 @@ export default class bitopro extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseTransactionStatus (status: Str): Str {
+    parseTransactionStatus (status: Str) {
         const states: Dict = {
             'COMPLETE': 'ok',
             'INVALID': 'failed',

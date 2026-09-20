@@ -1753,7 +1753,7 @@ export default class lbank extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status: Str): Str {
+    parseOrderStatus (status: Str) {
         const statuses: Dict = {
             '-1': 'canceled', // canceled
             '0': 'open', // not traded
@@ -3146,7 +3146,7 @@ export default class lbank extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    convertSecretToPem (secret: any): string {
+    convertSecretToPem (secret: any) {
         const lineLength = 64;
         const secretLength = secret.length - 0;
         let numLines = this.parseToInt (secretLength / lineLength);

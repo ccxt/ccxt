@@ -1408,7 +1408,7 @@ export default class paradex extends Exchange {
         }, market);
     }
 
-    hashMessage (message: any): string {
+    hashMessage (message: any) {
         return '0x' + this.hash (message, keccak, 'hex');
     }
 
@@ -1424,7 +1424,7 @@ export default class paradex extends Exchange {
         return this.signHash (this.hashMessage (message), privateKey.slice (-64));
     }
 
-    async getSystemConfig (): Promise<Dict> {
+    async getSystemConfig () {
         const cachedConfig = this.safeDict (this.options, 'systemConfig');
         if (cachedConfig !== undefined) {
             return cachedConfig;
@@ -1507,7 +1507,7 @@ export default class paradex extends Exchange {
         return account;
     }
 
-    async onboarding (params: Dict = {}): Promise<Dict> {
+    async onboarding (params: Dict = {}) {
         const account = await this.retrieveAccount ();
         const req = {
             'action': 'Onboarding',
@@ -1527,7 +1527,7 @@ export default class paradex extends Exchange {
         return response;
     }
 
-    async authenticateRest (params: Dict = {}): Promise<Str> {
+    async authenticateRest (params: Dict = {}) {
         const cachedToken = this.safeString (this.options, 'authToken');
         const now = this.nonce ();
         if (cachedToken !== undefined) {
@@ -1666,7 +1666,7 @@ export default class paradex extends Exchange {
         }, market);
     }
 
-    parseTimeInForce (timeInForce: Str): Str {
+    parseTimeInForce (timeInForce: Str) {
         const timeInForces: Dict = {
             'IOC': 'IOC',
             'GTC': 'GTC',
@@ -1675,7 +1675,7 @@ export default class paradex extends Exchange {
         return this.safeString (timeInForces, (timeInForce as string));
     }
 
-    parseOrderStatus (status: Str): Str {
+    parseOrderStatus (status: Str) {
         if (status !== undefined) {
             const statuses: Dict = {
                 'NEW': 'open',
@@ -1688,7 +1688,7 @@ export default class paradex extends Exchange {
         return undefined;
     }
 
-    parseOrderType (type: Str): Str {
+    parseOrderType (type: Str) {
         const types: Dict = {
             'LIMIT': 'limit',
             'MARKET': 'market',
@@ -1698,7 +1698,7 @@ export default class paradex extends Exchange {
         return this.safeStringLower (types, type, type);
     }
 
-    scaleNumber (num: string): Str {
+    scaleNumber (num: string) {
         return Precise.stringMul (num, '100000000');
     }
 
@@ -2955,7 +2955,7 @@ export default class paradex extends Exchange {
         };
     }
 
-    parseTransactionStatus (status: Str): Str {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'PENDING': 'pending',
             'AVAILABLE': 'pending',

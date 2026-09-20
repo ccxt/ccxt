@@ -2026,7 +2026,7 @@ export default class toobit extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status: Str): Str {
+    parseOrderStatus (status: Str) {
         const statuses: Dict = {
             'PENDING_NEW': 'open',
             'NEW': 'open',
@@ -2939,7 +2939,7 @@ export default class toobit extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatus (status: Str): Str {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             '2': 'pending',
             '12': 'pending',

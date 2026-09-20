@@ -658,7 +658,7 @@ export default class independentreserve extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status: Str): Str {
+    parseOrderStatus (status: Str) {
         const statuses: Dict = {
             'Open': 'open',
             'PartiallyFilled': 'open',
@@ -672,7 +672,7 @@ export default class independentreserve extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTimeInForce (timeInForce: Str): Str {
+    parseTimeInForce (timeInForce: Str) {
         const timeInForces: Dict = {
             'Gtc': 'GTC',
             'Moc': 'PO',

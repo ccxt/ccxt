@@ -1899,7 +1899,7 @@ export default class coinex extends Exchange {
         }
     }
 
-    parseOrderStatus (status: Str): Str {
+    parseOrderStatus (status: Str) {
         const statuses: Dict = {
             'rejected': 'rejected',
             'open': 'open',
@@ -5024,7 +5024,7 @@ export default class coinex extends Exchange {
         return this.parseTransaction (transaction, currency);
     }
 
-    parseTransactionStatus (status: Str): Str {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'audit': 'pending',
             'pass': 'pending',
@@ -5275,7 +5275,7 @@ export default class coinex extends Exchange {
         });
     }
 
-    parseTransferStatus (status: Str): Str {
+    parseTransferStatus (status: Str) {
         const statuses: Dict = {
             '0': 'ok',
             'SUCCESS': 'ok',

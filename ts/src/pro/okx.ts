@@ -2215,7 +2215,7 @@ export default class okx extends okxRest {
         }
     }
 
-    requestId (): string {
+    requestId () {
         const ts = this.milliseconds ().toString ();
         const randomNumber = this.randNumber (4);
         const randomPart = randomNumber.toString ();

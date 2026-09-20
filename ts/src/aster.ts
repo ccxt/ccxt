@@ -2227,7 +2227,7 @@ export default class aster extends Exchange {
         return this.parseTradingFee (response, market);
     }
 
-    parseOrderStatus (status: Str): Str {
+    parseOrderStatus (status: Str) {
         const statuses: Dict = {
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',
@@ -2239,7 +2239,7 @@ export default class aster extends Exchange {
         return this.safeString (statuses, (status as string), status);
     }
 
-    parseOrderType (type: Str): Str {
+    parseOrderType (type: Str) {
         const types: Dict = {
             'LIMIT': 'limit',
             'MARKET': 'market',
@@ -4092,7 +4092,7 @@ export default class aster extends Exchange {
         return this.options['leverageBrackets'];
     }
 
-    keccakMessage (message: any): string {
+    keccakMessage (message: any) {
         return '0x' + this.hash (message, keccak, 'hex');
     }
 
@@ -4283,7 +4283,7 @@ export default class aster extends Exchange {
         return this.safeString (statuses, (status as string), status);
     }
 
-    hashMessage (binaryMessage: any): string {
+    hashMessage (binaryMessage: any) {
         // const binaryMessage = this.encode (message);
         const binaryMessageLength = this.binaryLength (binaryMessage);
         const x19 = this.base16ToBinary ('19');

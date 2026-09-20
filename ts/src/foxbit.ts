@@ -1814,7 +1814,7 @@ export default class foxbit extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status: Str): Str {
+    parseOrderStatus (status: Str) {
         const statuses: Dict = {
             'PARTIALLY_CANCELED': 'open',
             'ACTIVE': 'open',
@@ -1899,7 +1899,7 @@ export default class foxbit extends Exchange {
         };
     }
 
-    parseTransactionStatus (status: Str): Str {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             // BOTH
             'SUBMITTING': 'pending',

@@ -1254,7 +1254,7 @@ export default class hollaex extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    parseOrderStatus (status: Str): Str {
+    parseOrderStatus (status: Str) {
         const statuses: Dict = {
             'new': 'open',
             'pfilled': 'open',

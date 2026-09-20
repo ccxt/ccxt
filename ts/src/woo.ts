@@ -2104,7 +2104,7 @@ export default class woo extends Exchange {
         return await this.fetchOrders (symbol, since, limit, extendedParams);
     }
 
-    parseTimeInForce (timeInForce: Str): Str {
+    parseTimeInForce (timeInForce: Str) {
         const timeInForces: Dict = {
             'ioc': 'IOC',
             'fok': 'FOK',
@@ -2269,7 +2269,7 @@ export default class woo extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status: Str): Str {
+    parseOrderStatus (status: Str) {
         if (status !== undefined) {
             const statuses: Dict = {
                 'NEW': 'open',

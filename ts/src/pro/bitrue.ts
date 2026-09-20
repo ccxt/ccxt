@@ -417,7 +417,7 @@ export default class bitrue extends bitrueRest {
         client.resolve (orderbook, messageHash);
     }
 
-    findSwapMarketByWsBaseQuote (wsBaseQuote: string): Market {
+    findSwapMarketByWsBaseQuote (wsBaseQuote: string) {
         const markets = this.markets;
         if (markets === undefined) {
             return undefined;

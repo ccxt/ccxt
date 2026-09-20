@@ -945,7 +945,7 @@ export default class btcturk extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    parseOrderStatus (status: Str): Str {
+    parseOrderStatus (status: Str) {
         const statuses: Dict = {
             'Untouched': 'open',
             'Partial': 'open',

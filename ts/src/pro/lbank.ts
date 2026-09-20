@@ -2,7 +2,7 @@
 import lbankRest from '../lbank.js';
 import { ExchangeError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Balances, Dict, Int, Market, Num, OHLCV, Order, OrderBook, Str, Ticker, Trade } from '../base/types.js';
+import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Str, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -54,7 +54,7 @@ export default class lbank extends lbankRest {
         });
     }
 
-    requestId (): Num {
+    requestId () {
         this.lockId ();
         const previousValue = this.safeInteger (this.options, 'requestId', 0);
         const newValue = this.sum (previousValue, 1);
@@ -339,7 +339,7 @@ export default class lbank extends lbankRest {
         client.resolve (parsedTicker, messageHash);
     }
 
-    parseWsTicker (ticker: Dict, market: Market = undefined): Ticker {
+    parseWsTicker (ticker: Dict, market: Market = undefined) {
         //
         //     {
         //         "tick":{

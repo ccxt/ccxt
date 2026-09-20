@@ -377,7 +377,7 @@ export default class woo extends wooRest {
         return await this.unwatchPublic (subHash, market['symbol'], topic, params);
     }
 
-    parseWsTicker (ticker: Dict, market: Market = undefined): Ticker {
+    parseWsTicker (ticker: Dict, market: Market = undefined) {
         //
         //     {
         //         "symbol": "PERP_BTC_USDT",

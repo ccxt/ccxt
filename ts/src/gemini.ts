@@ -1945,7 +1945,7 @@ export default class gemini extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatus (status: Str): Str {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'Advanced': 'ok',
             'Complete': 'ok',

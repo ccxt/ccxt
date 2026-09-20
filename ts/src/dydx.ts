@@ -938,7 +938,7 @@ export default class dydx extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status: Str): Str {
+    parseOrderStatus (status: Str) {
         const statuses: Dict = {
             'UNTRIGGERED': 'open',
             'OPEN': 'open',
@@ -949,7 +949,7 @@ export default class dydx extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderType (type: Str): Str {
+    parseOrderType (type: Str) {
         const types: Dict = {
             'LIMIT': 'LIMIT',
             'STOP_LIMIT': 'LIMIT',
@@ -1217,7 +1217,7 @@ export default class dydx extends Exchange {
         return this.hash (message, keccak, 'hex');
     }
 
-    signHash (hash: any, privateKey: any): Dict {
+    signHash (hash: any, privateKey: any) {
         const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
         const r = signature['r'];
         const s = signature['s'];
@@ -1228,7 +1228,7 @@ export default class dydx extends Exchange {
         };
     }
 
-    signMessage (message: any, privateKey: any): Dict {
+    signMessage (message: any, privateKey: any) {
         return this.signHash (this.hashMessage (message), privateKey.slice (-64));
     }
 
@@ -1314,7 +1314,7 @@ export default class dydx extends Exchange {
         return account;
     }
 
-    pow (n: string, m: Str): Str {
+    pow (n: string, m: Str) {
         let r = Precise.stringMul (n, '1');
         const c = this.parseToInt (m);
         // TODO: cap

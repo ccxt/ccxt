@@ -165,7 +165,7 @@ export default class kucoin extends kucoinRest {
         return undefined;
     }
 
-    requestId (): number {
+    requestId () {
         this.lockId ();
         const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
@@ -241,12 +241,12 @@ export default class kucoin extends kucoinRest {
         return await this.watchMultiple (url, messageHashes, message, [ subscribeHash ], subscription);
     }
 
-    async getUtaUrl (): Promise<string> {
+    async getUtaUrl () {
         const utaToken = await this.authenticateUta ();
         return this.urls['api']['ws']['private'] + '?token=' + utaToken;
     }
 
-    async authenticateUta (): Promise<Str> {
+    async authenticateUta () {
         this.checkRequiredCredentials ();
         const utaToken = this.safeString (this.options, 'utaToken');
         const lastUpdate = this.safeInteger (this.options, 'utaTokenLastUpdate', 0);
@@ -2403,7 +2403,7 @@ export default class kucoin extends kucoinRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    getMyTradesMessageHashSuffix (topic: any): string {
+    getMyTradesMessageHashSuffix (topic: any) {
         let suffix = '-spot';
         if (topic.indexOf ('contractMarket') >= 0) {
             suffix = '-contract';
@@ -3516,7 +3516,7 @@ export default class kucoin extends kucoinRest {
         }
     }
 
-    getMessageHash (elementName: string, symbol: Str = undefined): string {
+    getMessageHash (elementName: string, symbol: Str = undefined) {
         // method from kucoinfutures
         // elementName can be 'ticker', 'bidask', ...
         if (symbol !== undefined) {

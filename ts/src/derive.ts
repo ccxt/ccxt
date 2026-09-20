@@ -1201,7 +1201,7 @@ export default class derive extends Exchange {
         } as FundingRate;
     }
 
-    hashOrderMessage (order: any): string {
+    hashOrderMessage (order: any) {
         const accountHash = this.hash (this.ethAbiEncode ([
             'bytes32', 'uint256', 'uint256', 'address', 'bytes32', 'uint256', 'address', 'address',
         ], order), keccak, 'binary');
@@ -1217,7 +1217,7 @@ export default class derive extends Exchange {
         return this.signHash (hashOrder.slice (-64), privateKey.slice (-64));
     }
 
-    hashMessage (message: any): string {
+    hashMessage (message: any) {
         const binaryMessage = this.encode (message);
         const binaryMessageLength = this.binaryLength (binaryMessage);
         const x19 = this.base16ToBinary ('19');
@@ -1263,7 +1263,7 @@ export default class derive extends Exchange {
      * @param {float} [params.max_fee] *required* the maximum fee you are willing to pay for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1459,7 +1459,7 @@ export default class derive extends Exchange {
      * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Promise<Order> {
+    override async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1919,7 +1919,7 @@ export default class derive extends Exchange {
         return await this.fetchOrders (symbol, since, limit, extendedParams);
     }
 
-    parseTimeInForce (timeInForce: Str): Str {
+    parseTimeInForce (timeInForce: Str) {
         const timeInForces: Dict = {
             'ioc': 'IOC',
             'fok': 'FOK',
@@ -1929,7 +1929,7 @@ export default class derive extends Exchange {
         return this.safeString (timeInForces, (timeInForce as string));
     }
 
-    parseOrderStatus (status: Str): Str {
+    parseOrderStatus (status: Str) {
         if (status !== undefined) {
             const statuses: Dict = {
                 'open': 'open',
@@ -2489,7 +2489,7 @@ export default class derive extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async fetchBalance (params: Dict = {}): Promise<Balances> {
+    override async fetchBalance (params = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2717,7 +2717,7 @@ export default class derive extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatus (status: Str): Str {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'settled': 'ok',
             'reverted': 'failed',
@@ -2739,7 +2739,22 @@ export default class derive extends Exchange {
         throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a subaccount_id parameter inside \'params\' or exchange.options[\'subaccount_id\']=ID.');
     }
 
-    handleDeriveWalletAddress (methodName: string, params: Dict): [Str, Dict] {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    handleDeriveWalletAddress (methodName: string, params: Dict) {
         let deriveWalletAddress: Str = undefined;
         [ deriveWalletAddress, params ] = this.handleOptionAndParams (params, methodName, 'deriveWalletAddress');
         if ((deriveWalletAddress !== undefined) && (deriveWalletAddress !== '')) {

@@ -1340,7 +1340,7 @@ export default class ndax extends Exchange {
         return this.parseBalance (response);
     }
 
-    parseLedgerEntryType (type: any): Str {
+    parseLedgerEntryType (type: any) {
         const types: Dict = {
             'Trade': 'trade',
             'Deposit': 'transaction',
@@ -1469,7 +1469,7 @@ export default class ndax extends Exchange {
         return this.parseLedger (response, currency, since, limit);
     }
 
-    parseOrderStatus (status: Str): Str {
+    parseOrderStatus (status: Str) {
         const statuses: Dict = {
             'Accepted': 'open',
             'Rejected': 'rejected',
@@ -2460,7 +2460,7 @@ export default class ndax extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    parseTransactionStatusByType (status: Str = undefined, type: Str = undefined): Str {
+    parseTransactionStatusByType (status: Str = undefined, type: Str = undefined) {
         const statusesByType: Dict = {
             'deposit': {
                 'New': 'pending', // new ticket awaiting operator review

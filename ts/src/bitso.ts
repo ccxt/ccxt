@@ -1297,7 +1297,7 @@ export default class bitso extends Exchange {
         return canceledOrders;
     }
 
-    parseOrderStatus (status: Str): Str {
+    parseOrderStatus (status: Str) {
         const statuses: Dict = {
             'partial-fill': 'open', // this is a common substitution in ccxt
             'partially filled': 'open',
@@ -1954,7 +1954,7 @@ export default class bitso extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatus (status: Str): Str {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'pending': 'pending',
             'in_progress': 'pending',

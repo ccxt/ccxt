@@ -1536,7 +1536,7 @@ export default class hitbtc extends Exchange {
         return this.parseTransactions (response, currency, since, limit, params);
     }
 
-    parseTransactionStatus (status: Str): Str {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'CREATED': 'pending',
             'PENDING': 'pending',
@@ -2529,7 +2529,7 @@ export default class hitbtc extends Exchange {
         return [ request, params ];
     }
 
-    parseOrderStatus (status: Str): Str {
+    parseOrderStatus (status: Str) {
         const statuses: Dict = {
             'new': 'open',
             'suspended': 'open',

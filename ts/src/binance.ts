@@ -4948,7 +4948,7 @@ export default class binance extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    parseTickersForRolling (response: any, symbols: any): Tickers {
+    parseTickersForRolling (response: any, symbols: any) {
         const results: List = [];
         for (let i = 0; i < response.length; i++) {
             const marketId = this.safeString (response[i], 'symbol');
@@ -6130,7 +6130,7 @@ export default class binance extends Exchange {
         return this.parseOrders (response);
     }
 
-    parseOrderStatus (status: Str): Str {
+    parseOrderStatus (status: Str) {
         const statuses: Dict = {
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',
@@ -6151,7 +6151,7 @@ export default class binance extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderTypeByMarket (type: Str, marketType: Str): Str {
+    parseOrderTypeByMarket (type: Str, marketType: Str) {
         let types: Dict = {};
         if ((marketType !== undefined) && marketType === 'spot') {
             types = {
@@ -9225,7 +9225,7 @@ export default class binance extends Exchange {
         return this.filterBySinceLimit (trades, since, limit);
     }
 
-    parseDustTrade (trade: any, market: Market = undefined): Trade {
+    parseDustTrade (trade: any, market: Market = undefined) {
         //
         //     {
         //       "fromAsset": "USDT",
@@ -9564,7 +9564,7 @@ export default class binance extends Exchange {
         return this.parseTransactions (responseList, currency, since, limit);
     }
 
-    parseTransactionStatusByType (status: any, type: Str = undefined): Str {
+    parseTransactionStatusByType (status: any, type: Str = undefined) {
         if (type === undefined) {
             return status;
         }
@@ -11088,7 +11088,7 @@ export default class binance extends Exchange {
         return result;
     }
 
-    parseAccountPosition (position: any, market: Market = undefined): Position {
+    parseAccountPosition (position: any, market: Market = undefined) {
         //
         // usdm
         //
@@ -11341,7 +11341,7 @@ export default class binance extends Exchange {
         };
     }
 
-    parsePositionRisk (position: any, market: Market = undefined): Position {
+    parsePositionRisk (position: any, market: Market = undefined) {
         //
         // usdm
         //
@@ -11867,7 +11867,7 @@ export default class binance extends Exchange {
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
-    parseOptionPosition (position: Dict, market: Market = undefined): Position {
+    parseOptionPosition (position: Dict, market: Market = undefined) {
         //
         //     {
         //         "entryPrice": "27.70000000",
@@ -12717,7 +12717,7 @@ export default class binance extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
-    parseSettlement (settlement: any, market: any): Dict {
+    parseSettlement (settlement: any, market: any) {
         //
         // fetchSettlementHistory
         //
@@ -12759,7 +12759,7 @@ export default class binance extends Exchange {
         };
     }
 
-    parseSettlements (settlements: any, market: any): Dict[] {
+    parseSettlements (settlements: any, market: any) {
         //
         // fetchSettlementHistory
         //
@@ -13003,7 +13003,7 @@ export default class binance extends Exchange {
         }, currency) as LedgerEntry;
     }
 
-    parseLedgerEntryType (type: any): Str {
+    parseLedgerEntryType (type: any) {
         const ledgerType: Dict = {
             'FEE': 'fee',
             'FUNDING_FEE': 'fee',
@@ -13206,7 +13206,7 @@ export default class binance extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    getExceptionsByUrl (url: Str, exactOrBroad: string): Dict {
+    getExceptionsByUrl (url: Str, exactOrBroad: string) {
         if (url === undefined) {
             return {};
         }

@@ -1182,7 +1182,7 @@ export default class cex extends Exchange {
         return result[0];
     }
 
-    parseOrderStatus (status: Str): Str {
+    parseOrderStatus (status: Str) {
         const statuses: Dict = {
             'PENDING_NEW': 'open',
             'NEW': 'open',
@@ -1625,7 +1625,7 @@ export default class cex extends Exchange {
         };
     }
 
-    parseTransactionStatus (status: Str): Str {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'rejected': 'rejected',
             'pending': 'pending',

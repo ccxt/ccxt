@@ -79,7 +79,7 @@ export default class phemex extends phemexRest {
         return this.fromEn (er, this.safeInteger (market, 'ratioScale'));
     }
 
-    requestId (): number {
+    requestId () {
         this.lockId ();
         const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;

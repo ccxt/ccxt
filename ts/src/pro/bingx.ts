@@ -335,7 +335,7 @@ export default class bingx extends bingxRest {
         }, market);
     }
 
-    getOrderBookLimitByMarketType (marketType: string, limit: Int = undefined): Int {
+    getOrderBookLimitByMarketType (marketType: string, limit: Int = undefined) {
         if (limit === undefined) {
             limit = 100;
         } else {
@@ -348,7 +348,7 @@ export default class bingx extends bingxRest {
         return limit;
     }
 
-    getMessageHash (unifiedChannel: string, symbol: Str = undefined, extra: Str = undefined): string {
+    getMessageHash (unifiedChannel: string, symbol: Str = undefined, extra: Str = undefined) {
         let hash = unifiedChannel;
         if (symbol !== undefined) {
             hash += '::' + symbol;

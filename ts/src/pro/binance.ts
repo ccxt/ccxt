@@ -20,7 +20,7 @@ export default class binance extends binanceRest {
         return this.deepExtend (superDescribe, this.describeData ());
     }
 
-    describeData (): Dict {
+    describeData () {
         return {
             'has': {
                 'ws': true,
@@ -216,7 +216,7 @@ export default class binance extends binanceRest {
         };
     }
 
-    requestId (url: string): number {
+    requestId (url: string) {
         const options = this.safeDict (this.options, 'requestId', this.createSafeDictionary ());
         const previousValue = this.safeInteger (options, url, 0);
         const newValue = this.sum (previousValue, 1);
@@ -257,7 +257,7 @@ export default class binance extends binanceRest {
         return stream;
     }
 
-    getWsUrl (type: any, category: any): string {
+    getWsUrl (type: any, category: any) {
         if ((type === 'option') || (type === 'optionMarket') || (type === 'optionPrivate')) {
             // eOptions urls are stored as full public/market/private paths, no category rewrite needed,
             // see https://github.com/ccxt/ccxt/pull/27982 and https://github.com/ccxt/ccxt/issues/26333
@@ -286,21 +286,21 @@ export default class binance extends binanceRest {
         return baseUrl;
     }
 
-    getFutureWsCategory (channel: Str): string {
+    getFutureWsCategory (channel: Str) {
         if (channel === 'depth' || channel === 'rpiDepth' || channel === 'bookTicker' || channel === 'trade') {
             return 'public';
         }
         return 'market';
     }
 
-    getPrivateWsUrl (type: Str, listenKey: Str): string {
+    getPrivateWsUrl (type: Str, listenKey: Str) {
         if (type === 'future') {
             return this.getWsUrl (type, 'private') + '?listenKey=' + listenKey;
         }
         return this.urls['api']['ws'][type as string] + '/' + listenKey;
     }
 
-    getStockWsUrl (streamType: Str = 'market'): string {
+    getStockWsUrl (streamType: Str = 'market') {
         const baseUrl = this.urls['api']['ws']['stock'];
         if (streamType === 'combined') {
             return baseUrl.replace ('/ws', '/stream');
@@ -488,7 +488,7 @@ export default class binance extends binanceRest {
         client.resolve ([ liquidation ], 'liquidations::' + symbol);
     }
 
-    parseWsLiquidation (liquidation: any, market: Market = undefined): Liquidation {
+    parseWsLiquidation (liquidation: any, market: Market = undefined) {
         //
         // future
         //    {
@@ -1184,7 +1184,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    handleSubscriptionStatus (client: Client, message: any): Dict {
+    handleSubscriptionStatus (client: Client, message: any) {
         //
         //     {
         //         "result": null,
@@ -2484,7 +2484,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    parseWsTicker (message: any, marketType: any): Ticker {
+    parseWsTicker (message: any, marketType: any) {
         // markPrice
         //   {
         //       "e": "markPriceUpdate",   // Event type
@@ -2773,7 +2773,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    signParams (params: Dict = {}): Dict {
+    signParams (params: Dict = {}) {
         this.checkRequiredCredentials ();
         const defaultRecvWindow = this.safeInteger (this.options, 'recvWindow');
         if (defaultRecvWindow !== undefined) {
@@ -5123,7 +5123,7 @@ export default class binance extends binanceRest {
         client.resolve (newPositions, accountType + ':positions');
     }
 
-    parseWsPosition (position: any, market: Market = undefined): Position {
+    parseWsPosition (position: any, market: Market = undefined) {
         //
         //     {
         //         "s": "BTCUSDT", // Symbol
@@ -5178,7 +5178,7 @@ export default class binance extends binanceRest {
         });
     }
 
-    parseWsOptionsPosition (position: any, market: any = undefined): Position {
+    parseWsOptionsPosition (position: any, market: any = undefined) {
         //
         //  from BALANCE_POSITION_UPDATE event P[] array:
         //  {

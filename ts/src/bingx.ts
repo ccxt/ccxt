@@ -3670,7 +3670,7 @@ export default class bingx extends Exchange {
         return this.safeString (sides, side, side);
     }
 
-    parseOrderType (type: Str): Str {
+    parseOrderType (type: Str) {
         const types: Dict = {
             'trigger_market': 'market',
             'trigger_limit': 'limit',
@@ -4063,7 +4063,7 @@ export default class bingx extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status: Str): Str {
+    parseOrderStatus (status: Str) {
         const statuses: Dict = {
             'NEW': 'open',
             'PENDING': 'open',
@@ -5764,7 +5764,7 @@ export default class bingx extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatus (status: Str): Str {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             '0': 'pending',
             '1': 'ok',

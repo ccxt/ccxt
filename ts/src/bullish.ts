@@ -2035,7 +2035,7 @@ export default class bullish extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status: Str): Str {
+    parseOrderStatus (status: Str) {
         const statuses: Dict = {
             'OPEN': 'open',
             'CLOSED': 'closed',
@@ -2045,7 +2045,7 @@ export default class bullish extends Exchange {
         return this.safeString (statuses, status as string, status);
     }
 
-    parseOrderType (type: Str): Str {
+    parseOrderType (type: Str) {
         const types: Dict = {
             'LMT': 'limit',
             'MKT': 'market',
@@ -2243,7 +2243,7 @@ export default class bullish extends Exchange {
         };
     }
 
-    parseTransactionType (type: any): Str {
+    parseTransactionType (type: any) {
         const types: Dict = {
             'DEPOSIT': 'deposit',
             'WITHDRAW': 'withdrawal',
@@ -2251,7 +2251,7 @@ export default class bullish extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseTransactionStatus (status: Str): Str {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'COMPLETE': 'ok',
             'FAILED': 'failed',
@@ -2626,7 +2626,7 @@ export default class bullish extends Exchange {
         });
     }
 
-    parsePositionSide (side: Str): Str {
+    parsePositionSide (side: Str) {
         const sides: Dict = {
             'BUY': 'long',
             'SELL': 'short',
@@ -2778,7 +2778,7 @@ export default class bullish extends Exchange {
         };
     }
 
-    parseTransferStatus (status: Str): Str {
+    parseTransferStatus (status: Str) {
         const statuses: Dict = {
             'CLOSED': 'ok',
             'OPEN': 'pending',
@@ -2861,7 +2861,7 @@ export default class bullish extends Exchange {
         };
     }
 
-    getTimestamp (): number {
+    getTimestamp () {
         return this.milliseconds () - this.options['timeDifference'];
     }
 

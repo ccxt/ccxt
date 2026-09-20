@@ -1248,7 +1248,7 @@ export default class apex extends Exchange {
         }, market);
     }
 
-    parseTimeInForce (timeInForce: Str): Str {
+    parseTimeInForce (timeInForce: Str) {
         const timeInForces: Dict = {
             'GOOD_TIL_CANCEL': 'GOOD_TIL_CANCEL',
             'FILL_OR_KILL': 'FILL_OR_KILL',
@@ -1258,7 +1258,7 @@ export default class apex extends Exchange {
         return this.safeString (timeInForces, timeInForce);
     }
 
-    parseOrderStatus (status: Str): Str {
+    parseOrderStatus (status: Str) {
         if (status !== undefined) {
             const statuses: Dict = {
                 'PENDING': 'open',
@@ -1273,7 +1273,7 @@ export default class apex extends Exchange {
         return undefined;
     }
 
-    parseOrderType (type: Str): Str {
+    parseOrderType (type: Str) {
         const types: Dict = {
             'LIMIT': 'limit',
             'MARKET': 'market',
@@ -1309,13 +1309,13 @@ export default class apex extends Exchange {
         return super.safeMarket (marketId, market, delimiter, marketType);
     }
 
-    generateRandomClientIdOmni (_accountId: Str): string {
+    generateRandomClientIdOmni (_accountId: Str) {
         const hasAccountId = (_accountId !== undefined) && (_accountId !== '');
         const accountId = hasAccountId ? _accountId : this.randNumber (12).toString ();
         return 'apexomni-' + accountId + '-' + this.milliseconds ().toString () + '-' + this.randNumber (6).toString ();
     }
 
-    addHyphenBeforeUsdt (symbol: string): string {
+    addHyphenBeforeUsdt (symbol: string) {
         const uppercaseSymbol = symbol.toUpperCase ();
         const index = uppercaseSymbol.indexOf ('USDT');
         const symbolChar = this.safeString (symbol, index - 1);
@@ -1325,7 +1325,7 @@ export default class apex extends Exchange {
         return symbol;
     }
 
-    getSeeds (): string {
+    getSeeds () {
         const seeds = this.safeString (this.options, 'seeds');
         if (seeds === undefined) {
             throw new ArgumentsRequired (this.id + ' the "seeds" key is required in the options to access private endpoints. You can find it in API Management > Omni Key, and then set it as exchange.options["seeds"] = XXXX');
@@ -1333,7 +1333,7 @@ export default class apex extends Exchange {
         return seeds;
     }
 
-    async getAccountId (): Promise<string> {
+    async getAccountId () {
         const accountId = this.safeString (this.options, 'accountId', '0');
         if (accountId === '0') {
             const accountData = await this.fetchAccount ();

@@ -913,7 +913,7 @@ export default class coincheck extends Exchange {
         return this.parseTransactions (data, currency, since, limit, { 'type': 'withdrawal' });
     }
 
-    parseTransactionStatus (status: Str): Str {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             // withdrawals
             'pending': 'pending',

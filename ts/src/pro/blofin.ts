@@ -763,7 +763,7 @@ export default class blofin extends blofinRest {
         return await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), messageHashes);
     }
 
-    getSubscriptionRequest (args: any): Dict {
+    getSubscriptionRequest (args: any) {
         return {
             'op': 'subscribe',
             'args': args,

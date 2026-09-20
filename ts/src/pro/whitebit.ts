@@ -718,7 +718,7 @@ export default class whitebit extends whitebitRest {
         }, market);
     }
 
-    parseWsOrderType (status: any): Str {
+    parseWsOrderType (status: any) {
         const statuses: Dict = {
             '1': 'limit',
             '2': 'market',

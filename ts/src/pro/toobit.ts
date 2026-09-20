@@ -519,7 +519,7 @@ export default class toobit extends toobitRest {
         client.resolve (newTickers, 'tickers');
     }
 
-    parseWsTicker (ticker: Dict, market: Market = undefined): Ticker {
+    parseWsTicker (ticker: Dict, market: Market = undefined) {
         return this.parseTicker (ticker, market);
     }
 
@@ -1261,7 +1261,7 @@ export default class toobit extends toobitRest {
         this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
     }
 
-    getUserStreamUrl (): string {
+    getUserStreamUrl () {
         return this.urls['api']['ws']['common'] + '/api/v1/ws/' + this.options['ws']['listenKey'];
     }
 

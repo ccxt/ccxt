@@ -105,7 +105,7 @@ export default class deepcoin extends deepcoinRest {
         return message;
     }
 
-    requestId (): number {
+    requestId () {
         this.lockId ();
         const previousValue = this.safeInteger (this.options, 'lastRequestId', 0);
         const newValue = this.sum (previousValue, 1);
@@ -114,7 +114,7 @@ export default class deepcoin extends deepcoinRest {
         return newValue;
     }
 
-    createPublicRequest (market: any, requestId: number, topicID: string, suffix: string = '', unWatch: boolean = false): Dict {
+    createPublicRequest (market: any, requestId: number, topicID: string, suffix: string = '', unWatch: boolean = false) {
         let marketId = market['symbol']; // spot markets use symbol with slash
         if (market['type'] === 'swap') {
             marketId = this.safeString (market, 'baseId', '') + this.safeString (market, 'quoteId', ''); // swap markets use symbol without slash

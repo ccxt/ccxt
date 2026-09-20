@@ -89,7 +89,7 @@ export default class coinex extends coinexRest {
         });
     }
 
-    requestId (): number {
+    requestId () {
         this.lockId ();
         const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;

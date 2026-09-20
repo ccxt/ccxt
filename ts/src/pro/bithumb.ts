@@ -264,7 +264,7 @@ export default class bithumb extends bithumbRest {
         client.resolve (this.tickers[symbol], messageHash);
     }
 
-    parseWsTicker (ticker: Dict, market: Market = undefined): Ticker {
+    parseWsTicker (ticker: Dict, market: Market = undefined) {
         //
         //    {
         //        "symbol" : "BTC_KRW",           // 통화코드

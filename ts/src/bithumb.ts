@@ -2067,7 +2067,7 @@ export default class bithumb extends Exchange {
         return this.parseOrder (parsedOrder, market);
     }
 
-    parseOrderStatus (status: Str): Str {
+    parseOrderStatus (status: Str) {
         const statuses: Dict = {
             'Pending': 'open',
             'Completed': 'closed',
@@ -3302,7 +3302,7 @@ export default class bithumb extends Exchange {
         return this.milliseconds ();
     }
 
-    urlencodeWithArrayBrackets (query: Dict): string {
+    urlencodeWithArrayBrackets (query: Dict) {
         const keys = Object.keys (query);
         let result = '';
         for (let i = 0; i < keys.length; i++) {

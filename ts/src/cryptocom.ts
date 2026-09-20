@@ -2018,7 +2018,7 @@ export default class cryptocom extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseAddress (addressString: any): Str[] {
+    parseAddress (addressString: any) {
         let address: Str = undefined;
         let tag: Str = undefined;
         let rawTag: Str = undefined;
@@ -2440,7 +2440,7 @@ export default class cryptocom extends Exchange {
         ];
     }
 
-    parseOrderStatus (status: Str): Str {
+    parseOrderStatus (status: Str) {
         const statuses: Dict = {
             'ACTIVE': 'open',
             'CANCELED': 'canceled',
@@ -2451,7 +2451,7 @@ export default class cryptocom extends Exchange {
         return this.safeString (statuses, (status as string), status);
     }
 
-    parseTimeInForce (timeInForce: Str): Str {
+    parseTimeInForce (timeInForce: Str) {
         const timeInForces: Dict = {
             'GOOD_TILL_CANCEL': 'GTC',
             'IMMEDIATE_OR_CANCEL': 'IOC',

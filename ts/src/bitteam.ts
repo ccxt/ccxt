@@ -1383,7 +1383,7 @@ export default class bitteam extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status: Str): Str {
+    parseOrderStatus (status: Str) {
         const statuses: Dict = {
             'accepted': 'open',
             'executed': 'closed',
@@ -2422,7 +2422,7 @@ export default class bitteam extends Exchange {
         return this.safeString (types, (type as string), type);
     }
 
-    parseTransactionStatus (status: Str): Str {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'approving': 'pending',
             'success': 'ok',

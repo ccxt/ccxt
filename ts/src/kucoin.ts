@@ -2214,7 +2214,7 @@ export default class kucoin extends Exchange {
      * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-type-spot
      * @returns {any} ignore
      */
-    async loadMigrationStatus (force: boolean = false): Promise<boolean> {
+    async loadMigrationStatus (force: boolean = false) {
         if (!('hf' in this.options) || (this.options['hf'] === undefined) || force) {
             const result: Dict = await this.privateGetHfAccountsOpened ();
             this.options['hf'] = this.safeBool (result, 'data');
@@ -4198,7 +4198,7 @@ export default class kucoin extends Exchange {
         return this.extend (request, params);
     }
 
-    marketOrderAmountToPrecision (symbol: Str, amount: any): string {
+    marketOrderAmountToPrecision (symbol: Str, amount: any) {
         const market = this.market (symbol);
         const result = this.decimalToPrecision (amount, TRUNCATE, market['info']['quoteIncrement'], this.precisionMode, this.paddingMode);
         if (result === '0') {
@@ -7694,7 +7694,7 @@ export default class kucoin extends Exchange {
         return this.parseTransaction (data, currency);
     }
 
-    parseTransactionStatus (status: Str): Str {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'SUCCESS': 'ok',
             'PROCESSING': 'pending',

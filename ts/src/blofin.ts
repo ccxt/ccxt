@@ -1431,7 +1431,7 @@ export default class blofin extends Exchange {
         return this.extend (request, params);
     }
 
-    parseOrderStatus (status: Str): Str {
+    parseOrderStatus (status: Str) {
         const statuses: Dict = {
             'canceled': 'canceled',
             'order_failed': 'canceled',
@@ -2240,7 +2240,7 @@ export default class blofin extends Exchange {
         };
     }
 
-    parseTransactionWithdrawalStatus (status: Str): Str {
+    parseTransactionWithdrawalStatus (status: Str) {
         const statuses: Dict = {
             '0': 'pending',
             '2': 'failed',
@@ -2252,7 +2252,7 @@ export default class blofin extends Exchange {
         return this.safeString (statuses, status as IndexType, status);
     }
 
-    parseTransactionDepositStatus (status: Str): Str {
+    parseTransactionDepositStatus (status: Str) {
         const statuses: Dict = {
             '0': 'pending',
             '1': 'ok',
@@ -2303,7 +2303,7 @@ export default class blofin extends Exchange {
         }, currency) as LedgerEntry;
     }
 
-    parseIds (ids: any): string[] {
+    parseIds (ids: any) {
         /**
          * @ignore
          * @method

@@ -3987,7 +3987,7 @@ export default class xt extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status: Str): Str {
+    parseOrderStatus (status: Str) {
         const statuses = {
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',
@@ -4114,7 +4114,7 @@ export default class xt extends Exchange {
         }, currency) as LedgerEntry;
     }
 
-    parseLedgerEntryType (type: any): Str {
+    parseLedgerEntryType (type: any) {
         const ledgerType = {
             'EXCHANGE': 'transfer',
             'CLOSE_POSITION': 'trade',
@@ -4426,7 +4426,7 @@ export default class xt extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatus (status: Str): Str {
+    parseTransactionStatus (status: Str) {
         const statuses = {
             'SUBMIT': 'pending',
             'REVIEW': 'pending',

@@ -181,7 +181,7 @@ export default class modetrade extends modetradeRest {
         return await this.watchPublic (topic, message);
     }
 
-    parseWsTicker (ticker: Dict, market: Market = undefined): Ticker {
+    parseWsTicker (ticker: Dict, market: Market = undefined) {
         //
         //     {
         //         "symbol": "PERP_BTC_USDC",
@@ -1135,7 +1135,7 @@ export default class modetrade extends modetradeRest {
         client.resolve (newPositions, 'positions');
     }
 
-    parseWsPosition (position: any, market: Market = undefined): Position {
+    parseWsPosition (position: any, market: Market = undefined) {
         //
         //     {
         //         "symbol":"PERP_ETH_USDC",

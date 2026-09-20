@@ -751,7 +751,7 @@ export default class bitstamp extends Exchange {
         return result;
     }
 
-    constructCurrencyObject (id: any, code: any, name: any, precision: any, minCost: any, originalPayload: any): Dict {
+    constructCurrencyObject (id: any, code: any, name: any, precision: any, minCost: any, originalPayload: any) {
         let currencyType = 'crypto';
         const description = this.describe ();
         if (this.isFiat (code)) {
@@ -1577,7 +1577,7 @@ export default class bitstamp extends Exchange {
         return this.parseTransactionFees (response);
     }
 
-    parseTransactionFees (response: any, codes: Strings = undefined): Dict {
+    parseTransactionFees (response: any, codes: Strings = undefined) {
         const result: Dict = {};
         const currencies = this.indexBy (response, 'currency');
         const ids = Object.keys (currencies);
@@ -1827,7 +1827,7 @@ export default class bitstamp extends Exchange {
         return this.parseOrders (canceled);
     }
 
-    parseOrderStatus (status: Str): Str {
+    parseOrderStatus (status: Str) {
         const statuses: Dict = {
             'In Queue': 'open',
             'Open': 'open',
@@ -2232,7 +2232,7 @@ export default class bitstamp extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatus (status: Str): Str {
+    parseTransactionStatus (status: Str) {
         //
         //   withdrawals:
         //   0 (open), 1 (in process), 2 (finished), 3 (canceled) or 4 (failed).

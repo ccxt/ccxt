@@ -87,7 +87,7 @@ export default class bydfi extends bydfiRest {
         };
     }
 
-    requestId (): string {
+    requestId () {
         this.lockId ();
         const reqid = this.sum (this.safeInteger (this.options, 'reqid', 0), 1);
         this.options['reqid'] = reqid;
@@ -262,7 +262,7 @@ export default class bydfi extends bydfiRest {
         return await this.watchPublic (messageHashes, channels, params, subscription);
     }
 
-    getMessageHashesForTickersUnsubscription (): string[] {
+    getMessageHashesForTickersUnsubscription () {
         const url = this.urls['api']['ws']['public'];
         const client = this.client (url);
         const subscriptions = client.subscriptions;

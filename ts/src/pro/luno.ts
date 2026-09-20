@@ -2,7 +2,7 @@
 
 import lunoRest from '../luno.js';
 import { ArrayCache } from '../base/ws/Cache.js';
-import type { Int, Trade, OrderBook, IndexType, Dict, Market, Str, Num } from '../base/types.js';
+import type { Int, Trade, OrderBook, IndexType, Dict, Market, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -248,7 +248,7 @@ export default class luno extends lunoRest {
         return result;
     }
 
-    customParseBidAsk (bidask: any, priceKey: IndexType = 'price', amountKey: IndexType = 'volume', thirdKey: IndexType = 2): Num[] {
+    customParseBidAsk (bidask: any, priceKey: IndexType = 'price', amountKey: IndexType = 'volume', thirdKey: IndexType = 2) {
         const price = this.safeNumber (bidask, priceKey);
         const amount = this.safeNumber (bidask, amountKey);
         const result = [ price, amount ];

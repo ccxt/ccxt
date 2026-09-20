@@ -1478,7 +1478,7 @@ export default class modetrade extends Exchange {
         }, market);
     }
 
-    parseTimeInForce (timeInForce: Str): Str {
+    parseTimeInForce (timeInForce: Str) {
         const timeInForces: Dict = {
             'ioc': 'IOC',
             'fok': 'FOK',
@@ -1490,7 +1490,7 @@ export default class modetrade extends Exchange {
         return this.safeString (timeInForces, timeInForce);
     }
 
-    parseOrderStatus (status: Str): Str {
+    parseOrderStatus (status: Str) {
         if (status !== undefined) {
             const statuses: Dict = {
                 'NEW': 'open',
@@ -1511,7 +1511,7 @@ export default class modetrade extends Exchange {
         return undefined;
     }
 
-    parseOrderType (type: Str): Str {
+    parseOrderType (type: Str) {
         const types: Dict = {
             'LIMIT': 'limit',
             'MARKET': 'market',
@@ -2598,7 +2598,7 @@ export default class modetrade extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatus (status: Str): Str {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'NEW': 'pending',
             'CONFIRMING': 'pending',
@@ -2697,7 +2697,7 @@ export default class modetrade extends Exchange {
         return this.safeNumber (data, 'withdraw_nonce');
     }
 
-    hashMessage (message: any): string {
+    hashMessage (message: any) {
         return '0x' + this.hash (message, keccak, 'hex');
     }
 

@@ -1247,7 +1247,7 @@ export default class coinbaseinternational extends Exchange {
         return await this.fetchDepositsWithdrawals (code, since, limit, params);
     }
 
-    parseTransactionStatus (status: Str): Str {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'PROCESSED': 'ok',
             'NEW': 'pending',
@@ -1952,7 +1952,7 @@ export default class coinbaseinternational extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status: Str): Str {
+    parseOrderStatus (status: Str) {
         const statuses: Dict = {
             // order_status carries WORKING and DONE; the other keys are event_type
             // values, which the same payload reports in its own field
@@ -1971,7 +1971,7 @@ export default class coinbaseinternational extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderType (type: Str): Str {
+    parseOrderType (type: Str) {
         if (type === 'UNKNOWN_ORDER_TYPE') {
             return undefined;
         }

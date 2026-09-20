@@ -279,7 +279,7 @@ export default class hibachi extends Exchange {
         });
     }
 
-    getAccountId (): number {
+    getAccountId () {
         this.checkRequiredCredentials ();
         const id = this.parseToInt (this.accountId);
         return id;
@@ -1125,7 +1125,7 @@ export default class hibachi extends Exchange {
         return ret;
     }
 
-    cancelOrderRequest (id: string): Dict {
+    cancelOrderRequest (id: string) {
         const bigid = this.convertToBigInt (id);
         const idbase16 = this.intToBase16 (bigid);
         const idPadded = idbase16.padStart (16, '0');
@@ -1866,7 +1866,7 @@ export default class hibachi extends Exchange {
         return this.safeString (types, (type as string), type);
     }
 
-    parseTransactionStatus (status: Str): Str {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'pending': 'pending',
             'claimable': 'pending',

@@ -415,7 +415,7 @@ export default class grvt extends Exchange {
         });
     }
 
-    eipDefinitions (): Dict {
+    eipDefinitions () {
         return {
             'EIP712_ORDER_TYPE': {
                 'Order': [
@@ -1896,7 +1896,7 @@ export default class grvt extends Exchange {
         };
     }
 
-    async loadAccountInfos (): Promise<Bool> {
+    async loadAccountInfos () {
         if (this.safeString (this.options, 'userMainAccountId') !== undefined) {
             return false;
         }
@@ -2207,7 +2207,7 @@ export default class grvt extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    convertToBigIntCustom (x: any): number {
+    convertToBigIntCustom (x: any) {
         return parseInt (x);
     }
 
@@ -3102,7 +3102,7 @@ export default class grvt extends Exchange {
         return this.safeInteger (timeInForces, timeInForce, 0);
     }
 
-    parseOrderStatus (status: Str): Str {
+    parseOrderStatus (status: Str) {
         const statuses: Dict = {
             'PENDING': 'pending',
             'OPEN': 'open',
@@ -3182,7 +3182,7 @@ export default class grvt extends Exchange {
         return this.parseOrder (result);
     }
 
-    eipDomainData (): Dict {
+    eipDomainData () {
         //     GrvtEnv.DEV.value: 327,
         //     GrvtEnv.STAGING.value: 327,
         //     GrvtEnv.TESTNET.value: 326,
@@ -3194,7 +3194,7 @@ export default class grvt extends Exchange {
         };
     }
 
-    feeAmountMultiplier (): number {
+    feeAmountMultiplier () {
         return this.convertToBigIntCustom ('10000'); // multiply needed https://t.me/c/3396937126/88
     }
 
@@ -3263,7 +3263,7 @@ export default class grvt extends Exchange {
         return request;
     }
 
-    formatSignatureRS (value: string): string {
+    formatSignatureRS (value: string) {
         const padded = value.padStart (64, '0');
         if (padded.startsWith ('0x')) {
             return padded;
@@ -3272,7 +3272,7 @@ export default class grvt extends Exchange {
         }
     }
 
-    defaultSignature (): Dict {
+    defaultSignature () {
         const expiration = this.milliseconds () * 1000000 + 1000000 * this.safeInteger (this.options, 'expirationSeconds', 30) * 1000;
         return {
             'signer': '',
@@ -3294,7 +3294,7 @@ export default class grvt extends Exchange {
         return [ request, params ];
     }
 
-    requestId (): number {
+    requestId () {
         const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
         return requestId;

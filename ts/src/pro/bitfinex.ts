@@ -592,7 +592,7 @@ export default class bitfinex extends bitfinexRest {
         client.resolve (parsed, messageHash);
     }
 
-    parseWsTicker (ticker: Dict, market: Market = undefined): Ticker {
+    parseWsTicker (ticker: Dict, market: Market = undefined) {
         //
         //     [
         //         236.62,        // 1 BID float Price of last highest bid

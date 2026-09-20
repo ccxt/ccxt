@@ -2388,7 +2388,7 @@ export default class nado extends Exchange {
         };
     }
 
-    parseFundingHistory (funding: Dict, market: Market = undefined): FundingHistory {
+    parseFundingHistory (funding: Dict, market: Market = undefined) {
         //
         //     {
         //         "product_id": 2,
@@ -2896,7 +2896,7 @@ export default class nado extends Exchange {
         }, market);
     }
 
-    parseOrderTimeInForce (timeInForce: Str): Str {
+    parseOrderTimeInForce (timeInForce: Str) {
         const timeInForces: Dict = {
             'default': 'GTC',
             'ioc': 'IOC',
@@ -2906,7 +2906,7 @@ export default class nado extends Exchange {
         return this.safeString (timeInForces, timeInForce, timeInForce);
     }
 
-    convertToX18 (value: Str): Str {
+    convertToX18 (value: Str) {
         if (value === undefined) {
             throw new ArgumentsRequired (this.id + ' convertToX18() requires a value');
         }
@@ -2967,7 +2967,7 @@ export default class nado extends Exchange {
         return appendix;
     }
 
-    createSubaccount (walletAddress: Str, subaccount: Str = 'default'): string {
+    createSubaccount (walletAddress: Str, subaccount: Str = 'default') {
         if (walletAddress === undefined) {
             throw new ArgumentsRequired (this.id + ' createSubaccount() requires walletAddress');
         }
@@ -2999,7 +2999,7 @@ export default class nado extends Exchange {
         return data;
     }
 
-    orderVerifyingContract (productId: Int): string {
+    orderVerifyingContract (productId: Int) {
         return '0x' + this.padHex (this.intToBase16 (productId), 40);
     }
 
@@ -3095,7 +3095,7 @@ export default class nado extends Exchange {
         return this.signHash (hash, this.privateKey);
     }
 
-    signHash (hash: string, privateKey: Str): string {
+    signHash (hash: string, privateKey: Str) {
         if (privateKey === undefined) {
             throw new ArgumentsRequired (this.id + ' signHash() requires privateKey');
         }
@@ -3106,7 +3106,7 @@ export default class nado extends Exchange {
         return '0x' + this.padHex (r, 64) + this.padHex (s, 64) + v;
     }
 
-    removeMarketSuffix (marketId: Str): Str {
+    removeMarketSuffix (marketId: Str) {
         if (marketId === undefined) {
             return undefined;
         }

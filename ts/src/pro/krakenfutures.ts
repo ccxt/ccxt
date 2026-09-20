@@ -1102,7 +1102,7 @@ export default class krakenfutures extends krakenfuturesRest {
         }
     }
 
-    parseWsTicker (ticker: Dict, market: Market = undefined): Ticker {
+    parseWsTicker (ticker: Dict, market: Market = undefined) {
         //
         //    {
         //        "time": 1680811086487,
@@ -1637,7 +1637,7 @@ export default class krakenfutures extends krakenfuturesRest {
         return (hash in client.subscriptions);
     }
 
-    getMessageHash (unifiedElementName: string, subChannelName: Str = undefined, symbol: Str = undefined): string {
+    getMessageHash (unifiedElementName: string, subChannelName: Str = undefined, symbol: Str = undefined) {
         // unifiedElementName can be : orderbook, trade, ticker, bidask ...
         // subChannelName only applies to channel that needs specific variation (i.e. depth_50, depth_100..) to be selected
         const withSymbol = symbol !== undefined;

@@ -444,7 +444,7 @@ export default class hitbtc extends hitbtcRest {
         client.resolve (result, topic);
     }
 
-    parseWsTicker (ticker: Dict, market: Market = undefined): Ticker {
+    parseWsTicker (ticker: Dict, market: Market = undefined) {
         //
         //    {
         //        "t": 1614815872000,             // Timestamp in milliseconds

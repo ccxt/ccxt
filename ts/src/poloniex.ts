@@ -1649,7 +1649,7 @@ export default class poloniex extends Exchange {
         return result;
     }
 
-    parseOrderStatus (status: Str): Str {
+    parseOrderStatus (status: Str) {
         const statuses: Dict = {
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',
@@ -3184,7 +3184,7 @@ export default class poloniex extends Exchange {
         return this.filterByCurrencySinceLimit (transactions, code, since, limit);
     }
 
-    parseTransactionStatus (status: Str): Str {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'COMPLETE': 'ok',
             'COMPLETED': 'ok',

@@ -174,7 +174,7 @@ export default class bybit extends bybitRest {
         };
     }
 
-    requestId (): number {
+    requestId () {
         this.lockId ();
         const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
@@ -665,7 +665,7 @@ export default class bybit extends bybitRest {
         return this.filterByArray (this.bidsasks, 'symbol', symbols);
     }
 
-    parseWsBidAsk (orderbook: any, market: Market = undefined): Ticker {
+    parseWsBidAsk (orderbook: any, market: Market = undefined) {
         const timestamp = this.safeInteger (orderbook, 'timestamp');
         const bids = this.sortBy (this.aggregate (orderbook['bids']), 0);
         const asks = this.sortBy (this.aggregate (orderbook['asks']), 0);
@@ -1815,7 +1815,7 @@ export default class bybit extends bybitRest {
         }
     }
 
-    parseWsLiquidation (liquidation: any, market: Market = undefined): Liquidation {
+    parseWsLiquidation (liquidation: any, market: Market = undefined) {
         //
         //     {
         //         "price": "0.03803",

@@ -464,7 +464,7 @@ export default class upbit extends upbitRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    parseWsOrderStatus (status: Str): Str {
+    parseWsOrderStatus (status: Str) {
         const statuses: Dict = {
             'wait': 'open',
             'done': 'closed',

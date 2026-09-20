@@ -555,7 +555,7 @@ export default class pacifica extends Exchange {
         });
     }
 
-    async initializeClient (): Promise<boolean> {
+    async initializeClient () {
         try {
             await this.handleBuilderFeeApproval ();
         } catch (e) {
@@ -564,7 +564,7 @@ export default class pacifica extends Exchange {
         return true;
     }
 
-    async handleBuilderFeeApproval (): Promise<boolean> {
+    async handleBuilderFeeApproval () {
         if (this.isSandboxModeEnabled) { // At this stage, building codes are mostly only on the mainnet.
             return false;
         }
@@ -1686,7 +1686,7 @@ export default class pacifica extends Exchange {
         return [ request, operationType ];
     }
 
-    batchOrdersRequest (actions: any[]): Dict {
+    batchOrdersRequest (actions: any[]) {
         //
         // [
         //     {
@@ -2519,7 +2519,7 @@ export default class pacifica extends Exchange {
         return this.parseOrder (lastInfo, market);
     }
 
-    parseOrderStatus (status: Str): Str {
+    parseOrderStatus (status: Str) {
         const statuses: Dict = {
             'open': 'open',
             'partially_filled': 'open',
@@ -2530,7 +2530,7 @@ export default class pacifica extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    mapTimeInForce (tifRaw: Str): Str {
+    mapTimeInForce (tifRaw: Str) {
         const tifMap: Dict = {
             'GTC': 'GTC',
             'IOC': 'IOC',
@@ -2547,7 +2547,7 @@ export default class pacifica extends Exchange {
         return this.safeString (tifMap, tif);
     }
 
-    mapSide (sideRaw: Str): Str {
+    mapSide (sideRaw: Str) {
         const sideMap: Dict = {
             'sell': 'ask',
             'buy': 'bid',
@@ -2555,7 +2555,7 @@ export default class pacifica extends Exchange {
         return this.safeString (sideMap, sideRaw, sideRaw);
     }
 
-    parseOrderType (status: Str): Str {
+    parseOrderType (status: Str) {
         const statuses: Dict = {
             'stop_limit': 'limit',
             'stop_market': 'market',
@@ -3449,7 +3449,7 @@ export default class pacifica extends Exchange {
         return await this.privatePostAccountBuilderCodesApprove (this.extend (request, params));
     }
 
-    async fetchBuilderApprovals (address: string): Promise<List> {
+    async fetchBuilderApprovals (address: string) {
         const request: Dict = {
             'account': address,
         };

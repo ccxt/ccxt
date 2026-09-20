@@ -2559,7 +2559,7 @@ export default class whitebit extends Exchange {
         return results as Order[];
     }
 
-    parseOrderType (type: Str): Str {
+    parseOrderType (type: Str) {
         const types: Dict = {
             'limit': 'limit',
             'market': 'market',
@@ -2678,7 +2678,7 @@ export default class whitebit extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status: Str): Str {
+    parseOrderStatus (status: Str) {
         const statuses: Dict = {
             'CANCELED': 'canceled',
             'OPEN': 'open',
@@ -3234,7 +3234,7 @@ export default class whitebit extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatus (status: Str): Str {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             '1': 'pending',
             '2': 'pending',

@@ -226,7 +226,7 @@ export default class bitflyer extends Exchange {
         });
     }
 
-    parseExpiryDate (expiry: any): Int {
+    parseExpiryDate (expiry: any) {
         const day = expiry.slice (0, 2);
         const monthName = expiry.slice (2, 5);
         const year = expiry.slice (5, 9);
@@ -733,7 +733,7 @@ export default class bitflyer extends Exchange {
         });
     }
 
-    parseOrderStatus (status: Str): Str {
+    parseOrderStatus (status: Str) {
         const statuses: Dict = {
             'ACTIVE': 'open',
             'COMPLETED': 'closed',

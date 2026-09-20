@@ -875,7 +875,7 @@ export default class upbit extends Exchange {
         return this.parseTickers (tickers, symbols);
     }
 
-    idsQueryStrings (ids: Strings, maxQueryLength: number): List {
+    idsQueryStrings (ids: Strings, maxQueryLength: number) {
         if (ids === undefined) {
             return [];
         }
@@ -1741,7 +1741,7 @@ export default class upbit extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    parseTransactionStatus (status: Str): Str {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'submitting': 'pending', // 처리 중
             'submitted': 'pending', // 처리 완료
@@ -1823,7 +1823,7 @@ export default class upbit extends Exchange {
         } as Transaction;
     }
 
-    parseOrderStatus (status: Str): Str {
+    parseOrderStatus (status: Str) {
         const statuses: Dict = {
             'wait': 'open',
             'done': 'closed',

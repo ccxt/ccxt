@@ -1885,7 +1885,7 @@ export default class delta extends Exchange {
         });
     }
 
-    parseOrderStatus (status: Str): Str {
+    parseOrderStatus (status: Str) {
         const statuses: Dict = {
             'open': 'open',
             'pending': 'open',
@@ -2527,7 +2527,7 @@ export default class delta extends Exchange {
         return this.parseLedger (result, currency, since, limit);
     }
 
-    parseLedgerEntryType (type: any): Str {
+    parseLedgerEntryType (type: any) {
         const types: Dict = {
             'pnl': 'pnl',
             'deposit': 'transaction',

@@ -61,7 +61,7 @@ export default class lighter extends lighterRest {
         });
     }
 
-    getMessageHash (unifiedChannel: string, symbol: Str = undefined, extra: Str = undefined): string {
+    getMessageHash (unifiedChannel: string, symbol: Str = undefined, extra: Str = undefined) {
         let hash = unifiedChannel;
         if (symbol !== undefined) {
             hash += '::' + symbol;

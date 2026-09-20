@@ -1803,7 +1803,7 @@ export default class coinsph extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderStatus (status: Str): Str {
+    parseOrderStatus (status: Str) {
         const statuses: Dict = {
             'NEW': 'open',
             'FILLED': 'closed',
@@ -2180,7 +2180,7 @@ export default class coinsph extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatus (status: Str): Str {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             '0': 'pending',
             '1': 'ok',
@@ -2248,7 +2248,7 @@ export default class coinsph extends Exchange {
         } as DepositAddress;
     }
 
-    urlEncodeQuery (query: Dict = {}): string {
+    urlEncodeQuery (query: Dict = {}) {
         let encodedArrayParams = '';
         const keys = Object.keys (query);
         for (let i = 0; i < keys.length; i++) {

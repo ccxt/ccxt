@@ -717,7 +717,7 @@ export default class cryptocom extends cryptocomRest {
         client.resolve (parsedTicker, messageHash);
     }
 
-    parseWsBidAsk (ticker: any, market: Market = undefined): Ticker {
+    parseWsBidAsk (ticker: any, market: Market = undefined) {
         const marketId = this.safeString (ticker, 'i');
         market = this.safeMarket (marketId, market);
         const symbol = this.safeString (market, 'symbol');

@@ -4687,7 +4687,7 @@ export default class htx extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    parseOrderStatus (status: Str): Str {
+    parseOrderStatus (status: Str) {
         const statuses: Dict = {
             // spot
             'partial-filled': 'open',
@@ -6121,7 +6121,7 @@ export default class htx extends Exchange {
         return this.parseCancelOrders (data) as Order[];
     }
 
-    parseCancelOrders (orders: any): List {
+    parseCancelOrders (orders: any) {
         //
         //    {
         //        "success": [
@@ -6719,7 +6719,7 @@ export default class htx extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatus (status: Str): Str {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             // deposit statuses
             'unknown': 'failed',
@@ -8445,7 +8445,7 @@ export default class htx extends Exchange {
         return parsed;
     }
 
-    parseLedgerEntryType (type: any): Str {
+    parseLedgerEntryType (type: any) {
         const types: Dict = {
             'trade': 'trade',
             'etf': 'trade',

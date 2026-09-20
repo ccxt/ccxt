@@ -72,7 +72,7 @@ export default class xt extends xtRest {
      * @see https://doc.xt.com/docs/futures/UserWebsocket/General_WSS_information
      * @returns {string} listen key / access token
      */
-    async getListenKey (isContract: boolean): Promise<Str> {
+    async getListenKey (isContract: boolean) {
         this.checkRequiredCredentials ();
         const tradeType = isContract ? 'contract' : 'spot';
         let url = this.urls['api']['ws'][tradeType];
@@ -703,7 +703,7 @@ export default class xt extends xtRest {
         return await this.unSubscribe (messageHash, name, 'public', 'unWatchFundingRate', 'fund_rate', market, undefined, params);
     }
 
-    handleFundingRate (client: Client, message: Dict): Dict {
+    handleFundingRate (client: Client, message: Dict) {
         //
         //     {
         //         "topic": "fund_rate",
@@ -820,7 +820,7 @@ export default class xt extends xtRest {
         client.resolve ([ position ], 'position::contract');
     }
 
-    handleTicker (client: Client, message: Dict): Dict {
+    handleTicker (client: Client, message: Dict) {
         //
         // spot
         //
@@ -899,7 +899,7 @@ export default class xt extends xtRest {
         return message;
     }
 
-    handleTickers (client: Client, message: Dict): Dict {
+    handleTickers (client: Client, message: Dict) {
         //
         // spot
         //
@@ -999,7 +999,7 @@ export default class xt extends xtRest {
         return message;
     }
 
-    handleOHLCV (client: Client, message: Dict): Dict {
+    handleOHLCV (client: Client, message: Dict) {
         //
         // spot
         //
@@ -1060,7 +1060,7 @@ export default class xt extends xtRest {
         return message;
     }
 
-    handleTrade (client: Client, message: Dict): Dict {
+    handleTrade (client: Client, message: Dict) {
         //
         // spot
         //
@@ -1366,7 +1366,7 @@ export default class xt extends xtRest {
         }, market);
     }
 
-    handleOrder (client: Client, message: Dict): Dict {
+    handleOrder (client: Client, message: Dict) {
         //
         // spot
         //

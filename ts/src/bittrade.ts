@@ -1452,7 +1452,7 @@ export default class bittrade extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    parseOrderStatus (status: Str): Str {
+    parseOrderStatus (status: Str) {
         const statuses: Dict = {
             'partial-filled': 'open',
             'partial-canceled': 'canceled',
@@ -2027,7 +2027,7 @@ export default class bittrade extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatus (status: Str): Str {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             // deposit statuses
             'unknown': 'failed',

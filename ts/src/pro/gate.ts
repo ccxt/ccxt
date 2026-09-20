@@ -2175,7 +2175,7 @@ export default class gate extends gateRest {
         }
     }
 
-    getUrlByMarket (market: any): string {
+    getUrlByMarket (market: any) {
         const baseUrl = this.urls['api'][market['type']];
         if (market['contract'] === true) {
             return (market['linear'] === true) ? baseUrl['usdt'] : baseUrl['btc'];
@@ -2184,7 +2184,7 @@ export default class gate extends gateRest {
         }
     }
 
-    getTypeByMarket (market: Market): Str {
+    getTypeByMarket (market: Market) {
         if (market === undefined) {
             return undefined;
         }
@@ -2207,7 +2207,7 @@ export default class gate extends gateRest {
         }
     }
 
-    getMarketTypeByUrl (url: string): string {
+    getMarketTypeByUrl (url: string) {
         const findBy: Dict = {
             'op-': 'option',
             'delivery': 'future',
@@ -2224,7 +2224,7 @@ export default class gate extends gateRest {
         return 'spot';
     }
 
-    requestId (): number {
+    requestId () {
         // their support said that reqid must be an int32, not documented
         this.lockId ();
         const reqid = this.sum (this.safeInteger (this.options, 'reqid', 0), 1);

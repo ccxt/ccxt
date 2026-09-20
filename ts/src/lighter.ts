@@ -442,7 +442,7 @@ export default class lighter extends Exchange {
         }
     }
 
-    getLighterPrivateKey (strAccountIndex: string, strApiKeyIndex: string): Str {
+    getLighterPrivateKey (strAccountIndex: string, strApiKeyIndex: string) {
         if (!('auths' in this.options)) {
             return undefined;
         }
@@ -603,7 +603,7 @@ export default class lighter extends Exchange {
         return token;
     }
 
-    pow (n: string, m: string): Str {
+    pow (n: string, m: string) {
         let r = Precise.stringMul (n, '1');
         const c = this.parseToInt (m);
         if (c < 0) {
@@ -621,7 +621,7 @@ export default class lighter extends Exchange {
         return r;
     }
 
-    hashMessage (message: string): string {
+    hashMessage (message: string) {
         const binaryMessage = this.encode (message);
         const binaryMessageLength = this.binaryLength (binaryMessage);
         const x19 = this.base16ToBinary ('19');
@@ -630,7 +630,7 @@ export default class lighter extends Exchange {
         return '0x' + this.hash (this.binaryConcat (prefix, binaryMessage), keccak, 'hex');
     }
 
-    signHash (hash: any, privateKey: any): string {
+    signHash (hash: any, privateKey: any) {
         this.checkRequiredCredentials ();
         const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
         const r = signature['r'];
@@ -639,7 +639,7 @@ export default class lighter extends Exchange {
         return '0x' + r.padStart (64, '0') + s.padStart (64, '0') + v;
     }
 
-    signL1AndPrepareTxInfo (txInfo: any, message: any, privateKey: any): string {
+    signL1AndPrepareTxInfo (txInfo: any, message: any, privateKey: any) {
         const hashMessage = this.hashMessage (message);
         const signature = this.signHash (hashMessage, privateKey);
         const decTxInfo = this.parseJson (txInfo);
@@ -647,7 +647,7 @@ export default class lighter extends Exchange {
         return this.json (decTxInfo);
     }
 
-    async handleBuilderFeeApproval (accountIndex: number, apiKeyIndex: number): Promise<boolean> {
+    async handleBuilderFeeApproval (accountIndex: number, apiKeyIndex: number) {
         const buildFee = this.safeBool (this.options, 'builderFee', true);
         if (buildFee !== true) {
             return false;
@@ -2413,7 +2413,7 @@ export default class lighter extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status: Str): Str {
+    parseOrderStatus (status: Str) {
         const statuses: Dict = {
             'in-progress': 'open',
             'pending': 'open',
@@ -2435,7 +2435,7 @@ export default class lighter extends Exchange {
         return this.safeString (statuses, (status as string), status);
     }
 
-    parseOrderType (type: any): Str {
+    parseOrderType (type: any) {
         const types: Dict = {
             'limit': 'limit',
             'market': 'market',
@@ -2450,7 +2450,7 @@ export default class lighter extends Exchange {
         return this.safeString (types, (type as string), type);
     }
 
-    parseOrderTypeInteger (typeInteger: any): Str {
+    parseOrderTypeInteger (typeInteger: any) {
         if (typeInteger === undefined) {
             return undefined;
         }
@@ -2468,7 +2468,7 @@ export default class lighter extends Exchange {
         return this.safeString (types, typeInteger.toString ());
     }
 
-    parseOrderTimeInForce (tif: any): Str {
+    parseOrderTimeInForce (tif: any) {
         const timeInForces: Dict = {
             'immediate-or-cancel': 'IOC',
             'good-till-time': 'GTC',
@@ -2478,7 +2478,7 @@ export default class lighter extends Exchange {
         return this.safeString (timeInForces, tif, tif);
     }
 
-    parseOrderTimeInForceInteger (tifInteger: any): Str {
+    parseOrderTimeInForceInteger (tifInteger: any) {
         const timeInForces: Dict = {
             '0': 'immediate-or-cancel',
             '1': 'good-till-time',
@@ -2842,7 +2842,7 @@ export default class lighter extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatus (status: Str): Str {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'failed': 'failed',
             'pending': 'pending',

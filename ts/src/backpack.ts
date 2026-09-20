@@ -1674,7 +1674,7 @@ export default class backpack extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatus (status: Str): Str {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'cancelled': 'cancelled',
             'confirmed': 'ok',
@@ -1803,7 +1803,7 @@ export default class backpack extends Exchange {
         return this.parseOrders (response);
     }
 
-    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): Dict {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}) {
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a type argument');
         }
@@ -2164,7 +2164,7 @@ export default class backpack extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status: Str): Str {
+    parseOrderStatus (status: Str) {
         const statuses: Dict = {
             'New': 'open',
             'Filled': 'closed',
@@ -2177,7 +2177,7 @@ export default class backpack extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderSide (side: Str): Str {
+    parseOrderSide (side: Str) {
         const sides: Dict = {
             'Bid': 'buy',
             'Ask': 'sell',

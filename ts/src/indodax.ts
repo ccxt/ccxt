@@ -766,7 +766,7 @@ export default class indodax extends Exchange {
         return this.parseOHLCVs (this.toArray (response), market, timeframe, since, limit);
     }
 
-    parseOrderStatus (status: Str): Str {
+    parseOrderStatus (status: Str) {
         const statuses: Dict = {
             'open': 'open',
             'filled': 'closed',
@@ -1407,7 +1407,7 @@ export default class indodax extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatus (status: Str): Str {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'success': 'ok',
         };

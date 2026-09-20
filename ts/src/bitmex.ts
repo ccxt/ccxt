@@ -602,7 +602,7 @@ export default class bitmex extends Exchange {
         return this.parseNumber (finalAmount);
     }
 
-    convertToRealAmount (code: Str, amount: Str): Str {
+    convertToRealAmount (code: Str, amount: Str) {
         if (code === undefined) {
             return amount;
         } else if (amount === undefined) {
@@ -1564,7 +1564,7 @@ export default class bitmex extends Exchange {
         return this.parseTransactions (transactions, currency, since, limit);
     }
 
-    parseTransactionStatus (status: Str): Str {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'Confirmed': 'pending',
             'Canceled': 'canceled',
@@ -1961,7 +1961,7 @@ export default class bitmex extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status: Str): Str {
+    parseOrderStatus (status: Str) {
         const statuses: Dict = {
             'New': 'open',
             'PartiallyFilled': 'open',
@@ -1979,7 +1979,7 @@ export default class bitmex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTimeInForce (timeInForce: Str): Str {
+    parseTimeInForce (timeInForce: Str) {
         const timeInForces: Dict = {
             'Day': 'Day',
             'GoodTillCancel': 'GTC',

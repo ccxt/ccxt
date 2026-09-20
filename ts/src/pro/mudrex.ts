@@ -40,7 +40,7 @@ export default class mudrex extends mudrexRest {
         };
     }
 
-    requestId (): number {
+    requestId () {
         const reqid = this.sum (this.safeInteger (this.options, 'correlationId', 0), 1);
         this.options['correlationId'] = reqid;
         return reqid;

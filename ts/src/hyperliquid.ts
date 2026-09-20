@@ -779,7 +779,7 @@ export default class hyperliquid extends Exchange {
      * @param {int} maxDecimals the maxDecimals to use in the calculation
      * @returns {int} The calculated price precision
      */
-    calculatePricePrecision (price: number, amountPrecision: number, maxDecimals: number): number {
+    calculatePricePrecision (price: number, amountPrecision: number, maxDecimals: number) {
         let pricePrecision = 0;
         const priceStr = this.numberToString (price);
         if (priceStr === undefined) {
@@ -1673,7 +1673,7 @@ export default class hyperliquid extends Exchange {
         return this.decimalToPrecision (result, ROUND, subtractedValue, DECIMAL_PLACES, this.paddingMode);
     }
 
-    hashMessage (message: any): string {
+    hashMessage (message: any) {
         return '0x' + this.hash (message, keccak, 'hex');
     }
 
@@ -1690,7 +1690,7 @@ export default class hyperliquid extends Exchange {
         return this.signHash (this.hashMessage (message), privateKey.slice (-64));
     }
 
-    constructPhantomAgent (hash: any, isTestnet = true): Dict {
+    constructPhantomAgent (hash: any, isTestnet = true) {
         const source = (isTestnet) ? 'b' : 'a';
         return {
             'source': source,
@@ -1698,7 +1698,7 @@ export default class hyperliquid extends Exchange {
         };
     }
 
-    actionHash (action: any, vaultAddress: any, nonce: any, expiresAfter: Int = undefined): string {
+    actionHash (action: any, vaultAddress: any, nonce: any, expiresAfter: Int = undefined) {
         const dataBinary = this.packb (action);
         const dataHex = this.binaryToBase16 (dataBinary);
         let data = dataHex;
@@ -1908,7 +1908,7 @@ export default class hyperliquid extends Exchange {
         return await this.privatePostExchange (request);
     }
 
-    async initializeClient (): Promise<boolean> {
+    async initializeClient () {
         try {
             await Promise.all ([ this.handleBuilderFeeApproval (), this.setRef (), this.isUnifiedEnabled ('fetchBalance', undefined, false, {}) ]); // for now only fetchBalance requires the unified knowledge, but we can extend this to other methods as needed
         } catch (e) {
@@ -1917,7 +1917,7 @@ export default class hyperliquid extends Exchange {
         return true;
     }
 
-    async handleBuilderFeeApproval (): Promise<boolean> {
+    async handleBuilderFeeApproval () {
         const buildFee = this.safeBool (this.options, 'builderFee', true);
         const approvedBuilderFee = this.safeBool (this.options, 'approvedBuilderFee', false);
         if (approvedBuilderFee === true) {
@@ -3578,7 +3578,7 @@ export default class hyperliquid extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status: Str): Str {
+    parseOrderStatus (status: Str) {
         if (status === undefined) {
             return undefined;
         }
@@ -3751,7 +3751,7 @@ export default class hyperliquid extends Exchange {
         return this.safeDict (positions, 0, {}) as Position;
     }
 
-    getDexFromSymbols (methodName: string, symbols: Strings = undefined): Str {
+    getDexFromSymbols (methodName: string, symbols: Strings = undefined) {
         if (symbols === undefined) {
             return undefined;
         }
@@ -4983,7 +4983,7 @@ export default class hyperliquid extends Exchange {
         return response;
     }
 
-    extractTypeFromDelta (data: Dict[] = []): Dict[] {
+    extractTypeFromDelta (data: Dict[] = []) {
         const records: Dict[] = [];
         for (let i = 0; i < data.length; i++) {
             const record = data[i];
@@ -4993,7 +4993,7 @@ export default class hyperliquid extends Exchange {
         return records;
     }
 
-    formatVaultAddress (address: Str = undefined): Str {
+    formatVaultAddress (address: Str = undefined) {
         if (address === undefined) {
             return undefined;
         }
@@ -5017,7 +5017,7 @@ export default class hyperliquid extends Exchange {
         throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a user parameter inside \'params\' or the wallet address set');
     }
 
-    coinToMarketId (coin: Str): Str {
+    coinToMarketId (coin: Str) {
         // handle also hip3 tokens like flx:CRCL
         if (coin === undefined) {
             return undefined;

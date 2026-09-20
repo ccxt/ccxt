@@ -2047,7 +2047,7 @@ export default class bitvavo extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    parseOrderStatus (status: Str): Str {
+    parseOrderStatus (status: Str) {
         const statuses: Dict = {
             'new': 'open',
             'canceled': 'canceled',
@@ -2294,7 +2294,7 @@ export default class bitvavo extends Exchange {
         return this.parseLedger (items, currency, since, limit);
     }
 
-    parseLedgerEntryType (type: Str): Str {
+    parseLedgerEntryType (type: Str) {
         const types: Dict = {
             'buy': 'trade',
             'sell': 'trade',
@@ -2512,7 +2512,7 @@ export default class bitvavo extends Exchange {
         return this.parseTransactions (response, currency, since, limit, { 'type': 'deposit' });
     }
 
-    parseTransactionStatus (status: Str): Str {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'awaiting_processing': 'pending',
             'awaiting_email_confirmation': 'pending',

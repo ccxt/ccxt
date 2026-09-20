@@ -1903,7 +1903,7 @@ export default class deribit extends Exchange {
         return orderbook;
     }
 
-    parseOrderStatus (status: Str): Str {
+    parseOrderStatus (status: Str) {
         const statuses: Dict = {
             'open': 'open',
             'cancelled': 'canceled',
@@ -1914,7 +1914,7 @@ export default class deribit extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTimeInForce (timeInForce: Str): Str {
+    parseTimeInForce (timeInForce: Str) {
         const timeInForces: Dict = {
             'good_til_cancelled': 'GTC',
             'fill_or_kill': 'FOK',
@@ -2687,7 +2687,7 @@ export default class deribit extends Exchange {
         return this.parseTransactions (data, currency, since, limit, params);
     }
 
-    parseTransactionStatus (status: Str): Str {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'completed': 'ok',
             'unconfirmed': 'pending',

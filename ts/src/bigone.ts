@@ -1112,7 +1112,7 @@ export default class bigone extends Exchange {
         }
     }
 
-    parseContractBidsAsks (bidsAsks: any): Dict[] {
+    parseContractBidsAsks (bidsAsks: any) {
         const bidsAsksKeys = Object.keys (bidsAsks);
         const result: Dict[] = [];
         for (let i = 0; i < bidsAsksKeys.length; i++) {
@@ -1473,7 +1473,7 @@ export default class bigone extends Exchange {
         return this.parseBalance (response);
     }
 
-    parseType (type: Str): Str {
+    parseType (type: Str) {
         const types: Dict = {
             'STOP_LIMIT': 'limit',
             'STOP_MARKET': 'market',
@@ -1916,7 +1916,7 @@ export default class bigone extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseOrderStatus (status: Str): Str {
+    parseOrderStatus (status: Str) {
         const statuses: Dict = {
             'PENDING': 'open',
             'FILLED': 'closed',
@@ -2055,7 +2055,7 @@ export default class bigone extends Exchange {
         } as DepositAddress;
     }
 
-    parseTransactionStatus (status: Str): Str {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             // what are other statuses here?
             'WITHHOLD': 'ok', // deposits

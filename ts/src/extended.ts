@@ -3425,7 +3425,7 @@ export default class extended extends Exchange {
         return value;
     }
 
-    getExtendedDecimalToBase16 (value: any): string {
+    getExtendedDecimalToBase16 (value: any) {
         let decimalString = '';
         if (typeof value === 'string') {
             decimalString = value;
@@ -3445,7 +3445,7 @@ export default class extended extends Exchange {
         return result;
     }
 
-    getExtendedSignatureHex (signature: any): string {
+    getExtendedSignatureHex (signature: any) {
         if (typeof signature === 'string') {
             if (signature.indexOf ('0x') === 0) {
                 return signature;

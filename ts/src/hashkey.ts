@@ -2224,7 +2224,7 @@ export default class hashkey extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatus (status: Str): Str {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             '1': 'pending',
             '2': 'pending',
@@ -2355,7 +2355,7 @@ export default class hashkey extends Exchange {
         return this.safeString (types, (type as string), type);
     }
 
-    encodeAccountType (type: any): Int {
+    encodeAccountType (type: any) {
         const types = {
             'spot': '1',
             'swap': '3',
@@ -2364,7 +2364,7 @@ export default class hashkey extends Exchange {
         return this.safeInteger (types, (type as string), type);
     }
 
-    encodeFlowType (type: any): Int {
+    encodeFlowType (type: any) {
         const types = {
             'trade': '1',
             'fee': '3',
@@ -3820,7 +3820,7 @@ export default class hashkey extends Exchange {
         return [ side, reduceOnly ];
     }
 
-    parseOrderStatus (status: Str): Str {
+    parseOrderStatus (status: Str) {
         const statuses = {
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',

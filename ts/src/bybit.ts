@@ -1700,7 +1700,7 @@ export default class bybit extends Exchange {
         return [ subType, params ];
     }
 
-    getAmount (symbol: Str, amount: number | undefined): Str {
+    getAmount (symbol: Str, amount: number | undefined) {
         // some markets like options might not have the precision available
         // and we shouldn't crash in those cases
         const market = this.market (symbol);
@@ -1712,7 +1712,7 @@ export default class bybit extends Exchange {
         return amountString;
     }
 
-    getPrice (symbol: Str, price: Str): Str {
+    getPrice (symbol: Str, price: Str) {
         if (price === undefined) {
             return price;
         }
@@ -1724,7 +1724,7 @@ export default class bybit extends Exchange {
         return price;
     }
 
-    getCost (symbol: Str, cost: Str): Str {
+    getCost (symbol: Str, cost: Str) {
         const market = this.market (symbol);
         const emptyPrecisionPrice = (market['precision']['price'] === undefined);
         if (!emptyPrecisionPrice) {
@@ -3872,7 +3872,7 @@ export default class bybit extends Exchange {
         return this.parseBalance (response);
     }
 
-    parseOrderStatus (status: Str): Str {
+    parseOrderStatus (status: Str) {
         const statuses: Dict = {
             // v3 spot
             'NEW': 'open',
@@ -3901,7 +3901,7 @@ export default class bybit extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTimeInForce (timeInForce: Str): Str {
+    parseTimeInForce (timeInForce: Str) {
         const timeInForces: Dict = {
             'GoodTillCancel': 'GTC',
             'ImmediateOrCancel': 'IOC',
@@ -6221,7 +6221,7 @@ export default class bybit extends Exchange {
         return this.parseTransactions (data, currency, since, limit);
     }
 
-    parseTransactionStatus (status: Str): Str {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             // v3 deposit status
             '0': 'unknown',
@@ -6581,7 +6581,7 @@ export default class bybit extends Exchange {
         }, currency) as LedgerEntry;
     }
 
-    parseLedgerEntryType (type: any): Str {
+    parseLedgerEntryType (type: any) {
         const types: Dict = {
             'Deposit': 'transaction',
             'Withdraw': 'transaction',

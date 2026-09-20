@@ -1578,7 +1578,7 @@ export default class alpaca extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status: Str): Str {
+    parseOrderStatus (status: Str) {
         const statuses: Dict = {
             'pending_new': 'open',
             'accepted': 'open',
@@ -1602,7 +1602,7 @@ export default class alpaca extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTimeInForce (timeInForce: Str): Str {
+    parseTimeInForce (timeInForce: Str) {
         const timeInForces: Dict = {
             'day': 'Day', // equities-only value kept as-is deliberately: crypto orders reject it with 42210000, verified live 2026-09-13, and the unified set has no day spelling either way
             'gtc': 'GTC',
@@ -2070,7 +2070,7 @@ export default class alpaca extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatus (status: Str): Str {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             // crypto wallets api
             'PROCESSING': 'pending',

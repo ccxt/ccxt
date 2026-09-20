@@ -371,7 +371,7 @@ export default class btcmarkets extends Exchange {
         return await this.fetchTransactionsWithMethod ('privateGetWithdrawals', code, since, limit, params);
     }
 
-    parseTransactionStatus (status: Str): Str {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'Accepted': 'pending',
             'Pending Authorization': 'pending',
@@ -1156,7 +1156,7 @@ export default class btcmarkets extends Exchange {
         };
     }
 
-    parseOrderStatus (status: Str): Str {
+    parseOrderStatus (status: Str) {
         const statuses: Dict = {
             'Accepted': 'open',
             'Placed': 'open',

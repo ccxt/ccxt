@@ -936,7 +936,7 @@ export default class deepcoin extends Exchange {
         }, market);
     }
 
-    parseTakerOrMaker (execType: Str): Str {
+    parseTakerOrMaker (execType: Str) {
         const types = {
             'T': 'taker',
             'M': 'maker',

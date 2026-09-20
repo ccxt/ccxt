@@ -1253,7 +1253,7 @@ export default class onetrading extends Exchange {
         return this.parseBalance (response);
     }
 
-    parseOrderStatus (status: Str): Str {
+    parseOrderStatus (status: Str) {
         const statuses: Dict = {
             'OPEN': 'open',
             'BOOKED': 'open',
@@ -1377,7 +1377,7 @@ export default class onetrading extends Exchange {
         }, market);
     }
 
-    parseTimeInForce (timeInForce: Str): Str {
+    parseTimeInForce (timeInForce: Str) {
         const timeInForces: Dict = {
             'GOOD_TILL_CANCELLED': 'GTC',
             'GOOD_TILL_TIME': 'GTT',

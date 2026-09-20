@@ -2107,7 +2107,7 @@ export default class digifinex extends Exchange {
         return this.parseCancelOrders (response) as Order[];
     }
 
-    parseOrderStatus (status: Str): Str {
+    parseOrderStatus (status: Str) {
         const statuses: Dict = {
             '0': 'open',
             '1': 'open', // partially filled
@@ -2671,7 +2671,7 @@ export default class digifinex extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    parseLedgerEntryType (type: any): Str {
+    parseLedgerEntryType (type: any) {
         const types: Dict = {};
         return this.safeString (types, (type as string), type);
     }
@@ -2959,7 +2959,7 @@ export default class digifinex extends Exchange {
         return await this.fetchTransactionsByType ('withdrawal', code, since, limit, params);
     }
 
-    parseTransactionStatus (status: Str): Str {
+    parseTransactionStatus (status: Str) {
         // deposit state includes: 1 (in deposit), 2 (to be confirmed), 3 (successfully deposited), 4 (stopped)
         // withdrawal state includes: 1 (application in progress), 2 (to be confirmed), 3 (completed), 4 (rejected)
         const statuses: Dict = {
