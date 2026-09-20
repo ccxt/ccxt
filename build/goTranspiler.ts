@@ -1231,6 +1231,21 @@ export function gofmtSpacingParity (content: string): string {
     return stripGoControlClauseParens (compactGoSplicedSpacing (content));
 }
 
+// path prefix of the generated test tier: its own package, importing ccxt by name
+const GO_TESTS_PREFIX = './go/tests';
+
+// The printer's nil-guarded index unwrap is emitted unqualified (`return DerefScalar(values[i])`),
+// which resolves in package ccxt (go/v4) only. The test tier is a separate package
+// (`go/tests/base`, `go/tests/exchange`) that imports ccxt by name, so its copy of the same
+// call must carry the qualifier — otherwise `go build ./tests/main.go` fails with
+// "undefined: DerefScalar". Hand-edit-free: the same call is qualified once, here.
+function qualifyCcxtHelpersInTests (path: string, content: string): string {
+    if (!path.startsWith (GO_TESTS_PREFIX)) {
+        return content;
+    }
+    return content.replace (/(?<![.\w])DerefScalar\(/g, 'ccxt.DerefScalar(');
+}
+
 function overwriteFileAndFolder (path: string, content: string) {
     if (!(fs.existsSync(path))) {
         checkCreateFolder (path);
@@ -1241,6 +1256,7 @@ function overwriteFileAndFolder (path: string, content: string) {
     // the transpiled ones). It is a no-op on text that is already aligned. The nil-check collapse
     // runs last so its match sees the canonical spacing.
     content = gofmtSpacingParity (collapseRedundantNilChecks (formatGoSource (path, normalizeGoFileHeader (alignGoTrailingComments (content)))));
+    content = qualifyCcxtHelpersInTests (path, content);
     // overwriteFile() already opens+truncates+writes the file; the extra
     // fs.writeFileSync below wrote every generated file a second time
     overwriteFile (path, content);
