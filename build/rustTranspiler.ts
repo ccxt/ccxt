@@ -2727,6 +2727,25 @@ export class RustTranspilerBuilder {
     }
 
     /**
+     * The ast printer emits a TS `while (true)` as `while (true) { … }`, which
+     * trips rustc's built-in `while_true` lint ("denote infinite loops with
+     * `loop { ... }`"). CI's clippy lane runs `cargo clippy … -- -D warnings`,
+     * so a single site fails the whole lane. Emit the `loop {` rustc asks for:
+     * every generated infinite loop leaves through `break`, so the two forms
+     * are equivalent.
+     *
+     * Applied to file text (strings / comments masked), so a `while (true)`
+     * inside a literal or a doc comment is left alone.
+     */
+    whileTrueToLoop(content: string): string {
+        return this.replaceOutsideStrings(
+            content,
+            /\bwhile\s*\(\s*true\s*\)\s*\{/g,
+            'loop {',
+        );
+    }
+
+    /**
      * Walks every `pub fn <name>(` body (brace-balanced) and, if the body
      * contains `.await`, prefixes `async ` to the declaration.
      */
@@ -8930,6 +8949,9 @@ impl std::ops::DerefMut for ${coreName} {
                 // Last: a `.clone()` in a by-value slot whose local is dead
                 // afterwards moves instead of copying (B-32).
                 rustContent = this.dropDeadValueSlotClones(rustContent);
+                // And `while (true)` → `loop {` (rustc's `while_true` lint is
+                // an error under the CI clippy lane's `-D warnings`).
+                rustContent = this.whileTrueToLoop(rustContent);
             } catch (e: any) {
                 const detail = (e && (e.stack || e.message)) ? (e.stack || e.message) : String(e);
                 throw new Error(
@@ -9641,6 +9663,9 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = this.rewriteNativeErrorClassChecks(finalFile);
         // Last: the same dead-slot clone drop as the exchange pipeline (B-32).
         finalFile = this.dropDeadValueSlotClones(finalFile);
+        // And `while (true)` → `loop {` (rustc's `while_true` lint is an error
+        // under the CI clippy lane's `-D warnings`).
+        finalFile = this.whileTrueToLoop(finalFile);
 
         // Since the prediction merge, `Exchange.ts` declares TWO classes:
         //   `export class BaseExchange { ... }`  (holds the transpile marker)
@@ -11381,6 +11406,9 @@ impl std::ops::DerefMut for ${coreName} {
             // `continue` inside a transpiled `for`→`while` must still run
             // the manual loop increment — labelled-block rewrite.
             content = this.fixForLoopContinue(content);
+            // `while (true)` → `loop {` (rustc's `while_true` lint; the file
+            // header's `clippy::all` allow does not cover rustc lints).
+            content = this.whileTrueToLoop(content);
             // Methods that assign to `self.<field>` need `&mut self`.
             content = this.promoteSelfMutMethods(content);
             // `init` is a thin wrapper around `init_inner` — drop the
