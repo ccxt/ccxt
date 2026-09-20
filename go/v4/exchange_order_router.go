@@ -163,8 +163,8 @@ const (
 // or this.Options would refer to one arbitrary venue that need not appear in the
 // route at all.
 type OrderRouter struct {
-	ApiKey         string
-	BaseUrl        string
+	ApiKey  string
+	BaseUrl string
 
 	// Venues this router trades through, held once instead of passed to every call.
 	// FetchRoute and Execute both fall back to these; a call-site argument wins.

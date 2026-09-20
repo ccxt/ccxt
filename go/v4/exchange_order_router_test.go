@@ -344,7 +344,7 @@ func TestOrderRouterFixtureFeeNetting(t *testing.T) {
 		}
 		report, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": venue}), map[string]any{
 			"strategy": "sequential",
-						"usdRates": map[string]any{"USDT": 1.0},
+			"usdRates": map[string]any{"USDT": 1.0},
 		})
 		if err != nil {
 			t.Fatalf("feeNettingCase %s: %v", id, err)
