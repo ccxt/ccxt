@@ -386,6 +386,169 @@ function goParamNilSelfTest (): string[] {
     return problems;
 }
 
+// The same hazard reaches an `any` LOCAL, not only a bare parameter: the printer's proof
+// (goAnyLocalHoldsPointer) recognises only a call to a `*T`-returning helper, so a local fed
+// by a pointer-typed name is misread as a plain scalar and printed as the native
+// `x == nil` -- false for the boxed (*string)(nil), so the guard never fires and the local
+// keeps the pointer. `var currency any = requested` (requested: `var requested *string =
+// this.SafeStringN(...)`) stored a nil info.currency instead of the 'USDT' default (mudrex
+// fetchBalance, STATIC_RESPONSE; master's older pin printed IsEqual here and passed). IsEqual
+// derefs both operands, so every local a pointer can reach keeps the helper.
+const GO_POINTER_NAME_PATTERN = '\\*[\\w\\[\\].]+';
+
+// the top-level `\nfunc ` blocks, each with the brace that closes it. The brace count skips
+// string literals and line comments so a body carrying a func literal -- the
+// `func (this *X) (ret any) {` shims -- cannot end its block early.
+function goFuncBlockRanges (content: string): { start: number; end: number }[] {
+    const ranges: { start: number; end: number }[] = [];
+    let cursor = 0;
+    while (true) {
+        const start = content.indexOf ('\nfunc ', cursor);
+        if (start < 0) {
+            return ranges;
+        }
+        let depth = 0;
+        let index = start;
+        let end = content.length;
+        while (index < content.length) {
+            const char = content[index];
+            if (char === '"') {
+                index++;
+                while (index < content.length) {
+                    if (content[index] === '\\') { index++; } else if (content[index] === '"') { break; }
+                    index++;
+                }
+            } else if (char === '`') {
+                index++;
+                while ((index < content.length) && (content[index] !== '`')) { index++; }
+            } else if ((char === '/') && (content[index + 1] === '/')) {
+                while ((index < content.length) && (content[index] !== '\n')) { index++; }
+            } else if (char === '{') {
+                depth++;
+            } else if (char === '}') {
+                depth--;
+                if (depth === 0) { end = index + 1; break; }
+            }
+            index++;
+        }
+        ranges.push ({ start, end });
+        cursor = end;
+    }
+}
+
+// the names a pointer can reach inside one function block: the pointer-typed locals the
+// local-typing families emit (`var x *string = ...`), the native `*T` parameters of the
+// signature, and every `any` local declared or assigned from one of those, transitively.
+function goBoxedPointerNames (fn: string): Set<string> {
+    const pointerNames = new Set<string> ();
+    let match: RegExpExecArray | null;
+    const localRe = new RegExp ('var (\\w+) ' + GO_POINTER_NAME_PATTERN + ' = ', 'g');
+    while ((match = localRe.exec (fn)) !== null) {
+        pointerNames.add (match[1]);
+    }
+    const braceAt = fn.indexOf ('{');
+    const signature = (braceAt < 0) ? fn : fn.slice (0, braceAt);
+    const paramRe = new RegExp ('(\\w+) ' + GO_POINTER_NAME_PATTERN + '(?=[,)])', 'g');
+    while ((match = paramRe.exec (signature)) !== null) {
+        if (match[1] !== 'this') {
+            pointerNames.add (match[1]);
+        }
+    }
+    // every `any` box fed by one of those names: `var currency any = requested`, `x = code`.
+    // Only the names declared `any` in this block (own declarations, `x := GetArg(...)` and the
+    // bare `any` parameters of the signature) can hold the box: a name declared with a pointer
+    // type is compared natively by the printer and needs no rewrite.
+    const anyNames = new Set<string> ();
+    const anyDeclRe = /var (\w+) any\b/g;
+    while ((match = anyDeclRe.exec (fn)) !== null) {
+        anyNames.add (match[1]);
+    }
+    const getArgRe = /(\w+) := GetArg\(/g;
+    while ((match = getArgRe.exec (fn)) !== null) {
+        anyNames.add (match[1]);
+    }
+    const bareParamRe = /(\w+) any\b/g;
+    while ((match = bareParamRe.exec (signature)) !== null) {
+        anyNames.add (match[1]);
+    }
+    const feeds: string[][] = [];
+    const declRe = /var (\w+) any = (\w+)\b/g;
+    while ((match = declRe.exec (fn)) !== null) {
+        feeds.push ([ match[1], match[2] ]);
+    }
+    const assignRe = /(?:^|[\s;])(\w+) = (\w+)\b/g;
+    while ((match = assignRe.exec (fn)) !== null) {
+        feeds.push ([ match[1], match[2] ]);
+    }
+    const boxed = new Set<string> ();
+    let grew = true;
+    while (grew) {
+        grew = false;
+        for (let i = 0; i < feeds.length; i++) {
+            const target = feeds[i][0];
+            const source = feeds[i][1];
+            if (boxed.has (target) || !anyNames.has (target)) {
+                continue;
+            }
+            if (pointerNames.has (source) || boxed.has (source)) {
+                boxed.add (target);
+                grew = true;
+            }
+        }
+    }
+    return boxed;
+}
+
+// the boxed-pointer locals of one block keep the deref-aware comparison
+function goBoxedPointerNilCompareText (fn: string, isEqualFn: string): string {
+    const boxed = goBoxedPointerNames (fn);
+    for (const name of boxed) {
+        const escaped = name.replace (/[.*+?^${}()|[\]\\]/g, '\\$&');
+        fn = fn.replace (new RegExp ('(?<![.\\w*"])' + escaped + ' (==|!=) nil\\b', 'g'), ((_m: string, op: string) => (op === '==') ? isEqualFn + name + ', nil)' : '!' + isEqualFn + name + ', nil)') as any);
+    }
+    return fn;
+}
+
+// whole-file form: each block's rewrite is spliced back at its own offset, so a block whose
+// text occurs twice cannot be rewritten in the wrong place.
+export function goBoxedPointerNilCompares (content: string, isEqualFn: string): string {
+    const ranges = goFuncBlockRanges (content);
+    for (let i = ranges.length - 1; i >= 0; i--) {
+        const start = ranges[i].start;
+        const end = ranges[i].end;
+        const block = content.slice (start, end);
+        const rewritten = goBoxedPointerNilCompareText (block, isEqualFn);
+        if (rewritten !== block) {
+            content = content.slice (0, start) + rewritten + content.slice (end);
+        }
+    }
+    return content;
+}
+
+// Self-test: a local fed by a pointer-typed local or a native `*T` parameter keeps the
+// helper, a box fed by a container keeps the native comparison, another block's rewrite
+// cannot leak in, and a second application is a no-op.
+function goBoxedPointerSelfTest (): string[] {
+    const problems: string[] = [];
+    const ok = (condition: boolean, message: string) => { if (!condition) { problems.push (message); } };
+    const pass = (text: string): string => goBoxedPointerNilCompares (text, 'IsEqual(');
+    const fed = pass ('\nfunc (this *X) f(optionalArgs ...any) any {\n\tvar requested *string = this.SafeStringN(optionalArgs, "currency")\n\tvar currency any = requested\n\tif currency == nil {\n\t\tcurrency = "USDT"\n\t}\n\treturn currency\n}\n');
+    ok (fed.indexOf ('if IsEqual(currency, nil) {') >= 0, 'a local fed by a pointer-typed local must keep the helper');
+    ok (fed.indexOf ('var requested *string = this.SafeStringN') >= 0, 'the pointer-typed local itself must stay native');
+    const param = pass ('\nfunc (this *X) f(code *string) any {\n\tvar local any = code\n\tif local != nil {\n\t\treturn local\n\t}\n\treturn nil\n}\n');
+    ok (param.indexOf ('if !IsEqual(local, nil) {') >= 0, 'a local fed by a native `*T` parameter must keep the helper');
+    const plain = pass ('\nfunc (this *X) f(response any) any {\n\tvar data any = nil\n\tdata = this.SafeDict(response, "data", map[string]any{})\n\tif data == nil {\n\t\treturn nil\n\t}\n\treturn data\n}\n');
+    ok (plain.indexOf ('if data == nil {') >= 0, 'a box fed by a container keeps the native comparison');
+    const twice = pass (pass ('\nfunc (this *X) f() any {\n\tvar requested *string = this.SafeString("x", "y")\n\tvar currency any = requested\n\tif currency == nil {\n\t\treturn nil\n\t}\n\treturn currency\n}\n'));
+    ok (twice.indexOf ('IsEqual(IsEqual(') < 0, 'a second application must be a no-op');
+    ok (twice.indexOf ('if IsEqual(currency, nil) {') >= 0, 'the wrapped form must survive the second pass');
+    const scoped = pass ('\nfunc (this *X) f() any {\n\tvar requested *string = this.SafeString("x", "y")\n\treturn nil\n}\n\nfunc (this *X) g() any {\n\tvar currency any = this.SafeString("x", "y")\n\tif currency == nil {\n\t\treturn nil\n\t}\n\treturn currency\n}\n');
+    ok (scoped.indexOf ('if currency == nil {') >= 0, 'a block with no pointer feed must stay untouched');
+    const literal = pass ('\nfunc (this *X) f() any {\n\tvar requested *string = this.SafeString("x", "y")\n\tvar identity any = requested\n\tvar myidentity any = identity\n\tif myidentity == nil {\n\t\treturn nil\n\t}\n\treturn myidentity\n}\n');
+    ok (literal.indexOf ('if IsEqual(myidentity, nil) {') >= 0, 'a name must not be rewritten inside a longer identifier');
+    return problems;
+}
+
 // Self-test for the DerefScalar() redundancy proof: a shim-only local loses the wrap, and
 // every other read shape keeps it.
 function goDerefWrapSelfTest (): string[] {
@@ -3700,7 +3863,7 @@ ${constStatements.join('\n')}
                 this.createGeneratedHeader().join('\n'),
             ]).join("\n");
 
-            const file = goParamNativeNilCompares (coerceGoBoolMethodReturns (fileHeader + baseMethods + "\n", CCXT_GO_BOOL_METHOD_NAMES), 'IsEqual(');
+            const file = goBoxedPointerNilCompares (goParamNativeNilCompares (coerceGoBoolMethodReturns (fileHeader + baseMethods + "\n", CCXT_GO_BOOL_METHOD_NAMES), 'IsEqual('), 'IsEqual(');
             // repeated base passes (REST / prediction recursion / WS) emit identical bytes —
             // skip the rewrite of this ~390 KB file after the first
             this.writeGeneratedOnce (goExchangeBase, file);
@@ -3805,7 +3968,7 @@ ${constStatements.join('\n')}
             ].join('\n');
             // `shims` ends with the single trailing newline gofmt wants at EOF
             // (the caller-fed `any` parameters keep the helper here too — see goParamNativeNilCompares)
-            const file = goParamNativeNilCompares (fileHeader + '\n' + structDef + methods + shims, 'IsEqual(');
+            const file = goBoxedPointerNilCompares (goParamNativeNilCompares (fileHeader + '\n' + structDef + methods + shims, 'IsEqual('), 'IsEqual(');
             // this is the one generated .go write that does not go through
             // overwriteFileAndFolder()/formatGoSource(), so guard its async cores here
             // (and add the element-access assertions formatGoSource would have added)
@@ -4794,6 +4957,11 @@ ${caseStatements.join('\n')}
         // deref-aware helper (goParamNativeNilCompares). GetArg-bound optionals and the proven
         // locals keep the native comparison.
         content = goParamNativeNilCompares (content, isWs ? 'ccxt.IsEqual(' : 'IsEqual(');
+        // ... and the same for the `any` LOCALS a pointer reaches: the printer's local proof
+        // only knows a `*T`-returning helper call, not a typed local or a native `*T` parameter.
+        // A prediction exchange lives in package ccxtprediction, which reaches the helper as
+        // `ccxt.IsEqual` too (its generated file uses no bare form).
+        content = goBoxedPointerNilCompares (content, (isWs || isPrediction) ? 'ccxt.IsEqual(' : 'IsEqual(');
 
         if (!isWs) {
             content = this.regexAll(content, [
@@ -6065,7 +6233,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = goDerefWrapSelfTest ().concat (goParamNilSelfTest ());
+        const problems = goDerefWrapSelfTest ().concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
