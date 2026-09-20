@@ -329,6 +329,63 @@ function goUnwrapDerefWraps (fn: string, names: Iterable<string>, safeCall: stri
     return fn;
 }
 
+// The printer prints `x === undefined` as a native `x == nil` when the operand's TypeScript
+// type proves the box holds a scalar (goIsAnyBoxExpression). That proof is local to the
+// function: a bare `any` PARAMETER (`func (this *X) F(code any, …)`) keeps whatever the
+// caller boxed, and a caller holding a typed local (`var code *string = this.SafeString(…)`)
+// boxes the pointer itself — `(*string)(nil) == nil` is false in Go, while IsEqual(x, nil)
+// derefs both sides and answers true. The callee then takes the wrong branch: SafeCurrency()
+// dropped the caller's currency for a response without a `currency` id and Currency() panicked
+// on the empty code (binance fetchDepositAddress, STATIC_RESPONSE). GetArg-bound optionals are
+// safe (GetArg runs derefScalar and folds a typed nil pointer into the default) and locals are
+// proven by the printer's own write analysis, so only the bare parameters keep the helper.
+function goParamNilCompareText (fn: string, isEqualFn: string): string {
+    const sigEnd = fn.indexOf ('{');
+    if (sigEnd < 0) {
+        return fn;
+    }
+    const body = fn.slice (sigEnd);
+    const paramMatches = fn.slice (0, sigEnd).match (/(\w+) any\b/g) || [];
+    for (let i = 0; i < paramMatches.length; i++) {
+        const name = paramMatches[i].split (/\s+/)[0];
+        if ((name === 'this') || (name === 'optionalArgs') || (name === 'chan')) {
+            continue;
+        }
+        // a variadic optional is bound by `x := GetArg(optionalArgs, i, default)`, which derefs
+        if (new RegExp ('(^|[\\s(])' + name + ' := GetArg\\(').test (body)) {
+            continue;
+        }
+        fn = fn.replace (new RegExp ('(?<![.\\w*"])' + name + ' (==|!=) nil\\b', 'g'), ((_m: string, op: string) => (op === '==') ? isEqualFn + name + ', nil)' : '!' + isEqualFn + name + ', nil)') as any);
+    }
+    return fn;
+}
+
+// whole-file form of goParamNilCompareText (same function blocks the DerefScalar pass walks)
+export function goParamNativeNilCompares (content: string, isEqualFn: string): string {
+    return content.replace (/\nfunc [\s\S]*?\n\}/g, ((fn: string) => goParamNilCompareText (fn, isEqualFn)) as any);
+}
+
+// Self-test for the caller-fed `any` parameter rule: the bare parameter keeps the deref-aware
+// helper, the GetArg-bound optional and the typed local keep the printer's native comparison,
+// and a second application is a no-op.
+function goParamNilSelfTest (): string[] {
+    const problems: string[] = [];
+    const ok = (condition: boolean, message: string) => { if (!condition) { problems.push (message); } };
+    const pass = (text: string): string => goParamNativeNilCompares (text, 'IsEqual(');
+    const param = pass ('\nfunc (this *X) f(currencyId any, optionalArgs ...any) any {\n\tif (currencyId == nil) {\n\t\treturn nil\n\t}\n\t_ = currencyId\n}\n');
+    ok (param.indexOf ('if (IsEqual(currencyId, nil)) {') >= 0, 'a bare any parameter must keep the helper');
+    ok (param.indexOf ('currencyId == nil') < 0, 'the native comparison must be gone');
+    const negated = pass ('\nfunc (this *X) f(response any) any {\n\tif (response != nil) && (currency != nil) {\n\t\treturn response\n\t}\n}\n');
+    ok (negated.indexOf ('!IsEqual(response, nil)') >= 0, 'the negated form must keep its operator');
+    ok (negated.indexOf ('(currency != nil)') >= 0, 'a GetArg-bound optional keeps the native comparison');
+    const typed = pass ('\nfunc (this *X) f(response any) any {\n\tvar code *string = this.SafeString(response, "code")\n\tif code != nil {\n\t\treturn code\n\t}\n\treturn nil\n}\n');
+    ok (typed.indexOf ('if code != nil {') >= 0, 'a typed local keeps the native comparison');
+    const twice = pass (pass ('\nfunc (this *X) f(response any) any {\n\tif (response == nil) || (response == nil) {\n\t\treturn nil\n\t}\n}\n'));
+    ok (twice.indexOf ('IsEqual(IsEqual(') < 0, 'a second application must be a no-op');
+    ok (twice.indexOf ('(IsEqual(response, nil)) || (IsEqual(response, nil))') >= 0, 'both operands of a duplicated check must be wrapped once');
+    return problems;
+}
+
 // Self-test for the DerefScalar() redundancy proof: a shim-only local loses the wrap, and
 // every other read shape keeps it.
 function goDerefWrapSelfTest (): string[] {
@@ -3643,7 +3700,7 @@ ${constStatements.join('\n')}
                 this.createGeneratedHeader().join('\n'),
             ]).join("\n");
 
-            const file = coerceGoBoolMethodReturns (fileHeader + baseMethods + "\n", CCXT_GO_BOOL_METHOD_NAMES);
+            const file = goParamNativeNilCompares (coerceGoBoolMethodReturns (fileHeader + baseMethods + "\n", CCXT_GO_BOOL_METHOD_NAMES), 'IsEqual(');
             // repeated base passes (REST / prediction recursion / WS) emit identical bytes —
             // skip the rewrite of this ~390 KB file after the first
             this.writeGeneratedOnce (goExchangeBase, file);
@@ -3747,7 +3804,8 @@ ${constStatements.join('\n')}
                 '',
             ].join('\n');
             // `shims` ends with the single trailing newline gofmt wants at EOF
-            const file = fileHeader + '\n' + structDef + methods + shims;
+            // (the caller-fed `any` parameters keep the helper here too — see goParamNativeNilCompares)
+            const file = goParamNativeNilCompares (fileHeader + '\n' + structDef + methods + shims, 'IsEqual(');
             // this is the one generated .go write that does not go through
             // overwriteFileAndFolder()/formatGoSource(), so guard its async cores here
             // (and add the element-access assertions formatGoSource would have added)
@@ -4730,6 +4788,12 @@ ${caseStatements.join('\n')}
             }) as any);
             return fn;
         }) as any);
+
+        // A bare `any` parameter keeps whatever the CALLER boxed: the printer's `x == nil` proof
+        // is local to the function, so a typed `*T` local handed over by another method needs the
+        // deref-aware helper (goParamNativeNilCompares). GetArg-bound optionals and the proven
+        // locals keep the native comparison.
+        content = goParamNativeNilCompares (content, isWs ? 'ccxt.IsEqual(' : 'IsEqual(');
 
         if (!isWs) {
             content = this.regexAll(content, [
@@ -6001,7 +6065,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = goDerefWrapSelfTest ();
+        const problems = goDerefWrapSelfTest ().concat (goParamNilSelfTest ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
