@@ -1548,13 +1548,12 @@ class testMainClass:
     def inject_ws_messages(self, exchange, url, messages, sequential=False):
         # before every frame, wait until the watch flow is actually awaiting
         # something — a fixed head-start sleep is not enough on slow ci
-        # runners and the frame's resolution would be dropped. polling
-        # finely keeps the head start short without dropping frames
+        # runners and the frame's resolution would be dropped
         for i in range(0, len(messages)):
             waited = 0
             while not ws_client_has_pending_futures(exchange, url) and (waited < 5000):
-                exchange.sleep(5)
-                waited = waited + 5
+                exchange.sleep(50)
+                waited = waited + 50
             inject_ws_message(exchange, url, messages[i])
             # threaded runtimes resolve futures on another thread — wait for
             # the consumed frame to settle so the pending check above does not

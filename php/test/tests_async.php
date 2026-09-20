@@ -1907,8 +1907,7 @@ class testMainClass {
     public function inject_ws_messages($exchange, $url, $messages, $sequential = false) {
         // before every frame, wait until the watch flow is actually awaiting
         // something — a fixed head-start sleep is not enough on slow ci
-        // runners and the frame's resolution would be dropped. polling
-        // finely keeps the head start short without dropping frames
+        // runners and the frame's resolution would be dropped
         // threaded runtimes resolve futures on another thread — wait for
         // the consumed frame to settle so the pending check above does not
         // observe a stale future and burn the next frame early; frames
@@ -1918,8 +1917,8 @@ class testMainClass {
             for ($i = 0; $i < count($messages); $i++) {
                 $waited = 0;
                 while (!ws_client_has_pending_futures($exchange, $url) && ($waited < 5000)) {
-                    \React\Async\await($exchange->sleep(5));
-                    $waited = $waited + 5;
+                    \React\Async\await($exchange->sleep(50));
+                    $waited = $waited + 50;
                 }
                 inject_ws_message($exchange, $url, $messages[$i]);
                 $settled = 0;
