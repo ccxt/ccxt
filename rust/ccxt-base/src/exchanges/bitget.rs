@@ -16240,7 +16240,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut auth: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, method).into()), payload).into());
             if (method.as_str() == Some("POST")) {
                 body = json_stringify(&params);
-                auth = add(&auth, &body);
+                auth = Value::Str(format!("{}{}", auth, body).into());
             }  else {
                 if ((object_keys(&params).len() as i64) as f64) > ((0i64) as f64) {
                     let mut sortedParams: Value = self.keysort(params.clone(), &[]);

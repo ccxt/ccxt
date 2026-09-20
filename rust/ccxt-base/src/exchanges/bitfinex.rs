@@ -4363,16 +4363,16 @@ impl BitfinexCore {
         if (response != Value::Null) {
             if !(matches!(&response, Value::Arr(_))) {
                 let mut message: Value = self.safe_string2(response.clone(), Value::Str("message".into()), Value::Str("error".into()), &[]);
-                let mut feedback: Value = add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), &body);
+                let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());
                 self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone(), feedback.clone());
                 self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message, feedback.clone());
-                panic!("{}", crate::exchange_errors::exchange_error(add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), &body)));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body)));
             }
         }  else if (response.as_str() == Some("")) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" returned empty response".into()))));
         }
         if (statusCode.as_f64() == Some(429.0)) {
-            panic!("{}", crate::exchange_errors::rate_limit_exceeded(add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), &body)));
+            panic!("{}", crate::exchange_errors::rate_limit_exceeded(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body)));
         }
         if (statusCode.as_f64() == Some(500.0)) {
             // See https://docs.bitfinex.com/docs/abbreviations-glossary#section-errorinfo-codes

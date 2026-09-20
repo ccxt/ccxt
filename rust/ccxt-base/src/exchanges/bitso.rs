@@ -2690,7 +2690,7 @@ impl BitsoCore {
             if (method.as_str() != Some("GET")) && (method.as_str() != Some("DELETE")) {
                 if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
                     body = json_stringify(&query);
-                    request = add(&request, &body);
+                    request = Value::Str(format!("{}{}", request, body).into());
                 }
             }
             let mut signature: Value = self.hmac(self.encode(request), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);

@@ -3279,7 +3279,7 @@ impl XtCore {
         //
         let mut marketId: Value = self.safe_string_k(ticker.clone(), "s", &[]);
         let mut marketType: Value = (if (market != Value::Null) { market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null) } else { Value::Null });
-        let mut hasSpotKeys: bool = (in_op(&ticker, &Value::Str("cv".into()))) || (in_op(&ticker, &Value::Str("aq".into())));
+        let mut hasSpotKeys: bool = (matches!(&ticker, Value::Dict(__d) if __d.contains_key("cv"))) || (matches!(&ticker, Value::Dict(__d) if __d.contains_key("aq")));
         if (marketType == Value::Null) {
             marketType = (if hasSpotKeys { Value::Str("spot".into()) } else { Value::Str("contract".into()) });
         }
@@ -3648,7 +3648,7 @@ impl XtCore {
         //
         let mut marketId: Value = self.safe_string2(trade.clone(), Value::Str("s".into()), Value::Str("symbol".into()), &[]);
         let mut marketType: Value = (if (market != Value::Null) { market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null) } else { Value::Null });
-        let mut hasSpotKeys: bool = (in_op(&trade, &Value::Str("b".into()))) || (in_op(&trade, &Value::Str("bizType".into()))) || (in_op(&trade, &Value::Str("oi".into())));
+        let mut hasSpotKeys: bool = (matches!(&trade, Value::Dict(__d) if __d.contains_key("b"))) || (matches!(&trade, Value::Dict(__d) if __d.contains_key("bizType"))) || (matches!(&trade, Value::Dict(__d) if __d.contains_key("oi")));
         if (marketType == Value::Null) {
             marketType = (if hasSpotKeys { Value::Str("spot".into()) } else { Value::Str("contract".into()) });
         }
@@ -7659,7 +7659,7 @@ impl XtCore {
         //
         let mut status: Option<String> = self.safe_string_upper2(response.clone(), Value::Str("msgInfo".into()), Value::Str("mc".into()), &[]).as_str().map(str::to_owned);
         if (status.is_some()) && (status.as_deref() != Some("SUCCESS")) {
-            let mut feedback: Value = add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), &body);
+            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());
             let mut error: Value = self.safe_dict_k(response.clone(), "error", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

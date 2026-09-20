@@ -13467,7 +13467,7 @@ impl BybitCore {
                     // '[]' on empty arrays even when forced to use objects
                     body = Value::Str("{}".into());
                 }
-                let mut payload: Value = add(&Value::Str(format!("{}{}", timestamp, self.apiKey.clone()).into()), &body);
+                let mut payload: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, self.apiKey.clone()).into()), body).into());
                 let mut signature: Value = self.hmac(self.encode(payload), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("hex".into())]);
                 headers = Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -13498,7 +13498,7 @@ impl BybitCore {
                 let mut authFull: Value = Value::Null;
                 if (method.as_str() == Some("POST")) {
                     body = json_stringify(&query);
-                    authFull = add(&auth_base, &body);
+                    authFull = Value::Str(format!("{}{}", auth_base, body).into());
                 }  else {
                     authFull = Value::Str(format!("{}{}", auth_base, queryEncoded).into());
                     url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), queryEncoded).into())).into());

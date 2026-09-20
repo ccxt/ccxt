@@ -4448,7 +4448,7 @@ impl ModetradeCore {
             auth = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", ts, method).into()), Value::Str("/".into())).into()), version).into()), Value::Str("/".into())).into()), pathWithParams).into());
             if (method.as_str() == Some("POST")) || (method.as_str() == Some("PUT")) {
                 body = json_stringify(&params);
-                auth = add(&auth, &body);
+                auth = Value::Str(format!("{}{}", auth, body).into());
                 if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("content-type".into(), Value::Str("application/json".into())); }
             }  else {
                 if ((object_keys(&params).len() as i64) as f64) > ((0i64) as f64) {

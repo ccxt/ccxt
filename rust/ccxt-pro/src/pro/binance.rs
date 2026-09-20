@@ -2196,17 +2196,17 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             }
         }
         let mut marketId: Value = self.safe_string_k(trade.clone(), "s", &[]);
-        let mut fallbackType: Value = (if (in_op(&trade, &Value::Str("ps".into()))) { Value::Str("contract".into()) } else { Value::Str("spot".into()) });
+        let mut fallbackType: Value = (if (matches!(&trade, Value::Dict(__d) if __d.contains_key("ps"))) { Value::Str("contract".into()) } else { Value::Str("spot".into()) });
         let mut marketType: Value = (if (market != Value::Null) { market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null) } else { fallbackType });
         let mut symbol: Value = self.safe_symbol(marketId, &[market, Value::Null, marketType]);
         let mut side: Value = self.safe_string_lower_k(trade.clone(), "S", &[]);
         let mut takerOrMaker: Value = Value::Null;
         let mut orderId: Value = self.safe_string_k(trade.clone(), "i", &[]);
-        if (in_op(&trade, &Value::Str("m".into()))) {
+        if (matches!(&trade, Value::Dict(__d) if __d.contains_key("m"))) {
             if (side == Value::Null) {
-                side = (if (is_equal(&crate::value::get_value_k(&trade, "m"), &Value::Bool(true))) { Value::Str("sell".into()) } else { Value::Str("buy".into()) }); // this is reversed intentionally
+                side = (if (is_equal(&trade.as_map().and_then(|__m| __m.get("m")).cloned().unwrap_or(Value::Null), &Value::Bool(true))) { Value::Str("sell".into()) } else { Value::Str("buy".into()) }); // this is reversed intentionally
             }
-            takerOrMaker = (if (is_equal(&crate::value::get_value_k(&trade, "m"), &Value::Bool(true))) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
+            takerOrMaker = (if (is_equal(&trade.as_map().and_then(|__m| __m.get("m")).cloned().unwrap_or(Value::Null), &Value::Bool(true))) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
         }
         let mut fee: Value = Value::Null;
         let mut feeCost: Value = self.safe_string_k(trade.clone(), "n", &[]);
@@ -5824,7 +5824,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut executionType: Option<String> = self.safe_string_k(order.clone(), "x", &[]).as_str().map(str::to_owned);
         let mut marketId: Value = self.safe_string_k(order.clone(), "s", &[]);
         // futures user-data events carry the position side field, spot ones do not
-        let mut marketType: Value = (if (in_op(&order, &Value::Str("ps".into()))) { Value::Str("contract".into()) } else { Value::Str("spot".into()) });
+        let mut marketType: Value = (if (matches!(&order, Value::Dict(__d) if __d.contains_key("ps"))) { Value::Str("contract".into()) } else { Value::Str("spot".into()) });
         let mut symbol: Value = self.safe_symbol(marketId, &[Value::Null, Value::Null, marketType.clone()]);
         let mut timestamp: Value = self.safe_integer_k(order.clone(), "O", &[]);
         let mut T: Value = self.safe_integer_k(order.clone(), "T", &[]);

@@ -1871,7 +1871,7 @@ impl BybitCore {
         //     }
         //
         let mut id: Value = self.safe_string_n(trade.clone(), Value::from(vec![Value::Str("i".into()), Value::Str("T".into()), Value::Str("v".into())]), &[]);
-        let mut isContract: bool = in_op(&trade, &Value::Str("BT".into()));
+        let mut isContract: bool = matches!(&trade, Value::Dict(__d) if __d.contains_key("BT"));
         let mut marketType: Value = (if isContract { Value::Str("contract".into()) } else { Value::Str("spot".into()) });
         if (market != Value::Null) {
             marketType = market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null);

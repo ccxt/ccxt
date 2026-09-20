@@ -5988,7 +5988,7 @@ impl DigifinexCore {
         if (code.as_str() == Some("0")) || (code.as_str() == Some("200")) {
             return Value::Null;
         }
-        let mut feedback: Value = add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), &responseBody);
+        let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), responseBody).into());
         if (code == Value::Null) {
             panic!("{}", crate::exchange_errors::bad_response(feedback));
         }

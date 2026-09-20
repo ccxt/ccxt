@@ -5023,6 +5023,8 @@ impl BingxCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
+        let __params_empty = indexmap::IndexMap::new();
+        let params = params.as_map().unwrap_or(&__params_empty);
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
@@ -5065,7 +5067,7 @@ impl BingxCore {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("batchOrders".into(), json_stringify(&ordersRequests)); }
             response = self.swap_v2_private_post_trade_batch_orders(&[request.clone()]).await;
         }  else {
-            let mut sync: Value = self.safe_bool_k(params, "sync", &[Value::Bool(false)]);
+            let mut sync: Value = (match params.get("sync") { Some(Value::Bool(__b)) => Value::Bool(*__b), _ => Value::Bool(false) });
             if (sync.as_bool() == Some(true)) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("sync".into(), Value::Bool(true)); }
             }

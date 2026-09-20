@@ -14215,7 +14215,10 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         //        "msg":"Position does not exist"
         //    }
         //
-        let mut data: Value = self.safe_dict_k(response, "data", &[]);
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let __ws_arg_142 = self.parse_margin_modification(data, &[market]);
         let __ws_arg_143 = self.amount_to_precision(symbol, amount);
         return self.extend(__ws_arg_142, &[Value::Map({

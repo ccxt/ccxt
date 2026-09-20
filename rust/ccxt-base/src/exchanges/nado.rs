@@ -4058,14 +4058,14 @@ impl NadoCore {
             m
         });
         if (endpoint.as_str() == Some("gateway")) || (endpoint.as_str() == Some("archive")) {
-            add_element_to_object(&mut headers, &Value::Str("Accept-Encoding".into()), Value::Str("gzip, br, deflate".into()));
+            if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("Accept-Encoding".into(), Value::Str("gzip, br, deflate".into())); }
         }
         if (method.as_str() == Some("GET")) {
             if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
                 url = add(&url, &Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])).into()));
             }
         }  else {
-            add_element_to_object(&mut headers, &Value::Str("Content-Type".into()), Value::Str("application/json".into()));
+            if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("Content-Type".into(), Value::Str("application/json".into())); }
             body = json_stringify(&query);
         }
         return Value::Map({

@@ -1489,7 +1489,9 @@ impl CoinbaseCore {
 }
 
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
-        let mut channel: Value = self.safe_string_k(message.clone(), "channel", &[]);
+        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (match &message { Value::Dict(__d) => __d.clone(), _ => std::sync::Arc::new(indexmap::IndexMap::new()) });
+        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
+        let mut channel: Value = (match __pro_message.get("channel").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         let mut methods: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("subscriptions".to_string(), Value::Str("handle_subscription_status".into()).clone());
@@ -1501,9 +1503,9 @@ impl CoinbaseCore {
                 m.insert("heartbeats".to_string(), Value::Str("handle_heartbeats".into()).clone());
             m
         });
-        let mut type_var: Option<String> = self.safe_string_k(message.clone(), "type", &[]).as_str().map(str::to_owned);
+        let mut type_var: Option<String> = (match __pro_message.get("type").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (type_var.as_deref() == Some("error")) {
-            let mut errorMessage: Value = self.safe_string_k(message.clone(), "message", &[]);
+            let mut errorMessage: Value = (match __pro_message.get("message").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
             // ternary (not ||) so the ast-transpiler emits a value-typed conditional, not a boolean
             let mut errorMessageValue: Value = (if (errorMessage != Value::Null) { errorMessage } else { Value::Str("unknown error".into()) });
             panic!("{}", crate::exchange_errors::exchange_error(errorMessageValue));

@@ -1807,7 +1807,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         }
         let mut fee: Value = Value::Null;
-        if (in_op(&trade, &Value::Str("fees".into()))) {
+        if (matches!(&trade, Value::Dict(__d) if __d.contains_key("fees"))) {
             let mut fees: Value = self.safe_list_k(trade.clone(), "fees", &[Value::from(vec![])]);
             let mut firstFee: Value = self.safe_dict(fees, Value::Int(0), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();

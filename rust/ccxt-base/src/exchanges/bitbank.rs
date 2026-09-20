@@ -1591,7 +1591,7 @@ impl BitbankCore {
             url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.version.clone(), Value::Str("/".into())).into()), self.implode_params(path.clone(), params)).into())).into());
             if (method.as_str() == Some("POST")) {
                 body = json_stringify(&query);
-                auth = add(&auth, &body);
+                auth = Value::Str(format!("{}{}", auth, body).into());
             }  else {
                 auth = Value::Str(format!("{}{}", auth, add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/".into()), self.version.clone()).into()), Value::Str("/".into())).into()), &path)).into());
                 if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
