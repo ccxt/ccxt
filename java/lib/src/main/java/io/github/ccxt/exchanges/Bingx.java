@@ -139,7 +139,7 @@ public class Bingx extends BingxApi
                 put( "fetchPositionHistory", true );
                 put( "fetchPositionMode", true );
                 put( "fetchPositions", true );
-                put( "fetchPositionsHistory", true );
+                put( "fetchPositionsHistory", false );
                 put( "fetchTicker", true );
                 put( "fetchTickers", true );
                 put( "fetchTime", true );
