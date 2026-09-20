@@ -148,6 +148,7 @@ public class Tests
                 await WsClientKeepAliveLivenessTests();
                 await WsClientKeepAliveTimeoutTests();
                 await WsClientRetirementRaceTests();
+                WsSubscriptionDictionaryTests();
                 Helper.Green("[C#] base WS tests passed");
             }
             else
@@ -225,6 +226,12 @@ public class Tests
     {
         await baseTestInstance.testWsClientRetirementRace();
         Helper.Green(" [C#] WebSocketClient retirement race tests passed");
+    }
+
+    static void WsSubscriptionDictionaryTests()
+    {
+        baseTestInstance.testWsSubscriptionDictionarySnapshot();
+        Helper.Green(" [C#] WS subscription dictionary snapshot tests passed");
     }
 
     static void RaceConditionTests()
