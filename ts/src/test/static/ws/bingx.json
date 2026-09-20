@@ -557,6 +557,106 @@
                         ]
                     }
                 ]
+            },
+            {
+                "description": "spot execution uses venue quote amount not price times amount",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "url": "wss://open-api-ws.bingx.com/market?listenKey=test-listen-key",
+                "options": {
+                    "listenKey": "test-listen-key",
+                    "lastAuthenticatedTime": 9999999999999
+                },
+                "messages": [
+                    {
+                        "code": 0,
+                        "dataType": "spot.executionReport",
+                        "data": {
+                            "e": "executionReport",
+                            "E": 1720000000010,
+                            "s": "BTC-USDT",
+                            "S": "BUY",
+                            "o": "LIMIT",
+                            "q": "0.0005",
+                            "p": "60000",
+                            "x": "TRADE",
+                            "X": "PARTIALLY_FILLED",
+                            "i": "1702245001712369665",
+                            "l": "0.00013",
+                            "z": "0.00013",
+                            "L": "59001.7",
+                            "n": "-0.0000001",
+                            "N": "BTC",
+                            "T": 1720000000000,
+                            "t": "104",
+                            "O": 1719999999000,
+                            "Z": "7.6702",
+                            "Y": "7.6702",
+                            "Q": "0",
+                            "m": false
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": "fixture-id",
+                        "reqType": "sub",
+                        "dataType": "spot.executionReport"
+                    }
+                ],
+                "sentSkipKeys": [
+                    "id"
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "104",
+                        "info": {
+                            "e": "executionReport",
+                            "E": 1720000000010,
+                            "s": "BTC-USDT",
+                            "S": "BUY",
+                            "o": "LIMIT",
+                            "q": "0.0005",
+                            "p": "60000",
+                            "x": "TRADE",
+                            "X": "PARTIALLY_FILLED",
+                            "i": "1702245001712369665",
+                            "l": "0.00013",
+                            "z": "0.00013",
+                            "L": "59001.7",
+                            "n": "-0.0000001",
+                            "N": "BTC",
+                            "T": 1720000000000,
+                            "t": "104",
+                            "O": 1719999999000,
+                            "Z": "7.6702",
+                            "Y": "7.6702",
+                            "Q": "0",
+                            "m": false
+                        },
+                        "timestamp": 1720000000000,
+                        "datetime": "2024-07-03T09:46:40.000Z",
+                        "symbol": "BTC/USDT",
+                        "order": "1702245001712369665",
+                        "type": "limit",
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 59001.7,
+                        "amount": 0.00013,
+                        "cost": 7.6702,
+                        "fee": {
+                            "cost": 1e-7,
+                            "currency": "BTC"
+                        },
+                        "fees": [
+                            {
+                                "cost": 1e-7,
+                                "currency": "BTC"
+                            }
+                        ]
+                    }
+                ]
             }
         ],
         "watchOrders": [
