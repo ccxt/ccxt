@@ -62,6 +62,7 @@ import testUrlencodeNested from './test.urlencodeNested.js';
 import testClone from './test.clone.js';
 import testStringToBase16 from './test.stringToBase16.js';
 import testCapitalize from './test.capitalize.js';
+import testIncrementingNonce from './test.incrementingNonce.js';
 import testBinaryConcat from './test.binaryConcat.js';
 import testConstants from './test.constants.js';
 import testBase58ToBinary from './test.base58ToBinary.js';
@@ -84,6 +85,7 @@ async function baseTestsInit() {
     testNumberToBE();
     testDecimalToPrecision();
     testCapitalize();
+    testIncrementingNonce();
     testIsDictionary();
     testNumberToString();
     testPrecise();
