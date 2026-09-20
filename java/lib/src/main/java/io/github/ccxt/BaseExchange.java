@@ -8581,7 +8581,7 @@ public Object describe()
         Object currentNonce = this.nonce();
         this.lockLastNonce();
         Long lastNonce = this.safeInteger(this.options, "lastNonce", 0);
-        Object result = ((Helpers.isTrue((Helpers.isGreaterThan(currentNonce, lastNonce))))) ? currentNonce : Helpers.add(lastNonce, 1);
+        Object result = (((Helpers.isGreaterThan(currentNonce, lastNonce)))) ? currentNonce : (lastNonce + 1L);
         Helpers.addElementToObject(this.options, "lastNonce", result);
         this.unlockLastNonce();
         return result;
