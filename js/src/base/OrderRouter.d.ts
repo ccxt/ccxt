@@ -1,4 +1,8 @@
 import { Dict } from './types.js';
+/**
+ * @class OrderRouter
+ * @description a client for the ccxt order-routing service and a multi-venue execution engine for plans you build yourself. NOT an exchange: it does not extend Exchange, has no unified methods, and is constructed directly. The whole pipeline is two calls — fetchRoute, then execute
+ */
 declare class OrderRouter {
     static DEFAULT_BASE_URL: string;
     static DEFAULT_TIMEOUT_MS: number;

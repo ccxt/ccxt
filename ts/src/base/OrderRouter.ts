@@ -71,6 +71,10 @@ const KNOWN_STRATEGIES = [ 'dry_run', 'sequential', 'parallel_within_hop', 'limi
 //  the query keys forwarded to GET /route, in a fixed order so that two ports
 //  build a byte-identical URL
 const ROUTE_QUERY_KEYS = [ 'amountIn', 'amountOut', 'strategy', 'maxVenues', 'bridges', 'exchanges', 'balances', 'balanceMode', 'includeQuotes', 'includeFees', 'certified', 'requireFullFill', 'hopPenaltyBps', 'minLegNotional' ];
+/**
+ * @class OrderRouter
+ * @description a client for the ccxt order-routing service and a multi-venue execution engine for plans you build yourself. NOT an exchange: it does not extend Exchange, has no unified methods, and is constructed directly. The whole pipeline is two calls — fetchRoute, then execute
+ */
 class OrderRouter {
     //  defaults, mirrored as constants in every port
     static DEFAULT_BASE_URL = 'https://docs.ccxt.com/router/api';
