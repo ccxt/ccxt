@@ -2553,17 +2553,18 @@ public class OrderRouter
     }
 
     /// <summary>
-    /// Executes a plan against live exchange instances. THE ONLY IMPURE METHOD.
-    /// dry_run is the default and anything other than options["live"] == true
-    /// forces dry_run regardless of the strategy requested, so a call that looks
-    /// live but forgot the flag places nothing.
+    /// Executes a plan against live exchange instances. THE ONLY IMPURE METHOD,
+    /// and IT PLACES ORDERS: calling it is the instruction, there is no permission
+    /// flag beside it. Pass options["dryRun"] == true to rehearse instead, which
+    /// makes not one call against a venue.
     /// </summary>
     /// <param name="plan">a plan from BuildExecutionPlan, or a caller-assembled plan of the same shape — this method never assumes the plan came from the routing service</param>
     /// <param name="venues">exchangeId to a ccxt exchange instance</param>
     /// <param name="options">
-    /// strategy (dry_run, sequential, parallel_within_hop, limit_protected,
-    /// best_effort or atomic_ish), live (must be exactly true for any order to
-    /// be placed), usdRates (required when live, because the notional cap cannot
+    /// strategy (HOW the orders go out: sequential — the default —
+    /// parallel_within_hop, limit_protected, best_effort or atomic_ish), dryRun
+    /// (exactly true rehearses and places nothing; anything else PLACES ORDERS),
+    /// usdRates (required when a notional cap is set, because the cap cannot
     /// be enforced without it), allowMarketOrders, maxOrders,
     /// acknowledgeDispersion, orderTimeoutMs, pollIntervalMs, orderParams,
     /// idempotencyKey (the identity of this execution, required when the plan

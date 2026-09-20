@@ -2027,12 +2027,12 @@ class OrderRouter {
     //  -----------------------------------------------------------------------
 
     /**
-     * executes a plan against live exchange instances. THE ONLY IMPURE METHOD. dry_run is the default and options.live !== true forces dry_run regardless of the strategy requested, so a call that looks live but forgot the flag places nothing
+     * executes a plan against live exchange instances. THE ONLY IMPURE METHOD, and IT PLACES ORDERS: calling it is the instruction, there is no permission flag beside it. Pass options.dryRun true to rehearse instead, which makes not one call against a venue
      * @param array $plan a plan from buildExecutionPlan, or a caller-assembled plan of the same shape — this method never assumes the plan came from the routing service
      * @param array $venues a dictionary of exchangeId to a ccxt exchange instance
      * @param array $options execution options
-     *     string strategy               dry_run, sequential, parallel_within_hop, limit_protected, best_effort or atomic_ish
-     *     bool   live                   must be exactly true for any order to be placed
+     *     string strategy               HOW the orders go out: sequential (the default), parallel_within_hop, limit_protected, best_effort or atomic_ish
+     *     bool   dryRun                 exactly true rehearses and places nothing; anything else PLACES ORDERS
      *     array  usdRates               currency code to USD price, required when live because the notional cap cannot be enforced without it
      *     bool   allowMarketOrders      permit a market order when the venue cannot do IOC, default false
      *     int    maxOrders              hard order-count cap, required by best_effort

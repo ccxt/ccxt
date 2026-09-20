@@ -1717,13 +1717,13 @@ class OrderRouter:
 
     def execute(self, plan, venues=None, options={}):
         """
-        executes a plan against live exchange instances. THE ONLY IMPURE METHOD. dry_run is the default and options['live'] is not True forces dry_run regardless of the strategy requested, so a call that looks live but forgot the flag places nothing
+        executes a plan against live exchange instances. THE ONLY IMPURE METHOD, and IT PLACES ORDERS: calling it is the instruction, there is no permission flag beside it. Pass options['dryRun'] True to rehearse instead, which makes not one call against a venue
 
         :param dict plan: a plan from build_execution_plan, or a caller-assembled plan of the same shape — this method never assumes the plan came from the routing service
         :param dict venues: a dictionary of exchangeId to a ccxt exchange instance
         :param dict [options]: execution options
-        :param str [options['strategy']]: dry_run, sequential, parallel_within_hop, limit_protected, best_effort or atomic_ish
-        :param bool [options['live']]: must be exactly True for any order to be placed
+        :param str [options['strategy']]: HOW the orders go out: sequential(the default), parallel_within_hop, limit_protected, best_effort or atomic_ish. Whether they go out at all is options['dryRun']
+        :param bool [options['dryRun']]: exactly True rehearses: the plan is built, checked and reported on, and not one call is made against a venue. Anything else, including absent, PLACES ORDERS
         :param dict [options['usdRates']]: currency code to USD price, required when live and a notional cap is set, because the cap cannot be enforced without it
         :param bool [options['allowMarketOrders']]: permit a market order when the venue cannot do IOC, default False
         :param int [options['maxOrders']]: hard order-count cap, required by best_effort

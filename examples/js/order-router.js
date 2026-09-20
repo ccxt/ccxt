@@ -13,8 +13,11 @@
 // checkExecutionPlanSafety) for when you want to inspect or change what happens
 // in between; see order-router-custom-plan.ts. You just don't have to.
 //
-// THIS EXAMPLE PLACES NOTHING because it passes `dryRun: true`. Take that line
-// out and it trades: execute places orders by default, exactly like createOrder.
+// THIS EXAMPLE PLACES REAL ORDERS. execute trades by default, exactly like
+// createOrder does — there is no permission flag beside it. As written it builds
+// its venues with no credentials, so an exchange will refuse the order; put your
+// keys in and it will go through. Add a dryRun option to rehearse instead, which
+// makes not one call against a venue.
 //
 // Usage:
 //   npm run tsBuild && node js/examples/ts/order-router.js
@@ -67,15 +70,13 @@ async function main() {
             }
         }
     }
-    // dryRun is the ONLY thing keeping this a rehearsal. Remove it and this places
-    // real orders with real money — read the strategy table in wiki/Manual.md
-    // first, and keep maxNotionalUsd on. The cap is opt-in and honoured exactly as
-    // passed; usdRates is what lets it be evaluated at all. A live run also needs
-    // an identity, which the route's requestId supplies, so a re-run cannot
-    // re-place a filled order.
+    // This places real orders with real money. Read the strategy table in
+    // wiki/Manual.md first, and keep maxNotionalUsd on: the cap is opt-in and
+    // honoured exactly as passed, and usdRates is what lets it be evaluated at
+    // all. The run also needs an identity, which the route's requestId supplies,
+    // so a re-run cannot re-place a filled order.
     const report = await router.execute(route, venues, {
         'strategy': 'sequential',
-        'dryRun': true,
         'usdRates': { 'USDT': 1 },
         'maxNotionalUsd': 25,
         //  Called after each step completes and reconciles, never mid-order. Return 'halt' to

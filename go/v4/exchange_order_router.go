@@ -2058,15 +2058,15 @@ func (this *OrderRouter) PlanIdentity(plan map[string]any, options map[string]an
 	return routerStringAt(plan, "requestId", "")
 }
 
-// Execute runs a plan against live exchange instances. THE ONLY IMPURE METHOD.
-// dry_run is the default and options["live"] must be exactly the boolean true
-// for any order to be placed, so a call that looks live but forgot the flag
-// places nothing.
+// Execute runs a plan against live exchange instances. THE ONLY IMPURE METHOD,
+// and IT PLACES ORDERS: calling it is the instruction, there is no permission
+// flag beside it. Pass options["dryRun"] as exactly the boolean true to rehearse
+// instead, which makes not one call against a venue.
 //
 // options keys:
 //
-//	strategy               string  dry_run, sequential, parallel_within_hop, limit_protected, best_effort or atomic_ish
-//	live                   bool    must be exactly true for any order to be placed
+//	strategy               string  HOW the orders go out: sequential (the default), parallel_within_hop, limit_protected, best_effort or atomic_ish
+//	dryRun                 bool    exactly true rehearses and places nothing; anything else PLACES ORDERS
 //	usdRates               dict    currency code to USD price, required when live because the notional cap cannot be enforced without it
 //	allowMarketOrders      bool    permit a market order when the venue cannot do IOC, default false
 //	maxOrders              float   hard order-count cap, required by best_effort

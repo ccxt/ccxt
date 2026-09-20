@@ -17,9 +17,12 @@
 // Steps sharing a hopIndex are one hop: that is what parallel_within_hop runs
 // concurrently, and what reconciliation chains together.
 //
-// This example is a DRY RUN. It places nothing. Read the comment on `live`
-// below before changing that, and read the hard safety rules in CLAUDE.md §5.5
-// before pointing it at real money.
+// THIS EXAMPLE PLACES REAL ORDERS. execute trades by default, exactly like
+// createOrder does — there is no permission flag beside it. As written it builds
+// its venues with no credentials, so an exchange will refuse the order; put your
+// keys in and it will go through. Add a dryRun option to the execute call to
+// rehearse instead. Read the hard safety rules in CLAUDE.md §5.5 before pointing
+// this at real money.
 //
 // Usage:
 //   npm run tsBuild && node js/examples/ts/order-router-custom-plan.js
@@ -95,9 +98,6 @@ async function main() {
     }
     const report = await router.execute(plan, venues, {
         'strategy': 'parallel_within_hop',
-        //  THE default. Anything short of an explicit true is a rehearsal, and
-        //  a call that looks live but forgot this flag places nothing.
-        'dryRun': true,
         'usdRates': { 'USDT': 1 },
         'maxNotionalUsd': 25,
         //  alternative to plan.requestId; either satisfies the identity rule
