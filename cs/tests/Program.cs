@@ -231,6 +231,7 @@ public class Tests
     {
         var res = baseTestInstance.RaceTest();
         res.Wait();
+        baseTestInstance.testWsSubscriptionDictionarySnapshot();
         Helper.Green(" [C#] RaceCondition tests passed");
     }
 }
