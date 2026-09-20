@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 use crate::pro::*;
 
 
@@ -393,11 +397,11 @@ impl WhitebitCore {
         //     "id": null
         // }
         //
-        let mut params: Value = self.safe_value_k(message.clone(), "params", &[Value::List(vec![])]);
+        let mut params: Value = self.safe_list_k(message.clone(), "params", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_649: bool = true;
-            while { if !__for_first_649 { i = add(&i, &Value::Int(1)); } __for_first_649 = false; is_less_than(&i, &get_array_length(&params)) } {
+            let mut __for_first_656: bool = true;
+            while { if !__for_first_656 { i = add(&i, &Value::Int(1)); } __for_first_656 = false; is_less_than(&i, &get_array_length(&params)) } {
             let mut data: Value = get_value(&params, &i);
             let mut data: Value = get_value(&params, &i);
             let mut marketId: Value = self.safe_string(data.clone(), Value::Int(7), &[]);
@@ -541,8 +545,8 @@ impl WhitebitCore {
     pub fn handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_650: bool = true;
-            while { if !__for_first_650 { i = add(&i, &Value::Int(1)); } __for_first_650 = false; is_less_than(&i, &get_array_length(&deltas)) } {
+            let mut __for_first_657: bool = true;
+            while { if !__for_first_657 { i = add(&i, &Value::Int(1)); } __for_first_657 = false; is_less_than(&i, &get_array_length(&deltas)) } {
             self.handle_delta(bookside.clone(), get_value(&deltas, &i));
         }
         }
@@ -600,8 +604,8 @@ impl WhitebitCore {
         let mut args: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_651: bool = true;
-            while { if !__for_first_651 { i = add(&i, &Value::Int(1)); } __for_first_651 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_658: bool = true;
+            while { if !__for_first_658 { i = add(&i, &Value::Int(1)); } __for_first_658 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut market: Value = self.market(get_value(&symbols, &i));
             append_to_array(&mut messageHashes, add(&Value::Str("ticker:".to_string()), &get_value(&market, &Value::Str("symbol".to_string()))));
             append_to_array(&mut args, get_value(&market, &Value::Str("id".to_string())));
@@ -658,8 +662,8 @@ impl WhitebitCore {
         let mut messageHashes: Value = object_keys(&get_value(&client, &Value::Str("futures".to_string())));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_652: bool = true;
-            while { if !__for_first_652 { i = add(&i, &Value::Int(1)); } __for_first_652 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
+            let mut __for_first_659: bool = true;
+            while { if !__for_first_659 { i = add(&i, &Value::Int(1)); } __for_first_659 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
             let mut currentMessageHash: Value = get_value(&messageHashes, &i);
             let mut currentMessageHash: Value = get_value(&messageHashes, &i);
             if is_greater_than_or_equal(&get_index_of(&currentMessageHash, &Value::Str("tickers".to_string())), &Value::Int(0)) && is_greater_than_or_equal(&get_index_of(&currentMessageHash, &symbol), &Value::Int(0)) {
@@ -755,8 +759,8 @@ impl WhitebitCore {
         let mut parsedTrades: Value = self.parse_trades(data.clone(), &[market.clone()]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_653: bool = true;
-            while { if !__for_first_653 { j = add(&j, &Value::Int(1)); } __for_first_653 = false; is_less_than(&j, &get_array_length(&parsedTrades)) } {
+            let mut __for_first_660: bool = true;
+            while { if !__for_first_660 { j = add(&j, &Value::Int(1)); } __for_first_660 = false; is_less_than(&j, &get_array_length(&parsedTrades)) } {
             stored.append(get_value(&parsedTrades, &j));
         }
         }
@@ -1235,8 +1239,8 @@ impl WhitebitCore {
         let mut data: Value = self.safe_list_k(message.clone(), "params", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_655: bool = true;
-            while { if !__for_first_655 { i = add(&i, &Value::Int(1)); } __for_first_655 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_662: bool = true;
+            while { if !__for_first_662 { i = add(&i, &Value::Int(1)); } __for_first_662 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut balanceDict: Value = self.safe_dict(data.clone(), i.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1256,8 +1260,8 @@ impl WhitebitCore {
                 let mut keys: Value = object_keys(&balanceDict);
                 {
                                         let mut j: Value = Value::Int(0);
-                    let mut __for_first_654: bool = true;
-                    while { if !__for_first_654 { j = add(&j, &Value::Int(1)); } __for_first_654 = false; is_less_than(&j, &get_array_length(&keys)) } {
+                    let mut __for_first_661: bool = true;
+                    while { if !__for_first_661 { j = add(&j, &Value::Int(1)); } __for_first_661 = false; is_less_than(&j, &get_array_length(&keys)) } {
                     let mut currencyId: Value = get_value(&keys, &j);
                     let mut currencyId: Value = get_value(&keys, &j);
                     let mut rawBalance: Value = self.safe_dict(balanceDict.clone(), currencyId.clone(), &[Value::Map({
@@ -1345,7 +1349,7 @@ impl WhitebitCore {
             let mut message: Value = self.extend(request.clone(), &[params.clone()]);
             return self.watch(url.clone(), messageHash.clone(), &[message.clone(), method.clone(), subscription.clone()]).await;
         }  else {
-            let mut subscription: Value = self.safe_value(get_value(&client, &Value::Str("subscriptions".to_string())), method.clone(), &[Value::Map({
+            let mut subscription: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".to_string())), method.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
@@ -1421,18 +1425,11 @@ impl WhitebitCore {
         // the authorized sentinel authenticate () has always returned - every
         // path below hands back that same value
         let mut authorized: Value = Value::Int(1);
-        // single-flight leader election, see
-        // https://github.com/ccxt/ccxt/issues/29393: the handshake is gated on
-        // subscriptions['authenticated'], which watch () only registers once
-        // the awaited v4PrivatePostProfileWebsocketToken () has resolved, so
-        // every concurrent cold caller used to pass that gate, burn a
-        // rate-limited private REST call for its own websocket_token and push
-        // its own authorize frame down the shared socket. the flight is
-        // registered in client.futures on the very client that carries the
-        // handshake, under a key that is not one of the exchange's own
-        // messageHashes, and is settled through client.resolve () /
-        // client.reject () so every write to that map goes through the
-        // client's own accessors
+        // single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393:
+        // the handshake gate subscriptions['authenticated'] is only registered after the awaited
+        // token fetch, so concurrent cold callers would each burn a private REST call and push
+        // their own authorize frame. the flight lives in client.futures of the handshake client
+        // under a non-messageHash key and settles only via client.resolve () / client.reject ()
         let mut messageHash: Value = Value::Str("authenticateFlight".to_string());
         if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash))) {
             // a flight is already in progress - wake when the leader settles
@@ -1597,8 +1594,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut values: Value = object_values(&subs);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_656: bool = true;
-            while { if !__for_first_656 { i = add(&i, &Value::Int(1)); } __for_first_656 = false; is_less_than(&i, &get_array_length(&values)) } {
+            let mut __for_first_663: bool = true;
+            while { if !__for_first_663 { i = add(&i, &Value::Int(1)); } __for_first_663 = false; is_less_than(&i, &get_array_length(&values)) } {
             let mut subscription: Value = get_value(&values, &i);
             let mut subscription: Value = get_value(&values, &i);
             if !is_equal(&subscription, &Value::Bool(true)) {

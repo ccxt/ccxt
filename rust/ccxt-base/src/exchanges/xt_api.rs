@@ -382,6 +382,21 @@ impl XtCore {
         self.call_method(Value::Str("private_spot_put_order_order_id".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateLinearGetFutureCopytradeUserV1CopyTradeCurrentFollowingV2` implicit endpoint.
+    pub async fn private_linear_get_future_copytrade_user_v1_copy_trade_current_following_v2(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_linear_get_future_copytrade_user_v1_copy_trade_current_following_v2".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateLinearGetFutureCopytradeUserV1CopyTradeFollowerBalanceBill` implicit endpoint.
+    pub async fn private_linear_get_future_copytrade_user_v1_copy_trade_follower_balance_bill(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_linear_get_future_copytrade_user_v1_copy_trade_follower_balance_bill".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateLinearGetFutureCopytradeUserV1CopyTradeFollowerPosition` implicit endpoint.
+    pub async fn private_linear_get_future_copytrade_user_v1_copy_trade_follower_position(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_linear_get_future_copytrade_user_v1_copy_trade_follower_position".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateLinearGetFutureTradeV1EntrustPlanDetail` implicit endpoint.
     pub async fn private_linear_get_future_trade_v1_entrust_plan_detail(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_linear_get_future_trade_v1_entrust_plan_detail".to_string()), optional_args).await
@@ -407,6 +422,21 @@ impl XtCore {
         self.call_method(Value::Str("private_linear_get_future_trade_v1_entrust_profit_list".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateLinearGetFutureTradeV1EntrustProfitListHistory` implicit endpoint.
+    pub async fn private_linear_get_future_trade_v1_entrust_profit_list_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_linear_get_future_trade_v1_entrust_profit_list_history".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateLinearGetFutureTradeV1EntrustReversePlanList` implicit endpoint.
+    pub async fn private_linear_get_future_trade_v1_entrust_reverse_plan_list(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_linear_get_future_trade_v1_entrust_reverse_plan_list".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateLinearGetFutureTradeV1EntrustReversePlanListHistory` implicit endpoint.
+    pub async fn private_linear_get_future_trade_v1_entrust_reverse_plan_list_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_linear_get_future_trade_v1_entrust_reverse_plan_list_history".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateLinearGetFutureTradeV1EntrustTrackDetail` implicit endpoint.
     pub async fn private_linear_get_future_trade_v1_entrust_track_detail(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_linear_get_future_trade_v1_entrust_track_detail".to_string()), optional_args).await
@@ -420,6 +450,11 @@ impl XtCore {
     /// Auto-generated wrapper for the `privateLinearGetFutureTradeV1EntrustTrackListHistory` implicit endpoint.
     pub async fn private_linear_get_future_trade_v1_entrust_track_list_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_linear_get_future_trade_v1_entrust_track_list_history".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateLinearGetFutureTradeV1OrderEntrustList` implicit endpoint.
+    pub async fn private_linear_get_future_trade_v1_order_entrust_list(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_linear_get_future_trade_v1_order_entrust_list".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateLinearGetFutureTradeV1OrderDetail` implicit endpoint.
@@ -437,9 +472,29 @@ impl XtCore {
         self.call_method(Value::Str("private_linear_get_future_trade_v1_order_list_history".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateLinearGetFutureTradeV1OrderTradeHistory` implicit endpoint.
+    pub async fn private_linear_get_future_trade_v1_order_trade_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_linear_get_future_trade_v1_order_trade_history".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateLinearGetFutureTradeV1PositionListHistory` implicit endpoint.
     pub async fn private_linear_get_future_trade_v1_position_list_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_linear_get_future_trade_v1_position_list_history".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateLinearGetFutureTradeV1PositionCrossMarginSymbol` implicit endpoint.
+    pub async fn private_linear_get_future_trade_v1_position_cross_margin_symbol(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_linear_get_future_trade_v1_position_cross_margin_symbol".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateLinearGetFutureTradeV1PositionLeverageList` implicit endpoint.
+    pub async fn private_linear_get_future_trade_v1_position_leverage_list(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_linear_get_future_trade_v1_position_leverage_list".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateLinearGetFutureTradeV1PositionListActive` implicit endpoint.
+    pub async fn private_linear_get_future_trade_v1_position_list_active(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_linear_get_future_trade_v1_position_list_active".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateLinearGetFutureTradeV1OrderTradeList` implicit endpoint.
@@ -447,9 +502,19 @@ impl XtCore {
         self.call_method(Value::Str("private_linear_get_future_trade_v1_order_trade_list".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateLinearGetFutureTradeV1OrderTradeListAll` implicit endpoint.
+    pub async fn private_linear_get_future_trade_v1_order_trade_list_all(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_linear_get_future_trade_v1_order_trade_list_all".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateLinearGetFutureUserV1AccountInfo` implicit endpoint.
     pub async fn private_linear_get_future_user_v1_account_info(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_linear_get_future_user_v1_account_info".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateLinearGetFutureUserV1AutoDeleverageHistory` implicit endpoint.
+    pub async fn private_linear_get_future_user_v1_auto_deleverage_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_linear_get_future_user_v1_auto_deleverage_history".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateLinearGetFutureUserV1BalanceBills` implicit endpoint.
@@ -472,6 +537,11 @@ impl XtCore {
         self.call_method(Value::Str("private_linear_get_future_user_v1_balance_list".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateLinearGetFutureUserV1CompatBalanceCoin` implicit endpoint.
+    pub async fn private_linear_get_future_user_v1_compat_balance_coin(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_linear_get_future_user_v1_compat_balance_coin".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateLinearGetFutureUserV1PositionAdl` implicit endpoint.
     pub async fn private_linear_get_future_user_v1_position_adl(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_linear_get_future_user_v1_position_adl".to_string()), optional_args).await
@@ -485,6 +555,11 @@ impl XtCore {
     /// Auto-generated wrapper for the `privateLinearGetFutureUserV1PositionList` implicit endpoint.
     pub async fn private_linear_get_future_user_v1_position_list(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_linear_get_future_user_v1_position_list".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateLinearGetFutureUserV1TakerOverList` implicit endpoint.
+    pub async fn private_linear_get_future_user_v1_taker_over_list(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_linear_get_future_user_v1_taker_over_list".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateLinearGetFutureUserV1UserStepRate` implicit endpoint.
@@ -642,6 +717,21 @@ impl XtCore {
         self.call_method(Value::Str("private_inverse_get_future_trade_v1_entrust_profit_list".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateInverseGetFutureTradeV1EntrustProfitListHistory` implicit endpoint.
+    pub async fn private_inverse_get_future_trade_v1_entrust_profit_list_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_inverse_get_future_trade_v1_entrust_profit_list_history".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateInverseGetFutureTradeV1EntrustReversePlanList` implicit endpoint.
+    pub async fn private_inverse_get_future_trade_v1_entrust_reverse_plan_list(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_inverse_get_future_trade_v1_entrust_reverse_plan_list".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateInverseGetFutureTradeV1EntrustReversePlanListHistory` implicit endpoint.
+    pub async fn private_inverse_get_future_trade_v1_entrust_reverse_plan_list_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_inverse_get_future_trade_v1_entrust_reverse_plan_list_history".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateInverseGetFutureTradeV1EntrustTrackDetail` implicit endpoint.
     pub async fn private_inverse_get_future_trade_v1_entrust_track_detail(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_inverse_get_future_trade_v1_entrust_track_detail".to_string()), optional_args).await
@@ -655,6 +745,11 @@ impl XtCore {
     /// Auto-generated wrapper for the `privateInverseGetFutureTradeV1EntrustTrackListHistory` implicit endpoint.
     pub async fn private_inverse_get_future_trade_v1_entrust_track_list_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_inverse_get_future_trade_v1_entrust_track_list_history".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateInverseGetFutureTradeV1OrderEntrustList` implicit endpoint.
+    pub async fn private_inverse_get_future_trade_v1_order_entrust_list(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_inverse_get_future_trade_v1_order_entrust_list".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateInverseGetFutureTradeV1OrderDetail` implicit endpoint.
@@ -672,9 +767,29 @@ impl XtCore {
         self.call_method(Value::Str("private_inverse_get_future_trade_v1_order_list_history".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateInverseGetFutureTradeV1OrderTradeHistory` implicit endpoint.
+    pub async fn private_inverse_get_future_trade_v1_order_trade_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_inverse_get_future_trade_v1_order_trade_history".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateInverseGetFutureTradeV1PositionListHistory` implicit endpoint.
     pub async fn private_inverse_get_future_trade_v1_position_list_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_inverse_get_future_trade_v1_position_list_history".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateInverseGetFutureTradeV1PositionCrossMarginSymbol` implicit endpoint.
+    pub async fn private_inverse_get_future_trade_v1_position_cross_margin_symbol(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_inverse_get_future_trade_v1_position_cross_margin_symbol".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateInverseGetFutureTradeV1PositionLeverageList` implicit endpoint.
+    pub async fn private_inverse_get_future_trade_v1_position_leverage_list(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_inverse_get_future_trade_v1_position_leverage_list".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateInverseGetFutureTradeV1PositionListActive` implicit endpoint.
+    pub async fn private_inverse_get_future_trade_v1_position_list_active(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_inverse_get_future_trade_v1_position_list_active".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateInverseGetFutureTradeV1OrderTradeList` implicit endpoint.
@@ -682,9 +797,19 @@ impl XtCore {
         self.call_method(Value::Str("private_inverse_get_future_trade_v1_order_trade_list".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateInverseGetFutureTradeV1OrderTradeListAll` implicit endpoint.
+    pub async fn private_inverse_get_future_trade_v1_order_trade_list_all(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_inverse_get_future_trade_v1_order_trade_list_all".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateInverseGetFutureUserV1AccountInfo` implicit endpoint.
     pub async fn private_inverse_get_future_user_v1_account_info(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_inverse_get_future_user_v1_account_info".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateInverseGetFutureUserV1AutoDeleverageHistory` implicit endpoint.
+    pub async fn private_inverse_get_future_user_v1_auto_deleverage_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_inverse_get_future_user_v1_auto_deleverage_history".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateInverseGetFutureUserV1BalanceBills` implicit endpoint.
@@ -707,6 +832,11 @@ impl XtCore {
         self.call_method(Value::Str("private_inverse_get_future_user_v1_balance_list".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateInverseGetFutureUserV1CompatBalanceCoin` implicit endpoint.
+    pub async fn private_inverse_get_future_user_v1_compat_balance_coin(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_inverse_get_future_user_v1_compat_balance_coin".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateInverseGetFutureUserV1PositionAdl` implicit endpoint.
     pub async fn private_inverse_get_future_user_v1_position_adl(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_inverse_get_future_user_v1_position_adl".to_string()), optional_args).await
@@ -720,6 +850,11 @@ impl XtCore {
     /// Auto-generated wrapper for the `privateInverseGetFutureUserV1PositionList` implicit endpoint.
     pub async fn private_inverse_get_future_user_v1_position_list(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_inverse_get_future_user_v1_position_list".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateInverseGetFutureUserV1TakerOverList` implicit endpoint.
+    pub async fn private_inverse_get_future_user_v1_taker_over_list(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_inverse_get_future_user_v1_taker_over_list".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateInverseGetFutureUserV1UserStepRate` implicit endpoint.

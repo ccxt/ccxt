@@ -759,7 +759,7 @@ export default class digifinex extends Exchange {
         //         "code":0
         //     }
         //
-        const markets = this.safeValue(response, 'data', []);
+        const markets = this.safeList(response, 'data', []);
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -1093,7 +1093,7 @@ export default class digifinex extends Exchange {
         //     }
         //
         const result = {};
-        const tickers = this.safeValue2(response, 'ticker', 'data', []);
+        const tickers = this.safeList2(response, 'ticker', 'data', []);
         const date = this.safeInteger(response, 'date');
         for (let i = 0; i < tickers.length; i++) {
             const rawTicker = this.extend({
@@ -1243,6 +1243,11 @@ export default class digifinex extends Exchange {
             timestamp = this.safeInteger(ticker, 'timestamp');
         }
         const last = this.safeString(ticker, 'last');
+        let percentage = this.safeString2(ticker, 'change', 'price_change_percent');
+        if (market['swap'] === true) {
+            // swap endpoints return a raw ratio, spot already returns a percent
+            percentage = Precise.stringMul(percentage, '100');
+        }
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1259,7 +1264,7 @@ export default class digifinex extends Exchange {
             'last': last,
             'previousClose': undefined,
             'change': undefined,
-            'percentage': this.safeString2(ticker, 'change', 'price_change_percent'),
+            'percentage': percentage,
             'average': undefined,
             'baseVolume': this.safeString2(ticker, 'vol', 'volume_24h'),
             'quoteVolume': this.safeString(ticker, 'base_vol'),
@@ -2046,7 +2051,7 @@ export default class digifinex extends Exchange {
         //     }
         //
         if ((marketType === 'spot') || (marketType === 'margin')) {
-            const canceledOrders = this.safeValue(response, 'success', []);
+            const canceledOrders = this.safeList(response, 'success', []);
             const numCanceledOrders = canceledOrders.length;
             if (numCanceledOrders !== 1) {
                 throw new OrderNotFound(this.id + ' cancelOrder() ' + id + ' not found');
@@ -3323,7 +3328,7 @@ export default class digifinex extends Exchange {
         //         "equity": 45.133305540922
         //     }
         //
-        const data = this.safeValue(response, 'list', []);
+        const data = this.safeList(response, 'list', []);
         let result = undefined;
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
@@ -3376,14 +3381,13 @@ export default class digifinex extends Exchange {
         //         "currency": "USDT"
         //     }
         //
-        const timestamp = this.milliseconds();
         const currencyId = this.safeString(info, 'currency');
         return {
             'currency': this.safeCurrencyCode(currencyId, currency),
             'rate': 0.001, // all interest rates on digifinex are 0.1%
             'period': 86400000,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'info': info,
         };
     }
@@ -3551,7 +3555,7 @@ export default class digifinex extends Exchange {
         //     }
         //
         const data = this.safeValue(response, 'data', {});
-        const result = this.safeValue(data, 'funding_rates', []);
+        const result = this.safeList(data, 'funding_rates', []);
         const rates = [];
         for (let i = 0; i < result.length; i++) {
             const entry = result[i];
@@ -3727,7 +3731,7 @@ export default class digifinex extends Exchange {
         //     }
         //
         const positionRequest = (marketType === 'swap') ? 'data' : 'positions';
-        const positions = this.safeValue(response, positionRequest, []);
+        const positions = this.safeList(response, positionRequest, []);
         const result = [];
         for (let i = 0; i < positions.length; i++) {
             result.push(this.parsePosition(positions[i], market));
@@ -3820,7 +3824,7 @@ export default class digifinex extends Exchange {
         //     }
         //
         const dataRequest = (marketType === 'swap') ? 'data' : 'positions';
-        const data = this.safeValue(response, dataRequest, []);
+        const data = this.safeList(response, dataRequest, []);
         const position = this.parsePosition(data[0], market);
         if (marketType === 'swap') {
             return position;

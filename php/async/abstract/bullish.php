@@ -34,6 +34,18 @@ abstract class bullish extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
+    public function public_get_v1_vol_grids($params = array()) {
+        return $this->request('v1/vol-grids', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function public_get_v1_assets_symbol_vol_grid($params = array()) {
+        return $this->request('v1/assets/{symbol}/vol-grid', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
     public function public_get_v1_markets($params = array()) {
         return $this->request('v1/markets', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -42,6 +54,12 @@ abstract class bullish extends \ccxt\async\Exchange {
      */
     public function public_get_v1_markets_symbol($params = array()) {
         return $this->request('v1/markets/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function public_get_v1_history_markets($params = array()) {
+        return $this->request('v1/history/markets', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -74,6 +92,18 @@ abstract class bullish extends \ccxt\async\Exchange {
         return $this->request('v1/markets/{symbol}/candle', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function public_get_v1_markets_symbol_auctions($params = array()) {
+        return $this->request('v1/markets/{symbol}/auctions', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function public_get_v1_markets_symbol_auctions_noii($params = array()) {
+        return $this->request('v1/markets/{symbol}/auctions/noii', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function public_get_v1_history_markets_symbol_trades($params = array()) {
@@ -84,6 +114,18 @@ abstract class bullish extends \ccxt\async\Exchange {
      */
     public function public_get_v1_history_markets_symbol_funding_rate($params = array()) {
         return $this->request('v1/history/markets/{symbol}/funding-rate', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function public_get_v1_history_markets_symbol_auctions($params = array()) {
+        return $this->request('v1/history/markets/{symbol}/auctions', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function public_get_v1_history_option_trades($params = array()) {
+        return $this->request('v1/history/option-trades', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
@@ -132,6 +174,12 @@ abstract class bullish extends \ccxt\async\Exchange {
      */
     public function private_get_v2_orders_orderid($params = array()) {
         return $this->request('v2/orders/{orderId}', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_v2_orders_client_order_id_clientorderid($params = array()) {
+        return $this->request('v2/orders/client-order-id/{clientOrderId}', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
@@ -296,6 +344,24 @@ abstract class bullish extends \ccxt\async\Exchange {
         return $this->request('v2/otc-trades/unconfirmed-trade', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function private_get_v2_otc_trades_delegated_accounts($params = array()) {
+        return $this->request('v2/otc-trades/delegated-accounts', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function private_get_v2_idb_delegated_accounts($params = array()) {
+        return $this->request('v2/idb/delegated-accounts', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function private_get_v2_idb_otc_trades($params = array()) {
+        return $this->request('v2/idb/otc-trades', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_v2_orders($params = array()) {
@@ -332,6 +398,12 @@ abstract class bullish extends \ccxt\async\Exchange {
         return $this->request('v1/simulate-portfolio-margin', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function private_post_v1_bulk_simulate_portfolio_margin($params = array()) {
+        return $this->request('v1/bulk-simulate-portfolio-margin', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_post_v1_wallets_self_hosted_initiate($params = array()) {
@@ -354,6 +426,18 @@ abstract class bullish extends \ccxt\async\Exchange {
      */
     public function private_post_v2_otc_command($params = array()) {
         return $this->request('v2/otc-command', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_v2_idb_otc_trades($params = array()) {
+        return $this->request('v2/idb/otc-trades', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_v2_idb_otc_command($params = array()) {
+        return $this->request('v2/idb/otc-command', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -382,6 +466,18 @@ abstract class bullish extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
+    public function publicGetV1VolGrids($params = array()) {
+        return $this->request('v1/vol-grids', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicGetV1AssetsSymbolVolGrid($params = array()) {
+        return $this->request('v1/assets/{symbol}/vol-grid', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
     public function publicGetV1Markets($params = array()) {
         return $this->request('v1/markets', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -390,6 +486,12 @@ abstract class bullish extends \ccxt\async\Exchange {
      */
     public function publicGetV1MarketsSymbol($params = array()) {
         return $this->request('v1/markets/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function publicGetV1HistoryMarkets($params = array()) {
+        return $this->request('v1/history/markets', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -422,6 +524,18 @@ abstract class bullish extends \ccxt\async\Exchange {
         return $this->request('v1/markets/{symbol}/candle', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicGetV1MarketsSymbolAuctions($params = array()) {
+        return $this->request('v1/markets/{symbol}/auctions', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicGetV1MarketsSymbolAuctionsNoii($params = array()) {
+        return $this->request('v1/markets/{symbol}/auctions/noii', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function publicGetV1HistoryMarketsSymbolTrades($params = array()) {
@@ -432,6 +546,18 @@ abstract class bullish extends \ccxt\async\Exchange {
      */
     public function publicGetV1HistoryMarketsSymbolFundingRate($params = array()) {
         return $this->request('v1/history/markets/{symbol}/funding-rate', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function publicGetV1HistoryMarketsSymbolAuctions($params = array()) {
+        return $this->request('v1/history/markets/{symbol}/auctions', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function publicGetV1HistoryOptionTrades($params = array()) {
+        return $this->request('v1/history/option-trades', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
@@ -480,6 +606,12 @@ abstract class bullish extends \ccxt\async\Exchange {
      */
     public function privateGetV2OrdersOrderId($params = array()) {
         return $this->request('v2/orders/{orderId}', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetV2OrdersClientOrderIdClientOrderId($params = array()) {
+        return $this->request('v2/orders/client-order-id/{clientOrderId}', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
@@ -644,6 +776,24 @@ abstract class bullish extends \ccxt\async\Exchange {
         return $this->request('v2/otc-trades/unconfirmed-trade', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function privateGetV2OtcTradesDelegatedAccounts($params = array()) {
+        return $this->request('v2/otc-trades/delegated-accounts', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function privateGetV2IdbDelegatedAccounts($params = array()) {
+        return $this->request('v2/idb/delegated-accounts', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function privateGetV2IdbOtcTrades($params = array()) {
+        return $this->request('v2/idb/otc-trades', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostV2Orders($params = array()) {
@@ -680,6 +830,12 @@ abstract class bullish extends \ccxt\async\Exchange {
         return $this->request('v1/simulate-portfolio-margin', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function privatePostV1BulkSimulatePortfolioMargin($params = array()) {
+        return $this->request('v1/bulk-simulate-portfolio-margin', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privatePostV1WalletsSelfHostedInitiate($params = array()) {
@@ -702,5 +858,17 @@ abstract class bullish extends \ccxt\async\Exchange {
      */
     public function privatePostV2OtcCommand($params = array()) {
         return $this->request('v2/otc-command', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostV2IdbOtcTrades($params = array()) {
+        return $this->request('v2/idb/otc-trades', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostV2IdbOtcCommand($params = array()) {
+        return $this->request('v2/idb/otc-command', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
 }

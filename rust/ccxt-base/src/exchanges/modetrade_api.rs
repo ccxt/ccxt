@@ -197,6 +197,11 @@ impl ModetradeCore {
         self.call_method(Value::Str("v1_public_get_tv_symbol_info".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `v1PublicGetTvKlineHistory` implicit endpoint.
+    pub async fn v1_public_get_tv_kline_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_public_get_tv_kline_history".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `v1PublicGetPublicFundingRateHistory` implicit endpoint.
     pub async fn v1_public_get_public_funding_rate_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_public_get_public_funding_rate_history".to_string()), optional_args).await
@@ -245,6 +250,11 @@ impl ModetradeCore {
     /// Auto-generated wrapper for the `v1PublicPostRegisterAccount` implicit endpoint.
     pub async fn v1_public_post_register_account(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_public_post_register_account".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PublicPostPublicQuery` implicit endpoint.
+    pub async fn v1_public_post_public_query(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_public_post_public_query".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `v1PrivateGetClientKeyInfo` implicit endpoint.
@@ -337,6 +347,11 @@ impl ModetradeCore {
         self.call_method(Value::Str("v1_private_get_pnl_settlement_history".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `v1PrivateGetInternalTransferHistory` implicit endpoint.
+    pub async fn v1_private_get_internal_transfer_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_get_internal_transfer_history".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `v1PrivateGetVolumeUserDaily` implicit endpoint.
     pub async fn v1_private_get_volume_user_daily(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_private_get_volume_user_daily".to_string()), optional_args).await
@@ -402,6 +417,11 @@ impl ModetradeCore {
         self.call_method(Value::Str("v1_private_get_broker_user_info".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `v1PrivateGetBrokerDailyFeeRevenue` implicit endpoint.
+    pub async fn v1_private_get_broker_daily_fee_revenue(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_get_broker_daily_fee_revenue".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `v1PrivateGetOrderbookSymbol` implicit endpoint.
     pub async fn v1_private_get_orderbook_symbol(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_private_get_orderbook_symbol".to_string()), optional_args).await
@@ -410,6 +430,61 @@ impl ModetradeCore {
     /// Auto-generated wrapper for the `v1PrivateGetKline` implicit endpoint.
     pub async fn v1_private_get_kline(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_private_get_kline".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivateGetClientLeverages` implicit endpoint.
+    pub async fn v1_private_get_client_leverages(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_get_client_leverages".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivateGetClientMarginModes` implicit endpoint.
+    pub async fn v1_private_get_client_margin_modes(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_get_client_margin_modes".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivateGetReferralMultiLevelAdmin` implicit endpoint.
+    pub async fn v1_private_get_referral_multi_level_admin(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_get_referral_multi_level_admin".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivateGetReferralMultiLevelAdminInfo` implicit endpoint.
+    pub async fn v1_private_get_referral_multi_level_admin_info(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_get_referral_multi_level_admin_info".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivateGetReferralMultiLevelAdminRefereeList` implicit endpoint.
+    pub async fn v1_private_get_referral_multi_level_admin_referee_list(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_get_referral_multi_level_admin_referee_list".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivateGetReferralMultiLevelAdminSummary` implicit endpoint.
+    pub async fn v1_private_get_referral_multi_level_admin_summary(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_get_referral_multi_level_admin_summary".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivateGetReferralMultiLevelMaxRebateRate` implicit endpoint.
+    pub async fn v1_private_get_referral_multi_level_max_rebate_rate(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_get_referral_multi_level_max_rebate_rate".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivateGetReferralMultiLevelRebateInfo` implicit endpoint.
+    pub async fn v1_private_get_referral_multi_level_rebate_info(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_get_referral_multi_level_rebate_info".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivateGetReferralMultiLevelRefereeList` implicit endpoint.
+    pub async fn v1_private_get_referral_multi_level_referee_list(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_get_referral_multi_level_referee_list".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivateGetReferralMultiLevelStatistics` implicit endpoint.
+    pub async fn v1_private_get_referral_multi_level_statistics(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_get_referral_multi_level_statistics".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivateGetReferralMultiLevelVolumePrerequisite` implicit endpoint.
+    pub async fn v1_private_get_referral_multi_level_volume_prerequisite(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_get_referral_multi_level_volume_prerequisite".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `v1PrivatePostOrderlyKey` implicit endpoint.
@@ -462,6 +537,11 @@ impl ModetradeCore {
         self.call_method(Value::Str("v1_private_post_settle_pnl".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `v1PrivatePostInternalTransfer` implicit endpoint.
+    pub async fn v1_private_post_internal_transfer(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_post_internal_transfer".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `v1PrivatePostNotificationInboxMarkRead` implicit endpoint.
     pub async fn v1_private_post_notification_inbox_mark_read(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_private_post_notification_inbox_mark_read".to_string()), optional_args).await
@@ -475,6 +555,21 @@ impl ModetradeCore {
     /// Auto-generated wrapper for the `v1PrivatePostClientLeverage` implicit endpoint.
     pub async fn v1_private_post_client_leverage(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_private_post_client_leverage".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivatePostClientLeverages` implicit endpoint.
+    pub async fn v1_private_post_client_leverages(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_post_client_leverages".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivatePostClientMarginMode` implicit endpoint.
+    pub async fn v1_private_post_client_margin_mode(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_post_client_margin_mode".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivatePostPositionMargin` implicit endpoint.
+    pub async fn v1_private_post_position_margin(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_post_position_margin".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `v1PrivatePostClientMaintenanceConfig` implicit endpoint.
@@ -535,6 +630,51 @@ impl ModetradeCore {
     /// Auto-generated wrapper for the `v1PrivatePostReferralEditSplit` implicit endpoint.
     pub async fn v1_private_post_referral_edit_split(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_private_post_referral_edit_split".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivatePostReferralEditRefereeDescription` implicit endpoint.
+    pub async fn v1_private_post_referral_edit_referee_description(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_post_referral_edit_referee_description".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivatePostReferralMultiLevelAdmin` implicit endpoint.
+    pub async fn v1_private_post_referral_multi_level_admin(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_post_referral_multi_level_admin".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivatePostReferralMultiLevelAdminUpdate` implicit endpoint.
+    pub async fn v1_private_post_referral_multi_level_admin_update(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_post_referral_multi_level_admin_update".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivatePostReferralMultiLevelAdminCreateAffiliate` implicit endpoint.
+    pub async fn v1_private_post_referral_multi_level_admin_create_affiliate(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_post_referral_multi_level_admin_create_affiliate".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivatePostReferralMultiLevelAdminResetAffiliate` implicit endpoint.
+    pub async fn v1_private_post_referral_multi_level_admin_reset_affiliate(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_post_referral_multi_level_admin_reset_affiliate".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivatePostReferralMultiLevelAdminUpdateAffiliate` implicit endpoint.
+    pub async fn v1_private_post_referral_multi_level_admin_update_affiliate(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_post_referral_multi_level_admin_update_affiliate".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivatePostReferralMultiLevelClaimCode` implicit endpoint.
+    pub async fn v1_private_post_referral_multi_level_claim_code(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_post_referral_multi_level_claim_code".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivatePostReferralMultiLevelRebateRateSetDefault` implicit endpoint.
+    pub async fn v1_private_post_referral_multi_level_rebate_rate_set_default(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_post_referral_multi_level_rebate_rate_set_default".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivatePostReferralMultiLevelRebateRateUpdate` implicit endpoint.
+    pub async fn v1_private_post_referral_multi_level_rebate_rate_update(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_post_referral_multi_level_rebate_rate_update".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `v1PrivatePutOrder` implicit endpoint.

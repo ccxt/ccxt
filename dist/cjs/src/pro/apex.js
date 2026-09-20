@@ -988,6 +988,12 @@ class apex extends apex$1["default"] {
         if (this.handleErrorMessage(client, message) === true) {
             return;
         }
+        const ret_msg = this.safeString(message, 'ret_msg');
+        const pong = this.safeInteger(message, 'pong');
+        if (ret_msg === 'pong' || pong !== undefined) {
+            this.handlePong(client, message);
+            return;
+        }
         const topic = this.safeString2(message, 'topic', 'op', '');
         const methods = {
             'ws_zk_accounts_v3': this.handleAccount,
@@ -1059,6 +1065,7 @@ class apex extends apex$1["default"] {
         return message;
     }
     handlePing(client, message) {
+        client.lastPong = this.milliseconds();
         this.spawn(this.pong, client, message);
     }
     handleAccount(client, message) {

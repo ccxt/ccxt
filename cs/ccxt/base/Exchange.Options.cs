@@ -9,6 +9,8 @@ public partial class BaseExchange
 {
     public HttpClient httpClient { get; set; }
     public object fetchResponse = null; // tmp for response tests
+    // response-test mock keyed by url fragment, for methods that call several endpoints
+    public object fetchResponseByUrl = null;
     public string id { get; set; } = "Exchange";
 
     public string[] countries = null;
@@ -32,7 +34,7 @@ public partial class BaseExchange
 
     public bool reloadingMarkets { get; set; } = false;
 
-    public Task<object> marketsLoading { get; set; } = null;
+    public Task<IDictionary<string, object>> marketsLoading { get; set; } = null;
 
     public IDictionary<string, object> quoteCurrencies { get; set; } = null;
 

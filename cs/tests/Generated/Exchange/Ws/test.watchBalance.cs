@@ -11,7 +11,7 @@ public partial class testMainClass : BaseTest
     async static public Task testWatchBalance(Exchange exchange, object skippedProperties, object code)
     {
         string method = "watchBalance";
-        object now = exchange.milliseconds();
+        Int64 now = exchange.milliseconds();
         object ends = add(now, 15000);
         while (isLessThan(now, ends))
         {

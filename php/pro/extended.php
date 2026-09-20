@@ -88,18 +88,18 @@ class extended extends \ccxt\async\extended {
     public function handle_order_book(Client $client, mixed $message) {
         //
         //     {
-        //         "ts" => 1701563440000,
-        //         "type" => "SNAPSHOT",
-        //         "data" => array(
-        //             "m" => "BTC-USD",
-        //             "b" => array(
-        //                 array( "p" => "25670", "q" => "0.1" )
-        //             ),
-        //             "a" => array(
-        //                 array( "p" => "25770", "q" => "0.1" )
-        //             )
-        //         ),
-        //         "seq" => 1
+        //         "ts": 1701563440000,
+        //         "type": "SNAPSHOT",
+        //         "data": {
+        //             "m": "BTC-USD",
+        //             "b": [
+        //                 { "p": "25670", "q": "0.1" }
+        //             ],
+        //             "a": [
+        //                 { "p": "25770", "q": "0.1" }
+        //             ]
+        //         },
+        //         "seq": 1
         //     }
         //
         $data = $this->safe_dict($message, 'data', array());
@@ -240,27 +240,27 @@ class extended extends \ccxt\async\extended {
     public function handle_balance(Client $client, mixed $message) {
         //
         //     {
-        //         "type" => "BALANCE",
-        //         "data" => {
-        //             "balance" => array(
-        //                 "collateralName" => "BTC",
-        //                 "balance" => "100.000000",
-        //                 "equity" => "20.000000",
-        //                 "availableForTrade" => "3.000000",
-        //                 "availableForWithdrawal" => "4.000000",
-        //                 "updatedTime" => 1699976104901
-        //             ),
-        //             "spotBalances" => array(
-        //                 array(
-        //                     "asset" => "BTC",
-        //                     "balance" => "0.5",
-        //                     "availableToWithdraw" => "0.5",
-        //                     "updatedAt" => 1701563440
+        //         "type": "BALANCE",
+        //         "data": {
+        //             "balance": {
+        //                 "collateralName": "BTC",
+        //                 "balance": "100.000000",
+        //                 "equity": "20.000000",
+        //                 "availableForTrade": "3.000000",
+        //                 "availableForWithdrawal": "4.000000",
+        //                 "updatedTime": 1699976104901
+        //             },
+        //             "spotBalances": [
+        //                 {
+        //                     "asset": "BTC",
+        //                     "balance": "0.5",
+        //                     "availableToWithdraw": "0.5",
+        //                     "updatedAt": 1701563440
         //                 }
-        //             )
-        //         ),
-        //         "ts" => 1715885952304,
-        //         "seq" => 1
+        //             ]
+        //         },
+        //         "ts": 1715885952304,
+        //         "seq": 1
         //     }
         //
         $data = $this->safe_dict($message, 'data', array());
@@ -335,28 +335,28 @@ class extended extends \ccxt\async\extended {
     public function handle_my_trades(Client $client, mixed $message) {
         //
         //     {
-        //         "type" => "TRADE",
-        //         "data" => {
-        //             "trades" => array(
-        //                 array(
-        //                     "id" => 1784963886257016832,
-        //                     "accountId" => 3017,
-        //                     "market" => "BTC-USD",
-        //                     "orderId" => 9223372036854775808,
-        //                     "externalOrderId" => "ext-1",
-        //                     "side" => "BUY",
-        //                     "price" => "58853.4000000000000000",
-        //                     "qty" => "0.0900000000000000",
-        //                     "value" => "5296.8060000000000000",
-        //                     "fee" => "0.0000000000000000",
-        //                     "tradeType" => "DELEVERAGE",
-        //                     "createdTime" => 1701563440000,
-        //                     "isTaker" => true
+        //         "type": "TRADE",
+        //         "data": {
+        //             "trades": [
+        //                 {
+        //                     "id": 1784963886257016832,
+        //                     "accountId": 3017,
+        //                     "market": "BTC-USD",
+        //                     "orderId": 9223372036854775808,
+        //                     "externalOrderId": "ext-1",
+        //                     "side": "BUY",
+        //                     "price": "58853.4000000000000000",
+        //                     "qty": "0.0900000000000000",
+        //                     "value": "5296.8060000000000000",
+        //                     "fee": "0.0000000000000000",
+        //                     "tradeType": "DELEVERAGE",
+        //                     "createdTime": 1701563440000,
+        //                     "isTaker": true
         //                 }
-        //             )
-        //         ),
-        //         "ts" => 1715886400000,
-        //         "seq" => 1
+        //             ]
+        //         },
+        //         "ts": 1715886400000,
+        //         "seq": 1
         //     }
         //
         if ($this->myTrades === null) {
@@ -429,25 +429,25 @@ class extended extends \ccxt\async\extended {
     public function handle_positions(Client $client, mixed $message) {
         //
         //     {
-        //         "type" => "POSITION",
-        //         "data" => {
-        //             "positions" => array(
-        //                 array(
-        //                     "id" => 1,
-        //                     "accountId" => 1,
-        //                     "market" => "BTC-USD",
-        //                     "side" => "LONG",
-        //                     "leverage" => "10",
-        //                     "size" => "0.1",
-        //                     "value" => "4000",
-        //                     "openPrice" => "39000",
-        //                     "markPrice" => "40000",
-        //                     "updatedAt" => 1701563440000
+        //         "type": "POSITION",
+        //         "data": {
+        //             "positions": [
+        //                 {
+        //                     "id": 1,
+        //                     "accountId": 1,
+        //                     "market": "BTC-USD",
+        //                     "side": "LONG",
+        //                     "leverage": "10",
+        //                     "size": "0.1",
+        //                     "value": "4000",
+        //                     "openPrice": "39000",
+        //                     "markPrice": "40000",
+        //                     "updatedAt": 1701563440000
         //                 }
-        //             )
-        //         ),
-        //         "ts" => 1715886400000,
-        //         "seq" => 1
+        //             ]
+        //         },
+        //         "ts": 1715886400000,
+        //         "seq": 1
         //     }
         //
         if ($this->positions === null) {
@@ -488,32 +488,32 @@ class extended extends \ccxt\async\extended {
     public function handle_orders(Client $client, mixed $message) {
         //
         //     {
-        //         "type" => "ORDER",
-        //         "data" => {
-        //             "orders" => array(
-        //                 array(
-        //                     "id" => 1791181340771614723,
-        //                     "accountId" => 1791181340771614721,
-        //                     "externalId" => "-1771812132822291885",
-        //                     "market" => "BTC-USD",
-        //                     "type" => "LIMIT",
-        //                     "side" => "BUY",
-        //                     "status" => "NEW",
-        //                     "price" => "12400.000000",
-        //                     "averagePrice" => "13140.000000",
-        //                     "qty" => "10.000000",
-        //                     "filledQty" => "3.513000",
-        //                     "payedFee" => "0.513000",
-        //                     "reduceOnly" => true,
-        //                     "postOnly" => false,
-        //                     "createdTime" => 1715885888571,
-        //                     "updatedTime" => 1715885888571,
-        //                     "expireTime" => 1715885888571
+        //         "type": "ORDER",
+        //         "data": {
+        //             "orders": [
+        //                 {
+        //                     "id": 1791181340771614723,
+        //                     "accountId": 1791181340771614721,
+        //                     "externalId": "-1771812132822291885",
+        //                     "market": "BTC-USD",
+        //                     "type": "LIMIT",
+        //                     "side": "BUY",
+        //                     "status": "NEW",
+        //                     "price": "12400.000000",
+        //                     "averagePrice": "13140.000000",
+        //                     "qty": "10.000000",
+        //                     "filledQty": "3.513000",
+        //                     "payedFee": "0.513000",
+        //                     "reduceOnly": true,
+        //                     "postOnly": false,
+        //                     "createdTime": 1715885888571,
+        //                     "updatedTime": 1715885888571,
+        //                     "expireTime": 1715885888571
         //                 }
-        //             )
-        //         ),
-        //         "ts" => 1715885884837,
-        //         "seq" => 1
+        //             ]
+        //         },
+        //         "ts": 1715885884837,
+        //         "seq": 1
         //     }
         //
         if ($this->orders === null) {
@@ -583,13 +583,13 @@ class extended extends \ccxt\async\extended {
     public function handle_funding_rate(Client $client, mixed $message) {
         //
         //     {
-        //         "ts" => 1701563440000,
-        //         "data" => array(
-        //             "m" => "BTC-USD",
-        //             "T" => 1701563440000,
-        //             "f" => "0.001"
-        //         ),
-        //         "seq" => 2
+        //         "ts": 1701563440000,
+        //         "data": {
+        //             "m": "BTC-USD",
+        //             "T": 1701563440000,
+        //             "f": "0.001"
+        //         },
+        //         "seq": 2
         //     }
         //
         $data = $this->safe_dict($message, 'data', array());
@@ -662,14 +662,14 @@ class extended extends \ccxt\async\extended {
     public function handle_mark_price(Client $client, mixed $message) {
         //
         //     {
-        //         "type" => "MP",
-        //         "data" => array(
-        //             "m" => "BTC-USD",
-        //             "p" => "80988.400408625006",
-        //             "ts" => 0
-        //         ),
-        //         "ts" => 1778641421485,
-        //         "seq" => 1
+        //         "type": "MP",
+        //         "data": {
+        //             "m": "BTC-USD",
+        //             "p": "80988.400408625006",
+        //             "ts": 0
+        //         },
+        //         "ts": 1778641421485,
+        //         "seq": 1
         //     }
         //
         $data = $this->safe_dict($message, 'data', array());
@@ -732,19 +732,19 @@ class extended extends \ccxt\async\extended {
     public function handle_trades(Client $client, mixed $message) {
         //
         //     {
-        //         "ts" => 1701563440000,
-        //         "data" => array(
+        //         "ts": 1701563440000,
+        //         "data": [
         //             {
-        //                 "m" => "BTC-USD",
-        //                 "S" => "BUY",
-        //                 "tT" => "TRADE",
-        //                 "T" => 1701563440000,
-        //                 "p" => "25670",
-        //                 "q" => "0.1",
-        //                 "i" => 25124
+        //                 "m": "BTC-USD",
+        //                 "S": "BUY",
+        //                 "tT": "TRADE",
+        //                 "T": 1701563440000,
+        //                 "p": "25670",
+        //                 "q": "0.1",
+        //                 "i": 25124
         //             }
-        //         ),
-        //         "seq" => 2
+        //         ],
+        //         "seq": 2
         //     }
         //
         $data = $this->safe_list($message, 'data', array());
@@ -794,7 +794,7 @@ class extended extends \ccxt\async\extended {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->candleType] candle type => 'trades' (default), 'mark-prices', or 'index-prices'
          * @param {string} [$params->price] *ignored if $params->candleType is set* 'mark' or 'index' for mark $price and index $price candles
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -834,18 +834,18 @@ class extended extends \ccxt\async\extended {
     public function handle_ohlcv(Client $client, mixed $message) {
         //
         //     {
-        //         "ts" => 1695738675123,
-        //         "data" => array(
+        //         "ts": 1695738675123,
+        //         "data": [
         //             {
-        //                 "T" => 1695738674000,
-        //                 "o" => "1000.0000",
-        //                 "l" => "800.0000",
-        //                 "h" => "2400.0000",
-        //                 "c" => "2100.0000",
-        //                 "v" => "10.0000"
+        //                 "T": 1695738674000,
+        //                 "o": "1000.0000",
+        //                 "l": "800.0000",
+        //                 "h": "2400.0000",
+        //                 "c": "2100.0000",
+        //                 "v": "10.0000"
         //             }
-        //         ),
-        //         "seq" => 1
+        //         ],
+        //         "seq": 1
         //     }
         //
         $subscription = $this->find_subscription($client, 'ohlcv');
@@ -894,7 +894,7 @@ class extended extends \ccxt\async\extended {
 
     public function handle_error_message(Client $client, mixed $message): ?bool {
         //
-        //     array( "status" => "ERROR", "error" => array( "code" => 1001, "message" => "Market not found." ) )
+        //     { "status": "ERROR", "error": { "code": 1001, "message": "Market not found." } }
         //
         $error = $this->safe_value($message, 'error');
         if ($error === null) {

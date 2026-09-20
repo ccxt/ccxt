@@ -136,6 +136,7 @@ class mercado extends Exchange {
                     'private' => 'https://www.mercadobitcoin.net/tapi',
                     'v4Public' => 'https://www.mercadobitcoin.com.br/v4',
                     'v4PublicNet' => 'https://api.mercadobitcoin.net/api/v4',
+                    'v4Private' => 'https://api.mercadobitcoin.net/api/v4',
                 ),
                 'www' => 'https://www.mercadobitcoin.com.br',
                 'doc' => array(
@@ -179,6 +180,16 @@ class mercado extends Exchange {
                 'v4PublicNet' => array(
                     'get' => array(
                         'candles' => array( 'cost' => 1 ),
+                    ),
+                ),
+                'v4Private' => array(
+                    'post' => array(
+                        'accounts' => array( 'cost' => 1 ),
+                        'accounts/{accountId}/{symbol}/transfers/internal' => array( 'cost' => 1 ),
+                        'oauth2/token' => array( 'cost' => 1 ),
+                    ),
+                    'patch' => array(
+                        'accounts/{accountId}/wallet/{symbol}/deposits/{depositId}' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -282,7 +293,7 @@ class mercado extends Exchange {
          */
         $response = Async\await($this->publicGetCoins($params));
         //
-        //     array(
+        //     [
         //         "BCH",
         //         "BTC",
         //         "ETH",
@@ -300,7 +311,7 @@ class mercado extends Exchange {
         //         "PAXG",
         //         "MBVASCO01",
         //         "LINK"
-        //     )
+        //     ]
         //
         $result = array();
         $amountLimits = $this->safe_value($this->options, 'limits', array());
@@ -453,7 +464,7 @@ class mercado extends Exchange {
         $ticker = $this->safe_value($response, 'ticker', array());
         //
         //     {
-        //         "ticker" => {
+        //         "ticker": {
         //             "high":"1549.82293000",
         //             "low":"1503.00011000",
         //             "vol":"81.82827101",
@@ -538,7 +549,7 @@ class mercado extends Exchange {
 
     public function parse_balance(mixed $response): array {
         $data = $this->safe_value($response, 'response_data', array());
-        $balances = $this->safe_value($data, 'balance', array());
+        $balances = $this->safe_dict($data, 'balance', array());
         $result = array( 'info' => $response );
         $currencyIds = is_array($balances) ? array_keys($balances) : array();
         for ($i = 0; $i < count($currencyIds); $i++) {
@@ -620,7 +631,7 @@ class mercado extends Exchange {
                 $response = Async\await($this->privatePostPlaceMarketSellOrder($this->extend($request, $params)));
             }
         }
-        // TODO => replace this with a call to parseOrder for unification
+        // TODO: replace this with a call to parseOrder for unification
         return $this->safe_order(array(
             'info' => $response,
             'id' => (string) $response['response_data']['order']['order_id'],
@@ -653,25 +664,25 @@ class mercado extends Exchange {
         $response = Async\await($this->privatePostCancelOrder($this->extend($request, $params)));
         //
         //     {
-        //         "response_data" => {
-        //             "order" => array(
-        //                 "order_id" => 2176769,
-        //                 "coin_pair" => "BRLBCH",
-        //                 "order_type" => 2,
-        //                 "status" => 3,
-        //                 "has_fills" => false,
-        //                 "quantity" => "0.10000000",
-        //                 "limit_price" => "1996.15999",
-        //                 "executed_quantity" => "0.00000000",
-        //                 "executed_price_avg" => "0.00000",
-        //                 "fee" => "0.00000000",
-        //                 "created_timestamp" => "1536956488",
-        //                 "updated_timestamp" => "1536956499",
-        //                 "operations" => array()
+        //         "response_data": {
+        //             "order": {
+        //                 "order_id": 2176769,
+        //                 "coin_pair": "BRLBCH",
+        //                 "order_type": 2,
+        //                 "status": 3,
+        //                 "has_fills": false,
+        //                 "quantity": "0.10000000",
+        //                 "limit_price": "1996.15999",
+        //                 "executed_quantity": "0.00000000",
+        //                 "executed_price_avg": "0.00000",
+        //                 "fee": "0.00000000",
+        //                 "created_timestamp": "1536956488",
+        //                 "updated_timestamp": "1536956499",
+        //                 "operations": []
         //             }
-        //         ),
-        //         "status_code" => 100,
-        //         "server_unix_timestamp" => "1536956499"
+        //         },
+        //         "status_code": 100,
+        //         "server_unix_timestamp": "1536956499"
         //     }
         //
         $responseData = $this->safe_value($response, 'response_data', array());
@@ -691,27 +702,27 @@ class mercado extends Exchange {
     public function parse_order(array $order, ?array $market = null): array {
         //
         //     {
-        //         "order_id" => 4,
-        //         "coin_pair" => "BRLBTC",
-        //         "order_type" => 1,
-        //         "status" => 2,
-        //         "has_fills" => true,
-        //         "quantity" => "2.00000000",
-        //         "limit_price" => "900.00000",
-        //         "executed_quantity" => "1.00000000",
-        //         "executed_price_avg" => "900.00000",
-        //         "fee" => "0.00300000",
-        //         "created_timestamp" => "1453838494",
-        //         "updated_timestamp" => "1453838494",
-        //         "operations" => array(
-        //             array(
-        //                 "operation_id" => 1,
-        //                 "quantity" => "1.00000000",
-        //                 "price" => "900.00000",
-        //                 "fee_rate" => "0.30",
-        //                 "executed_timestamp" => "1453838494",
-        //             ),
-        //         ),
+        //         "order_id": 4,
+        //         "coin_pair": "BRLBTC",
+        //         "order_type": 1,
+        //         "status": 2,
+        //         "has_fills": true,
+        //         "quantity": "2.00000000",
+        //         "limit_price": "900.00000",
+        //         "executed_quantity": "1.00000000",
+        //         "executed_price_avg": "900.00000",
+        //         "fee": "0.00300000",
+        //         "created_timestamp": "1453838494",
+        //         "updated_timestamp": "1453838494",
+        //         "operations": [
+        //             {
+        //                 "operation_id": 1,
+        //                 "quantity": "1.00000000",
+        //                 "price": "900.00000",
+        //                 "fee_rate": "0.30",
+        //                 "executed_timestamp": "1453838494",
+        //             },
+        //         ],
         //     }
         //
         $id = $this->safe_string($order, 'order_id');
@@ -729,7 +740,7 @@ class mercado extends Exchange {
             'currency' => $market['quote'],
         );
         $price = $this->safe_string($order, 'limit_price');
-        // $price = $this->safe_number($order, 'executed_price_avg', $price);
+        // price = this.safeNumber (order, 'executed_price_avg', price);
         $average = $this->safe_string($order, 'executed_price_avg');
         $amount = $this->safe_string($order, 'quantity');
         $filled = $this->safe_string($order, 'executed_quantity');
@@ -838,21 +849,21 @@ class mercado extends Exchange {
         $response = Async\await($this->privatePostWithdrawCoin($this->extend($request, $params)));
         //
         //     {
-        //         "response_data" => {
-        //             "withdrawal" => array(
-        //                 "id" => 1,
-        //                 "coin" => "BRL",
-        //                 "quantity" => "300.56",
-        //                 "net_quantity" => "291.68",
-        //                 "fee" => "8.88",
-        //                 "account" => "bco => 341, ag => 1111, cta => 23456-X",
-        //                 "status" => 1,
-        //                 "created_timestamp" => "1453912088",
-        //                 "updated_timestamp" => "1453912088"
+        //         "response_data": {
+        //             "withdrawal": {
+        //                 "id": 1,
+        //                 "coin": "BRL",
+        //                 "quantity": "300.56",
+        //                 "net_quantity": "291.68",
+        //                 "fee": "8.88",
+        //                 "account": "bco: 341, ag: 1111, cta: 23456-X",
+        //                 "status": 1,
+        //                 "created_timestamp": "1453912088",
+        //                 "updated_timestamp": "1453912088"
         //             }
-        //         ),
-        //         "status_code" => 100,
-        //         "server_unix_timestamp" => "1453912088"
+        //         },
+        //         "status_code": 100,
+        //         "server_unix_timestamp": "1453912088"
         //     }
         //
         $responseData = $this->safe_value($response, 'response_data', array());
@@ -863,15 +874,15 @@ class mercado extends Exchange {
     public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         //     {
-        //         "id" => 1,
-        //         "coin" => "BRL",
-        //         "quantity" => "300.56",
-        //         "net_quantity" => "291.68",
-        //         "fee" => "8.88",
-        //         "account" => "bco => 341, ag => 1111, cta => 23456-X",
-        //         "status" => 1,
-        //         "created_timestamp" => "1453912088",
-        //         "updated_timestamp" => "1453912088"
+        //         "id": 1,
+        //         "coin": "BRL",
+        //         "quantity": "300.56",
+        //         "net_quantity": "291.68",
+        //         "fee": "8.88",
+        //         "account": "bco: 341, ag: 1111, cta: 23456-X",
+        //         "status": 1,
+        //         "created_timestamp": "1453912088",
+        //         "updated_timestamp": "1453912088"
         //     }
         //
         $currency = $this->safe_currency(null, $currency);
@@ -922,7 +933,7 @@ class mercado extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -930,10 +941,10 @@ class mercado extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
-            'symbol' => $market['base'] . '-' . $market['quote'], // exceptional endpoint, that needs custom $symbol syntax
+            'symbol' => $market['base'] . '-' . $market['quote'], // exceptional endpoint, that needs custom symbol syntax
         );
         if ($limit === null) {
-            $limit = 100; // set some default $limit,'s required if user doesn't provide it
+            $limit = 100; // set some default limit, as it's required if user doesn't provide it
         }
         if ($since !== null) {
             $request['from'] = $this->parse_to_int($since / 1000);
@@ -944,7 +955,7 @@ class mercado extends Exchange {
         }
         $response = Async\await($this->v4PublicNetGetCandles($this->extend($request, $params)));
         // parseTradingViewOHLCV applies the same default 't','o','h','l','c','v' column names and
-        // then parseOHLCVs, and takes the raw $response without narrowing it to a candle matrix
+        // then parseOHLCVs, and takes the raw response without narrowing it to a candle matrix
         return $this->parse_trading_view_ohlcv($response, $market, $timeframe, $since, $limit);
     }
 
@@ -1042,7 +1053,7 @@ class mercado extends Exchange {
     public function orders_to_trades(mixed $orders) {
         $result = array();
         for ($i = 0; $i < count($orders); $i++) {
-            $trades = $this->safe_value($orders[$i], 'trades', array());
+            $trades = $this->safe_list($orders[$i], 'trades', array());
             for ($y = 0; $y < count($trades); $y++) {
                 $result[] = $trades[$y];
             }
@@ -1081,9 +1092,9 @@ class mercado extends Exchange {
             return null;
         }
         //
-        // todo add a unified standard handleErrors with $this->exceptions in describe()
+        // todo add a unified standard handleErrors with this.exceptions in describe()
         //
-        //     array("status":503,"message":"Maintenancing, try again later","result":null)
+        //     {"status":503,"message":"Maintenancing, try again later","result":null}
         //
         $errorMessage = $this->safe_value($response, 'error_message');
         if ($errorMessage !== null) {

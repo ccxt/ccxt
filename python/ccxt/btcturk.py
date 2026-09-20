@@ -142,7 +142,8 @@ class btcturk(Exchange, ImplicitAPI):
                     'get': {
                         'orderbook': {'cost': 1},
                         'ticker': {'cost': 0.1},
-                        'trades': {'cost': 1},   # ?last=COUNT(max 50)
+                        'ticker/currency': {'cost': 0.1},
+                        'trades': {'cost': 1},   # ?last=COUNT (max 50)
                         'ohlc': {'cost': 1},
                         'server/exchangeinfo': {'cost': 1},
                     },
@@ -152,13 +153,18 @@ class btcturk(Exchange, ImplicitAPI):
                         'users/balances': {'cost': 1},
                         'openOrders': {'cost': 1},
                         'allOrders': {'cost': 1},
+                        'order/{orderId}': {'cost': 1},
                         'users/transactions/trade': {'cost': 1},
+                        'users/transactions/crypto': {'cost': 1},
+                        'users/transactions/fiat': {'cost': 1},
+                        'crypto-deposit-declarations': {'cost': 1},
                     },
                     'post': {
                         'users/transactions/crypto': {'cost': 1},
                         'users/transactions/fiat': {'cost': 1},
                         'order': {'cost': 1},
                         'cancelOrder': {'cost': 1},
+                        'crypto-deposit-declarations/confirm': {'cost': 1},
                     },
                     'delete': {
                         'order': {'cost': 1},
@@ -276,7 +282,7 @@ class btcturk(Exchange, ImplicitAPI):
         #                    "denominator": "TRY",
         #                    "numeratorScale": "8",
         #                    "denominatorScale": "2",
-        #                    "hasFraction": False,
+        #                    "hasFraction": false,
         #                    "filters": [
         #                        {
         #                            "filterType": "PRICE_FILTER",
@@ -295,9 +301,9 @@ class btcturk(Exchange, ImplicitAPI):
         #                        "STOP_LIMIT"
         #                    ],
         #                    "displayFormat": "#,###",
-        #                    "commissionFromNumerator": False,
+        #                    "commissionFromNumerator": false,
         #                    "order": "1000",
-        #                    "priceRounding": False
+        #                    "priceRounding": false
         #                },
         #                ...
         #            },
@@ -618,7 +624,7 @@ class btcturk(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        # maxCount = 50
+        # let maxCount = 50;
         request = {
             'pairSymbol': market['id'],
         }
@@ -680,7 +686,7 @@ class btcturk(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -693,12 +699,12 @@ class btcturk(Exchange, ImplicitAPI):
         request['to'] = self.parse_to_int((until / 1000))
         if since is not None:
             request['from'] = self.parse_to_int(since / 1000)
-        elif limit is None:  # since will also be None
+        elif limit is None:  # since will also be undefined
             limit = 100  # default value
         if limit is not None:
             limit = min(limit, 11000)  # max 11000 candles diapason can be covered
             if timeframe == '1y':  # difficult with leap years
-                raise BadRequest(self.id + ' fetchOHLCV() does not accept a limit parameter when timeframe == "1y"')
+                raise BadRequest(self.id + ' fetchOHLCV () does not accept a limit parameter when timeframe == "1y"')
             seconds = self.parse_timeframe(timeframe)
             limitSeconds = seconds * (limit - 1)
             if since is not None:
@@ -815,7 +821,7 @@ class btcturk(Exchange, ImplicitAPI):
         response = self.privateDeleteOrder(self.extend(request, params))
         #
         #    {
-        #        "success": True,
+        #        "success": true,
         #        "message": "SUCCESS",
         #        "code": 0
         #    }
@@ -1005,7 +1011,7 @@ class btcturk(Exchange, ImplicitAPI):
         #           "tax": "0"
         #         }
         #       ],
-        #       "success": True,
+        #       "success": true,
         #       "message": "SUCCESS",
         #       "code": "0"
         #     }

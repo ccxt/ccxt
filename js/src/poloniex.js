@@ -228,9 +228,11 @@ export default class poloniex extends Exchange {
                         'v3/market/indexPrice': { 'cost': 2 / 3 },
                         'v3/market/indexPriceComponents': { 'cost': 2 / 3 },
                         'v3/market/fundingRate': { 'cost': 2 / 3 },
+                        'v3/market/fundingRate/history': { 'cost': 2 / 3 },
                         'v3/market/openInterest': { 'cost': 2 / 3 },
                         'v3/market/insurance': { 'cost': 2 / 3 },
                         'v3/market/riskLimit': { 'cost': 2 / 3 },
+                        'v3/market/limitPrice': { 'cost': 2 / 3 },
                     },
                 },
                 'swapPrivate': {
@@ -240,10 +242,12 @@ export default class poloniex extends Exchange {
                         'v3/trade/order/opens': { 'cost': 20 },
                         'v3/trade/order/trades': { 'cost': 20 },
                         'v3/trade/order/history': { 'cost': 20 },
+                        'v3/trade/order/details': { 'cost': 20 },
                         'v3/trade/position/opens': { 'cost': 20 },
                         'v3/trade/position/history': { 'cost': 20 }, // todo: method for this
                         'v3/position/leverages': { 'cost': 20 },
                         'v3/position/mode': { 'cost': 20 },
+                        'v3/position/riskLimit': { 'cost': 20 },
                     },
                     'post': {
                         'v3/trade/order': { 'cost': 4 },

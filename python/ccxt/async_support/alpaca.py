@@ -163,6 +163,29 @@ class alpaca(Exchange, ImplicitAPI):
             },
             'api': {
                 'broker': {
+                    'private': {
+                        'get': {
+                            'v1/accounts/{account_id}/tokenization/requests': {'cost': 1},
+                            'v1/accounts/{account_id}/tokenization/requests/{tokenization_request_id}': {'cost': 1},
+                            'v1/accounts/{account_id}/tokenization/requests:by_client_request_id': {'cost': 1},
+                            'v1/accounts/{account_id}/tokenization/requests:by_issuer_request_id': {'cost': 1},
+                            'v1/fpsl/analytics/{account_id}/loans': {'cost': 1},
+                            'v1/ipos': {'cost': 1},
+                            'v1/ipos/{offering_reference}': {'cost': 1},
+                            'v1/wallets/travel-rule/vasps': {'cost': 1},
+                            'v1beta1/acats': {'cost': 1},
+                            'v1beta1/acats/contrabrokers': {'cost': 1},
+                            'v1beta1/acats/{account_id}': {'cost': 1},
+                            'v1beta1/acats/{account_id}/{acats_id}': {'cost': 1},
+                            'v1beta1/acats/{account_id}/{acats_id}/assets': {'cost': 1},
+                        },
+                        'post': {
+                            'v1beta1/acats/{account_id}': {'cost': 1},
+                        },
+                        'patch': {
+                            'v1/accounts/{account_id}/wallets/whitelists/{whitelisted_address_id}/travel-rule-info': {'cost': 1},
+                        },
+                    },
                 },
                 'trader': {
                     'private': {
@@ -187,6 +210,13 @@ class alpaca(Exchange, ImplicitAPI):
                             'v2/corporate_actions/announcements': {'cost': 1},
                             'v2/wallets': {'cost': 1},
                             'v2/wallets/transfers': {'cost': 1},
+                            'v1/locates': {'cost': 1},
+                            'v1/locates/{locate_id}': {'cost': 1},
+                            'v1/locates/quotes': {'cost': 1},
+                            'v2/tokenization/requests': {'cost': 1},
+                            'v2/tokenization/requests/{tokenization_request_id}': {'cost': 1},
+                            'v2/tokenization/requests:by_client_request_id': {'cost': 1},
+                            'v2/wallets/travel-rule/vasps': {'cost': 1},
                         },
                         'post': {
                             'v2/orders': {'cost': 1},
@@ -194,6 +224,7 @@ class alpaca(Exchange, ImplicitAPI):
                             'v2/watchlists/{watchlist_id}': {'cost': 1},
                             'v2/watchlists:by_name': {'cost': 1},
                             'v2/wallets/transfers': {'cost': 1},
+                            'v1/locates': {'cost': 1},
                         },
                         'put': {
                             'v2/orders/{order_id}': {'cost': 1},
@@ -203,6 +234,7 @@ class alpaca(Exchange, ImplicitAPI):
                         'patch': {
                             'v2/orders/{order_id}': {'cost': 1},
                             'v2/account/configurations': {'cost': 1},
+                            'v2/wallets/whitelists/{whitelisted_address_id}/travel-rule-info': {'cost': 1},
                         },
                         'delete': {
                             'v2/orders': {'cost': 1},
@@ -231,6 +263,8 @@ class alpaca(Exchange, ImplicitAPI):
                     'private': {
                         'get': {
                             'v1beta1/corporate-actions': {'cost': 1},
+                            'v1beta1/fixed_income/latest/prices': {'cost': 1},
+                            'v1beta1/fixed_income/latest/quotes': {'cost': 1},
                             'v1beta1/forex/latest/rates': {'cost': 1},
                             'v1beta1/forex/rates': {'cost': 1},
                             'v1beta1/logos/{symbol}': {'cost': 1},
@@ -348,8 +382,8 @@ class alpaca(Exchange, ImplicitAPI):
                         },
                         'timeInForce': {
                             'IOC': True,
-                            'FOK': True,
-                            'PO': True,
+                            'FOK': False,  # {"code":42210000,"message":"invalid crypto time_in_force"} — verified live 2026-09-13
+                            'PO': False,  # {"code":40010001,"message":"invalid time_in_force for crypto order"} — verified live 2026-09-13
                             'GTD': False,
                         },
                         'hedged': False,
@@ -416,16 +450,17 @@ class alpaca(Exchange, ImplicitAPI):
             'exceptions': {
                 'exact': {
                     'forbidden.': PermissionDenied,  # {"message": "forbidden."}
-                    '40410000': InvalidOrder,  # {"code": 40410000, "message": "order is not found."}
+                    '40410000': InvalidOrder,  # { "code": 40410000, "message": "order is not found."}
                     '40010001': BadRequest,  # {"code":40010001,"message":"invalid order type for crypto order"}
-                    '40110000': PermissionDenied,  # {"code": 40110000, "message": "request is not authorized"}
+                    '40110000': PermissionDenied,  # { "code": 40110000, "message": "request is not authorized"}
+                    '42210000': BadRequest,  # {"code":42210000,"message":"invalid crypto time_in_force"}
                     '42910000': RateLimitExceeded,  # {"code":42910000,"message":"rate limit exceeded"}
                 },
                 'broad': {
-                    'Invalid format for parameter': BadRequest,  # {"message":"Invalid format for parameter start: error parsing '0' or 2006-01-02 time: parsing time \"0\" as \"2006-01-02\": cannot parse \"0\" as \"2006\""}
+                    'Invalid format for parameter': BadRequest,  # {"message":"Invalid format for parameter start: error parsing '0' as RFC3339 or 2006-01-02 time: parsing time \"0\" as \"2006-01-02\": cannot parse \"0\" as \"2006\""}
                     'Invalid symbol': BadSymbol,  # {"message":"Invalid symbol(s): BTC/USDdsda does not match ^[A-Z]+/[A-Z]+$"}
                     'cost basis must be': InvalidOrder,  # {"code":40310000,"message":"cost basis must be >= minimal amount of order 10"}
-                    'insufficient balance for': InsufficientFunds,  # {"available":"0","balance":"0","code":40310000,"message":"insufficient balance for USDT(requested: 221.63, available: 0)","symbol":"USDT"}
+                    'insufficient balance for': InsufficientFunds,  # {"available":"0","balance":"0","code":40310000,"message":"insufficient balance for USDT (requested: 221.63, available: 0)","symbol":"USDT"}
                     'orders are rejected by user request': PermissionDenied,  # {"code":40310000,"message":"new orders are rejected by user request"} — the account has suspend_trade enabled
                 },
             },
@@ -441,7 +476,7 @@ class alpaca(Exchange, ImplicitAPI):
         #
         #     {
         #         timestamp: '2023-11-22T08:07:57.654738097-05:00',
-        #         is_open: False,
+        #         is_open: false,
         #         next_open: '2023-11-22T09:30:00-05:00',
         #         next_close: '2023-11-22T16:00:00-05:00'
         #     }
@@ -485,12 +520,12 @@ class alpaca(Exchange, ImplicitAPI):
         #             "symbol": "BTC/USDT",
         #             "name": "Bitcoin / USD Tether",
         #             "status": "active",
-        #             "tradable": True,
-        #             "marginable": False,
+        #             "tradable": true,
+        #             "marginable": false,
         #             "maintenance_margin_requirement": 100,
-        #             "shortable": False,
-        #             "easy_to_borrow": False,
-        #             "fractionable": True,
+        #             "shortable": false,
+        #             "easy_to_borrow": false,
+        #             "fractionable": true,
         #             "attributes": [],
         #             "min_order_size": "0.000026873",
         #             "min_trade_increment": "0.000000001",
@@ -509,12 +544,12 @@ class alpaca(Exchange, ImplicitAPI):
         #         "symbol": "BTC/USDT",
         #         "name": "Bitcoin / USD Tether",
         #         "status": "active",
-        #         "tradable": True,
-        #         "marginable": False,
+        #         "tradable": true,
+        #         "marginable": false,
         #         "maintenance_margin_requirement": 101,
-        #         "shortable": False,
-        #         "easy_to_borrow": False,
-        #         "fractionable": True,
+        #         "shortable": false,
+        #         "easy_to_borrow": false,
+        #         "fractionable": true,
         #         "attributes": [],
         #         "min_order_size": "0.000026873",
         #         "min_trade_increment": "0.000000001",
@@ -752,7 +787,7 @@ class alpaca(Exchange, ImplicitAPI):
         :param int [params.paginationCalls]: the maximum number of requests while following next_page_token, default 10 — when the cap is reached the result is silently truncated to the pages already fetched, so raise it for long ranges, 10 requests cover roughly 30 days of 1h candles
         :param str [params.loc]: crypto location, default: us
         :param str [params.method]: method, default: marketPublicGetV1beta3CryptoLocBars
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1087,6 +1122,7 @@ class alpaca(Exchange, ImplicitAPI):
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.triggerPrice]: The price at which a trigger order is triggered at
+        :param str [params.timeInForce]: 'GTC' or 'IOC', the venue supports only these two for crypto orders, defaults to 'GTC'
         :param float [params.cost]: *market orders only* the cost of the order in units of the quote currency
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -1118,6 +1154,9 @@ class alpaca(Exchange, ImplicitAPI):
             request['qty'] = self.amount_to_precision(symbol, amount)
         defaultTIF = None
         defaultTIF, params = self.handle_option_and_params(params, 'createOrder', 'timeInForce')
+        if defaultTIF is not None:
+            # the venue only accepts lowercase values, normalize the unified uppercase spellings
+            defaultTIF = defaultTIF.lower()
         request['time_in_force'] = defaultTIF
         params = self.omit(params, ['timeInForce', 'triggerPrice'])
         request['client_order_id'] = self.generate_client_order_id(params)
@@ -1152,7 +1191,7 @@ class alpaca(Exchange, ImplicitAPI):
         #      "limit_price": null,
         #      "stop_price": null,
         #      "status": "accepted",
-        #      "extended_hours": False,
+        #      "extended_hours": false,
         #      "legs": null,
         #      "trail_percent": null,
         #      "trail_price": null,
@@ -1238,6 +1277,7 @@ class alpaca(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch orders for
+        :param str [params.direction]: the ordering of the results, 'asc' or 'desc', defaults to 'asc' when since is set
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.markets is None:
@@ -1252,9 +1292,13 @@ class alpaca(Exchange, ImplicitAPI):
         until = self.safe_integer(params, 'until')
         if until is not None:
             params = self.omit(params, 'until')
-            request['endTime'] = self.iso8601(until)
+            request['until'] = self.iso8601(until)
         if since is not None:
             request['after'] = self.iso8601(since)
+            direction = self.safe_string(params, 'direction')
+            if direction is None:
+                # the server default is desc, so a limit would truncate the newest window instead of the range starting at since — request oldest-first like krakenfutures does
+                request['direction'] = 'asc'
         if limit is not None:
             request['limit'] = limit
         response = await self.traderPrivateGetV2Orders(self.extend(request, params))
@@ -1288,7 +1332,7 @@ class alpaca(Exchange, ImplicitAPI):
         #           "limit_price": "1000",
         #           "stop_price": null,
         #           "status": "canceled",
-        #           "extended_hours": False,
+        #           "extended_hours": false,
         #           "legs": null,
         #           "trail_percent": null,
         #           "trail_price": null,
@@ -1311,6 +1355,7 @@ class alpaca(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch orders for
+        :param str [params.direction]: the ordering of the results, 'asc' or 'desc', defaults to 'asc' when since is set
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         request = {
@@ -1329,6 +1374,7 @@ class alpaca(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch orders for
+        :param str [params.direction]: the ordering of the results, 'asc' or 'desc', defaults to 'asc' when since is set
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         request = {
@@ -1350,7 +1396,7 @@ class alpaca(Exchange, ImplicitAPI):
         :param float [price]: the price for the order, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.triggerPrice]: the price to trigger a stop order
-        :param str [params.timeInForce]: for crypto trading either 'gtc' or 'ioc' can be used
+        :param str [params.timeInForce]: 'GTC' or 'IOC', the venue supports only these two for crypto orders, defaults to 'GTC'
         :param str [params.clientOrderId]: a unique identifier for the order, automatically generated if not sent
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -1373,7 +1419,8 @@ class alpaca(Exchange, ImplicitAPI):
         timeInForce = None
         timeInForce, params = self.handle_option_and_params(params, 'editOrder', 'timeInForce', 'gtc')
         if timeInForce is not None:
-            request['time_in_force'] = timeInForce
+            # the venue only accepts lowercase values, normalize the unified uppercase spellings
+            request['time_in_force'] = timeInForce.lower()
         request['client_order_id'] = self.generate_client_order_id(params)
         params = self.omit(params, ['clientOrderId'])
         response = await self.traderPrivatePatchV2OrdersOrderId(self.extend(request, params))
@@ -1428,7 +1475,7 @@ class alpaca(Exchange, ImplicitAPI):
         if feeValue is not None:
             fee = {
                 'cost': feeValue,
-                'currency': 'USD',
+                'currency': 'USD',  # commission is denominated per the account currency; crypto fills omit the field entirely — their fee is taken from the received asset, verified live 2026-09-15
             }
         orderType = self.safe_string(order, 'order_type')
         if orderType is not None:
@@ -1442,7 +1489,7 @@ class alpaca(Exchange, ImplicitAPI):
             'clientOrderId': self.safe_string(order, 'client_order_id'),
             'timestamp': timestamp,
             'datetime': datetime,
-            'lastTradeTimeStamp': None,
+            'lastTradeTimestamp': self.parse8601(self.safe_string(order, 'filled_at')),  # set on complete fills only — per-fill timestamps for partials come from the account activities used by fetchMyTrades, and updated_at also moves on non-fill transitions so it is no substitute
             'status': status,
             'symbol': symbol,
             'type': orderType,
@@ -1465,16 +1512,31 @@ class alpaca(Exchange, ImplicitAPI):
         statuses = {
             'pending_new': 'open',
             'accepted': 'open',
+            'accepted_for_bidding': 'open',
             'new': 'open',
             'partially_filled': 'open',
             'activated': 'open',
+            'done_for_day': 'open',  # no more executions on that day, the order itself stays live
+            'stopped': 'open',  # a fill is guaranteed at a stated price but has not occurred yet
+            'suspended': 'open',
+            'held': 'open',
+            'pending_replace': 'open',
+            'pending_cancel': 'canceling',
             'filled': 'closed',
+            'calculated': 'closed',  # completed for the day, settlement calculations are pending
+            'canceled': 'canceled',
+            'replaced': 'canceled',  # the venue closes the replaced id and opens a new order id for the replacement
+            'expired': 'expired',
+            'rejected': 'rejected',
         }
         return self.safe_string(statuses, status, status)
 
     def parse_time_in_force(self, timeInForce: Str):
         timeInForces = {
-            'day': 'Day',
+            'day': 'Day',  # equities-only value kept as-is deliberately: crypto orders reject it with 42210000, verified live 2026-09-13, and the unified set has no day spelling either way
+            'gtc': 'GTC',
+            'ioc': 'IOC',
+            'fok': 'FOK',
         }
         return self.safe_string(timeInForces, timeInForce, timeInForce)
 
@@ -1798,7 +1860,7 @@ class alpaca(Exchange, ImplicitAPI):
 
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
-        # account activities ledger entry(paper-trading path), see https://github.com/ccxt/ccxt/issues/24847
+        # account activities ledger entry (paper-trading path), see https://github.com/ccxt/ccxt/issues/24847
         #
         #     {
         #         "id": "20250110000000000::7f6cba2b-4c72-46b9-8e34-8e5b0b8d8e10",
@@ -1929,22 +1991,28 @@ class alpaca(Exchange, ImplicitAPI):
         query for balance and get the amount of funds available for trading or funds locked in orders
 
         https://docs.alpaca.markets/reference/getaccount-1
+        https://docs.alpaca.markets/reference/getallopenpositions
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`. note that `info` is
+ the composite `{account, positions}` wrapper of both raw venue payloads, not the bare account payload it was
+ before crypto positions were included — read `info['account']['cash']` where `info['cash']` used to be read
         """
         if self.markets is None:
             await self.load_markets()
-        response = await self.traderPrivateGetV2Account(params)
+        # the two calls stay sequential deliberately — the static request harness records one request per case,
+        # and concurrent calls make the recorded url nondeterministic per language
+        account = await self.traderPrivateGetV2Account(params)
+        positions = await self.traderPrivateGetV2Positions()
         #
         #     {
         #         "id": "43a01bde-4eb1-64fssc26adb5",
         #         "admin_configurations": {
-        #             "allow_instant_ach": True,
+        #             "allow_instant_ach": true,
         #             "max_margin_multiplier": "4"
         #         },
         #         "user_configurations": {
-        #             "fractional_trading": True,
+        #             "fractional_trading": true,
         #             "max_margin_multiplier": "4"
         #         },
         #         "account_number": "744873727",
@@ -1960,14 +2028,14 @@ class alpaca(Exchange, ImplicitAPI):
         #         "cash": "5.92",
         #         "accrued_fees": "0",
         #         "portfolio_value": "48.6",
-        #         "pattern_day_trader": False,
-        #         "trading_blocked": False,
-        #         "transfers_blocked": False,
-        #         "account_blocked": False,
+        #         "pattern_day_trader": false,
+        #         "trading_blocked": false,
+        #         "transfers_blocked": false,
+        #         "account_blocked": false,
         #         "created_at": "2022-06-13T14:59:18.318096Z",
-        #         "trade_suspended_by_user": False,
+        #         "trade_suspended_by_user": false,
         #         "multiplier": "1",
-        #         "shorting_enabled": False,
+        #         "shorting_enabled": false,
         #         "equity": "48.6",
         #         "last_equity": "48.8014266",
         #         "long_market_value": "42.68",
@@ -1984,17 +2052,69 @@ class alpaca(Exchange, ImplicitAPI):
         #         "pending_reg_taf_fees": "0"
         #     }
         #
+        response = {
+            'account': account,
+            'positions': positions,
+        }
         return self.parse_balance(response)
 
     def parse_balance(self, response: object) -> Balances:
+        #
+        # crypto holdings live on the positions endpoint, the account endpoint carries only the cash currency
+        #
+        #     "positions": [
+        #         {
+        #             "asset_id": "64bbff51-59d6-4b3c-9351-13ad85e3c752",
+        #             "symbol": "BTCUSD",
+        #             "exchange": "CRYPTO",
+        #             "asset_class": "crypto",
+        #             "asset_marginable": false,
+        #             "qty": "0.000207296",
+        #             "avg_entry_price": "80037",
+        #             "side": "long",
+        #             "market_value": "16.592345",
+        #             "cost_basis": "16.59135",
+        #             "unrealized_pl": "0.000995",
+        #             "unrealized_plpc": "0.00006",
+        #             "current_price": "80041.8",
+        #             "qty_available": "0.000207296"
+        #         }
+        #     ]
+        #
+        account = self.safe_dict(response, 'account', {})
+        positions = self.safe_list(response, 'positions', [])
         result = {'info': response}
-        account = self.account()
-        currencyId = self.safe_string(response, 'currency')
+        currencyId = self.safe_string(account, 'currency')
         code = self.safe_currency_code(currencyId)
-        account['free'] = self.safe_string(response, 'cash')
-        account['total'] = self.safe_string(response, 'equity')
         if code is not None:
-            result[code] = account
+            cashAccount = self.account()
+            cashAccount['free'] = self.safe_string(account, 'cash')  # cash already excludes the amounts held for open orders, verified live 2026-09-16
+            equity = self.safe_string(account, 'equity')
+            positionsValue = self.safe_string(account, 'position_market_value')
+            cashAccount['total'] = Precise.string_sub(equity, positionsValue)  # equity minus the positions market value equals cash plus open-order holds; stringSub degrades to undefined when either field is absent and safeBalance then derives the total from free
+            result[code] = cashAccount
+        for i in range(0, len(positions)):
+            position = positions[i]
+            positionSymbol = self.safe_string(position, 'symbol')
+            if positionSymbol is None:
+                continue
+            baseId = None
+            if positionSymbol.find('/') >= 0:
+                parts = positionSymbol.split('/')
+                baseId = self.safe_string(parts, 0)
+            else:
+                # crypto position symbols come compressed with a USD tail, e.g. BTCUSD or USDTUSD
+                baseLength = len(positionSymbol) - 3
+                if (baseLength > 0) and (positionSymbol[baseLength:] == 'USD'):
+                    baseId = positionSymbol[0:baseLength]
+            if baseId is None:
+                continue  # an unrecognized position symbol shape must not break the whole balance
+            positionCode = self.safe_currency_code(baseId)
+            if (positionCode is not None) and not (positionCode in result):
+                positionAccount = self.account()
+                positionAccount['free'] = self.safe_string(position, 'qty_available')
+                positionAccount['total'] = self.safe_string(position, 'qty')
+                result[positionCode] = positionAccount
         return self.safe_balance(result)
 
     def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
@@ -2032,7 +2152,7 @@ class alpaca(Exchange, ImplicitAPI):
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             codeAsString = str(code)
             if (code < 400) or not (codeAsString in self.httpExceptions):
-                # an error envelope must always raise — also for statuses the http-status handler has no entry for
+                # an error envelope must always throw — also for statuses the http-status handler has no entry for
                 raise ExchangeError(feedback)
             # unmapped messages on the remaining error statuses fall through to the default http-status handler
         return None

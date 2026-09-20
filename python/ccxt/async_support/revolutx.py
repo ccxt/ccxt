@@ -98,6 +98,7 @@ class revolutx(Exchange, ImplicitAPI):
                         '1.0/orders/{venue_order_id}': 1,
                         '1.0/orders/fills/{venue_order_id}': 1,
                         '1.0/trades/private/{symbol}': 1,
+                        '1.0/transactions': 1,
                     },
                     'post': {
                         '1.0/orders': 1,
@@ -435,8 +436,8 @@ class revolutx(Exchange, ImplicitAPI):
         response = await self.publicGet10PublicConfigurationCurrencies(self.extend(request, params))
         #
         #     {
-        #         "BTC": {"symbol": "BTC", "name": "Bitcoin", "scale": 8, "asset_type": "crypto", "status": "active"},
-        #         "USD": {"symbol": "$", "name": "US Dollar", "scale": 2, "asset_type": "fiat", "status": "active"}
+        #         "BTC": { "symbol": "BTC", "name": "Bitcoin", "scale": 8, "asset_type": "crypto", "status": "active" },
+        #         "USD": { "symbol": "$", "name": "US Dollar", "scale": 2, "asset_type": "fiat", "status": "active" }
         #     }
         #
         currencies = self.safe_dict(response, 'data', response)
@@ -529,11 +530,11 @@ class revolutx(Exchange, ImplicitAPI):
         #
         #     {
         #         "data": [
-        #             {"symbol": "BTC/USD", "bid": "119950.00", "ask": "120050.00", "mid": "120000.00",
+        #             { "symbol": "BTC/USD", "bid": "119950.00", "ask": "120050.00", "mid": "120000.00",
         #               "last_price": "119980.00", "low_24h": "115000.00", "high_24h": "122500.00",
-        #               "price_change_24h": "2480.00", "volume_24h": "135.42000000", "region": "EEA"}
+        #               "price_change_24h": "2480.00", "volume_24h": "135.42000000", "region": "EEA" }
         #         ],
-        #         "metadata": {"timestamp": 1785313433816}
+        #         "metadata": { "timestamp": 1785313433816 }
         #     }
         #
         data = self.safe_list(response, 'data', [])
@@ -603,10 +604,10 @@ class revolutx(Exchange, ImplicitAPI):
         #
         #     {
         #         "data": {
-        #             "asks": [{"price": "4005.00", "quantity": "1.7000", "count": 3}],
-        #             "bids": [{"price": "4000.00", "quantity": "0.25", "count": 1}]
+        #             "asks": [ { "price": "4005.00", "quantity": "1.7000", "count": 3 } ],
+        #             "bids": [ { "price": "4000.00", "quantity": "0.25", "count": 1 } ]
         #         },
-        #         "metadata": {"region": "UK", "timestamp": 1785313433816}
+        #         "metadata": { "region": "UK", "timestamp": 1785313433816 }
         #     }
         #
         data = self.safe_dict(response, 'data', {})
@@ -666,10 +667,10 @@ class revolutx(Exchange, ImplicitAPI):
         #
         #     {
         #         "data": [
-        #             {"start": 1785309833816, "open": "119800.00", "high": "120100.00",
-        #               "low": "119700.00", "close": "120000.00", "volume": "0.25000000"}
+        #             { "start": 1785309833816, "open": "119800.00", "high": "120100.00",
+        #               "low": "119700.00", "close": "120000.00", "volume": "0.25000000" }
         #         ],
-        #         "metadata": {"region": "EEA", "timestamp": 1785313433816}
+        #         "metadata": { "region": "EEA", "timestamp": 1785313433816 }
         #     }
         #
         data = self.safe_list(response, 'data', [])
@@ -740,7 +741,7 @@ class revolutx(Exchange, ImplicitAPI):
         elif since is not None:
             request['end_date'] = self.milliseconds()
         if limit is not None:
-            request['limit'] = limit
+            request['limit'] = min(limit, 1900)
         cursor = self.safe_string(params, 'cursor')
         if cursor is not None:
             request['cursor'] = cursor
@@ -748,10 +749,10 @@ class revolutx(Exchange, ImplicitAPI):
         #
         #     {
         #         "data": [
-        #             {"id": "3b2b202b-7668-43cf-a6c8-b3354e7f4c52", "symbol": "BTC/USD",
-        #               "price": "119980.00", "quantity": "0.01000000", "side": "sell", "timestamp": 1785313433816}
+        #             { "id": "3b2b202b-7668-43cf-a6c8-b3354e7f4c52", "symbol": "BTC/USD",
+        #               "price": "119980.00", "quantity": "0.01000000", "side": "sell", "timestamp": 1785313433816 }
         #         ],
-        #         "metadata": {"timestamp": 1785313433816, "next_cursor": "..."}
+        #         "metadata": { "timestamp": 1785313433816, "next_cursor": "..." }
         #     }
         #
         data = self.safe_list(response, 'data', [])
@@ -775,8 +776,8 @@ class revolutx(Exchange, ImplicitAPI):
         response = await self.privateGet10Balances(params)
         #
         #     [
-        #         {"currency": "BTC", "available": "1.25000000", "reserved": "0.10000000", "total": "1.35000000"},
-        #         {"currency": "USD", "available": "50000.00", "reserved": "1000.00", "total": "51000.00", "staked": "32.00000000"}
+        #         { "currency": "BTC", "available": "1.25000000", "reserved": "0.10000000", "total": "1.35000000" },
+        #         { "currency": "USD", "available": "50000.00", "reserved": "1000.00", "total": "51000.00", "staked": "32.00000000" }
         #     ]
         #
         data = response if isinstance(response, list) else self.safe_list(response, 'data', [])
@@ -945,7 +946,7 @@ class revolutx(Exchange, ImplicitAPI):
         #
         #     {
         #         "data": [
-        #             {"venue_order_id": "7a52e92e-8639-4fe1-abaa-68d3a2d5234b", "client_order_id": "...", "state": "new"}
+        #             { "venue_order_id": "7a52e92e-8639-4fe1-abaa-68d3a2d5234b", "client_order_id": "...", "state": "new" }
         #         ]
         #     }
         #
@@ -1075,8 +1076,8 @@ class revolutx(Exchange, ImplicitAPI):
         response = await self.privateGet10OrdersActive(self.extend(request, self.omit(params, ['cursor', 'orderStates', 'order_states', 'orderTypes', 'order_types', 'side'])))
         #
         #     {
-        #         "data": [{"id": "uuid", "client_order_id": "uuid", "symbol": "BTC/USD", ...}],
-        #         "metadata": {"timestamp": 1785313433816, "next_cursor": "..."}
+        #         "data": [ { "id": "uuid", "client_order_id": "uuid", "symbol": "BTC/USD", ... } ],
+        #         "metadata": { "timestamp": 1785313433816, "next_cursor": "..." }
         #     }
         #
         data = self.safe_list(response, 'data', [])
@@ -1237,11 +1238,11 @@ class revolutx(Exchange, ImplicitAPI):
         #
         #     {
         #         "data": [
-        #             {"tdt": 1785309833816, "p": "119900.00", "q": "0.00100000",
+        #             { "tdt": 1785309833816, "p": "119900.00", "q": "0.00100000",
         #               "tid": "ad3e8787ab623ba5a1dfea53819be6f9", "oid": "2affb2ac-4cf7-4bbf-b7b2-fc1e885bdc2c",
-        #               "s": "buy", "im": False}
+        #               "s": "buy", "im": false }
         #         ],
-        #         "metadata": {"timestamp": 1785313433816, "next_cursor": "..."}
+        #         "metadata": { "timestamp": 1785313433816, "next_cursor": "..." }
         #     }
         #
         data = self.safe_list(response, 'data', [])
@@ -1296,7 +1297,7 @@ class revolutx(Exchange, ImplicitAPI):
         #
         #     {
         #         "data": [
-        #             {"venue_order_id": "7a52e92e-8639-4fe1-abaa-68d3a2d5234b", "client_order_id": "...", "state": "new"}
+        #             { "venue_order_id": "7a52e92e-8639-4fe1-abaa-68d3a2d5234b", "client_order_id": "...", "state": "new" }
         #         ]
         #     }
         #

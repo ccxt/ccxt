@@ -195,6 +195,7 @@ class delta(Exchange, ImplicitAPI):
                         'users/update_mmp': {'cost': 1},
                         'users/reset_mmp': {'cost': 1},
                         'users/margin_mode': {'cost': 1},
+                        'users/trading_preferences': {'cost': 1},
                     },
                     'delete': {
                         'orders': {'cost': 1},
@@ -333,12 +334,12 @@ class delta(Exchange, ImplicitAPI):
                     # Margin required to place order with selected leverage and quantity is insufficient.
                     'insufficient_margin': InsufficientFunds,  # {"error":{"code":"insufficient_margin","context":{"available_balance":"0.000000000000000000","required_additional_balance":"1.618626000000000000000000000"}},"success":false}
                     'order_size_exceed_available': InvalidOrder,  # The order book doesn't have sufficient liquidity, hence the order couldnt be filled, for example, ioc orders
-                    'risk_limits_breached': BadRequest,  # orders couldn't be placed will breach allowed risk limits.
+                    'risk_limits_breached': BadRequest,  # orders couldn't be placed as it will breach allowed risk limits.
                     'invalid_contract': BadSymbol,  # The contract/product is either doesn't exist or has already expired.
                     'immediate_liquidation': InvalidOrder,  # Order will cause immediate liquidation.
                     'out_of_bankruptcy': InvalidOrder,  # Order prices are out of position bankruptcy limits.
                     'self_matching_disrupted_post_only': InvalidOrder,  # Self matching is not allowed during auction.
-                    'immediate_execution_post_only': InvalidOrder,  # orders couldn't be placed includes post only orders which will be immediately executed
+                    'immediate_execution_post_only': InvalidOrder,  # orders couldn't be placed as it includes post only orders which will be immediately executed
                     'bad_schema': BadRequest,  # {"error":{"code":"bad_schema","context":{"schema_errors":[{"code":"validation_error","message":"id is required","param":""}]}},"success":false}
                     'invalid_api_key': AuthenticationError,  # {"success":false,"error":{"code":"invalid_api_key"}}
                     'invalid_signature': AuthenticationError,  # {"success":false,"error":{"code":"invalid_signature"}}
@@ -493,7 +494,7 @@ class delta(Exchange, ImplicitAPI):
         #           "msp_deto_commission_percent": "25",
         #           "under_maintenance": "false"
         #         },
-        #         "success": True
+        #         "success": true
         #     }
         #
         result = self.safe_dict(response, 'result', {})
@@ -524,7 +525,7 @@ class delta(Exchange, ImplicitAPI):
         #            {
         #                "base_withdrawal_fee": "0.005000000000000000",
         #                "id": "1",
-        #                "interest_credit": False,
+        #                "interest_credit": false,
         #                "interest_slabs": null,
         #                "kyc_deposit_limit": "0.000000000000000000",
         #                "kyc_withdrawal_limit": "0.000000000000000000",
@@ -536,7 +537,7 @@ class delta(Exchange, ImplicitAPI):
         #                        "allowed_deposit_groups": null,
         #                        "base_withdrawal_fee": "0.0025",
         #                        "deposit_status": "enabled",
-        #                        "memo_required": False,
+        #                        "memo_required": false,
         #                        "min_deposit_amount": "0.000050000000000000",
         #                        "min_withdrawal_amount": "0.010000000000000000",
         #                        "minimum_deposit_confirmations": "12",
@@ -548,7 +549,7 @@ class delta(Exchange, ImplicitAPI):
         #                        "allowed_deposit_groups": null,
         #                        "base_withdrawal_fee": "0.0001",
         #                        "deposit_status": "enabled",
-        #                        "memo_required": False,
+        #                        "memo_required": false,
         #                        "min_deposit_amount": "0.000050000000000000",
         #                        "min_withdrawal_amount": "0.000300000000000000",
         #                        "minimum_deposit_confirmations": "15",
@@ -658,9 +659,9 @@ class delta(Exchange, ImplicitAPI):
         response = self.publicGetProducts(params)
         #
         #     {
-        #         "meta":{"after":null, "before":null, "limit":100, "total_count":81},
+        #         "meta":{ "after":null, "before":null, "limit":100, "total_count":81 },
         #         "result":[
-        #             # the below response represents item from perpetual market
+        #             // the below response represents item from perpetual market
         #             {
         #                 "annualized_funding":"5.475000000000000000",
         #                 "is_quanto":false,
@@ -680,38 +681,38 @@ class delta(Exchange, ImplicitAPI):
         #                 "contract_unit_currency":"LINK",
         #                 "strike_price":"12.507948",
         #                 "settling_asset":{
-        #                     # asset structure
+        #                     // asset structure
         #                 },
         #                 "auction_start_time":null,
         #                 "auction_finish_time":null,
         #                 "settlement_time":"2020-11-15T12:00:00Z",
         #                 "launch_time":"2020-11-14T11:55:05Z",
         #                 "spot_index":{
-        #                     # index structure
+        #                     // index structure
         #                 },
         #                 "trading_status":"operational",
         #                 "tick_size":"0.001",
         #                 "position_size_limit":100000,
-        #                 "notional_type":"vanilla",  # vanilla, inverse
+        #                 "notional_type":"vanilla", // vanilla, inverse
         #                 "price_band":"0.4",
         #                 "barrier_price":null,
         #                 "description":"Daily LINK PUT options quoted in USDT and settled in USDT",
         #                 "insurance_fund_margin_contribution":"1",
         #                 "quoting_asset":{
-        #                     # asset structure
+        #                     // asset structure
         #                 },
         #                 "liquidation_penalty_factor":"0.2",
         #                 "product_specs":{"max_volatility":3,"min_volatility":0.3,"spot_price_band":"0.40"},
         #                 "initial_margin_scaling_factor":"0.0001",
         #                 "underlying_asset":{
-        #                     # asset structure
+        #                     // asset structure
         #                 },
         #                 "state":"live",
         #                 "contract_value":"1",
         #                 "initial_margin":"2",
         #                 "impact_size":5000,
         #                 "settlement_price":null,
-        #                 "contract_type":"put_options",  # put_options, call_options, move_options, perpetual_futures, interest_rate_swaps, futures, spreads
+        #                 "contract_type":"put_options", // put_options, call_options, move_options, perpetual_futures, interest_rate_swaps, futures, spreads
         #                 "taker_commission_rate":"0.0005",
         #                 "maintenance_margin":"1",
         #                 "short_description":"LINK Daily PUT Options",
@@ -719,7 +720,7 @@ class delta(Exchange, ImplicitAPI):
         #                 "funding_method":"mark_price",
         #                 "max_leverage_notional":"20000"
         #             },
-        #             # the below response represents item from spot market
+        #             // the below response represents item from spot market
         #             {
         #                 "position_size_limit": 10000000,
         #                 "settlement_price": null,
@@ -733,10 +734,10 @@ class delta(Exchange, ImplicitAPI):
         #                 "tick_size": "0.01",
         #                 "liquidation_penalty_factor": "1",
         #                 "spot_index": {
-        #                     "config": {"quoting_asset": "USDT", "service_id": 8, "underlying_asset": "SOL"},
+        #                     "config": { "quoting_asset": "USDT", "service_id": 8, "underlying_asset": "SOL" },
         #                     "constituent_exchanges": [
-        #                         {"exchange": "binance", "health_interval": 60, "health_priority": 1, "weight": 1},
-        #                         {"exchange": "huobi", "health_interval": 60, "health_priority": 2, "weight": 1}
+        #                         { "exchange": "binance", "health_interval": 60, "health_priority": 1, "weight": 1 },
+        #                         { "exchange": "huobi", "health_interval": 60, "health_priority": 2, "weight": 1 }
         #                     ],
         #                     "constituent_indices": null,
         #                     "description": "Solana index from binance and huobi",
@@ -744,7 +745,7 @@ class delta(Exchange, ImplicitAPI):
         #                     "id": 105,
         #                     "impact_size": "40.000000000000000000",
         #                     "index_type": "spot_pair",
-        #                     "is_composite": False,
+        #                     "is_composite": false,
         #                     "price_method": "ltp",
         #                     "quoting_asset_id": 5,
         #                     "symbol": ".DESOLUSDT",
@@ -757,7 +758,7 @@ class delta(Exchange, ImplicitAPI):
         #                 "disruption_reason": null,
         #                 "settlement_time": null,
         #                 "insurance_fund_margin_contribution": "1",
-        #                 "is_quanto": False,
+        #                 "is_quanto": false,
         #                 "maintenance_margin": "5",
         #                 "taker_commission_rate": "0.0005",
         #                 "auction_start_time": null,
@@ -766,15 +767,15 @@ class delta(Exchange, ImplicitAPI):
         #                 "annualized_funding": "0",
         #                 "notional_type": "vanilla",
         #                 "price_band": "100",
-        #                 "product_specs": {"kyc_required": False, "max_order_size": 2000, "min_order_size": 0.01, "quoting_precision": 4, "underlying_precision": 2},
+        #                 "product_specs": { "kyc_required": false, "max_order_size": 2000, "min_order_size": 0.01, "quoting_precision": 4, "underlying_precision": 2 },
         #                 "default_leverage": "1.000000000000000000",
         #                 "initial_margin": "10",
         #                 "maintenance_margin_scaling_factor": "1",
         #                 "ui_config": {
         #                     "default_trading_view_candle": "1d",
         #                     "leverage_slider_values": [],
-        #                     "price_clubbing_values": [0.01, 0.05, 0.1, 0.5, 1, 2.5, 5],
-        #                     "show_bracket_orders": False,
+        #                     "price_clubbing_values": [ 0.01, 0.05, 0.1, 0.5, 1, 2.5, 5 ],
+        #                     "show_bracket_orders": false,
         #                     "sort_priority": 2,
         #                     "tags": []
         #                 },
@@ -785,7 +786,7 @@ class delta(Exchange, ImplicitAPI):
         #                     "base_withdrawal_fee": "10.000000000000000000",
         #                     "deposit_status": "enabled",
         #                     "id": 5,
-        #                     "interest_credit": False,
+        #                     "interest_credit": false,
         #                     "interest_slabs": null,
         #                     "kyc_deposit_limit": "100000.000000000000000000",
         #                     "kyc_withdrawal_limit": "10000.000000000000000000",
@@ -793,9 +794,9 @@ class delta(Exchange, ImplicitAPI):
         #                     "minimum_precision": 2,
         #                     "name": "Tether",
         #                     "networks": [
-        #                         {"base_withdrawal_fee": "25", "deposit_status": "enabled", "memo_required": False, "network": "ERC20", "variable_withdrawal_fee": "0", "withdrawal_status": "enabled"},
-        #                         {"base_withdrawal_fee": "1", "deposit_status": "enabled", "memo_required": False, "network": "BEP20(BSC)", "variable_withdrawal_fee": "0", "withdrawal_status": "enabled"},
-        #                         {"base_withdrawal_fee": "1", "deposit_status": "disabled", "memo_required": False, "network": "TRC20(TRON)", "variable_withdrawal_fee": "0", "withdrawal_status": "disabled"}
+        #                         { "base_withdrawal_fee": "25", "deposit_status": "enabled", "memo_required": false, "network": "ERC20", "variable_withdrawal_fee": "0", "withdrawal_status": "enabled" },
+        #                         { "base_withdrawal_fee": "1", "deposit_status": "enabled", "memo_required": false, "network": "BEP20(BSC)", "variable_withdrawal_fee": "0", "withdrawal_status": "enabled" },
+        #                         { "base_withdrawal_fee": "1", "deposit_status": "disabled", "memo_required": false, "network": "TRC20(TRON)", "variable_withdrawal_fee": "0", "withdrawal_status": "disabled" }
         #                     ],
         #                     "precision": 8,
         #                     "sort_priority": 1,
@@ -809,7 +810,7 @@ class delta(Exchange, ImplicitAPI):
         #                     "base_withdrawal_fee": "0.000000000000000000",
         #                     "deposit_status": "enabled",
         #                     "id": 66,
-        #                     "interest_credit": False,
+        #                     "interest_credit": false,
         #                     "interest_slabs": null,
         #                     "kyc_deposit_limit": "0.000000000000000000",
         #                     "kyc_withdrawal_limit": "0.000000000000000000",
@@ -817,8 +818,8 @@ class delta(Exchange, ImplicitAPI):
         #                     "minimum_precision": 4,
         #                     "name": "Solana",
         #                     "networks": [
-        #                         {"base_withdrawal_fee": "0.01", "deposit_status": "enabled", "memo_required": False, "network": "SOLANA", "variable_withdrawal_fee": "0", "withdrawal_status": "enabled"},
-        #                         {"base_withdrawal_fee": "0.01", "deposit_status": "enabled", "memo_required": False, "network": "BEP20(BSC)", "variable_withdrawal_fee": "0", "withdrawal_status": "enabled"}
+        #                         { "base_withdrawal_fee": "0.01", "deposit_status": "enabled", "memo_required": false, "network": "SOLANA", "variable_withdrawal_fee": "0", "withdrawal_status": "enabled" },
+        #                         { "base_withdrawal_fee": "0.01", "deposit_status": "enabled", "memo_required": false, "network": "BEP20(BSC)", "variable_withdrawal_fee": "0", "withdrawal_status": "enabled" }
         #                     ],
         #                     "precision": 8,
         #                     "sort_priority": 7,
@@ -843,7 +844,7 @@ class delta(Exchange, ImplicitAPI):
                 # binary options can not be represented in the unified market
                 # structure, their symbols would collide with vanilla options
                 continue
-            # settlingAsset = self.safe_value(market, 'settling_asset', {})
+            # const settlingAsset = this.safeValue (market, 'settling_asset', {});
             quotingAsset = self.safe_dict(market, 'quoting_asset', {})
             underlyingAsset = self.safe_dict(market, 'underlying_asset', {})
             settlingAsset = self.safe_dict(market, 'settling_asset')
@@ -871,7 +872,7 @@ class delta(Exchange, ImplicitAPI):
             if spot:
                 amountPrecision = self.parse_number(self.parse_precision(self.safe_string(productSpecs, 'underlying_precision')))  # seems inverse of 'impact_size'
             else:
-                # other markets(swap, futures, move, spread, irs) seem to use the step of '1' contract
+                # other markets (swap, futures, move, spread, irs) seem to use the step of '1' contract
                 amountPrecision = self.parse_number('1')
             linear = (settle == quote)
             optionType = None
@@ -1149,7 +1150,7 @@ class delta(Exchange, ImplicitAPI):
         #             "turnover_usd": 81896.45613400004,
         #             "volume": 2.6816639999999996
         #         },
-        #         "success": True
+        #         "success": true
         #     }
         #
         # swap
@@ -1195,7 +1196,7 @@ class delta(Exchange, ImplicitAPI):
         #             "turnover_usd": 37392218.45999999,
         #             "volume": 1226.3029999999485
         #         },
-        #         "success": True
+        #         "success": true
         #     }
         #
         # option
@@ -1240,7 +1241,7 @@ class delta(Exchange, ImplicitAPI):
         #             "timestamp": 1689136932893181,
         #             "turnover_symbol": "USDT"
         #         },
-        #         "success": True
+        #         "success": true
         #     }
         #
         result = self.safe_dict(response, 'result', {})
@@ -1606,7 +1607,7 @@ class delta(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.until]: timestamp in ms of the latest candle to fetch
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1743,7 +1744,7 @@ class delta(Exchange, ImplicitAPI):
         response = self.privateGetPositionsMargined(params)
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "result": [
         #           {
         #             "user_id": 0,
@@ -1891,7 +1892,7 @@ class delta(Exchange, ImplicitAPI):
         #         "stop_price": "55000",
         #         "paid_commission": "0.5432",
         #         "commission": "0.5432",
-        #         "reduce_only": False,
+        #         "reduce_only": false,
         #         "client_order_id": "my_signal_34521712",
         #         "state": "open",
         #         "created_at": "1725865012000000",
@@ -1974,14 +1975,14 @@ class delta(Exchange, ImplicitAPI):
         market = self.market(symbol)
         request = {
             'product_id': market['numericId'],
-            # 'limit_price': self.price_to_precision(market['symbol'], price),
+            # 'limit_price': this.priceToPrecision (market['symbol'], price),
             'size': self.amount_to_precision(market['symbol'], amount),
             'side': side,
             'order_type': orderType,
             # 'client_order_id': 'string',
-            # 'time_in_force': 'gtc',  # gtc, ioc, fok
-            # 'post_only': 'false',  # 'true',
-            # 'reduce_only': 'false',  # 'true',
+            # 'time_in_force': 'gtc', // gtc, ioc, fok
+            # 'post_only': 'false', // 'true',
+            # 'reduce_only': 'false', // 'true',
         }
         if type == 'limit':
             request['limit_price'] = self.price_to_precision(market['symbol'], price)
@@ -2053,8 +2054,8 @@ class delta(Exchange, ImplicitAPI):
         request = {
             'id': int(id),
             'product_id': market['numericId'],
-            # "limit_price": self.price_to_precision(symbol, price),
-            # "size": self.amount_to_precision(symbol, amount),
+            # "limit_price": this.priceToPrecision (symbol, price),
+            # "size": this.amountToPrecision (symbol, amount),
         }
         if amount is not None:
             sizeString = self.amount_to_precision(symbol, amount)
@@ -2066,7 +2067,7 @@ class delta(Exchange, ImplicitAPI):
         response = self.privatePutOrders(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "result": {
         #             "id": "ashb1212",
         #             "product_id": 27,
@@ -2204,7 +2205,7 @@ class delta(Exchange, ImplicitAPI):
             response = self.privateGetOrdersOrderId(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "result": {
         #             "id": 123,
         #             "user_id": 453671,
@@ -2217,7 +2218,7 @@ class delta(Exchange, ImplicitAPI):
         #             "stop_price": "55000",
         #             "paid_commission": "0.5432",
         #             "commission": "0.5432",
-        #             "reduce_only": False,
+        #             "reduce_only": false,
         #             "client_order_id": "my_signal_34521712",
         #             "state": "open",
         #             "created_at": "1725865012000000",
@@ -2260,14 +2261,14 @@ class delta(Exchange, ImplicitAPI):
     def fetch_orders_with_method(self, method: object, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         self.load_markets()
         request = {
-            # 'product_ids': market['id'],  # comma-separated
-            # 'contract_types': types,  # comma-separated, futures, perpetual_futures, call_options, put_options, interest_rate_swaps, move_options, spreads
-            # 'order_types': types,  # comma-separated, market, limit, stop_market, stop_limit, all_stop
+            # 'product_ids': market['id'], // comma-separated
+            # 'contract_types': types, // comma-separated, futures, perpetual_futures, call_options, put_options, interest_rate_swaps, move_options, spreads
+            # 'order_types': types, // comma-separated, market, limit, stop_market, stop_limit, all_stop
             # 'start_time': since * 1000,
-            # 'end_time': self.microseconds(),
-            # 'after',  # after cursor for pagination
-            # 'before',  # before cursor for pagination
-            # 'page_size': limit,  # number of records per page
+            # 'end_time': this.microseconds (),
+            # 'after', // after cursor for pagination
+            # 'before', // before cursor for pagination
+            # 'page_size': limit, // number of records per page
         }
         market = None
         if symbol is not None:
@@ -2284,7 +2285,7 @@ class delta(Exchange, ImplicitAPI):
             response = self.privateGetOrdersHistory(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "result": [
         #             {
         #                 "id": "ashb1212",
@@ -2322,13 +2323,13 @@ class delta(Exchange, ImplicitAPI):
         """
         self.load_markets()
         request = {
-            # 'product_ids': market['id'],  # comma-separated
-            # 'contract_types': types,  # comma-separated, futures, perpetual_futures, call_options, put_options, interest_rate_swaps, move_options, spreads
+            # 'product_ids': market['id'], // comma-separated
+            # 'contract_types': types, // comma-separated, futures, perpetual_futures, call_options, put_options, interest_rate_swaps, move_options, spreads
             # 'start_time': since * 1000,
-            # 'end_time': self.microseconds(),
-            # 'after',  # after cursor for pagination
-            # 'before',  # before cursor for pagination
-            # 'page_size': limit,  # number of records per page
+            # 'end_time': this.microseconds (),
+            # 'after', // after cursor for pagination
+            # 'before', // before cursor for pagination
+            # 'page_size': limit, // number of records per page
         }
         market = None
         if symbol is not None:
@@ -2402,9 +2403,9 @@ class delta(Exchange, ImplicitAPI):
         self.load_markets()
         request = {
             # 'asset_id': currency['numericId'],
-            # 'end_time': self.seconds(),
-            # 'after': 'string',  # after cursor for pagination
-            # 'before': 'string',  # before cursor for pagination
+            # 'end_time': this.seconds (),
+            # 'after': 'string', // after cursor for pagination
+            # 'before': 'string', // before cursor for pagination
             # 'page_size': limit,
         }
         currency = None
@@ -2528,7 +2529,7 @@ class delta(Exchange, ImplicitAPI):
         response = self.privateGetDepositsAddress(self.extend(request, params))
         #
         #    {
-        #        "success": True,
+        #        "success": true,
         #        "result": {
         #            "id": 1915615,
         #            "user_id": 27854758,
@@ -2634,7 +2635,7 @@ class delta(Exchange, ImplicitAPI):
         #             "turnover_usd": 37392218.45999999,
         #             "volume": 1226.3029999999485
         #         },
-        #         "success": True
+        #         "success": true
         #     }
         #
         result = self.safe_dict(response, 'result', {})
@@ -2814,7 +2815,7 @@ class delta(Exchange, ImplicitAPI):
         #
         #     {
         #         "result": {
-        #             "auto_topup": False,
+        #             "auto_topup": false,
         #             "bankruptcy_price": "24934.12",
         #             "commission": "0.01197072",
         #             "created_at": "2023-07-20T03:49:09.159401Z",
@@ -2831,7 +2832,7 @@ class delta(Exchange, ImplicitAPI):
         #             "updated_at": "2023-07-20T03:49:09.159401Z",
         #             "user_id": 30084879
         #         },
-        #         "success": True
+        #         "success": true
         #     }
         #
         result = self.safe_dict(response, 'result', {})
@@ -2840,7 +2841,7 @@ class delta(Exchange, ImplicitAPI):
     def parse_margin_modification(self, data: dict, market: Market = None) -> MarginModification:
         #
         #     {
-        #         "auto_topup": False,
+        #         "auto_topup": false,
         #         "bankruptcy_price": "24934.12",
         #         "commission": "0.01197072",
         #         "created_at": "2023-07-20T03:49:09.159401Z",
@@ -2940,7 +2941,7 @@ class delta(Exchange, ImplicitAPI):
         #             "turnover_usd": 4546.601744940001,
         #             "volume": 0.15200000000000002
         #         },
-        #         "success": True
+        #         "success": true
         #     }
         #
         result = self.safe_dict(response, 'result', {})
@@ -3035,7 +3036,7 @@ class delta(Exchange, ImplicitAPI):
         #             "product_id": 84,
         #             "user_id": 30084879
         #         },
-        #         "success": True
+        #         "success": true
         #     }
         #
         result = self.safe_dict(response, 'result', {})
@@ -3079,7 +3080,7 @@ class delta(Exchange, ImplicitAPI):
         #             "order_margin": "0",
         #             "product_id": 84
         #         },
-        #         "success": True
+        #         "success": true
         #     }
         #
         return self.privatePostProductsProductIdOrdersLeverage(self.extend(request, params))
@@ -3148,7 +3149,7 @@ class delta(Exchange, ImplicitAPI):
         #                 "max_leverage_notional": "200000",
         #                 "initial_margin_scaling_factor": "0.000002",
         #                 "strike_price": "30900",
-        #                 "is_quanto": False,
+        #                 "is_quanto": false,
         #                 "settlement_time": "2023-07-19T12:00:00Z",
         #                 "liquidation_penalty_factor": "0.5",
         #                 "funding_method": "mark_price",
@@ -3161,7 +3162,7 @@ class delta(Exchange, ImplicitAPI):
         #                 "maintenance_margin_scaling_factor":"0.000002"
         #             }
         #         ],
-        #         "success": True
+        #         "success": true
         #     }
         #
         result = self.safe_list(response, 'result', [])
@@ -3210,7 +3211,7 @@ class delta(Exchange, ImplicitAPI):
         #         "max_leverage_notional": "200000",
         #         "initial_margin_scaling_factor": "0.000002",
         #         "strike_price": "30900",
-        #         "is_quanto": False,
+        #         "is_quanto": false,
         #         "settlement_time": "2023-07-19T12:00:00Z",
         #         "liquidation_penalty_factor": "0.5",
         #         "funding_method": "mark_price",
@@ -3304,7 +3305,7 @@ class delta(Exchange, ImplicitAPI):
         #             "turnover_usd": 184.41206804,
         #             "volume": 0.005
         #         },
-        #         "success": True
+        #         "success": true
         #     }
         #
         result = self.safe_dict(response, 'result', {})
@@ -3428,45 +3429,45 @@ class delta(Exchange, ImplicitAPI):
         #
         #     {
         #         "result": {
-        #             "is_password_set": True,
+        #             "is_password_set": true,
         #             "kyc_expiry_date": null,
         #             "phishing_code": "12345",
         #             "preferences": {
         #                 "favorites": []
         #             },
-        #             "is_kyc_provisioned": False,
+        #             "is_kyc_provisioned": false,
         #             "country": "Canada",
         #             "margin_mode": "isolated",
         #             "mfa_updated_at": "2023-07-19T01:04:43Z",
         #             "last_name": "",
-        #             "oauth_apple_active": False,
+        #             "oauth_apple_active": false,
         #             "pf_index_symbol": null,
         #             "proof_of_identity_status": "approved",
         #             "dob": null,
         #             "email": "abc_123@gmail.com",
-        #             "force_change_password": False,
+        #             "force_change_password": false,
         #             "nick_name": "still-breeze-123",
-        #             "oauth_google_active": False,
+        #             "oauth_google_active": false,
         #             "phone_verification_status": "verified",
         #             "id": 12345678,
         #             "last_seen": null,
-        #             "is_withdrawal_enabled": True,
-        #             "force_change_mfa": False,
-        #             "enable_bots": False,
+        #             "is_withdrawal_enabled": true,
+        #             "force_change_mfa": false,
+        #             "enable_bots": false,
         #             "kyc_verified_on": null,
         #             "created_at": "2023-07-19T01:02:32Z",
         #             "withdrawal_blocked_till": null,
         #             "proof_of_address_status": "approved",
-        #             "is_password_change_blocked": False,
-        #             "is_mfa_enabled": True,
-        #             "is_kyc_done": True,
+        #             "is_password_change_blocked": false,
+        #             "is_mfa_enabled": true,
+        #             "is_kyc_done": true,
         #             "oauth": null,
         #             "account_name": "Main",
         #             "sub_account_permissions": null,
         #             "phone_number": null,
         #             "tracking_info": {
         #                 "ga_cid": "1234.4321",
-        #                 "is_kyc_gtm_tracked": True,
+        #                 "is_kyc_gtm_tracked": true,
         #                 "sub_account_config": {
         #                     "cross": 2,
         #                     "isolated": 2,
@@ -3475,17 +3476,17 @@ class delta(Exchange, ImplicitAPI):
         #             },
         #             "first_name": "",
         #             "phone_verified_on": null,
-        #             "seen_intro": False,
+        #             "seen_intro": false,
         #             "password_updated_at": null,
-        #             "is_login_enabled": True,
+        #             "is_login_enabled": true,
         #             "registration_date": "2023-07-19T01:02:32Z",
         #             "permissions": {},
         #             "max_sub_accounts_limit": 2,
         #             "country_calling_code": null,
-        #             "is_sub_account": False,
-        #             "is_kyc_refresh_required": False
+        #             "is_sub_account": false,
+        #             "is_kyc_refresh_required": false
         #         },
-        #         "success": True
+        #         "success": true
         #     }
         #
         result = self.safe_dict(response, 'result', {})
@@ -3586,7 +3587,7 @@ class delta(Exchange, ImplicitAPI):
         #             "turnover_usd": 184.41206804,
         #             "volume": 0.005
         #         },
-        #         "success": True
+        #         "success": true
         #     }
         #
         result = self.safe_dict(response, 'result', {})
@@ -3685,7 +3686,7 @@ class delta(Exchange, ImplicitAPI):
         #             [
         #                 {
         #                     "adl_level": null,
-        #                     "auto_topup": False,
+        #                     "auto_topup": false,
         #                     "bankruptcy_price": "88618.22667",
         #                     "commission": "0.03797924",
         #                     "created_at": "2026-01-14T11:24:35.801586Z",
@@ -3700,7 +3701,7 @@ class delta(Exchange, ImplicitAPI):
         #                         "quoting_asset": {
         #                             "base_withdrawal_fee": "0.000000000000000000",
         #                             "id": 4,
-        #                             "interest_credit": False,
+        #                             "interest_credit": false,
         #                             "interest_slabs": null,
         #                             "kyc_deposit_limit": "0.000000000000000000",
         #                             "kyc_withdrawal_limit": "0.000000000000000000",
@@ -3753,7 +3754,7 @@ class delta(Exchange, ImplicitAPI):
         #                             "id": 2,
         #                             "impact_size": "1.000000000000000000",
         #                             "index_type": "spot_pair",
-        #                             "is_composite": False,
+        #                             "is_composite": false,
         #                             "price_method": "ltp",
         #                             "quoting_asset_id": 4,
         #                             "symbol": ".DEXBTUSDT",
@@ -3762,13 +3763,13 @@ class delta(Exchange, ImplicitAPI):
         #                         },
         #                         "liquidation_penalty_factor": "1",
         #                         "auction_start_time": "2025-12-22T12:18:52Z",
-        #                         "is_quanto": False,
+        #                         "is_quanto": false,
         #                         "state": "live",
         #                         "id": 84,
         #                         "settling_asset": {
         #                             "base_withdrawal_fee": "0.000000000000000000",
         #                             "id": 4,
-        #                             "interest_credit": False,
+        #                             "interest_credit": false,
         #                             "interest_slabs": null,
         #                             "kyc_deposit_limit": "0.000000000000000000",
         #                             "kyc_withdrawal_limit": "0.000000000000000000",
@@ -3789,7 +3790,7 @@ class delta(Exchange, ImplicitAPI):
         #                             "default_trading_view_candle": "15",
         #                             "leverage_slider_values": [1,2,3,5,10,50,100],
         #                             "price_clubbing_values": [0.1,1,10,50],
-        #                             "show_bracket_orders": False,
+        #                             "show_bracket_orders": false,
         #                             "sort_priority": 1
         #                         },
         #                         "annualized_funding": "0",
@@ -3810,7 +3811,7 @@ class delta(Exchange, ImplicitAPI):
         #                         "underlying_asset": {
         #                             "base_withdrawal_fee": "0.000000000000000000",
         #                             "id": 2,
-        #                             "interest_credit": False,
+        #                             "interest_credit": false,
         #                             "interest_slabs": null,
         #                             "kyc_deposit_limit": "0.000000000000000000",
         #                             "kyc_withdrawal_limit": "0.000000000000000000",
@@ -3846,7 +3847,7 @@ class delta(Exchange, ImplicitAPI):
         #                     "user_id": 30084879
         #                 }
         #             ],
-        #         "success": True
+        #         "success": true
         #     }
         #
         result = self.safe_list(response, 'result', [])
@@ -3858,7 +3859,7 @@ class delta(Exchange, ImplicitAPI):
         #
         #     {
         #         "adl_level": null,
-        #         "auto_topup": False,
+        #         "auto_topup": false,
         #         "bankruptcy_price": "88618.22667",
         #         "commission": "0.03797924",
         #         "created_at": "2026-01-14T11:24:35.801586Z",
@@ -3873,7 +3874,7 @@ class delta(Exchange, ImplicitAPI):
         #             "quoting_asset": {
         #                 "base_withdrawal_fee": "0.000000000000000000",
         #                 "id": 4,
-        #                 "interest_credit": False,
+        #                 "interest_credit": false,
         #                 "interest_slabs": null,
         #                 "kyc_deposit_limit": "0.000000000000000000",
         #                 "kyc_withdrawal_limit": "0.000000000000000000",
@@ -3926,7 +3927,7 @@ class delta(Exchange, ImplicitAPI):
         #                 "id": 2,
         #                 "impact_size": "1.000000000000000000",
         #                 "index_type": "spot_pair",
-        #                 "is_composite": False,
+        #                 "is_composite": false,
         #                 "price_method": "ltp",
         #                 "quoting_asset_id": 4,
         #                 "symbol": ".DEXBTUSDT",
@@ -3935,13 +3936,13 @@ class delta(Exchange, ImplicitAPI):
         #             },
         #             "liquidation_penalty_factor": "1",
         #             "auction_start_time": "2025-12-22T12:18:52Z",
-        #             "is_quanto": False,
+        #             "is_quanto": false,
         #             "state": "live",
         #             "id": 84,
         #             "settling_asset": {
         #                 "base_withdrawal_fee": "0.000000000000000000",
         #                 "id": 4,
-        #                 "interest_credit": False,
+        #                 "interest_credit": false,
         #                 "interest_slabs": null,
         #                 "kyc_deposit_limit": "0.000000000000000000",
         #                 "kyc_withdrawal_limit": "0.000000000000000000",
@@ -3962,7 +3963,7 @@ class delta(Exchange, ImplicitAPI):
         #                 "default_trading_view_candle": "15",
         #                 "leverage_slider_values": [1,2,3,5,10,50,100],
         #                 "price_clubbing_values": [0.1,1,10,50],
-        #                 "show_bracket_orders": False,
+        #                 "show_bracket_orders": false,
         #                 "sort_priority": 1
         #             },
         #             "annualized_funding": "0",
@@ -3983,7 +3984,7 @@ class delta(Exchange, ImplicitAPI):
         #             "underlying_asset": {
         #                 "base_withdrawal_fee": "0.000000000000000000",
         #                 "id": 2,
-        #                 "interest_credit": False,
+        #                 "interest_credit": false,
         #                 "interest_slabs": null,
         #                 "kyc_deposit_limit": "0.000000000000000000",
         #                 "kyc_withdrawal_limit": "0.000000000000000000",

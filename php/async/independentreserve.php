@@ -144,6 +144,8 @@ class independentreserve extends Exchange {
                         'GetRecentTrades' => array( 'cost' => 1 ),
                         'GetFxRates' => array( 'cost' => 1 ),
                         'GetOrderMinimumVolumes' => array( 'cost' => 1 ),
+                        'GetDepositFees' => array( 'cost' => 1 ),
+                        'GetFiatWithdrawalFees' => array( 'cost' => 1 ),
                         'GetCryptoWithdrawalFees' => array( 'cost' => 1 ),
                         'GetCryptoWithdrawalFees2' => array( 'cost' => 1 ),
                         'GetNetworks' => array( 'cost' => 1 ),
@@ -164,11 +166,16 @@ class independentreserve extends Exchange {
                         'GetDigitalCurrencyDepositAddresses' => array( 'cost' => 1 ),
                         'GetDigitalCurrencyDepositAddresses2' => array( 'cost' => 1 ),
                         'GetTrades' => array( 'cost' => 1 ),
+                        'GetTradesByOrder' => array( 'cost' => 1 ),
                         'GetBrokerageFees' => array( 'cost' => 1 ),
                         'GetDigitalCurrencyWithdrawal' => array( 'cost' => 1 ),
+                        'GetFiatWithdrawal' => array( 'cost' => 1 ),
+                        'GetDepositLimits' => array( 'cost' => 1 ),
+                        'GetWithdrawalLimits' => array( 'cost' => 1 ),
                         'PlaceLimitOrder' => array( 'cost' => 1 ),
                         'PlaceMarketOrder' => array( 'cost' => 1 ),
                         'CancelOrder' => array( 'cost' => 1 ),
+                        'CancelOrders' => array( 'cost' => 1 ),
                         'SynchDigitalCurrencyDepositAddressWithBlockchain' => array( 'cost' => 1 ),
                         'RequestFiatWithdrawal' => array( 'cost' => 1 ),
                         'WithdrawFiatCurrency' => array( 'cost' => 1 ),
@@ -333,10 +340,10 @@ class independentreserve extends Exchange {
         list($baseCurrencies, $quoteCurrencies, $limits) = Async\await(Promise\all(array( $baseCurrenciesPromise, $quoteCurrenciesPromise, $limitsPromise )));
         //
         //     {
-        //         "Xbt" => 0.0001,
-        //         "Eth" => 0.001,
-        //         "Ltc" => 0.01,
-        //         "Xrp" => 1.0,
+        //         "Xbt": 0.0001,
+        //         "Eth": 0.001,
+        //         "Ltc": 0.01,
+        //         "Xrp": 1.0,
         //     }
         //
         $result = array();
@@ -551,50 +558,50 @@ class independentreserve extends Exchange {
         // fetchOrder
         //
         //     {
-        //         "OrderGuid" => "c7347e4c-b865-4c94-8f74-d934d4b0b177",
-        //         "CreatedTimestampUtc" => "2014-09-23T12:39:34.3817763Z",
-        //         "Type" => "MarketBid",
-        //         "VolumeOrdered" => 5.0,
-        //         "VolumeFilled" => 5.0,
-        //         "Price" => null,
-        //         "AvgPrice" => 100.0,
-        //         "ReservedAmount" => 0.0,
-        //         "Status" => "Filled",
-        //         "PrimaryCurrencyCode" => "Xbt",
-        //         "SecondaryCurrencyCode" => "Usd"
+        //         "OrderGuid": "c7347e4c-b865-4c94-8f74-d934d4b0b177",
+        //         "CreatedTimestampUtc": "2014-09-23T12:39:34.3817763Z",
+        //         "Type": "MarketBid",
+        //         "VolumeOrdered": 5.0,
+        //         "VolumeFilled": 5.0,
+        //         "Price": null,
+        //         "AvgPrice": 100.0,
+        //         "ReservedAmount": 0.0,
+        //         "Status": "Filled",
+        //         "PrimaryCurrencyCode": "Xbt",
+        //         "SecondaryCurrencyCode": "Usd"
         //     }
         //
         // fetchOpenOrders & fetchClosedOrders
         //
         //     {
-        //         "OrderGuid" => "b8f7ad89-e4e4-4dfe-9ea3-514d38b5edb3",
-        //         "CreatedTimestampUtc" => "2020-09-08T03:04:18.616367Z",
-        //         "OrderType" => "LimitOffer",
-        //         "Volume" => 0.0005,
-        //         "Outstanding" => 0.0005,
-        //         "Price" => 113885.83,
-        //         "AvgPrice" => 113885.83,
-        //         "Value" => 56.94,
-        //         "Status" => "Open",
-        //         "PrimaryCurrencyCode" => "Xbt",
-        //         "SecondaryCurrencyCode" => "Usd",
-        //         "FeePercent" => 0.005,
+        //         "OrderGuid": "b8f7ad89-e4e4-4dfe-9ea3-514d38b5edb3",
+        //         "CreatedTimestampUtc": "2020-09-08T03:04:18.616367Z",
+        //         "OrderType": "LimitOffer",
+        //         "Volume": 0.0005,
+        //         "Outstanding": 0.0005,
+        //         "Price": 113885.83,
+        //         "AvgPrice": 113885.83,
+        //         "Value": 56.94,
+        //         "Status": "Open",
+        //         "PrimaryCurrencyCode": "Xbt",
+        //         "SecondaryCurrencyCode": "Usd",
+        //         "FeePercent": 0.005,
         //     }
         //
         // cancelOrder
         //
         //    {
-        //        "AvgPrice" => 455.48,
-        //        "CreatedTimestampUtc" => "2022-08-05T06:42:11.3032208Z",
-        //        "OrderGuid" => "719c495c-a39e-4884-93ac-280b37245037",
-        //        "Price" => 485.76,
-        //        "PrimaryCurrencyCode" => "Xbt",
-        //        "ReservedAmount" => 0.358,
-        //        "SecondaryCurrencyCode" => "Usd",
-        //        "Status" => "Cancelled",
-        //        "Type" => "LimitOffer",
-        //        "VolumeFilled" => 0,
-        //        "VolumeOrdered" => 0.358
+        //        "AvgPrice": 455.48,
+        //        "CreatedTimestampUtc": "2022-08-05T06:42:11.3032208Z",
+        //        "OrderGuid": "719c495c-a39e-4884-93ac-280b37245037",
+        //        "Price": 485.76,
+        //        "PrimaryCurrencyCode": "Xbt",
+        //        "ReservedAmount": 0.358,
+        //        "SecondaryCurrencyCode": "Usd",
+        //        "Status": "Cancelled",
+        //        "Type": "LimitOffer",
+        //        "VolumeFilled": 0,
+        //        "VolumeOrdered": 0.358
         //    }
         $symbol = null;
         $baseId = $this->safe_string($order, 'PrimaryCurrencyCode');
@@ -891,13 +898,13 @@ class independentreserve extends Exchange {
         }
         $response = Async\await($this->privatePostGetBrokerageFees($params));
         //
-        //     array(
+        //     [
         //         {
-        //             "CurrencyCode" => "Xbt",
-        //             "Fee" => 0.005
+        //             "CurrencyCode": "Xbt",
+        //             "Fee": 0.005
         //         }
         //         ...
-        //     )
+        //     ]
         //
         $fees = array();
         $rows = $this->to_array($response);
@@ -994,17 +1001,17 @@ class independentreserve extends Exchange {
         $response = Async\await($this->privatePostCancelOrder($this->extend($request, $params)));
         //
         //    {
-        //        "AvgPrice" => 455.48,
-        //        "CreatedTimestampUtc" => "2022-08-05T06:42:11.3032208Z",
-        //        "OrderGuid" => "719c495c-a39e-4884-93ac-280b37245037",
-        //        "Price" => 485.76,
-        //        "PrimaryCurrencyCode" => "Xbt",
-        //        "ReservedAmount" => 0.358,
-        //        "SecondaryCurrencyCode" => "Usd",
-        //        "Status" => "Cancelled",
-        //        "Type" => "LimitOffer",
-        //        "VolumeFilled" => 0,
-        //        "VolumeOrdered" => 0.358
+        //        "AvgPrice": 455.48,
+        //        "CreatedTimestampUtc": "2022-08-05T06:42:11.3032208Z",
+        //        "OrderGuid": "719c495c-a39e-4884-93ac-280b37245037",
+        //        "Price": 485.76,
+        //        "PrimaryCurrencyCode": "Xbt",
+        //        "ReservedAmount": 0.358,
+        //        "SecondaryCurrencyCode": "Usd",
+        //        "Status": "Cancelled",
+        //        "Type": "LimitOffer",
+        //        "VolumeFilled": 0,
+        //        "VolumeOrdered": 0.358
         //    }
         //
         return $this->parse_order($response);
@@ -1034,10 +1041,10 @@ class independentreserve extends Exchange {
         $response = Async\await($this->privatePostGetDigitalCurrencyDepositAddress($this->extend($request, $params)));
         //
         //    {
-        //        Tag => '3307446684',
-        //        DepositAddress => 'GCCQH4HACMRAD56EZZZ4TOIDQQRVNADMJ35QOFWF4B2VQGODMA2WVQ22',
-        //        LastCheckedTimestampUtc => '2024-02-20T11:13:35.6912985Z',
-        //        NextUpdateTimestampUtc => '2024-02-20T11:14:56.5112394Z'
+        //        Tag: '3307446684',
+        //        DepositAddress: 'GCCQH4HACMRAD56EZZZ4TOIDQQRVNADMJ35QOFWF4B2VQGODMA2WVQ22',
+        //        LastCheckedTimestampUtc: '2024-02-20T11:13:35.6912985Z',
+        //        NextUpdateTimestampUtc: '2024-02-20T11:14:56.5112394Z'
         //    }
         //
         return $this->parse_deposit_address($response);
@@ -1046,10 +1053,10 @@ class independentreserve extends Exchange {
     public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
         //
         //    {
-        //        Tag => '3307446684',
-        //        DepositAddress => 'GCCQH4HACMRAD56EZZZ4TOIDQQRVNADMJ35QOFWF4B2VQGODMA2WVQ22',
-        //        LastCheckedTimestampUtc => '2024-02-20T11:13:35.6912985Z',
-        //        NextUpdateTimestampUtc => '2024-02-20T11:14:56.5112394Z'
+        //        Tag: '3307446684',
+        //        DepositAddress: 'GCCQH4HACMRAD56EZZZ4TOIDQQRVNADMJ35QOFWF4B2VQGODMA2WVQ22',
+        //        LastCheckedTimestampUtc: '2024-02-20T11:13:35.6912985Z',
+        //        NextUpdateTimestampUtc: '2024-02-20T11:14:56.5112394Z'
         //    }
         //
         $address = $this->safe_string($depositAddress, 'DepositAddress');
@@ -1104,19 +1111,19 @@ class independentreserve extends Exchange {
         $response = Async\await($this->privatePostWithdrawDigitalCurrency($this->extend($request, $params)));
         //
         //    {
-        //        "TransactionGuid" => "dc932e19-562b-4c50-821e-a73fd048b93b",
-        //        "PrimaryCurrencyCode" => "Bch",
-        //        "CreatedTimestampUtc" => "2020-04-01T05:26:30.5093622+00:00",
-        //        "Amount" => array(
-        //            "Total" => 0.1231,
-        //            "Fee" => 0.0001
-        //        ),
-        //        "Destination" => array(
-        //            "Address" => "bc1qhpqxkjpvgkckw530yfmxyr53c94q8f4273a7ez",
-        //            "Tag" => null
-        //        ),
-        //        "Status" => "Pending",
-        //        "Transaction" => null
+        //        "TransactionGuid": "dc932e19-562b-4c50-821e-a73fd048b93b",
+        //        "PrimaryCurrencyCode": "Bch",
+        //        "CreatedTimestampUtc": "2020-04-01T05:26:30.5093622+00:00",
+        //        "Amount": {
+        //            "Total": 0.1231,
+        //            "Fee": 0.0001
+        //        },
+        //        "Destination": {
+        //            "Address": "bc1qhpqxkjpvgkckw530yfmxyr53c94q8f4273a7ez",
+        //            "Tag": null
+        //        },
+        //        "Status": "Pending",
+        //        "Transaction": null
         //    }
         //
         return $this->parse_transaction($response, $currency);
@@ -1125,19 +1132,19 @@ class independentreserve extends Exchange {
     public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         //    {
-        //        "TransactionGuid" => "dc932e19-562b-4c50-821e-a73fd048b93b",
-        //        "PrimaryCurrencyCode" => "Bch",
-        //        "CreatedTimestampUtc" => "2020-04-01T05:26:30.5093622+00:00",
-        //        "Amount" => array(
-        //            "Total" => 0.1231,
-        //            "Fee" => 0.0001
-        //        ),
-        //        "Destination" => array(
-        //            "Address" => "bc1qhpqxkjpvgkckw530yfmxyr53c94q8f4273a7ez",
-        //            "Tag" => null
-        //        ),
-        //        "Status" => "Pending",
-        //        "Transaction" => null
+        //        "TransactionGuid": "dc932e19-562b-4c50-821e-a73fd048b93b",
+        //        "PrimaryCurrencyCode": "Bch",
+        //        "CreatedTimestampUtc": "2020-04-01T05:26:30.5093622+00:00",
+        //        "Amount": {
+        //            "Total": 0.1231,
+        //            "Fee": 0.0001
+        //        },
+        //        "Destination": {
+        //            "Address": "bc1qhpqxkjpvgkckw530yfmxyr53c94q8f4273a7ez",
+        //            "Tag": null
+        //        },
+        //        "Status": "Pending",
+        //        "Transaction": null
         //    }
         //
         $amount = $this->safe_dict($transaction, 'Amount');

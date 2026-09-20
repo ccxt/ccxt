@@ -102,6 +102,11 @@ impl MexcCore {
         self.call_method(Value::Str("spot_private_get_uid".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `spotPrivateGetApiKeyInfo` implicit endpoint.
+    pub async fn spot_private_get_api_key_info(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("spot_private_get_api_key_info".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `spotPrivateGetOrder` implicit endpoint.
     pub async fn spot_private_get_order(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("spot_private_get_order".to_string()), optional_args).await
@@ -400,6 +405,11 @@ impl MexcCore {
     /// Auto-generated wrapper for the `spotPrivatePostStrategyGroup` implicit endpoint.
     pub async fn spot_private_post_strategy_group(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("spot_private_post_strategy_group".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `spotPrivatePostStrategyGroupUid` implicit endpoint.
+    pub async fn spot_private_post_strategy_group_uid(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("spot_private_post_strategy_group_uid".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `spotPrivatePostCapitalWithdrawApply` implicit endpoint.

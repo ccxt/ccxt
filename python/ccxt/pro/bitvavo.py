@@ -69,7 +69,7 @@ class bitvavo(ccxt.async_support.bitvavo):
                 },
             },
             'options': {
-                'supressMultipleWsRequestsError': False,  # if True, will not raise an error when using the same messageHash for more than one request. By making False you may receive responses from different requests on the same action
+                'supressMultipleWsRequestsError': False,  # if true, will not throw an error when using the same messageHash for more than one request. By making false you may receive responses from different requests on the same action
                 'tradesLimit': 1000,
                 'ordersLimit': 1000,
                 'OHLCVLimit': 1000,
@@ -171,7 +171,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         #
         self.handle_bid_ask(client, message)
         event = self.safe_string(message, 'event')
-        tickers = self.safe_value(message, 'data', [])
+        tickers = self.safe_list(message, 'data', [])
         result = []
         for i in range(0, len(tickers)):
             data = tickers[i]
@@ -204,7 +204,7 @@ class bitvavo(ccxt.async_support.bitvavo):
 
     def handle_bid_ask(self, client: Client, message: object):
         event = 'bidask'
-        tickers = self.safe_value(message, 'data', [])
+        tickers = self.safe_list(message, 'data', [])
         result = []
         for i in range(0, len(tickers)):
             data = tickers[i]
@@ -366,7 +366,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -459,7 +459,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of [symbol, timeframe] keyed arrays of candles ordered, open, high, low, close, volume
+        :returns dict: a dictionary of [symbol, timeframe] keyed arrays of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -692,10 +692,10 @@ class bitvavo(ccxt.async_support.bitvavo):
         #         "market": "BTC-EUR",
         #         "nonce": 36947383,
         #         "bids": [
-        #             ["8477.8", "0"]
+        #             [ "8477.8", "0" ]
         #         ],
         #         "asks": [
-        #             ["8550.9", "0"]
+        #             [ "8550.9", "0" ]
         #         ]
         #     }
         #
@@ -713,9 +713,9 @@ class bitvavo(ccxt.async_support.bitvavo):
         #         "market": "BTC-EUR",
         #         "nonce": 36729561,
         #         "bids": [
-        #             ["8513.3", "0"],
-        #             ['8518.8', "0.64236203"],
-        #             ['8513.6', "0.32435481"],
+        #             [ "8513.3", "0" ],
+        #             [ '8518.8', "0.64236203" ],
+        #             [ '8513.6', "0.32435481" ],
         #         ],
         #         "asks": []
         #     }
@@ -753,7 +753,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         marketId = self.safe_string_2(subscription, 'marketId', 'market', self.safe_string(message, 'market'))
         snapshotSymbol = self.safe_symbol(marketId, None, '-')
         if not (snapshotSymbol in self.orderbooks):
-            # self snapshot fetch was scheduled before an unsubscribe removed the
+            # this snapshot fetch was scheduled before an unsubscribe removed the
             # order book - skip it so the getBook request is not sent for a dead market
             return None
         name = 'getBook'
@@ -774,14 +774,14 @@ class bitvavo(ccxt.async_support.bitvavo):
         #             "market": "BTC-EUR",
         #             "nonce": 36946120,
         #             "bids": [
-        #                 ['8494.9', "0.24399521"],
-        #                 ['8494.8', "0.34884085"],
-        #                 ['8493.9', "0.14535128"],
+        #                 [ '8494.9', "0.24399521" ],
+        #                 [ '8494.8', "0.34884085" ],
+        #                 [ '8493.9', "0.14535128" ],
         #             ],
         #             "asks": [
-        #                 ["8495", "0.46982463"],
-        #                 ['8495.1', "0.12178267"],
-        #                 ['8496.2', "0.21924143"],
+        #                 [ "8495", "0.46982463" ],
+        #                 [ '8495.1', "0.12178267" ],
+        #                 [ '8496.2', "0.21924143" ],
         #             ]
         #         }
         #     }
@@ -795,7 +795,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         messageHash = name + '@' + marketId
         orderbook = self.safe_value(self.orderbooks, symbol)
         if orderbook is None:
-            # the market was unsubscribed while self snapshot request was in flight
+            # the market was unsubscribed while this snapshot request was in flight
             return
         snapshot = self.parse_order_book(response, symbol)
         snapshot['nonce'] = self.safe_integer(response, 'nonce')
@@ -807,9 +807,9 @@ class bitvavo(ccxt.async_support.bitvavo):
             self.handle_order_book_message(client, messageItem, orderbook)
         self.orderbooks[symbol] = orderbook
         client.resolve(orderbook, messageHash)
-        # getBook is a one-shot request but self.watch tracks it persistent
+        # getBook is a one-shot request but this.watch tracks it as a persistent
         # subscription - drop it so a later unsubscribe/subscribe re-fetches the snapshot
-        # instead of suppressing the request already-active subscription
+        # instead of suppressing the request as an already-active subscription
         snapshotHash = 'getBook@' + marketId
         if snapshotHash in client.subscriptions:
             del client.subscriptions[snapshotHash]
@@ -1055,14 +1055,14 @@ class bitvavo(ccxt.async_support.bitvavo):
         #        }]
         #    }
         #
-        # action = self.safe_string(message, 'action')
+        # const action = this.safeString (message, 'action');
         response = self.safe_list(message, 'response')
-        # firstRawOrder = self.safe_value(response, 0, {})
-        # marketId = self.safe_string(firstRawOrder, 'market')
+        # const firstRawOrder = this.safeValue (response, 0, {});
+        # const marketId = this.safeString (firstRawOrder, 'market');
         orders = self.parse_orders(response)
-        # messageHash = self.build_message_hash(action, {'market': marketId})
-        # client.resolve(orders, messageHash)
-        # messageHash = self.build_message_hash(action, message)
+        # let messageHash = this.buildMessageHash (action, { 'market': marketId });
+        # client.resolve (orders, messageHash);
+        # messageHash = this.buildMessageHash (action, message);
         messageHash = self.safe_string(message, 'requestId')
         client.resolve(orders, messageHash)
 
@@ -1137,7 +1137,7 @@ class bitvavo(ccxt.async_support.bitvavo):
             await self.load_markets()
         await self.authenticate()
         request = {
-            # 'market': market['id'],  # rate limit 25 without a market, 1 with market specified
+            # 'market': market['id'], // rate limit 25 without a market, 1 with market specified
         }
         market = None
         if symbol is not None:
@@ -1180,20 +1180,20 @@ class bitvavo(ccxt.async_support.bitvavo):
         #                "side": "buy",
         #                "amount": "0.005",
         #                "price": "5000.1",
-        #                "taker": True,
+        #                "taker": true,
         #                "fee": "0.03",
         #                "feeCurrency": "EUR",
-        #                "settled": True
+        #                "settled": true
         #            }
         #        ]
         #    }
         #
         #
-        # action = self.safe_string(message, 'action')
+        # const action = this.safeString (message, 'action');
         response = self.safe_list(message, 'response')
-        # marketId = self.safe_string(firstRawTrade, 'market')
+        # const marketId = this.safeString (firstRawTrade, 'market');
         trades = self.parse_trades(response, None, None, None)
-        # messageHash = self.build_message_hash(action, {'market': marketId})
+        # const messageHash = this.buildMessageHash (action, { 'market': marketId });
         messageHash = self.safe_string(message, 'requestId')
         client.resolve(trades, messageHash)
 
@@ -1220,14 +1220,14 @@ class bitvavo(ccxt.async_support.bitvavo):
         #    {
         #        action: 'privateWithdrawAssets',
         #        response: {
-        #         "success": True,
+        #         "success": true,
         #         "symbol": "BTC",
         #         "amount": "1.5"
         #        }
         #    }
         #
-        # action = self.safe_string(message, 'action')
-        # messageHash = self.build_message_hash(action, message)
+        # const action = this.safeString (message, 'action');
+        # const messageHash = this.buildMessageHash (action, message);
         messageHash = self.safe_string(message, 'requestId')
         response = self.safe_value(message, 'response')
         withdraw = self.parse_transaction(response)
@@ -1268,8 +1268,8 @@ class bitvavo(ccxt.async_support.bitvavo):
         #        ]
         #    }
         #
-        # action = self.safe_string(message, 'action')
-        # messageHash = self.build_message_hash(action, message)
+        # const action = this.safeString (message, 'action');
+        # const messageHash = this.buildMessageHash (action, message);
         response = self.safe_list(message, 'response')
         messageHash = self.safe_string(message, 'requestId')
         withdrawals = self.parse_transactions(response, None, None, None, {'type': 'withdrawal'})
@@ -1286,7 +1286,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1472,9 +1472,9 @@ class bitvavo(ccxt.async_support.bitvavo):
         #            feeCurrency: 'EUR',
         #            fills: [],
         #            selfTradePrevention: 'decrementAndCancel',
-        #            visible: True,
+        #            visible: true,
         #            timeInForce: 'GTC',
-        #            postOnly: False
+        #            postOnly: false
         #        }
         #    }
         #
@@ -1549,9 +1549,9 @@ class bitvavo(ccxt.async_support.bitvavo):
         #         "onHold": "0.1",
         #         "onHoldCurrency": "ETH",
         #         "selfTradePrevention": "decrementAndCancel",
-        #         "visible": True,
+        #         "visible": true,
         #         "timeInForce": "GTC",
-        #         "postOnly": False
+        #         "postOnly": false
         #     }
         #
         marketId = self.safe_string(message, 'market')
@@ -1577,7 +1577,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         #         "side": "sell",
         #         "amount": "0.1",
         #         "price": "211.46",
-        #         "taker": True,
+        #         "taker": true,
         #         "fee": "0.056",
         #         "feeCurrency": "EUR"
         #     }
@@ -1599,11 +1599,11 @@ class bitvavo(ccxt.async_support.bitvavo):
         #     {
         #         "event": "subscribed",
         #         "subscriptions": {
-        #             "book": ["BTC-EUR"]
+        #             "book": [ "BTC-EUR" ]
         #         }
         #     }
         #
-        subscriptions = self.safe_value(message, 'subscriptions', {})
+        subscriptions = self.safe_dict(message, 'subscriptions', {})
         methods = {
             'book': self.handle_order_book_subscriptions,
         }
@@ -1642,7 +1642,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         #
         #     {
         #         "event": "authenticate",
-        #         "authenticated": True
+        #         "authenticated": true
         #     }
         #
         messageHash = 'authenticated'
@@ -1670,7 +1670,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         #        requestId: '17317539426571916',
         #        market: 'USDT-EUR',
         #        errorCode: 216,
-        #        error: 'You do not have sufficient balance to complete self operation.'
+        #        error: 'You do not have sufficient balance to complete this operation.'
         #    }
         #
         error = self.safe_string(message, 'error')
@@ -1694,7 +1694,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         #     {
         #         "event": "subscribed",
         #         "subscriptions": {
-        #             "book": ["BTC-EUR"]
+        #             "book": [ "BTC-EUR" ]
         #         }
         #     }
         #
@@ -1703,9 +1703,9 @@ class bitvavo(ccxt.async_support.bitvavo):
         #         "market": "BTC-EUR",
         #         "nonce": 36729561,
         #         "bids": [
-        #             ["8513.3", "0"],
-        #             ['8518.8', "0.64236203"],
-        #             ['8513.6', "0.32435481"],
+        #             [ "8513.3", "0" ],
+        #             [ '8518.8', "0.64236203" ],
+        #             [ '8513.6', "0.32435481" ],
         #         ],
         #         "asks": []
         #     }
@@ -1716,21 +1716,21 @@ class bitvavo(ccxt.async_support.bitvavo):
         #             "market": "BTC-EUR",
         #             "nonce": 36946120,
         #             "bids": [
-        #                 ['8494.9', "0.24399521"],
-        #                 ['8494.8', "0.34884085"],
-        #                 ['8493.9', "0.14535128"],
+        #                 [ '8494.9', "0.24399521" ],
+        #                 [ '8494.8', "0.34884085" ],
+        #                 [ '8493.9', "0.14535128" ],
         #             ],
         #             "asks": [
-        #                 ["8495", "0.46982463"],
-        #                 ['8495.1', "0.12178267"],
-        #                 ['8496.2', "0.21924143"],
+        #                 [ "8495", "0.46982463" ],
+        #                 [ '8495.1', "0.12178267" ],
+        #                 [ '8496.2', "0.21924143" ],
         #             ]
         #         }
         #     }
         #
         #     {
         #         "event": "authenticate",
-        #         "authenticated": True
+        #         "authenticated": true
         #     }
         #
         error = self.safe_string(message, 'error')

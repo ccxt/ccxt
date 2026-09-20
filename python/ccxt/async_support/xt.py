@@ -34,9 +34,9 @@ class xt(Exchange, ImplicitAPI):
             'id': 'xt',
             'name': 'XT',
             'countries': ['SC'],  # Seychelles
-            # spot api ratelimits are None, 10/s/ip, 50/s/ip, 100/s/ip or 200/s/ip
-            # futures 3 requests per second => 1000ms / (100 * 3.33) = 3.003(get assets -> fetchMarkets & fetchCurrencies)
-            # futures 10 requests per second => 1000ms / (100 * 1) = 10(all other)
+            # spot api ratelimits are undefined, 10/s/ip, 50/s/ip, 100/s/ip or 200/s/ip
+            # futures 3 requests per second => 1000ms / (100 * 3.33) = 3.003 (get assets -> fetchMarkets & fetchCurrencies)
+            # futures 10 requests per second => 1000ms / (100 * 1) = 10 (all other)
             # futures 1000 times per minute for each single IP -> Otherwise account locked for 10min
             'rateLimit': 100,
             'version': 'v4',
@@ -261,27 +261,42 @@ class xt(Exchange, ImplicitAPI):
                     },
                     'linear': {
                         'get': {
+                            'future/copytrade/user/v1/copy-trade/current-following-v2': {'cost': 1},
+                            'future/copytrade/user/v1/copy-trade/follower-balance-bill': {'cost': 1},
+                            'future/copytrade/user/v1/copy-trade/follower-position': {'cost': 1},
                             'future/trade/v1/entrust/plan-detail': {'cost': 1},
                             'future/trade/v1/entrust/plan-list': {'cost': 1},
                             'future/trade/v1/entrust/plan-list-history': {'cost': 1},
                             'future/trade/v1/entrust/profit-detail': {'cost': 1},
                             'future/trade/v1/entrust/profit-list': {'cost': 1},
+                            'future/trade/v1/entrust/profit-list-history': {'cost': 1},
+                            'future/trade/v1/entrust/reverse-plan-list': {'cost': 1},
+                            'future/trade/v1/entrust/reverse-plan-list-history': {'cost': 1},
                             'future/trade/v1/entrust/track-detail': {'cost': 1},
                             'future/trade/v1/entrust/track-list': {'cost': 1},
                             'future/trade/v1/entrust/track-list-history': {'cost': 1},
+                            'future/trade/v1/order-entrust/list': {'cost': 1},
                             'future/trade/v1/order/detail': {'cost': 1},
                             'future/trade/v1/order/list': {'cost': 1},
                             'future/trade/v1/order/list-history': {'cost': 1},
+                            'future/trade/v1/order/trade-history': {'cost': 1},
                             'future/trade/v1/position/list-history': {'cost': 1},
+                            'future/trade/v1/position/cross-margin/{symbol}': {'cost': 1},
+                            'future/trade/v1/position/leverage/list': {'cost': 1},
+                            'future/trade/v1/position/list/active': {'cost': 1},
                             'future/trade/v1/order/trade-list': {'cost': 1},
+                            'future/trade/v1/order/trade-list-all': {'cost': 1},
                             'future/user/v1/account/info': {'cost': 1},
+                            'future/user/v1/auto-deleverage/history': {'cost': 1},
                             'future/user/v1/balance/bills': {'cost': 1},
                             'future/user/v1/balance/detail': {'cost': 1},
                             'future/user/v1/balance/funding-rate-list': {'cost': 1},
                             'future/user/v1/balance/list': {'cost': 1},
+                            'future/user/v1/compat/balance/{coin}': {'cost': 1},
                             'future/user/v1/position/adl': {'cost': 1},
                             'future/user/v1/position/break-list': {'cost': 1},
                             'future/user/v1/position/list': {'cost': 1},
+                            'future/user/v1/taker-over/list': {'cost': 1},
                             'future/user/v1/user/step-rate': {'cost': 1},
                             'future/user/v1/user/collection/list': {'cost': 1},
                             'future/user/v1/user/listen-key': {'cost': 1},
@@ -319,22 +334,34 @@ class xt(Exchange, ImplicitAPI):
                             'future/trade/v1/entrust/plan-list-history': {'cost': 1},
                             'future/trade/v1/entrust/profit-detail': {'cost': 1},
                             'future/trade/v1/entrust/profit-list': {'cost': 1},
+                            'future/trade/v1/entrust/profit-list-history': {'cost': 1},
+                            'future/trade/v1/entrust/reverse-plan-list': {'cost': 1},
+                            'future/trade/v1/entrust/reverse-plan-list-history': {'cost': 1},
                             'future/trade/v1/entrust/track-detail': {'cost': 1},
                             'future/trade/v1/entrust/track-list': {'cost': 1},
                             'future/trade/v1/entrust/track-list-history': {'cost': 1},
+                            'future/trade/v1/order-entrust/list': {'cost': 1},
                             'future/trade/v1/order/detail': {'cost': 1},
                             'future/trade/v1/order/list': {'cost': 1},
                             'future/trade/v1/order/list-history': {'cost': 1},
+                            'future/trade/v1/order/trade-history': {'cost': 1},
                             'future/trade/v1/position/list-history': {'cost': 1},
+                            'future/trade/v1/position/cross-margin/{symbol}': {'cost': 1},
+                            'future/trade/v1/position/leverage/list': {'cost': 1},
+                            'future/trade/v1/position/list/active': {'cost': 1},
                             'future/trade/v1/order/trade-list': {'cost': 1},
+                            'future/trade/v1/order/trade-list-all': {'cost': 1},
                             'future/user/v1/account/info': {'cost': 1},
+                            'future/user/v1/auto-deleverage/history': {'cost': 1},
                             'future/user/v1/balance/bills': {'cost': 1},
                             'future/user/v1/balance/detail': {'cost': 1},
                             'future/user/v1/balance/funding-rate-list': {'cost': 1},
                             'future/user/v1/balance/list': {'cost': 1},
+                            'future/user/v1/compat/balance/{coin}': {'cost': 1},
                             'future/user/v1/position/adl': {'cost': 1},
                             'future/user/v1/position/break-list': {'cost': 1},
                             'future/user/v1/position/list': {'cost': 1},
+                            'future/user/v1/taker-over/list': {'cost': 1},
                             'future/user/v1/user/step-rate': {'cost': 1},
                             'future/user/v1/user/collection/list': {'cost': 1},
                             'future/user/v1/user/listen-key': {'cost': 1},
@@ -519,8 +546,8 @@ class xt(Exchange, ImplicitAPI):
                     'WITHDRAW_004': BadRequest,  # The withdrawal address is not added
                     'WITHDRAW_005': BadRequest,  # The withdrawal address cannot be empty
                     'WITHDRAW_006': BadRequest,  # Memo cannot be empty
-                    'WITHDRAW_008': PermissionDenied,  # Risk control is triggered, withdraw of self currency is not currently supported
-                    'WITHDRAW_009': PermissionDenied,  # Withdraw failed, some hasattr(self, assets) withdraw are restricted by T+1 withdraw
+                    'WITHDRAW_008': PermissionDenied,  # Risk control is triggered, withdraw of this currency is not currently supported
+                    'WITHDRAW_009': PermissionDenied,  # Withdraw failed, some assets in this withdraw are restricted by T+1 withdraw
                     'WITHDRAW_010': BadRequest,  # The precision of withdrawal is invalid
                     'WITHDRAW_011': InsufficientFunds,  # free balance is not enough
                     'WITHDRAW_012': PermissionDenied,  # Withdraw failed, your remaining withdrawal limit today is not enough
@@ -532,14 +559,14 @@ class xt(Exchange, ImplicitAPI):
                     'WITHDRAW_018': BadRequest,  # Memo must be a number
                     'WITHDRAW_019': BadRequest,  # Memo is incorrect, please enter again
                     'WITHDRAW_020': PermissionDenied,  # Your withdrawal amount has reached the upper limit for today, please try it tomorrow
-                    'WITHDRAW_021': PermissionDenied,  # Your withdrawal amount has reached the upper limit for today, you can only withdraw up to {0} self time
+                    'WITHDRAW_021': PermissionDenied,  # Your withdrawal amount has reached the upper limit for today, you can only withdraw up to {0} this time
                     'WITHDRAW_022': BadRequest,  # Withdrawal amount must be greater than {0}
                     'WITHDRAW_023': BadRequest,  # Withdrawal amount must be less than {0}
                     'WITHDRAW_024': BadRequest,  # Withdraw is not supported
                     'WITHDRAW_025': BadRequest,  # Please create a FIO address in the deposit page
-                    'FUND_001': BadRequest,  # Duplicate request(a bizId can only be requested once)
+                    'FUND_001': BadRequest,  # Duplicate request (a bizId can only be requested once)
                     'FUND_002': InsufficientFunds,  # Insufficient account balance
-                    'FUND_003': BadRequest,  # Transfer operations are not supported(for example, sub-accounts do not support financial transfers)
+                    'FUND_003': BadRequest,  # Transfer operations are not supported (for example, sub-accounts do not support financial transfers)
                     'FUND_004': ExchangeError,  # Unfreeze failed
                     'FUND_005': PermissionDenied,  # Transfer prohibited
                     'FUND_014': BadRequest,  # The transfer-in account id and transfer-out account ID cannot be the same
@@ -552,7 +579,7 @@ class xt(Exchange, ImplicitAPI):
                     'FUND_021': BadRequest,  # Operation not supported
                     'FUND_022': BadRequest,  # Freeze record does not exist
                     'FUND_044': BadRequest,  # The maximum length of the amount is 113 and cannot exceed the limit
-                    'TRANSFER_001': BadRequest,  # Duplicate request(a bizId can only be requested once)
+                    'TRANSFER_001': BadRequest,  # Duplicate request (a bizId can only be requested once)
                     'TRANSFER_002': InsufficientFunds,  # Insufficient account balance
                     'TRANSFER_003': BadRequest,  # User not registered
                     'TRANSFER_004': PermissionDenied,  # The currency is not allowed to be transferred
@@ -939,8 +966,8 @@ class xt(Exchange, ImplicitAPI):
         #                 "supportChains": [
         #                     {
         #                         "chain": "Bitcoin",
-        #                         "depositEnabled": True,
-        #                         "withdrawEnabled": True,
+        #                         "depositEnabled": true,
+        #                         "withdrawEnabled": true,
         #                         "withdrawFeeAmount": 0.0009,
         #                         "withdrawMinAmount": 0.0005,
         #                         "depositFeeRate": 0
@@ -1067,8 +1094,8 @@ class xt(Exchange, ImplicitAPI):
         #                     "symbol": "xt_usdt",
         #                     "state": "ONLINE",
         #                     "stateTime": 1554048000000,
-        #                     "tradingEnabled": True,
-        #                     "openapiEnabled": True,
+        #                     "tradingEnabled": true,
+        #                     "openapiEnabled": true,
         #                     "nextStateTime": null,
         #                     "nextState": null,
         #                     "depthMergePrecision": 5,
@@ -1127,9 +1154,9 @@ class xt(Exchange, ImplicitAPI):
         #                 "predictEventType": null,
         #                 "underlyingType": "U_BASED",
         #                 "contractSize": "1",
-        #                 "tradeSwitch": True,
-        #                 "isDisplay": True,
-        #                 "isOpenApi": False,
+        #                 "tradeSwitch": true,
+        #                 "isDisplay": true,
+        #                 "isOpenApi": false,
         #                 "state": 0,
         #                 "initLeverage": 20,
         #                 "initPositionType": "CROSSED",
@@ -1166,7 +1193,7 @@ class xt(Exchange, ImplicitAPI):
         #                 "maxPrice": null,
         #                 "deliveryDate": 1669879634000,
         #                 "deliveryPrice": null,
-        #                 "deliveryCompletion": False,
+        #                 "deliveryCompletion": false,
         #                 "cnDesc": null,
         #                 "enDesc": null
         #             },
@@ -1191,8 +1218,8 @@ class xt(Exchange, ImplicitAPI):
         #         "symbol": "xt_usdt",
         #         "state": "ONLINE",
         #         "stateTime": 1554048000000,
-        #         "tradingEnabled": True,
-        #         "openapiEnabled": True,
+        #         "tradingEnabled": true,
+        #         "openapiEnabled": true,
         #         "nextStateTime": null,
         #         "nextState": null,
         #         "depthMergePrecision": 5,
@@ -1255,9 +1282,9 @@ class xt(Exchange, ImplicitAPI):
         #         "predictEventType": null,
         #         "underlyingType": "U_BASED",
         #         "contractSize": "1",
-        #         "tradeSwitch": True,
-        #         "isDisplay": True,
-        #         "isOpenApi": False,
+        #         "tradeSwitch": true,
+        #         "isDisplay": true,
+        #         "isOpenApi": false,
         #         "state": 0,
         #         "initLeverage": 20,
         #         "initPositionType": "CROSSED",
@@ -1294,7 +1321,7 @@ class xt(Exchange, ImplicitAPI):
         #         "maxPrice": null,
         #         "deliveryDate": 1669879634000,
         #         "deliveryPrice": null,
-        #         "deliveryCompletion": False,
+        #         "deliveryCompletion": false,
         #         "cnDesc": null,
         #         "enDesc": null
         #     }
@@ -1441,7 +1468,7 @@ class xt(Exchange, ImplicitAPI):
         :param dict params: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -2020,7 +2047,7 @@ class xt(Exchange, ImplicitAPI):
         #                 "p": "22038.81",
         #                 "q": "0.000978",
         #                 "v": "21.55395618",
-        #                 "b": True
+        #                 "b": true
         #             },
         #         ]
         #     }
@@ -2095,8 +2122,8 @@ class xt(Exchange, ImplicitAPI):
         #         "mc": "SUCCESS",
         #         "ma": [],
         #         "result": {
-        #             "hasPrev": False,
-        #             "hasNext": False,
+        #             "hasPrev": false,
+        #             "hasNext": false,
         #             "items": [
         #                 {
         #                     "symbol": "btc_usdt",
@@ -2159,7 +2186,7 @@ class xt(Exchange, ImplicitAPI):
         #         "p": "22038.81",
         #         "q": "0.000978",
         #         "v": "21.55395618",
-        #         "b": True
+        #         "b": true
         #     }
         #
         # spot: watchTrades
@@ -2170,19 +2197,19 @@ class xt(Exchange, ImplicitAPI):
         #        t: 1684258222702,
         #        p: '27003.65',
         #        q: '0.000796',
-        #        b: True
+        #        b: true
         #    }
         #
         # spot: watchMyTrades
         #
         #    {
-        #        "s": "btc_usdt",                # symbol
-        #        "t": 1656043204763,             # time
-        #        "i": "6316559590087251233",     # tradeId
-        #        "oi": "6216559590087220004",    # orderId
-        #        "p": "30000",                   # trade price
-        #        "q": "3",                       # qty quantity
-        #        "v": "90000"                    # volume trade amount
+        #        "s": "btc_usdt",                // symbol
+        #        "t": 1656043204763,             // time
+        #        "i": "6316559590087251233",     // tradeId
+        #        "oi": "6216559590087220004",    // orderId
+        #        "p": "30000",                   // trade price
+        #        "q": "3",                       // qty quantity
+        #        "v": "90000"                    // volume trade amount
         #    }
         #
         # swap and future: fetchTrades
@@ -2242,7 +2269,7 @@ class xt(Exchange, ImplicitAPI):
         #        "timestamp": 1684892412565
         #    }
         #
-        # watchMyTrades(ws, swap)
+        # watchMyTrades (ws, swap)
         #
         #    {
         #        'fee': '0.04080840',
@@ -2518,7 +2545,7 @@ class xt(Exchange, ImplicitAPI):
                 createMarketBuyOrderRequiresPrice = self.safe_bool(self.options, 'createMarketBuyOrderRequiresPrice', True)
                 if createMarketBuyOrderRequiresPrice is True:
                     if price is None and (cost is None):
-                        raise InvalidOrder(self.id + ' createOrder() requires a price argument or cost in params for market buy orders on spot markets to calculate the total amount to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to False and pass in the cost to spend into the amount parameter')
+                        raise InvalidOrder(self.id + ' createOrder() requires a price argument or cost in params for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to False and pass in the cost to spend into the amount parameter')
                     else:
                         amountString = self.number_to_string(amount)
                         priceString = self.number_to_string(price)
@@ -2750,7 +2777,7 @@ class xt(Exchange, ImplicitAPI):
         #             "avgPrice": null,
         #             "fee": null,
         #             "feeCurrency": null,
-        #             "closed": False,
+        #             "closed": false,
         #             "state": "NEW",
         #             "time": 1679175285162,
         #             "updatedTime": 1679175285255
@@ -2771,7 +2798,7 @@ class xt(Exchange, ImplicitAPI):
         #             "orderSide": "BUY",
         #             "positionSide": "LONG",
         #             "timeInForce": "GTC",
-        #             "closePosition": False,
+        #             "closePosition": false,
         #             "price": "20000",
         #             "origQty": "10",
         #             "avgPrice": "0",
@@ -2782,7 +2809,7 @@ class xt(Exchange, ImplicitAPI):
         #             "triggerStopPrice": null,
         #             "sourceId": null,
         #             "sourceType": "DEFAULT",
-        #             "forceClose": False,
+        #             "forceClose": false,
         #             "closeProfit": null,
         #             "state": "NEW",
         #             "createdTime": 1680116055693,
@@ -2812,7 +2839,7 @@ class xt(Exchange, ImplicitAPI):
         #             "marketOrderLevel": null,
         #             "createdTime": 1681271998064,
         #             "updatedTime": 1681271998064,
-        #             "ordinary": False
+        #             "ordinary": false
         #         }
         #     }
         #
@@ -2913,8 +2940,8 @@ class xt(Exchange, ImplicitAPI):
         #         "mc": "SUCCESS",
         #         "ma": [],
         #         "result": {
-        #             "hasPrev": False,
-        #             "hasNext": True,
+        #             "hasPrev": false,
+        #             "hasNext": true,
         #             "items": [
         #                 {
         #                     "symbol": "btc_usdt",
@@ -2935,7 +2962,7 @@ class xt(Exchange, ImplicitAPI):
         #                     "avgPrice": null,
         #                     "fee": null,
         #                     "feeCurrency": null,
-        #                     "closed": True,
+        #                     "closed": true,
         #                     "state": "CANCELED",
         #                     "time": 1679175285162,
         #                     "updatedTime": 1679175488492
@@ -2951,8 +2978,8 @@ class xt(Exchange, ImplicitAPI):
         #         "msgInfo": "success",
         #         "error": null,
         #         "result": {
-        #             "hasPrev": False,
-        #             "hasNext": True,
+        #             "hasPrev": false,
+        #             "hasNext": true,
         #             "items": [
         #                 {
         #                     "orderId": "207519546930995456",
@@ -2962,7 +2989,7 @@ class xt(Exchange, ImplicitAPI):
         #                     "orderSide": "BUY",
         #                     "positionSide": "LONG",
         #                     "timeInForce": "GTC",
-        #                     "closePosition": False,
+        #                     "closePosition": false,
         #                     "price": "20000",
         #                     "origQty": "100",
         #                     "avgPrice": "0",
@@ -2973,7 +3000,7 @@ class xt(Exchange, ImplicitAPI):
         #                     "triggerStopPrice": null,
         #                     "sourceId": null,
         #                     "sourceType": "DEFAULT",
-        #                     "forceClose": False,
+        #                     "forceClose": false,
         #                     "closeProfit": null,
         #                     "state": "CANCELED",
         #                     "createdTime": 1679178515689,
@@ -2990,8 +3017,8 @@ class xt(Exchange, ImplicitAPI):
         #         "msgInfo": "success",
         #         "error": null,
         #         "result": {
-        #             "hasPrev": False,
-        #             "hasNext": False,
+        #             "hasPrev": false,
+        #             "hasNext": false,
         #             "items": [
         #                 {
         #                     "entrustId": "216300248132756992",
@@ -3009,7 +3036,7 @@ class xt(Exchange, ImplicitAPI):
         #                     "marketOrderLevel": null,
         #                     "createdTime": 1681271998064,
         #                     "updatedTime": 1681273188674,
-        #                     "ordinary": False
+        #                     "ordinary": false
         #                 },
         #             ]
         #         }
@@ -3120,8 +3147,8 @@ class xt(Exchange, ImplicitAPI):
         #         "mc": "SUCCESS",
         #         "ma": [],
         #         "result": {
-        #             "hasPrev": False,
-        #             "hasNext": True,
+        #             "hasPrev": false,
+        #             "hasNext": true,
         #             "items": [
         #                 {
         #                     "symbol": "btc_usdt",
@@ -3142,7 +3169,7 @@ class xt(Exchange, ImplicitAPI):
         #                     "avgPrice": null,
         #                     "fee": null,
         #                     "feeCurrency": null,
-        #                     "closed": True,
+        #                     "closed": true,
         #                     "state": "CANCELED",
         #                     "time": 1679175285162,
         #                     "updatedTime": 1679175488492
@@ -3177,7 +3204,7 @@ class xt(Exchange, ImplicitAPI):
         #                 "avgPrice": null,
         #                 "fee": null,
         #                 "feeCurrency": null,
-        #                 "closed": False,
+        #                 "closed": false,
         #                 "state": "NEW",
         #                 "time": 1679352507741,
         #                 "updatedTime": 1679352507869
@@ -3204,7 +3231,7 @@ class xt(Exchange, ImplicitAPI):
         #                     "orderSide": "BUY",
         #                     "positionSide": "LONG",
         #                     "timeInForce": "GTC",
-        #                     "closePosition": False,
+        #                     "closePosition": false,
         #                     "price": "20000",
         #                     "origQty": "100",
         #                     "avgPrice": "0",
@@ -3215,7 +3242,7 @@ class xt(Exchange, ImplicitAPI):
         #                     "triggerStopPrice": null,
         #                     "sourceId": null,
         #                     "sourceType": "DEFAULT",
-        #                     "forceClose": False,
+        #                     "forceClose": false,
         #                     "closeProfit": null,
         #                     "state": "CANCELED",
         #                     "createdTime": 1679178515689,
@@ -3252,7 +3279,7 @@ class xt(Exchange, ImplicitAPI):
         #                     "marketOrderLevel": null,
         #                     "createdTime": 1681271998064,
         #                     "updatedTime": 1681273188674,
-        #                     "ordinary": False
+        #                     "ordinary": false
         #                 },
         #             ]
         #         }
@@ -3541,7 +3568,7 @@ class xt(Exchange, ImplicitAPI):
         #         "returnCode": 0,
         #         "msgInfo": "success",
         #         "error": null,
-        #         "result": True
+        #         "result": true
         #     }
         #
         return [
@@ -3630,7 +3657,7 @@ class xt(Exchange, ImplicitAPI):
         #         "avgPrice": null,
         #         "fee": null,
         #         "feeCurrency": null,
-        #         "closed": False,
+        #         "closed": false,
         #         "state": "NEW",
         #         "time": 1679175285162,
         #         "updatedTime": 1679175285255
@@ -3646,7 +3673,7 @@ class xt(Exchange, ImplicitAPI):
         #         "orderSide": "BUY",
         #         "positionSide": "LONG",
         #         "timeInForce": "GTC",
-        #         "closePosition": False,
+        #         "closePosition": false,
         #         "price": "20000",
         #         "origQty": "100",
         #         "avgPrice": "0",
@@ -3657,7 +3684,7 @@ class xt(Exchange, ImplicitAPI):
         #         "triggerStopPrice": null,
         #         "sourceId": null,
         #         "sourceType": "DEFAULT",
-        #         "forceClose": False,
+        #         "forceClose": false,
         #         "closeProfit": null,
         #         "state": "CANCELED",
         #         "createdTime": 1679178515689,
@@ -3682,7 +3709,7 @@ class xt(Exchange, ImplicitAPI):
         #         "marketOrderLevel": null,
         #         "createdTime": 1681271998064,
         #         "updatedTime": 1681271998064,
-        #         "ordinary": False
+        #         "ordinary": false
         #     }
         #
         # stop-loss and take-profit: fetchOrder, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders, fetchOrdersByStatus
@@ -3831,8 +3858,8 @@ class xt(Exchange, ImplicitAPI):
         #         "msgInfo": "success",
         #         "error": null,
         #         "result": {
-        #             "hasPrev": False,
-        #             "hasNext": False,
+        #             "hasPrev": false,
+        #             "hasNext": false,
         #             "items": [
         #                 {
         #                     "id": "207260567109387525",
@@ -3988,8 +4015,8 @@ class xt(Exchange, ImplicitAPI):
         #         "mc": "SUCCESS",
         #         "ma": [],
         #         "result": {
-        #             "hasPrev": False,
-        #             "hasNext": False,
+        #             "hasPrev": false,
+        #             "hasNext": false,
         #             "items": [
         #                 {
         #                     "id": 170368702,
@@ -4042,8 +4069,8 @@ class xt(Exchange, ImplicitAPI):
         #         "mc": "SUCCESS",
         #         "ma": [],
         #         "result": {
-        #             "hasPrev": False,
-        #             "hasNext": False,
+        #             "hasPrev": false,
+        #             "hasNext": false,
         #             "items": [
         #                 {
         #                     "id": 950898,
@@ -4521,8 +4548,8 @@ class xt(Exchange, ImplicitAPI):
         #         "msgInfo": "success",
         #         "error": null,
         #         "result": {
-        #             "hasPrev": False,
-        #             "hasNext": True,
+        #             "hasPrev": false,
+        #             "hasNext": true,
         #             "items": [
         #                 {
         #                     "id": "210441653482221888",
@@ -4730,8 +4757,8 @@ class xt(Exchange, ImplicitAPI):
         #         "msgInfo": "success",
         #         "error": null,
         #         "result": {
-        #             "specialType": False,
-        #             "vipProType": False,
+        #             "specialType": false,
+        #             "vipProType": false,
         #             "stepRateProName": null,
         #             "discountLevel": 0,
         #             "makerFee": "0.0002",
@@ -4769,7 +4796,7 @@ class xt(Exchange, ImplicitAPI):
         else:
             response = await self.privateLinearGetFutureUserV1UserStepRate(params)
         #
-        # same response
+        # same response as fetchTradingFee
         #
         fee = self.safe_dict(response, 'result', {})
         result = {}
@@ -4830,8 +4857,8 @@ class xt(Exchange, ImplicitAPI):
         #         "msgInfo": "success",
         #         "error": null,
         #         "result": {
-        #             "hasPrev": False,
-        #             "hasNext": False,
+        #             "hasPrev": false,
+        #             "hasNext": false,
         #             "items": [
         #                 {
         #                     "id": "210804044057280512",
@@ -4888,7 +4915,7 @@ class xt(Exchange, ImplicitAPI):
         breakBySymbolSide = {}
         for i in range(0, len(breakList)):
             breakEntry = breakList[i]
-            # xt is hedge-mode only(positionSide is always 'LONG'/'SHORT' on every
+            # xt is hedge-mode only (positionSide is always 'LONG'/'SHORT' on every
             # endpoint, including here and on position/list; there is no one-way/net
             # mode that would report 'BOTH', see setLeverage()/setMarginMode() which
             # both validate positionSide against exactly ['LONG', 'SHORT'])
@@ -4960,7 +4987,7 @@ class xt(Exchange, ImplicitAPI):
         #                 "isolatedMargin": "1.0824",
         #                 "openOrderMarginFrozen": "0",
         #                 "realizedProfit": "-0.00130138",
-        #                 "autoMargin": False,
+        #                 "autoMargin": false,
         #                 "leverage": 25,
         #                 "markPrice": "27050"
         #             },
@@ -5037,7 +5064,7 @@ class xt(Exchange, ImplicitAPI):
         #                 "isolatedMargin": "1.0824",
         #                 "openOrderMarginFrozen": "0",
         #                 "realizedProfit": "-0.00130138",
-        #                 "autoMargin": False,
+        #                 "autoMargin": false,
         #                 "leverage": 25,
         #                 "markPrice": "27050"
         #             },
@@ -5109,8 +5136,8 @@ class xt(Exchange, ImplicitAPI):
         #         "msgInfo": "success",
         #         "error": null,
         #         "result": {
-        #             "hasPrev": False,
-        #             "hasNext": False,
+        #             "hasPrev": false,
+        #             "hasNext": false,
         #             "items": [
         #                 {
         #                     "id": "654559911738263296",
@@ -5127,8 +5154,8 @@ class xt(Exchange, ImplicitAPI):
         #                     "closeTime": 1785761266645,
         #                     "startLeverage": 10,
         #                     "endLeverage": 10,
-        #                     "working": False,
-        #                     "force": False,
+        #                     "working": false,
+        #                     "force": false,
         #                     "forceMarkPrice": null,
         #                     "totalFee": "0.0063",
         #                     "totalFundFee": "0"
@@ -5159,7 +5186,7 @@ class xt(Exchange, ImplicitAPI):
         #         "isolatedMargin": "1.0824",
         #         "openOrderMarginFrozen": "0",
         #         "realizedProfit": "-0.00130138",
-        #         "autoMargin": False,
+        #         "autoMargin": false,
         #         "leverage": 25,
         #         "markPrice": "27050"
         #     }
@@ -5190,8 +5217,8 @@ class xt(Exchange, ImplicitAPI):
         #         "closeTime": 1785761266645,
         #         "startLeverage": 10,
         #         "endLeverage": 10,
-        #         "working": False,
-        #         "force": False,
+        #         "working": false,
+        #         "force": false,
         #         "forceMarkPrice": null,
         #         "totalFee": "0.0063",
         #         "totalFundFee": "0"
@@ -5205,7 +5232,7 @@ class xt(Exchange, ImplicitAPI):
         isCross = (positionType == 'CROSSED') or (positionType == '1')
         marginMode = 'cross' if (isCross) else 'isolated'
         collateral = self.safe_number(position, 'isolatedMargin')
-        # history entries carry the liquidation price in forceMarkPrice when force is True
+        # history entries carry the liquidation price in forceMarkPrice when force is true
         liquidationPriceString = self.omit_zero(self.safe_string_2(position, 'breakPrice', 'forceMarkPrice'))
         timestamp = self.safe_integer(position, 'closeTime')
         return self.safe_position({
@@ -5266,15 +5293,15 @@ class xt(Exchange, ImplicitAPI):
         response = await self.privateSpotPostBalanceTransfer(self.extend(request, params))
         #
         #   {
-        #       info: {rc: '0', mc: 'SUCCESS', ma: [], result: '226971333791398656'},
+        #       info: { rc: '0', mc: 'SUCCESS', ma: [], result: '226971333791398656' },
         #       id: '226971333791398656',
-        #       timestamp: None,
-        #       datetime: None,
-        #       currency: None,
-        #       amount: None,
-        #       fromAccount: None,
-        #       toAccount: None,
-        #       status: None
+        #       timestamp: undefined,
+        #       datetime: undefined,
+        #       currency: undefined,
+        #       amount: undefined,
+        #       fromAccount: undefined,
+        #       toAccount: undefined,
+        #       status: undefined
         #   }
         #
         return self.parse_transfer(response, currency)

@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 use crate::pro::*;
 
 
@@ -1489,6 +1493,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if is_equal(&self.handle_error_message(client.clone(), message.clone()), &Value::Bool(true)) {
             return;
         }
+        let mut ret_msg: Value = self.safe_string_k(message.clone(), "ret_msg", &[]);
+        let mut pong: Value = self.safe_integer_k(message.clone(), "pong", &[]);
+        if is_equal(&ret_msg, &Value::Str("pong".to_string())) || !is_equal(&pong, &Value::Null) {
+            self.handle_pong(client.clone(), message.clone());
+            return;
+        }
         let mut topic: Value = self.safe_string2(message.clone(), Value::Str("topic".to_string()), Value::Str("op".to_string()), &[Value::Str("".to_string())]);
         let mut methods: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1586,6 +1596,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn handle_ping(&mut self, mut client: Value, mut message: Value) {
+        crate::set_value(&mut client, &Value::Str("lastPong".to_string()), self.milliseconds());
         self.spawn(&[Value::Str("pong".to_string()).clone(), client.clone(), message.clone()]);
 }
 

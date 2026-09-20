@@ -15,14 +15,14 @@ public partial class testMainClass : BaseTest
         // loop has to be bounded by the deadline alone. waiting for every requested
         // symbol to be seen would hang forever whenever one of them stays idle.
         int maxIdleTime = 5000;
-        object currentTime = exchange.milliseconds();
+        Int64 currentTime = exchange.milliseconds();
         object deadline = add(currentTime, 15000);
         bool idle = false;
         while (isTrue((isLessThan(currentTime, deadline))) && !isTrue(idle))
         {
             object response = null;
             bool succeeded = true;
-            object startTime = exchange.milliseconds();
+            Int64 startTime = exchange.milliseconds();
             try
             {
                 response = ((IOrderBook)(await exchange.WatchOrderBookForSymbols(symbols))).Copy();
@@ -40,7 +40,7 @@ public partial class testMainClass : BaseTest
             {
                 testOrderBook(exchange, skippedProperties, method, response, null);
                 testSharedMethods.assertInArray(exchange, skippedProperties, method, response, "symbol", symbols);
-                object elapsed = subtract(currentTime, startTime);
+                Int64 elapsed = subtract(currentTime, startTime);
                 if (isTrue(isGreaterThan(elapsed, maxIdleTime)))
                 {
                     idle = true;

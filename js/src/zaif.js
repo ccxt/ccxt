@@ -116,6 +116,9 @@ export default class zaif extends Exchange {
                         'last_price/{pair}': { 'cost': 1 },
                         'ticker/{pair}': { 'cost': 1 },
                         'trades/{pair}': { 'cost': 1 },
+                        'vasp_info/{vasp_master_id}': { 'cost': 1 },
+                        'country_info/{code}': { 'cost': 1 },
+                        'corp_type_id_info/{id}': { 'cost': 1 },
                     },
                 },
                 'private': {
@@ -329,7 +332,7 @@ export default class zaif extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
         };
-        const funds = this.safeValue(balances, 'funds', {});
+        const funds = this.safeDict(balances, 'funds', {});
         const currencyIds = Object.keys(funds);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];

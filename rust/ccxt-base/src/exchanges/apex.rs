@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 
 
 pub struct ApexCore {
@@ -432,6 +436,11 @@ impl ApexCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
+        m.insert("v3/stock/account".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
         m.insert("post".to_string(), Value::Map({
@@ -467,6 +476,26 @@ impl ApexCore {
     m
 }));
         m.insert("v3/contract-transfer-out".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/contract-transfer-to".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/submit-withdraw-claim".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/stock/register-account".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/stock/generate-api".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
     m
@@ -663,12 +692,11 @@ impl ApexCore {
         // }
         // }
         //
-        let mut timestamp: Value = self.milliseconds();
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
-                m.insert("timestamp".to_string(), timestamp.clone());
-                m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
+                m.insert("timestamp".to_string(), Value::Null);
+                m.insert("datetime".to_string(), Value::Null);
             m
         });
         let mut code: Value = Value::Str("USDT".to_string());
@@ -883,15 +911,15 @@ impl ApexCore {
         let mut chains: Value = get_value(&self.options, &Value::Str("_temp_currencies_chains".to_string()));
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_217: bool = true;
-            while { if !__for_first_217 { j = add(&j, &Value::Int(1)); } __for_first_217 = false; is_less_than(&j, &get_array_length(&chains)) } {
+            let mut __for_first_218: bool = true;
+            while { if !__for_first_218 { j = add(&j, &Value::Int(1)); } __for_first_218 = false; is_less_than(&j, &get_array_length(&chains)) } {
             let mut chain: Value = get_value(&chains, &j);
             let mut chain: Value = get_value(&chains, &j);
             let mut tokens: Value = self.safe_list_k(chain.clone(), "tokens", &[Value::List(vec![])]);
             {
                                 let mut f: Value = Value::Int(0);
-                let mut __for_first_216: bool = true;
-                while { if !__for_first_216 { f = add(&f, &Value::Int(1)); } __for_first_216 = false; is_less_than(&f, &get_array_length(&tokens)) } {
+                let mut __for_first_217: bool = true;
+                while { if !__for_first_217 { f = add(&f, &Value::Int(1)); } __for_first_217 = false; is_less_than(&f, &get_array_length(&tokens)) } {
                 let mut token: Value = get_value(&tokens, &f);
                 let mut token: Value = get_value(&tokens, &f);
                 let mut tokenName: Value = self.safe_string_k(token.clone(), "token", &[]);
@@ -1109,7 +1137,6 @@ impl ApexCore {
         //     "tradeCount": 100
         // }
         //
-        let mut timestamp: Value = self.milliseconds();
         let mut marketId: Value = self.safe_string_k(ticker.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone()]);
@@ -1122,8 +1149,8 @@ impl ApexCore {
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.clone());
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
+        m.insert("timestamp".to_string(), Value::Null);
+        m.insert("datetime".to_string(), Value::Null);
         m.insert("high".to_string(), high.clone());
         m.insert("low".to_string(), low.clone());
         m.insert("bid".to_string(), Value::Null);
@@ -1496,7 +1523,6 @@ impl ApexCore {
         //     "tradeCount": 100
         // }
         //
-        let mut timestamp: Value = self.milliseconds();
         let mut marketId: Value = self.safe_string_k(interest.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone()]);
@@ -1505,8 +1531,8 @@ impl ApexCore {
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("openInterestAmount".to_string(), self.safe_string_k(interest.clone(), "openInterest", &[]));
         m.insert("openInterestValue".to_string(), Value::Null);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
+        m.insert("timestamp".to_string(), Value::Null);
+        m.insert("datetime".to_string(), Value::Null);
         m.insert("info".to_string(), interest.clone());
     m
 }), &[market.clone()]);
@@ -1585,8 +1611,8 @@ impl ApexCore {
         let mut resultList: Value = self.safe_list_k(data.clone(), "historyFunds", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_218: bool = true;
-            while { if !__for_first_218 { i = add(&i, &Value::Int(1)); } __for_first_218 = false; is_less_than(&i, &get_array_length(&resultList)) } {
+            let mut __for_first_219: bool = true;
+            while { if !__for_first_219 { i = add(&i, &Value::Int(1)); } __for_first_219 = false; is_less_than(&i, &get_array_length(&resultList)) } {
             let mut entry: Value = get_value(&resultList, &i);
             let mut entry: Value = get_value(&resultList, &i);
             let mut timestamp: Value = self.safe_integer_k(entry.clone(), "fundingTimestamp", &[]);
@@ -1744,7 +1770,7 @@ impl ApexCore {
             });
             return self.safe_string(statuses.clone(), status.clone(), &[status.clone()]);
         }
-        return status;
+        return Value::Null;
 
     Value::Null
 }
@@ -2041,8 +2067,8 @@ impl ApexCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_219: bool = true;
-            while { if !__for_first_219 { i = add(&i, &Value::Int(1)); } __for_first_219 = false; is_less_than(&i, &get_array_length(&assets)) } {
+            let mut __for_first_220: bool = true;
+            while { if !__for_first_220 { i = add(&i, &Value::Int(1)); } __for_first_220 = false; is_less_than(&i, &get_array_length(&assets)) } {
             if is_equal(&self.safe_string_k(get_value(&assets, &i), "token", &[Value::Str("".to_string())]), &code) {
                 currency = get_value(&assets, &i);
             }

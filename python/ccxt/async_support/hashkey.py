@@ -264,6 +264,7 @@ class hashkey(Exchange, ImplicitAPI):
                         'api/v1/account/deposit/address': {'cost': 1},
                         'api/v1/account/depositOrders': {'cost': 1},
                         'api/v1/account/withdrawOrders': {'cost': 1},
+                        'api/v1/affiliate/inviteeInfo': {'cost': 1},
                     },
                     'post': {
                         'api/v1/userDataStream': {'cost': 1},
@@ -288,9 +289,11 @@ class hashkey(Exchange, ImplicitAPI):
                         'api/v1/spot/order': {'cost': 1},
                         'api/v1/spot/openOrders': {'cost': 5},
                         'api/v1/spot/cancelOrderByIds': {'cost': 5},
+                        'api/v1/spot/cancelAllOpenOrders': {'cost': 5},
                         'api/v1/futures/order': {'cost': 1},
                         'api/v1/futures/batchOrders': {'cost': 1},
                         'api/v1/futures/cancelOrderByIds': {'cost': 1},
+                        'api/v1/futures/cancelAllOpenOrders': {'cost': 1},
                         'api/v1/userDataStream': {'cost': 1},
                     },
                 },
@@ -505,7 +508,7 @@ class hashkey(Exchange, ImplicitAPI):
                     '-1000': ExchangeError,  # An unknown error occurred while processing the request
                     '-1001': ExchangeError,  # Internal error
                     '-100010': BadSymbol,  # Invalid Symbols!
-                    '-100012': BadSymbol,  # Parameter symbol [str] missing!
+                    '-100012': BadSymbol,  # Parameter symbol [String] missing!
                     '-1002': AuthenticationError,  # Unauthorized operation
                     '-1004': BadRequest,  # Bad request
                     '-1005': PermissionDenied,  # No permission
@@ -514,7 +517,7 @@ class hashkey(Exchange, ImplicitAPI):
                     '-1014': InvalidOrder,  # Unsupported order combination
                     '-1015': InvalidOrder,  # Too many new orders
                     '-1020': OperationRejected,  # Unsupported operation
-                    '-1021': InvalidNonce,  # Timestamp for self request is outside of the recvWindow
+                    '-1021': InvalidNonce,  # Timestamp for this request is outside of the recvWindow
                     '-1024': BadRequest,  # Duplicate request
                     '-1101': ExchangeNotAvailable,  # Feature has been offline
                     '-1115': InvalidOrder,  # Invalid timeInForce
@@ -536,7 +539,7 @@ class hashkey(Exchange, ImplicitAPI):
                     '-1142': OrderNotFillable,  # Order has been cancelled
                     '-1143': OrderNotFound,  # Order not found on order book
                     '-1144': OperationRejected,  # Order has been locked
-                    '-1145': NotSupported,  # Cancellation on self order type not supported
+                    '-1145': NotSupported,  # Cancellation on this order type not supported
                     '-1146': RequestTimeout,  # Order creation timeout
                     '-1147': RequestTimeout,  # Order cancellation timeout
                     '-1148': InvalidOrder,  # Order amount precision too large
@@ -570,7 +573,7 @@ class hashkey(Exchange, ImplicitAPI):
                     '-1176': BadRequest,  # Invalid fiat withdrawal status
                     '-1177': InvalidOrder,  # Invalid fiat order type
                     '-1178': AccountNotEnabled,  # Brokerage account does not exist
-                    '-1179': AccountSuspended,  # Address owner is not True
+                    '-1179': AccountSuspended,  # Address owner is not true
                     '-1181': ExchangeError,  # System error
                     '-1193': OperationRejected,  # Order creation count exceeds the limit
                     '-1194': OperationRejected,  # Market order creation forbidden
@@ -597,8 +600,8 @@ class hashkey(Exchange, ImplicitAPI):
                     '-2017': OperationRejected,  # Open orders exceeds the limit of the trading pair
                     '-2018': OperationRejected,  # Trade user creation exceeds the limit
                     '-2019': PermissionDenied,  # Trader and omnibus user not allowed to login app
-                    '-2020': PermissionDenied,  # Not allowed to trade self trading pair
-                    '-2021': PermissionDenied,  # Not allowed to trade self trading pair
+                    '-2020': PermissionDenied,  # Not allowed to trade this trading pair
+                    '-2021': PermissionDenied,  # Not allowed to trade this trading pair
                     '-2022': OperationRejected,  # Order batch size exceeds the limit
                     '-2023': AuthenticationError,  # Need to pass KYC verification
                     '-2024': AccountNotEnabled,  # Fiat account does not exist
@@ -621,7 +624,7 @@ class hashkey(Exchange, ImplicitAPI):
                     '-2041': BadRequest,  # Token does not exist
                     '-2042': OperationRejected,  # You have passed the trade limit, please pay attention to the risks
                     '-2043': OperationRejected,  # Maximum allowed leverage reached, please lower your leverage
-                    '-2044': BadRequest,  # This order price is unreasonable to exceed(or be lower than) the liquidation price
+                    '-2044': BadRequest,  # This order price is unreasonable to exceed (or be lower than) the liquidation price
                     '-2045': BadRequest,  # Price too low, please order again!
                     '-2046': BadRequest,  # Price too high, please order again!
                     '-2048': BadRequest,  # Exceed the maximum number of conditional orders of %s
@@ -645,7 +648,7 @@ class hashkey(Exchange, ImplicitAPI):
                     '-4005': BadRequest,  # Assets are not listed
                     '-4006': AccountNotEnabled,  # KYC is not certified
                     '-4007': NotSupported,  # Withdrawal channels are not supported
-                    '-4008': AccountNotEnabled,  # This currency does not support self customer type
+                    '-4008': AccountNotEnabled,  # This currency does not support this customer type
                     '-4009': PermissionDenied,  # No withdrawal permission
                     '-4010': PermissionDenied,  # Withdrawals on the same day exceed the maximum limit for a single day
                     '-4011': ExchangeError,  # System error
@@ -723,13 +726,13 @@ class hashkey(Exchange, ImplicitAPI):
         #                 "quoteAsset": "USDT",
         #                 "quoteAssetName": "USDT",
         #                 "quotePrecision": "0.0000001",
-        #                 "retailAllowed": True,
-        #                 "piAllowed": True,
-        #                 "corporateAllowed": True,
-        #                 "omnibusAllowed": True,
-        #                 "icebergAllowed": False,
-        #                 "isAggregate": False,
-        #                 "allowMargin": False,
+        #                 "retailAllowed": true,
+        #                 "piAllowed": true,
+        #                 "corporateAllowed": true,
+        #                 "omnibusAllowed": true,
+        #                 "icebergAllowed": false,
+        #                 "isAggregate": false,
+        #                 "allowMargin": false,
         #                 "filters": [
         #                     {
         #                         "minPrice": "0.01",
@@ -780,7 +783,7 @@ class hashkey(Exchange, ImplicitAPI):
         #                 ]
         #             }
         #         ],
-        #         "options": [],
+        #         "options": [ ],
         #         "contracts": [
         #             {
         #                 "filters": [
@@ -833,8 +836,8 @@ class hashkey(Exchange, ImplicitAPI):
         #                 "baseAssetPrecision": "0.001",
         #                 "quoteAsset": "USDT",
         #                 "quoteAssetPrecision": "0.1",
-        #                 "icebergAllowed": False,
-        #                 "inverse": False,
+        #                 "icebergAllowed": false,
+        #                 "inverse": false,
         #                 "index": "USDT",
         #                 "marginToken": "USDT",
         #                 "marginPrecision": "0.0001",
@@ -846,14 +849,14 @@ class hashkey(Exchange, ImplicitAPI):
         #                         "quantity": "1000.00",
         #                         "initialMargin": "0.10",
         #                         "maintMargin": "0.005",
-        #                         "isWhite": False
+        #                         "isWhite": false
         #                     },
         #                     {
         #                         "riskLimitId": "200000723",
         #                         "quantity": "2000.00",
         #                         "initialMargin": "0.10",
         #                         "maintMargin": "0.01",
-        #                         "isWhite": False
+        #                         "isWhite": false
         #                     }
         #                 ]
         #             }
@@ -864,8 +867,8 @@ class hashkey(Exchange, ImplicitAPI):
         #                 "coinId": "BTC",
         #                 "coinName": "BTC",
         #                 "coinFullName": "Bitcoin",
-        #                 "allowWithdraw": True,
-        #                 "allowDeposit": True,
+        #                 "allowWithdraw": true,
+        #                 "allowDeposit": true,
         #                 "tokenType": "CHAIN_TOKEN",
         #                 "chainTypes": [
         #                     {
@@ -874,8 +877,8 @@ class hashkey(Exchange, ImplicitAPI):
         #                         "minWithdrawQuantity": "0.002",
         #                         "maxWithdrawQuantity": "0",
         #                         "minDepositQuantity": "0.0005",
-        #                         "allowDeposit": True,
-        #                         "allowWithdraw": True
+        #                         "allowDeposit": true,
+        #                         "allowWithdraw": true
         #                     }
         #                 ]
         #             }
@@ -901,13 +904,13 @@ class hashkey(Exchange, ImplicitAPI):
         #         "quoteAsset": "USDT",
         #         "quoteAssetName": "USDT",
         #         "quotePrecision": "0.0000001",
-        #         "retailAllowed": True,
-        #         "piAllowed": True,
-        #         "corporateAllowed": True,
-        #         "omnibusAllowed": True,
-        #         "icebergAllowed": False,
-        #         "isAggregate": False,
-        #         "allowMargin": False,
+        #         "retailAllowed": true,
+        #         "piAllowed": true,
+        #         "corporateAllowed": true,
+        #         "omnibusAllowed": true,
+        #         "icebergAllowed": false,
+        #         "isAggregate": false,
+        #         "allowMargin": false,
         #         "filters": [
         #             {
         #                 "minPrice": "0.01",
@@ -1010,8 +1013,8 @@ class hashkey(Exchange, ImplicitAPI):
         #         "baseAssetPrecision": "0.001",
         #         "quoteAsset": "USDT",
         #         "quoteAssetPrecision": "0.1",
-        #         "icebergAllowed": False,
-        #         "inverse": False,
+        #         "icebergAllowed": false,
+        #         "inverse": false,
         #         "index": "USDT",
         #         "marginToken": "USDT",
         #         "marginPrecision": "0.0001",
@@ -1023,14 +1026,14 @@ class hashkey(Exchange, ImplicitAPI):
         #                 "quantity": "1000.00",
         #                 "initialMargin": "0.10",
         #                 "maintMargin": "0.005",
-        #                 "isWhite": False
+        #                 "isWhite": false
         #             },
         #             {
         #                 "riskLimitId": "200000723",
         #                 "quantity": "2000.00",
         #                 "initialMargin": "0.10",
         #                 "maintMargin": "0.01",
-        #                 "isWhite": False
+        #                 "isWhite": false
         #             }
         #         ]
         #     }
@@ -1172,8 +1175,8 @@ class hashkey(Exchange, ImplicitAPI):
         #                 "coinId": "BTC",
         #                 "coinName": "BTC",
         #                 "coinFullName": "Bitcoin",
-        #                 "allowWithdraw": True,
-        #                 "allowDeposit": True,
+        #                 "allowWithdraw": true,
+        #                 "allowDeposit": true,
         #                 "tokenType": "CHAIN_TOKEN",
         #                 "chainTypes": [
         #                     {
@@ -1182,8 +1185,8 @@ class hashkey(Exchange, ImplicitAPI):
         #                         "minWithdrawQuantity": "0.002",
         #                         "maxWithdrawQuantity": "0",
         #                         "minDepositQuantity": "0.0005",
-        #                         "allowDeposit": True,
-        #                         "allowWithdraw": True
+        #                         "allowDeposit": true,
+        #                         "allowWithdraw": true
         #                     }
         #                 ]
         #             }
@@ -1313,7 +1316,7 @@ class hashkey(Exchange, ImplicitAPI):
         #             "t": 1721682745779,
         #             "p": "67835.99",
         #             "q": "0.00017",
-        #             "ibm": True
+        #             "ibm": true
         #         },
         #         ...
         #     ]
@@ -1381,8 +1384,8 @@ class hashkey(Exchange, ImplicitAPI):
             #             "commission": "0.0000012",
             #             "commissionAsset": "ETH",
             #             "time": "1722082982097",
-            #             "isBuyer": True,
-            #             "isMaker": False,
+            #             "isBuyer": true,
+            #             "isMaker": false,
             #             "fee": {
             #                 "feeCoinId": "ETH",
             #                 "feeCoinName": "ETH",
@@ -1419,7 +1422,7 @@ class hashkey(Exchange, ImplicitAPI):
                 #             "type": "LIMIT",
                 #             "side": "BUY_OPEN",
                 #             "realizedPnl": "0",
-                #             "isMarker": False
+                #             "isMarker": false
                 #         }
                 #     ]
                 #
@@ -1435,7 +1438,7 @@ class hashkey(Exchange, ImplicitAPI):
         #         "t": 1721682745779,
         #         "p": "67835.99",
         #         "q": "0.00017",
-        #         "ibm": True
+        #         "ibm": true
         #     }
         #
         # fetchMyTrades spot
@@ -1453,8 +1456,8 @@ class hashkey(Exchange, ImplicitAPI):
         #         "commission": "0.0000012",
         #         "commissionAsset": "ETH",
         #         "time": "1722082982097",
-        #         "isBuyer": True,
-        #         "isMaker": False,
+        #         "isBuyer": true,
+        #         "isMaker": false,
         #         "fee": {
         #             "feeCoinId": "ETH",
         #             "feeCoinName": "ETH",
@@ -1479,7 +1482,7 @@ class hashkey(Exchange, ImplicitAPI):
         #         "type": "LIMIT",
         #         "side": "BUY_OPEN",
         #         "realizedPnl": "0",
-        #         "isMarker": False
+        #         "isMarker": false
         #     }
         timestamp = self.safe_integer_2(trade, 't', 'time')
         marketId = self.safe_string(trade, 'symbol')
@@ -1540,7 +1543,7 @@ class hashkey(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         methodName = 'fetchOHLCV'
         if self.markets is None:
@@ -1884,11 +1887,11 @@ class hashkey(Exchange, ImplicitAPI):
         response = await self.privateGetApiV1AccountDepositAddress(self.extend(request, params))
         #
         #     {
-        #         "canDeposit": True,
+        #         "canDeposit": true,
         #         "address": "0x61AAd7F763e2C7fF1CC996918740F67f9dC8BF4e",
         #         "addressExt": "",
         #         "minQuantity": "1",
-        #         "needAddressTag": False,
+        #         "needAddressTag": false,
         #         "requiredConfirmTimes": 64,
         #         "canWithdrawConfirmTimes": 64,
         #         "coinType": "ERC20_TOKEN"
@@ -1901,11 +1904,11 @@ class hashkey(Exchange, ImplicitAPI):
     def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
         #
         #     {
-        #         "canDeposit": True,
+        #         "canDeposit": true,
         #         "address": "0x61AAd7F763e2C7fF1CC996918740F67f9dC8BF4e",
         #         "addressExt": "",
         #         "minQuantity": "1",
-        #         "needAddressTag": False,
+        #         "needAddressTag": false,
         #         "requiredConfirmTimes": 64,
         #         "canWithdrawConfirmTimes": 64,
         #         "coinType": "ERC20_TOKEN"
@@ -2058,7 +2061,7 @@ class hashkey(Exchange, ImplicitAPI):
         response = await self.privatePostApiV1AccountWithdraw(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "id": "0",
         #         "orderId": "W611267400947572736",
         #         "accountId": "1732885739589466115"
@@ -2071,7 +2074,7 @@ class hashkey(Exchange, ImplicitAPI):
         #  fetchDeposits
         #     {
         #         "time": "1721641082163",
-        #         "coin": "TRXUSDT",  # todo how to parse it?
+        #         "coin": "TRXUSDT", // todo how to parse it?
         #         "coinName": "TRXUSDT",
         #         "address": "TBA6CypYJizwA9XdC7Ubgc5F1bxrQ7SqPt",
         #         "quantity": "86.00000000000000000000",
@@ -2101,7 +2104,7 @@ class hashkey(Exchange, ImplicitAPI):
         #
         # withdraw
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "id": "0",
         #         "orderId": "W611267400947572736",
         #         "accountId": "1732885739589466115"
@@ -2197,7 +2200,7 @@ class hashkey(Exchange, ImplicitAPI):
         response = await self.privatePostApiV1AccountAssetTransfer(self.extend(request, params))
         #
         #     {
-        #         "success": True,
+        #         "success": true,
         #         "timestamp": 1722260230773,
         #         "clientOrderId": "",
         #         "orderId": "1740839420695806720"
@@ -2425,7 +2428,7 @@ class hashkey(Exchange, ImplicitAPI):
         :param float amount: how much of you want to trade in units of the base currency
         :param float [price]: the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
+        :param float [params.cost]: *spot market buy only* the quote quantity that can be used as an alternative for the amount
         :param boolean [params.test]: *spot markets only* whether to use the test endpoint or not, default is False
         :param bool [params.postOnly]: if True, the order will only be posted to the order book and not executed immediately
         :param str [params.timeInForce]: "GTC" or "IOC" or "PO" for spot, 'GTC' or 'FOK' or 'IOC' or 'LIMIT_MAKER' or 'PO' for swap
@@ -2474,7 +2477,7 @@ class hashkey(Exchange, ImplicitAPI):
         :param float amount: how much of you want to trade in units of the base currency
         :param float [price]: the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param float [params.cost]: *market buy only* the quote quantity that can be used alternative for the amount
+        :param float [params.cost]: *market buy only* the quote quantity that can be used as an alternative for the amount
         :param bool [params.test]: whether to use the test endpoint or not, default is False
         :param bool [params.postOnly]: if True, the order will only be posted to the order book and not executed immediately
         :param str [params.timeInForce]: 'GTC', 'IOC', or 'PO'
@@ -2607,7 +2610,7 @@ class hashkey(Exchange, ImplicitAPI):
         :param float amount: how much of you want to trade in units of the base currency
         :param float [price]: the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param float [params.cost]: *market buy only* the quote quantity that can be used alternative for the amount
+        :param float [params.cost]: *market buy only* the quote quantity that can be used as an alternative for the amount
         :param bool [params.postOnly]: if True, the order will only be posted to the order book and not executed immediately
         :param str [params.timeInForce]: "GTC", "IOC", or "PO"
         :param str [params.clientOrderId]: a unique id for the order
@@ -2827,7 +2830,7 @@ class hashkey(Exchange, ImplicitAPI):
             #                     "timeInForce": "GTC",
             #                     "status": "NEW",
             #                     "priceType": "INPUT",
-            #                     "isLiquidationOrder": False,
+            #                     "isLiquidationOrder": false,
             #                     "indexPrice": "0",
             #                     "liquidationType": ""
             #                 }
@@ -2860,7 +2863,7 @@ class hashkey(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.type]: 'spot' or 'swap' - the type of the market to fetch entry for(default 'spot')
-        :param str [params.clientOrderId]: a unique id for the order that can be used alternative for the id
+        :param str [params.clientOrderId]: a unique id for the order that can be used as an alternative for the id
         :param bool [params.trigger]: *swap markets only* True for canceling a trigger order(default False)
         :param bool [params.stop]: *swap markets only* an alternative for trigger param
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
@@ -2925,7 +2928,7 @@ class hashkey(Exchange, ImplicitAPI):
             #         "timeInForce": "GTC",
             #         "status": "NEW",
             #         "priceType": "INPUT",
-            #         "isLiquidationOrder": False,
+            #         "isLiquidationOrder": false,
             #         "indexPrice": "0",
             #         "liquidationType": ""
             #     }
@@ -2963,12 +2966,12 @@ class hashkey(Exchange, ImplicitAPI):
         if market['spot'] is True:
             response = await self.privateDeleteApiV1SpotOpenOrders(self.extend(request, params))
             #
-            #     {"success": True}
+            #     { "success": true }
             #
         elif market['swap'] is True:
             response = await self.privateDeleteApiV1FuturesBatchOrders(self.extend(request, params))
             #
-            #     {"message": "success", "timestamp": "1723127222198", "code": "0000"}
+            #     { "message": "success", "timestamp": "1723127222198", "code": "0000" }
             #
         else:
             raise NotSupported(self.id + ' ' + methodName + '() is not supported for ' + market['type'] + ' type of markets')
@@ -3028,7 +3031,7 @@ class hashkey(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.type]: 'spot' or 'swap' - the type of the market to fetch entry for(default 'spot')
-        :param str [params.clientOrderId]: a unique id for the order that can be used alternative for the id
+        :param str [params.clientOrderId]: a unique id for the order that can be used as an alternative for the id
         :param str [params.accountId]: *spot markets only* account id to fetch the order from
         :param bool [params.trigger]: *swap markets only* True for fetching a trigger order(default False)
         :param bool [params.stop]: *swap markets only* an alternative for trigger param
@@ -3075,7 +3078,7 @@ class hashkey(Exchange, ImplicitAPI):
             #         "icebergQty": "0.0",
             #         "time": "1722004623186",
             #         "updateTime": "1722004623406",
-            #         "isWorking": True,
+            #         "isWorking": true,
             #         "reqAmount": "20",
             #         "feeCoin": "",
             #         "feeAmount": "0",
@@ -3106,7 +3109,7 @@ class hashkey(Exchange, ImplicitAPI):
             #         "timeInForce": "IOC",
             #         "status": "FILLED",
             #         "priceType": "MARKET",
-            #         "isLiquidationOrder": False,
+            #         "isLiquidationOrder": false,
             #         "indexPrice": "0",
             #         "liquidationType": ""
             #     }
@@ -3213,7 +3216,7 @@ class hashkey(Exchange, ImplicitAPI):
             #             "icebergQty": "0.0",
             #             "time": "1722099538193",
             #             "updateTime": "1722099538197",
-            #             "isWorking": True,
+            #             "isWorking": true,
             #             "reqAmount": "0"
             #         }
             #     ]
@@ -3281,7 +3284,7 @@ class hashkey(Exchange, ImplicitAPI):
             #             "timeInForce": "GTC",
             #             "status": "NEW",
             #             "priceType": "INPUT",
-            #             "isLiquidationOrder": False,
+            #             "isLiquidationOrder": false,
             #             "indexPrice": "0",
             #             "liquidationType": ""
             #         }
@@ -3379,7 +3382,7 @@ class hashkey(Exchange, ImplicitAPI):
             #             "icebergQty": "0.0",
             #             "time": "1722082982093",
             #             "updateTime": "1722082982097",
-            #             "isWorking": True,
+            #             "isWorking": true,
             #             "reqAmount": "0"
             #         },
             #         ...
@@ -3419,7 +3422,7 @@ class hashkey(Exchange, ImplicitAPI):
                 #             "timeInForce": "IOC",
                 #             "status": "FILLED",
                 #             "priceType": "MARKET",
-                #             "isLiquidationOrder": False,
+                #             "isLiquidationOrder": false,
                 #             "indexPrice": "0",
                 #             "liquidationType": ""
                 #         }
@@ -3435,7 +3438,7 @@ class hashkey(Exchange, ImplicitAPI):
         # current method warns user if he provides the exchange specific value in type parameter
         paramsType = self.safe_string(params, 'type')
         if (paramsType is not None) and (paramsType != 'spot') and (paramsType != 'swap'):
-            raise BadRequest(self.id + ' ' + methodName + '() type parameter can not be "' + paramsType + '". It should define the type of the market("spot" or "swap"). To define the type of an order use the trigger parameter(True for trigger orders)')
+            raise BadRequest(self.id + ' ' + methodName + ' () type parameter can not be "' + paramsType + '". It should define the type of the market ("spot" or "swap"). To define the type of an order use the trigger parameter (True for trigger orders)')
 
     def handle_trigger_option_and_params(self, params: object, methodName: str, defaultValue: Bool = None) -> list:
         isTrigger = defaultValue
@@ -3485,7 +3488,7 @@ class hashkey(Exchange, ImplicitAPI):
         #         "icebergQty": "0.0",
         #         "time": "1722004623186",
         #         "updateTime": "1722004623406",
-        #         "isWorking": True,
+        #         "isWorking": true,
         #         "reqAmount": "20",
         #         "feeCoin": "",
         #         "feeAmount": "0",
@@ -3547,7 +3550,7 @@ class hashkey(Exchange, ImplicitAPI):
         #         "timeInForce": "IOC",
         #         "status": "FILLED",
         #         "priceType": "MARKET",
-        #         "isLiquidationOrder": False,
+        #         "isLiquidationOrder": false,
         #         "indexPrice": "0",
         #         "liquidationType": ""
         #     }
@@ -3674,7 +3677,7 @@ class hashkey(Exchange, ImplicitAPI):
         response = await self.publicGetApiV1FuturesFundingRate(self.extend(request, params))
         #
         #     [
-        #         {"symbol": "ETHUSDT-PERPETUAL", "rate": "0.0001", "nextSettleTime": "1722297600000"}
+        #         { "symbol": "ETHUSDT-PERPETUAL", "rate": "0.0001", "nextSettleTime": "1722297600000" }
         #     ]
         #
         rate = self.safe_dict(response, 0, {})
@@ -3699,8 +3702,8 @@ class hashkey(Exchange, ImplicitAPI):
         response = await self.publicGetApiV1FuturesFundingRate(self.extend(request, params))
         #
         #     [
-        #         {"symbol": "BTCUSDT-PERPETUAL", "rate": "0.0001", "nextSettleTime": "1722297600000"},
-        #         {"symbol": "ETHUSDT-PERPETUAL", "rate": "0.0001", "nextSettleTime": "1722297600000"}
+        #         { "symbol": "BTCUSDT-PERPETUAL", "rate": "0.0001", "nextSettleTime": "1722297600000" },
+        #         { "symbol": "ETHUSDT-PERPETUAL", "rate": "0.0001", "nextSettleTime": "1722297600000" }
         #     ]
         #
         return self.parse_funding_rates(response, symbols)
@@ -4087,7 +4090,7 @@ class hashkey(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         response = await self.publicGetApiV1ExchangeInfo(params)
-        # response is the same fetchMarkets()
+        # response is the same as in fetchMarkets()
         data = self.safe_list(response, 'contracts', [])
         symbols = self.market_symbols(symbols)
         return self.parse_leverage_tiers(data, symbols, 'symbol')
@@ -4145,8 +4148,8 @@ class hashkey(Exchange, ImplicitAPI):
         #         "baseAssetPrecision": "0.001",
         #         "quoteAsset": "USDT",
         #         "quoteAssetPrecision": "0.1",
-        #         "icebergAllowed": False,
-        #         "inverse": False,
+        #         "icebergAllowed": false,
+        #         "inverse": false,
         #         "index": "USDT",
         #         "marginToken": "USDT",
         #         "marginPrecision": "0.0001",
@@ -4158,14 +4161,14 @@ class hashkey(Exchange, ImplicitAPI):
         #                 "quantity": "1000.00",
         #                 "initialMargin": "0.10",
         #                 "maintMargin": "0.005",
-        #                 "isWhite": False
+        #                 "isWhite": false
         #             },
         #             {
         #                 "riskLimitId": "200000723",
         #                 "quantity": "2000.00",
         #                 "initialMargin": "0.10",
         #                 "maintMargin": "0.01",
-        #                 "isWhite": False
+        #                 "isWhite": false
         #             }
         #         ]
         #     }
@@ -4347,7 +4350,7 @@ class hashkey(Exchange, ImplicitAPI):
             return None
         errorInArray = False
         responseCodeString = self.safe_string(response, 'code')
-        responseCodeInteger = self.safe_integer(response, 'code')  # some codes in response are returned as '0000' others
+        responseCodeInteger = self.safe_integer(response, 'code')  # some codes in response are returned as '0000' others as 0
         if responseCodeInteger == 0:
             result = self.safe_list(response, 'result', [])  # for batch methods
             for i in range(0, len(result)):

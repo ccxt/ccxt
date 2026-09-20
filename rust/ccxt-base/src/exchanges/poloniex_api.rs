@@ -407,6 +407,11 @@ impl PoloniexCore {
         self.call_method(Value::Str("swap_public_get_v3_market_funding_rate".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `swapPublicGetV3MarketFundingRateHistory` implicit endpoint.
+    pub async fn swap_public_get_v3_market_funding_rate_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("swap_public_get_v3_market_funding_rate_history".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `swapPublicGetV3MarketOpenInterest` implicit endpoint.
     pub async fn swap_public_get_v3_market_open_interest(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("swap_public_get_v3_market_open_interest".to_string()), optional_args).await
@@ -420,6 +425,11 @@ impl PoloniexCore {
     /// Auto-generated wrapper for the `swapPublicGetV3MarketRiskLimit` implicit endpoint.
     pub async fn swap_public_get_v3_market_risk_limit(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("swap_public_get_v3_market_risk_limit".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `swapPublicGetV3MarketLimitPrice` implicit endpoint.
+    pub async fn swap_public_get_v3_market_limit_price(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("swap_public_get_v3_market_limit_price".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `swapPrivateGetV3AccountBalance` implicit endpoint.
@@ -447,6 +457,11 @@ impl PoloniexCore {
         self.call_method(Value::Str("swap_private_get_v3_trade_order_history".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `swapPrivateGetV3TradeOrderDetails` implicit endpoint.
+    pub async fn swap_private_get_v3_trade_order_details(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("swap_private_get_v3_trade_order_details".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `swapPrivateGetV3TradePositionOpens` implicit endpoint.
     pub async fn swap_private_get_v3_trade_position_opens(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("swap_private_get_v3_trade_position_opens".to_string()), optional_args).await
@@ -465,6 +480,11 @@ impl PoloniexCore {
     /// Auto-generated wrapper for the `swapPrivateGetV3PositionMode` implicit endpoint.
     pub async fn swap_private_get_v3_position_mode(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("swap_private_get_v3_position_mode".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `swapPrivateGetV3PositionRiskLimit` implicit endpoint.
+    pub async fn swap_private_get_v3_position_risk_limit(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("swap_private_get_v3_position_risk_limit".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `swapPrivatePostV3TradeOrder` implicit endpoint.

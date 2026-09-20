@@ -157,7 +157,7 @@ class alpaca(ccxt.async_support.alpaca):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         url = self.urls['api']['ws']['crypto']
         await self.authenticate(url)
@@ -246,7 +246,7 @@ class alpaca(ccxt.async_support.alpaca):
         #            },
         #            ...
         #        ],
-        #        "r": True,
+        #        "r": true,
         #    }
         #
         marketId = self.safe_string(message, 'S')
@@ -432,7 +432,7 @@ class alpaca(ccxt.async_support.alpaca):
         #            "limit_price": null,
         #            "stop_price": null,
         #            "status": "new",
-        #            "extended_hours": False,
+        #            "extended_hours": false,
         #            "legs": null,
         #            "trail_percent": null,
         #            "trail_price": null,
@@ -491,7 +491,7 @@ class alpaca(ccxt.async_support.alpaca):
         #            "limit_price": null,
         #            "stop_price": null,
         #            "status": "new",
-        #            "extended_hours": False,
+        #            "extended_hours": false,
         #            "legs": null,
         #            "trail_percent": null,
         #            "trail_price": null,
@@ -550,7 +550,7 @@ class alpaca(ccxt.async_support.alpaca):
         #        "limit_price": null,
         #        "stop_price": null,
         #        "status": "new",
-        #        "extended_hours": False,
+        #        "extended_hours": false,
         #        "legs": null,
         #        "trail_percent": null,
         #        "trail_price": null,
@@ -594,7 +594,7 @@ class alpaca(ccxt.async_support.alpaca):
                 'secret': self.secret,
             }
             if url == self.urls['api']['ws']['trading']:
-                # self auth request is being deprecated in test environment
+                # this auth request is being deprecated in test environment
                 request = {
                     'action': 'authenticate',
                     'data': {
@@ -709,7 +709,7 @@ class alpaca(ccxt.async_support.alpaca):
         #    {
         #          "T": "subscription",
         #          "trades": [],
-        #          "quotes": ["BTC/USDT"],
+        #          "quotes": [ "BTC/USDT" ],
         #          "orderbooks": [],
         #          "bars": [],
         #          "updatedBars": [],

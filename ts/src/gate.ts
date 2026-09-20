@@ -245,6 +245,10 @@ export default class gate extends Exchange {
                             '{settle}/index_constituents/{index}': { 'cost': 1 } as Endpoint<Dict>,
                             '{settle}/liq_orders': { 'cost': 1 } as Endpoint<List>,
                             '{settle}/risk_limit_tiers': { 'cost': 1 } as Endpoint<List>,
+                            '{settle}/adl_risk_states': { 'cost': 1 } as Endpoint<List>,
+                        },
+                        'post': {
+                            '{settle}/funding_rates': { 'cost': 1 } as Endpoint<List>,
                         },
                     },
                     'delivery': {
@@ -281,6 +285,9 @@ export default class gate extends Exchange {
                             'uni/currencies/{currency}': { 'cost': 1 } as Endpoint<Dict>,
                             'dual/investment_plan': { 'cost': 1 } as Endpoint<List>,
                             'structured/products': { 'cost': 1 } as Endpoint<List>,
+                            'dual/project-recommend': { 'cost': 1 } as Endpoint<List>,
+                            'fixed-term/product': { 'cost': 1 } as Endpoint<List>,
+                            'fixed-term/product/{asset}/list': { 'cost': 1 } as Endpoint<List>,
                         },
                     },
                     'loan': {
@@ -323,6 +330,7 @@ export default class gate extends Exchange {
                             'small_balance_history': { 'cost': 1 } as Endpoint<List>,
                             'push': { 'cost': 1 } as Endpoint<List>,
                             'getLowCapExchangeList': { 'cost': 1 } as Endpoint<List>,
+                            'transfers': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'post': {
                             'transfers': { 'cost': 2.5 } as Endpoint<Dict>, // 8r/s cost = 20 / 8 = 2.5
@@ -368,6 +376,8 @@ export default class gate extends Exchange {
                             'loan_margin_tiers': { 'cost': 20 / 15 } as Endpoint<List>,
                             'leverage/user_currency_config': { 'cost': 20 / 15 } as Endpoint<Dict>,
                             'leverage/user_currency_setting': { 'cost': 20 / 15 } as Endpoint<List>,
+                            'delta_neutral': { 'cost': 20 / 15 } as Endpoint<Dict>,
+                            'estimated_quick_repayment': { 'cost': 20 / 15 } as Endpoint<Dict>,
                             'account_mode': { 'cost': 20 / 15 } as Endpoint<Dict>, // deprecated
                         },
                         'post': {
@@ -375,6 +385,9 @@ export default class gate extends Exchange {
                             'portfolio_calculator': { 'cost': 20 / 15 } as Endpoint<Dict>,
                             'leverage/user_currency_setting': { 'cost': 20 / 15 } as Endpoint<List>,
                             'collateral_currencies': { 'cost': 20 / 15 } as Endpoint<Dict>,
+                            'delta_neutral': { 'cost': 20 / 15 } as Endpoint<Dict>,
+                            'leverage/user_setting': { 'cost': 20 / 15 } as Endpoint<Dict>,
+                            'quick_repayment': { 'cost': 20 / 15 } as Endpoint<Dict>,
                             'account_mode': { 'cost': 20 / 15 } as Endpoint<Dict>, // deprecated
                         },
                         'put': {
@@ -394,6 +407,8 @@ export default class gate extends Exchange {
                             'my_trades': { 'cost': 1 } as Endpoint<List>,
                             'price_orders': { 'cost': 1 } as Endpoint<List>,
                             'price_orders/{order_id}': { 'cost': 1 } as Endpoint<Dict>,
+                            'pov_orders': { 'cost': 1 } as Endpoint<List>,
+                            'pov_orders/{order_id}': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'post': {
                             'batch_orders': { 'cost': 0.4 } as Endpoint<List>,
@@ -403,12 +418,15 @@ export default class gate extends Exchange {
                             'countdown_cancel_all': { 'cost': 20 / 75 } as Endpoint<Dict>,
                             'amend_batch_orders': { 'cost': 0.4 } as Endpoint<List>,
                             'price_orders': { 'cost': 0.4 } as Endpoint<Dict>,
+                            'pov_orders': { 'cost': 0.4 } as Endpoint<Dict>,
                         },
                         'delete': {
                             'orders': { 'cost': 20 / 75 } as Endpoint<List>,
                             'orders/{order_id}': { 'cost': 20 / 75 } as Endpoint<Dict>,
                             'price_orders': { 'cost': 20 / 75 } as Endpoint<List>,
                             'price_orders/{order_id}': { 'cost': 20 / 75 } as Endpoint<Dict>,
+                            'pov_orders': { 'cost': 20 / 75 } as Endpoint<List>,
+                            'pov_orders/{order_id}': { 'cost': 20 / 75 } as Endpoint<Dict>,
                         },
                         'patch': {
                             'orders/{order_id}': { 'cost': 0.4 } as Endpoint<Dict>,
@@ -492,6 +510,11 @@ export default class gate extends Exchange {
                             '{settle}/risk_limit_table': { 'cost': 1 } as Endpoint<List>,
                             '{settle}/price_orders': { 'cost': 1 } as Endpoint<List>,
                             '{settle}/price_orders/{order_id}': { 'cost': 1 } as Endpoint<Dict>,
+                            '{settle}/autoorder/v1/trail/list': { 'cost': 1 } as Endpoint<List>,
+                            '{settle}/autoorder/v1/trail/detail': { 'cost': 1 } as Endpoint<Dict>,
+                            '{settle}/autoorder/v1/trail/change_log': { 'cost': 1 } as Endpoint<List>,
+                            '{settle}/autoorder/v1/chase/list': { 'cost': 1 } as Endpoint<List>,
+                            '{settle}/autoorder/v1/chase/detail': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'post': {
                             '{settle}/positions/{contract}/margin': { 'cost': 1 } as Endpoint<Dict>,
@@ -512,6 +535,13 @@ export default class gate extends Exchange {
                             '{settle}/batch_amend_orders': { 'cost': 0.4 } as Endpoint<List>,
                             '{settle}/bbo_orders': { 'cost': 0.4 } as Endpoint<Dict>,
                             '{settle}/price_orders': { 'cost': 0.4 } as Endpoint<Dict>,
+                            '{settle}/autoorder/v1/trail/create': { 'cost': 0.4 } as Endpoint<Dict>,
+                            '{settle}/autoorder/v1/trail/stop': { 'cost': 0.4 } as Endpoint<Dict>,
+                            '{settle}/autoorder/v1/trail/stop_all': { 'cost': 0.4 } as Endpoint<List>,
+                            '{settle}/autoorder/v1/trail/update': { 'cost': 0.4 } as Endpoint<Dict>,
+                            '{settle}/autoorder/v1/chase/create': { 'cost': 0.4 } as Endpoint<Dict>,
+                            '{settle}/autoorder/v1/chase/stop': { 'cost': 0.4 } as Endpoint<Dict>,
+                            '{settle}/autoorder/v1/chase/stop_all': { 'cost': 0.4 } as Endpoint<List>,
                         },
                         'put': {
                             '{settle}/orders/{order_id}': { 'cost': 1 } as Endpoint<Dict>,
@@ -572,6 +602,9 @@ export default class gate extends Exchange {
                             'mmp': { 'cost': 20 / 15 } as Endpoint<Dict>,
                             'mmp/reset': { 'cost': 20 / 15 } as Endpoint<Dict>,
                         },
+                        'put': {
+                            'orders/{order_id}': { 'cost': 20 / 15 } as Endpoint<Dict>,
+                        },
                         'delete': {
                             'orders': { 'cost': 20 / 15 } as Endpoint<List>,
                             'orders/{order_id}': { 'cost': 20 / 15 } as Endpoint<Dict>,
@@ -594,6 +627,15 @@ export default class gate extends Exchange {
                             'staking/order_list': { 'cost': 20 / 15 } as Endpoint<Dict>,
                             'staking/award_list': { 'cost': 20 / 15 } as Endpoint<Dict>,
                             'staking/assets': { 'cost': 20 / 15 } as Endpoint<List>,
+                            'dual/order-refund-preview': { 'cost': 20 / 15 } as Endpoint<Dict>,
+                            'fixed-term/user/lend': { 'cost': 20 / 15 } as Endpoint<List>,
+                            'fixed-term/user/history': { 'cost': 20 / 15 } as Endpoint<List>,
+                            'autoinvest/coins': { 'cost': 20 / 15 } as Endpoint<List>,
+                            'autoinvest/config': { 'cost': 20 / 15 } as Endpoint<List>,
+                            'autoinvest/orders': { 'cost': 20 / 15 } as Endpoint<List>,
+                            'autoinvest/plans/detail': { 'cost': 20 / 15 } as Endpoint<Dict>,
+                            'autoinvest/plans/list_info': { 'cost': 20 / 15 } as Endpoint<List>,
+                            'autoinvest/plans/records': { 'cost': 20 / 15 } as Endpoint<List>,
                             'uni/currencies': { 'cost': 20 / 15 } as Endpoint<List>, // deprecated
                             'uni/currencies/{currency}': { 'cost': 20 / 15 } as Endpoint<Dict>, // deprecated
                         },
@@ -603,6 +645,15 @@ export default class gate extends Exchange {
                             'dual/orders': { 'cost': 20 / 15 } as Endpoint<Dict>,
                             'structured/orders': { 'cost': 20 / 15 } as Endpoint<List>,
                             'staking/swap': { 'cost': 20 / 15 } as Endpoint<Dict>,
+                            'dual/order-refund': { 'cost': 20 / 15 } as Endpoint<Dict>,
+                            'dual/modify-order-reinvest': { 'cost': 20 / 15 } as Endpoint<Dict>,
+                            'fixed-term/user/lend': { 'cost': 20 / 15 } as Endpoint<Dict>,
+                            'fixed-term/user/pre-redeem': { 'cost': 20 / 15 } as Endpoint<Dict>,
+                            'autoinvest/min_invest_amount': { 'cost': 20 / 15 } as Endpoint<Dict>,
+                            'autoinvest/plans/add_position': { 'cost': 20 / 15 } as Endpoint<Dict>,
+                            'autoinvest/plans/create': { 'cost': 20 / 15 } as Endpoint<Dict>,
+                            'autoinvest/plans/stop': { 'cost': 20 / 15 } as Endpoint<Dict>,
+                            'autoinvest/plans/update': { 'cost': 20 / 15 } as Endpoint<Dict>,
                         },
                         'put': {
                             'uni/interest_reinvest': { 'cost': 20 / 15 } as Endpoint<Dict>, // deprecated
@@ -669,6 +720,7 @@ export default class gate extends Exchange {
                             'broker/transaction_history': { 'cost': 20 / 15 } as Endpoint<List>,
                             'user/info': { 'cost': 20 / 15 } as Endpoint<List>,
                             'user/sub_relation': { 'cost': 20 / 15 } as Endpoint<Dict>,
+                            'partner/data/aggregated': { 'cost': 20 / 15 } as Endpoint<Dict>,
                         },
                     },
                     'otc': {
@@ -677,6 +729,8 @@ export default class gate extends Exchange {
                             'order/list': { 'cost': 1 } as Endpoint<Dict>,
                             'stable_coin/order/list': { 'cost': 1 } as Endpoint<Dict>,
                             'order/detail': { 'cost': 1 } as Endpoint<Dict>,
+                            'bank/list': { 'cost': 1 } as Endpoint<List>,
+                            'bank/bank_supplement_checklist': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'post': {
                             'quote': { 'cost': 1 } as Endpoint<Dict>,
@@ -684,6 +738,12 @@ export default class gate extends Exchange {
                             'stable_coin/order/create': { 'cost': 1 } as Endpoint<Dict>,
                             'order/paid': { 'cost': 1 } as Endpoint<Dict>,
                             'order/cancel': { 'cost': 1 } as Endpoint<Dict>,
+                            'bank/create': { 'cost': 1 } as Endpoint<Dict>,
+                            'bank/delete': { 'cost': 1 } as Endpoint<Dict>,
+                            'bank/set_default': { 'cost': 1 } as Endpoint<Dict>,
+                            'bank/personal/bank_supplement': { 'cost': 1 } as Endpoint<Dict>,
+                            'bank/enterprise/bank_supplement': { 'cost': 1 } as Endpoint<Dict>,
+                            'upload/pre_upload': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                 },
@@ -7143,7 +7203,7 @@ export default class gate extends Exchange {
                     body = this.json (query);
                 }
             } else {
-                const urlQueryParams = this.safeValue (query, 'query', {});
+                const urlQueryParams = this.safeDict (query, 'query', {});
                 if (Object.keys (urlQueryParams).length > 0) {
                     queryString = this.urlencode (urlQueryParams);
                     url += '?' + queryString;

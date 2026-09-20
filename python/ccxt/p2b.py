@@ -297,13 +297,13 @@ class p2b(Exchange, ImplicitAPI):
                     '1005': AuthenticationError,    # Invalid body data. Invalid request body
                     '1006': AuthenticationError,    # Nonce not provided. Request body missing required parameter "nonce".
                     '1007': AuthenticationError,    # Request not provided. Request body missing required parameter "request".
-                    '1008': AuthenticationError,    # Invalid request in body. The passed request parameter does not match the URL of self request.
-                    '1009': AuthenticationError,    # Invalid payload. The transmitted payload value(X-TXC-PAYLOAD header) does not match the request body.
+                    '1008': AuthenticationError,    # Invalid request in body. The passed request parameter does not match the URL of this request.
+                    '1009': AuthenticationError,    # Invalid payload. The transmitted payload value (X-TXC-PAYLOAD header) does not match the request body.
                     '1010': AuthenticationError,    # This action is unauthorized. - API key passed in the X-TXC-APIKEY header does not exist. - Access to API is not activated. Go to profile and activate access.
                     '1011': AuthenticationError,    # This action is unauthorized. Please, enable two-factor authentication. Two-factor authentication is not activated for the user.
                     '1012': AuthenticationError,    # Invalid nonce. Parameter "nonce" is not a number.
-                    '1013': RateLimitExceeded,      # Too many requests. - A request came with a repeated value of nonce. - Received more than the limited value of requests(10) within one second.
-                    '1014': AuthenticationError,    # Unauthorized request. Signature value passed(in the X-TXC-SIGNATURE header) does not match the request body.
+                    '1013': RateLimitExceeded,      # Too many requests. - A request came with a repeated value of nonce. - Received more than the limited value of requests (10) within one second.
+                    '1014': AuthenticationError,    # Unauthorized request. Signature value passed (in the X-TXC-SIGNATURE header) does not match the request body.
                     '1015': ExchangeNotAvailable,   # Temporary block. Temporary blocking. There is a cancellation of orders.
                     '1016': AuthenticationError,    # Not unique nonce. The request was sent with a repeated parameter "nonce" within 10 seconds.
                     '2010': BadRequest,             # Currency not found. Currency not found.
@@ -349,7 +349,7 @@ class p2b(Exchange, ImplicitAPI):
         response = self.publicGetMarkets(params)
         #
         #    {
-        #        "success": True,
+        #        "success": true,
         #        "errorCode": "",
         #        "message": "",
         #        "result": [
@@ -453,7 +453,7 @@ class p2b(Exchange, ImplicitAPI):
         response = self.publicGetTickers(params)
         #
         #    {
-        #        success: True,
+        #        success: true,
         #        errorCode: '',
         #        message: '',
         #        result: {
@@ -498,7 +498,7 @@ class p2b(Exchange, ImplicitAPI):
         response = self.publicGetTicker(self.extend(request, params))
         #
         #    {
-        #        success: True,
+        #        success: true,
         #        errorCode: '',
         #        message: '',
         #        result: {
@@ -607,14 +607,14 @@ class p2b(Exchange, ImplicitAPI):
         response = self.publicGetDepthResult(self.extend(request, params))
         #
         #    {
-        #        "success": True,
+        #        "success": true,
         #        "errorCode": "",
         #        "message": "",
         #        "result": {
         #            "asks": [
         #                [
-        #                    "4.53",     # Price
-        #                    "523.95"    # Amount
+        #                    "4.53",     // Price
+        #                    "523.95"    // Amount
         #                ],
         #                ...
         #            ],
@@ -651,7 +651,7 @@ class p2b(Exchange, ImplicitAPI):
             self.load_markets()
         lastId = self.safe_integer(params, 'lastId')
         if lastId is None:
-            raise ArgumentsRequired(self.id + ' fetchTrades() requires an extra parameter params["lastId"]')
+            raise ArgumentsRequired(self.id + ' fetchTrades () requires an extra parameter params["lastId"]')
         market = self.market(symbol)
         request = {
             'market': market['id'],
@@ -662,7 +662,7 @@ class p2b(Exchange, ImplicitAPI):
         response = self.publicGetHistory(self.extend(request, params))
         #
         #    {
-        #        success: True,
+        #        success: true,
         #        errorCode: '',
         #        message: '',
         #        result: [
@@ -697,30 +697,30 @@ class p2b(Exchange, ImplicitAPI):
         # fetchMyTrades
         #
         #    {
-        #        "deal_id": 7450617292,              # Deal id
-        #        "deal_time": 1698506956.66224,      # Deal execution time
-        #        "deal_order_id": 171955225751,      # Deal order id
-        #        "opposite_order_id": 171955110512,  # Opposite order id
-        #        "side": "sell",                     # Deal side
-        #        "price": "0.05231",                 # Deal price
-        #        "amount": "0.002",                  # Deal amount
-        #        "deal": "0.00010462",               # Total(price * amount)
-        #        "deal_fee": "0.000000188316",       # Deal fee
-        #        "role": "taker",                    # Role. Taker or maker
-        #        "isSelfTrade": False                # is self trade
+        #        "deal_id": 7450617292,              // Deal id
+        #        "deal_time": 1698506956.66224,      // Deal execution time
+        #        "deal_order_id": 171955225751,      // Deal order id
+        #        "opposite_order_id": 171955110512,  // Opposite order id
+        #        "side": "sell",                     // Deal side
+        #        "price": "0.05231",                 // Deal price
+        #        "amount": "0.002",                  // Deal amount
+        #        "deal": "0.00010462",               // Total (price * amount)
+        #        "deal_fee": "0.000000188316",       // Deal fee
+        #        "role": "taker",                    // Role. Taker or maker
+        #        "isSelfTrade": false                // is self trade
         #    }
         #
         # fetchOrderTrades
         #
         #    {
-        #        "id": 7429883128,             # Deal id
-        #        "time": 1698237535.41196,     # Deal execution time
-        #        "fee": "0.01755848704",       # Deal fee
-        #        "price": "34293.92",          # Deal price
-        #        "amount": "0.00032",          # Deal amount
-        #        "dealOrderId": 171366551416,  # Deal order id
-        #        "role": 1,                    # Deal role(1 - maker, 2 - taker)
-        #        "deal": "10.9740544"          # Total(price * amount)
+        #        "id": 7429883128,             // Deal id
+        #        "time": 1698237535.41196,     // Deal execution time
+        #        "fee": "0.01755848704",       // Deal fee
+        #        "price": "34293.92",          // Deal price
+        #        "amount": "0.00032",          // Deal amount
+        #        "dealOrderId": 171366551416,  // Deal order id
+        #        "role": 1,                    // Deal role (1 - maker, 2 - taker)
+        #        "deal": "10.9740544"          // Total (price * amount)
         #    }
         #
         timestamp = self.safe_integer_product_2(trade, 'time', 'deal_time', 1000)
@@ -760,7 +760,7 @@ class p2b(Exchange, ImplicitAPI):
         :param int [limit]: 1-500, default=50
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.offset]: default=0, with self value the last candles are returned
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -774,19 +774,19 @@ class p2b(Exchange, ImplicitAPI):
         response = self.publicGetMarketKline(self.extend(request, params))
         #
         #    {
-        #        success: True,
+        #        success: true,
         #        errorCode: '',
         #        message: '',
         #        result: [
         #            [
-        #                1699253400,       # Kline open time
-        #                '0.3429',         # Open price
-        #                '0.3427',         # Close price
-        #                '0.3429',         # Highest price
-        #                '0.3427',         # Lowest price
-        #                '1900.4',         # Volume for stock currency
-        #                '651.46278',      # Volume for money currency
-        #                'ADA_USDT'        # Market name
+        #                1699253400,       // Kline open time
+        #                '0.3429',         // Open price
+        #                '0.3427',         // Close price
+        #                '0.3429',         // Highest price
+        #                '0.3427',         // Lowest price
+        #                '1900.4',         // Volume for stock currency
+        #                '651.46278',      // Volume for money currency
+        #                'ADA_USDT'        // Market name
         #            ],
         #            ...
         #        ],
@@ -800,14 +800,14 @@ class p2b(Exchange, ImplicitAPI):
     def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         #    [
-        #        1699253400,       # Kline open time
-        #        '0.3429',         # Open price
-        #        '0.3427',         # Close price
-        #        '0.3429',         # Highest price
-        #        '0.3427',         # Lowest price
-        #        '1900.4',         # Volume for stock currency
-        #        '651.46278',      # Volume for money currency
-        #        'ADA_USDT'        # Market name
+        #        1699253400,       // Kline open time
+        #        '0.3429',         // Open price
+        #        '0.3427',         // Close price
+        #        '0.3429',         // Highest price
+        #        '0.3427',         // Lowest price
+        #        '1900.4',         // Volume for stock currency
+        #        '651.46278',      // Volume for money currency
+        #        'ADA_USDT'        // Market name
         #    ],
         #
         return [
@@ -833,7 +833,7 @@ class p2b(Exchange, ImplicitAPI):
         response = self.privatePostAccountBalances(params)
         #
         #    {
-        #        "success": True,
+        #        "success": true,
         #        "errorCode": "",
         #        "message": "",
         #        "result": {
@@ -898,7 +898,7 @@ class p2b(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         if type == 'market':
-            raise BadRequest(self.id + ' createOrder() can only accept orders with type "limit"')
+            raise BadRequest(self.id + ' createOrder () can only accept orders with type "limit"')
         market = self.market(symbol)
         request = {
             'market': market['id'],
@@ -909,23 +909,23 @@ class p2b(Exchange, ImplicitAPI):
         response = self.privatePostOrderNew(self.extend(request, params))
         #
         #    {
-        #        "success": True,
+        #        "success": true,
         #        "errorCode": "",
         #        "message": "",
         #        "result": {
-        #            "orderId": 171906478744,          # Order id
-        #            "market": "ETH_BTC",              # Market name
-        #            "price": "0.04348",               # Price
-        #            "side": "buy",                    # Side
-        #            "type": "limit",                  # Order type
-        #            "timestamp": 1698484861.746517,   # Order creation time
-        #            "dealMoney": "0",                 # Filled total
-        #            "dealStock": "0",                 # Filled amount
-        #            "amount": "0.0277",               # Original amount
-        #            "takerFee": "0.002",              # taker fee
-        #            "makerFee": "0.002",              # maker fee
-        #            "left": "0.0277",                 # Unfilled amount
-        #            "dealFee": "0"                    # Filled fee
+        #            "orderId": 171906478744,          // Order id
+        #            "market": "ETH_BTC",              // Market name
+        #            "price": "0.04348",               // Price
+        #            "side": "buy",                    // Side
+        #            "type": "limit",                  // Order type
+        #            "timestamp": 1698484861.746517,   // Order creation time
+        #            "dealMoney": "0",                 // Filled total
+        #            "dealStock": "0",                 // Filled amount
+        #            "amount": "0.0277",               // Original amount
+        #            "takerFee": "0.002",              // taker fee
+        #            "makerFee": "0.002",              // maker fee
+        #            "left": "0.0277",                 // Unfilled amount
+        #            "dealFee": "0"                    // Filled fee
         #        }
         #    }
         #
@@ -955,7 +955,7 @@ class p2b(Exchange, ImplicitAPI):
         response = self.privatePostOrderCancel(self.extend(request, params))
         #
         #    {
-        #        "success": True,
+        #        "success": true,
         #        "errorCode": "",
         #        "message": "",
         #        "result": {
@@ -994,7 +994,7 @@ class p2b(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires the symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOpenOrders () requires the symbol argument')
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
@@ -1006,7 +1006,7 @@ class p2b(Exchange, ImplicitAPI):
         response = self.privatePostOrders(self.extend(request, params))
         #
         #    {
-        #        "success": True,
+        #        "success": true,
         #        "errorCode": "",
         #        "message": "",
         #        "result": [
@@ -1059,7 +1059,7 @@ class p2b(Exchange, ImplicitAPI):
         response = self.privatePostAccountOrder(self.extend(request, params))
         #
         #    {
-        #        "success": True,
+        #        "success": true,
         #        "errorCode": "",
         #        "message": "",
         #        "result": {
@@ -1067,14 +1067,14 @@ class p2b(Exchange, ImplicitAPI):
         #            "limit": 50,
         #            "records": [
         #                {
-        #                    "id": 7429883128,             # Deal id
-        #                    "time": 1698237535.41196,     # Deal execution time
-        #                    "fee": "0.01755848704",       # Deal fee
-        #                    "price": "34293.92",          # Deal price
-        #                    "amount": "0.00032",          # Deal amount
-        #                    "dealOrderId": 171366551416,  # Deal order id
-        #                    "role": 1,                    # Deal role(1 - maker, 2 - taker)
-        #                    "deal": "10.9740544"          # Total(price * amount)
+        #                    "id": 7429883128,             // Deal id
+        #                    "time": 1698237535.41196,     // Deal execution time
+        #                    "fee": "0.01755848704",       // Deal fee
+        #                    "price": "34293.92",          // Deal price
+        #                    "amount": "0.00032",          // Deal amount
+        #                    "dealOrderId": 171366551416,  // Deal order id
+        #                    "role": 1,                    // Deal role (1 - maker, 2 - taker)
+        #                    "deal": "10.9740544"          // Total (price * amount)
         #                }
         #            ]
         #        }
@@ -1114,7 +1114,7 @@ class p2b(Exchange, ImplicitAPI):
         if since is None:
             since = until - 86400000
         if (until - since) > 86400000:
-            raise BadRequest(self.id + ' fetchMyTrades() the time between since and params["until"] cannot be greater than 24 hours')
+            raise BadRequest(self.id + ' fetchMyTrades () the time between since and params["until"] cannot be greater than 24 hours')
         market = self.market(symbol)
         sinceSec = self.parse_to_int(since / 1000)
         untilSec = self.parse_to_int(until / 1000)
@@ -1128,24 +1128,24 @@ class p2b(Exchange, ImplicitAPI):
         response = self.privatePostAccountMarketDealHistory(self.extend(request, params))
         #
         #    {
-        #        "success": True,
+        #        "success": true,
         #        "errorCode": "",
         #        "message": "",
         #        "result": {
-        #            "total": 2,                                 # Total records in the queried range
+        #            "total": 2,                                 // Total records in the queried range
         #            "deals": [
         #                {
-        #                    "deal_id": 7450617292,              # Deal id
-        #                    "deal_time": 1698506956.66224,      # Deal execution time
-        #                    "deal_order_id": 171955225751,      # Deal order id
-        #                    "opposite_order_id": 171955110512,  # Opposite order id
-        #                    "side": "sell",                     # Deal side
-        #                    "price": "0.05231",                 # Deal price
-        #                    "amount": "0.002",                  # Deal amount
-        #                    "deal": "0.00010462",               # Total(price * amount)
-        #                    "deal_fee": "0.000000188316",       # Deal fee
-        #                    "role": "taker",                    # Role. Taker or maker
-        #                    "isSelfTrade": False                # is self trade
+        #                    "deal_id": 7450617292,              // Deal id
+        #                    "deal_time": 1698506956.66224,      // Deal execution time
+        #                    "deal_order_id": 171955225751,      // Deal order id
+        #                    "opposite_order_id": 171955110512,  // Opposite order id
+        #                    "side": "sell",                     // Deal side
+        #                    "price": "0.05231",                 // Deal price
+        #                    "amount": "0.002",                  // Deal amount
+        #                    "deal": "0.00010462",               // Total (price * amount)
+        #                    "deal_fee": "0.000000188316",       // Deal fee
+        #                    "role": "taker",                    // Role. Taker or maker
+        #                    "isSelfTrade": false                // is self trade
         #                },
         #                ...
         #            ]
@@ -1187,7 +1187,7 @@ class p2b(Exchange, ImplicitAPI):
         if since is None:
             since = until - 86400000
         if (until - since) > 86400000:
-            raise BadRequest(self.id + ' fetchClosedOrders() the time between since and params["until"] cannot be greater than 24 hours')
+            raise BadRequest(self.id + ' fetchClosedOrders () the time between since and params["until"] cannot be greater than 24 hours')
         sinceSec = self.parse_to_int(since / 1000)
         untilSec = self.parse_to_int(until / 1000)
         request = {
@@ -1201,7 +1201,7 @@ class p2b(Exchange, ImplicitAPI):
         response = self.privatePostAccountOrderHistory(self.extend(request, params))
         #
         #    {
-        #        "success": True,
+        #        "success": true,
         #        "errorCode": "",
         #        "message": "",
         #        "result": {
@@ -1258,19 +1258,19 @@ class p2b(Exchange, ImplicitAPI):
         # fetchClosedOrders
         #
         #    {
-        #        "id": 171366547790,           # Order id
-        #        "amount": "0.00032",          # Original amount
-        #        "price": "34293.92",          # Order price
-        #        "type": "limit",              # Order type
-        #        "side": "sell",               # Order side
-        #        "ctime": 1698237533.497241,   # Order creation time
-        #        "ftime": 1698237535.41196,    # Order fill time
-        #        "market": "BTC_USDT",         # Market name
-        #        "takerFee": "0.0018",         # Taker fee
-        #        "makerFee": "0.0016",         # Market fee
-        #        "dealFee": "0.01755848704",   # Deal fee
-        #        "dealStock": "0.00032",       # Filled amount
-        #        "dealMoney": "10.9740544"     # Filled total
+        #        "id": 171366547790,           // Order id
+        #        "amount": "0.00032",          // Original amount
+        #        "price": "34293.92",          // Order price
+        #        "type": "limit",              // Order type
+        #        "side": "sell",               // Order side
+        #        "ctime": 1698237533.497241,   // Order creation time
+        #        "ftime": 1698237535.41196,    // Order fill time
+        #        "market": "BTC_USDT",         // Market name
+        #        "takerFee": "0.0018",         // Taker fee
+        #        "makerFee": "0.0016",         // Market fee
+        #        "dealFee": "0.01755848704",   // Deal fee
+        #        "dealStock": "0.00032",       // Filled amount
+        #        "dealMoney": "10.9740544"     // Filled total
         #    }
         #
         timestamp = self.safe_integer_product_2(order, 'timestamp', 'ctime', 1000)
@@ -1335,7 +1335,9 @@ class p2b(Exchange, ImplicitAPI):
             errorCode = self.safe_string(response, 'errorCode')
             feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
-            if code < 400:
+            codeAsString = str(code)
+            if (code < 400) or not (codeAsString in self.httpExceptions):
+                # an error envelope must always throw — also for statuses the http-status handler has no entry for
                 raise ExchangeError(feedback)
-            # unmapped codes on error statuses fall through to the default http-status handler
+            # unmapped codes on the remaining error statuses fall through to the default http-status handler
         return None

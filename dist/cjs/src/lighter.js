@@ -200,6 +200,7 @@ class lighter extends lighter$1["default"] {
                         'currentHeight': { 'cost': 1 },
                         // candlestick
                         'candles': { 'cost': 1 },
+                        'markPriceCandles': { 'cost': 1 },
                         'fundings': { 'cost': 1 },
                         // bridge
                         'fastbridge/info': { 'cost': 1 },
@@ -207,6 +208,9 @@ class lighter extends lighter$1["default"] {
                         'funding-rates': { 'cost': 1 },
                         // info
                         'withdrawalDelay': { 'cost': 1 },
+                        'partnerStats': { 'cost': 1 },
+                        'syntheticSpotInfo': { 'cost': 1 },
+                        'tokenlist': { 'cost': 1 },
                     },
                     'post': {
                         // transaction
@@ -224,10 +228,13 @@ class lighter extends lighter$1["default"] {
                         'liquidations': { 'cost': 1 },
                         'positionFunding': { 'cost': 1 },
                         'publicPoolsMetadata': { 'cost': 1 },
+                        'getMakerOnlyApiKeys': { 'cost': 1 },
                         // order
                         'accountActiveOrders': { 'cost': 1 },
                         'accountInactiveOrders': { 'cost': 1 },
+                        'accountOrders': { 'cost': 1 },
                         'export': { 'cost': 1 },
+                        'export/historicalTrades': { 'cost': 1 },
                         'trades': { 'cost': 1 },
                         // transaction
                         'accountTxs': { 'cost': 1 },
@@ -238,12 +245,20 @@ class lighter extends lighter$1["default"] {
                         'referral/points': { 'cost': 1 },
                         // info
                         'transferFeeInfo': { 'cost': 1 },
+                        // rfq
+                        'rfq/get': { 'cost': 1 },
+                        'rfq/list': { 'cost': 1 },
                     },
                     'post': {
                         // account
                         'changeAccountTier': { 'cost': 1 },
+                        'setMakerOnlyApiKeys': { 'cost': 1 },
                         // notification
                         'notification/ack': { 'cost': 1 },
+                        // rfq
+                        'rfq/create': { 'cost': 1 },
+                        'rfq/respond': { 'cost': 1 },
+                        'rfq/update': { 'cost': 1 },
                     },
                 },
             },

@@ -235,6 +235,7 @@ export default class coinbase extends Exchange {
                             'payment-methods/{payment_method_id}': { 'cost': 10.6 } as Endpoint<Dict>,
                             'user': { 'cost': 10.6 } as Endpoint<Dict>,
                             'user/auth': { 'cost': 10.6 } as Endpoint<Dict>,
+                            'subscriptions/coinbase-one': { 'cost': 10.6 } as Endpoint<Dict>,
                         },
                         'post': {
                             'accounts': { 'cost': 10.6 } as Endpoint<Dict>,
@@ -294,6 +295,9 @@ export default class coinbase extends Exchange {
                             'brokerage/cfm/positions': { 'cost': 1 } as Endpoint<Dict>,
                             'brokerage/cfm/positions/{product_id}': { 'cost': 1 } as Endpoint<Dict>,
                             'brokerage/cfm/sweeps': { 'cost': 1 } as Endpoint<Dict>,
+                            'brokerage/cfm/intraday/current_margin_window': { 'cost': 1 } as Endpoint<Dict>,
+                            'brokerage/cfm/intraday/margin_setting': { 'cost': 1 } as Endpoint<Dict>,
+                            'brokerage/intx/balances/{portfolio_uuid}': { 'cost': 1 } as Endpoint<Dict>,
                             'brokerage/intx/portfolio/{portfolio_uuid}': { 'cost': 1 } as Endpoint<Dict>,
                             'brokerage/intx/positions/{portfolio_uuid}': { 'cost': 1 } as Endpoint<Dict>,
                             'brokerage/intx/positions/{portfolio_uuid}/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
@@ -312,7 +316,9 @@ export default class coinbase extends Exchange {
                             'brokerage/convert/quote': { 'cost': 1 } as Endpoint<Dict>,
                             'brokerage/convert/trade/{trade_id}': { 'cost': 1 } as Endpoint<Dict>,
                             'brokerage/cfm/sweeps/schedule': { 'cost': 1 } as Endpoint<Dict>,
+                            'brokerage/cfm/intraday/margin_setting': { 'cost': 1 } as Endpoint<Dict>,
                             'brokerage/intx/allocate': { 'cost': 1 } as Endpoint<Dict>,
+                            'brokerage/intx/multi_asset_collateral': { 'cost': 1 } as Endpoint<Dict>,
                             // futures
                             'brokerage/orders/close_position': { 'cost': 1 } as Endpoint<Dict>,
                         },

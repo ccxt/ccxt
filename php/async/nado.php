@@ -100,6 +100,7 @@ class nado extends Exchange {
                         ),
                         'post' => array(
                             'query' => array( 'cost' => 1 ),
+                            'edge/query' => array( 'cost' => 1 ),
                         ),
                     ),
                     'private' => array(
@@ -128,6 +129,7 @@ class nado extends Exchange {
                             'tickers' => array( 'cost' => 1 ),
                             'contracts' => array( 'cost' => 1 ),
                             'trades' => array( 'cost' => 1 ),
+                            'symbols' => array( 'cost' => 1 ),
                         ),
                     ),
                 ),
@@ -186,6 +188,7 @@ class nado extends Exchange {
                     '1002' => '\\ccxt\\RestrictedLocation',
                     '1003' => '\\ccxt\\RestrictedLocation',
                     '1004' => '\\ccxt\\OnMaintenance',
+                    '1005' => '\\ccxt\\BadRequest',
                     '2000' => '\\ccxt\\InvalidOrder',
                     '2001' => '\\ccxt\\InvalidOrder',
                     '2002' => '\\ccxt\\InvalidOrder',
@@ -309,6 +312,7 @@ class nado extends Exchange {
                     '2123' => '\\ccxt\\BadRequest',
                     '2124' => '\\ccxt\\InvalidOrder',
                     '2125' => '\\ccxt\\OperationRejected',
+                    '2126' => '\\ccxt\\OrderNotFound',
                     '3000' => '\\ccxt\\BadRequest',
                     '3001' => '\\ccxt\\BadRequest',
                     '3002' => '\\ccxt\\ArgumentsRequired',
@@ -354,7 +358,7 @@ class nado extends Exchange {
          * @param {float} [$params->triggerPrice] *swap only* The $price at which a trigger order is triggered at
          * @param {float} [$params->stopLossPrice] *swap only* The $price at which a stop loss order is triggered at
          * @param {float} [$params->takeProfitPrice] *swap only* The $price at which a take profit order is triggered at
-         * @param {string} [$params->triggerDirection] trigger direction, above, below
+         * @param {string} [$params->triggerDirection] the direction of the trigger $price, 'ascending' or 'descending', also accepts the 'above'/'up' and 'below'/'down' aliases
          * @param {int} [$params->id] client-provided $request id, returned by the exchange in the $response
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
@@ -372,13 +376,13 @@ class nado extends Exchange {
         }
         //
         //     {
-        //         "status" => "success",
-        //         "signature" => "0x...",
-        //         "data" => array(
-        //             "digest" => "0x..."
-        //         ),
-        //         "request_type" => "execute_place_order",
-        //         "id" => 100
+        //         "status": "success",
+        //         "signature": "0x...",
+        //         "data": {
+        //             "digest": "0x..."
+        //         },
+        //         "request_type": "execute_place_order",
+        //         "id": 100
         //     }
         //
         return $this->parse_order($this->extend(array( 'place_order' => $placeOrder ), $response), $market);
@@ -450,13 +454,12 @@ class nado extends Exchange {
         $isStopOrder = $triggerPrice !== null;
         $isTriggerOrder = $isStopOrder || $isStopLossOrder || $isTakeProfitOrder;
         if ($isStopOrder) {
-            $triggerDirection = $this->safe_string_lower($params, 'triggerDirection');
-            if ($triggerDirection === null) {
-                throw new ArgumentsRequired($this->id . ' createOrder() requires $triggerDirection for $trigger order');
-            }
+            $triggerDirection = null;
+            list($triggerDirection, $params) = $this->handle_trigger_direction_and_params($params);
+            $directionSuffix = ($triggerDirection === 'ascending') ? 'above' : 'below';
             $triggerPriceX18 = $this->convert_to_x18($triggerPrice);
             $priceRequirement = array();
-            $priceRequirement['oracle_price_' . $triggerDirection] = $triggerPriceX18;
+            $priceRequirement['oracle_price_' . $directionSuffix] = $triggerPriceX18;
             $trigger = array(
                 'price_trigger' => array(
                     'price_requirement' => $priceRequirement,
@@ -524,6 +527,7 @@ class nado extends Exchange {
          * @param {boolean} [$params->spotLeverage] whether leverage should be used for spot, defaults to true, exchange-specific alias $params->spot_leverage
          * @param {boolean} [$params->placeRequiresUnfilled] when true, aborts the new order if the canceled order had partial fills or the cancel failed, exchange-specific alias $params->place_requires_unfilled, defaults to true
          * @param {int} [$params->id] client-provided $request $id, returned by the exchange in the $response
+         * @param {float} [$params->triggerPrice] not supported, editing trigger orders throws NotSupported, the same applies to $params->stopPrice, $params->stopLossPrice and $params->takeProfitPrice
          * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->check_required_credentials();
@@ -533,12 +537,12 @@ class nado extends Exchange {
         $response = Async\await($this->gatewayPrivatePostExecute($request));
         //
         //     {
-        //         "status" => "success",
-        //         "signature" => "0x...",
-        //         "data" => array(
-        //             "digest" => "0x..."
-        //         ),
-        //         "request_type" => "execute_cancel_and_place"
+        //         "status": "success",
+        //         "signature": "0x...",
+        //         "data": {
+        //             "digest": "0x..."
+        //         },
+        //         "request_type": "execute_cancel_and_place"
         //     }
         //
         $cancelAndPlace = $this->safe_dict($request, 'cancel_and_place', array());
@@ -566,6 +570,10 @@ class nado extends Exchange {
         $market = $this->market($symbol);
         if ($type !== 'limit') {
             throw new InvalidOrder($this->id . ' editOrder() supports limit orders only');
+        }
+        $triggerPrice = $this->safe_string_n($params, array( 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice' ));
+        if ($triggerPrice !== null) {
+            throw new NotSupported($this->id . ' editOrder() and editOrderWs() do not support trigger orders, cancel the trigger $order and create a new one instead');
         }
         if ($amount === null) {
             throw new ArgumentsRequired($this->id . ' editOrder() requires an $amount argument');
@@ -697,36 +705,36 @@ class nado extends Exchange {
             $response = Async\await($this->triggerPrivatePostExecute($request));
             //
             // {
-            //     "status" => "success",
-            //     "signature" => {signature},
-            //     "request_type" => "execute_cancel_product_orders"
+            //     "status": "success",
+            //     "signature": {signature},
+            //     "request_type": "execute_cancel_product_orders"
             // }
             //
         } else {
             $response = Async\await($this->gatewayPrivatePostExecute($request));
             //
             //     {
-            //         "status" => "success",
-            //         "signature" => "0x...",
-            //         "data" => {
-            //             "cancelled_orders" => array(
-            //                 array(
-            //                     "product_id" => 2,
-            //                     "sender" => "0x...",
-            //                     "price_x18" => "20000000000000000000000",
-            //                     "amount" => "-100000000000000000",
-            //                     "expiration" => "1686332748",
-            //                     "order_type" => "post_only",
-            //                     "nonce" => "1768248100142339392",
-            //                     "unfilled_amount" => "-100000000000000000",
-            //                     "digest" => "0x...",
-            //                     "appendix" => "1537",
-            //                     "placed_at" => 1686332708
+            //         "status": "success",
+            //         "signature": "0x...",
+            //         "data": {
+            //             "cancelled_orders": [
+            //                 {
+            //                     "product_id": 2,
+            //                     "sender": "0x...",
+            //                     "price_x18": "20000000000000000000000",
+            //                     "amount": "-100000000000000000",
+            //                     "expiration": "1686332748",
+            //                     "order_type": "post_only",
+            //                     "nonce": "1768248100142339392",
+            //                     "unfilled_amount": "-100000000000000000",
+            //                     "digest": "0x...",
+            //                     "appendix": "1537",
+            //                     "placed_at": 1686332708
             //                 }
-            //             )
-            //         ),
-            //         "request_type" => "execute_cancel_product_orders",
-            //         "id" => 100
+            //             ]
+            //         },
+            //         "request_type": "execute_cancel_product_orders",
+            //         "id": 100
             //     }
             //
         }
@@ -822,36 +830,36 @@ class nado extends Exchange {
             $response = Async\await($this->triggerPrivatePostExecute($request));
             //
             // {
-            //     "status" => "success",
-            //     "signature" => {signature},
-            //     "request_type" => "execute_cancel_orders"
+            //     "status": "success",
+            //     "signature": {signature},
+            //     "request_type": "execute_cancel_orders"
             // }
             //
         } else {
             $response = Async\await($this->gatewayPrivatePostExecute($request));
             //
             //     {
-            //         "status" => "success",
-            //         "signature" => "0x...",
-            //         "data" => {
-            //             "cancelled_orders" => array(
-            //                 array(
-            //                     "product_id" => 2,
-            //                     "sender" => "0x...",
-            //                     "price_x18" => "20000000000000000000000",
-            //                     "amount" => "-100000000000000000",
-            //                     "expiration" => "1686332748",
-            //                     "order_type" => "post_only",
-            //                     "nonce" => "1768248100142339392",
-            //                     "unfilled_amount" => "-100000000000000000",
-            //                     "digest" => "0x...",
-            //                     "appendix" => "1537",
-            //                     "placed_at" => 1686332708
+            //         "status": "success",
+            //         "signature": "0x...",
+            //         "data": {
+            //             "cancelled_orders": [
+            //                 {
+            //                     "product_id": 2,
+            //                     "sender": "0x...",
+            //                     "price_x18": "20000000000000000000000",
+            //                     "amount": "-100000000000000000",
+            //                     "expiration": "1686332748",
+            //                     "order_type": "post_only",
+            //                     "nonce": "1768248100142339392",
+            //                     "unfilled_amount": "-100000000000000000",
+            //                     "digest": "0x...",
+            //                     "appendix": "1537",
+            //                     "placed_at": 1686332708
             //                 }
-            //             )
-            //         ),
-            //         "request_type" => "execute_cancel_orders",
-            //         "id" => 100
+            //             ]
+            //         },
+            //         "request_type": "execute_cancel_orders",
+            //         "id": 100
             //     }
             //
         }
@@ -952,21 +960,21 @@ class nado extends Exchange {
         $response = Async\await($this->gatewayPublicGetQuery($this->extend($request, $params)));
         //
         //     {
-        //         "status" => "success",
-        //         "data" => array(
-        //             "product_id" => 1,
-        //             "sender" => "0x7a5ec2748e9065794491a8d29dcf3f9edb8d7c43000000000000000000000000",
-        //             "price_x18" => "1000000000000000000",
-        //             "amount" => "1000000000000000000",
-        //             "expiration" => "2000000000",
-        //             "nonce" => "1",
-        //             "unfilled_amount" => "1000000000000000000",
-        //             "digest" => "0x0000000000000000000000000000000000000000000000000000000000000000",
-        //             "placed_at" => 1681951347,
-        //             "appendix" => "1537",
-        //             "order_type" => "ioc"
-        //         ),
-        //         "request_type" => "query_order"
+        //         "status": "success",
+        //         "data": {
+        //             "product_id": 1,
+        //             "sender": "0x7a5ec2748e9065794491a8d29dcf3f9edb8d7c43000000000000000000000000",
+        //             "price_x18": "1000000000000000000",
+        //             "amount": "1000000000000000000",
+        //             "expiration": "2000000000",
+        //             "nonce": "1",
+        //             "unfilled_amount": "1000000000000000000",
+        //             "digest": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        //             "placed_at": 1681951347,
+        //             "appendix": "1537",
+        //             "order_type": "ioc"
+        //         },
+        //         "request_type": "query_order"
         //     }
         //
         $data = $this->safe_dict($response, 'data', array());
@@ -986,7 +994,7 @@ class nado extends Exchange {
          *
          * @param {string} $symbol unified $market $symbol of the $market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
-         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {int} [$limit] the maximum number of order structures to retrieve, max 500
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->trigger] set to true if you would like to fetch portfolio margin account $trigger or conditional $orders
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
@@ -1018,7 +1026,7 @@ class nado extends Exchange {
             'product_ids' => $productIds,
         );
         if ($limit !== null) {
-            $request['limit'] = $limit;
+            $request['limit'] = min($limit, 500);
         }
         $contracts = Async\await($this->query_contracts());
         $chainId = $this->safe_string($contracts, 'chain_id');
@@ -1028,31 +1036,31 @@ class nado extends Exchange {
         $response = Async\await($this->triggerPrivatePostQuery($this->extend($request, $params)));
         //
         // {
-        //     "status" => "success",
-        //     "data" => array(
-        //         "orders" => [array(
-        //             "order" => array(
-        //                 "order" => array(
-        //                     "sender" => "0x7a5ec2748e9065794491a8d29dcf3f9edb8d7c43000000000000000000000000",
-        //                     "priceX18" => "1000000000000000000",
-        //                     "amount" => "1000000000000000000",
-        //                     "expiration" => "2000000000",
-        //                     "nonce" => "1",
-        //                 ),
-        //                 "signature" => "0x...",
-        //                 "product_id" => 1,
-        //                 "spot_leverage" => true,
-        //                 "trigger" => array(
-        //                     "price_above" => "1000000000000000000"
-        //                 ),
-        //                 "digest" => "0x..."
-        //             ),
-        //             "status" => "pending",
-        //             "placed_at" => 1688768157000,
-        //             "updated_at" => 1688768157050
-        //         )]
-        //     ),
-        //     "request_type" => "query_list_trigger_orders"
+        //     "status": "success",
+        //     "data": {
+        //         "orders": [{
+        //             "order": {
+        //                 "order": {
+        //                     "sender": "0x7a5ec2748e9065794491a8d29dcf3f9edb8d7c43000000000000000000000000",
+        //                     "priceX18": "1000000000000000000",
+        //                     "amount": "1000000000000000000",
+        //                     "expiration": "2000000000",
+        //                     "nonce": "1",
+        //                 },
+        //                 "signature": "0x...",
+        //                 "product_id": 1,
+        //                 "spot_leverage": true,
+        //                 "trigger": {
+        //                     "price_above": "1000000000000000000"
+        //                 },
+        //                 "digest": "0x..."
+        //             },
+        //             "status": "pending",
+        //             "placed_at": 1688768157000,
+        //             "updated_at": 1688768157050
+        //         }]
+        //     },
+        //     "request_type": "query_list_trigger_orders"
         // }
         //
         $data = $this->safe_dict($response, 'data', array());
@@ -1088,7 +1096,7 @@ class nado extends Exchange {
         $sender = $this->create_subaccount($this->walletAddress, $subaccount);
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         if ($trigger === true) {
-            return Async\await($this->fetch_orders($symbol, $since, null, $this->extend($params, array(
+            return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($params, array(
                 'status_types' => array(
                     'waiting_price', 'waiting_dependency',
                 ),
@@ -1108,27 +1116,27 @@ class nado extends Exchange {
         // single product
         //
         //     {
-        //         "status" => "success",
-        //         "data" => {
-        //             "sender" => "0x7a5ec2748e9065794491a8d29dcf3f9edb8d7c43000000000000000000000000",
-        //             "product_id" => 1,
-        //             "orders" => array(
-        //                 array(
-        //                     "product_id" => 1,
-        //                     "sender" => "0x7a5ec2748e9065794491a8d29dcf3f9edb8d7c43000000000000000000000000",
-        //                     "price_x18" => "1000000000000000000",
-        //                     "amount" => "1000000000000000000",
-        //                     "expiration" => "2000000000",
-        //                     "nonce" => "1",
-        //                     "unfilled_amount" => "1000000000000000000",
-        //                     "digest" => "0x0000000000000000000000000000000000000000000000000000000000000000",
-        //                     "placed_at" => 1682437739,
-        //                     "appendix" => "1537",
-        //                     "order_type" => "ioc"
+        //         "status": "success",
+        //         "data": {
+        //             "sender": "0x7a5ec2748e9065794491a8d29dcf3f9edb8d7c43000000000000000000000000",
+        //             "product_id": 1,
+        //             "orders": [
+        //                 {
+        //                     "product_id": 1,
+        //                     "sender": "0x7a5ec2748e9065794491a8d29dcf3f9edb8d7c43000000000000000000000000",
+        //                     "price_x18": "1000000000000000000",
+        //                     "amount": "1000000000000000000",
+        //                     "expiration": "2000000000",
+        //                     "nonce": "1",
+        //                     "unfilled_amount": "1000000000000000000",
+        //                     "digest": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        //                     "placed_at": 1682437739,
+        //                     "appendix": "1537",
+        //                     "order_type": "ioc"
         //                 }
-        //             )
-        //         ),
-        //         "request_type" => "query_subaccount_orders"
+        //             ]
+        //         },
+        //         "request_type": "query_subaccount_orders"
         //     }
         //
         $data = $this->safe_dict($response, 'data', array());
@@ -1169,7 +1177,7 @@ class nado extends Exchange {
         $sender = $this->create_subaccount($this->walletAddress, $subaccount);
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         if ($trigger === true) {
-            return Async\await($this->fetch_orders($symbol, $since, null, $this->extend($params, array(
+            return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($params, array(
                 'status_types' => array(
                     'triggered', 'triggering', 'twap_executing', 'twap_completed',
                 ),
@@ -1193,21 +1201,21 @@ class nado extends Exchange {
         $response = Async\await($this->archivePost($this->deep_extend($request, $params)));
         //
         //     {
-        //         "orders" => array(
+        //         "orders": [
         //             {
-        //                 "digest" => "0xf4f7a8767faf0c7f72251a1f9e5da590f708fd9842bf8fcdeacbaa0237958fff",
-        //                 "subaccount" => "0x12a0b4888021576eb10a67616dd3dd3d9ce206b664656661756c740000000000",
-        //                 "product_id" => 1,
-        //                 "submission_idx" => "563024",
-        //                 "amount" => "20000000000000000000",
-        //                 "price_x18" => "1751900000000000000000",
-        //                 "base_filled" => "20000000000000000000",
-        //                 "quote_filled" => "-35038000000000000000000",
-        //                 "fee" => "7007600000000000000",
-        //                 "first_fill_timestamp" => "1679728133",
-        //                 "last_fill_timestamp" => "1679728133"
+        //                 "digest": "0xf4f7a8767faf0c7f72251a1f9e5da590f708fd9842bf8fcdeacbaa0237958fff",
+        //                 "subaccount": "0x12a0b4888021576eb10a67616dd3dd3d9ce206b664656661756c740000000000",
+        //                 "product_id": 1,
+        //                 "submission_idx": "563024",
+        //                 "amount": "20000000000000000000",
+        //                 "price_x18": "1751900000000000000000",
+        //                 "base_filled": "20000000000000000000",
+        //                 "quote_filled": "-35038000000000000000000",
+        //                 "fee": "7007600000000000000",
+        //                 "first_fill_timestamp": "1679728133",
+        //                 "last_fill_timestamp": "1679728133"
         //             }
-        //         )
+        //         ]
         //     }
         //
         $closedOrders = array();
@@ -1227,18 +1235,18 @@ class nado extends Exchange {
 
     private function do_fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
-         * fetches information on multiple canceled orders made by the user
+         * fetches information on multiple canceled trigger orders made by the user, the exchange keeps canceled-order history for trigger orders only
          *
          * @see https://docs.nado.xyz/developer-resources/api/trigger/queries/list-trigger-orders
          *
          * @param {string} $symbol unified market $symbol of the market the orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
-         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {int} [$limit] the maximum number of order structures to retrieve, max 500
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [$params->trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        return Async\await($this->fetch_orders($symbol, $since, null, $this->extend($params, array(
+        return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($params, array(
+            'trigger' => true,
             'status_types' => array(
                 'cancelled', 'internal_error',
             ),
@@ -1251,18 +1259,18 @@ class nado extends Exchange {
 
     private function do_fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
-         * fetches information on multiple canceled orders made by the user
+         * fetches information on multiple canceled and closed trigger orders made by the user, the exchange keeps canceled-order history for trigger orders only
          *
          * @see https://docs.nado.xyz/developer-resources/api/trigger/queries/list-trigger-orders
          *
          * @param {string} $symbol unified market $symbol of the market the orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
-         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {int} [$limit] the maximum number of order structures to retrieve, max 500
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [$params->trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        return Async\await($this->fetch_orders($symbol, $since, null, $this->extend($params, array(
+        return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($params, array(
+            'trigger' => true,
             'status_types' => array(
                 'cancelled', 'internal_error', 'triggered', 'triggering', 'twap_executing', 'twap_completed',
             ),
@@ -1315,30 +1323,30 @@ class nado extends Exchange {
         $response = Async\await($this->archivePost($this->deep_extend($request, $params)));
         //
         //     {
-        //         "matches" => array(
+        //         "matches": [
         //             {
-        //                 "digest" => "0x80ce789702b670b7d33f2aa67e12c85f124395c3f9acdb422dde3b4973ccd50c",
-        //                 "order" => array(
-        //                     "sender" => "0x12a0b4888021576eb10a67616dd3dd3d9ce206b664656661756c740000000000",
-        //                     "priceX18" => "27544000000000000000000",
-        //                     "amount" => "2000000000000000000",
-        //                     "expiration" => "4611686020107119633",
-        //                     "nonce" => "1761322608857448448"
-        //                 ),
-        //                 "base_filled" => "736000000000000000",
-        //                 "quote_filled" => "-20276464287857571514302",
-        //                 "fee" => "4055287857571514302",
-        //                 "submission_idx" => "563012",
-        //                 "is_taker" => true
+        //                 "digest": "0x80ce789702b670b7d33f2aa67e12c85f124395c3f9acdb422dde3b4973ccd50c",
+        //                 "order": {
+        //                     "sender": "0x12a0b4888021576eb10a67616dd3dd3d9ce206b664656661756c740000000000",
+        //                     "priceX18": "27544000000000000000000",
+        //                     "amount": "2000000000000000000",
+        //                     "expiration": "4611686020107119633",
+        //                     "nonce": "1761322608857448448"
+        //                 },
+        //                 "base_filled": "736000000000000000",
+        //                 "quote_filled": "-20276464287857571514302",
+        //                 "fee": "4055287857571514302",
+        //                 "submission_idx": "563012",
+        //                 "is_taker": true
         //             }
-        //         ),
-        //         "txs" => array(
+        //         ],
+        //         "txs": [
         //             {
-        //                 "submission_idx" => "563012",
-        //                 "product_id" => 2,
-        //                 "timestamp" => "1679728133"
+        //                 "submission_idx": "563012",
+        //                 "product_id": 2,
+        //                 "timestamp": "1679728133"
         //             }
-        //         )
+        //         ]
         //     }
         //
         $matches = $this->safe_list($response, 'matches', array());
@@ -1381,21 +1389,21 @@ class nado extends Exchange {
         $response = Async\await($this->gatewayPublicGetQuery($this->extend($request, $params)));
         //
         //     {
-        //         "status" => "success",
-        //         "data" => {
-        //             "subaccount" => "0x8d7d64d6cf1d4f018dd101482ac71ad49e30c56064656661756c740000000000",
-        //             "exists" => true,
-        //             "spot_balances" => array(
+        //         "status": "success",
+        //         "data": {
+        //             "subaccount": "0x8d7d64d6cf1d4f018dd101482ac71ad49e30c56064656661756c740000000000",
+        //             "exists": true,
+        //             "spot_balances": [
         //                 {
-        //                     "product_id" => 0,
-        //                     "balance" => array(
-        //                         "amount" => "456895621098158389211471"
+        //                     "product_id": 0,
+        //                     "balance": {
+        //                         "amount": "456895621098158389211471"
         //                     }
         //                 }
-        //             ),
-        //             "perp_balances" => array()
-        //         ),
-        //         "request_type" => "query_subaccount_info"
+        //             ],
+        //             "perp_balances": []
+        //         },
+        //         "request_type": "query_subaccount_info"
         //     }
         //
         $data = $this->safe_dict($response, 'data', array());
@@ -1482,34 +1490,34 @@ class nado extends Exchange {
         $response = Async\await($this->archivePost($this->deep_extend($request, $params)));
         //
         //     {
-        //         "events" => array(
+        //         "events": [
         //             {
-        //                 "subaccount" => "0x...",
-        //                 "product_id" => 5,
-        //                 "submission_idx" => "563011",
-        //                 "event_type" => "deposit_collateral",
-        //                 "pre_balance" => {
-        //                     "spot" => {
-        //                         "balance" => array(
-        //                             "amount" => "1000000000000000000"
+        //                 "subaccount": "0x...",
+        //                 "product_id": 5,
+        //                 "submission_idx": "563011",
+        //                 "event_type": "deposit_collateral",
+        //                 "pre_balance": {
+        //                     "spot": {
+        //                         "balance": {
+        //                             "amount": "1000000000000000000"
         //                         }
         //                     }
-        //                 ),
-        //                 "post_balance" => {
-        //                     "spot" => {
-        //                         "balance" => {
-        //                             "amount" => "2000000000000000000"
+        //                 },
+        //                 "post_balance": {
+        //                     "spot": {
+        //                         "balance": {
+        //                             "amount": "2000000000000000000"
         //                         }
         //                     }
         //                 }
         //             }
-        //         ),
-        //         "txs" => array(
+        //         ],
+        //         "txs": [
         //             {
-        //                 "submission_idx" => "563011",
-        //                 "timestamp" => "1679728127"
+        //                 "submission_idx": "563011",
+        //                 "timestamp": "1679728127"
         //             }
-        //         )
+        //         ]
         //     }
         //
         $events = $this->safe_list($response, 'events', array());
@@ -1564,29 +1572,29 @@ class nado extends Exchange {
         $response = Async\await($this->gatewayPublicGetQuery($this->extend($request, $params)));
         //
         //     {
-        //         "status" => "success",
-        //         "data" => {
-        //             "perp_balances" => array(
+        //         "status": "success",
+        //         "data": {
+        //             "perp_balances": [
         //                 {
-        //                     "product_id" => 2,
-        //                     "balance" => {
-        //                         "amount" => "100000000000000000",
-        //                         "v_quote_balance" => "3033500000000000000000",
-        //                         "last_cumulative_funding_x18" => "-394223711772447555304"
+        //                     "product_id": 2,
+        //                     "balance": {
+        //                         "amount": "100000000000000000",
+        //                         "v_quote_balance": "3033500000000000000000",
+        //                         "last_cumulative_funding_x18": "-394223711772447555304"
         //                     }
         //                 }
-        //             ),
-        //             "perp_products" => array(
+        //             ],
+        //             "perp_products": [
         //                 {
-        //                     "product_id" => 2,
-        //                     "oracle_price_x18" => "115596528090565357611177",
-        //                     "risk" => array(
-        //                         "price_x18" => "115596528090565357611177"
+        //                     "product_id": 2,
+        //                     "oracle_price_x18": "115596528090565357611177",
+        //                     "risk": {
+        //                         "price_x18": "115596528090565357611177"
         //                     }
         //                 }
-        //             )
-        //         ),
-        //         "request_type" => "query_subaccount_info"
+        //             ]
+        //         },
+        //         "request_type": "query_subaccount_info"
         //     }
         //
         $data = $this->safe_dict($response, 'data', array());
@@ -1598,7 +1606,7 @@ class nado extends Exchange {
             $balance = $this->safe_dict($position, 'balance', array());
             $amount = $this->safe_string($balance, 'amount');
             if (($amount === null) || Precise::string_equals($amount, '0')) {
-                continue; // the endpoint returns an entry for every listed $product - only nonzero balances are open $positions
+                continue; // the endpoint returns an entry for every listed product - only nonzero balances are open positions
             }
             $productId = $this->safe_string($position, 'product_id');
             $product = array();
@@ -1634,10 +1642,10 @@ class nado extends Exchange {
         $response = Async\await($this->gatewayPublicGetEdgeQuery($this->extend($request, $params)));
         //
         //     {
-        //         "status" => "success",
-        //         "method" => "time",
-        //         "id" => 2,
-        //         "server_time" => "1780000000123"
+        //         "status": "success",
+        //         "method": "time",
+        //         "id": 2,
+        //         "server_time": "1780000000123"
         //     }
         //
         return $this->safe_integer($response, 'server_time');
@@ -1662,9 +1670,9 @@ class nado extends Exchange {
         $response = Async\await($this->gatewayPublicGetQuery($this->extend($request, $params)));
         //
         //     {
-        //         "status" => "success",
-        //         "data" => "active",
-        //         "request_type" => "query_status"
+        //         "status": "success",
+        //         "data": "active",
+        //         "request_type": "query_status"
         //     }
         //
         $status = $this->safe_string($response, 'data');
@@ -1699,7 +1707,7 @@ class nado extends Exchange {
         $symbols = $this->safe_list($responses, 0, array());
         $pairs = $this->safe_list($responses, 1, array());
         $assets = $this->safe_list($responses, 2, array());
-        // product_id is a JSON number => JS object keys are always strings but a Python
+        // product_id is a JSON number: JS object keys are always strings but a Python
         // dict keeps int keys, so indexBy would never match the safeString lookups below
         $pairsById = array();
         for ($i = 0; $i < count($pairs); $i++) {
@@ -1889,15 +1897,15 @@ class nado extends Exchange {
         $response = Async\await($this->archiveV2PublicGetTickers($params));
         //
         //     {
-        //         "BTC-PERP_USDT0" => {
-        //             "product_id" => 2,
-        //             "ticker_id" => "BTC-PERP_USDT0",
-        //             "base_currency" => "BTC",
-        //             "quote_currency" => "USDT0",
-        //             "last_price" => 25728.0,
-        //             "base_volume" => 552.048,
-        //             "quote_volume" => 14238632.207250029,
-        //             "price_change_percent_24h" => -0.6348599635253989
+        //         "BTC-PERP_USDT0": {
+        //             "product_id": 2,
+        //             "ticker_id": "BTC-PERP_USDT0",
+        //             "base_currency": "BTC",
+        //             "quote_currency": "USDT0",
+        //             "last_price": 25728.0,
+        //             "base_volume": 552.048,
+        //             "quote_volume": 14238632.207250029,
+        //             "price_change_percent_24h": -0.6348599635253989
         //         }
         //     }
         //
@@ -1921,12 +1929,13 @@ class nado extends Exchange {
          */
         Async\await($this->load_markets());
         $market = $this->market($symbol);
+        $symbol = $market['symbol'];
         $tickers = Async\await($this->fetch_tickers(array( $symbol ), $params));
         $ticker = $this->safe_dict($tickers, $symbol);
         if ($ticker === null) {
             throw new BadSymbol($this->id . ' fetchTicker() $ticker not found for ' . $symbol);
         }
-        return $this->safe_ticker($ticker, $market);
+        return $ticker;
     }
 
     public function fetch_funding_rate(string $symbol, $params = array()): PromiseInterface {
@@ -1953,24 +1962,24 @@ class nado extends Exchange {
         $response = Async\await($this->archiveV2PublicGetContracts($params));
         //
         //     {
-        //         "BTC-PERP_USDT0" => {
-        //             "product_id" => 1,
-        //             "ticker_id" => "BTC-PERP_USDT0",
-        //             "base_currency" => "BTC-PERP",
-        //             "quote_currency" => "USDT0",
-        //             "last_price" => 25744.0,
-        //             "base_volume" => 794.154,
-        //             "quote_volume" => 20475749.367766097,
-        //             "product_type" => "perpetual",
-        //             "contract_price" => 25830.738843799172,
-        //             "contract_price_currency" => "USD",
-        //             "open_interest" => 3059.325,
-        //             "open_interest_usd" => 79024625.11330591,
-        //             "index_price" => 25878.913320746455,
-        //             "mark_price" => 25783.996946729356,
-        //             "funding_rate" => -0.003664562348812546,
-        //             "next_funding_rate_timestamp" => 1694379600,
-        //             "price_change_percent_24h" => -0.6348599635253989
+        //         "BTC-PERP_USDT0": {
+        //             "product_id": 1,
+        //             "ticker_id": "BTC-PERP_USDT0",
+        //             "base_currency": "BTC-PERP",
+        //             "quote_currency": "USDT0",
+        //             "last_price": 25744.0,
+        //             "base_volume": 794.154,
+        //             "quote_volume": 20475749.367766097,
+        //             "product_type": "perpetual",
+        //             "contract_price": 25830.738843799172,
+        //             "contract_price_currency": "USD",
+        //             "open_interest": 3059.325,
+        //             "open_interest_usd": 79024625.11330591,
+        //             "index_price": 25878.913320746455,
+        //             "mark_price": 25783.996946729356,
+        //             "funding_rate": -0.003664562348812546,
+        //             "next_funding_rate_timestamp": 1694379600,
+        //             "price_change_percent_24h": -0.6348599635253989
         //         }
         //     }
         //
@@ -2020,19 +2029,19 @@ class nado extends Exchange {
         $response = Async\await($this->archivePost($this->deep_extend($request, $params)));
         //
         //     {
-        //         "interest_payments" => array(),
-        //         "funding_payments" => array(
+        //         "interest_payments": [],
+        //         "funding_payments": [
         //             {
-        //                 "product_id" => 2,
-        //                 "idx" => "5968022",
-        //                 "timestamp" => "1701698400",
-        //                 "amount" => "-12273223338657163",
-        //                 "balance_amount" => "1000000000000000000",
-        //                 "rate_x18" => "47928279191008320",
-        //                 "oracle_price_x18" => "2243215034242228224820"
+        //                 "product_id": 2,
+        //                 "idx": "5968022",
+        //                 "timestamp": "1701698400",
+        //                 "amount": "-12273223338657163",
+        //                 "balance_amount": "1000000000000000000",
+        //                 "rate_x18": "47928279191008320",
+        //                 "oracle_price_x18": "2243215034242228224820"
         //             }
-        //         ),
-        //         "next_idx" => "1314805"
+        //         ],
+        //         "next_idx": "1314805"
         //     }
         //
         $fundingPayments = $this->safe_list($response, 'funding_payments', array());
@@ -2064,24 +2073,24 @@ class nado extends Exchange {
         $response = Async\await($this->archiveV2PublicGetContracts($params));
         //
         //     {
-        //         "BTC-PERP_USDT0" => {
-        //             "product_id" => 1,
-        //             "ticker_id" => "BTC-PERP_USDT0",
-        //             "base_currency" => "BTC-PERP",
-        //             "quote_currency" => "USDT0",
-        //             "last_price" => 25744.0,
-        //             "base_volume" => 794.154,
-        //             "quote_volume" => 20475749.367766097,
-        //             "product_type" => "perpetual",
-        //             "contract_price" => 25830.738843799172,
-        //             "contract_price_currency" => "USD",
-        //             "open_interest" => 3059.325,
-        //             "open_interest_usd" => 79024625.11330591,
-        //             "index_price" => 25878.913320746455,
-        //             "mark_price" => 25783.996946729356,
-        //             "funding_rate" => -0.003664562348812546,
-        //             "next_funding_rate_timestamp" => 1694379600,
-        //             "price_change_percent_24h" => -0.6348599635253989
+        //         "BTC-PERP_USDT0": {
+        //             "product_id": 1,
+        //             "ticker_id": "BTC-PERP_USDT0",
+        //             "base_currency": "BTC-PERP",
+        //             "quote_currency": "USDT0",
+        //             "last_price": 25744.0,
+        //             "base_volume": 794.154,
+        //             "quote_volume": 20475749.367766097,
+        //             "product_type": "perpetual",
+        //             "contract_price": 25830.738843799172,
+        //             "contract_price_currency": "USD",
+        //             "open_interest": 3059.325,
+        //             "open_interest_usd": 79024625.11330591,
+        //             "index_price": 25878.913320746455,
+        //             "mark_price": 25783.996946729356,
+        //             "funding_rate": -0.003664562348812546,
+        //             "next_funding_rate_timestamp": 1694379600,
+        //             "price_change_percent_24h": -0.6348599635253989
         //         }
         //     }
         //
@@ -2118,24 +2127,24 @@ class nado extends Exchange {
         $response = Async\await($this->archiveV2PublicGetContracts($params));
         //
         //     {
-        //         "BTC-PERP_USDT0" => {
-        //             "product_id" => 1,
-        //             "ticker_id" => "BTC-PERP_USDT0",
-        //             "base_currency" => "BTC-PERP",
-        //             "quote_currency" => "USDT0",
-        //             "last_price" => 25744.0,
-        //             "base_volume" => 794.154,
-        //             "quote_volume" => 20475749.367766097,
-        //             "product_type" => "perpetual",
-        //             "contract_price" => 25830.738843799172,
-        //             "contract_price_currency" => "USD",
-        //             "open_interest" => 3059.325,
-        //             "open_interest_usd" => 79024625.11330591,
-        //             "index_price" => 25878.913320746455,
-        //             "mark_price" => 25783.996946729356,
-        //             "funding_rate" => -0.003664562348812546,
-        //             "next_funding_rate_timestamp" => 1694379600,
-        //             "price_change_percent_24h" => -0.6348599635253989
+        //         "BTC-PERP_USDT0": {
+        //             "product_id": 1,
+        //             "ticker_id": "BTC-PERP_USDT0",
+        //             "base_currency": "BTC-PERP",
+        //             "quote_currency": "USDT0",
+        //             "last_price": 25744.0,
+        //             "base_volume": 794.154,
+        //             "quote_volume": 20475749.367766097,
+        //             "product_type": "perpetual",
+        //             "contract_price": 25830.738843799172,
+        //             "contract_price_currency": "USD",
+        //             "open_interest": 3059.325,
+        //             "open_interest_usd": 79024625.11330591,
+        //             "index_price": 25878.913320746455,
+        //             "mark_price": 25783.996946729356,
+        //             "funding_rate": -0.003664562348812546,
+        //             "next_funding_rate_timestamp": 1694379600,
+        //             "price_change_percent_24h": -0.6348599635253989
         //         }
         //     }
         //
@@ -2163,24 +2172,24 @@ class nado extends Exchange {
         $response = Async\await($this->archiveV2PublicGetContracts($params));
         //
         //     {
-        //         "BTC-PERP_USDT0" => {
-        //             "product_id" => 1,
-        //             "ticker_id" => "BTC-PERP_USDT0",
-        //             "base_currency" => "BTC-PERP",
-        //             "quote_currency" => "USDT0",
-        //             "last_price" => 25744.0,
-        //             "base_volume" => 794.154,
-        //             "quote_volume" => 20475749.367766097,
-        //             "product_type" => "perpetual",
-        //             "contract_price" => 25830.738843799172,
-        //             "contract_price_currency" => "USD",
-        //             "open_interest" => 3059.325,
-        //             "open_interest_usd" => 79024625.11330591,
-        //             "index_price" => 25878.913320746455,
-        //             "mark_price" => 25783.996946729356,
-        //             "funding_rate" => -0.003664562348812546,
-        //             "next_funding_rate_timestamp" => 1694379600,
-        //             "price_change_percent_24h" => -0.6348599635253989
+        //         "BTC-PERP_USDT0": {
+        //             "product_id": 1,
+        //             "ticker_id": "BTC-PERP_USDT0",
+        //             "base_currency": "BTC-PERP",
+        //             "quote_currency": "USDT0",
+        //             "last_price": 25744.0,
+        //             "base_volume": 794.154,
+        //             "quote_volume": 20475749.367766097,
+        //             "product_type": "perpetual",
+        //             "contract_price": 25830.738843799172,
+        //             "contract_price_currency": "USD",
+        //             "open_interest": 3059.325,
+        //             "open_interest_usd": 79024625.11330591,
+        //             "index_price": 25878.913320746455,
+        //             "mark_price": 25783.996946729356,
+        //             "funding_rate": -0.003664562348812546,
+        //             "next_funding_rate_timestamp": 1694379600,
+        //             "price_change_percent_24h": -0.6348599635253989
         //         }
         //     }
         //
@@ -2218,17 +2227,17 @@ class nado extends Exchange {
         $response = Async\await($this->gatewayV2PublicGetOrderbook($this->extend($request, $params)));
         //
         //     {
-        //         "product_id" => 1,
-        //         "ticker_id" => "BTC-PERP_USDT0",
-        //         "bids" => array(
-        //             array( 116215.0, 0.128 ),
-        //             array( 116214.0, 0.172 )
-        //         ),
-        //         "asks" => array(
-        //             array( 116225.0, 0.043 ),
-        //             array( 116226.0, 0.172 )
-        //         ),
-        //         "timestamp" => 1757913317944
+        //         "product_id": 1,
+        //         "ticker_id": "BTC-PERP_USDT0",
+        //         "bids": [
+        //             [ 116215.0, 0.128 ],
+        //             [ 116214.0, 0.172 ]
+        //         ],
+        //         "asks": [
+        //             [ 116225.0, 0.043 ],
+        //             [ 116226.0, 0.172 ]
+        //         ],
+        //         "timestamp": 1757913317944
         //     }
         //
         $timestamp = $this->safe_integer($response, 'timestamp');
@@ -2263,18 +2272,18 @@ class nado extends Exchange {
         }
         $response = Async\await($this->archiveV2PublicGetTrades($this->extend($request, $params)));
         //
-        //     array(
+        //     [
         //         {
-        //             "product_id" => 1,
-        //             "ticker_id" => "BTC-PERP_USDT0",
-        //             "trade_id" => 6351,
-        //             "price" => 112029.5896,
-        //             "base_filled" => -0.388,
-        //             "quote_filled" => 43467.4807648,
-        //             "timestamp" => 1757335618,
-        //             "trade_type" => "sell"
+        //             "product_id": 1,
+        //             "ticker_id": "BTC-PERP_USDT0",
+        //             "trade_id": 6351,
+        //             "price": 112029.5896,
+        //             "base_filled": -0.388,
+        //             "quote_filled": 43467.4807648,
+        //             "timestamp": 1757335618,
+        //             "trade_type": "sell"
         //         }
-        //     )
+        //     ]
         //
         return $this->parse_trades($response, $market, $since, $limit);
     }
@@ -2292,10 +2301,10 @@ class nado extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [$limit] the maximum amount of candles to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch, max 500
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         Async\await($this->load_markets());
         $market = $this->market($symbol);
@@ -2308,7 +2317,7 @@ class nado extends Exchange {
             ),
         );
         if ($limit !== null) {
-            $request['candlesticks']['limit'] = $limit;
+            $request['candlesticks']['limit'] = min($limit, 500);
         }
         if ($until !== null) {
             $request['candlesticks']['max_time'] = $this->parse_to_int($until / 1000);
@@ -2316,19 +2325,19 @@ class nado extends Exchange {
         $response = Async\await($this->archivePost($this->deep_extend($request, $params)));
         //
         //     {
-        //         "candlesticks" => array(
+        //         "candlesticks": [
         //             {
-        //                 "product_id" => 1,
-        //                 "granularity" => 60,
-        //                 "submission_idx" => "627709",
-        //                 "timestamp" => "1680118140",
-        //                 "open_x18" => "27235000000000000000000",
-        //                 "high_x18" => "27298000000000000000000",
-        //                 "low_x18" => "27235000000000000000000",
-        //                 "close_x18" => "27298000000000000000000",
-        //                 "volume" => "1999999999999999998"
+        //                 "product_id": 1,
+        //                 "granularity": 60,
+        //                 "submission_idx": "627709",
+        //                 "timestamp": "1680118140",
+        //                 "open_x18": "27235000000000000000000",
+        //                 "high_x18": "27298000000000000000000",
+        //                 "low_x18": "27235000000000000000000",
+        //                 "close_x18": "27298000000000000000000",
+        //                 "volume": "1999999999999999998"
         //             }
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_list($response, 'candlesticks', array());
@@ -2338,15 +2347,15 @@ class nado extends Exchange {
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     {
-        //         "product_id" => 1,
-        //         "granularity" => 60,
-        //         "submission_idx" => "627709",
-        //         "timestamp" => "1680118140",
-        //         "open_x18" => "27235000000000000000000",
-        //         "high_x18" => "27298000000000000000000",
-        //         "low_x18" => "27235000000000000000000",
-        //         "close_x18" => "27298000000000000000000",
-        //         "volume" => "1999999999999999998"
+        //         "product_id": 1,
+        //         "granularity": 60,
+        //         "submission_idx": "627709",
+        //         "timestamp": "1680118140",
+        //         "open_x18": "27235000000000000000000",
+        //         "high_x18": "27298000000000000000000",
+        //         "low_x18": "27235000000000000000000",
+        //         "close_x18": "27298000000000000000000",
+        //         "volume": "1999999999999999998"
         //     }
         //
         return array(
@@ -2362,31 +2371,31 @@ class nado extends Exchange {
     public function parse_trade(array $trade, ?array $market = null): array {
         //
         //     {
-        //         "product_id" => 1,
-        //         "ticker_id" => "BTC-PERP_USDT0",
-        //         "trade_id" => 6351,
-        //         "price" => 112029.5896,
-        //         "base_filled" => -0.388,
-        //         "quote_filled" => 43467.4807648,
-        //         "timestamp" => 1757335618,
-        //         "trade_type" => "sell"
+        //         "product_id": 1,
+        //         "ticker_id": "BTC-PERP_USDT0",
+        //         "trade_id": 6351,
+        //         "price": 112029.5896,
+        //         "base_filled": -0.388,
+        //         "quote_filled": 43467.4807648,
+        //         "timestamp": 1757335618,
+        //         "trade_type": "sell"
         //     }
         //
         // archive match
         //
         //     {
-        //         "submission_idx" => "563012",
-        //         "product_id" => 2,
-        //         "timestamp" => "1679728133",
-        //         "digest" => "0x80ce789702b670b7d33f2aa67e12c85f124395c3f9acdb422dde3b4973ccd50c",
-        //         "order" => array(
-        //             "priceX18" => "27544000000000000000000",
-        //             "amount" => "2000000000000000000"
-        //         ),
-        //         "base_filled" => "736000000000000000",
-        //         "quote_filled" => "-20276464287857571514302",
-        //         "fee" => "4055287857571514302",
-        //         "is_taker" => true
+        //         "submission_idx": "563012",
+        //         "product_id": 2,
+        //         "timestamp": "1679728133",
+        //         "digest": "0x80ce789702b670b7d33f2aa67e12c85f124395c3f9acdb422dde3b4973ccd50c",
+        //         "order": {
+        //             "priceX18": "27544000000000000000000",
+        //             "amount": "2000000000000000000"
+        //         },
+        //         "base_filled": "736000000000000000",
+        //         "quote_filled": "-20276464287857571514302",
+        //         "fee": "4055287857571514302",
+        //         "is_taker": true
         //     }
         //
         $marketId = $this->safe_string($trade, 'product_id');
@@ -2472,23 +2481,23 @@ class nado extends Exchange {
     public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         //
         //     {
-        //         "product_id" => 1,
-        //         "ticker_id" => "BTC-PERP_USDT0",
-        //         "base_currency" => "BTC-PERP",
-        //         "quote_currency" => "USDT0",
-        //         "last_price" => 25744.0,
-        //         "base_volume" => 794.154,
-        //         "quote_volume" => 20475749.367766097,
-        //         "product_type" => "perpetual",
-        //         "contract_price" => 25830.738843799172,
-        //         "contract_price_currency" => "USD",
-        //         "open_interest" => 3059.325,
-        //         "open_interest_usd" => 79024625.11330591,
-        //         "index_price" => 25878.913320746455,
-        //         "mark_price" => 25783.996946729356,
-        //         "funding_rate" => -0.003664562348812546,
-        //         "next_funding_rate_timestamp" => 1694379600,
-        //         "price_change_percent_24h" => -0.6348599635253989
+        //         "product_id": 1,
+        //         "ticker_id": "BTC-PERP_USDT0",
+        //         "base_currency": "BTC-PERP",
+        //         "quote_currency": "USDT0",
+        //         "last_price": 25744.0,
+        //         "base_volume": 794.154,
+        //         "quote_volume": 20475749.367766097,
+        //         "product_type": "perpetual",
+        //         "contract_price": 25830.738843799172,
+        //         "contract_price_currency": "USD",
+        //         "open_interest": 3059.325,
+        //         "open_interest_usd": 79024625.11330591,
+        //         "index_price": 25878.913320746455,
+        //         "mark_price": 25783.996946729356,
+        //         "funding_rate": -0.003664562348812546,
+        //         "next_funding_rate_timestamp": 1694379600,
+        //         "price_change_percent_24h": -0.6348599635253989
         //     }
         //
         $marketId = $this->safe_string($contract, 'product_id');
@@ -2519,13 +2528,13 @@ class nado extends Exchange {
     public function parse_funding_history(array $funding, ?array $market = null) {
         //
         //     {
-        //         "product_id" => 2,
-        //         "idx" => "5968022",
-        //         "timestamp" => "1701698400",
-        //         "amount" => "-12273223338657163",
-        //         "balance_amount" => "1000000000000000000",
-        //         "rate_x18" => "47928279191008320",
-        //         "oracle_price_x18" => "2243215034242228224820"
+        //         "product_id": 2,
+        //         "idx": "5968022",
+        //         "timestamp": "1701698400",
+        //         "amount": "-12273223338657163",
+        //         "balance_amount": "1000000000000000000",
+        //         "rate_x18": "47928279191008320",
+        //         "oracle_price_x18": "2243215034242228224820"
         //     }
         //
         $marketId = $this->safe_string($funding, 'product_id');
@@ -2545,23 +2554,23 @@ class nado extends Exchange {
     public function parse_open_interest(mixed $interest, ?array $market = null) {
         //
         //     {
-        //         "product_id" => 1,
-        //         "ticker_id" => "BTC-PERP_USDT0",
-        //         "base_currency" => "BTC-PERP",
-        //         "quote_currency" => "USDT0",
-        //         "last_price" => 25744.0,
-        //         "base_volume" => 794.154,
-        //         "quote_volume" => 20475749.367766097,
-        //         "product_type" => "perpetual",
-        //         "contract_price" => 25830.738843799172,
-        //         "contract_price_currency" => "USD",
-        //         "open_interest" => 3059.325,
-        //         "open_interest_usd" => 79024625.11330591,
-        //         "index_price" => 25878.913320746455,
-        //         "mark_price" => 25783.996946729356,
-        //         "funding_rate" => -0.003664562348812546,
-        //         "next_funding_rate_timestamp" => 1694379600,
-        //         "price_change_percent_24h" => -0.6348599635253989
+        //         "product_id": 1,
+        //         "ticker_id": "BTC-PERP_USDT0",
+        //         "base_currency": "BTC-PERP",
+        //         "quote_currency": "USDT0",
+        //         "last_price": 25744.0,
+        //         "base_volume": 794.154,
+        //         "quote_volume": 20475749.367766097,
+        //         "product_type": "perpetual",
+        //         "contract_price": 25830.738843799172,
+        //         "contract_price_currency": "USD",
+        //         "open_interest": 3059.325,
+        //         "open_interest_usd": 79024625.11330591,
+        //         "index_price": 25878.913320746455,
+        //         "mark_price": 25783.996946729356,
+        //         "funding_rate": -0.003664562348812546,
+        //         "next_funding_rate_timestamp": 1694379600,
+        //         "price_change_percent_24h": -0.6348599635253989
         //     }
         //
         $marketId = $this->safe_string($interest, 'product_id');
@@ -2639,17 +2648,17 @@ class nado extends Exchange {
     public function parse_balance(mixed $response): array {
         //
         //     {
-        //         "subaccount" => "0x8d7d64d6cf1d4f018dd101482ac71ad49e30c56064656661756c740000000000",
-        //         "exists" => true,
-        //         "spot_balances" => array(
+        //         "subaccount": "0x8d7d64d6cf1d4f018dd101482ac71ad49e30c56064656661756c740000000000",
+        //         "exists": true,
+        //         "spot_balances": [
         //             {
-        //                 "product_id" => 0,
-        //                 "balance" => {
-        //                     "amount" => "456895621098158389211471"
+        //                 "product_id": 0,
+        //                 "balance": {
+        //                     "amount": "456895621098158389211471"
         //                 }
         //             }
-        //         ),
-        //         "perp_balances" => array()
+        //         ],
+        //         "perp_balances": []
         //     }
         //
         $result = array(
@@ -2672,7 +2681,7 @@ class nado extends Exchange {
             $amount = Precise::string_div($this->safe_string($balance, 'amount'), '1000000000000000000');
             $account = $this->account();
             $account['total'] = $amount;
-            // the subaccount $balance carries no locked/reserved breakdown, the whole $amount is spendable
+            // the subaccount balance carries no locked/reserved breakdown, the whole amount is spendable
             $account['free'] = $amount;
             if ($code !== null) {
                 $result[$code] = $account;
@@ -2684,23 +2693,23 @@ class nado extends Exchange {
     public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         //     {
-        //         "submission_idx" => "563011",
-        //         "timestamp" => "1679728127",
-        //         "subaccount" => "0x...",
-        //         "product_id" => 5,
-        //         "event_type" => "deposit_collateral",
-        //         "transaction_type" => "deposit",
-        //         "pre_balance" => {
-        //             "spot" => {
-        //                 "balance" => array(
-        //                     "amount" => "1000000000000000000"
+        //         "submission_idx": "563011",
+        //         "timestamp": "1679728127",
+        //         "subaccount": "0x...",
+        //         "product_id": 5,
+        //         "event_type": "deposit_collateral",
+        //         "transaction_type": "deposit",
+        //         "pre_balance": {
+        //             "spot": {
+        //                 "balance": {
+        //                     "amount": "1000000000000000000"
         //                 }
         //             }
-        //         ),
-        //         "post_balance" => {
-        //             "spot" => {
-        //                 "balance" => {
-        //                     "amount" => "2000000000000000000"
+        //         },
+        //         "post_balance": {
+        //             "spot": {
+        //                 "balance": {
+        //                     "amount": "2000000000000000000"
         //                 }
         //             }
         //         }
@@ -2745,17 +2754,17 @@ class nado extends Exchange {
     public function parse_position(array $position, ?array $market = null): array {
         //
         //     {
-        //         "product_id" => 2,
-        //         "balance" => array(
-        //             "amount" => "100000000000000000",
-        //             "v_quote_balance" => "3033500000000000000000",
-        //             "last_cumulative_funding_x18" => "-394223711772447555304"
-        //         ),
-        //         "product" => {
-        //             "product_id" => 2,
-        //             "oracle_price_x18" => "115596528090565357611177",
-        //             "risk" => {
-        //                 "price_x18" => "115596528090565357611177"
+        //         "product_id": 2,
+        //         "balance": {
+        //             "amount": "100000000000000000",
+        //             "v_quote_balance": "3033500000000000000000",
+        //             "last_cumulative_funding_x18": "-394223711772447555304"
+        //         },
+        //         "product": {
+        //             "product_id": 2,
+        //             "oracle_price_x18": "115596528090565357611177",
+        //             "risk": {
+        //                 "price_x18": "115596528090565357611177"
         //             }
         //         }
         //     }
@@ -2829,69 +2838,69 @@ class nado extends Exchange {
 
     public function parse_order(array $order, ?array $market = null): array {
         //
-        // create $order
+        // create order
         //
         //     {
-        //         "status" => "success",
-        //         "signature" => "0x...",
-        //         "data" => array(
-        //             "digest" => "0x..."
-        //         ),
-        //         "request_type" => "execute_place_order",
-        //         "id" => 100,
-        //         "place_order" => {
-        //             "product_id" => 2,
-        //             "order" => array(
-        //                 "sender" => "0x...",
-        //                 "priceX18" => "1000000000000000000",
-        //                 "amount" => "1000000000000000000",
-        //                 "expiration" => "4294967295",
-        //                 "nonce" => "1757062078359666688",
-        //                 "appendix" => "1"
-        //             ),
-        //             "signature" => "0x..."
+        //         "status": "success",
+        //         "signature": "0x...",
+        //         "data": {
+        //             "digest": "0x..."
+        //         },
+        //         "request_type": "execute_place_order",
+        //         "id": 100,
+        //         "place_order": {
+        //             "product_id": 2,
+        //             "order": {
+        //                 "sender": "0x...",
+        //                 "priceX18": "1000000000000000000",
+        //                 "amount": "1000000000000000000",
+        //                 "expiration": "4294967295",
+        //                 "nonce": "1757062078359666688",
+        //                 "appendix": "1"
+        //             },
+        //             "signature": "0x..."
         //         }
         //     }
         //
-        // open/cancel $order
+        // open/cancel order
         //
         //     {
-        //         "product_id" => 2,
-        //         "sender" => "0x...",
-        //         "price_x18" => "20000000000000000000000",
-        //         "amount" => "-100000000000000000",
-        //         "expiration" => "1686332748",
-        //         "order_type" => "post_only",
-        //         "nonce" => "1768248100142339392",
-        //         "unfilled_amount" => "-100000000000000000",
-        //         "digest" => "0x...",
-        //         "appendix" => "1537",
-        //         "placed_at" => 1686332708
+        //         "product_id": 2,
+        //         "sender": "0x...",
+        //         "price_x18": "20000000000000000000000",
+        //         "amount": "-100000000000000000",
+        //         "expiration": "1686332748",
+        //         "order_type": "post_only",
+        //         "nonce": "1768248100142339392",
+        //         "unfilled_amount": "-100000000000000000",
+        //         "digest": "0x...",
+        //         "appendix": "1537",
+        //         "placed_at": 1686332708
         //     }
         //
-        // trigger $order
+        // trigger order
         //
         // {
-        //     $order => array(
-        //         $order => array(
-        //             sender => '',
-        //             priceX18 => '100000000000000000000',
-        //             $amount => '-1000000000000000000',
-        //             expiration => '4294967295',
-        //             nonce => '',
-        //             appendix => '4097'
-        //         ),
-        //         signature => '',
-        //         product_id => '8',
-        //         spot_leverage => null,
-        //         borrow_margin => null,
-        //         trigger => array( price_trigger => [Object] ),
-        //         digest => '',
-        //         $id => null
-        //     ),
-        //     $status => 'waiting_price',
-        //     placed_at => '1783347360',
-        //     updated_at => '1783347360'
+        //     order: {
+        //         order: {
+        //             sender: '',
+        //             priceX18: '100000000000000000000',
+        //             amount: '-1000000000000000000',
+        //             expiration: '4294967295',
+        //             nonce: '',
+        //             appendix: '4097'
+        //         },
+        //         signature: '',
+        //         product_id: '8',
+        //         spot_leverage: null,
+        //         borrow_margin: null,
+        //         trigger: { price_trigger: [Object] },
+        //         digest: '',
+        //         id: null
+        //     },
+        //     status: 'waiting_price',
+        //     placed_at: '1783347360',
+        //     updated_at: '1783347360'
         // }
         //
         $id = null;
@@ -3050,11 +3059,16 @@ class nado extends Exchange {
 
     public function create_order_nonce(mixed $recvWindow) {
         $expires = $this->sum($this->milliseconds(), $recvWindow);
-        return Precise::string_mul($this->number_to_string($expires), '1048576');
+        $highBits = Precise::string_mul($this->number_to_string($expires), '1048576');
+        // the exchange defines the nonce to be the recv time moved left by 20 bits
+        // plus a random value on the low bits, otherwise two orders created
+        // during the same millisecond would collide on the same nonce and get rejected
+        $entropy = $this->rand_number(6);
+        return Precise::string_add($highBits, $this->number_to_string($entropy));
     }
 
     public function create_order_appendix(mixed $isTriggerOrder, $params = array()) {
-        // | value   | $builder | $builder fee rate | reserved | trigger | reduce only | order type | isolated | version |
+        // | value   | builder | builder fee rate | reserved | trigger | reduce only | order type | isolated | version |
         // | 64 bits | 16 bits | 10 bits          | 24 bits  | 2 bits  | 1 bit       | 2 bits     | 1 bit    | 8 bits  |
         // | 127..64 | 63..48  | 47..38           | 37..14   | 13..12  | 11          | 10..9      | 8        | 7..0    |
         $reduceOnly = $this->safe_bool($params, 'reduceOnly', false);
@@ -3270,15 +3284,15 @@ class nado extends Exchange {
 
     public function handle_errors(?int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if (($response === null) || ($response === null)) {
-            return null; // fallback to default $error handler
+            return null; // fallback to default error handler
         }
         //
         //     {
-        //         "status" => "failure",
-        //         "signature" => "0x...",
-        //         "error_code" => 2007,
-        //         "error" => "Order price must be within a range of 80% to 120% of oracle price.",
-        //         "request_type" => "execute_place_order"
+        //         "status": "failure",
+        //         "signature": "0x...",
+        //         "error_code": 2007,
+        //         "error": "Order price must be within a range of 80% to 120% of oracle price.",
+        //         "request_type": "execute_place_order"
         //     }
         //
         $status = $this->safe_string($response, 'status');

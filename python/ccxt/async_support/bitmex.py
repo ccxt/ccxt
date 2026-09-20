@@ -31,10 +31,10 @@ class bitmex(Exchange, ImplicitAPI):
             'countries': ['SC'],  # Seychelles
             'version': 'v1',
             'userAgent': None,
-            # cheapest endpoints are 10 requests per second(trading)
+            # cheapest endpoints are 10 requests per second (trading)
             # 10 per second => rateLimit = 1000ms / 10 = 100ms
-            # 120 per minute => 2 per second => weight = 5(authenticated)
-            # 30 per minute => 0.5 per second => weight = 20(unauthenticated)
+            # 120 per minute => 2 per second => weight = 5 (authenticated)
+            # 30 per minute => 0.5 per second => weight = 20 (unauthenticated)
             'rateLimit': 100,
             'certified': True,
             'pro': True,
@@ -196,34 +196,48 @@ class bitmex(Exchange, ImplicitAPI):
                         'trade': {'cost': 5},
                         'trade/bucketed': {'cost': 5},
                         'wallet/assets': {'cost': 5},
+                        'wallet/currencies': {'cost': 5},
+                        'wallet/haircuts': {'cost': 5},
                         'wallet/networks': {'cost': 5},
                     },
                 },
                 'private': {
                     'get': {
                         'address': {'cost': 5},
+                        'addressConfig': {'cost': 5},
                         'apiKey': {'cost': 5},
+                        'apiKey/self': {'cost': 5},
                         'execution': {'cost': 5},
                         'execution/tradeHistory': {'cost': 5},
                         'globalNotification': {'cost': 5},
                         'leaderboard/name': {'cost': 5},
+                        'leagueoftrader/myRankings': {'cost': 5},
+                        'managedSubAccountBinding/investor': {'cost': 5},
+                        'managedSubAccountBinding/tradingTeam': {'cost': 5},
                         'order': {'cost': 5},
                         'porl/snapshots': {'cost': 5},
                         'position': {'cost': 5},
+                        'referralCode': {'cost': 5},
+                        'referralCode/check/{code}': {'cost': 5},
+                        'referralCode/code/{code}': {'cost': 5},
+                        'referralCode/{id}': {'cost': 5},
                         'user': {'cost': 5},
                         'user/affiliateStatus': {'cost': 5},
                         'user/checkReferralCode': {'cost': 5},
                         'user/commission': {'cost': 5},
                         'user/csa': {'cost': 5},
                         'user/depositAddress': {'cost': 5},
+                        'user/depositAddressInformation': {'cost': 5},
                         'user/executionHistory': {'cost': 5},
                         'user/getWalletTransferAccounts': {'cost': 5},
                         'user/margin': {'cost': 5},
+                        'user/marginingMode': {'cost': 5},
                         'user/quoteFillRatio': {'cost': 5},
                         'user/quoteValueRatio': {'cost': 5},
                         'user/staking': {'cost': 5},
                         'user/staking/instruments': {'cost': 5},
                         'user/staking/tiers': {'cost': 5},
+                        'user/tradingSettings': {'cost': 5},
                         'user/tradingVolume': {'cost': 5},
                         'user/unstakingRequests': {'cost': 5},
                         'user/wallet': {'cost': 5},
@@ -231,6 +245,8 @@ class bitmex(Exchange, ImplicitAPI):
                         'user/walletSummary': {'cost': 5},
                         'userAffiliates': {'cost': 5},
                         'userEvent': {'cost': 5},
+                        'userPriceAlert': {'cost': 5},
+                        'userStats/volumeRank': {'cost': 5},
                     },
                     'post': {
                         'address': {'cost': 5},
@@ -241,33 +257,52 @@ class bitmex(Exchange, ImplicitAPI):
                         'guild/kick': {'cost': 5},
                         'guild/leave': {'cost': 5},
                         'guild/sharesTrades': {'cost': 5},
+                        'managedSubAccountBinding/approve': {'cost': 5},
+                        'managedSubAccountBinding/cancel': {'cost': 5},
+                        'managedSubAccountBinding/createMSA': {'cost': 5},
+                        'managedSubAccountBinding/reject': {'cost': 5},
+                        'managedSubAccountBinding/toggleTradeHistory': {'cost': 5},
+                        'managedSubAccountBinding/unbind': {'cost': 5},
                         'order': {'cost': 1},
                         'order/cancelAllAfter': {'cost': 5},
                         'order/closePosition': {'cost': 5},
+                        'position/crossLeverage': {'cost': 5},
                         'position/isolate': {'cost': 1},
                         'position/leverage': {'cost': 1},
                         'position/riskLimit': {'cost': 5},
                         'position/transferMargin': {'cost': 1},
+                        'referralCode': {'cost': 5},
                         'user/addSubaccount': {'cost': 5},
                         'user/cancelWithdrawal': {'cost': 5},
                         'user/communicationToken': {'cost': 5},
                         'user/confirmEmail': {'cost': 5},
                         'user/confirmWithdrawal': {'cost': 5},
+                        'user/createIndependentSubaccount': {'cost': 5},
                         'user/logout': {'cost': 5},
+                        'user/marginingMode': {'cost': 5},
+                        'user/positionMode': {'cost': 5},
                         'user/preferences': {'cost': 5},
                         'user/requestWithdrawal': {'cost': 5},
                         'user/unstakingRequests': {'cost': 5},
                         'user/updateSubaccount': {'cost': 5},
                         'user/walletTransfer': {'cost': 5},
+                        'userPriceAlert': {'cost': 5},
                     },
                     'put': {
+                        'address': {'cost': 5},
                         'guild': {'cost': 5},
                         'order': {'cost': 1},
+                        'referralCode/{id}': {'cost': 5},
+                        'userPriceAlert/{id}': {'cost': 5},
                     },
                     'delete': {
                         'order': {'cost': 1},
                         'order/all': {'cost': 1},
+                        'referralCode/{id}': {'cost': 5},
                         'user/unstakingRequests': {'cost': 5},
+                        'user/withdrawal': {'cost': 5},
+                        'userPriceAlert': {'cost': 5},
+                        'userPriceAlert/{id}': {'cost': 5},
                     },
                 },
             },
@@ -339,10 +374,10 @@ class bitmex(Exchange, ImplicitAPI):
                         'marketBuyRequiresPrice': False,
                         'marketBuyByCost': False,
                         # exchange-supported features
-                        # 'selfTradePrevention': True,
-                        # 'twap': False,
-                        # 'iceberg': False,
-                        # 'oco': False,
+                        # 'selfTradePrevention': true,
+                        # 'twap': false,
+                        # 'iceberg': false,
+                        # 'oco': false,
                     },
                     'createOrders': None,
                     'fetchMyTrades': {
@@ -451,13 +486,13 @@ class bitmex(Exchange, ImplicitAPI):
         #            "name": "Bitcoin",
         #            "currencyType": "Crypto",
         #            "scale": "8",
-        #            # "mediumPrecision": "8",
-        #            # "shorterPrecision": "4",
-        #            # "symbol": "₿",
-        #            # "tickLog": "0",
-        #            # "weight": "1",
-        #            "enabled": True,
-        #            "isMarginCurrency": True,
+        #            // "mediumPrecision": "8",
+        #            // "shorterPrecision": "4",
+        #            // "symbol": "₿",
+        #            // "tickLog": "0",
+        #            // "weight": "1",
+        #            "enabled": true,
+        #            "isMarginCurrency": true,
         #            "minDepositAmount": "10000",
         #            "minWithdrawalAmount": "1000",
         #            "maxWithdrawalAmount": "100000000000000",
@@ -465,8 +500,8 @@ class bitmex(Exchange, ImplicitAPI):
         #                {
         #                    "asset": "btc",
         #                    "tokenAddress": "",
-        #                    "depositEnabled": True,
-        #                    "withdrawalEnabled": True,
+        #                    "depositEnabled": true,
+        #                    "withdrawalEnabled": true,
         #                    "withdrawalFee": "20000",
         #                    "minFee": "20000",
         #                    "maxFee": "10000000"
@@ -482,7 +517,7 @@ class bitmex(Exchange, ImplicitAPI):
         code = self.safe_currency_code(asset)
         id = self.safe_string(currency, 'currency')
         name = self.safe_string(currency, 'name')
-        chains = self.safe_value(currency, 'networks', [])
+        chains = self.safe_list(currency, 'networks', [])
         depositEnabled = False
         withdrawEnabled = False
         networks = {}
@@ -629,12 +664,12 @@ class bitmex(Exchange, ImplicitAPI):
         #        "optionStrikeRound": null,
         #        "optionStrikePrice": null,
         #        "optionMultiplier": null,
-        #        "positionCurrency": "LTC",  # can be empty for spot markets
+        #        "positionCurrency": "LTC", // can be empty for spot markets
         #        "underlying": "LTC",
         #        "quoteCurrency": "USDT",
-        #        "underlyingSymbol": "LTCT=",  # can be empty for spot markets
+        #        "underlyingSymbol": "LTCT=", // can be empty for spot markets
         #        "reference": "BMEX",
-        #        "referenceSymbol": ".BLTCT",  # can be empty for spot markets
+        #        "referenceSymbol": ".BLTCT", // can be empty for spot markets
         #        "calcInterval": null,
         #        "publishInterval": null,
         #        "publishTime": null,
@@ -643,27 +678,27 @@ class bitmex(Exchange, ImplicitAPI):
         #        "lotSize": 1000,
         #        "tickSize": 0.01,
         #        "multiplier": 100,
-        #        "settlCurrency": "USDt",  # can be empty for spot markets
+        #        "settlCurrency": "USDt", // can be empty for spot markets
         #        "underlyingToPositionMultiplier": 10000,
         #        "underlyingToSettleMultiplier": null,
         #        "quoteToSettleMultiplier": 1000000,
-        #        "isQuanto": False,
-        #        "isInverse": False,
+        #        "isQuanto": false,
+        #        "isInverse": false,
         #        "initMargin": 0.03,
         #        "maintMargin": 0.015,
-        #        "riskLimit": 1000000000000,  # can be null for spot markets
-        #        "riskStep": 1000000000000,  # can be null for spot markets
+        #        "riskLimit": 1000000000000, // can be null for spot markets
+        #        "riskStep": 1000000000000, // can be null for spot markets
         #        "limit": null,
-        #        "capped": False,
-        #        "taxed": True,
-        #        "deleverage": True,
+        #        "capped": false,
+        #        "taxed": true,
+        #        "deleverage": true,
         #        "makerFee": -0.0001,
         #        "takerFee": 0.0005,
         #        "settlementFee": 0,
         #        "insuranceFee": 0,
-        #        "fundingBaseSymbol": ".LTCBON8H",  # can be empty for spot markets
-        #        "fundingQuoteSymbol": ".USDTBON8H",  # can be empty for spot markets
-        #        "fundingPremiumSymbol": ".LTCUSDTPI8H",  # can be empty for spot markets
+        #        "fundingBaseSymbol": ".LTCBON8H", // can be empty for spot markets
+        #        "fundingQuoteSymbol": ".USDTBON8H", // can be empty for spot markets
+        #        "fundingPremiumSymbol": ".LTCUSDTPI8H", // can be empty for spot markets
         #        "fundingTimestamp": "2022-01-14T20:00:00.000Z",
         #        "fundingInterval": "2000-01-01T08:00:00.000Z",
         #        "fundingRate": 0.0001,
@@ -702,7 +737,7 @@ class bitmex(Exchange, ImplicitAPI):
         #        "impactBidPrice": 143.75,
         #        "impactMidPrice": 143.855,
         #        "impactAskPrice": 143.96,
-        #        "hasLiquidity": True,
+        #        "hasLiquidity": true,
         #        "openInterest": 38103000,
         #        "openValue": 547963053300,
         #        "fairMethod": "FundingRate",
@@ -744,10 +779,10 @@ class bitmex(Exchange, ImplicitAPI):
         #     "multiplier": "1",
         #     "settlCurrency": "XBt",
         #     "underlyingToSettleMultiplier": "-100000000",
-        #     "isQuanto": False,
-        #     "isInverse": False,
-        #     "taxed": True,
-        #     "deleverage": True,
+        #     "isQuanto": false,
+        #     "isInverse": false,
+        #     "taxed": true,
+        #     "deleverage": true,
         #     "makerFee": "0.0005",
         #     "takerFee": "0.0005",
         #     "limitDownPrice": null,
@@ -773,12 +808,12 @@ class bitmex(Exchange, ImplicitAPI):
         #     "bidPrice": "566.5",
         #     "midPrice": "567.25",
         #     "askPrice": "568",
-        #     "hasLiquidity": False,
+        #     "hasLiquidity": false,
         #     "openInterest": "0",
         #     "openValue": "0",
-        #     "instantPnl": False,
+        #     "instantPnl": false,
         #     "timestamp": "2026-06-17T05:22:50.000Z",
-        #     "capped": False,
+        #     "capped": false,
         #     "closingTimestamp": "2026-06-17T06:00:00.000Z",
         #     "farLegSymbol": "XBTU26",
         #     "nearLegSymbol": "XBTUSD",
@@ -796,9 +831,9 @@ class bitmex(Exchange, ImplicitAPI):
         quoteId = self.safe_string(market, 'quoteCurrency')
         settleId = self.safe_string(market, 'settlCurrency')
         settle = self.safe_currency_code(settleId)
-        # 'positionCurrency' may be empty("", currently returns for ETHUSD)
+        # 'positionCurrency' may be empty ("", as Bitmex currently returns for ETHUSD)
         # so let's take the settlCurrency first and then adjust if needed
-        typ = self.safe_string(market, 'typ')  # type definitions at: https://www.bitmex.com/api/explorer/#not /Instrument/Instrument_get
+        typ = self.safe_string(market, 'typ')  # type definitions at: https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_get
         type = None
         swap = False
         spot = False
@@ -813,7 +848,7 @@ class bitmex(Exchange, ImplicitAPI):
             type = 'future'
             future = True
         elif typ == 'FFICSX':
-            # prediction markets(without any volume)
+            # prediction markets (without any volume)
             quoteId = baseId
             baseId = self.safe_string(market, 'rootSymbol')
             type = 'future'
@@ -825,8 +860,8 @@ class bitmex(Exchange, ImplicitAPI):
         quote = self.safe_currency_code(quoteId)
         contract = swap or future
         contractSize = None
-        isInverse = self.safe_value(market, 'isInverse')  # self is True when BASE and SETTLE are same, i.e. BTC/XXX:BTC
-        isQuanto = self.safe_value(market, 'isQuanto')  # self is True when BASE and SETTLE are different, i.e. AXS/XXX:BTC
+        isInverse = self.safe_value(market, 'isInverse')  # this is true when BASE and SETTLE are same, i.e. BTC/XXX:BTC
+        isQuanto = self.safe_value(market, 'isQuanto')  # this is true when BASE and SETTLE are different, i.e. AXS/XXX:BTC
         linear = ((isInverse is not True) and (isQuanto is not True)) if contract else None
         status = self.safe_string(market, 'state')
         active = status == 'Open'  # Open, Settled, Unlisted
@@ -855,7 +890,7 @@ class bitmex(Exchange, ImplicitAPI):
         maxOrderQty = self.safe_number(market, 'maxOrderQty')
         initMargin = self.safe_string(market, 'initMargin', '1')
         maxLeverage = self.parse_number(Precise.string_div('1', initMargin))
-        # subtype should be None for spot markets
+        # subtype should be undefined for spot markets
         if spot:
             isInverse = None
             isQuanto = None
@@ -1142,7 +1177,7 @@ class bitmex(Exchange, ImplicitAPI):
         request = self.deep_extend(request, params)
         # why the hassle? urlencode in python is kinda broken for nested dicts.
         # E.g. self.urlencode({"filter": {"open": True}}) will return "filter={'open':+True}"
-        # Bitmex doesn't like that. Hence resorting to self hack.
+        # Bitmex doesn't like that. Hence resorting to this hack.
         if 'filter' in request:
             request['filter'] = self.json(request['filter'])
         response = await self.privateGetOrder(request)
@@ -1179,7 +1214,7 @@ class bitmex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        # Bitmex barfs if you set 'open': False in the filter...
+        # Bitmex barfs if you set 'open': false in the filter...
         orders = await self.fetch_orders(symbol, since, limit, params)
         return self.filter_by_array(orders, 'status', ['closed', 'canceled'], False)
 
@@ -1218,7 +1253,7 @@ class bitmex(Exchange, ImplicitAPI):
         request = self.deep_extend(request, params)
         # why the hassle? urlencode in python is kinda broken for nested dicts.
         # E.g. self.urlencode({"filter": {"open": True}}) will return "filter={'open':+True}"
-        # Bitmex doesn't like that. Hence resorting to self hack.
+        # Bitmex doesn't like that. Hence resorting to this hack.
         if 'filter' in request:
             request['filter'] = self.json(request['filter'])
         response = await self.privateGetExecutionTradeHistory(request)
@@ -1254,7 +1289,7 @@ class bitmex(Exchange, ImplicitAPI):
         #             "exDestination": "string",
         #             "ordStatus": "string",
         #             "triggered": "string",
-        #             "workingIndicator": True,
+        #             "workingIndicator": true,
         #             "ordRejReason": "string",
         #             "simpleLeavesQty": 0,
         #             "leavesQty": 0,
@@ -1295,15 +1330,15 @@ class bitmex(Exchange, ImplicitAPI):
         #         "transactID": "69573da3-7744-5467-3207-89fd6efe7a47",
         #         "account":  24321,
         #         "currency": "XBt",
-        #         "transactType": "Withdrawal",  # "AffiliatePayout", "Transfer", "Deposit", "RealisedPNL", ...
+        #         "transactType": "Withdrawal", // "AffiliatePayout", "Transfer", "Deposit", "RealisedPNL", ...
         #         "amount":  -1000000,
         #         "fee":  300000,
-        #         "transactStatus": "Completed",  # "Canceled", ...
+        #         "transactStatus": "Completed", // "Canceled", ...
         #         "address": "1Ex4fkF4NhQaQdRWNoYpqiPbDBbq18Kdd9",
         #         "tx": "3BMEX91ZhhKoWtsH9QRb5dNXnmnGpiEetA",
         #         "text": "",
         #         "transactTime": "2017-03-21T20:05:14.388Z",
-        #         "walletBalance":  0,  # balance after
+        #         "walletBalance":  0, // balance after
         #         "marginBalance":  null,
         #         "timestamp": "2017-03-22T13:09:23.514Z"
         #     }
@@ -1402,8 +1437,8 @@ class bitmex(Exchange, ImplicitAPI):
             # 'start': 123,
         }
         #
-        #     if since is not None:
-        #         # date-based pagination not supported
+        #     if (since !== undefined) {
+        #         // date-based pagination not supported
         #     }
         #
         if limit is not None:
@@ -1419,15 +1454,15 @@ class bitmex(Exchange, ImplicitAPI):
         #             "transactID": "69573da3-7744-5467-3207-89fd6efe7a47",
         #             "account":  24321,
         #             "currency": "XBt",
-        #             "transactType": "Withdrawal",  # "AffiliatePayout", "Transfer", "Deposit", "RealisedPNL", ...
+        #             "transactType": "Withdrawal", // "AffiliatePayout", "Transfer", "Deposit", "RealisedPNL", ...
         #             "amount":  -1000000,
         #             "fee":  300000,
-        #             "transactStatus": "Completed",  # "Canceled", ...
+        #             "transactStatus": "Completed", // "Canceled", ...
         #             "address": "1Ex4fkF4NhQaQdRWNoYpqiPbDBbq18Kdd9",
         #             "tx": "3BMEX91ZhhKoWtsH9QRb5dNXnmnGpiEetA",
         #             "text": "",
         #             "transactTime": "2017-03-21T20:05:14.388Z",
-        #             "walletBalance":  0,  # balance after
+        #             "walletBalance":  0, // balance after
         #             "marginBalance":  null,
         #             "timestamp": "2017-03-22T13:09:23.514Z"
         #         }
@@ -1454,8 +1489,8 @@ class bitmex(Exchange, ImplicitAPI):
             # 'start': 123,
         }
         #
-        #     if since is not None:
-        #         # date-based pagination not supported
+        #     if (since !== undefined) {
+        #         // date-based pagination not supported
         #     }
         #
         currency = None
@@ -1483,7 +1518,7 @@ class bitmex(Exchange, ImplicitAPI):
         #        "transactID": "ffe699c2-95ee-4c13-91f9-0faf41daec25",
         #        "account": 123456,
         #        "currency": "XBt",
-        #        "network":'',  # "tron" for USDt, etc...
+        #        "network":'', // "tron" for USDt, etc...
         #        "transactType": "Withdrawal",
         #        "amount": -100100000,
         #        "fee": 100000,
@@ -1492,8 +1527,8 @@ class bitmex(Exchange, ImplicitAPI):
         #        "tx": "3BMEXabcdefghijklmnopqrstuvwxyz123",
         #        "text": '',
         #        "transactTime": "2019-01-02T01:00:00.000Z",
-        #        "walletBalance": 99900000,  # self field might be inexistent
-        #        "marginBalance": None,  # self field might be inexistent
+        #        "walletBalance": 99900000, // this field might be inexistent
+        #        "marginBalance": None, // this field might be inexistent
         #        "timestamp": "2019-01-02T13:00:00.000Z"
         #    }
         #
@@ -1587,7 +1622,7 @@ class bitmex(Exchange, ImplicitAPI):
             await self.load_markets()
         symbols = self.market_symbols(symbols)
         response = await self.publicGetInstrumentActiveAndIndices(params)
-        # same response "fetchMarkets"
+        # same response as under "fetchMarkets"
         result = {}
         rawTickers = self.to_array(response)
         for i in range(0, len(rawTickers)):
@@ -1670,7 +1705,7 @@ class bitmex(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1680,20 +1715,20 @@ class bitmex(Exchange, ImplicitAPI):
             return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params)
         # send JSON key/value pairs, such as {"key": "value"}
         # filter by individual fields and do advanced queries on timestamps
-        # filter = {'key': 'value'}
-        # send a bare series(e.g. XBU) to nearest expiring contract in that series
+        # let filter: Dict = { 'key': 'value' };
+        # send a bare series (e.g. XBU) to nearest expiring contract in that series
         # you can also send a timeframe, e.g. XBU:monthly
         # timeframes: daily, weekly, monthly, quarterly, and biquarterly
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
             'binSize': self.safe_string(self.timeframes, timeframe, timeframe),
-            'partial': True,     # True == include yet-incomplete current bins
-            # 'filter': filter,  # filter by individual fields and do advanced queries
-            # 'columns': [],    # will return all columns if omitted
-            # 'start': 0,       # starting point for results(wtf?)
-            # 'reverse': False,  # True == newest first
-            # 'endTime': '',    # ending date filter for results
+            'partial': True,     # true == include yet-incomplete current bins
+            # 'filter': filter, // filter by individual fields and do advanced queries
+            # 'columns': [],    // will return all columns if omitted
+            # 'start': 0,       // starting point for results (wtf?)
+            # 'reverse': false, // true == newest first
+            # 'endTime': '',    // ending date filter for results
         }
         if limit is not None:
             request['count'] = limit  # default 100, max 500
@@ -1732,7 +1767,7 @@ class bitmex(Exchange, ImplicitAPI):
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
-        # fetchTrades(public)
+        # fetchTrades (public)
         #
         #     {
         #         "timestamp": "2018-08-28T00:00:02.735Z",
@@ -1747,7 +1782,7 @@ class bitmex(Exchange, ImplicitAPI):
         #         "foreignNotional": 2000
         #     }
         #
-        # fetchMyTrades(private)
+        # fetchMyTrades (private)
         #
         #     {
         #         "execID": "string",
@@ -1779,7 +1814,7 @@ class bitmex(Exchange, ImplicitAPI):
         #         "exDestination": "string",
         #         "ordStatus": "string",
         #         "triggered": "string",
-        #         "workingIndicator": True,
+        #         "workingIndicator": true,
         #         "ordRejReason": "string",
         #         "simpleLeavesQty": 0,
         #         "leavesQty": 0,
@@ -1808,7 +1843,7 @@ class bitmex(Exchange, ImplicitAPI):
         id = self.safe_string(trade, 'trdMatchID')
         order = self.safe_string(trade, 'orderID')
         side = self.safe_string_lower(trade, 'side')
-        # price * amount doesn't work for all symbols(e.g. XBT, ETH)
+        # price * amount doesn't work for all symbols (e.g. XBT, ETH)
         fee = None
         feeCostString = self.number_to_string(self.convert_from_raw_cost(symbol, self.safe_string(trade, 'execComm')))
         if feeCostString is not None:
@@ -1987,7 +2022,7 @@ class bitmex(Exchange, ImplicitAPI):
         if since is not None:
             request['startTime'] = self.iso8601(since)
         else:
-            # by default reverse=false, i.e. trades are fetched since the time of market inception(year 2015 for XBTUSD)
+            # by default reverse=false, i.e. trades are fetched since the time of market inception (year 2015 for XBTUSD)
             request['reverse'] = True
         if limit is not None:
             request['count'] = min(limit, 1000)  # api maximum 1000
@@ -2201,7 +2236,7 @@ class bitmex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        # return await self.cancel_order(ids, symbol, params)
+        # return await this.cancelOrder (ids, symbol, params);
         if self.markets is None:
             await self.load_markets()
         # https://github.com/ccxt/ccxt/issues/6507
@@ -2258,7 +2293,7 @@ class bitmex(Exchange, ImplicitAPI):
         #             "exDestination": "string",
         #             "ordStatus": "string",
         #             "triggered": "string",
-        #             "workingIndicator": True,
+        #             "workingIndicator": true,
         #             "ordRejReason": "string",
         #             "simpleLeavesQty": 0,
         #             "leavesQty": 0,
@@ -2351,7 +2386,7 @@ class bitmex(Exchange, ImplicitAPI):
         #             "maintMarginReq": 0,
         #             "riskLimit": 0,
         #             "leverage": 0,
-        #             "crossMargin": True,
+        #             "crossMargin": true,
         #             "deleveragePercentile": 0,
         #             "rebalancedPnl": 0,
         #             "prevRealisedPnl": 0,
@@ -2383,7 +2418,7 @@ class bitmex(Exchange, ImplicitAPI):
         #             "grossOpenCost": 0,
         #             "grossOpenPremium": 0,
         #             "grossExecCost": 0,
-        #             "isOpen": True,
+        #             "isOpen": true,
         #             "markPrice": 0,
         #             "markValue": 0,
         #             "riskValue": 0,
@@ -2451,7 +2486,7 @@ class bitmex(Exchange, ImplicitAPI):
         #         "maintMarginReq": 0.01,
         #         "riskLimit": 1000000000000,
         #         "leverage": 3,
-        #         "crossMargin": False,
+        #         "crossMargin": false,
         #         "deleveragePercentile": 1,
         #         "rebalancedPnl": 0,
         #         "prevRealisedPnl": 0,
@@ -2483,7 +2518,7 @@ class bitmex(Exchange, ImplicitAPI):
         #         "grossOpenCost": 0,
         #         "grossOpenPremium": 0,
         #         "grossExecCost": 39260000,
-        #         "isOpen": True,
+        #         "isOpen": true,
         #         "markPrice": 1964.195,
         #         "markValue": 39283900,
         #         "riskValue": 39283900,
@@ -2608,8 +2643,8 @@ class bitmex(Exchange, ImplicitAPI):
             'amount': qty,
             'address': address,
             'network': self.network_code_to_id(networkCode, currency['code']),
-            # 'otpToken': '123456',  # requires if two-factor auth(OTP) is enabled
-            # 'fee': 0.001,  # bitcoin network fee
+            # 'otpToken': '123456', // requires if two-factor auth (OTP) is enabled
+            # 'fee': 0.001, // bitcoin network fee
         }
         if self.twofa is not None:
             request['otpToken'] = self.totp(self.twofa)
@@ -2646,7 +2681,7 @@ class bitmex(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         response = await self.publicGetInstrumentActiveAndIndices(params)
-        # same response "fetchMarkets"
+        # same response as under "fetchMarkets"
         filteredResponse = []
         rawItems = self.to_array(response)
         for i in range(0, len(rawItems)):
@@ -2866,8 +2901,8 @@ class bitmex(Exchange, ImplicitAPI):
         #        "name": "Bitcoin",
         #        "currencyType": "Crypto",
         #        "scale": "8",
-        #        "enabled": True,
-        #        "isMarginCurrency": True,
+        #        "enabled": true,
+        #        "isMarginCurrency": true,
         #        "minDepositAmount": "10000",
         #        "minWithdrawalAmount": "1000",
         #        "maxWithdrawalAmount": "100000000000000",
@@ -2875,8 +2910,8 @@ class bitmex(Exchange, ImplicitAPI):
         #            {
         #                "asset": "btc",
         #                "tokenAddress": '',
-        #                "depositEnabled": True,
-        #                "withdrawalEnabled": True,
+        #                "depositEnabled": true,
+        #                "withdrawalEnabled": true,
         #                "withdrawalFee": "20000",
         #                "minFee": "20000",
         #                "maxFee": "10000000"
@@ -2884,7 +2919,7 @@ class bitmex(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        networks = self.safe_value(fee, 'networks', [])
+        networks = self.safe_list(fee, 'networks', [])
         networksLength = len(networks)
         result = {
             'info': fee,
@@ -2940,8 +2975,8 @@ class bitmex(Exchange, ImplicitAPI):
         #            "name": "Bitcoin",
         #            "currencyType": "Crypto",
         #            "scale": "8",
-        #            "enabled": True,
-        #            "isMarginCurrency": True,
+        #            "enabled": true,
+        #            "isMarginCurrency": true,
         #            "minDepositAmount": "10000",
         #            "minWithdrawalAmount": "1000",
         #            "maxWithdrawalAmount": "100000000000000",
@@ -2949,8 +2984,8 @@ class bitmex(Exchange, ImplicitAPI):
         #                {
         #                    "asset": "btc",
         #                    "tokenAddress": '',
-        #                    "depositEnabled": True,
-        #                    "withdrawalEnabled": True,
+        #                    "depositEnabled": true,
+        #                    "withdrawalEnabled": true,
         #                    "withdrawalFee": "20000",
         #                    "minFee": "20000",
         #                    "maxFee": "10000000"
@@ -3131,7 +3166,7 @@ class bitmex(Exchange, ImplicitAPI):
         #             "maintMarginReq": 0.005,
         #             "riskLimit": 1000000000000,
         #             "leverage": 100,
-        #             "crossMargin": True,
+        #             "crossMargin": true,
         #             "deleveragePercentile": 1,
         #             "rebalancedPnl": -4319,
         #             "prevRealisedPnl": 0,
@@ -3149,7 +3184,7 @@ class bitmex(Exchange, ImplicitAPI):
         #             "realisedCost": 0,
         #             "unrealisedCost": 8639330,
         #             "grossOpenPremium": 0,
-        #             "isOpen": True,
+        #             "isOpen": true,
         #             "markPrice": 88636.92,
         #             "markValue": 8863692,
         #             "riskValue": 8863692,
@@ -3182,7 +3217,7 @@ class bitmex(Exchange, ImplicitAPI):
         #                 "bankruptPrice": 0,
         #                 "breakEvenPrice": 86436.5,
         #                 "commission": 0.0005,
-        #                 "crossMargin": True,
+        #                 "crossMargin": true,
         #                 "currency": "USDt",
         #                 "currentComm": 0,
         #                 "currentCost": 8639330,
@@ -3193,7 +3228,7 @@ class bitmex(Exchange, ImplicitAPI):
         #                 "homeNotional": 0.0001,
         #                 "initMargin": 0,
         #                 "initMarginReq": 0.01,
-        #                 "isOpen": True,
+        #                 "isOpen": true,
         #                 "leverage": 100,
         #                 "liquidationPrice": 0,
         #                 "maintMargin": 44061,
@@ -3251,7 +3286,7 @@ class bitmex(Exchange, ImplicitAPI):
         #         "maintMarginReq": 0.005,
         #         "riskLimit": 1000000000000,
         #         "leverage": 100,
-        #         "crossMargin": True,
+        #         "crossMargin": true,
         #         "deleveragePercentile": 1,
         #         "rebalancedPnl": -4319,
         #         "prevRealisedPnl": 0,
@@ -3269,7 +3304,7 @@ class bitmex(Exchange, ImplicitAPI):
         #         "realisedCost": 0,
         #         "unrealisedCost": 8639330,
         #         "grossOpenPremium": 0,
-        #         "isOpen": True,
+        #         "isOpen": true,
         #         "markPrice": 88636.92,
         #         "markValue": 8863692,
         #         "riskValue": 8863692,
@@ -3302,7 +3337,7 @@ class bitmex(Exchange, ImplicitAPI):
         #             "bankruptPrice": 0,
         #             "breakEvenPrice": 86436.5,
         #             "commission": 0.0005,
-        #             "crossMargin": True,
+        #             "crossMargin": true,
         #             "currency": "USDt",
         #             "currentComm": 0,
         #             "currentCost": 8639330,
@@ -3313,7 +3348,7 @@ class bitmex(Exchange, ImplicitAPI):
         #             "homeNotional": 0.0001,
         #             "initMargin": 0,
         #             "initMarginReq": 0.01,
-        #             "isOpen": True,
+        #             "isOpen": true,
         #             "leverage": 100,
         #             "liquidationPrice": 0,
         #             "maintMargin": 44061,
@@ -3386,12 +3421,12 @@ class bitmex(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         request = {
-            # symbol string Instrument symbol. Send a bare series(e.g. XBT) to get data for the nearest expiring contract in that series. You can also send a timeframe, e.g. XBT:quarterly. Timeframes are nearest, daily, weekly, monthly, quarterly, biquarterly, and perpetual. Symbols are case-insensitive.
+            # symbol string Instrument symbol. Send a bare series (e.g. XBT) to get data for the nearest expiring contract in that series. You can also send a timeframe, e.g. XBT:quarterly. Timeframes are nearest, daily, weekly, monthly, quarterly, biquarterly, and perpetual. Symbols are case-insensitive.
             # filter string Generic table filter. Send JSON key/value pairs, such as {"key": "value"}. You can key on individual fields, and do more advanced querying on timestamps. See the Timestamp Docs for more details. Default value: {}
-            # columns string Array of column names to fetch. If omitted, will return all columns. Note that self method will always return item keys, even when not specified, so you may receive more columns that you expect.
+            # columns string Array of column names to fetch. If omitted, will return all columns. Note that this method will always return item keys, even when not specified, so you may receive more columns that you expect.
             # count int32 Possible values: >= 1 and <= 500 Number of results to fetch. Must be a positive integer. Default value: 100
             # start int32 Possible values: >= 0 Starting point for results. Default value: 0
-            # reverse boolean If True, will sort results newest first. Default value: False
+            # reverse boolean If true, will sort results newest first. Default value: false
             # startTime string Starting time filter for results.
             # endTime string Ending time filter for results.
         }
@@ -3489,7 +3524,7 @@ class bitmex(Exchange, ImplicitAPI):
         #         "timeInForce": "ImmediateOrCancel",
         #         "timestamp": "2026-04-02T05:20:26.607Z",
         #         "transactTime": "2026-04-02T05:20:26.606Z",
-        #         "workingIndicator": False
+        #         "workingIndicator": false
         #     }
         #
         return self.parse_order(response, market)

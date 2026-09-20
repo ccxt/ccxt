@@ -57,7 +57,7 @@ class bydfi(ccxt.async_support.bydfi):
                     'frequency': '1000ms',  # 100ms, 1000ms
                 },
                 'watchBalance': {
-                    'fetchBalanceSnapshot': False,  # or True
+                    'fetchBalanceSnapshot': False,  # or true
                     'awaitBalanceSnapshot': True,  # whether to wait for the balance snapshot before providing updates
                 },
                 'timeframes': {
@@ -289,7 +289,7 @@ class bydfi(ccxt.async_support.bydfi):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         result = await self.watch_ohlcv_for_symbols([[symbol, timeframe]], since, limit, params)
         return result[symbol][timeframe]
@@ -303,7 +303,7 @@ class bydfi(ccxt.async_support.bydfi):
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         return self.un_watch_ohlcv_for_symbols([[symbol, timeframe]], params)
 
@@ -317,7 +317,7 @@ class bydfi(ccxt.async_support.bydfi):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         symbolsLength = len(symbolsAndTimeframes)
         if symbolsLength == 0 or not isinstance(symbolsAndTimeframes[0], list):
@@ -348,7 +348,7 @@ class bydfi(ccxt.async_support.bydfi):
 
         :param str[][] symbolsAndTimeframes: array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         symbolsLength = len(symbolsAndTimeframes)
         if symbolsLength == 0 or not isinstance(symbolsAndTimeframes[0], list):
@@ -498,8 +498,8 @@ class bydfi(ccxt.async_support.bydfi):
     def handle_order_book(self, client: Client, message: object):
         #
         #     {
-        #         "a": [[150000, 15], ...],
-        #         "b": [[90450.7, 3615], ...],
+        #         "a": [ [ 150000, 15 ], ... ],
+        #         "b": [ [ 90450.7, 3615 ], ... ],
         #         "s": "BTC-USDT",
         #         "e": "depthUpdate",
         #         "E": 1766577624512
@@ -572,7 +572,7 @@ class bydfi(ccxt.async_support.bydfi):
         #         "o": {
         #             "S": "BUY",
         #             "ap": "0",
-        #             "cpt": False,
+        #             "cpt": false,
         #             "ct": "future",
         #             "ev": "0",
         #             "fee": "0",
@@ -582,7 +582,7 @@ class bydfi(ccxt.async_support.bydfi):
         #             "p": "1000",
         #             "ps": "BOTH",
         #             "pt": "ONE_WAY",
-        #             "ro": False,
+        #             "ro": false,
         #             "s": "ETH-USDC",
         #             "st": "NEW",
         #             "t": "LIMIT",
@@ -614,7 +614,7 @@ class bydfi(ccxt.async_support.bydfi):
         #     {
         #         "S": "BUY",
         #         "ap": "0",
-        #         "cpt": False,
+        #         "cpt": false,
         #         "ct": "future",
         #         "ev": "0",
         #         "fee": "0",
@@ -624,7 +624,7 @@ class bydfi(ccxt.async_support.bydfi):
         #         "p": "1000",
         #         "ps": "BOTH",
         #         "pt": "ONE_WAY",
-        #         "ro": False,
+        #         "ro": false,
         #         "s": "ETH-USDC",
         #         "st": "NEW",
         #         "t": "LIMIT",
@@ -930,7 +930,7 @@ class bydfi(ccxt.async_support.bydfi):
     def handle_subscription_status(self, client: Client, message: object):
         #
         #     {
-        #         "result": True,
+        #         "result": true,
         #         "id": 1
         #     }
         #

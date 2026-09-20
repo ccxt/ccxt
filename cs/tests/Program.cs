@@ -159,7 +159,9 @@ public class Tests
                 WsOrderBookTests();
                 WsOrderBookDefaultsTests();
                 WsOrderBookCopyAtomicityTests();
-                await WsClientKeepAliveLivenessTests();
+                // the client suites are timer-bound (keepalive windows, settle delays) and touch
+                // only their own WebSocketClient instances, so they overlap instead of serializing
+                await Task.WhenAll(WsClientKeepAliveLivenessTests(), WsClientKeepAliveTimeoutTests(), WsClientRetirementRaceTests());
                 Helper.Green("[C#] base WS tests passed");
             }
             else
@@ -216,6 +218,7 @@ public class Tests
     {
         baseTestInstance.testWsOrderBookCopyAtomicity();
         baseTestInstance.testWsOrderBookSingleStore();
+        baseTestInstance.testWsOrderBookSideCopyFidelity();
         Helper.Green(" [C#] OrderBook Copy() atomicity tests passed");
     }
 
@@ -223,6 +226,12 @@ public class Tests
     {
         await baseTestInstance.testWsClientKeepAliveLiveness();
         Helper.Green(" [C#] WebSocketClient keepalive liveness tests passed");
+    }
+
+    static async Task WsClientKeepAliveTimeoutTests()
+    {
+        await baseTestInstance.testWsClientKeepAliveTimeout();
+        Helper.Green(" [C#] WebSocketClient keepalive timeout closes the socket tests passed");
     }
 
     static void WsOrderBookTests()
@@ -239,6 +248,12 @@ public class Tests
             throw new Exception("[C#] " + failed.ToString() + " OrderRouter tests failed");
         }
         Helper.Green(" [C#] OrderRouter tests passed");
+    }
+
+    static async Task WsClientRetirementRaceTests()
+    {
+        await baseTestInstance.testWsClientRetirementRace();
+        Helper.Green(" [C#] WebSocketClient retirement race tests passed");
     }
 
     static void RaceConditionTests()

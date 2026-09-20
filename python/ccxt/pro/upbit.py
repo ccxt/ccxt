@@ -172,7 +172,7 @@ class upbit(ccxt.async_support.upbit):
 
     def handle_ticker(self, client: Client, message: object):
         # 2020-03-17T23:07:36.511Z "onMessage" <Buffer 7b 22 74 79 70 65 22 3a 22 74 69 63 6b 65 72 22 2c 22 63 6f 64 65 22 3a 22 42 54 43 2d 45 54 48 22 2c 22 6f 70 65 6e 69 6e 67 5f 70 72 69 63 65 22 3a ... >
-        # {type: "ticker",
+        # { type: "ticker",
         #   "code": "BTC-ETH",
         #   "opening_price": 0.02295092,
         #   "high_price": 0.02295092,
@@ -200,13 +200,13 @@ class upbit(ccxt.async_support.upbit):
         #   "trade_status": null,
         #   "market_state": "ACTIVE",
         #   "market_state_for_ios": null,
-        #   "is_trading_suspended": False,
+        #   "is_trading_suspended": false,
         #   "delisting_date": null,
         #   "market_warning": "NONE",
         #   "timestamp": 1584482323378,
         #   "acc_trade_price_24h": 2.5955306323568927,
         #   "acc_trade_volume_24h": 118.38798416,
-        #   "stream_type": "SNAPSHOT"}
+        #   "stream_type": "SNAPSHOT" }
         ticker = self.parse_ticker(message)
         symbol = ticker['symbol']
         if symbol is not None:
@@ -215,25 +215,25 @@ class upbit(ccxt.async_support.upbit):
         client.resolve(ticker, messageHash)
 
     def handle_order_book(self, client: Client, message: object):
-        # {type: "orderbook",
+        # { type: "orderbook",
         #   "code": "BTC-ETH",
         #   "timestamp": 1584486737444,
         #   "total_ask_size": 16.76384456,
         #   "total_bid_size": 168.9020623,
         #   "orderbook_units":
-        #    [{ask_price: 0.02295077,
+        #    [ { ask_price: 0.02295077,
         #        "bid_price": 0.02161249,
         #        "ask_size": 3.57100696,
-        #        "bid_size": 22.5303265},
-        #      {ask_price: 0.02295078,
+        #        "bid_size": 22.5303265 },
+        #      { ask_price: 0.02295078,
         #        "bid_price": 0.02152658,
         #        "ask_size": 0.52451651,
-        #        "bid_size": 2.30355128},
-        #      {ask_price: 0.02295086,
+        #        "bid_size": 2.30355128 },
+        #      { ask_price: 0.02295086,
         #        "bid_price": 0.02150802,
         #        "ask_size": 1.585,
-        #        "bid_size": 5}, ...],
-        #   "stream_type": "SNAPSHOT"}
+        #        "bid_size": 5 }, ... ],
+        #   "stream_type": "SNAPSHOT" }
         marketId = self.safe_string(message, 'code')
         symbol = self.safe_symbol(marketId, None, '-')
         type = self.safe_string(message, 'stream_type')
@@ -250,7 +250,7 @@ class upbit(ccxt.async_support.upbit):
         orderbook['symbol'] = symbol
         bids = orderbook['bids']
         asks = orderbook['asks']
-        data = self.safe_value(message, 'orderbook_units', [])
+        data = self.safe_list(message, 'orderbook_units', [])
         for i in range(0, len(data)):
             entry = data[i]
             ask_price = self.safe_float(entry, 'ask_price')
@@ -267,7 +267,7 @@ class upbit(ccxt.async_support.upbit):
         client.resolve(orderbook, messageHash)
 
     def handle_trades(self, client: Client, message: object):
-        # {type: "trade",
+        # { type: "trade",
         #   "code": "KRW-BTC",
         #   "timestamp": 1584508285812,
         #   "trade_date": "2020-03-18",
@@ -280,7 +280,7 @@ class upbit(ccxt.async_support.upbit):
         #   "change": "FALL",
         #   "change_price": 27000,
         #   "sequential_id": 1584508285000002,
-        #   "stream_type": "REALTIME"}
+        #   "stream_type": "REALTIME" }
         trade = self.parse_trade(message)
         symbol = trade['symbol']
         if symbol is None:
@@ -427,7 +427,7 @@ class upbit(ccxt.async_support.upbit):
             'wait': 'open',
             'done': 'closed',
             'cancel': 'canceled',
-            'watch': 'open',  # not sure what self status means
+            'watch': 'open',  # not sure what this status means
             'trade': 'open',
         }
         if status is None:

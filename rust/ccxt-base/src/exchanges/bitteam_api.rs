@@ -57,6 +57,11 @@ impl BitteamCore {
         self.call_method(Value::Str("public_get_trade_api_rates".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `publicGetTradeApiStats` implicit endpoint.
+    pub async fn public_get_trade_api_stats(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_trade_api_stats".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `publicGetTradeApiTradeId` implicit endpoint.
     pub async fn public_get_trade_api_trade_id(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_trade_api_trade_id".to_string()), optional_args).await

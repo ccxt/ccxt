@@ -206,6 +206,7 @@ class tokocrypto(Exchange, ImplicitAPI):
                         'ticker/price': {'cost': 1, 'noSymbol': 2},
                         'ticker/bookTicker': {'cost': 1, 'noSymbol': 2},
                         'exchangeInfo': {'cost': 10},
+                        'executionRules': {'cost': 2, 'noSymbol': 40},
                     },
                     'put': {
                         'userDataStream': {'cost': 1},
@@ -245,6 +246,7 @@ class tokocrypto(Exchange, ImplicitAPI):
                         'open/v1/orders/oco': {'cost': 1},
                         'open/v1/withdraws': {'cost': 1},
                         'open/v1/user-data-stream': {'cost': 1},
+                        'open/v1/user-listen-token': {'cost': 1},
                     },
                 },
             },
@@ -258,19 +260,19 @@ class tokocrypto(Exchange, ImplicitAPI):
             },
             'precisionMode': TICK_SIZE,
             'options': {
-                # 'fetchTradesMethod': 'binanceGetTrades',  # binanceGetTrades, binanceGetAggTrades
+                # 'fetchTradesMethod': 'binanceGetTrades', // binanceGetTrades, binanceGetAggTrades
                 'createMarketBuyOrderRequiresPrice': True,
-                'defaultTimeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
-                # 'defaultType': 'spot',  # 'spot', 'future', 'margin', 'delivery'
+                'defaultTimeInForce': 'GTC',  # 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+                # 'defaultType': 'spot', // 'spot', 'future', 'margin', 'delivery'
                 'hasAlreadyAuthenticatedSuccessfully': False,
                 'warnOnFetchOpenOrdersWithoutSymbol': True,
-                # 'fetchPositions': 'positionRisk',  # or 'account'
+                # 'fetchPositions': 'positionRisk', // or 'account'
                 'recvWindow': 5 * 1000,  # 5 sec, binance default
                 'timeDifference': 0,  # the difference between system clock and exchange clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'newOrderRespType': {
                     'market': 'FULL',  # 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
-                    'limit': 'FULL',  # we change it from 'ACK' by default to 'FULL'(returns immediately if limit is not hit)
+                    'limit': 'FULL',  # we change it from 'ACK' by default to 'FULL' (returns immediately if limit is not hit)
                 },
                 'quoteOrderQty': False,  # whether market orders support amounts in quote currency
                 'networks': {
@@ -420,7 +422,7 @@ class tokocrypto(Exchange, ImplicitAPI):
                 'exact': {
                     'System is under maintenance.': OnMaintenance,  # {"code":1,"msg":"System is under maintenance."}
                     'System abnormality': ExchangeError,  # {"code":-1000,"msg":"System abnormality"}
-                    'You are not authorized to execute self request.': PermissionDenied,  # {"msg":"You are not authorized to execute self request."}
+                    'You are not authorized to execute self request.': PermissionDenied,  # {"msg":"You are not authorized to execute this request."}
                     'API key does not exist': AuthenticationError,
                     'Order would trigger immediately.': OrderImmediatelyFillable,
                     'Stop price would trigger immediately.': OrderImmediatelyFillable,  # {"code":-2010,"msg":"Stop price would trigger immediately."}
@@ -430,24 +432,24 @@ class tokocrypto(Exchange, ImplicitAPI):
                     "You don't have permission.": PermissionDenied,  # {"msg":"You don't have permission.","success":false}
                     'Market is closed.': ExchangeNotAvailable,  # {"code":-1013,"msg":"Market is closed."}
                     'Too many requests. Please try again later.': DDoSProtection,  # {"msg":"Too many requests. Please try again later.","success":false}
-                    'This action disabled is on self account.': AccountSuspended,  # {"code":-2010,"msg":"This action disabled is on self account."}
+                    'This action disabled is on self account.': AccountSuspended,  # {"code":-2010,"msg":"This action disabled is on this account."}
                     '-1000': ExchangeNotAvailable,  # {"code":-1000,"msg":"An unknown error occured while processing the request."}
                     '-1001': ExchangeNotAvailable,  # {"code":-1001,"msg":"'Internal error; unable to process your request. Please try again.'"}
-                    '-1002': AuthenticationError,  # {"code":-1002,"msg":"'You are not authorized to execute self request.'"}
+                    '-1002': AuthenticationError,  # {"code":-1002,"msg":"'You are not authorized to execute this request.'"}
                     '-1003': RateLimitExceeded,  # {"code":-1003,"msg":"Too much request weight used, current limit is 1200 request weight per 1 MINUTE. Please use the websocket for live updates to avoid polling the API."}
                     '-1004': DDoSProtection,  # {"code":-1004,"msg":"Server is busy, please wait and try again"}
                     '-1005': PermissionDenied,  # {"code":-1005,"msg":"No such IP has been white listed"}
                     '-1006': BadResponse,  # {"code":-1006,"msg":"An unexpected response was received from the message bus. Execution status unknown."}
                     '-1007': RequestTimeout,  # {"code":-1007,"msg":"Timeout waiting for response from backend server. Send status unknown; execution status unknown."}
                     '-1010': BadResponse,  # {"code":-1010,"msg":"ERROR_MSG_RECEIVED."}
-                    '-1011': PermissionDenied,  # {"code":-1011,"msg":"This IP cannot access self route."}
+                    '-1011': PermissionDenied,  # {"code":-1011,"msg":"This IP cannot access this route."}
                     '-1013': InvalidOrder,  # {"code":-1013,"msg":"createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL"}
                     '-1014': InvalidOrder,  # {"code":-1014,"msg":"Unsupported order combination."}
                     '-1015': RateLimitExceeded,  # {"code":-1015,"msg":"'Too many new orders; current limit is %s orders per %s.'"}
                     '-1016': ExchangeNotAvailable,  # {"code":-1016,"msg":"'This service is no longer available.',"}
                     '-1020': BadRequest,  # {"code":-1020,"msg":"'This operation is not supported.'"}
                     '-1021': InvalidNonce,  # {"code":-1021,"msg":"'your time is ahead of server'"}
-                    '-1022': AuthenticationError,  # {"code":-1022,"msg":"Signature for self request is not valid."}
+                    '-1022': AuthenticationError,  # {"code":-1022,"msg":"Signature for this request is not valid."}
                     '-1023': BadRequest,  # {"code":-1023,"msg":"Start time is greater than end time."}
                     '-1099': AuthenticationError,  # {"code":-1099,"msg":"Not found, authenticated, or authorized"}
                     '-1100': BadRequest,  # {"code":-1100,"msg":"createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'"}
@@ -460,7 +462,7 @@ class tokocrypto(Exchange, ImplicitAPI):
                     '-1108': BadRequest,  # {"code":-1108,"msg":"Invalid asset."}
                     '-1109': AuthenticationError,  # {"code":-1109,"msg":"Invalid account."}
                     '-1110': BadRequest,  # {"code":-1110,"msg":"Invalid symbolType."}
-                    '-1111': BadRequest,  # {"code":-1111,"msg":"Precision is over the maximum defined for self asset."}
+                    '-1111': BadRequest,  # {"code":-1111,"msg":"Precision is over the maximum defined for this asset."}
                     '-1112': InvalidOrder,  # {"code":-1112,"msg":"No orders on book for symbol."}
                     '-1113': BadRequest,  # {"code":-1113,"msg":"Withdrawal amount must be negative."}
                     '-1114': BadRequest,  # {"code":-1114,"msg":"TimeInForce parameter sent when not required."}
@@ -480,7 +482,7 @@ class tokocrypto(Exchange, ImplicitAPI):
                     '-2008': AuthenticationError,  # {"code":-2008,"msg":"Invalid Api-Key ID."}
                     '-2010': ExchangeError,  # {"code":-2010,"msg":"generic error code for createOrder -> 'Account has insufficient balance for requested action.', {"code":-2010,"msg":"Rest API trading is not enabled."}, etc..."}
                     '-2011': OrderNotFound,  # {"code":-2011,"msg":"cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'"}
-                    '-2013': OrderNotFound,  # {"code":-2013,"msg":"fetchOrder(1, 'BTC/USDT') -> 'Order does not exist'"}
+                    '-2013': OrderNotFound,  # {"code":-2013,"msg":"fetchOrder (1, 'BTC/USDT') -> 'Order does not exist'"}
                     '-2014': AuthenticationError,  # {"code":-2014,"msg":"API-key format invalid."}
                     '-2015': AuthenticationError,  # {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
                     '-2016': BadRequest,  # {"code":-2016,"msg":"No trading window could be found for the symbol. Try ticker/24hrs instead."}
@@ -497,7 +499,7 @@ class tokocrypto(Exchange, ImplicitAPI):
                     '-2028': InsufficientFunds,  # {"code":-2028,"msg":"Leverage is smaller than permitted: insufficient margin balance"}
                     '-3000': ExchangeError,  # {"code":-3000,"msg":"Internal server error."}
                     '-3001': AuthenticationError,  # {"code":-3001,"msg":"Please enable 2FA first."}
-                    '-3002': BadSymbol,  # {"code":-3002,"msg":"We don't have self asset."}
+                    '-3002': BadSymbol,  # {"code":-3002,"msg":"We don't have this asset."}
                     '-3003': BadRequest,  # {"code":-3003,"msg":"Margin account does not exist."}
                     '-3004': ExchangeError,  # {"code":-3004,"msg":"Trade not allowed."}
                     '-3005': InsufficientFunds,  # {"code":-3005,"msg":"Transferring out not allowed. Transfer out amount exceeds max amount."}
@@ -507,19 +509,19 @@ class tokocrypto(Exchange, ImplicitAPI):
                     '-3009': BadRequest,  # {"code":-3009,"msg":"This asset are not allowed to transfer into margin account currently."}
                     '-3010': ExchangeError,  # {"code":-3010,"msg":"Repay not allowed. Repay amount exceeds borrow amount."}
                     '-3011': BadRequest,  # {"code":-3011,"msg":"Your input date is invalid."}
-                    '-3012': ExchangeError,  # {"code":-3012,"msg":"Borrow is banned for self asset."}
+                    '-3012': ExchangeError,  # {"code":-3012,"msg":"Borrow is banned for this asset."}
                     '-3013': BadRequest,  # {"code":-3013,"msg":"Borrow amount less than minimum borrow amount."}
-                    '-3014': AccountSuspended,  # {"code":-3014,"msg":"Borrow is banned for self account."}
+                    '-3014': AccountSuspended,  # {"code":-3014,"msg":"Borrow is banned for this account."}
                     '-3015': ExchangeError,  # {"code":-3015,"msg":"Repay amount exceeds borrow amount."}
                     '-3016': BadRequest,  # {"code":-3016,"msg":"Repay amount less than minimum repay amount."}
                     '-3017': ExchangeError,  # {"code":-3017,"msg":"This asset are not allowed to transfer into margin account currently."}
-                    '-3018': AccountSuspended,  # {"code":-3018,"msg":"Transferring in has been banned for self account."}
-                    '-3019': AccountSuspended,  # {"code":-3019,"msg":"Transferring out has been banned for self account."}
+                    '-3018': AccountSuspended,  # {"code":-3018,"msg":"Transferring in has been banned for this account."}
+                    '-3019': AccountSuspended,  # {"code":-3019,"msg":"Transferring out has been banned for this account."}
                     '-3020': InsufficientFunds,  # {"code":-3020,"msg":"Transfer out amount exceeds max amount."}
-                    '-3021': BadRequest,  # {"code":-3021,"msg":"Margin account are not allowed to trade self trading pair."}
+                    '-3021': BadRequest,  # {"code":-3021,"msg":"Margin account are not allowed to trade this trading pair."}
                     '-3022': AccountSuspended,  # {"code":-3022,"msg":"You account's trading is banned."}
                     '-3023': BadRequest,  # {"code":-3023,"msg":"You can't transfer out/place order under current margin level."}
-                    '-3024': ExchangeError,  # {"code":-3024,"msg":"The unpaid debt is too small after self repayment."}
+                    '-3024': ExchangeError,  # {"code":-3024,"msg":"The unpaid debt is too small after this repayment."}
                     '-3025': BadRequest,  # {"code":-3025,"msg":"Your input date is invalid."}
                     '-3026': BadRequest,  # {"code":-3026,"msg":"Your input param is invalid."}
                     '-3027': BadSymbol,  # {"code":-3027,"msg":"Not a valid margin asset."}
@@ -529,7 +531,7 @@ class tokocrypto(Exchange, ImplicitAPI):
                     '-3037': ExchangeError,  # {"code":-3037,"msg":"PNL is clearing. Wait a second."}
                     '-3038': BadRequest,  # {"code":-3038,"msg":"Listen key not found."}
                     '-3041': InsufficientFunds,  # {"code":-3041,"msg":"Balance is not enough"}
-                    '-3042': BadRequest,  # {"code":-3042,"msg":"PriceIndex not available for self margin pair."}
+                    '-3042': BadRequest,  # {"code":-3042,"msg":"PriceIndex not available for this margin pair."}
                     '-3043': BadRequest,  # {"code":-3043,"msg":"Transferring in not allowed."}
                     '-3044': DDoSProtection,  # {"code":-3044,"msg":"System busy."}
                     '-3045': ExchangeError,  # {"code":-3045,"msg":"The system doesn't have enough asset now."}
@@ -542,7 +544,7 @@ class tokocrypto(Exchange, ImplicitAPI):
                     '-4006': BadRequest,  # {"code":-4006 ,"msg":"Support main account only."}
                     '-4007': BadRequest,  # {"code":-4007 ,"msg":"Address validation is not passed."}
                     '-4008': BadRequest,  # {"code":-4008 ,"msg":"Address tag validation is not passed."}
-                    '-4010': BadRequest,  # {"code":-4010 ,"msg":"White list mail has been confirmed."}  # [TODO] possible bug: it should probably be "has not been confirmed"
+                    '-4010': BadRequest,  # {"code":-4010 ,"msg":"White list mail has been confirmed."} // [TODO] possible bug: it should probably be "has not been confirmed"
                     '-4011': BadRequest,  # {"code":-4011 ,"msg":"White list mail is invalid."}
                     '-4012': BadRequest,  # {"code":-4012 ,"msg":"White list is not opened."}
                     '-4013': AuthenticationError,  # {"code":-4013 ,"msg":"2FA is not opened."}
@@ -550,12 +552,12 @@ class tokocrypto(Exchange, ImplicitAPI):
                     '-4015': ExchangeError,  # {"code":-4015 ,"msg":"Withdraw is limited."}
                     '-4016': PermissionDenied,  # {"code":-4016 ,"msg":"Within 24 hours after password modification, withdrawal is prohibited."}
                     '-4017': PermissionDenied,  # {"code":-4017 ,"msg":"Within 24 hours after the release of 2FA, withdrawal is prohibited."}
-                    '-4018': BadSymbol,  # {"code":-4018,"msg":"We don't have self asset."}
+                    '-4018': BadSymbol,  # {"code":-4018,"msg":"We don't have this asset."}
                     '-4019': BadSymbol,  # {"code":-4019,"msg":"Current asset is not open for withdrawal."}
                     '-4021': BadRequest,  # {"code":-4021,"msg":"Asset withdrawal must be an %s multiple of %s."}
                     '-4022': BadRequest,  # {"code":-4022,"msg":"Not less than the minimum pick-up quantity %s."}
                     '-4023': ExchangeError,  # {"code":-4023,"msg":"Within 24 hours, the withdrawal exceeds the maximum amount."}
-                    '-4024': InsufficientFunds,  # {"code":-4024,"msg":"You don't have self asset."}
+                    '-4024': InsufficientFunds,  # {"code":-4024,"msg":"You don't have this asset."}
                     '-4025': InsufficientFunds,  # {"code":-4025,"msg":"The number of hold asset is less than zero."}
                     '-4026': InsufficientFunds,  # {"code":-4026,"msg":"You have insufficient balance."}
                     '-4027': ExchangeError,  # {"code":-4027,"msg":"Failed to obtain tranId."}
@@ -581,7 +583,7 @@ class tokocrypto(Exchange, ImplicitAPI):
                     '-4047': BadRequest,  # {"code":-4047,"msg":"Time interval must be within 0-90 days"}
                     '-5001': BadRequest,  # {"code":-5001,"msg":"Don't allow transfer to micro assets."}
                     '-5002': InsufficientFunds,  # {"code":-5002,"msg":"You have insufficient balance."}
-                    '-5003': InsufficientFunds,  # {"code":-5003,"msg":"You don't have self asset."}
+                    '-5003': InsufficientFunds,  # {"code":-5003,"msg":"You don't have this asset."}
                     '-5004': BadRequest,  # {"code":-5004,"msg":"The residual balances of %s have exceeded 0.001BTC, Please re-choose."}
                     '-5005': InsufficientFunds,  # {"code":-5005,"msg":"The residual balances of %s is too low, Please re-choose."}
                     '-5006': BadRequest,  # {"code":-5006,"msg":"Only transfer once in 24 hours."}
@@ -591,7 +593,7 @@ class tokocrypto(Exchange, ImplicitAPI):
                     '-5010': ExchangeError,  # {"code":-5010,"msg":"Asset transfer fail."}
                     '-5011': BadRequest,  # {"code":-5011,"msg":"future account not exists."}
                     '-5012': ExchangeError,  # {"code":-5012,"msg":"Asset transfer is in pending."}
-                    '-5013': InsufficientFunds,  # {"code":-5013,"msg":"Asset transfer failed: insufficient balance""}  # undocumented
+                    '-5013': InsufficientFunds,  # {"code":-5013,"msg":"Asset transfer failed: insufficient balance""} // undocumented
                     '-5021': BadRequest,  # {"code":-5021,"msg":"This parent sub have no relation"}
                     '-6001': BadRequest,  # {"code":-6001,"msg":"Daily product not exists."}
                     '-6003': BadRequest,  # {"code":-6003,"msg":"Product not exist or you don't have permission"}
@@ -615,7 +617,7 @@ class tokocrypto(Exchange, ImplicitAPI):
                     '-7002': BadRequest,  # {"code":-7002,"msg":"Data request type is not supported."}
                     '-9000': InsufficientFunds,  # {"code":-9000,"msg":"user have no avaliable amount"}"
                     '-10017': BadRequest,  # {"code":-10017,"msg":"Repay amount should not be larger than liability."}
-                    '-11008': InsufficientFunds,  # {"code":-11008,"msg":"Exceeding the account's maximum borrowable limit."}  # undocumented
+                    '-11008': InsufficientFunds,  # {"code":-11008,"msg":"Exceeding the account's maximum borrowable limit."} // undocumented
                     '-12014': RateLimitExceeded,  # {"code":-12014,"msg":"More than 1 request in 3 seconds"}
                     '-13000': BadRequest,  # {"code":-13000,"msg":"Redeption of the token is forbiden now"}
                     '-13001': BadRequest,  # {"code":-13001,"msg":"Exceeds individual 24h redemption limit of the token"}
@@ -628,7 +630,7 @@ class tokocrypto(Exchange, ImplicitAPI):
                     '-21001': BadRequest,  # {"code":-21001,"msg":"USER_IS_NOT_UNIACCOUNT"}
                     '-21002': BadRequest,  # {"code":-21002,"msg":"UNI_ACCOUNT_CANT_TRANSFER_FUTURE"}
                     '-21003': BadRequest,  # {"code":-21003,"msg":"NET_ASSET_MUST_LTE_RATIO"}
-                    '100001003': BadRequest,  # {"code":100001003,"msg":"Verification failed"}  # undocumented
+                    '100001003': BadRequest,  # {"code":100001003,"msg":"Verification failed"} // undocumented
                     '2202': InsufficientFunds,  # {"code":2202,"msg":"Insufficient balance","data":{"code":-2010,"msg":"Account has insufficient balance for requested action."},"timestamp":1662733681161}
                     '3210': InvalidOrder,  # {"code":3210,"msg":"The total volume is too low","data":{"code":-1013,"msg":"Filter failure: MIN_NOTIONAL"},"timestamp":1662734704462}
                     '3203': InvalidOrder,  # {"code":3203,"msg":"Incorrect Order Quantity","timestamp":1662734809758}
@@ -794,7 +796,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         if self.options['adjustForTimeDifference'] is True:
             self.load_time_difference()
         data = self.safe_value(response, 'data', {})
-        list = self.safe_value(data, 'list', [])
+        list = self.safe_list(data, 'list', [])
         result = []
         for i in range(0, len(list)):
             market = list[i]
@@ -811,7 +813,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             filtersByType = self.index_by(filters, 'filterType')
             status = self.safe_string(market, 'spotTradingEnable')
             active = (status == '1')
-            permissions = self.safe_value(market, 'permissions', [])
+            permissions = self.safe_list(market, 'permissions', [])
             for j in range(0, len(permissions)):
                 if permissions[j] == 'TRD_GRP_003':
                     active = False
@@ -870,12 +872,12 @@ class tokocrypto(Exchange, ImplicitAPI):
                 'info': market,
             }
             if 'PRICE_FILTER' in filtersByType:
-                filter = self.safe_value(filtersByType, 'PRICE_FILTER', {})
+                filter = self.safe_dict(filtersByType, 'PRICE_FILTER', {})
                 entry['precision']['price'] = self.safe_number(filter, 'tickSize')
                 # PRICE_FILTER reports zero values for maxPrice
                 # since they updated filter types in November 2018
                 # https://github.com/ccxt/ccxt/issues/4286
-                # therefore limits['price']['max'] doesn't have any meaningful value except None
+                # therefore limits['price']['max'] doesn't have any meaningful value except undefined
                 entry['limits']['price'] = {
                     'min': self.safe_number(filter, 'minPrice'),
                     'max': self.safe_number(filter, 'maxPrice'),
@@ -965,14 +967,14 @@ class tokocrypto(Exchange, ImplicitAPI):
         # https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
         #
         #     {
-        #         "a": 26129,         # Aggregate tradeId
-        #         "p": "0.01633102",  # Price
-        #         "q": "4.70443515",  # Quantity
-        #         "f": 27781,         # First tradeId
-        #         "l": 27781,         # Last tradeId
-        #         "T": 1498793709153,  # Timestamp
-        #         "m": True,          # Was the buyer the maker?
-        #         "M": True           # Was the trade the best price match?
+        #         "a": 26129,         // Aggregate tradeId
+        #         "p": "0.01633102",  // Price
+        #         "q": "4.70443515",  // Quantity
+        #         "f": 27781,         // First tradeId
+        #         "l": 27781,         // Last tradeId
+        #         "T": 1498793709153, // Timestamp
+        #         "m": true,          // Was the buyer the maker?
+        #         "M": true           // Was the trade the best price match?
         #     }
         #
         # recent public trades and old public trades
@@ -984,8 +986,8 @@ class tokocrypto(Exchange, ImplicitAPI):
         #         "price": "4.00000100",
         #         "qty": "12.00000000",
         #         "time": 1499865549590,
-        #         "isBuyerMaker": True,
-        #         "isBestMatch": True
+        #         "isBuyerMaker": true,
+        #         "isBestMatch": true
         #     }
         #
         # private trades
@@ -1000,9 +1002,9 @@ class tokocrypto(Exchange, ImplicitAPI):
         #         "commission": "10.10000000",
         #         "commissionAsset": "BNB",
         #         "time": 1499865549590,
-        #         "isBuyer": True,
-        #         "isMaker": False,
-        #         "isBestMatch": True
+        #         "isBuyer": true,
+        #         "isMaker": false,
+        #         "isBestMatch": true
         #     }
         #
         # futures trades
@@ -1039,11 +1041,11 @@ class tokocrypto(Exchange, ImplicitAPI):
         #       "commissionAsset": "USDT",
         #       "time": 1612733566708,
         #       "positionSide": "BOTH",
-        #       "maker": True,
-        #       "buyer": False
+        #       "maker": true,
+        #       "buyer": false
         #     }
         #
-        # {respType: FULL}
+        # { respType: FULL }
         #
         #     {
         #       "price": "4000.00000000",
@@ -1066,13 +1068,13 @@ class tokocrypto(Exchange, ImplicitAPI):
         buyerMaker = self.safe_value_2(trade, 'm', 'isBuyerMaker')
         takerOrMaker = None
         if buyerMaker is not None:
-            side = 'sell' if (buyerMaker is True) else 'buy'  # self is reversed intentionally
+            side = 'sell' if (buyerMaker is True) else 'buy'  # this is reversed intentionally
             takerOrMaker = 'taker'
         elif 'side' in trade:
             side = self.safe_string_lower(trade, 'side')
         else:
             if 'isBuyer' in trade:
-                side = 'buy' if (trade['isBuyer'] is True) else 'sell'  # self is a True side
+                side = 'buy' if (trade['isBuyer'] is True) else 'sell'  # this is a true side
         fee = None
         if 'commission' in trade:
             fee = {
@@ -1116,10 +1118,10 @@ class tokocrypto(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         request = {
-            # 'fromId': 123,    # ID to get aggregate trades from INCLUSIVE.
-            # 'startTime': 456,  # Timestamp in ms to get aggregate trades from INCLUSIVE.
-            # 'endTime': 789,   # Timestamp in ms to get aggregate trades until INCLUSIVE.
-            # 'limit': 500,     # default = 500, maximum = 1000
+            # 'fromId': 123,    // ID to get aggregate trades from INCLUSIVE.
+            # 'startTime': 456, // Timestamp in ms to get aggregate trades from INCLUSIVE.
+            # 'endTime': 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
+            # 'limit': 500,     // default = 500, maximum = 1000
         }
         # the venue routes market data by the symbol type reported by fetchMarkets,
         # not by the quote currency: type 1 markets are served by the binance host
@@ -1138,13 +1140,13 @@ class tokocrypto(Exchange, ImplicitAPI):
             #       "data": {
             #           "list": [
             #                {
-            #                    "a": 14433,             # aggregate tradeId
-            #                    "p": "495.00",          # price
-            #                    "q": "42.00000000",     # quantity
-            #                    "f": 15578,             # first tradeId
-            #                    "l": 15578,             # last tradeId
-            #                    "T": 1787292236948,     # timestamp
-            #                    "m": False              # was the buyer the maker?
+            #                    "a": 14433,             // aggregate tradeId
+            #                    "p": "495.00",          // price
+            #                    "q": "42.00000000",     // quantity
+            #                    "f": 15578,             // first tradeId
+            #                    "l": 15578,             // last tradeId
+            #                    "T": 1787292236948,     // timestamp
+            #                    "m": false              // was the buyer the maker?
             #                }
             #            ]
             #        },
@@ -1169,11 +1171,11 @@ class tokocrypto(Exchange, ImplicitAPI):
             response = self.binanceGetTrades(self.extend(request, params))
         #
         # Caveats:
-        # - default limit(500) applies only if no other parameters set, trades up
+        # - default limit (500) applies only if no other parameters set, trades up
         #   to the maximum limit may be returned to satisfy other parameters
         # - if both limit and time window is set and time window contains more
         #   trades than the limit then the last trades from the window are returned
-        # - 'tradeId' accepted and returned by self method is "aggregate" trade id
+        # - 'tradeId' accepted and returned by this method is "aggregate" trade id
         #   which is different from actual trade id
         # - setting both fromId and time window results in error
         #
@@ -1181,14 +1183,14 @@ class tokocrypto(Exchange, ImplicitAPI):
         #
         #     [
         #         {
-        #             "a": 26129,         # Aggregate tradeId
-        #             "p": "0.01633102",  # Price
-        #             "q": "4.70443515",  # Quantity
-        #             "f": 27781,         # First tradeId
-        #             "l": 27781,         # Last tradeId
-        #             "T": 1498793709153,  # Timestamp
-        #             "m": True,          # Was the buyer the maker?
-        #             "M": True           # Was the trade the best price match?
+        #             "a": 26129,         // Aggregate tradeId
+        #             "p": "0.01633102",  // Price
+        #             "q": "4.70443515",  // Quantity
+        #             "f": 27781,         // First tradeId
+        #             "l": 27781,         // Last tradeId
+        #             "T": 1498793709153, // Timestamp
+        #             "m": true,          // Was the buyer the maker?
+        #             "M": true           // Was the trade the best price match?
         #         }
         #     ]
         #
@@ -1200,8 +1202,8 @@ class tokocrypto(Exchange, ImplicitAPI):
         #             "price": "4.00000100",
         #             "qty": "12.00000000",
         #             "time": 1499865549590,
-        #             "isBuyerMaker": True,
-        #             "isBestMatch": True
+        #             "isBuyerMaker": true,
+        #             "isBestMatch": true
         #         }
         #     ]
         #
@@ -1380,37 +1382,37 @@ class tokocrypto(Exchange, ImplicitAPI):
         return self.parse_tickers(response, symbols)
 
     def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
-        # when api method = publicGetKlines or fapiPublicGetKlines or dapiPublicGetKlines
+        # when api method = publicGetKlines || fapiPublicGetKlines || dapiPublicGetKlines
         #     [
-        #         1591478520000,  # open time
-        #         "0.02501300",  # open
-        #         "0.02501800",  # high
-        #         "0.02500000",  # low
-        #         "0.02500000",  # close
-        #         "22.19000000",  # volume
-        #         1591478579999,  # close time
-        #         "0.55490906",  # quote asset volume
-        #         40,            # number of trades
-        #         "10.92900000",  # taker buy base asset volume
-        #         "0.27336462",  # taker buy quote asset volume
-        #         "0"            # ignore
+        #         1591478520000, // open time
+        #         "0.02501300",  // open
+        #         "0.02501800",  // high
+        #         "0.02500000",  // low
+        #         "0.02500000",  // close
+        #         "22.19000000", // volume
+        #         1591478579999, // close time
+        #         "0.55490906",  // quote asset volume
+        #         40,            // number of trades
+        #         "10.92900000", // taker buy base asset volume
+        #         "0.27336462",  // taker buy quote asset volume
+        #         "0"            // ignore
         #     ]
         #
-        #  when api method = fapiPublicGetMarkPriceKlines or fapiPublicGetIndexPriceKlines
+        #  when api method = fapiPublicGetMarkPriceKlines || fapiPublicGetIndexPriceKlines
         #     [
         #         [
-        #         1591256460000,          # Open time
-        #         "9653.29201333",        # Open
-        #         "9654.56401333",        # High
-        #         "9653.07367333",        # Low
-        #         "9653.07367333",        # Close(or latest price)
-        #         "0",                    # Ignore
-        #         1591256519999,          # Close time
-        #         "0",                    # Ignore
-        #         60,                     # Number of basic data
-        #         "0",                    # Ignore
-        #         "0",                    # Ignore
-        #         "0"                     # Ignore
+        #         1591256460000,          // Open time
+        #         "9653.29201333",        // Open
+        #         "9654.56401333",        // High
+        #         "9653.07367333",        // Low
+        #         "9653.07367333",        // Close (or latest price)
+        #         "0",                    // Ignore
+        #         1591256519999,          // Close time
+        #         "0",                    // Ignore
+        #         60,                     // Number of basic data
+        #         "0",                    // Ignore
+        #         "0",                    // Ignore
+        #         "0"                     // Ignore
         #         ]
         #     ]
         #
@@ -1436,7 +1438,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.price]: "mark" or "index" for mark price and index price candles
         :param int [params.until]: timestamp in ms of the latest candle to fetch
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -1454,10 +1456,10 @@ class tokocrypto(Exchange, ImplicitAPI):
             'limit': limit,
         }
         if price == 'index':
-            request['pair'] = market['id']   # Index price takes self argument instead of symbol
+            request['pair'] = market['id']   # Index price takes this argument instead of symbol
         else:
             request['symbol'] = self.get_market_id_by_type(market)
-        # duration = self.parse_timeframe(timeframe)
+        # const duration = this.parseTimeframe (timeframe);
         if since is not None:
             request['startTime'] = since
         if until is not None:
@@ -1566,7 +1568,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
         data = self.safe_value(response, 'data', {})
-        balances = self.safe_value(data, 'accountAssets', [])
+        balances = self.safe_list(data, 'accountAssets', [])
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'asset')
@@ -1585,7 +1587,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             '1': 'open',  # PARTIALLY_FILLED
             '2': 'closed',  # FILLED
             '3': 'canceled',  # CANCELED
-            '4': 'canceling',  # PENDING_CANCEL(currently unused)
+            '4': 'canceling',  # PENDING_CANCEL (currently unused)
             '5': 'rejected',  # REJECTED
             '6': 'expired',  # EXPIRED
             'NEW': 'open',
@@ -1618,7 +1620,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         #         "icebergQty": "0.0",
         #         "time": 1499827319559,
         #         "updateTime": 1499827319559,
-        #         "isWorking": True
+        #         "isWorking": true
         #     }
         # createOrder
         #     {
@@ -1643,7 +1645,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         #         "createTime": "1662711074372"
         #     }
         #
-        # createOrder with {"newOrderRespType": "FULL"}
+        # createOrder with { "newOrderRespType": "FULL" }
         #
         #     {
         #       "symbol": "BTCUSDT",
@@ -1685,13 +1687,13 @@ class tokocrypto(Exchange, ImplicitAPI):
         #       "cumBase": "0.00221134",
         #       "timeInForce": "GTC",
         #       "type": "MARKET",
-        #       "reduceOnly": False,
-        #       "closePosition": False,
+        #       "reduceOnly": false,
+        #       "closePosition": false,
         #       "side": "SELL",
         #       "positionSide": "BOTH",
         #       "stopPrice": "0",
         #       "workingType": "CONTRACT_PRICE",
-        #       "priceProtect": False,
+        #       "priceProtect": false,
         #       "origType": "MARKET",
         #       "time": "1636061952660",
         #       "updateTime": "1636061952660"
@@ -1706,7 +1708,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         price = self.safe_string_2(order, 'price', 'executedPrice')
         amount = self.safe_string(order, 'origQty')
         # - Spot/Margin market: cummulativeQuoteQty
-        #   Note self is not the actual cost, since Binance futures uses leverage to calculate margins.
+        #   Note this is not the actual cost, since Binance futures uses leverage to calculate margins.
         cost = self.safe_string_n(order, ['cummulativeQuoteQty', 'cumQuote', 'executedQuoteQty', 'cumBase'])
         id = self.safe_string(order, 'orderId')
         type = self.parse_order_type(self.safe_string_lower(order, 'type'))
@@ -1769,7 +1771,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.triggerPrice]: the price at which a trigger order would be triggered
-        :param float [params.cost]: for spot market buy orders, the quote quantity that can be used alternative for the amount
+        :param float [params.cost]: for spot market buy orders, the quote quantity that can be used as an alternative for the amount
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.markets is None:
@@ -1848,7 +1850,7 @@ class tokocrypto(Exchange, ImplicitAPI):
                     quoteAmount = cost
                 elif createMarketBuyOrderRequiresPrice:
                     if price is None:
-                        raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend(quote quantity) in the amount argument')
+                        raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend (quote quantity) in the amount argument')
                     else:
                         amountString = self.number_to_string(amount)
                         priceString = self.number_to_string(price)
@@ -1985,13 +1987,13 @@ class tokocrypto(Exchange, ImplicitAPI):
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
-            # 'type': -1,  # -1 = all, 1 = open, 2 = closed
-            # 'side': 1,  # or 2
+            # 'type': -1, // -1 = all, 1 = open, 2 = closed
+            # 'side': 1, // or 2
             # 'startTime': since,
-            # 'endTime': self.milliseconds(),
-            # 'fromId': 'starting order ID',  # if defined, the "direct" field becomes mandatory
-            # 'direct': 'prev',  # prev, next
-            # 'limit': 500,  # default 500, max 1000
+            # 'endTime': this.milliseconds (),
+            # 'fromId': 'starting order ID', // if defined, the "direct" field becomes mandatory
+            # 'direct': 'prev', // prev, next
+            # 'limit': 500, // default 500, max 1000
         }
         if since is not None:
             request['startTime'] = since
@@ -2005,10 +2007,10 @@ class tokocrypto(Exchange, ImplicitAPI):
         #         "data": {
         #             "list": [
         #                 {
-        #                     "orderId": "4",  # order id
-        #                     "bOrderId": "100001",  # binance order id
-        #                     "bOrderListId": -1,  # Unless part of an OCO, the value will always be -1.
-        #                     "clientId": "1aa4f99ad7bc4fab903395afd25d0597",  # client custom order id
+        #                     "orderId": "4", // order id
+        #                     "bOrderId": "100001", // binance order id
+        #                     "bOrderListId": -1, // Unless part of an OCO, the value will always be -1.
+        #                     "clientId": "1aa4f99ad7bc4fab903395afd25d0597", // client custom order id
         #                     "symbol": "ADA_USDT",
         #                     "symbolType": 1,
         #                     "side": 1,
@@ -2183,10 +2185,10 @@ class tokocrypto(Exchange, ImplicitAPI):
         currency = self.currency(code)
         request = {
             'asset': currency['id'],
-            # 'network': 'ETH',  # 'BSC', 'XMR', you can get network and isDefault in networkList in the response of sapiGetCapitalConfigDetail
+            # 'network': 'ETH', // 'BSC', 'XMR', you can get network and isDefault in networkList in the response of sapiGetCapitalConfigDetail
         }
         networks = self.safe_value(self.options, 'networks', {})
-        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string_upper(params, 'network')  # this line allows the user to specify either ERC20 or ETH
         network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
         if network is not None:
             request['network'] = network
@@ -2344,7 +2346,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             },
             'withdrawal': {
                 '0': 'pending',  # Email Sent
-                '1': 'canceled',  # Cancelled(different from 1 = ok in deposits)
+                '1': 'canceled',  # Cancelled (different from 1 = ok in deposits)
                 '2': 'pending',  # Awaiting Approval
                 '3': 'failed',  # Rejected
                 '4': 'pending',  # Processing
@@ -2482,10 +2484,10 @@ class tokocrypto(Exchange, ImplicitAPI):
         currency = self.currency(code)
         request = {
             'asset': currency['id'],
-            # 'clientId': 'string',  # # client's custom id for withdraw order, server does not check it's uniqueness, automatically generated if not sent
+            # 'clientId': 'string', // // client's custom id for withdraw order, server does not check it's uniqueness, automatically generated if not sent
             # 'network': 'string',
             'address': address,
-            # 'addressTag': 'string',  # for coins like XRP, XMR, etc
+            # 'addressTag': 'string', // for coins like XRP, XMR, etc
             'amount': self.number_to_string(amount),
         }
         if tag is not None:
@@ -2562,7 +2564,7 @@ class tokocrypto(Exchange, ImplicitAPI):
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if (code == 418) or (code == 429):
             raise DDoSProtection(self.id + ' ' + str(code) + ' ' + reason + ' ' + body)
-        # error response in a form: {"code": -1013, "msg": "Invalid quantity."}
+        # error response in a form: { "code": -1013, "msg": "Invalid quantity." }
         # following block contains legacy checks against message patterns in "msg" property
         # will switch "code" checks eventually, when we know all of them
         if code >= 400:
@@ -2571,11 +2573,11 @@ class tokocrypto(Exchange, ImplicitAPI):
             if body.find('LOT_SIZE') >= 0:
                 raise InvalidOrder(self.id + ' order amount should be evenly divisible by lot size ' + body)
             if body.find('PRICE_FILTER') >= 0:
-                raise InvalidOrder(self.id + ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid value in general, use self.price_to_precision(symbol, amount) ' + body)
+                raise InvalidOrder(self.id + ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid value in general, use self.price_to_precision (symbol, amount) ' + body)
         if response is None:
             return None  # fallback to default error handler
         # check success value for wapi endpoints
-        # response in format {'msg': 'The coin does not exist.', 'success': True/false}
+        # response in format {'msg': 'The coin does not exist.', 'success': true/false}
         success = self.safe_bool(response, 'success', True)
         if success is not True:
             messageInner = self.safe_string(response, 'msg')

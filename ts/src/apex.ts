@@ -183,6 +183,7 @@ export default class apex extends Exchange {
                         'v3/open-orders': { 'cost': 1 } as Endpoint<Dict>,
                         'v3/transfers': { 'cost': 1 } as Endpoint<Dict>,
                         'v3/transfer': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/stock/account': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'post': {
                         'v3/delete-open-orders': { 'cost': 1 } as Endpoint<Dict>,
@@ -192,6 +193,10 @@ export default class apex extends Exchange {
                         'v3/set-initial-margin-rate': { 'cost': 1 } as Endpoint<Dict>,
                         'v3/transfer-out': { 'cost': 1 } as Endpoint<Dict>,
                         'v3/contract-transfer-out': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/contract-transfer-to': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/submit-withdraw-claim': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/stock/register-account': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/stock/generate-api': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -339,11 +344,10 @@ export default class apex extends Exchange {
         // }
         // }
         //
-        const timestamp = this.milliseconds ();
         const result: Dict = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
         };
         const code = 'USDT';
         const account = this.account ();
@@ -736,7 +740,6 @@ export default class apex extends Exchange {
         //     "tradeCount": 100
         // }
         //
-        const timestamp = this.milliseconds ();
         const marketId = this.safeString (ticker, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = this.safeSymbol (marketId, market);
@@ -748,8 +751,8 @@ export default class apex extends Exchange {
         const low = this.safeString (ticker, 'lowPrice24h');
         return this.safeTicker ({
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'high': high,
             'low': low,
             'bid': undefined,
@@ -1060,7 +1063,6 @@ export default class apex extends Exchange {
         //     "tradeCount": 100
         // }
         //
-        const timestamp = this.milliseconds ();
         const marketId = this.safeString (interest, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = this.safeSymbol (marketId, market);
@@ -1068,8 +1070,8 @@ export default class apex extends Exchange {
             'symbol': symbol,
             'openInterestAmount': this.safeString (interest, 'openInterest'),
             'openInterestValue': undefined,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'info': interest,
         }, market);
     }
@@ -1268,7 +1270,7 @@ export default class apex extends Exchange {
             };
             return this.safeString (statuses, status, status);
         }
-        return status;
+        return undefined;
     }
 
     parseOrderType (type: Str) {

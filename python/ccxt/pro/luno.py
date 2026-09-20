@@ -85,7 +85,7 @@ class luno(ccxt.async_support.luno):
         #         "timestamp": 1660598775360
         #     }
         #
-        rawTrades = self.safe_value(message, 'trade_updates', [])
+        rawTrades = self.safe_list(message, 'trade_updates', [])
         length = len(rawTrades)
         if length == 0:
             return
@@ -106,7 +106,7 @@ class luno(ccxt.async_support.luno):
 
     def parse_trade(self, trade: object, market: Market = None) -> Trade:
         #
-        # watchTrades(public)
+        # watchTrades (public)
         #
         #     {
         #       "base": "69.00000000",
@@ -259,7 +259,8 @@ class luno(ccxt.async_support.luno):
         #         "status_update": null,
         #         "timestamp": 1660598775360
         #     }
-        #  del         #     {
+        #  delete
+        #     {
         #         "sequence": "110980825",
         #         "trade_updates": [],
         #         "create_update": null,

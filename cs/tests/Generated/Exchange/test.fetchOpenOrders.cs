@@ -12,8 +12,8 @@ public partial class testMainClass : BaseTest
         string method = "fetchOpenOrders";
         object orders = await invokeExchangeDynamically(exchange, "fetchOpenOrders", symbol);
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, orders, symbol);
-        object now = exchange.milliseconds();
-        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        Int64 now = exchange.milliseconds();
+        for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object order = getValue(orders, i);
             testOrder(exchange, skippedProperties, method, order, symbol, now);

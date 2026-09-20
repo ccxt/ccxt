@@ -149,6 +149,7 @@ class ImplicitAPI:
     v2_public_get_futures_basis_history = v2PublicGetFuturesBasisHistory = Entry[_Dict]('futures/basis-history', ['v2', 'public'], 'GET', {'cost': 1})
     v2_public_get_assets_deposit_withdraw_config = v2PublicGetAssetsDepositWithdrawConfig = Entry[_Dict]('assets/deposit-withdraw-config', ['v2', 'public'], 'GET', {'cost': 1})
     v2_public_get_assets_all_deposit_withdraw_config = v2PublicGetAssetsAllDepositWithdrawConfig = Entry[_Dict]('assets/all-deposit-withdraw-config', ['v2', 'public'], 'GET', {'cost': 1})
+    v2_public_get_assets_info = v2PublicGetAssetsInfo = Entry[_Dict]('assets/info', ['v2', 'public'], 'GET', {'cost': 1})
     v2_private_get_account_subs = v2PrivateGetAccountSubs = Entry[_Dict]('account/subs', ['v2', 'private'], 'GET', {'cost': 1})
     v2_private_get_account_subs_api_detail = v2PrivateGetAccountSubsApiDetail = Entry[_Dict]('account/subs/api-detail', ['v2', 'private'], 'GET', {'cost': 40})
     v2_private_get_account_subs_info = v2PrivateGetAccountSubsInfo = Entry[_Dict]('account/subs/info', ['v2', 'private'], 'GET', {'cost': 1})
@@ -254,3 +255,5 @@ class ImplicitAPI:
     v2_private_post_futures_adjust_position_leverage = v2PrivatePostFuturesAdjustPositionLeverage = Entry[_Dict]('futures/adjust-position-leverage', ['v2', 'private'], 'POST', {'cost': 20})
     v2_private_post_futures_set_position_stop_loss = v2PrivatePostFuturesSetPositionStopLoss = Entry[_Dict]('futures/set-position-stop-loss', ['v2', 'private'], 'POST', {'cost': 20})
     v2_private_post_futures_set_position_take_profit = v2PrivatePostFuturesSetPositionTakeProfit = Entry[_Dict]('futures/set-position-take-profit', ['v2', 'private'], 'POST', {'cost': 20})
+    v2_private_post_futures_modify_position_stop_loss = v2PrivatePostFuturesModifyPositionStopLoss = Entry[_Dict]('futures/modify-position-stop-loss', ['v2', 'private'], 'POST', {'cost': 20})
+    v2_private_post_futures_modify_position_take_profit = v2PrivatePostFuturesModifyPositionTakeProfit = Entry[_Dict]('futures/modify-position-take-profit', ['v2', 'private'], 'POST', {'cost': 20})

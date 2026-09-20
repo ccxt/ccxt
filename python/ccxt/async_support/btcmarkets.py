@@ -24,7 +24,7 @@ class btcmarkets(Exchange, ImplicitAPI):
             'id': 'btcmarkets',
             'name': 'BTC Markets',
             'countries': ['AU'],  # Australia
-            'rateLimit': 1000,  # market data cached for 1 second(trades cached for 2 seconds)
+            'rateLimit': 1000,  # market data cached for 1 second (trades cached for 2 seconds)
             'version': 'v3',
             'has': {
                 'CORS': None,
@@ -622,11 +622,11 @@ class btcmarkets(Exchange, ImplicitAPI):
         #
         #     [
         #         "2020-09-12T18:30:00.000000Z",
-        #         "14409.45",  # open
-        #         "14409.45",  # high
-        #         "14403.91",  # low
-        #         "14403.91",  # close
-        #         "0.01571701"  # volume
+        #         "14409.45", // open
+        #         "14409.45", // high
+        #         "14403.91", // low
+        #         "14403.91", // close
+        #         "0.01571701" // volume
         #     ]
         #
         return [
@@ -649,7 +649,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -657,11 +657,11 @@ class btcmarkets(Exchange, ImplicitAPI):
         request = {
             'marketId': market['id'],
             'timeWindow': self.safe_string(self.timeframes, timeframe, timeframe),
-            # 'from': self.iso8601(since),
-            # 'to': self.iso8601(self.milliseconds()),
+            # 'from': this.iso8601 (since),
+            # 'to': this.iso8601 (this.milliseconds ()),
             # 'before': 1234567890123,
             # 'after': 1234567890123,
-            # 'limit': limit,  # default 10, max 200
+            # 'limit': limit, // default 10, max 200
         }
         if since is not None:
             request['from'] = self.iso8601(since)
@@ -923,16 +923,16 @@ class btcmarkets(Exchange, ImplicitAPI):
         market = self.market(symbol)
         request = {
             'marketId': market['id'],
-            # 'price': self.price_to_precision(symbol, price),
+            # 'price': this.priceToPrecision (symbol, price),
             'amount': self.amount_to_precision(symbol, amount),
-            # 'type': 'Limit',  # "Limit", "Market", "Stop Limit", "Stop", "Take Profit"
+            # 'type': 'Limit', // "Limit", "Market", "Stop Limit", "Stop", "Take Profit"
             'side': 'Bid' if (side == 'buy') else 'Ask',
-            # 'triggerPrice': self.price_to_precision(symbol, triggerPrice),  # required for Stop, Stop Limit, Take Profit orders
-            # 'targetAmount': self.amount_to_precision(symbol, targetAmount),  # target amount when a desired target outcome is required for order execution
-            # 'timeInForce': 'GTC',  # GTC, FOK, IOC
-            # 'postOnly': False,  # boolean if self is a post-only order
-            # 'selfTrade': 'A',  # A = allow, P = prevent
-            # 'clientOrderId': self.uuid(),
+            # 'triggerPrice': this.priceToPrecision (symbol, triggerPrice), // required for Stop, Stop Limit, Take Profit orders
+            # 'targetAmount': this.amountToPrecision (symbol, targetAmount), // target amount when a desired target outcome is required for order execution
+            # 'timeInForce': 'GTC', // GTC, FOK, IOC
+            # 'postOnly': false, // boolean if this is a post-only order
+            # 'selfTrade': 'A', // A = allow, P = prevent
+            # 'clientOrderId': this.uuid (),
         }
         lowercaseType = type.lower()
         orderTypes = self.safe_value(self.options, 'orderTypes', {
@@ -947,7 +947,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         triggerPriceIsRequired = False
         if lowercaseType == 'limit':
             priceIsRequired = True
-        # elif lowercaseType == 'market':
+        # } else if (lowercaseType === 'market') {
         #     ...
         # }
         elif lowercaseType == 'stop limit':
@@ -987,7 +987,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         #         "status": "Accepted",
         #         "clientOrderId": "1234-5678",
         #         "timeInForce": "IOC",
-        #         "postOnly": False,
+        #         "postOnly": false,
         #         "selfTrade": "P",
         #         "triggerAmount": "105",
         #         "targetAmount": "1000"
@@ -1010,7 +1010,7 @@ class btcmarkets(Exchange, ImplicitAPI):
             await self.load_markets()
         numericIds = []
         for i in range(0, len(ids)):
-            # numericIds[i] = int(ids[i])
+            # numericIds[i] = parseInt (ids[i]);
             numericIds.append(int(ids[i]))
         request = {
             'ids': numericIds,
@@ -1128,7 +1128,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         #         "status": "Accepted",
         #         "clientOrderId": "1234-5678",
         #         "timeInForce": "IOC",
-        #         "postOnly": False,
+        #         "postOnly": false,
         #         "selfTrade": "P",
         #         "triggerAmount": "105",
         #         "targetAmount": "1000"

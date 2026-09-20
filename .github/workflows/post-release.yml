@@ -5,9 +5,16 @@ on:
     workflows: ["Release workflow"]
     types:
       - completed
+  # manual run from the Actions tab, e.g. when the release was published but this workflow was skipped or failed
+  workflow_dispatch:
+    inputs:
+      announce:
+        description: 'Post the release announcement to Telegram and Discord'
+        type: boolean
+        default: true
 jobs:
   changelog:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     name: Update changelog
     runs-on: ubuntu-latest
     steps:
@@ -33,18 +40,30 @@ jobs:
         with:
           file: CHANGELOG.md
           github_token: ${{ steps.app-token.outputs.token }}
+          # CHANGELOG.md is the ccxt library's changelog. This tool renders *every* GitHub
+          # release in the repo, so non-library releases were being interleaved with the ccxt
+          # versions as if they were library releases: the sub-package releases cut by
+          # mcp-release.yml (ccxt-mcp-vX.Y.Z and the moving ccxt-mcp-latest), and 8 historical
+          # go/vX.Y.Z Go-module releases. -i takes a regex of tags to skip.
+          #
+          # A denylist, not `-e` (allowlist): ccxt's own tag convention is not uniform — 137
+          # releases predate the `v` prefix (4.0.3, 4.3.22 …), 76 of which render in
+          # CHANGELOG.md today, and an allowlist anchored on `^v` would delete them all on the
+          # next regeneration, since the file is rebuilt from scratch each run.
+          args: -i ^(ccxt-mcp-|go/)
       - name: Set up Node.js
         uses: actions/setup-node@v5
         with:
           node-version: '24'
       - name: Post release announcement to Telegram and Discord
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.announce }}
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: node --experimental-strip-types build/utils/release-announcement.ts --changelog CHANGELOG.md
   failed-release:
-    if: ${{ github.event.workflow_run.conclusion != 'success' }}
+    if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion != 'success' }}
     runs-on: ubuntu-latest
     steps:
       - name: Skip changelog update

@@ -203,6 +203,8 @@ class coinmate extends coinmate$1["default"] {
                         'solDepositAddresses': { 'cost': 1 },
                         'unconfirmedSolDeposits': { 'cost': 1 },
                         'bankWireWithdrawal': { 'cost': 1 },
+                        'lightningDeposit': { 'cost': 1 },
+                        'lightningWithdraw': { 'cost': 1 },
                     },
                 },
             },
@@ -381,7 +383,7 @@ class coinmate extends coinmate$1["default"] {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
@@ -444,7 +446,7 @@ class coinmate extends coinmate$1["default"] {
         return result;
     }
     parseBalance(response) {
-        const balances = this.safeValue(response, 'data', {});
+        const balances = this.safeDict(response, 'data', {});
         const result = { 'info': response };
         const currencyIds = Object.keys(balances);
         for (let i = 0; i < currencyIds.length; i++) {
@@ -570,7 +572,7 @@ class coinmate extends coinmate$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const keys = Object.keys(data);
         const result = {};
         for (let i = 0; i < keys.length; i++) {
@@ -759,7 +761,7 @@ class coinmate extends coinmate$1["default"] {
         }
         const currency = this.currency(code);
         const withdrawOptions = this.safeValue(this.options, 'withdraw', {});
-        const methods = this.safeValue(withdrawOptions, 'methods', {});
+        const methods = this.safeDict(withdrawOptions, 'methods', {});
         const method = this.safeString(methods, code);
         if (method === undefined) {
             const allowedCurrencies = Object.keys(methods);

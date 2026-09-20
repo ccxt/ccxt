@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 
 
 pub struct ModetradeCore {
@@ -316,6 +320,7 @@ impl ModetradeCore {
     m
 }));
         m.insert("www".to_string(), Value::Str("https://trade.mode.network".to_string()));
+        m.insert("doc".to_string(), Value::List(vec![Value::Str("https://orderly.network/docs/build-on-omnichain/building-on-omnichain".to_string())]));
         m.insert("referral".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::Str("https://trade.mode.network?ref=MODETRADE".to_string()));
@@ -517,6 +522,11 @@ impl ModetradeCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
+        m.insert("tv/kline_history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(20));
+    m
+}));
         m.insert("public/funding_rate_history".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
@@ -567,6 +577,11 @@ impl ModetradeCore {
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("register_account".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("public/query".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
     m
@@ -669,6 +684,11 @@ impl ModetradeCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
+        m.insert("internal_transfer_history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
         m.insert("volume/user/daily".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(60));
@@ -734,12 +754,72 @@ impl ModetradeCore {
         m.insert("cost".to_string(), Value::Int(10));
     m
 }));
+        m.insert("broker/daily_fee_revenue".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
         m.insert("orderbook/{symbol}".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
         m.insert("kline".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("client/leverages".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("client/margin_modes".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("referral/multi_level/admin".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("referral/multi_level/admin/info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("referral/multi_level/admin/referee_list".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("referral/multi_level/admin/summary".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("referral/multi_level/max_rebate_rate".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("referral/multi_level/rebate_info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("referral/multi_level/referee_list".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("referral/multi_level/statistics".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("referral/multi_level/volume_prerequisite".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
     m
@@ -798,6 +878,11 @@ impl ModetradeCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
+        m.insert("internal_transfer".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
         m.insert("notification/inbox/mark_read".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(60));
@@ -811,6 +896,21 @@ impl ModetradeCore {
         m.insert("client/leverage".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(120));
+    m
+}));
+        m.insert("client/leverages".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(120));
+    m
+}));
+        m.insert("client/margin_mode".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("position_margin".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
     m
 }));
         m.insert("client/maintenance_config".to_string(), Value::Map({
@@ -869,6 +969,51 @@ impl ModetradeCore {
     m
 }));
         m.insert("referral/edit_split".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("referral/edit_referee_description".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("referral/multi_level/admin".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("referral/multi_level/admin/update".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("referral/multi_level/admin/create/affiliate".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("referral/multi_level/admin/reset/affiliate".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("referral/multi_level/admin/update/affiliate".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("referral/multi_level/claim_code".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("referral/multi_level/rebate_rate/set_default".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("referral/multi_level/rebate_rate/update".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(10));
     m
@@ -989,12 +1134,12 @@ impl ModetradeCore {
     m
 }));
         m.insert("hedged".to_string(), Value::Bool(false));
-        m.insert("trailing".to_string(), Value::Bool(true));
-        m.insert("leverage".to_string(), Value::Bool(true));
+        m.insert("trailing".to_string(), Value::Bool(false));
+        m.insert("leverage".to_string(), Value::Bool(false));
         m.insert("marketBuyByCost".to_string(), Value::Bool(false));
         m.insert("marketBuyRequiresPrice".to_string(), Value::Bool(false));
         m.insert("selfTradePrevention".to_string(), Value::Bool(false));
-        m.insert("iceberg".to_string(), Value::Bool(true));
+        m.insert("iceberg".to_string(), Value::Bool(false));
     m
 }));
         m.insert("createOrders".to_string(), Value::Map({
@@ -1028,7 +1173,17 @@ impl ModetradeCore {
         m.insert("symbolRequired".to_string(), Value::Bool(false));
     m
 }));
-        m.insert("fetchOrders".to_string(), Value::Null);
+        m.insert("fetchOrders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("marginMode".to_string(), Value::Bool(false));
+        m.insert("limit".to_string(), Value::Int(500));
+        m.insert("daysBack".to_string(), Value::Null);
+        m.insert("untilDays".to_string(), Value::Int(100000));
+        m.insert("trigger".to_string(), Value::Bool(true));
+        m.insert("trailing".to_string(), Value::Bool(false));
+        m.insert("symbolRequired".to_string(), Value::Bool(false));
+    m
+}));
         m.insert("fetchClosedOrders".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), Value::Bool(false));
@@ -1048,11 +1203,7 @@ impl ModetradeCore {
 }));
     m
 }));
-        m.insert("spot".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("extends".to_string(), Value::Str("default".to_string()));
-    m
-}));
+        m.insert("spot".to_string(), Value::Null);
         m.insert("forDerivatives".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("extends".to_string(), Value::Str("default".to_string()));
@@ -1143,7 +1294,7 @@ impl ModetradeCore {
  * @method
  * @name modetrade#fetchStatus
  * @description the latest known information on the availability of the exchange API
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-system-maintenance-status
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-system-maintenance-status
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
@@ -1192,7 +1343,7 @@ impl ModetradeCore {
  * @method
  * @name modetrade#fetchTime
  * @description fetches the current integer timestamp in milliseconds from the exchange server
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-system-maintenance-status
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-system-maintenance-status
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
@@ -1316,7 +1467,7 @@ impl ModetradeCore {
  * @method
  * @name modetrade#fetchMarkets
  * @description retrieves data on all markets for modetrade
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-available-symbols
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-available-symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
@@ -1375,7 +1526,7 @@ impl ModetradeCore {
  * @method
  * @name modetrade#fetchCurrencies
  * @description fetches all available currencies on an exchange
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-token-info
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-supported-collateral-info
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
@@ -1428,8 +1579,8 @@ impl ModetradeCore {
         });
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_948: bool = true;
-            while { if !__for_first_948 { j = add(&j, &Value::Int(1)); } __for_first_948 = false; is_less_than(&j, &get_array_length(&networks)) } {
+            let mut __for_first_952: bool = true;
+            while { if !__for_first_952 { j = add(&j, &Value::Int(1)); } __for_first_952 = false; is_less_than(&j, &get_array_length(&networks)) } {
             let mut network: Value = get_value(&networks, &j);
             let mut network: Value = get_value(&networks, &j);
             // TODO: transform chain id to human readable name
@@ -1595,7 +1746,7 @@ impl ModetradeCore {
  * @method
  * @name modetrade#fetchTrades
  * @description get the list of most recent trades for a particular symbol
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-market-trades
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-trades
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
@@ -1715,7 +1866,7 @@ impl ModetradeCore {
  * @method
  * @name modetrade#fetchFundingInterval
  * @description fetch the current funding rate interval
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rate-for-one-market
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
@@ -1734,7 +1885,7 @@ impl ModetradeCore {
  * @method
  * @name modetrade#fetchFundingRate
  * @description fetch the current funding rate
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rate-for-one-market
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
@@ -1783,7 +1934,7 @@ impl ModetradeCore {
  * @method
  * @name modetrade#fetchFundingRates
  * @description fetch the current funding rate for multiple markets
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rates-for-all-markets
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rates-for-all-markets
  * @param {string[]} symbols unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
@@ -1830,7 +1981,7 @@ impl ModetradeCore {
  * @method
  * @name modetrade#fetchFundingRateHistory
  * @description fetches historical funding rate prices
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-funding-rate-history-for-one-market
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-funding-rate-history-for-one-market
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
  * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
@@ -1897,8 +2048,8 @@ impl ModetradeCore {
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_949: bool = true;
-            while { if !__for_first_949 { i = add(&i, &Value::Int(1)); } __for_first_949 = false; is_less_than(&i, &get_array_length(&result)) } {
+            let mut __for_first_953: bool = true;
+            while { if !__for_first_953 { i = add(&i, &Value::Int(1)); } __for_first_953 = false; is_less_than(&i, &get_array_length(&result)) } {
             let mut entry: Value = get_value(&result, &i);
             let mut entry: Value = get_value(&result, &i);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
@@ -1962,7 +2113,7 @@ impl ModetradeCore {
  * @method
  * @name modetrade#fetchFundingHistory
  * @description fetch the history of funding payments paid and received on this account
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-funding-fee-history
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-funding-fee-history
  * @param {string} [symbol] unified market symbol
  * @param {int} [since] the earliest time in ms to fetch funding history for
  * @param {int} [limit] the maximum number of funding history structures to retrieve
@@ -2045,7 +2196,7 @@ impl ModetradeCore {
  * @method
  * @name modetrade#fetchTradingFees
  * @description fetch the trading fees for multiple markets
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-account-information
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-account-information
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
@@ -2099,8 +2250,8 @@ impl ModetradeCore {
         if !is_equal(&symbols, &Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_950: bool = true;
-                while { if !__for_first_950 { i = add(&i, &Value::Int(1)); } __for_first_950 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_954: bool = true;
+                while { if !__for_first_954 { i = add(&i, &Value::Int(1)); } __for_first_954 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbol: Value = get_value(&symbols, &i);
                 add_element_to_object(&mut result, &symbol, Value::Map({
@@ -2125,7 +2276,7 @@ impl ModetradeCore {
  * @method
  * @name modetrade#fetchOrderBook
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/orderbook-snapshot
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/orderbook-snapshot
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2189,7 +2340,7 @@ impl ModetradeCore {
 /*
  * @method
  * @name modetrade#fetchOHLCV
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-kline
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-kline
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
@@ -2326,7 +2477,7 @@ impl ModetradeCore {
         let mut childOrders: Value = self.safe_value_k(order.clone(), "childOrders", &[]);
         if !is_equal(&childOrders, &Value::Null) {
             let mut first: Value = self.safe_value(childOrders.clone(), Value::Int(0), &[]);
-            let mut innerChildOrders: Value = self.safe_value_k(first.clone(), "childOrders", &[Value::List(vec![])]);
+            let mut innerChildOrders: Value = self.safe_list_k(first.clone(), "childOrders", &[Value::List(vec![])]);
             let mut innerChildOrdersLength: Value = get_array_length(&innerChildOrders);
             if is_greater_than(&innerChildOrdersLength, &Value::Int(0)) {
                 let mut takeProfitOrder: Value = self.safe_value(innerChildOrders.clone(), Value::Int(0), &[]);
@@ -2410,7 +2561,7 @@ impl ModetradeCore {
             }
             return self.safe_string(statuses.clone(), status.clone(), &[status.clone()]);
         }
-        return status;
+        return Value::Null;
 
     Value::Null
 }
@@ -2560,8 +2711,8 @@ impl ModetradeCore {
  * @method
  * @name modetrade#createOrder
  * @description create a trade order
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/create-order
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/create-algo-order
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/create-order
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/create-algo-order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
  * @param {string} side 'buy' or 'sell'
@@ -2573,8 +2724,11 @@ impl ModetradeCore {
  * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
  * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
  * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
- * @param {float} [params.algoType] 'STOP'or 'TP_SL' or 'POSITIONAL_TP_SL'
- * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
+ * @param {string} [params.algoType] 'STOP' or 'TP_SL' or 'POSITIONAL_TP_SL'
+ * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
+ * @param {bool} [params.postOnly] true or false whether the order is post-only
+ * @param {string} [params.timeInForce] 'IOC', 'FOK' or 'PO'
+ * @param {object[]} [params.childOrders] *algo order only* a list of child orders passed through to the exchange
  * @param {string} [params.clientOrderId] a unique id for the order
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -2615,7 +2769,7 @@ impl ModetradeCore {
  * @method
  * @name modetrade#createOrders
  * @description *contract only* create a list of trade orders
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-create-order
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-create-order
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
@@ -2631,8 +2785,8 @@ impl ModetradeCore {
         let mut ordersRequests: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_951: bool = true;
-            while { if !__for_first_951 { i = add(&i, &Value::Int(1)); } __for_first_951 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_955: bool = true;
+            while { if !__for_first_955 { i = add(&i, &Value::Int(1)); } __for_first_955 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
@@ -2696,8 +2850,8 @@ impl ModetradeCore {
  * @method
  * @name modetrade#editOrder
  * @description edit a trade order
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/edit-order
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/edit-algo-order
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/edit-order
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/edit-algo-order
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
@@ -2794,10 +2948,10 @@ impl ModetradeCore {
 /*
  * @method
  * @name modetrade#cancelOrder
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-order
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-order-by-client_order_id
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-algo-order
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-algo-order-by-client_order_id
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-order
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-order-by-client_order_id
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-algo-order
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-algo-order-by-client_order_id
  * @description cancels an open order
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
@@ -2899,8 +3053,8 @@ impl ModetradeCore {
  * @method
  * @name modetrade#cancelOrders
  * @description cancel multiple orders
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-cancel-orders
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-cancel-orders-by-client_order_id
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-cancel-orders
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-cancel-orders-by-client_order_id
  * @param {string[]} ids order ids
  * @param {string} [symbol] unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2944,8 +3098,8 @@ impl ModetradeCore {
 /*
  * @method
  * @name modetrade#cancelAllOrders
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-all-pending-algo-orders
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-orders-in-bulk
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-all-pending-algo-orders
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-all-pending-orders
  * @description cancel all open orders in a market
  * @param {string} [symbol] unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2991,10 +3145,10 @@ impl ModetradeCore {
 /*
  * @method
  * @name modetrade#fetchOrder
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-order-by-order_id
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-order-by-client_order_id
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-order-by-order_id
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-order-by-client_order_id
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-order-by-order_id
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-order-by-client_order_id
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-order-by-order_id
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-order-by-client_order_id
  * @description fetches information on an order made by the user
  * @param {string} id the order id
  * @param {string} symbol unified symbol of the market the order was made in
@@ -3082,11 +3236,11 @@ impl ModetradeCore {
  * @method
  * @name modetrade#fetchOrders
  * @description fetches information on multiple orders made by the user
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-orders
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-orders
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
- * @param {int} [limit] the maximum number of order structures to retrieve
+ * @param {int} [limit] the maximum number of order structures to retrieve, max 500, or max 100 when params.trigger (or the legacy params.stop) is true
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.trigger] whether the order is a stop/algo order
  * @param {boolean} [params.is_triggered] whether the order has been triggered (false by default)
@@ -3127,7 +3281,7 @@ impl ModetradeCore {
             add_element_to_object(&mut request, &Value::Str("start_t".to_string()), since.clone());
         }
         if !is_equal(&limit, &Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("size".to_string()), limit.clone());
+            add_element_to_object(&mut request, &Value::Str("size".to_string()), crate::runtime::Math::min(&limit, &maxLimit));
         }  else {
             add_element_to_object(&mut request, &Value::Str("size".to_string()), maxLimit.clone());
         }
@@ -3188,11 +3342,11 @@ impl ModetradeCore {
  * @method
  * @name modetrade#fetchOpenOrders
  * @description fetches information on multiple orders made by the user
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-orders
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-orders
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
- * @param {int} [limit] the maximum number of order structures to retrieve
+ * @param {int} [limit] the maximum number of order structures to retrieve, max 500, or max 100 when params.trigger (or the legacy params.stop) is true
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.trigger] whether the order is a stop/algo order
  * @param {boolean} [params.is_triggered] whether the order has been triggered (false by default)
@@ -3226,11 +3380,11 @@ impl ModetradeCore {
  * @method
  * @name modetrade#fetchClosedOrders
  * @description fetches information on multiple orders made by the user
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-orders
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-orders
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
- * @param {int} [limit] the maximum number of order structures to retrieve
+ * @param {int} [limit] the maximum number of order structures to retrieve, max 500, or max 100 when params.trigger (or the legacy params.stop) is true
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.trigger] whether the order is a stop/algo order
  * @param {boolean} [params.is_triggered] whether the order has been triggered (false by default)
@@ -3264,7 +3418,7 @@ impl ModetradeCore {
  * @method
  * @name modetrade#fetchOrderTrades
  * @description fetch all the trades made from a single order
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-all-trades-of-specific-order
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-all-trades-of-specific-order
  * @param {string} id order id
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
@@ -3328,7 +3482,7 @@ impl ModetradeCore {
 /*
  * @method
  * @name modetrade#fetchMyTrades
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-trades
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-trades
  * @description fetch all trades made by the user
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
@@ -3419,8 +3573,8 @@ impl ModetradeCore {
         let mut balances: Value = self.safe_list_k(response.clone(), "holding", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_952: bool = true;
-            while { if !__for_first_952 { i = add(&i, &Value::Int(1)); } __for_first_952 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_956: bool = true;
+            while { if !__for_first_956 { i = add(&i, &Value::Int(1)); } __for_first_956 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut balance: Value = get_value(&balances, &i);
             let mut balance: Value = get_value(&balances, &i);
             let mut code: Value = self.safe_currency_code(self.safe_string_k(balance.clone(), "token", &[]), &[]);
@@ -3441,7 +3595,7 @@ impl ModetradeCore {
  * @method
  * @name modetrade#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-current-holding
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-current-holding
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
@@ -3493,13 +3647,13 @@ impl ModetradeCore {
         let mut currency: Value = Value::Null;
         if !is_equal(&code, &Value::Null) {
             currency = self.currency(code.clone());
-            add_element_to_object(&mut request, &Value::Str("balance_token".to_string()), get_value(&currency, &Value::Str("id".to_string())));
+            add_element_to_object(&mut request, &Value::Str("token".to_string()), get_value(&currency, &Value::Str("id".to_string())));
         }
         if !is_equal(&since, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("start_t".to_string()), since.clone());
         }
         if !is_equal(&limit, &Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("pageSize".to_string()), limit.clone());
+            add_element_to_object(&mut request, &Value::Str("size".to_string()), limit.clone());
         }
         let mut transactionType: Value = self.safe_string_k(params.clone(), "type", &[]);
         params = self.omit(params.clone(), Value::Str("type".to_string()), &[]);
@@ -3544,22 +3698,48 @@ impl ModetradeCore {
 
     pub fn parse_ledger_entry(&self, mut item: Value, optional_args: &[Value]) -> Value {
         let mut currency = get_arg(optional_args, 0, Value::Null);
+        //
+        //     {
+        //         "id": "230707030600002",
+        //         "tx_id": "0x4b0714c63cc7abae72bf68e84e25860b88ca651b7d27dad1e32bf4c027fa5326",
+        //         "side": "WITHDRAW",
+        //         "token": "USDC",
+        //         "amount": 555,
+        //         "fee": 123,
+        //         "trans_status": "FAILED",
+        //         "created_time": 1688699193034,
+        //         "updated_time": 1688699193096,
+        //         "chain_id": "986532"
+        //     }
+        //
         let mut currencyId: Value = self.safe_string_k(item.clone(), "token", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[currency.clone()]);
         currency = self.safe_currency(currencyId.clone(), &[currency.clone()]);
         let mut amount: Value = self.safe_number_k(item.clone(), "amount", &[]);
-        let mut side: Value = self.safe_string_k(item.clone(), "token_side", &[]);
-        let mut direction: Value = ternary(is_true(&(is_equal(&side, &Value::Str("DEPOSIT".to_string())))), Value::Str("in".to_string()), Value::Str("out".to_string()));
+        let mut side: Value = self.safe_string_k(item.clone(), "side", &[]);
+        let mut direction: Value = Value::Null;
+        if !is_equal(&side, &Value::Null) {
+            direction = ternary(is_true(&(is_equal(&side, &Value::Str("DEPOSIT".to_string())))), Value::Str("in".to_string()), Value::Str("out".to_string()));
+        }
         let mut timestamp: Value = self.safe_integer_k(item.clone(), "created_time", &[]);
-        let mut fee: Value = self.parse_token_and_fee_temp(item.clone(), Value::Str("fee_token".to_string()), Value::Str("fee_amount".to_string()));
+        let mut feeCost: Value = self.parse_number(self.safe_string_k(item.clone(), "fee", &[]), &[]);
+        let mut fee: Value = Value::Null;
+        if !is_equal(&feeCost, &Value::Null) {
+            fee = Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("currency".to_string(), code.clone());
+                    m.insert("cost".to_string(), feeCost.clone());
+                m
+            });
+        }
         return self.safe_ledger_entry(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(item.clone(), "id", &[]));
         m.insert("currency".to_string(), code.clone());
-        m.insert("account".to_string(), self.safe_string_k(item.clone(), "account", &[]));
+        m.insert("account".to_string(), Value::Null);
         m.insert("referenceAccount".to_string(), Value::Null);
         m.insert("referenceId".to_string(), self.safe_string_k(item.clone(), "tx_id", &[]));
-        m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_k(item.clone(), "status", &[])));
+        m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_k(item.clone(), "trans_status", &[])));
         m.insert("amount".to_string(), amount.clone());
         m.insert("before".to_string(), Value::Null);
         m.insert("after".to_string(), Value::Null);
@@ -3567,7 +3747,7 @@ impl ModetradeCore {
         m.insert("direction".to_string(), direction.clone());
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
-        m.insert("type".to_string(), self.parse_ledger_entry_type(self.safe_string_k(item.clone(), "type", &[])));
+        m.insert("type".to_string(), self.parse_ledger_entry_type(self.safe_string2(item.clone(), Value::Str("type".to_string()), Value::Str("side".to_string()), &[])));
         m.insert("info".to_string(), item.clone());
     m
 }), &[currency.clone()]);
@@ -3580,6 +3760,8 @@ impl ModetradeCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("BALANCE".to_string(), Value::Str("transaction".to_string()));
                 m.insert("COLLATERAL".to_string(), Value::Str("transfer".to_string()));
+                m.insert("DEPOSIT".to_string(), Value::Str("transaction".to_string()));
+                m.insert("WITHDRAW".to_string(), Value::Str("transaction".to_string()));
             m
         });
         return self.safe_string(types.clone(), type_var.clone(), &[type_var.clone()]);
@@ -3591,7 +3773,7 @@ impl ModetradeCore {
  * @method
  * @name modetrade#fetchLedger
  * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
  * @param {string} [code] unified currency code, default is undefined
  * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
  * @param {int} [limit] max number of ledger entries to return, default is undefined
@@ -3616,15 +3798,36 @@ impl ModetradeCore {
 
     pub fn parse_transaction(&self, mut transaction: Value, optional_args: &[Value]) -> Value {
         let mut currency = get_arg(optional_args, 0, Value::Null);
-        // example in fetchLedger
-        let mut code: Value = self.safe_string_k(transaction.clone(), "token", &[]);
-        let mut movementDirection: Value = self.safe_string_lower(transaction.clone(), Value::Str("token_side".to_string()), &[]);
+        //
+        //     {
+        //         "id": "230707030600002",
+        //         "tx_id": "0x4b0714c63cc7abae72bf68e84e25860b88ca651b7d27dad1e32bf4c027fa5326",
+        //         "side": "WITHDRAW",
+        //         "token": "USDC",
+        //         "amount": 555,
+        //         "fee": 123,
+        //         "trans_status": "FAILED",
+        //         "created_time": 1688699193034,
+        //         "updated_time": 1688699193096,
+        //         "chain_id": "986532"
+        //     }
+        //
+        let mut currencyId: Value = self.safe_string_k(transaction.clone(), "token", &[]);
+        let mut code: Value = self.safe_currency_code(currencyId.clone(), &[currency.clone()]);
+        let mut movementDirection: Value = self.safe_string_lower(transaction.clone(), Value::Str("side".to_string()), &[]);
         if is_equal(&movementDirection, &Value::Str("withdraw".to_string())) {
             movementDirection = Value::Str("withdrawal".to_string());
         }
-        let mut fee: Value = self.parse_token_and_fee_temp(transaction.clone(), Value::Str("fee_token".to_string()), Value::Str("fee_amount".to_string()));
-        let mut addressTo: Value = self.safe_string_k(transaction.clone(), "target_address", &[]);
-        let mut addressFrom: Value = self.safe_string_k(transaction.clone(), "source_address", &[]);
+        let mut feeCost: Value = self.parse_number(self.safe_string_k(transaction.clone(), "fee", &[]), &[]);
+        let mut fee: Value = Value::Null;
+        if !is_equal(&feeCost, &Value::Null) {
+            fee = Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("currency".to_string(), code.clone());
+                    m.insert("cost".to_string(), feeCost.clone());
+                m
+            });
+        }
         let mut timestamp: Value = self.safe_integer_k(transaction.clone(), "created_time", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3634,15 +3837,15 @@ impl ModetradeCore {
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("address".to_string(), Value::Null);
-        m.insert("addressFrom".to_string(), addressFrom.clone());
-        m.insert("addressTo".to_string(), addressTo.clone());
-        m.insert("tag".to_string(), self.safe_string_k(transaction.clone(), "extra", &[]));
+        m.insert("addressFrom".to_string(), Value::Null);
+        m.insert("addressTo".to_string(), Value::Null);
+        m.insert("tag".to_string(), Value::Null);
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("tagTo".to_string(), Value::Null);
         m.insert("type".to_string(), movementDirection.clone());
         m.insert("amount".to_string(), self.safe_number_k(transaction.clone(), "amount", &[]));
         m.insert("currency".to_string(), code.clone());
-        m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_k(transaction.clone(), "status", &[])));
+        m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_k(transaction.clone(), "trans_status", &[])));
         m.insert("updated".to_string(), self.safe_integer_k(transaction.clone(), "updated_time", &[]));
         m.insert("comment".to_string(), Value::Null);
         m.insert("internal".to_string(), Value::Null);
@@ -3659,8 +3862,11 @@ impl ModetradeCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("NEW".to_string(), Value::Str("pending".to_string()));
                 m.insert("CONFIRMING".to_string(), Value::Str("pending".to_string()));
+                m.insert("PENDING".to_string(), Value::Str("pending".to_string()));
+                m.insert("PENDING_REBALANCE".to_string(), Value::Str("pending".to_string()));
                 m.insert("PROCESSING".to_string(), Value::Str("pending".to_string()));
                 m.insert("COMPLETED".to_string(), Value::Str("ok".to_string()));
+                m.insert("FAILED".to_string(), Value::Str("failed".to_string()));
                 m.insert("CANCELED".to_string(), Value::Str("canceled".to_string()));
             m
         });
@@ -3676,7 +3882,7 @@ impl ModetradeCore {
  * @method
  * @name modetrade#fetchDeposits
  * @description fetch all deposits made to an account
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -3706,7 +3912,7 @@ impl ModetradeCore {
  * @method
  * @name modetrade#fetchWithdrawals
  * @description fetch all withdrawals made from an account
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -3736,7 +3942,7 @@ impl ModetradeCore {
  * @method
  * @name modetrade#fetchDepositsWithdrawals
  * @description fetch history of deposits and withdrawals
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
  * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
  * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
  * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
@@ -3759,6 +3965,18 @@ impl ModetradeCore {
         let mut currencyRows: Value = self.get_asset_history_rows(&[code.clone(), since.clone(), limit.clone(), __ws_arg_30]).await;
         let mut currency: Value = self.safe_value(currencyRows.clone(), Value::Int(0), &[]);
         let mut rows: Value = self.safe_list(currencyRows.clone(), Value::Int(1), &[Value::List(vec![])]);
+        //
+        //     {
+        //         "rows":[],
+        //         "meta":{
+        //             "total":0,
+        //             "records_per_page":25,
+        //             "current_page":1
+        //         },
+        //         "success":true
+        //     }
+        //
+        params = self.omit(params.clone(), Value::Str("side".to_string()), &[]); // request-side filter, not a unified transaction field
         return self.parse_transactions(rows.clone(), &[currency.clone(), since.clone(), limit.clone(), params.clone()]);
 
     Value::Null
@@ -3814,7 +4032,7 @@ impl ModetradeCore {
  * @method
  * @name modetrade#withdraw
  * @description make a withdrawal
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/create-withdraw-request
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/create-withdraw-request
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
@@ -3968,7 +4186,7 @@ impl ModetradeCore {
  * @method
  * @name modetrade#fetchLeverage
  * @description fetch the set leverage for a market
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-account-information
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-account-information
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
@@ -4023,7 +4241,7 @@ impl ModetradeCore {
  * @method
  * @name modetrade#setLeverage
  * @description set the level of leverage for a market
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/update-leverage-setting
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/update-leverage-setting
  * @param {int} [leverage] the rate of leverage
  * @param {string} [symbol] unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4133,7 +4351,7 @@ impl ModetradeCore {
 /*
  * @method
  * @name modetrade#fetchPosition
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-one-position-info
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-one-position-info
  * @description fetch data on an open position
  * @param {string} symbol unified market symbol of the market the position is held in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4197,7 +4415,7 @@ impl ModetradeCore {
  * @method
  * @name modetrade#fetchPositions
  * @description fetch all open positions
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-all-positions-info
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-all-positions-info
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
@@ -4298,8 +4516,8 @@ impl ModetradeCore {
                         let mut ordersList: Value = self.safe_list_k(params.clone(), "orders", &[Value::List(vec![])]);
                         {
                                                         let mut i: Value = Value::Int(0);
-                            let mut __for_first_953: bool = true;
-                            while { if !__for_first_953 { i = add(&i, &Value::Int(1)); } __for_first_953 = false; is_less_than(&i, &get_array_length(&ordersList)) } {
+                            let mut __for_first_957: bool = true;
+                            while { if !__for_first_957 { i = add(&i, &Value::Int(1)); } __for_first_957 = false; is_less_than(&i, &get_array_length(&ordersList)) } {
                             add_element_to_object(get_value_mut(get_value_mut(&mut params, &Value::Str("orders".to_string())), &i), &Value::Str("order_tag".to_string()), brokerId.clone());
                         }
                         }

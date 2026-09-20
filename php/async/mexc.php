@@ -14,6 +14,7 @@ use ccxt\BadSymbol;
 use ccxt\InvalidAddress;
 use ccxt\InvalidOrder;
 use ccxt\NotSupported;
+use ccxt\OnMaintenance;
 use ccxt\Precise;
 use React\Async;
 use React\Promise;
@@ -202,6 +203,7 @@ class mexc extends Exchange {
                         'get' => array(
                             'kyc/status' => array( 'cost' => 1 ),
                             'uid' => array( 'cost' => 1 ),
+                            'apiKeyInfo' => array( 'cost' => 1 ),
                             'order' => array( 'cost' => 2 ),
                             'openOrders' => array( 'cost' => 3 ),
                             'allOrders' => array( 'cost' => 10 ),
@@ -264,6 +266,7 @@ class mexc extends Exchange {
                             'sub-account/margin' => array( 'cost' => 1 ),
                             'batchOrders' => array( 'cost' => 10 ),
                             'strategy/group' => array( 'cost' => 20 ),
+                            'strategy/group/uid' => array( 'cost' => 20 ),
                             'capital/withdraw/apply' => array( 'cost' => 1 ),
                             'capital/withdraw' => array( 'cost' => 1 ),
                             'capital/transfer' => array( 'cost' => 50 ),
@@ -347,8 +350,8 @@ class mexc extends Exchange {
                             'stoporder/list/orders' => array( 'cost' => 2 ),
                             'stoporder/open_orders' => array( 'cost' => 2 ),
                             'stoporder/order_details/{stop_order_id}' => array( 'cost' => 2 ),
-                            'account/risk_limit' => array( 'cost' => 2 ), // TO_DO => gets max/min position size, allowed sides, leverage, maintenance margin, initial margin, etc...
-                            'account/tiered_fee_rate' => array( 'cost' => 2 ), // TO_DO => taker/maker fees for account
+                            'account/risk_limit' => array( 'cost' => 2 ), // TO_DO: gets max/min position size, allowed sides, leverage, maintenance margin, initial margin, etc...
+                            'account/tiered_fee_rate' => array( 'cost' => 2 ), // TO_DO: taker/maker fees for account
                             'position/leverage' => array( 'cost' => 2 ),
                             'account/tiered_fee_rate/v2' => array( 'cost' => 2 ),
                             'trackorder/list/orders' => array( 'cost' => 2 ),
@@ -551,182 +554,182 @@ class mexc extends Exchange {
                     'ACA' => 'ACALA',
                     'BEP20' => 'BSC',
                     'OPTIMISM' => 'OP',
-                    // 'ADA' => 'Cardano(ADA)',
-                    // 'AE' => 'AE',
-                    // 'ALGO' => 'Algorand(ALGO)',
-                    // 'ALPH' => 'Alephium(ALPH)',
-                    // 'ARB' => 'Arbitrum One(ARB)',
-                    // 'ARBITRUM' => 'ArbitrumOne(ARB)',
+                    // 'ADA': 'Cardano(ADA)',
+                    // 'AE': 'AE',
+                    // 'ALGO': 'Algorand(ALGO)',
+                    // 'ALPH': 'Alephium(ALPH)',
+                    // 'ARB': 'Arbitrum One(ARB)',
+                    // 'ARBITRUM': 'ArbitrumOne(ARB)',
                     'ASTR' => 'ASTAR', // ASTAREVM is different
-                    // 'ATOM' => 'Cosmos(ATOM)',
-                    // 'AVAXC' => 'Avalanche C Chain(AVAX CCHAIN)',
-                    // 'AVAXX' => 'Avalanche X Chain(AVAX XCHAIN)',
-                    // 'AZERO' => 'Aleph Zero(AZERO)',
-                    // 'BCH' => 'Bitcoin Cash(BCH)',
-                    // 'BNCDOT' => 'BNCPOLKA',
-                    // 'BSV' => 'Bitcoin SV(BSV)',
-                    // 'BTC' => 'Bitcoin(BTC)',
+                    // 'ATOM': 'Cosmos(ATOM)',
+                    // 'AVAXC': 'Avalanche C Chain(AVAX CCHAIN)',
+                    // 'AVAXX': 'Avalanche X Chain(AVAX XCHAIN)',
+                    // 'AZERO': 'Aleph Zero(AZERO)',
+                    // 'BCH': 'Bitcoin Cash(BCH)',
+                    // 'BNCDOT': 'BNCPOLKA',
+                    // 'BSV': 'Bitcoin SV(BSV)',
+                    // 'BTC': 'Bitcoin(BTC)',
                     'BTM' => 'BTM2',
-                    // 'CHZ' => 'Chiliz Legacy Chain(CHZ)',
-                    // 'CHZ2' => 'Chiliz Chain(CHZ2)',
-                    // 'CLORE' => 'Clore.ai(CLORE)',
+                    // 'CHZ': 'Chiliz Legacy Chain(CHZ)',
+                    // 'CHZ2': 'Chiliz Chain(CHZ2)',
+                    // 'CLORE': 'Clore.ai(CLORE)',
                     'CRC20' => 'CRONOS',
-                    // 'DC' => 'Dogechain(DC)',
-                    // 'DNX' => 'Dynex(DNX)',
-                    // 'DOGE' => 'Dogecoin(DOGE)',
-                    // 'DOT' => 'Polkadot(DOT)',
+                    // 'DC': 'Dogechain(DC)',
+                    // 'DNX': 'Dynex(DNX)',
+                    // 'DOGE': 'Dogecoin(DOGE)',
+                    // 'DOT': 'Polkadot(DOT)',
                     'DOT' => 'DOTASSETHUB',
-                    // 'DYM' => 'Dymension(DYM)',
+                    // 'DYM': 'Dymension(DYM)',
                     'ETHF' => 'ETF',
                     'HRC20' => 'HECO',
-                    // 'KLAY' => 'Klaytn(KLAY)',
+                    // 'KLAY': 'Klaytn(KLAY)',
                     'OASIS' => 'ROSE',
                     'OKC' => 'OKT',
                     'RSK' => 'RBTC',
-                    // 'RVN' => 'Ravencoin(RVN)',
-                    // 'SATOX' => 'Satoxcoin(SATOX)',
-                    // 'SC' => 'SC',
-                    // 'SCRT' => 'SCRT',
-                    // 'SDN' => 'SDN',
-                    // 'SGB' => 'SGB',
-                    // 'SOL' => 'Solana(SOL)',
-                    // 'STAR' => 'STAR',
-                    // 'STARK' => 'Starknet(STARK)',
-                    // 'STEEM' => 'STEEM',
-                    // 'SYS' => 'SYS',
-                    // 'TAO' => 'Bittensor(TAO)',
-                    // 'TIA' => 'Celestia(TIA)',
-                    // 'TOMO' => 'TOMO',
-                    // 'TON' => 'Toncoin(TON)',
-                    // 'TRC10' => 'TRC10',
-                    // 'TRC20' => 'Tron(TRC20)',
-                    // 'UGAS' => 'UGAS(Ultrain)',
-                    // 'VET' => 'VeChain(VET)',
-                    // 'VEX' => 'Vexanium(VEX)',
-                    // 'VSYS' => 'VSYS',
-                    // 'WAVES' => 'WAVES',
-                    // 'WAX' => 'WAX',
-                    // 'WEMIX' => 'WEMIX',
-                    // 'XCH' => 'Chia(XCH)',
-                    // 'XDC' => 'XDC',
-                    // 'XEC' => 'XEC',
-                    // 'XLM' => 'Stellar(XLM)',
-                    // 'XMR' => 'Monero(XMR)',
-                    // 'XNA' => 'Neurai(XNA)',
-                    // 'XPR' => 'XPR Network',
-                    // 'XRD' => 'XRD',
-                    // 'XRP' => 'Ripple(XRP)',
-                    // 'XTZ' => 'XTZ',
-                    // 'XVG' => 'XVG',
-                    // 'XYM' => 'XYM',
-                    // 'ZEC' => 'ZEC',
-                    // 'ZEN' => 'ZEN',
-                    // 'ZIL' => 'Zilliqa(ZIL)',
-                    // 'ZTG' => 'ZTG',
-                    // todo => uncomment below after consensus
-                    // 'ALAYA' => 'ATP',
-                    // 'ANDUSCHAIN' => 'DEB',
-                    // 'ASSETMANTLE' => 'MNTL',
-                    // 'AXE' => 'AXE',
-                    // 'BITCOINHD' => 'BHD',
-                    // 'BITCOINVAULT' => 'BTCV',
-                    // 'BITKUB' => 'KUB',
-                    // 'BITSHARES_OLD' => 'BTS',
-                    // 'BITSHARES' => 'NBS',
-                    // 'BYTZ' => 'BYTZ',
-                    // 'CANTO' => 'CANTO', // CANTOEVM
-                    // 'CENNZ' => 'CENNZ',
-                    // 'CHAINX' => 'PCX',
-                    // 'CONCODRIUM' => 'CCD',
-                    // 'CONTENTVALUENETWORK' => 'CVNT',
-                    // 'CORTEX' => 'CTXC',
-                    // 'CYPHERIUM' => 'CPH',
-                    // 'DANGNN' => 'DGC',
-                    // 'DARWINIASMARTCHAIN' => 'Darwinia Smart Chain',
-                    // 'DHEALTH' => 'DHP',
-                    // 'DOGECOIN' => array( 'DOGE', 'DOGECHAIN' ), // todo after unification
-                    // 'DRAC' => 'DRAC',
-                    // 'DRAKEN' => 'DRK',
-                    // 'ECOCHAIN' => 'ECOC',
-                    // 'ELECTRAPROTOCOL' => 'XEP',
-                    // 'EMERALD' => 'EMERALD', // sits on top of OASIS
-                    // 'EVMOS' => 'EVMOS', // EVMOSETH is different
-                    // 'EXOSAMA' => 'SAMA',
-                    // 'FIBOS' => 'FO',
-                    // 'FILECASH' => 'FIC',
-                    // 'FIRMACHAIN' => 'FCT',
-                    // 'FIRO' => 'XZC',
-                    // 'FNCY' => 'FNCY',
-                    // 'FRUITS' => 'FRTS',
-                    // 'GLEEC' => 'GLEEC',
-                    // 'GXCHAIN' => 'GXC',
-                    // 'HANDSHAKE' => 'HNS',
-                    // 'HPB' => 'HPB',
-                    // 'HSHARE' => 'HC',
-                    // 'HUAHUA' => 'HUAHUA',
-                    // 'HUPAYX' => 'HPX',
-                    // 'INDEXCHAIN' => 'IDX',
-                    // 'INTCHAIN' => 'INT',
-                    // 'INTEGRITEE' => 'TEER',
-                    // 'INTERLAY' => 'INTR',
-                    // 'IOEX' => 'IOEX',
-                    // 'JUNO' => 'JUNO',
-                    // 'KASPA' => 'KASPA',
-                    // 'KEKCHAIN' => 'KEKCHAIN',
-                    // 'KINTSUGI' => 'KINT',
-                    // 'KOINOS' => 'KOINOS',
-                    // 'KONSTELLATION' => 'DARC',
-                    // 'KUJIRA' => 'KUJI',
-                    // 'KULUPU' => 'KLP',
-                    // 'LBRY' => 'LBC',
-                    // 'LEDGIS' => 'LED',
-                    // 'LIGHTNINGBITCOIN' => 'LBTC',
-                    // 'LINE' => 'LINE',
-                    // 'MDNA' => 'DNA',
-                    // 'MDUKEY' => 'MDU',
-                    // 'METAMUI' => 'MMUI',
-                    // 'METAVERSE_ETP' => 'ETP',
-                    // 'METER' => 'MTRG',
-                    // 'MEVERSE' => 'MEVerse',
-                    // 'NEWTON' => 'NEW',
-                    // 'NODLE' => 'NODLE',
-                    // 'ORIGYN' => 'OGY',
-                    // 'PAC' => 'PAC',
-                    // 'PASTEL' => 'PSL',
-                    // 'PHALA' => 'Khala',
-                    // 'PLEX' => 'PLEX',
-                    // 'PMG' => 'PMG',
-                    // 'POINT' => 'POINT', // POINTEVM is different
-                    // 'PROOFOFMEMES' => 'POM',
-                    // 'PROXIMAX' => 'XPX',
-                    // 'RCHAIN' => 'REV',
-                    // 'REBUS' => 'REBUS', // REBUSEVM is different
-                    // 'RIZON' => 'ATOLO',
-                    // 'SENTINEL' => 'DVPN',
-                    // 'SERO' => 'SERO',
-                    // 'TECHPAY' => 'TPC',
-                    // 'TELOSCOIN' => 'TLOS', // todo
-                    // 'TERRA' => 'LUNA2',
-                    // 'TERRACLASSIC' => 'LUNC',
-                    // 'TLOS' => 'TELOS', // todo
-                    // 'TOMAINFO' => 'TON',
-                    // 'TONGTONG' => 'TTC',
-                    // 'TURTLECOIN' => 'TRTL',
-                    // 'ULORD' => 'UT',
-                    // 'ULTRAIN' => 'UGAS',
-                    // 'UMEE' => 'UMEE',
-                    // 'VDIMENSION' => 'VOLLAR',
-                    // 'VEXANIUM' => 'VEX',
-                    // 'VNT' => 'VNT',
-                    // 'WAYKICHAIN' => 'WICC',
-                    // 'WHITECOIN' => 'XWC',
-                    // 'WITNET' => 'WIT',
-                    // 'XDAI' => 'XDAI',
-                    // 'XX' => 'XX',
-                    // 'YAS' => 'YAS',
-                    // 'ZENITH' => 'ZENITH',
-                    // 'ZKSYNC' => 'ZKSYNC',
-                    // // 'BAJUN' => '',
+                    // 'RVN': 'Ravencoin(RVN)',
+                    // 'SATOX': 'Satoxcoin(SATOX)',
+                    // 'SC': 'SC',
+                    // 'SCRT': 'SCRT',
+                    // 'SDN': 'SDN',
+                    // 'SGB': 'SGB',
+                    // 'SOL': 'Solana(SOL)',
+                    // 'STAR': 'STAR',
+                    // 'STARK': 'Starknet(STARK)',
+                    // 'STEEM': 'STEEM',
+                    // 'SYS': 'SYS',
+                    // 'TAO': 'Bittensor(TAO)',
+                    // 'TIA': 'Celestia(TIA)',
+                    // 'TOMO': 'TOMO',
+                    // 'TON': 'Toncoin(TON)',
+                    // 'TRC10': 'TRC10',
+                    // 'TRC20': 'Tron(TRC20)',
+                    // 'UGAS': 'UGAS(Ultrain)',
+                    // 'VET': 'VeChain(VET)',
+                    // 'VEX': 'Vexanium(VEX)',
+                    // 'VSYS': 'VSYS',
+                    // 'WAVES': 'WAVES',
+                    // 'WAX': 'WAX',
+                    // 'WEMIX': 'WEMIX',
+                    // 'XCH': 'Chia(XCH)',
+                    // 'XDC': 'XDC',
+                    // 'XEC': 'XEC',
+                    // 'XLM': 'Stellar(XLM)',
+                    // 'XMR': 'Monero(XMR)',
+                    // 'XNA': 'Neurai(XNA)',
+                    // 'XPR': 'XPR Network',
+                    // 'XRD': 'XRD',
+                    // 'XRP': 'Ripple(XRP)',
+                    // 'XTZ': 'XTZ',
+                    // 'XVG': 'XVG',
+                    // 'XYM': 'XYM',
+                    // 'ZEC': 'ZEC',
+                    // 'ZEN': 'ZEN',
+                    // 'ZIL': 'Zilliqa(ZIL)',
+                    // 'ZTG': 'ZTG',
+                    // todo: uncomment below after consensus
+                    // 'ALAYA': 'ATP',
+                    // 'ANDUSCHAIN': 'DEB',
+                    // 'ASSETMANTLE': 'MNTL',
+                    // 'AXE': 'AXE',
+                    // 'BITCOINHD': 'BHD',
+                    // 'BITCOINVAULT': 'BTCV',
+                    // 'BITKUB': 'KUB',
+                    // 'BITSHARES_OLD': 'BTS',
+                    // 'BITSHARES': 'NBS',
+                    // 'BYTZ': 'BYTZ',
+                    // 'CANTO': 'CANTO', // CANTOEVM
+                    // 'CENNZ': 'CENNZ',
+                    // 'CHAINX': 'PCX',
+                    // 'CONCODRIUM': 'CCD',
+                    // 'CONTENTVALUENETWORK': 'CVNT',
+                    // 'CORTEX': 'CTXC',
+                    // 'CYPHERIUM': 'CPH',
+                    // 'DANGNN': 'DGC',
+                    // 'DARWINIASMARTCHAIN': 'Darwinia Smart Chain',
+                    // 'DHEALTH': 'DHP',
+                    // 'DOGECOIN': [ 'DOGE', 'DOGECHAIN' ], // todo after unification
+                    // 'DRAC': 'DRAC',
+                    // 'DRAKEN': 'DRK',
+                    // 'ECOCHAIN': 'ECOC',
+                    // 'ELECTRAPROTOCOL': 'XEP',
+                    // 'EMERALD': 'EMERALD', // sits on top of OASIS
+                    // 'EVMOS': 'EVMOS', // EVMOSETH is different
+                    // 'EXOSAMA': 'SAMA',
+                    // 'FIBOS': 'FO',
+                    // 'FILECASH': 'FIC',
+                    // 'FIRMACHAIN': 'FCT',
+                    // 'FIRO': 'XZC',
+                    // 'FNCY': 'FNCY',
+                    // 'FRUITS': 'FRTS',
+                    // 'GLEEC': 'GLEEC',
+                    // 'GXCHAIN': 'GXC',
+                    // 'HANDSHAKE': 'HNS',
+                    // 'HPB': 'HPB',
+                    // 'HSHARE': 'HC',
+                    // 'HUAHUA': 'HUAHUA',
+                    // 'HUPAYX': 'HPX',
+                    // 'INDEXCHAIN': 'IDX',
+                    // 'INTCHAIN': 'INT',
+                    // 'INTEGRITEE': 'TEER',
+                    // 'INTERLAY': 'INTR',
+                    // 'IOEX': 'IOEX',
+                    // 'JUNO': 'JUNO',
+                    // 'KASPA': 'KASPA',
+                    // 'KEKCHAIN': 'KEKCHAIN',
+                    // 'KINTSUGI': 'KINT',
+                    // 'KOINOS': 'KOINOS',
+                    // 'KONSTELLATION': 'DARC',
+                    // 'KUJIRA': 'KUJI',
+                    // 'KULUPU': 'KLP',
+                    // 'LBRY': 'LBC',
+                    // 'LEDGIS': 'LED',
+                    // 'LIGHTNINGBITCOIN': 'LBTC',
+                    // 'LINE': 'LINE',
+                    // 'MDNA': 'DNA',
+                    // 'MDUKEY': 'MDU',
+                    // 'METAMUI': 'MMUI',
+                    // 'METAVERSE_ETP': 'ETP',
+                    // 'METER': 'MTRG',
+                    // 'MEVERSE': 'MEVerse',
+                    // 'NEWTON': 'NEW',
+                    // 'NODLE': 'NODLE',
+                    // 'ORIGYN': 'OGY',
+                    // 'PAC': 'PAC',
+                    // 'PASTEL': 'PSL',
+                    // 'PHALA': 'Khala',
+                    // 'PLEX': 'PLEX',
+                    // 'PMG': 'PMG',
+                    // 'POINT': 'POINT', // POINTEVM is different
+                    // 'PROOFOFMEMES': 'POM',
+                    // 'PROXIMAX': 'XPX',
+                    // 'RCHAIN': 'REV',
+                    // 'REBUS': 'REBUS', // REBUSEVM is different
+                    // 'RIZON': 'ATOLO',
+                    // 'SENTINEL': 'DVPN',
+                    // 'SERO': 'SERO',
+                    // 'TECHPAY': 'TPC',
+                    // 'TELOSCOIN': 'TLOS', // todo
+                    // 'TERRA': 'LUNA2',
+                    // 'TERRACLASSIC': 'LUNC',
+                    // 'TLOS': 'TELOS', // todo
+                    // 'TOMAINFO': 'TON',
+                    // 'TONGTONG': 'TTC',
+                    // 'TURTLECOIN': 'TRTL',
+                    // 'ULORD': 'UT',
+                    // 'ULTRAIN': 'UGAS',
+                    // 'UMEE': 'UMEE',
+                    // 'VDIMENSION': 'VOLLAR',
+                    // 'VEXANIUM': 'VEX',
+                    // 'VNT': 'VNT',
+                    // 'WAYKICHAIN': 'WICC',
+                    // 'WHITECOIN': 'XWC',
+                    // 'WITNET': 'WIT',
+                    // 'XDAI': 'XDAI',
+                    // 'XX': 'XX',
+                    // 'YAS': 'YAS',
+                    // 'ZENITH': 'ZENITH',
+                    // 'ZKSYNC': 'ZKSYNC',
+                    // // 'BAJUN': '',
                     // OKB <> OKT (for usdt it's exception) for OKC, PMEER, FLARE, STRD, ZEL, FUND, "NONE", CRING, FREETON, QTZ  (probably unique network is meant), HT, BSC(RACAV1), BSC(RACAV2), AMBROSUS, BAJUN, NOM. their individual info is at https://www.mexc.com/api/platform/asset/spot/{COINNAME}
                 ),
                 'networksById' => array(
@@ -734,18 +737,8 @@ class mexc extends Exchange {
                     'BNB Smart Chain(BEP20-RACAV2)' => 'BSC',
                     'BNB Smart Chain(BEP20)' => 'BSC',
                     'Ethereum(ERC20)' => 'ERC20',
-                    // TODO => uncomment below after deciding unified name
-                    // 'PEPE COIN BSC':
-                    // 'SMART BLOCKCHAIN':
-                    // 'f(x)Core':
-                    // 'Syscoin Rollux':
-                    // 'Syscoin UTXO':
-                    // 'zkSync Era':
-                    // 'zkSync Lite':
-                    // 'Darwinia Smart Chain':
-                    // 'Arbitrum One(ARB-Bridged)':
-                    // 'Optimism(OP-Bridged)':
-                    // 'Polygon(MATIC-Bridged)':
+                    // TODO: unified names undecided for PEPE COIN BSC, SMART BLOCKCHAIN, f(x)Core, Syscoin Rollux, Syscoin UTXO,
+                    // zkSync Era, zkSync Lite, Darwinia Smart Chain, Arbitrum One(ARB-Bridged), Optimism(OP-Bridged), Polygon(MATIC-Bridged)
                 ),
                 'recvWindow' => 5 * 1000, // 5 sec, default
                 'maxTimeTillEnd' => 90 * 86400 * 1000 - 1, // 90 days
@@ -848,7 +841,7 @@ class mexc extends Exchange {
                         'leverage' => true, // todo
                         'marketBuyByCost' => false,
                     ),
-                    'createOrders' => null, // todo => needs implementation https://mexcdevelop.github.io/apidocs/contract_v1_en/#order-under-maintenance:~:text=Order%20the%20contract%20in%20batch
+                    'createOrders' => null, // todo: needs implementation https://mexcdevelop.github.io/apidocs/contract_v1_en/#order-under-maintenance:~:text=Order%20the%20contract%20in%20batch
                     'fetchMyTrades' => array(
                         'marginMode' => false,
                         'limit' => 100,
@@ -949,30 +942,30 @@ class mexc extends Exchange {
                     '801' => '\\ccxt\\OnMaintenance', // System under maintenance
                     '1000' => '\\ccxt\\AuthenticationError', // Account does not exist
                     '1001' => '\\ccxt\\BadSymbol', // Contract does not exist
-                    '10101' => '\\ccxt\\InsufficientFunds', // array("msg":"资金不足","code":10101)
-                    '2009' => '\\ccxt\\InvalidOrder', // array("success":false,"code":2009,"message":"Position is not exists or closed.")
+                    '10101' => '\\ccxt\\InsufficientFunds', // {"msg":"资金不足","code":10101}
+                    '2009' => '\\ccxt\\InvalidOrder', // {"success":false,"code":2009,"message":"Position is not exists or closed."}
                     '2011' => '\\ccxt\\BadRequest',
                     '30004' => '\\ccxt\\InsufficientFunds',
-                    '33333' => '\\ccxt\\BadRequest', // array("msg":"Not support transfer","code":33333)
+                    '33333' => '\\ccxt\\BadRequest', // {"msg":"Not support transfer","code":33333}
                     '44444' => '\\ccxt\\BadRequest',
                     '1002' => '\\ccxt\\InvalidOrder',
                     '30019' => '\\ccxt\\BadRequest',
                     '30005' => '\\ccxt\\InvalidOrder',
                     '2003' => '\\ccxt\\InvalidOrder',
                     '2005' => '\\ccxt\\InsufficientFunds',
-                    '400' => '\\ccxt\\BadRequest', // array("msg":"The start time cannot be earlier than 90 days","code":400)
-                    // '500' => '\\ccxt\\OnMaintenance', // array("code" => 500,"message" => "Under maintenance, please try again later","announcement" => "https://www.mexc.com/support/articles/17827791510263")
+                    '400' => '\\ccxt\\BadRequest', // {"msg":"The start time cannot be earlier than 90 days","code":400}
+                    // '500': OnMaintenance, // {"code": 500,"message": "Under maintenance, please try again later","announcement": "https://www.mexc.com/support/articles/17827791510263"}
                     '600' => '\\ccxt\\BadRequest',
-                    '70011' => '\\ccxt\\PermissionDenied', // array("code":70011,"msg":"Pair user ban trade apikey.")
-                    '88004' => '\\ccxt\\InsufficientFunds', // array("msg":"超出最大可借，最大可借币为:18.09833211","code":88004)
-                    '88009' => '\\ccxt\\ExchangeError', // v3 array("msg":"Loan record does not exist","code":88009)
-                    '88013' => '\\ccxt\\InvalidOrder', // array("msg":"最小交易额不能小于：5USDT","code":88013)
-                    '88015' => '\\ccxt\\InsufficientFunds', // array("msg":"持仓不足","code":88015)
-                    '700003' => '\\ccxt\\InvalidNonce', // array("code":700003,"msg":"Timestamp for this request is outside of the recvWindow.")
+                    '70011' => '\\ccxt\\PermissionDenied', // {"code":70011,"msg":"Pair user ban trade apikey."}
+                    '88004' => '\\ccxt\\InsufficientFunds', // {"msg":"超出最大可借，最大可借币为:18.09833211","code":88004}
+                    '88009' => '\\ccxt\\ExchangeError', // v3 {"msg":"Loan record does not exist","code":88009}
+                    '88013' => '\\ccxt\\InvalidOrder', // {"msg":"最小交易额不能小于：5USDT","code":88013}
+                    '88015' => '\\ccxt\\InsufficientFunds', // {"msg":"持仓不足","code":88015}
+                    '700003' => '\\ccxt\\InvalidNonce', // {"code":700003,"msg":"Timestamp for this request is outside of the recvWindow."}
                     '26' => '\\ccxt\\ExchangeError', // operation not allowed
                     '602' => '\\ccxt\\AuthenticationError', // Signature verification failed
                     '10001' => '\\ccxt\\AuthenticationError', // user does not exist
-                    '10007' => '\\ccxt\\BadSymbol', // array("code":10007,"msg":"bad symbol")
+                    '10007' => '\\ccxt\\BadSymbol', // {"code":10007,"msg":"bad symbol"}
                     '10015' => '\\ccxt\\BadRequest', // user id cannot be null
                     '10072' => '\\ccxt\\BadRequest', // invalid access key
                     '10073' => '\\ccxt\\BadRequest', // invalid Request-Time
@@ -1008,7 +1001,7 @@ class mexc extends Exchange {
                     '30010' => '\\ccxt\\InvalidOrder', // no valid trade price
                     '30014' => '\\ccxt\\InvalidOrder', // invalid symbol
                     '30016' => '\\ccxt\\InvalidOrder', // trading disabled
-                    '30018' => '\\ccxt\\AccountSuspended', // array("msg":"账号暂时不能下单，请联系客服","code":30018)
+                    '30018' => '\\ccxt\\AccountSuspended', // {"msg":"账号暂时不能下单，请联系客服","code":30018}
                     '30020' => '\\ccxt\\AuthenticationError', // no permission for the symbol
                     '30021' => '\\ccxt\\BadRequest', // invalid symbol
                     '30025' => '\\ccxt\\InvalidOrder', // no exist opponent order
@@ -1018,9 +1011,9 @@ class mexc extends Exchange {
                     '30029' => '\\ccxt\\InvalidOrder', // Cannot exceed the maximum order limit
                     '30032' => '\\ccxt\\InvalidOrder', // Cannot exceed the maximum position
                     '30041' => '\\ccxt\\InvalidOrder', // current order type can not place order
-                    '30087' => '\\ccxt\\InvalidOrder', // array("msg":"Order price exceeds allowed range","code":30087)
+                    '30087' => '\\ccxt\\InvalidOrder', // {"msg":"Order price exceeds allowed range","code":30087}
                     '60005' => '\\ccxt\\ExchangeError', // your account is abnormal
-                    '700001' => '\\ccxt\\AuthenticationError', // array("code":700002,"msg":"Signature for this request is not valid.") // same message for expired API keys
+                    '700001' => '\\ccxt\\AuthenticationError', // {"code":700002,"msg":"Signature for this request is not valid."} // same message for expired API keys
                     '700002' => '\\ccxt\\AuthenticationError', // Signature for this request is not valid // or the API secret is incorrect
                     '700004' => '\\ccxt\\BadRequest', // Param 'origClientOrderId' or 'orderId' must be sent, but both were empty/null
                     '700005' => '\\ccxt\\InvalidNonce', // recvWindow must less than 60000
@@ -1059,7 +1052,7 @@ class mexc extends Exchange {
                     'Bid price is great than max allow price' => '\\ccxt\\InvalidOrder', // code:2003
                     'Invalid symbol.' => '\\ccxt\\BadSymbol', // code:-1121
                     'Param error!' => '\\ccxt\\BadRequest', // code:600
-                    'maintenance' => '\\ccxt\\OnMaintenance', // array("code" => 500,"message" => "Under maintenance, please try again later","announcement" => "https://www.mexc.com/support/articles/17827791510263")
+                    'maintenance' => '\\ccxt\\OnMaintenance', // {"code": 500,"message": "Under maintenance, please try again later","announcement": "https://www.mexc.com/support/articles/17827791510263"}
                 ),
             ),
         ));
@@ -1086,7 +1079,7 @@ class mexc extends Exchange {
         if ($marketType === 'spot') {
             $response = Async\await($this->spotPublicGetPing($query));
             //
-            //     array()
+            //     {}
             //
             $keys = is_array($response) ? array_keys($response) : array();
             $length = count($keys);
@@ -1094,7 +1087,7 @@ class mexc extends Exchange {
         } elseif ($marketType === 'swap') {
             $response = Async\await($this->contractPublicGetPing($query));
             //
-            //     array("success":true,"code":"0","data":"1648124374985")
+            //     {"success":true,"code":"0","data":"1648124374985"}
             //
             $success = ($this->safe_bool($response, 'success') === true);
             $status = $success ? 'ok' : $this->json($response);
@@ -1127,13 +1120,13 @@ class mexc extends Exchange {
         if ($marketType === 'spot') {
             $response = Async\await($this->spotPublicGetTime($query));
             //
-            //     array("serverTime" => "1647519277579")
+            //     {"serverTime": "1647519277579"}
             //
             return $this->safe_integer($response, 'serverTime');
         } elseif ($marketType === 'swap') {
             $response = Async\await($this->contractPublicGetPing($query));
             //
-            //     array("success":true,"code":"0","data":"1648124374985")
+            //     {"success":true,"code":"0","data":"1648124374985"}
             //
             return $this->safe_integer($response, 'data');
         }
@@ -1163,40 +1156,40 @@ class mexc extends Exchange {
         $response = Async\await($this->spotPrivateGetCapitalConfigGetall($params));
         //
         // {
-        //     "coin" => "QANX",
-        //     "name" => "QANplatform",
-        //     "networkList" => array(
-        //       array(
-        //         "coin" => "QANX",
-        //         "depositDesc" => null,
-        //         "depositEnable" => true,
-        //         "minConfirm" => "0",
-        //         "name" => "QANplatform",
-        //         "network" => "BEP20(BSC)",
-        //         "withdrawEnable" => false,
-        //         "withdrawFee" => "42.000000000000000000",
-        //         "withdrawIntegerMultiple" => null,
-        //         "withdrawMax" => "24000000.000000000000000000",
-        //         "withdrawMin" => "20.000000000000000000",
-        //         "sameAddress" => false,
-        //         "contract" => "0xAAA7A10a8ee237ea61E8AC46C50A8Db8bCC1baaa"
-        //       ),
+        //     "coin": "QANX",
+        //     "name": "QANplatform",
+        //     "networkList": [
         //       {
-        //         "coin" => "QANX",
-        //         "depositDesc" => null,
-        //         "depositEnable" => true,
-        //         "minConfirm" => "0",
-        //         "name" => "QANplatform",
-        //         "network" => "ERC20",
-        //         "withdrawEnable" => true,
-        //         "withdrawFee" => "2732.000000000000000000",
-        //         "withdrawIntegerMultiple" => null,
-        //         "withdrawMax" => "24000000.000000000000000000",
-        //         "withdrawMin" => "240.000000000000000000",
-        //         "sameAddress" => false,
-        //         "contract" => "0xAAA7A10a8ee237ea61E8AC46C50A8Db8bCC1baaa"
+        //         "coin": "QANX",
+        //         "depositDesc": null,
+        //         "depositEnable": true,
+        //         "minConfirm": "0",
+        //         "name": "QANplatform",
+        //         "network": "BEP20(BSC)",
+        //         "withdrawEnable": false,
+        //         "withdrawFee": "42.000000000000000000",
+        //         "withdrawIntegerMultiple": null,
+        //         "withdrawMax": "24000000.000000000000000000",
+        //         "withdrawMin": "20.000000000000000000",
+        //         "sameAddress": false,
+        //         "contract": "0xAAA7A10a8ee237ea61E8AC46C50A8Db8bCC1baaa"
+        //       },
+        //       {
+        //         "coin": "QANX",
+        //         "depositDesc": null,
+        //         "depositEnable": true,
+        //         "minConfirm": "0",
+        //         "name": "QANplatform",
+        //         "network": "ERC20",
+        //         "withdrawEnable": true,
+        //         "withdrawFee": "2732.000000000000000000",
+        //         "withdrawIntegerMultiple": null,
+        //         "withdrawMax": "24000000.000000000000000000",
+        //         "withdrawMin": "240.000000000000000000",
+        //         "sameAddress": false,
+        //         "contract": "0xAAA7A10a8ee237ea61E8AC46C50A8Db8bCC1baaa"
         //       }
-        //     )
+        //     ]
         //   }
         //
         return $this->parse_currencies($response);
@@ -1206,7 +1199,7 @@ class mexc extends Exchange {
         $id = $this->safe_string($rawCurrency, 'coin');
         $code = $this->safe_currency_code($id);
         $networks = array();
-        $chains = $this->safe_value($rawCurrency, 'networkList', array());
+        $chains = $this->safe_list($rawCurrency, 'networkList', array());
         for ($j = 0; $j < count($chains); $j++) {
             $chain = $chains[$j];
             $networkId = $this->safe_string_2($chain, 'netWork', 'network');
@@ -1292,47 +1285,47 @@ class mexc extends Exchange {
         $response = Async\await($this->spotPublicGetExchangeInfo($params));
         //
         //     {
-        //         "timezone" => "CST",
-        //         "serverTime" => 1647521860402,
-        //         "rateLimits" => array(),
-        //         "exchangeFilters" => array(),
-        //         "symbols" => array(
-        //           array(
-        //                "symbol" => "OGNUSDT",
-        //                "status" => "1",
-        //                "baseAsset" => "OGN",
-        //                "baseAssetPrecision" => "2",
-        //                "quoteAsset" => "USDT",
-        //                "quoteAssetPrecision" => "4",
-        //                "orderTypes" => array(
+        //         "timezone": "CST",
+        //         "serverTime": 1647521860402,
+        //         "rateLimits": [],
+        //         "exchangeFilters": [],
+        //         "symbols": [
+        //           {
+        //                "symbol": "OGNUSDT",
+        //                "status": "1",
+        //                "baseAsset": "OGN",
+        //                "baseAssetPrecision": "2",
+        //                "quoteAsset": "USDT",
+        //                "quoteAssetPrecision": "4",
+        //                "orderTypes": [
         //                    "LIMIT",
         //                    "LIMIT_MAKER"
-        //                ),
-        //                "baseCommissionPrecision" => "2",
-        //                "quoteCommissionPrecision" => "4",
-        //                "quoteOrderQtyMarketAllowed" => false,
-        //                "isSpotTradingAllowed" => true,
-        //                "isMarginTradingAllowed" => true,
-        //                "permissions" => array(
+        //                ],
+        //                "baseCommissionPrecision": "2",
+        //                "quoteCommissionPrecision": "4",
+        //                "quoteOrderQtyMarketAllowed": false,
+        //                "isSpotTradingAllowed": true,
+        //                "isMarginTradingAllowed": true,
+        //                "permissions": [
         //                    "SPOT",
         //                    "MARGIN"
-        //                ),
-        //                "filters" => array(),
-        //                "baseSizePrecision" => "0.01", // this turned out to be a minimum $base amount for order
-        //                "maxQuoteAmount" => "5000000",
-        //                "makerCommission" => "0.002",
-        //                "takerCommission" => "0.002"
-        //                "quoteAmountPrecision" => "5", // this turned out to be a minimum cost amount for order
-        //                "quotePrecision" => "4", // deprecated in favor of 'quoteAssetPrecision' ( https://dev.binance.vision/t/what-is-the-difference-between-quoteprecision-and-quoteassetprecision/4333 )
+        //                ],
+        //                "filters": [],
+        //                "baseSizePrecision": "0.01", // this turned out to be a minimum base amount for order
+        //                "maxQuoteAmount": "5000000",
+        //                "makerCommission": "0.002",
+        //                "takerCommission": "0.002"
+        //                "quoteAmountPrecision": "5", // this turned out to be a minimum cost amount for order
+        //                "quotePrecision": "4", // deprecated in favor of 'quoteAssetPrecision' ( https://dev.binance.vision/t/what-is-the-difference-between-quoteprecision-and-quoteassetprecision/4333 )
         //                // note, "icebergAllowed" & "ocoAllowed" fields were recently removed
-        //            ),
-        //         )
+        //            },
+        //         ]
         //     }
         //
         // Notes:
         // - 'quoteAssetPrecision' & 'baseAssetPrecision' are not currency's real blockchain precision (to view currency's actual individual precision, refer to fetchCurrencies() method).
         //
-        $data = $this->safe_value($response, 'symbols', array());
+        $data = $this->safe_list($response, 'symbols', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
             $market = $data[$i];
@@ -1421,15 +1414,15 @@ class mexc extends Exchange {
          * @return {array[]} an array of objects representing $market $data
          */
         $currentRl = $this->rateLimit;
-        $this->set_property($this, 'rateLimit', 10); // see comment => https://github.com/ccxt/ccxt/pull/23698
+        $this->set_property($this, 'rateLimit', 10); // see comment: https://github.com/ccxt/ccxt/pull/23698
         $response = Async\await($this->contractPublicGetDetail($params));
         $this->set_property($this, 'rateLimit', $currentRl);
         //
         //     {
         //         "success":true,
         //         "code":0,
-        //         "data":array(
-        //             array(
+        //         "data":[
+        //             {
         //                 "symbol":"BTC_USDT",
         //                 "displayName":"BTC_USDT永续",
         //                 "displayNameEn":"BTC_USDT SWAP",
@@ -1440,11 +1433,11 @@ class mexc extends Exchange {
         //                 "contractSize":0.0001,
         //                 "minLeverage":1,
         //                 "maxLeverage":125,
-        //                 "priceScale":2, // seems useless atm,'s just how UI shows the price, $i->e. 29583.50 for BTC/USDT:USDT, while price ticksize is 0.5
-        //                 "volScale":0, // probably => contract amount precision
-        //                 "amountScale":4, // probably => $quote currency precision
+        //                 "priceScale":2, // seems useless atm, as it's just how UI shows the price, i.e. 29583.50 for BTC/USDT:USDT, while price ticksize is 0.5
+        //                 "volScale":0, // probably: contract amount precision
+        //                 "amountScale":4, // probably: quote currency precision
         //                 "priceUnit":0.5, // price tick size
-        //                 "volUnit":1, // probably => contract tick size
+        //                 "volUnit":1, // probably: contract tick size
         //                 "minVol":1,
         //                 "maxVol":1000000,
         //                 "bidLimitPriceRate":0.1,
@@ -1464,11 +1457,11 @@ class mexc extends Exchange {
         //                 "isNew":false,
         //                 "isHot":true,
         //                 "isHidden":false
-        //             ),
-        //         )
+        //             },
+        //         ]
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
             $market = $data[$i];
@@ -1567,15 +1560,15 @@ class mexc extends Exchange {
             $response = Async\await($this->spotPublicGetDepth($this->extend($request, $params)));
             //
             //     {
-            //         "lastUpdateId" => "744267132",
-            //         "bids" => array(
+            //         "lastUpdateId": "744267132",
+            //         "bids": [
             //             ["40838.50","0.387864"],
             //             ["40837.95","0.008400"],
-            //         ),
-            //         "asks" => array(
+            //         ],
+            //         "asks": [
             //             ["40838.61","6.544908"],
             //             ["40838.88","0.498000"],
-            //         )
+            //         ]
             //     }
             //
             $spotTimestamp = $this->safe_integer($response, 'timestamp');
@@ -1588,14 +1581,14 @@ class mexc extends Exchange {
             //         "success":true,
             //         "code":0,
             //         "data":{
-            //             "asks":array(
+            //             "asks":[
             //                 [3445.72,48379,1],
             //                 [3445.75,34994,1],
-            //             ),
-            //             "bids":array(
+            //             ],
+            //             "bids":[
             //                 [3445.55,44081,1],
             //                 [3445.51,24857,1],
-            //             ),
+            //             ],
             //             "version":2827730444,
             //             "timestamp":1634117846232
             //         }
@@ -1679,49 +1672,49 @@ class mexc extends Exchange {
             //
             //     /trades, /historicalTrades
             //
-            //     array(
-            //         array(
-            //             "id" => null,
-            //             "price" => "40798.94",
-            //             "qty" => "0.000508",
-            //             "quoteQty" => "20.72586152",
-            //             "time" => "1647546934374",
-            //             "isBuyerMaker" => true,
-            //             "isBestMatch" => true
-            //         ),
-            //     )
+            //     [
+            //         {
+            //             "id": null,
+            //             "price": "40798.94",
+            //             "qty": "0.000508",
+            //             "quoteQty": "20.72586152",
+            //             "time": "1647546934374",
+            //             "isBuyerMaker": true,
+            //             "isBestMatch": true
+            //         },
+            //     ]
             //
             //     /aggrTrades
             //
-            //     array(
-            //         array(
-            //           "a" => null,
-            //           "f" => null,
-            //           "l" => null,
-            //           "p" => "40679",
-            //           "q" => "0.001309",
-            //           "T" => 1647551328000,
-            //           "m" => true,
-            //           "M" => true
-            //         ),
-            //     )
+            //     [
+            //         {
+            //           "a": null,
+            //           "f": null,
+            //           "l": null,
+            //           "p": "40679",
+            //           "q": "0.001309",
+            //           "T": 1647551328000,
+            //           "m": true,
+            //           "M": true
+            //         },
+            //     ]
             //
         } elseif ($market['swap'] === true) {
             $response = Async\await($this->contractPublicGetDealsSymbol($this->extend($request, $params)));
             //
             //     {
-            //         "success" => true,
-            //         "code" => 0,
-            //         "data" => array(
-            //             array(
-            //                 "p" => 31199,
-            //                 "v" => 18,
-            //                 "T" => 1,
-            //                 "O" => 3,
-            //                 "M" => 2,
-            //                 "t" => 1609831235985
-            //             ),
-            //         )
+            //         "success": true,
+            //         "code": 0,
+            //         "data": [
+            //             {
+            //                 "p": 31199,
+            //                 "v": 18,
+            //                 "T": 1,
+            //                 "O": 3,
+            //                 "M": 2,
+            //                 "t": 1609831235985
+            //             },
+            //         ]
             //     }
             //
             $trades = $this->safe_list($response, 'data', array());
@@ -1744,15 +1737,15 @@ class mexc extends Exchange {
         // if swap
         if (is_array($trade) && array_key_exists('v' ?? '', $trade)) {
             //
-            // swap => fetchTrades
+            // swap: fetchTrades
             //
             //     {
-            //         "p" => 31199,
-            //         "v" => 18,
-            //         "T" => 1,
-            //         "O" => 3,
-            //         "M" => 2,
-            //         "t" => 1609831235985
+            //         "p": 31199,
+            //         "v": 18,
+            //         "T": 1,
+            //         "O": 3,
+            //         "M": 2,
+            //         "t": 1609831235985
             //     }
             //
             $timestamp = $this->safe_integer($trade, 't');
@@ -1764,53 +1757,53 @@ class mexc extends Exchange {
             $takerOrMaker = 'taker';
         } else {
             //
-            // spot => fetchTrades (for aggTrades)
+            // spot: fetchTrades (for aggTrades)
             //
             //         {
-            //             "a" => null,
-            //             "f" => null,
-            //             "l" => null,
-            //             "p" => "40679",
-            //             "q" => "0.001309",
-            //             "T" => 1647551328000,
-            //             "m" => true,
-            //             "M" => true
+            //             "a": null,
+            //             "f": null,
+            //             "l": null,
+            //             "p": "40679",
+            //             "q": "0.001309",
+            //             "T": 1647551328000,
+            //             "m": true,
+            //             "M": true
             //         }
             //
-            // spot => fetchMyTrades, fetchOrderTrades
+            // spot: fetchMyTrades, fetchOrderTrades
             //
             //         {
-            //             "symbol" => "BTCUSDT",
-            //             "id" => "133948532984922113",
-            //             "orderId" => "133948532531949568",
-            //             "orderListId" => "-1",
-            //             "price" => "41995.51",
-            //             "qty" => "0.0002",
-            //             "quoteQty" => "8.399102",
-            //             "commission" => "0.016798204",
-            //             "commissionAsset" => "USDT",
-            //             "time" => "1647718055000",
-            //             "isBuyer" => true,
-            //             "isMaker" => false,
-            //             "isBestMatch" => true
+            //             "symbol": "BTCUSDT",
+            //             "id": "133948532984922113",
+            //             "orderId": "133948532531949568",
+            //             "orderListId": "-1",
+            //             "price": "41995.51",
+            //             "qty": "0.0002",
+            //             "quoteQty": "8.399102",
+            //             "commission": "0.016798204",
+            //             "commissionAsset": "USDT",
+            //             "time": "1647718055000",
+            //             "isBuyer": true,
+            //             "isMaker": false,
+            //             "isBestMatch": true
             //         }
             //
-            // swap => fetchMyTrades, fetchOrderTrades
+            // swap: fetchMyTrades, fetchOrderTrades
             //
             //         {
-            //             "id" => "299444585",
-            //             "symbol" => "STEPN_USDT",
-            //             "side" => "1",
-            //             "vol" => "1",
-            //             "price" => "2.45455",
-            //             "feeCurrency" => "USDT",
-            //             "fee" => "0.00147273",
-            //             "timestamp" => "1648924557000",
-            //             "profit" => "0",
-            //             "category" => "1",
-            //             "orderId" => "265307163526610432",
-            //             "positionMode" => "1",
-            //             "taker" => true
+            //             "id": "299444585",
+            //             "symbol": "STEPN_USDT",
+            //             "side": "1",
+            //             "vol": "1",
+            //             "price": "2.45455",
+            //             "feeCurrency": "USDT",
+            //             "fee": "0.00147273",
+            //             "timestamp": "1648924557000",
+            //             "profit": "0",
+            //             "category": "1",
+            //             "orderId": "265307163526610432",
+            //             "positionMode": "1",
+            //             "taker": true
             //         }
             //
             $marketId = $this->safe_string($trade, 'symbol');
@@ -1896,7 +1889,7 @@ class mexc extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of $candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1928,7 +1921,7 @@ class mexc extends Exchange {
             if ($start !== null) {
                 $request['startTime'] = $start;
                 if ($until === null) {
-                    // we have to calculate it assuming we can get at most 2000 entries per $request
+                    // we have to calculate it assuming we can get at most 2000 entries per request
                     $end = $this->sum($since, $maxLimit * $duration);
                     $now = $this->milliseconds();
                     $request['endTime'] = min($end, $now);
@@ -1942,8 +1935,8 @@ class mexc extends Exchange {
             }
             $response = Async\await($this->spotPublicGetKlines($this->extend($request, $params)));
             //
-            //     array(
-            //       array(
+            //     [
+            //       [
             //         1640804880000,
             //         "47482.36",
             //         "47482.36",
@@ -1952,8 +1945,8 @@ class mexc extends Exchange {
             //         "3.550717",
             //         1640804940000,
             //         "168387.3"
-            //       ),
-            //     )
+            //       ],
+            //     ]
             //
             $candles = $this->to_array($response);
         } elseif ($market['swap'] === true) {
@@ -2044,28 +2037,28 @@ class mexc extends Exchange {
         if ($marketType === 'spot') {
             $tickers = Async\await($this->spotPublicGetTicker24hr($this->extend($request, $query)));
             //
-            //     array(
+            //     [
             //         {
-            //             "symbol" => "BTCUSDT",
-            //             "priceChange" => "184.34",
-            //             "priceChangePercent" => "0.00400048",
-            //             "prevClosePrice" => "46079.37",
-            //             "lastPrice" => "46263.71",
-            //             "lastQty" => "",
-            //             "bidPrice" => "46260.38",
-            //             "bidQty" => "",
-            //             "askPrice" => "46260.41",
-            //             "askQty" => "",
-            //             "openPrice" => "46079.37",
-            //             "highPrice" => "47550.01",
-            //             "lowPrice" => "45555.5",
-            //             "volume" => "1732.461487",
-            //             "quoteVolume" => null,
-            //             "openTime" => 1641349500000,
-            //             "closeTime" => 1641349582808,
-            //             "count" => null
+            //             "symbol": "BTCUSDT",
+            //             "priceChange": "184.34",
+            //             "priceChangePercent": "0.00400048",
+            //             "prevClosePrice": "46079.37",
+            //             "lastPrice": "46263.71",
+            //             "lastQty": "",
+            //             "bidPrice": "46260.38",
+            //             "bidQty": "",
+            //             "askPrice": "46260.41",
+            //             "askQty": "",
+            //             "openPrice": "46079.37",
+            //             "highPrice": "47550.01",
+            //             "lowPrice": "45555.5",
+            //             "volume": "1732.461487",
+            //             "quoteVolume": null,
+            //             "openTime": 1641349500000,
+            //             "closeTime": 1641349582808,
+            //             "count": null
             //         }
-            //     )
+            //     ]
             //
         } elseif ($marketType === 'swap') {
             $response = Async\await($this->contractPublicGetTicker($this->extend($request, $query)));
@@ -2073,8 +2066,8 @@ class mexc extends Exchange {
             //     {
             //         "success":true,
             //         "code":0,
-            //         "data":array(
-            //             array(
+            //         "data":[
+            //             {
             //                 "symbol":"ETH_USDT",
             //                 "lastPrice":3581.3,
             //                 "bid1":3581.25,
@@ -2092,13 +2085,13 @@ class mexc extends Exchange {
             //                 "maxBidPrice":3938.85,
             //                 "minAskPrice":3222.7,
             //                 "timestamp":1634162885016
-            //             ),
-            //         )
+            //             },
+            //         ]
             //     }
             //
             $tickers = $this->safe_value($response, 'data', array());
         }
-        // when it's single symbol $request, the returned structure is different (singular object) for both spot & swap, thus we need to wrap inside array
+        // when it's single symbol request, the returned structure is different (singular object) for both spot & swap, thus we need to wrap inside array
         if ($isSingularMarket) {
             $tickers = array( $tickers );
         }
@@ -2133,24 +2126,24 @@ class mexc extends Exchange {
             $ticker = Async\await($this->spotPublicGetTicker24hr($this->extend($request, $query)));
             //
             //     {
-            //         "symbol" => "BTCUSDT",
-            //         "priceChange" => "184.34",
-            //         "priceChangePercent" => "0.00400048",
-            //         "prevClosePrice" => "46079.37",
-            //         "lastPrice" => "46263.71",
-            //         "lastQty" => "",
-            //         "bidPrice" => "46260.38",
-            //         "bidQty" => "",
-            //         "askPrice" => "46260.41",
-            //         "askQty" => "",
-            //         "openPrice" => "46079.37",
-            //         "highPrice" => "47550.01",
-            //         "lowPrice" => "45555.5",
-            //         "volume" => "1732.461487",
-            //         "quoteVolume" => null,
-            //         "openTime" => 1641349500000,
-            //         "closeTime" => 1641349582808,
-            //         "count" => null
+            //         "symbol": "BTCUSDT",
+            //         "priceChange": "184.34",
+            //         "priceChangePercent": "0.00400048",
+            //         "prevClosePrice": "46079.37",
+            //         "lastPrice": "46263.71",
+            //         "lastQty": "",
+            //         "bidPrice": "46260.38",
+            //         "bidQty": "",
+            //         "askPrice": "46260.41",
+            //         "askQty": "",
+            //         "openPrice": "46079.37",
+            //         "highPrice": "47550.01",
+            //         "lowPrice": "45555.5",
+            //         "volume": "1732.461487",
+            //         "quoteVolume": null,
+            //         "openTime": 1641349500000,
+            //         "closeTime": 1641349582808,
+            //         "count": null
             //     }
             //
         } elseif ($marketType === 'swap') {
@@ -2182,7 +2175,7 @@ class mexc extends Exchange {
             //
             $ticker = $this->safe_value($response, 'data', array());
         }
-        // when it's single $symbol $request, the returned structure is different (singular object) for both spot & swap, thus we need to wrap inside array
+        // when it's single symbol request, the returned structure is different (singular object) for both spot & swap, thus we need to wrap inside array
         return $this->parse_ticker($ticker, $market);
     }
 
@@ -2207,23 +2200,23 @@ class mexc extends Exchange {
         if (($isSwap === true) || (is_array($ticker) && array_key_exists('timestamp' ?? '', $ticker))) {
             //
             //     {
-            //         "symbol" => "ETH_USDT",
-            //         "lastPrice" => 3581.3,
-            //         "bid1" => 3581.25,
-            //         "ask1" => 3581.5,
-            //         "volume24" => 4045530,
-            //         "amount24" => 141331823.5755,
-            //         "holdVol" => 5832946,
-            //         "lower24Price" => 3413.4,
-            //         "high24Price" => 3588.7,
-            //         "riseFallRate" => 0.0275,
-            //         "riseFallValue" => 95.95,
-            //         "indexPrice" => 3580.7852,
-            //         "fairPrice" => 3581.08,
-            //         "fundingRate" => 0.000063,
-            //         "maxBidPrice" => 3938.85,
-            //         "minAskPrice" => 3222.7,
-            //         "timestamp" => 1634162885016
+            //         "symbol": "ETH_USDT",
+            //         "lastPrice": 3581.3,
+            //         "bid1": 3581.25,
+            //         "ask1": 3581.5,
+            //         "volume24": 4045530,
+            //         "amount24": 141331823.5755,
+            //         "holdVol": 5832946,
+            //         "lower24Price": 3413.4,
+            //         "high24Price": 3588.7,
+            //         "riseFallRate": 0.0275,
+            //         "riseFallValue": 95.95,
+            //         "indexPrice": 3580.7852,
+            //         "fairPrice": 3581.08,
+            //         "fundingRate": 0.000063,
+            //         "maxBidPrice": 3938.85,
+            //         "minAskPrice": 3222.7,
+            //         "timestamp": 1634162885016
             //     }
             //
             $timestamp = $this->safe_integer($ticker, 'timestamp');
@@ -2239,24 +2232,24 @@ class mexc extends Exchange {
         } else {
             //
             //     {
-            //         "symbol" => "BTCUSDT",
-            //         "priceChange" => "184.34",
-            //         "priceChangePercent" => "0.00400048",
-            //         "prevClosePrice" => "46079.37",
-            //         "lastPrice" => "46263.71",
-            //         "lastQty" => "",
-            //         "bidPrice" => "46260.38",
-            //         "bidQty" => "",
-            //         "askPrice" => "46260.41",
-            //         "askQty" => "",
-            //         "openPrice" => "46079.37",
-            //         "highPrice" => "47550.01",
-            //         "lowPrice" => "45555.5",
-            //         "volume" => "1732.461487",
-            //         "quoteVolume" => null,
-            //         "openTime" => 1641349500000,
-            //         "closeTime" => 1641349582808,
-            //         "count" => null
+            //         "symbol": "BTCUSDT",
+            //         "priceChange": "184.34",
+            //         "priceChangePercent": "0.00400048",
+            //         "prevClosePrice": "46079.37",
+            //         "lastPrice": "46263.71",
+            //         "lastQty": "",
+            //         "bidPrice": "46260.38",
+            //         "bidQty": "",
+            //         "askPrice": "46260.41",
+            //         "askQty": "",
+            //         "openPrice": "46079.37",
+            //         "highPrice": "47550.01",
+            //         "lowPrice": "45555.5",
+            //         "volume": "1732.461487",
+            //         "quoteVolume": null,
+            //         "openTime": 1641349500000,
+            //         "closeTime": 1641349582808,
+            //         "count": null
             //     }
             //
             $timestamp = $this->safe_integer($ticker, 'closeTime');
@@ -2332,15 +2325,15 @@ class mexc extends Exchange {
         if ($marketType === 'spot') {
             $tickers = Async\await($this->spotPublicGetTickerBookTicker($query));
             //
-            //     array(
-            //       array(
-            //         "symbol" => "AEUSDT",
-            //         "bidPrice" => "0.11001",
-            //         "bidQty" => "115.59",
-            //         "askPrice" => "0.11127",
-            //         "askQty" => "215.48"
-            //       ),
-            //     )
+            //     [
+            //       {
+            //         "symbol": "AEUSDT",
+            //         "bidPrice": "0.11001",
+            //         "bidQty": "115.59",
+            //         "askPrice": "0.11127",
+            //         "askQty": "215.48"
+            //       },
+            //     ]
             //
         } elseif ($marketType === 'swap') {
             throw new NotSupported($this->id . ' fetchBidsAsks() is not available for ' . $marketType . ' markets');
@@ -2546,19 +2539,19 @@ class mexc extends Exchange {
         // spot
         //
         //     {
-        //         "symbol" => "BTCUSDT",
-        //         "orderId" => "123738410679123456",
-        //         "orderListId" => -1
+        //         "symbol": "BTCUSDT",
+        //         "orderId": "123738410679123456",
+        //         "orderListId": -1
         //     }
         //
         // margin
         //
         //     {
-        //         "symbol" => "BTCUSDT",
-        //         "orderId" => "762634301354414080",
-        //         "clientOrderId" => null,
-        //         "isIsolated" => true,
-        //         "transactTime" => 1661992652132
+        //         "symbol": "BTCUSDT",
+        //         "orderId": "762634301354414080",
+        //         "clientOrderId": null,
+        //         "isIsolated": true,
+        //         "transactTime": 1661992652132
         //     }
         //
         $order = $this->parse_order($response, $market);
@@ -2638,29 +2631,20 @@ class mexc extends Exchange {
         }
         $request = array(
             'symbol' => $market['id'],
-            // 'price' => floatval($this->price_to_precision($symbol, $price)),
+            // 'price': parseFloat (this.priceToPrecision (symbol, price)),
             'vol' => floatval($volString),
-            // 'leverage' => int, // required for isolated margin
-            // 'side' => $side, // 1 open long, 2 close short, 3 open short, 4 close long
-            //
-            // supported order types
-            //
-            //     1 limit
-            //     2 post only maker (PO)
-            //     3 transact or cancel instantly (IOC)
-            //     4 transact completely or cancel completely (FOK)
-            //     5 $market orders
-            //     6 convert $market $price to current $price
-            //
+            // 'leverage': int, // required for isolated margin
+            // 'side': side, // 1 open long, 2 close short, 3 open short, 4 close long
+            // order types: 1 limit, 2 post only (PO), 3 IOC, 4 FOK, 5 market, 6 convert market price to current price
             'type' => $type,
             'openType' => $openType, // 1 isolated, 2 cross
-            // 'positionId' => 1394650, // long, property_exists($this, filling) parameter when closing a position is recommended
-            // 'externalOid' => $clientOrderId,
-            // 'triggerPrice' => 10.0, // Required for trigger order
-            // 'triggerType' => 1, // Required for trigger order 1 => more than or equal, 2 => less than or equal
-            // 'executeCycle' => 1, // Required for trigger order 1 => 24 hours,2 => 7 days
-            // 'trend' => 1, // Required for trigger order 1 => latest $price, 2 => fair $price, 3 => index $price
-            // 'orderType' => 1, // Required for trigger order 1 => limit order,2:Post Only Maker,3 => close or cancel instantly ,4 => close or cancel completely,5 => Market order
+            // 'positionId': 1394650, // long, filling in this parameter when closing a position is recommended
+            // 'externalOid': clientOrderId,
+            // 'triggerPrice': 10.0, // Required for trigger order
+            // 'triggerType': 1, // Required for trigger order 1: more than or equal, 2: less than or equal
+            // 'executeCycle': 1, // Required for trigger order 1: 24 hours,2: 7 days
+            // 'trend': 1, // Required for trigger order 1: latest price, 2: fair price, 3: index price
+            // 'orderType': 1, // Required for trigger order 1: limit order,2:Post Only Maker,3: close or cancel instantly ,4: close or cancel completely,5: Market order
         );
         if (($type !== 5) && ($type !== 6) && ($type !== 'market')) {
             $priceString = $this->price_to_precision($symbol, $price);
@@ -2680,7 +2664,7 @@ class mexc extends Exchange {
         $sideInteger = null;
         if ($hedged === true) {
             if ($reduceOnly === true) {
-                $params = $this->omit($params, 'reduceOnly'); // $hedged mode does not accept this parameter
+                $params = $this->omit($params, 'reduceOnly'); // hedged mode does not accept this parameter
                 $sideInteger = ($side === 'buy') ? 4 : 2;  // close short, close long
             } else {
                 $sideInteger = ($side === 'buy') ? 1 : 3;
@@ -2713,12 +2697,12 @@ class mexc extends Exchange {
         }
         //
         // Swap
-        //     array("code":200,"data":"2ff3163e8617443cb9c6fc19d42b1ca4")
+        //     {"code":200,"data":"2ff3163e8617443cb9c6fc19d42b1ca4"}
         //
         // Trigger
-        //     array("success":true,"code":0,"data":259208506303929856)
+        //     {"success":true,"code":0,"data":259208506303929856}
         //
-        // array("success":true,"code":0,"data":array("orderId":"814218083416790528","ts":1779795118533))
+        // {"success":true,"code":0,"data":{"orderId":"814218083416790528","ts":1779795118533}}
         //
         $data = $this->safe_dict($response, 'data');
         return $this->safe_order(array( 'id' => $this->safe_string($data, 'orderId'), 'timestamp' => $this->safe_integer($data, 'ts') ), $market);
@@ -2772,24 +2756,24 @@ class mexc extends Exchange {
         );
         $response = Async\await($this->spotPrivatePostBatchOrders($request));
         //
-        // array(
-        //     array(
-        //       "symbol" => "BTCUSDT",
-        //       "orderId" => "1196315350023612316",
-        //       "newClientOrderId" => "hio8279hbdsds",
-        //       "orderListId" => -1
-        //     ),
-        //     array(
-        //       "newClientOrderId" => "123456",
-        //       "msg" => "The minimum transaction volume cannot be less than:0.5USDT",
-        //       "code" => 30002
-        //     ),
+        // [
         //     {
-        //       "symbol" => "BTCUSDT",
-        //       "orderId" => "1196315350023612318",
-        //       "orderListId" => -1
+        //       "symbol": "BTCUSDT",
+        //       "orderId": "1196315350023612316",
+        //       "newClientOrderId": "hio8279hbdsds",
+        //       "orderListId": -1
+        //     },
+        //     {
+        //       "newClientOrderId": "123456",
+        //       "msg": "The minimum transaction volume cannot be less than:0.5USDT",
+        //       "code": 30002
+        //     },
+        //     {
+        //       "symbol": "BTCUSDT",
+        //       "orderId": "1196315350023612318",
+        //       "orderListId": -1
         //     }
-        // )
+        // ]
         //
         return $this->parse_orders($response);
     }
@@ -2843,44 +2827,44 @@ class mexc extends Exchange {
             // spot
             //
             //     {
-            //         "symbol" => "BTCUSDT",
-            //         "orderId" => "133734823834147272",
-            //         "orderListId" => "-1",
-            //         "clientOrderId" => null,
-            //         "price" => "30000",
-            //         "origQty" => "0.0002",
-            //         "executedQty" => "0",
-            //         "cummulativeQuoteQty" => "0",
-            //         "status" => "CANCELED",
-            //         "timeInForce" => null,
-            //         "type" => "LIMIT",
-            //         "side" => "BUY",
-            //         "stopPrice" => null,
-            //         "icebergQty" => null,
-            //         "time" => "1647667102000",
-            //         "updateTime" => "1647708567000",
-            //         "isWorking" => true,
-            //         "origQuoteOrderQty" => "6"
+            //         "symbol": "BTCUSDT",
+            //         "orderId": "133734823834147272",
+            //         "orderListId": "-1",
+            //         "clientOrderId": null,
+            //         "price": "30000",
+            //         "origQty": "0.0002",
+            //         "executedQty": "0",
+            //         "cummulativeQuoteQty": "0",
+            //         "status": "CANCELED",
+            //         "timeInForce": null,
+            //         "type": "LIMIT",
+            //         "side": "BUY",
+            //         "stopPrice": null,
+            //         "icebergQty": null,
+            //         "time": "1647667102000",
+            //         "updateTime": "1647708567000",
+            //         "isWorking": true,
+            //         "origQuoteOrderQty": "6"
             //     }
             //
             // margin
             //
             //     {
-            //         "symbol" => "BTCUSDT",
-            //         "orderId" => "763307297891028992",
-            //         "orderListId" => "-1",
-            //         "clientOrderId" => null,
-            //         "price" => "18000",
-            //         "origQty" => "0.0014",
-            //         "executedQty" => "0",
-            //         "cummulativeQuoteQty" => "0",
-            //         "status" => "NEW",
-            //         "type" => "LIMIT",
-            //         "side" => "BUY",
-            //         "isIsolated" => true,
-            //         "isWorking" => true,
-            //         "time" => 1662153107000,
-            //         "updateTime" => 1662153107000
+            //         "symbol": "BTCUSDT",
+            //         "orderId": "763307297891028992",
+            //         "orderListId": "-1",
+            //         "clientOrderId": null,
+            //         "price": "18000",
+            //         "origQty": "0.0014",
+            //         "executedQty": "0",
+            //         "cummulativeQuoteQty": "0",
+            //         "status": "NEW",
+            //         "type": "LIMIT",
+            //         "side": "BUY",
+            //         "isIsolated": true,
+            //         "isWorking": true,
+            //         "time": 1662153107000,
+            //         "updateTime": 1662153107000
             //     }
             //
         } elseif ($market['swap'] === true) {
@@ -2888,33 +2872,33 @@ class mexc extends Exchange {
             $response = Async\await($this->contractPrivateGetOrderGetOrderId($this->extend($request, $params)));
             //
             //     {
-            //         "success" => true,
-            //         "code" => "0",
-            //         "data" => {
-            //             "orderId" => "264995729269765120",
-            //             "symbol" => "STEPN_USDT",
-            //             "positionId" => "0",
-            //             "price" => "2.2",
-            //             "vol" => "15",
-            //             "leverage" => "20",
-            //             "side" => "1",
-            //             "category" => "1",
-            //             "orderType" => "1",
-            //             "dealAvgPrice" => "0",
-            //             "dealVol" => "0",
-            //             "orderMargin" => "2.2528",
-            //             "takerFee" => "0",
-            //             "makerFee" => "0",
-            //             "profit" => "0",
-            //             "feeCurrency" => "USDT",
-            //             "openType" => "1",
-            //             "state" => "2",
-            //             "externalOid" => "_m_0e9520c256744d64b942985189026d20",
-            //             "errorCode" => "0",
-            //             "usedMargin" => "0",
-            //             "createTime" => "1648850305236",
-            //             "updateTime" => "1648850305245",
-            //             "positionMode" => "1"
+            //         "success": true,
+            //         "code": "0",
+            //         "data": {
+            //             "orderId": "264995729269765120",
+            //             "symbol": "STEPN_USDT",
+            //             "positionId": "0",
+            //             "price": "2.2",
+            //             "vol": "15",
+            //             "leverage": "20",
+            //             "side": "1",
+            //             "category": "1",
+            //             "orderType": "1",
+            //             "dealAvgPrice": "0",
+            //             "dealVol": "0",
+            //             "orderMargin": "2.2528",
+            //             "takerFee": "0",
+            //             "makerFee": "0",
+            //             "profit": "0",
+            //             "feeCurrency": "USDT",
+            //             "openType": "1",
+            //             "state": "2",
+            //             "externalOid": "_m_0e9520c256744d64b942985189026d20",
+            //             "errorCode": "0",
+            //             "usedMargin": "0",
+            //             "createTime": "1648850305236",
+            //             "updateTime": "1648850305245",
+            //             "positionMode": "1"
             //         }
             //     }
             //
@@ -2980,50 +2964,50 @@ class mexc extends Exchange {
             //
             // spot
             //
-            //     array(
-            //         array(
-            //             "symbol" => "BTCUSDT",
-            //             "orderId" => "133949373632483328",
-            //             "orderListId" => "-1",
-            //             "clientOrderId" => null,
-            //             "price" => "45000",
-            //             "origQty" => "0.0002",
-            //             "executedQty" => "0",
-            //             "cummulativeQuoteQty" => "0",
-            //             "status" => "NEW",
-            //             "timeInForce" => null,
-            //             "type" => "LIMIT",
-            //             "side" => "SELL",
-            //             "stopPrice" => null,
-            //             "icebergQty" => null,
-            //             "time" => "1647718255000",
-            //             "updateTime" => "1647718255000",
-            //             "isWorking" => true,
-            //             "origQuoteOrderQty" => "9"
-            //         ),
-            //     )
+            //     [
+            //         {
+            //             "symbol": "BTCUSDT",
+            //             "orderId": "133949373632483328",
+            //             "orderListId": "-1",
+            //             "clientOrderId": null,
+            //             "price": "45000",
+            //             "origQty": "0.0002",
+            //             "executedQty": "0",
+            //             "cummulativeQuoteQty": "0",
+            //             "status": "NEW",
+            //             "timeInForce": null,
+            //             "type": "LIMIT",
+            //             "side": "SELL",
+            //             "stopPrice": null,
+            //             "icebergQty": null,
+            //             "time": "1647718255000",
+            //             "updateTime": "1647718255000",
+            //             "isWorking": true,
+            //             "origQuoteOrderQty": "9"
+            //         },
+            //     ]
             //
             // margin
             //
-            //     array(
+            //     [
             //         {
-            //             "symbol" => "BTCUSDT",
-            //             "orderId" => "763307297891028992",
-            //             "orderListId" => "-1",
-            //             "clientOrderId" => null,
-            //             "price" => "18000",
-            //             "origQty" => "0.0014",
-            //             "executedQty" => "0",
-            //             "cummulativeQuoteQty" => "0",
-            //             "status" => "NEW",
-            //             "type" => "LIMIT",
-            //             "side" => "BUY",
-            //             "isIsolated" => true,
-            //             "isWorking" => true,
-            //             "time" => 1662153107000,
-            //             "updateTime" => 1662153107000
+            //             "symbol": "BTCUSDT",
+            //             "orderId": "763307297891028992",
+            //             "orderListId": "-1",
+            //             "clientOrderId": null,
+            //             "price": "18000",
+            //             "origQty": "0.0014",
+            //             "executedQty": "0",
+            //             "cummulativeQuoteQty": "0",
+            //             "status": "NEW",
+            //             "type": "LIMIT",
+            //             "side": "BUY",
+            //             "isIsolated": true,
+            //             "isWorking": true,
+            //             "time": 1662153107000,
+            //             "updateTime": 1662153107000
             //         }
-            //     )
+            //     ]
             //
             return $this->parse_orders($response, $market, $since, $limit);
         } else {
@@ -3054,66 +3038,66 @@ class mexc extends Exchange {
                 $response = Async\await($this->contractPrivateGetOrderListHistoryOrders($this->extend($request, $query)));
                 //
                 //     {
-                //         "success" => true,
-                //         "code" => "0",
-                //         "data" => array(
-                //             array(
-                //                 "orderId" => "265230764677709315",
-                //                 "symbol" => "STEPN_USDT",
-                //                 "positionId" => "0",
-                //                 "price" => "2.1",
-                //                 "vol" => "102",
-                //                 "leverage" => "20",
-                //                 "side" => "1",
-                //                 "category" => "1",
-                //                 "orderType" => "1",
-                //                 "dealAvgPrice" => "0",
-                //                 "dealVol" => "0",
-                //                 "orderMargin" => "10.96704",
-                //                 "takerFee" => "0",
-                //                 "makerFee" => "0",
-                //                 "profit" => "0",
-                //                 "feeCurrency" => "USDT",
-                //                 "openType" => "1",
-                //                 "state" => "2",
-                //                 "externalOid" => "_m_7e42f8df6b324c869e4e200397e2b00f",
-                //                 "errorCode" => "0",
-                //                 "usedMargin" => "0",
-                //                 "createTime" => "1648906342000",
-                //                 "updateTime" => "1648906342000",
-                //                 "positionMode" => "1"
-                //             ),
-                //          )
+                //         "success": true,
+                //         "code": "0",
+                //         "data": [
+                //             {
+                //                 "orderId": "265230764677709315",
+                //                 "symbol": "STEPN_USDT",
+                //                 "positionId": "0",
+                //                 "price": "2.1",
+                //                 "vol": "102",
+                //                 "leverage": "20",
+                //                 "side": "1",
+                //                 "category": "1",
+                //                 "orderType": "1",
+                //                 "dealAvgPrice": "0",
+                //                 "dealVol": "0",
+                //                 "orderMargin": "10.96704",
+                //                 "takerFee": "0",
+                //                 "makerFee": "0",
+                //                 "profit": "0",
+                //                 "feeCurrency": "USDT",
+                //                 "openType": "1",
+                //                 "state": "2",
+                //                 "externalOid": "_m_7e42f8df6b324c869e4e200397e2b00f",
+                //                 "errorCode": "0",
+                //                 "usedMargin": "0",
+                //                 "createTime": "1648906342000",
+                //                 "updateTime": "1648906342000",
+                //                 "positionMode": "1"
+                //             },
+                //          ]
                 //     }
                 //
                 $ordersOfRegular = $this->safe_value($response, 'data');
             } else {
-                // the Planorder endpoints work not only for stop-$market orders, but also for stop-$limit orders that were supposed to have a separate endpoint
+                // the Planorder endpoints work not only for stop-market orders, but also for stop-limit orders that were supposed to have a separate endpoint
                 $response = Async\await($this->contractPrivateGetPlanorderListOrders($this->extend($request, $query)));
                 //
                 //     {
-                //         "success" => true,
-                //         "code" => "0",
-                //         "data" => array(
-                //             array(
-                //                 "symbol" => "STEPN_USDT",
-                //                 "leverage" => "20",
-                //                 "side" => "1",
-                //                 "vol" => "13",
-                //                 "openType" => "1",
-                //                 "state" => "1",
-                //                 "orderType" => "1",
-                //                 "errorCode" => "0",
-                //                 "createTime" => "1648984276000",
-                //                 "updateTime" => "1648984276000",
-                //                 "id" => "265557643326564352",
-                //                 "triggerType" => "1",
-                //                 "triggerPrice" => "3",
-                //                 "price" => "2.9", // not present in stop-$market, but in stop-$limit order
-                //                 "executeCycle" => "87600",
-                //                 "trend" => "1",
-                //             ),
-                //         )
+                //         "success": true,
+                //         "code": "0",
+                //         "data": [
+                //             {
+                //                 "symbol": "STEPN_USDT",
+                //                 "leverage": "20",
+                //                 "side": "1",
+                //                 "vol": "13",
+                //                 "openType": "1",
+                //                 "state": "1",
+                //                 "orderType": "1",
+                //                 "errorCode": "0",
+                //                 "createTime": "1648984276000",
+                //                 "updateTime": "1648984276000",
+                //                 "id": "265557643326564352",
+                //                 "triggerType": "1",
+                //                 "triggerPrice": "3",
+                //                 "price": "2.9", // not present in stop-market, but in stop-limit order
+                //                 "executeCycle": "87600",
+                //                 "trend": "1",
+                //             },
+                //         ]
                 //     }
                 //
                 $ordersOfTrigger = $this->safe_value($response, 'data');
@@ -3145,36 +3129,36 @@ class mexc extends Exchange {
             $response = Async\await($this->contractPrivateGetOrderBatchQuery($this->extend($request, $query)));
             //
             //     {
-            //         "success" => true,
-            //         "code" => "0",
-            //         "data" => array(
+            //         "success": true,
+            //         "code": "0",
+            //         "data": [
             //             {
-            //                 "orderId" => "265230764677709315",
-            //                 "symbol" => "STEPN_USDT",
-            //                 "positionId" => "0",
-            //                 "price" => "2.1",
-            //                 "vol" => "102",
-            //                 "leverage" => "20",
-            //                 "side" => "1",
-            //                 "category" => "1",
-            //                 "orderType" => "1",
-            //                 "dealAvgPrice" => "0",
-            //                 "dealVol" => "0",
-            //                 "orderMargin" => "10.96704",
-            //                 "takerFee" => "0",
-            //                 "makerFee" => "0",
-            //                 "profit" => "0",
-            //                 "feeCurrency" => "USDT",
-            //                 "openType" => "1",
-            //                 "state" => "2",
-            //                 "externalOid" => "_m_7e42f8df6b324c869e4e200397e2b00f",
-            //                 "errorCode" => "0",
-            //                 "usedMargin" => "0",
-            //                 "createTime" => "1648906342000",
-            //                 "updateTime" => "1648906342000",
-            //                 "positionMode" => "1"
+            //                 "orderId": "265230764677709315",
+            //                 "symbol": "STEPN_USDT",
+            //                 "positionId": "0",
+            //                 "price": "2.1",
+            //                 "vol": "102",
+            //                 "leverage": "20",
+            //                 "side": "1",
+            //                 "category": "1",
+            //                 "orderType": "1",
+            //                 "dealAvgPrice": "0",
+            //                 "dealVol": "0",
+            //                 "orderMargin": "10.96704",
+            //                 "takerFee": "0",
+            //                 "makerFee": "0",
+            //                 "profit": "0",
+            //                 "feeCurrency": "USDT",
+            //                 "openType": "1",
+            //                 "state": "2",
+            //                 "externalOid": "_m_7e42f8df6b324c869e4e200397e2b00f",
+            //                 "errorCode": "0",
+            //                 "usedMargin": "0",
+            //                 "createTime": "1648906342000",
+            //                 "updateTime": "1648906342000",
+            //                 "positionMode": "1"
             //             }
-            //         )
+            //         ]
             //     }
             //
             $data = $this->safe_list($response, 'data');
@@ -3227,50 +3211,50 @@ class mexc extends Exchange {
             //
             // spot
             //
-            //     array(
+            //     [
             //         {
-            //             "symbol" => "BTCUSDT",
-            //             "orderId" => "133949373632483328",
-            //             "orderListId" => "-1",
-            //             "clientOrderId" => "",
-            //             "price" => "45000",
-            //             "origQty" => "0.0002",
-            //             "executedQty" => "0",
-            //             "cummulativeQuoteQty" => "0",
-            //             "status" => "NEW",
-            //             "timeInForce" => null,
-            //             "type" => "LIMIT",
-            //             "side" => "SELL",
-            //             "stopPrice" => null,
-            //             "icebergQty" => null,
-            //             "time" => "1647718255199",
-            //             "updateTime" => null,
-            //             "isWorking" => true,
-            //             "origQuoteOrderQty" => "9"
+            //             "symbol": "BTCUSDT",
+            //             "orderId": "133949373632483328",
+            //             "orderListId": "-1",
+            //             "clientOrderId": "",
+            //             "price": "45000",
+            //             "origQty": "0.0002",
+            //             "executedQty": "0",
+            //             "cummulativeQuoteQty": "0",
+            //             "status": "NEW",
+            //             "timeInForce": null,
+            //             "type": "LIMIT",
+            //             "side": "SELL",
+            //             "stopPrice": null,
+            //             "icebergQty": null,
+            //             "time": "1647718255199",
+            //             "updateTime": null,
+            //             "isWorking": true,
+            //             "origQuoteOrderQty": "9"
             //         }
-            //     )
+            //     ]
             //
             // margin
             //
-            //     array(
+            //     [
             //         {
-            //             "symbol" => "BTCUSDT",
-            //             "orderId" => "764547676405633024",
-            //             "orderListId" => "-1",
-            //             "clientOrderId" => null,
-            //             "price" => "18000",
-            //             "origQty" => "0.0013",
-            //             "executedQty" => "0",
-            //             "cummulativeQuoteQty" => "0",
-            //             "status" => "NEW",
-            //             "type" => "LIMIT",
-            //             "side" => "BUY",
-            //             "isIsolated" => true,
-            //             "isWorking" => true,
-            //             "time" => 1662448836000,
-            //             "updateTime" => 1662448836000
+            //             "symbol": "BTCUSDT",
+            //             "orderId": "764547676405633024",
+            //             "orderListId": "-1",
+            //             "clientOrderId": null,
+            //             "price": "18000",
+            //             "origQty": "0.0013",
+            //             "executedQty": "0",
+            //             "cummulativeQuoteQty": "0",
+            //             "status": "NEW",
+            //             "type": "LIMIT",
+            //             "side": "BUY",
+            //             "isIsolated": true,
+            //             "isWorking": true,
+            //             "time": 1662448836000,
+            //             "updateTime": 1662448836000
             //         }
-            //     )
+            //     ]
             //
             return $this->parse_orders($response, $market, $since, $limit);
         } else {
@@ -3403,58 +3387,58 @@ class mexc extends Exchange {
             // spot
             //
             //     {
-            //         "symbol" => "BTCUSDT",
-            //         "orderId" => "133734823834447872",
-            //         "price" => "30000",
-            //         "origQty" => "0.0002",
-            //         "type" => "LIMIT",
-            //         "side" => "BUY"
+            //         "symbol": "BTCUSDT",
+            //         "orderId": "133734823834447872",
+            //         "price": "30000",
+            //         "origQty": "0.0002",
+            //         "type": "LIMIT",
+            //         "side": "BUY"
             //     }
             //
             // margin
             //
-            //     array(
+            //     [
             //         {
-            //             "symbol" => "BTCUSDT",
-            //             "orderId" => "762640232574226432",
-            //             "orderListId" => "-1",
-            //             "clientOrderId" => null,
-            //             "price" => "18000",
-            //             "origQty" => "0.00147",
-            //             "executedQty" => "0",
-            //             "cummulativeQuoteQty" => "0",
-            //             "status" => "NEW",
-            //             "type" => "LIMIT",
-            //             "side" => "BUY",
-            //             "isIsolated" => true,
-            //             "isWorking" => true,
-            //             "time" => 1661994066000,
-            //             "updateTime" => 1661994066000
+            //             "symbol": "BTCUSDT",
+            //             "orderId": "762640232574226432",
+            //             "orderListId": "-1",
+            //             "clientOrderId": null,
+            //             "price": "18000",
+            //             "origQty": "0.00147",
+            //             "executedQty": "0",
+            //             "cummulativeQuoteQty": "0",
+            //             "status": "NEW",
+            //             "type": "LIMIT",
+            //             "side": "BUY",
+            //             "isIsolated": true,
+            //             "isWorking": true,
+            //             "time": 1661994066000,
+            //             "updateTime": 1661994066000
             //         }
-            //     )
+            //     ]
             //
         } else {
-            // TODO => PlanorderCancel endpoint has bug atm. waiting for fix.
+            // TODO: PlanorderCancel endpoint has bug atm. waiting for fix.
             $method = $this->safe_string($this->options, 'cancelOrder', 'contractPrivatePostOrderCancel'); // contractPrivatePostOrderCancel, contractPrivatePostPlanorderCancel
             $method = $this->safe_string($query, 'method', $method);
             if ($method === 'contractPrivatePostOrderCancel') {
-                $response = Async\await($this->contractPrivatePostOrderCancel(array( $id ))); // the $request cannot be changed or extended. This is the only way to send.
+                $response = Async\await($this->contractPrivatePostOrderCancel(array( $id ))); // the request cannot be changed or extended. This is the only way to send.
             } elseif ($method === 'contractPrivatePostPlanorderCancel') {
-                $response = Async\await($this->contractPrivatePostPlanorderCancel(array( $id ))); // the $request cannot be changed or extended. This is the only way to send.
+                $response = Async\await($this->contractPrivatePostPlanorderCancel(array( $id ))); // the request cannot be changed or extended. This is the only way to send.
             } else {
                 throw new NotSupported($this->id . ' cancelOrder() not support this method');
             }
             //
             //     {
-            //         "success" => true,
-            //         "code" => "0",
-            //         "data" => array(
+            //         "success": true,
+            //         "code": "0",
+            //         "data": [
             //             {
-            //                 "orderId" => "264995729269765120",
-            //                 "errorCode" => "0",         // if already canceled => "2041"; if doesn't exist => "2040"
-            //                 "errorMsg" => "success",    // if already canceled => "order state cannot be cancelled"; if doesn't exist => "order not exist"
+            //                 "orderId": "264995729269765120",
+            //                 "errorCode": "0",         // if already canceled: "2041"; if doesn't exist: "2040"
+            //                 "errorMsg": "success",    // if already canceled: "order state cannot be cancelled"; if doesn't exist: "order not exist"
             //             }
-            //         )
+            //         ]
             //     }
             //
             $data = $this->safe_value($response, 'data');
@@ -3493,15 +3477,15 @@ class mexc extends Exchange {
             $response = Async\await($this->contractPrivatePostOrderCancel($ids)); // the request cannot be changed or extended. The only way to send.
             //
             //     {
-            //         "success" => true,
-            //         "code" => "0",
-            //         "data" => array(
-            //             array(
-            //                 "orderId" => "264995729269765120",
-            //                 "errorCode" => "0",         // if already canceled => "2041"
-            //                 "errorMsg" => "success",    // if already canceled => "order state cannot be cancelled"
-            //             ),
-            //         )
+            //         "success": true,
+            //         "code": "0",
+            //         "data": [
+            //             {
+            //                 "orderId": "264995729269765120",
+            //                 "errorCode": "0",         // if already canceled: "2041"
+            //                 "errorMsg": "success",    // if already canceled: "order state cannot be cancelled"
+            //             },
+            //         ]
             //     }
             //
             $data = $this->safe_list($response, 'data');
@@ -3541,9 +3525,9 @@ class mexc extends Exchange {
                 Async\await($this->spotPrivateDeleteOrderAll($params));
                 //
                 //     {
-                //         "code" => 200,
-                //         "msg" => "success",
-                //         "timestamp" => 1778744778528
+                //         "code": 200,
+                //         "msg": "success",
+                //         "timestamp": 1778744778528
                 //     }
                 //
                 return array();
@@ -3553,24 +3537,24 @@ class mexc extends Exchange {
             //
             // spot
             //
-            //     array(
-            //         array(
-            //             "symbol" => "BTCUSDT",
-            //             "orderId" => "133926492139692032",
-            //             "price" => "30000",
-            //             "origQty" => "0.0002",
-            //             "type" => "LIMIT",
-            //             "side" => "BUY"
-            //         ),
-            //     )
+            //     [
+            //         {
+            //             "symbol": "BTCUSDT",
+            //             "orderId": "133926492139692032",
+            //             "price": "30000",
+            //             "origQty": "0.0002",
+            //             "type": "LIMIT",
+            //             "side": "BUY"
+            //         },
+            //     ]
             //
             return $this->parse_orders($response, $market);
         } else {
             if ($symbol !== null) {
                 $request['symbol'] = $this->safe_string($market, 'id');
             }
-            // $method can be either => contractPrivatePostOrderCancelAll or contractPrivatePostPlanorderCancelAll
-            // the Planorder endpoints work not only for stop-$market orders but also for stop-limit orders that are supposed to have separate endpoint
+            // method can be either: contractPrivatePostOrderCancelAll or contractPrivatePostPlanorderCancelAll
+            // the Planorder endpoints work not only for stop-market orders but also for stop-limit orders that are supposed to have separate endpoint
             $method = $this->safe_string($this->options, 'cancelAllOrders', 'contractPrivatePostOrderCancelAll');
             $method = $this->safe_string($params, 'method', $method);
             $response = array();
@@ -3581,8 +3565,8 @@ class mexc extends Exchange {
             }
             //
             //     {
-            //         "success" => true,
-            //         "code" => "0"
+            //         "success": true,
+            //         "code": "0"
             //     }
             //
             $data = $this->safe_list($response, 'data', array());
@@ -3596,169 +3580,169 @@ class mexc extends Exchange {
         //    createOrder
         //
         //    {
-        //        "symbol" => "FARTCOINUSDT",
-        //        "orderId" => "C02__342252993005723644225",
-        //        "orderListId" => "-1",
-        //        "price" => "1.1",
-        //        "origQty" => "6.3",
-        //        "type" => "IMMEDIATE_OR_CANCEL",
-        //        "side" => "SELL",
-        //        "transactTime" => "1745852205223"
+        //        "symbol": "FARTCOINUSDT",
+        //        "orderId": "C02__342252993005723644225",
+        //        "orderListId": "-1",
+        //        "price": "1.1",
+        //        "origQty": "6.3",
+        //        "type": "IMMEDIATE_OR_CANCEL",
+        //        "side": "SELL",
+        //        "transactTime": "1745852205223"
         //    }
         //
         //    unknown endpoint on spot
         //
         //    {
-        //         "symbol" => "BTCUSDT",
-        //         "orderId" => "123738410679123456",
-        //         "orderListId" => -1
+        //         "symbol": "BTCUSDT",
+        //         "orderId": "123738410679123456",
+        //         "orderListId": -1
         //    }
         //
-        // margin => createOrder
+        // margin: createOrder
         //
         //     {
-        //         "symbol" => "BTCUSDT",
-        //         "orderId" => "762634301354414080",
-        //         "clientOrderId" => null,
-        //         "isIsolated" => true,
-        //         "transactTime" => 1661992652132
+        //         "symbol": "BTCUSDT",
+        //         "orderId": "762634301354414080",
+        //         "clientOrderId": null,
+        //         "isIsolated": true,
+        //         "transactTime": 1661992652132
         //     }
         //
-        // spot => cancelOrder, cancelAllOrders
+        // spot: cancelOrder, cancelAllOrders
         //
         //     {
-        //         "symbol" => "BTCUSDT",
-        //         "orderId" => "133926441921286144",
-        //         "price" => "30000",
-        //         "origQty" => "0.0002",
-        //         "type" => "LIMIT",
-        //         "side" => "BUY"
+        //         "symbol": "BTCUSDT",
+        //         "orderId": "133926441921286144",
+        //         "price": "30000",
+        //         "origQty": "0.0002",
+        //         "type": "LIMIT",
+        //         "side": "BUY"
         //     }
         //
-        // margin => cancelOrder, cancelAllOrders
+        // margin: cancelOrder, cancelAllOrders
         //
         //     {
-        //         "symbol" => "BTCUSDT",
-        //         "orderId" => "762640232574226432",
-        //         "orderListId" => "-1",
-        //         "clientOrderId" => null,
-        //         "price" => "18000",
-        //         "origQty" => "0.00147",
-        //         "executedQty" => "0",
-        //         "cummulativeQuoteQty" => "0",
-        //         "status" => "NEW",
-        //         "type" => "LIMIT",
-        //         "side" => "BUY",
-        //         "isIsolated" => true,
-        //         "isWorking" => true,
-        //         "time" => 1661994066000,
-        //         "updateTime" => 1661994066000
+        //         "symbol": "BTCUSDT",
+        //         "orderId": "762640232574226432",
+        //         "orderListId": "-1",
+        //         "clientOrderId": null,
+        //         "price": "18000",
+        //         "origQty": "0.00147",
+        //         "executedQty": "0",
+        //         "cummulativeQuoteQty": "0",
+        //         "status": "NEW",
+        //         "type": "LIMIT",
+        //         "side": "BUY",
+        //         "isIsolated": true,
+        //         "isWorking": true,
+        //         "time": 1661994066000,
+        //         "updateTime": 1661994066000
         //     }
         //
-        // spot => fetchOrder, fetchOpenOrders, fetchOrders
+        // spot: fetchOrder, fetchOpenOrders, fetchOrders
         //
         //     {
-        //         "symbol" => "BTCUSDT",
-        //         "orderId" => "133734823834147272",
-        //         "orderListId" => "-1",
-        //         "clientOrderId" => null,
-        //         "price" => "30000",
-        //         "origQty" => "0.0002",
-        //         "executedQty" => "0",
-        //         "cummulativeQuoteQty" => "0",
-        //         "status" => "CANCELED",
-        //         "timeInForce" => null,
-        //         "type" => "LIMIT",
-        //         "side" => "BUY",
-        //         "stopPrice" => null,
-        //         "icebergQty" => null,
-        //         "time" => "1647667102000",
-        //         "updateTime" => "1647708567000",
-        //         "isWorking" => true,
-        //         "origQuoteOrderQty" => "6"
+        //         "symbol": "BTCUSDT",
+        //         "orderId": "133734823834147272",
+        //         "orderListId": "-1",
+        //         "clientOrderId": null,
+        //         "price": "30000",
+        //         "origQty": "0.0002",
+        //         "executedQty": "0",
+        //         "cummulativeQuoteQty": "0",
+        //         "status": "CANCELED",
+        //         "timeInForce": null,
+        //         "type": "LIMIT",
+        //         "side": "BUY",
+        //         "stopPrice": null,
+        //         "icebergQty": null,
+        //         "time": "1647667102000",
+        //         "updateTime": "1647708567000",
+        //         "isWorking": true,
+        //         "origQuoteOrderQty": "6"
         //     }
         //
-        // margin => fetchOrder, fetchOrders
+        // margin: fetchOrder, fetchOrders
         //
         //     {
-        //         "symbol" => "BTCUSDT",
-        //         "orderId" => "763307297891028992",
-        //         "orderListId" => "-1",
-        //         "clientOrderId" => null,
-        //         "price" => "18000",
-        //         "origQty" => "0.0014",
-        //         "executedQty" => "0",
-        //         "cummulativeQuoteQty" => "0",
-        //         "status" => "NEW",
-        //         "type" => "LIMIT",
-        //         "side" => "BUY",
-        //         "isIsolated" => true,
-        //         "isWorking" => true,
-        //         "time" => 1662153107000,
-        //         "updateTime" => 1662153107000
+        //         "symbol": "BTCUSDT",
+        //         "orderId": "763307297891028992",
+        //         "orderListId": "-1",
+        //         "clientOrderId": null,
+        //         "price": "18000",
+        //         "origQty": "0.0014",
+        //         "executedQty": "0",
+        //         "cummulativeQuoteQty": "0",
+        //         "status": "NEW",
+        //         "type": "LIMIT",
+        //         "side": "BUY",
+        //         "isIsolated": true,
+        //         "isWorking": true,
+        //         "time": 1662153107000,
+        //         "updateTime": 1662153107000
         //     }
         //
-        // swap => createOrder
+        // swap: createOrder
         //
         //     2ff3163e8617443cb9c6fc19d42b1ca4
         //
-        // swap => fetchOrder, fetchOrders
+        // swap: fetchOrder, fetchOrders
         //
         //     regular
         //     {
-        //         "orderId" => "264995729269765120",
-        //         "symbol" => "STEPN_USDT",
-        //         "positionId" => "0",
-        //         "price" => "2.2",
-        //         "vol" => "15",
-        //         "leverage" => "20",
-        //         "side" => "1", // TODO => not unified
-        //         "category" => "1",
-        //         "orderType" => "1", // TODO => not unified
-        //         "dealAvgPrice" => "0",
-        //         "dealVol" => "0",
-        //         "orderMargin" => "2.2528",
-        //         "takerFee" => "0",
-        //         "makerFee" => "0",
-        //         "profit" => "0",
-        //         "feeCurrency" => "USDT",
-        //         "openType" => "1",
-        //         "state" => "2", // TODO
-        //         "externalOid" => "_m_0e9520c256744d64b942985189026d20",
-        //         "errorCode" => "0",
-        //         "usedMargin" => "0",
-        //         "createTime" => "1648850305236",
-        //         "updateTime" => "1648850305245",
-        //         "positionMode" => "1"
+        //         "orderId": "264995729269765120",
+        //         "symbol": "STEPN_USDT",
+        //         "positionId": "0",
+        //         "price": "2.2",
+        //         "vol": "15",
+        //         "leverage": "20",
+        //         "side": "1", // TODO: not unified
+        //         "category": "1",
+        //         "orderType": "1", // TODO: not unified
+        //         "dealAvgPrice": "0",
+        //         "dealVol": "0",
+        //         "orderMargin": "2.2528",
+        //         "takerFee": "0",
+        //         "makerFee": "0",
+        //         "profit": "0",
+        //         "feeCurrency": "USDT",
+        //         "openType": "1",
+        //         "state": "2", // TODO
+        //         "externalOid": "_m_0e9520c256744d64b942985189026d20",
+        //         "errorCode": "0",
+        //         "usedMargin": "0",
+        //         "createTime": "1648850305236",
+        //         "updateTime": "1648850305245",
+        //         "positionMode": "1"
         //     }
         //
         //     stop
         //     {
-        //         "id" => "265557643326564352",
-        //         "triggerType" => "1",
-        //         "triggerPrice" => "3",
-        //         "price" => "2.9", // not present in stop-$market, but in stop-limit $order
-        //         "executeCycle" => "87600",
-        //         "trend" => "1",
-        //          // below keys are same regular $order structure
-        //         "symbol" => "STEPN_USDT",
-        //         "leverage" => "20",
-        //         "side" => "1",
-        //         "vol" => "13",
-        //         "openType" => "1",
-        //         "state" => "1",
-        //         "orderType" => "1",
-        //         "errorCode" => "0",
-        //         "createTime" => "1648984276000",
-        //         "updateTime" => "1648984276000",
+        //         "id": "265557643326564352",
+        //         "triggerType": "1",
+        //         "triggerPrice": "3",
+        //         "price": "2.9", // not present in stop-market, but in stop-limit order
+        //         "executeCycle": "87600",
+        //         "trend": "1",
+        //          // below keys are same as in regular order structure
+        //         "symbol": "STEPN_USDT",
+        //         "leverage": "20",
+        //         "side": "1",
+        //         "vol": "13",
+        //         "openType": "1",
+        //         "state": "1",
+        //         "orderType": "1",
+        //         "errorCode": "0",
+        //         "createTime": "1648984276000",
+        //         "updateTime": "1648984276000",
         //     }
         //
         // createOrders error
         //
         //     {
-        //         "newClientOrderId" => "123456",
-        //         "msg" => "The minimum transaction volume cannot be less than:0.5USDT",
-        //         "code" => 30002
+        //         "newClientOrderId": "123456",
+        //         "msg": "The minimum transaction volume cannot be less than:0.5USDT",
+        //         "code": 30002
         //     }
         //
         $code = $this->safe_integer($order, 'code');
@@ -3836,7 +3820,7 @@ class mexc extends Exchange {
             'MARKET' => 'market',
             'LIMIT' => 'limit',
             'LIMIT_MAKER' => 'limit',
-            // on spot, during submission below types are used only accepted order
+            // on spot, during submission below types are used only accepted as limit order
             'IMMEDIATE_OR_CANCEL' => 'limit',
             'FILL_OR_KILL' => 'limit',
         );
@@ -3851,11 +3835,11 @@ class mexc extends Exchange {
             'PARTIALLY_FILLED' => 'open',
             'PARTIALLY_CANCELED' => 'canceled',
             // contracts v1
-            // '1' => 'uninformed', // TODO => wt?
+            // '1': 'uninformed', // TODO: wt?
             '2' => 'open',
             '3' => 'closed',
             '4' => 'canceled',
-            // '5' => 'invalid', //  TODO => wt?
+            // '5': 'invalid', //  TODO: wt?
         );
         return $this->safe_string($statuses, $status, $status);
     }
@@ -3889,30 +3873,30 @@ class mexc extends Exchange {
             return Async\await($this->spotPrivateGetAccount($params));
             //
             //     {
-            //         "makerCommission" => "20",
-            //         "takerCommission" => "20",
-            //         "buyerCommission" => "0",
-            //         "sellerCommission" => "0",
-            //         "canTrade" => true,
-            //         "canWithdraw" => true,
-            //         "canDeposit" => true,
-            //         "updateTime" => null,
-            //         "accountType" => "SPOT",
-            //         "balances" => array(
-            //             array(
-            //                 "asset" => "BTC",
-            //                 "free" => "0.002",
-            //                 "locked" => "0"
-            //             ),
-            //             array(
-            //                 "asset" => "USDT",
-            //                 "free" => "88.120131350620957006",
-            //                 "locked" => "0"
-            //             ),
-            //         ),
-            //         "permissions" => array(
+            //         "makerCommission": "20",
+            //         "takerCommission": "20",
+            //         "buyerCommission": "0",
+            //         "sellerCommission": "0",
+            //         "canTrade": true,
+            //         "canWithdraw": true,
+            //         "canDeposit": true,
+            //         "updateTime": null,
+            //         "accountType": "SPOT",
+            //         "balances": [
+            //             {
+            //                 "asset": "BTC",
+            //                 "free": "0.002",
+            //                 "locked": "0"
+            //             },
+            //             {
+            //                 "asset": "USDT",
+            //                 "free": "88.120131350620957006",
+            //                 "locked": "0"
+            //             },
+            //         ],
+            //         "permissions": [
             //             "SPOT"
-            //         )
+            //         ]
             //     }
             //
         } elseif ($type === 'swap') {
@@ -3921,8 +3905,8 @@ class mexc extends Exchange {
             //     {
             //         "success":true,
             //         "code":0,
-            //         "data":array(
-            //            array(
+            //         "data":[
+            //            {
             //              "currency":"BSV",
             //              "positionMargin":0,
             //              "availableBalance":0,
@@ -3931,12 +3915,12 @@ class mexc extends Exchange {
             //              "equity":0,
             //              "unrealized":0,
             //              "bonus":0
-            //           ),
-            //         )
+            //           },
+            //         ]
             //     }
             //
             // wrap the swap asset list so this helper always returns an account
-            // dict with a `balances` array — fetchAccounts reads $response['balances']
+            // dict with a `balances` array — fetchAccounts reads response['balances']
             return array(
                 'balances' => $this->safe_value($response, 'data', array()),
             );
@@ -3958,13 +3942,13 @@ class mexc extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$account-structure $account structures~ indexed by the $account type
          */
-        // TODO => is the below endpoints suitable for fetchAccounts?
+        // TODO: is the below endpoints suitable for fetchAccounts?
         list($marketType, $query) = $this->handle_market_type_and_params('fetchAccounts', null, $params);
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
         $response = Async\await($this->fetch_account_helper($marketType, $query));
-        $data = $this->safe_value($response, 'balances', array());
+        $data = $this->safe_list($response, 'balances', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
             $account = $data[$i];
@@ -4007,10 +3991,10 @@ class mexc extends Exchange {
         $response = Async\await($this->spotPrivateGetTradeFee($this->extend($request, $params)));
         //
         //  {
-        //      "data":array(
+        //      "data":{
         //        "makerCommission":0.003000000000000000,
         //        "takerCommission":0.003000000000000000
-        //      ),
+        //      },
         //      "code":0,
         //      "msg":"success",
         //      "timestamp":1669109672717
@@ -4032,68 +4016,68 @@ class mexc extends Exchange {
         // spot
         //
         //     {
-        //         "asset" => "USDT",
-        //         "free" => "0.000000000674",
-        //         "locked" => "0"
+        //         "asset": "USDT",
+        //         "free": "0.000000000674",
+        //         "locked": "0"
         //     }
         //
         // swap
         //
         //     {
-        //         "currency" => "BSV",
-        //         "positionMargin" => 0,
-        //         "availableBalance" => 0,
-        //         "cashBalance" => 0,
-        //         "frozenBalance" => 0,
-        //         "equity" => 0,
-        //         "unrealized" => 0,
-        //         "bonus" => 0
+        //         "currency": "BSV",
+        //         "positionMargin": 0,
+        //         "availableBalance": 0,
+        //         "cashBalance": 0,
+        //         "frozenBalance": 0,
+        //         "equity": 0,
+        //         "unrealized": 0,
+        //         "bonus": 0
         //     }
         //
         // margin
         //
         //     {
-        //         "baseAsset" => {
-        //             "asset" => "BTC",
-        //             "borrowEnabled" => true,
-        //             "borrowed" => "0",
-        //             "free" => "0",
-        //             "interest" => "0",
-        //             "locked" => "0",
-        //             "netAsset" => "0",
-        //             "netAssetOfBtc" => "0",
-        //             "repayEnabled" => true,
-        //             "totalAsset" => "0"
+        //         "baseAsset": {
+        //             "asset": "BTC",
+        //             "borrowEnabled": true,
+        //             "borrowed": "0",
+        //             "free": "0",
+        //             "interest": "0",
+        //             "locked": "0",
+        //             "netAsset": "0",
+        //             "netAssetOfBtc": "0",
+        //             "repayEnabled": true,
+        //             "totalAsset": "0"
         //         }
-        //         "quoteAsset" => {
-        //             "asset" => "USDT",
-        //             "borrowEnabled" => true,
-        //             "borrowed" => "0",
-        //             "free" => "10",
-        //             "interest" => "0",
-        //             "locked" => "0",
-        //             "netAsset" => "10",
-        //             "netAssetOfBtc" => "0",
-        //             "repayEnabled" => true,
-        //             "totalAsset" => "10"
+        //         "quoteAsset": {
+        //             "asset": "USDT",
+        //             "borrowEnabled": true,
+        //             "borrowed": "0",
+        //             "free": "10",
+        //             "interest": "0",
+        //             "locked": "0",
+        //             "netAsset": "10",
+        //             "netAssetOfBtc": "0",
+        //             "repayEnabled": true,
+        //             "totalAsset": "10"
         //         }
-        //         "symbol" => "BTCUSDT",
-        //         "isolatedCreated" => true,
-        //         "enabled" => true,
-        //         "marginLevel" => "999",
-        //         "marginRatio" => "9",
-        //         "indexPrice" => "16741.137068965517241379",
-        //         "liquidatePrice" => "--",
-        //         "liquidateRate" => "--",
-        //         "tradeEnabled" => true
+        //         "symbol": "BTCUSDT",
+        //         "isolatedCreated": true,
+        //         "enabled": true,
+        //         "marginLevel": "999",
+        //         "marginRatio": "9",
+        //         "indexPrice": "16741.137068965517241379",
+        //         "liquidatePrice": "--",
+        //         "liquidateRate": "--",
+        //         "tradeEnabled": true
         //     }
         //
         if ($marketType === 'margin') {
-            $wallet = $this->safe_value($response, 'assets', array());
+            $wallet = $this->safe_list($response, 'assets', array());
         } elseif ($marketType === 'swap') {
-            $wallet = $this->safe_value($response, 'data', array());
+            $wallet = $this->safe_list($response, 'data', array());
         } else {
-            $wallet = $this->safe_value($response, 'balances', array());
+            $wallet = $this->safe_list($response, 'balances', array());
         }
         $result = array( 'info' => $response );
         if ($marketType === 'margin') {
@@ -4164,7 +4148,7 @@ class mexc extends Exchange {
          * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#isolated-account
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string} [$params->symbols] // required for margin, $market id's separated by commas
+         * @param {string} [$params->symbols] // required for margin, market id's separated by commas
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
         if ($this->markets === null) {
@@ -4207,84 +4191,84 @@ class mexc extends Exchange {
         // spot
         //
         //     {
-        //         "makerCommission" => 0,
-        //         "takerCommission" => 20,
-        //         "buyerCommission" => 0,
-        //         "sellerCommission" => 0,
-        //         "canTrade" => true,
-        //         "canWithdraw" => true,
-        //         "canDeposit" => true,
-        //         "updateTime" => null,
-        //         "accountType" => "SPOT",
-        //         "balances" => array(
-        //             array(
-        //                 "asset" => "USDT",
-        //                 "free" => "0.000000000674",
-        //                 "locked" => "0"
-        //             ),
-        //         ),
-        //         "permissions" => ["SPOT"]
+        //         "makerCommission": 0,
+        //         "takerCommission": 20,
+        //         "buyerCommission": 0,
+        //         "sellerCommission": 0,
+        //         "canTrade": true,
+        //         "canWithdraw": true,
+        //         "canDeposit": true,
+        //         "updateTime": null,
+        //         "accountType": "SPOT",
+        //         "balances": [
+        //             {
+        //                 "asset": "USDT",
+        //                 "free": "0.000000000674",
+        //                 "locked": "0"
+        //             },
+        //         ],
+        //         "permissions": ["SPOT"]
         //     }
         //
         // swap
         //
         //     {
-        //         "success" => true,
-        //         "code" => 0,
-        //         "data" => array(
-        //             array(
-        //                 "currency" => "BSV",
-        //                 "positionMargin" => 0,
-        //                 "availableBalance" => 0,
-        //                 "cashBalance" => 0,
-        //                 "frozenBalance" => 0,
-        //                 "equity" => 0,
-        //                 "unrealized" => 0,
-        //                 "bonus" => 0
-        //             ),
-        //         )
+        //         "success": true,
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "currency": "BSV",
+        //                 "positionMargin": 0,
+        //                 "availableBalance": 0,
+        //                 "cashBalance": 0,
+        //                 "frozenBalance": 0,
+        //                 "equity": 0,
+        //                 "unrealized": 0,
+        //                 "bonus": 0
+        //             },
+        //         ]
         //     }
         //
         // margin
         //
         //     {
-        //         "assets" => array(
+        //         "assets": [
         //             {
-        //                 "baseAsset" => array(
-        //                     "asset" => "BTC",
-        //                     "borrowEnabled" => true,
-        //                     "borrowed" => "0",
-        //                     "free" => "0",
-        //                     "interest" => "0",
-        //                     "locked" => "0",
-        //                     "netAsset" => "0",
-        //                     "netAssetOfBtc" => "0",
-        //                     "repayEnabled" => true,
-        //                     "totalAsset" => "0"
-        //                 ),
-        //                 "quoteAsset" => array(
-        //                     "asset" => "USDT",
-        //                     "borrowEnabled" => true,
-        //                     "borrowed" => "0",
-        //                     "free" => "10",
-        //                     "interest" => "0",
-        //                     "locked" => "0",
-        //                     "netAsset" => "10",
-        //                     "netAssetOfBtc" => "0",
-        //                     "repayEnabled" => true,
-        //                     "totalAsset" => "10"
-        //                 ),
-        //                 "symbol" => "BTCUSDT",
-        //                 "isolatedCreated" => true,
-        //                 "enabled" => true,
-        //                 "marginLevel" => "999",
-        //                 "marginRatio" => "9",
-        //                 "indexPrice" => "16741.137068965517241379",
-        //                 "liquidatePrice" => "--",
-        //                 "liquidateRate" => "--",
-        //                 "tradeEnabled" => true
+        //                 "baseAsset": {
+        //                     "asset": "BTC",
+        //                     "borrowEnabled": true,
+        //                     "borrowed": "0",
+        //                     "free": "0",
+        //                     "interest": "0",
+        //                     "locked": "0",
+        //                     "netAsset": "0",
+        //                     "netAssetOfBtc": "0",
+        //                     "repayEnabled": true,
+        //                     "totalAsset": "0"
+        //                 },
+        //                 "quoteAsset": {
+        //                     "asset": "USDT",
+        //                     "borrowEnabled": true,
+        //                     "borrowed": "0",
+        //                     "free": "10",
+        //                     "interest": "0",
+        //                     "locked": "0",
+        //                     "netAsset": "10",
+        //                     "netAssetOfBtc": "0",
+        //                     "repayEnabled": true,
+        //                     "totalAsset": "10"
+        //                 },
+        //                 "symbol": "BTCUSDT",
+        //                 "isolatedCreated": true,
+        //                 "enabled": true,
+        //                 "marginLevel": "999",
+        //                 "marginRatio": "9",
+        //                 "indexPrice": "16741.137068965517241379",
+        //                 "liquidatePrice": "--",
+        //                 "liquidateRate": "--",
+        //                 "tradeEnabled": true
         //             }
-        //         )
+        //         ]
         //     }
         //
         return $this->custom_parse_balance($response, $marketType);
@@ -4337,23 +4321,23 @@ class mexc extends Exchange {
             //
             // spot
             //
-            //     array(
+            //     [
             //         {
-            //             "symbol" => "BTCUSDT",
-            //             "id" => "133948532984922113",
-            //             "orderId" => "133948532531949568",
-            //             "orderListId" => "-1",
-            //             "price" => "41995.51",
-            //             "qty" => "0.0002",
-            //             "quoteQty" => "8.399102",
-            //             "commission" => "0.016798204",
-            //             "commissionAsset" => "USDT",
-            //             "time" => "1647718055000",
-            //             "isBuyer" => true,
-            //             "isMaker" => false,
-            //             "isBestMatch" => true
+            //             "symbol": "BTCUSDT",
+            //             "id": "133948532984922113",
+            //             "orderId": "133948532531949568",
+            //             "orderListId": "-1",
+            //             "price": "41995.51",
+            //             "qty": "0.0002",
+            //             "quoteQty": "8.399102",
+            //             "commission": "0.016798204",
+            //             "commissionAsset": "USDT",
+            //             "time": "1647718055000",
+            //             "isBuyer": true,
+            //             "isMaker": false,
+            //             "isBestMatch": true
             //         }
-            //     )
+            //     ]
             //
         } else {
             if ($since !== null) {
@@ -4369,25 +4353,25 @@ class mexc extends Exchange {
             $response = Async\await($this->contractPrivateGetOrderListOrderDeals($this->extend($request, $params)));
             //
             //     {
-            //         "success" => true,
-            //         "code" => "0",
-            //         "data" => array(
+            //         "success": true,
+            //         "code": "0",
+            //         "data": [
             //             {
-            //                 "id" => "299444585",
-            //                 "symbol" => "STEPN_USDT",
-            //                 "side" => "1",
-            //                 "vol" => "1",
-            //                 "price" => "2.45455",
-            //                 "feeCurrency" => "USDT",
-            //                 "fee" => "0.00147273",
-            //                 "timestamp" => "1648924557000",
-            //                 "profit" => "0",
-            //                 "category" => "1",
-            //                 "orderId" => "265307163526610432",
-            //                 "positionMode" => "1",
-            //                 "taker" => true
+            //                 "id": "299444585",
+            //                 "symbol": "STEPN_USDT",
+            //                 "side": "1",
+            //                 "vol": "1",
+            //                 "price": "2.45455",
+            //                 "feeCurrency": "USDT",
+            //                 "fee": "0.00147273",
+            //                 "timestamp": "1648924557000",
+            //                 "profit": "0",
+            //                 "category": "1",
+            //                 "orderId": "265307163526610432",
+            //                 "positionMode": "1",
+            //                 "taker": true
             //             }
-            //         )
+            //         ]
             //     }
             //
             $trades = $this->safe_list($response, 'data', array());
@@ -4433,48 +4417,48 @@ class mexc extends Exchange {
             //
             // spot
             //
-            //     array(
+            //     [
             //         {
-            //             "symbol" => "BTCUSDT",
-            //             "id" => "133948532984922113",
-            //             "orderId" => "133948532531949568",
-            //             "orderListId" => "-1",
-            //             "price" => "41995.51",
-            //             "qty" => "0.0002",
-            //             "quoteQty" => "8.399102",
-            //             "commission" => "0.016798204",
-            //             "commissionAsset" => "USDT",
-            //             "time" => "1647718055000",
-            //             "isBuyer" => true,
-            //             "isMaker" => false,
-            //             "isBestMatch" => true
+            //             "symbol": "BTCUSDT",
+            //             "id": "133948532984922113",
+            //             "orderId": "133948532531949568",
+            //             "orderListId": "-1",
+            //             "price": "41995.51",
+            //             "qty": "0.0002",
+            //             "quoteQty": "8.399102",
+            //             "commission": "0.016798204",
+            //             "commissionAsset": "USDT",
+            //             "time": "1647718055000",
+            //             "isBuyer": true,
+            //             "isMaker": false,
+            //             "isBestMatch": true
             //         }
-            //     )
+            //     ]
             //
         } else {
             $request['order_id'] = $id;
             $response = Async\await($this->contractPrivateGetOrderDealDetailsOrderId($this->extend($request, $query)));
             //
             //     {
-            //         "success" => true,
-            //         "code" => "0",
-            //         "data" => array(
+            //         "success": true,
+            //         "code": "0",
+            //         "data": [
             //             {
-            //                 "id" => "299444585",
-            //                 "symbol" => "STEPN_USDT",
-            //                 "side" => "1",
-            //                 "vol" => "1",
-            //                 "price" => "2.45455",
-            //                 "feeCurrency" => "USDT",
-            //                 "fee" => "0.00147273",
-            //                 "timestamp" => "1648924557000",
-            //                 "profit" => "0",
-            //                 "category" => "1",
-            //                 "orderId" => "265307163526610432",
-            //                 "positionMode" => "1",
-            //                 "taker" => true
+            //                 "id": "299444585",
+            //                 "symbol": "STEPN_USDT",
+            //                 "side": "1",
+            //                 "vol": "1",
+            //                 "price": "2.45455",
+            //                 "feeCurrency": "USDT",
+            //                 "fee": "0.00147273",
+            //                 "timestamp": "1648924557000",
+            //                 "profit": "0",
+            //                 "category": "1",
+            //                 "orderId": "265307163526610432",
+            //                 "positionMode": "1",
+            //                 "taker": true
             //             }
-            //         )
+            //         ]
             //     }
             //
             $trades = $this->safe_list($response, 'data', array());
@@ -4502,8 +4486,8 @@ class mexc extends Exchange {
         $response = Async\await($this->contractPrivatePostPositionChangeMargin($this->extend($request, $params)));
         //
         //     {
-        //         "success" => true,
-        //         "code" => 0
+        //         "success": true,
+        //         "code": 0
         //     }
         return $response;
     }
@@ -4604,10 +4588,10 @@ class mexc extends Exchange {
         }
         $market = null;
         $request = array(
-            // 'symbol' => $market['id'],
-            // 'position_id' => positionId,
-            // 'page_num' => 1,
-            // 'page_size' => $limit, // default 20, max 100
+            // 'symbol': market['id'],
+            // 'position_id': positionId,
+            // 'page_num': 1,
+            // 'page_size': limit, // default 20, max 100
         );
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -4619,38 +4603,38 @@ class mexc extends Exchange {
         $response = Async\await($this->contractPrivateGetPositionFundingRecords($this->extend($request, $params)));
         //
         //     {
-        //         "success" => true,
-        //         "code" => 0,
-        //         "data" => {
-        //             "pageSize" => 20,
-        //             "totalCount" => 2,
-        //             "totalPage" => 1,
-        //             "currentPage" => 1,
-        //             "resultList" => array(
-        //                 array(
-        //                     "id" => 7423910,
-        //                     "symbol" => "BTC_USDT",
-        //                     "positionType" => 1,
-        //                     "positionValue" => 29.30024,
-        //                     "funding" => 0.00076180624,
-        //                     "rate" => -0.000026,
-        //                     "settleTime" => 1643299200000
-        //                 ),
+        //         "success": true,
+        //         "code": 0,
+        //         "data": {
+        //             "pageSize": 20,
+        //             "totalCount": 2,
+        //             "totalPage": 1,
+        //             "currentPage": 1,
+        //             "resultList": [
         //                 {
-        //                     "id" => 7416473,
-        //                     "symbol" => "BTC_USDT",
-        //                     "positionType" => 1,
-        //                     "positionValue" => 28.9188,
-        //                     "funding" => 0.0014748588,
-        //                     "rate" => -0.000051,
-        //                     "settleTime" => 1643270400000
+        //                     "id": 7423910,
+        //                     "symbol": "BTC_USDT",
+        //                     "positionType": 1,
+        //                     "positionValue": 29.30024,
+        //                     "funding": 0.00076180624,
+        //                     "rate": -0.000026,
+        //                     "settleTime": 1643299200000
+        //                 },
+        //                 {
+        //                     "id": 7416473,
+        //                     "symbol": "BTC_USDT",
+        //                     "positionType": 1,
+        //                     "positionValue": 28.9188,
+        //                     "funding": 0.0014748588,
+        //                     "rate": -0.000051,
+        //                     "settleTime": 1643270400000
         //                 }
-        //             )
+        //             ]
         //         }
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $resultList = $this->safe_value($data, 'resultList', array());
+        $resultList = $this->safe_list($data, 'resultList', array());
         $result = array();
         for ($i = 0; $i < count($resultList); $i++) {
             $entry = $resultList[$i];
@@ -4671,21 +4655,21 @@ class mexc extends Exchange {
     public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         //
         //     {
-        //         "symbol" => "BTC_USDT",
-        //         "fundingRate" => 0.000014,
-        //         "maxFundingRate" => 0.003,
-        //         "minFundingRate" => -0.003,
-        //         "collectCycle" => 8,
-        //         "nextSettleTime" => 1643241600000,
-        //         "timestamp" => 1643240373359
+        //         "symbol": "BTC_USDT",
+        //         "fundingRate": 0.000014,
+        //         "maxFundingRate": 0.003,
+        //         "minFundingRate": -0.003,
+        //         "collectCycle": 8,
+        //         "nextSettleTime": 1643241600000,
+        //         "timestamp": 1643240373359
         //     }
         //
         // watchFundingRate
         //
         //     {
-        //         "symbol" => "BTC_USDT",
-        //         "rate" => -0.000021,
-        //         "nextSettleTime" => 1771084800000
+        //         "symbol": "BTC_USDT",
+        //         "rate": -0.000021,
+        //         "nextSettleTime": 1771084800000
         //     }
         //
         $nextFundingRate = $this->safe_number_2($contract, 'fundingRate', 'rate');
@@ -4761,16 +4745,16 @@ class mexc extends Exchange {
         $response = Async\await($this->contractPublicGetFundingRateSymbol($this->extend($request, $params)));
         //
         //     {
-        //         "success" => true,
-        //         "code" => 0,
-        //         "data" => {
-        //             "symbol" => "BTC_USDT",
-        //             "fundingRate" => 0.000014,
-        //             "maxFundingRate" => 0.003,
-        //             "minFundingRate" => -0.003,
-        //             "collectCycle" => 8,
-        //             "nextSettleTime" => 1643241600000,
-        //             "timestamp" => 1643240373359
+        //         "success": true,
+        //         "code": 0,
+        //         "data": {
+        //             "symbol": "BTC_USDT",
+        //             "fundingRate": 0.000014,
+        //             "maxFundingRate": 0.003,
+        //             "minFundingRate": -0.003,
+        //             "collectCycle": 8,
+        //             "nextSettleTime": 1643241600000,
+        //             "timestamp": 1643240373359
         //         }
         //     }
         //
@@ -4803,8 +4787,8 @@ class mexc extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
-            // 'page_size' => $limit, // optional
-            // 'page_num' => 1, // optional, current page number, default is 1
+            // 'page_size': limit, // optional
+            // 'page_num': 1, // optional, current page number, default is 1
         );
         if ($limit !== null) {
             $request['page_size'] = $limit;
@@ -4812,30 +4796,30 @@ class mexc extends Exchange {
         $response = Async\await($this->contractPublicGetFundingRateHistory($this->extend($request, $params)));
         //
         //    {
-        //        "success" => true,
-        //        "code" => 0,
-        //        "data" => {
-        //            "pageSize" => 2,
-        //            "totalCount" => 21,
-        //            "totalPage" => 11,
-        //            "currentPage" => 1,
-        //            "resultList" => array(
-        //                array(
-        //                    "symbol" => "BTC_USDT",
-        //                    "fundingRate" => 0.000266,
-        //                    "settleTime" => 1609804800000
-        //                ),
+        //        "success": true,
+        //        "code": 0,
+        //        "data": {
+        //            "pageSize": 2,
+        //            "totalCount": 21,
+        //            "totalPage": 11,
+        //            "currentPage": 1,
+        //            "resultList": [
         //                {
-        //                    "symbol" => "BTC_USDT",
-        //                    "fundingRate" => 0.00029,
-        //                    "settleTime" => 1609776000000
+        //                    "symbol": "BTC_USDT",
+        //                    "fundingRate": 0.000266,
+        //                    "settleTime": 1609804800000
+        //                },
+        //                {
+        //                    "symbol": "BTC_USDT",
+        //                    "fundingRate": 0.00029,
+        //                    "settleTime": 1609776000000
         //                }
-        //            )
+        //            ]
         //        }
         //    }
         //
         $data = $this->safe_value($response, 'data');
-        $result = $this->safe_value($data, 'resultList', array());
+        $result = $this->safe_list($data, 'resultList', array());
         $rates = array();
         for ($i = 0; $i < count($result); $i++) {
             $entry = $result[$i];
@@ -4877,45 +4861,45 @@ class mexc extends Exchange {
         //     {
         //         "success":true,
         //         "code":0,
-        //         "data":array(
-        //             array(
-        //                 "symbol" => "BTC_USDT",
-        //                 "displayName" => "BTC_USDT永续",
-        //                 "displayNameEn" => "BTC_USDT SWAP",
-        //                 "positionOpenType" => 3,
-        //                 "baseCoin" => "BTC",
-        //                 "quoteCoin" => "USDT",
-        //                 "settleCoin" => "USDT",
-        //                 "contractSize" => 0.0001,
-        //                 "minLeverage" => 1,
-        //                 "maxLeverage" => 125,
-        //                 "priceScale" => 2,
-        //                 "volScale" => 0,
-        //                 "amountScale" => 4,
-        //                 "priceUnit" => 0.5,
-        //                 "volUnit" => 1,
-        //                 "minVol" => 1,
-        //                 "maxVol" => 1000000,
-        //                 "bidLimitPriceRate" => 0.1,
-        //                 "askLimitPriceRate" => 0.1,
-        //                 "takerFeeRate" => 0.0006,
-        //                 "makerFeeRate" => 0.0002,
-        //                 "maintenanceMarginRate" => 0.004,
-        //                 "initialMarginRate" => 0.008,
-        //                 "riskBaseVol" => 10000,
-        //                 "riskIncrVol" => 200000,
-        //                 "riskIncrMmr" => 0.004,
-        //                 "riskIncrImr" => 0.004,
-        //                 "riskLevelLimit" => 5,
-        //                 "priceCoefficientVariation" => 0.1,
-        //                 "indexOrigin" => ["BINANCE","GATEIO","HUOBI","MXC"],
-        //                 "state" => 0, // 0 enabled, 1 delivery, 2 completed, 3 offline, 4 pause
-        //                 "isNew" => false,
-        //                 "isHot" => true,
-        //                 "isHidden" => false
-        //             ),
+        //         "data":[
+        //             {
+        //                 "symbol": "BTC_USDT",
+        //                 "displayName": "BTC_USDT永续",
+        //                 "displayNameEn": "BTC_USDT SWAP",
+        //                 "positionOpenType": 3,
+        //                 "baseCoin": "BTC",
+        //                 "quoteCoin": "USDT",
+        //                 "settleCoin": "USDT",
+        //                 "contractSize": 0.0001,
+        //                 "minLeverage": 1,
+        //                 "maxLeverage": 125,
+        //                 "priceScale": 2,
+        //                 "volScale": 0,
+        //                 "amountScale": 4,
+        //                 "priceUnit": 0.5,
+        //                 "volUnit": 1,
+        //                 "minVol": 1,
+        //                 "maxVol": 1000000,
+        //                 "bidLimitPriceRate": 0.1,
+        //                 "askLimitPriceRate": 0.1,
+        //                 "takerFeeRate": 0.0006,
+        //                 "makerFeeRate": 0.0002,
+        //                 "maintenanceMarginRate": 0.004,
+        //                 "initialMarginRate": 0.008,
+        //                 "riskBaseVol": 10000,
+        //                 "riskIncrVol": 200000,
+        //                 "riskIncrMmr": 0.004,
+        //                 "riskIncrImr": 0.004,
+        //                 "riskLevelLimit": 5,
+        //                 "priceCoefficientVariation": 0.1,
+        //                 "indexOrigin": ["BINANCE","GATEIO","HUOBI","MXC"],
+        //                 "state": 0, // 0 enabled, 1 delivery, 2 completed, 3 offline, 4 pause
+        //                 "isNew": false,
+        //                 "isHot": true,
+        //                 "isHidden": false
+        //             },
         //             ...
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_list($response, 'data');
@@ -4925,40 +4909,40 @@ class mexc extends Exchange {
     public function parse_market_leverage_tiers(mixed $info, ?array $market = null): array {
         //
         //    {
-        //        "symbol" => "BTC_USDT",
-        //        "displayName" => "BTC_USDT永续",
-        //        "displayNameEn" => "BTC_USDT SWAP",
-        //        "positionOpenType" => 3,
-        //        "baseCoin" => "BTC",
-        //        "quoteCoin" => "USDT",
-        //        "settleCoin" => "USDT",
-        //        "contractSize" => 0.0001,
-        //        "minLeverage" => 1,
-        //        "maxLeverage" => 125,
-        //        "priceScale" => 2,
-        //        "volScale" => 0,
-        //        "amountScale" => 4,
-        //        "priceUnit" => 0.5,
-        //        "volUnit" => 1,
-        //        "minVol" => 1,
-        //        "maxVol" => 1000000,
-        //        "bidLimitPriceRate" => 0.1,
-        //        "askLimitPriceRate" => 0.1,
-        //        "takerFeeRate" => 0.0006,
-        //        "makerFeeRate" => 0.0002,
-        //        "maintenanceMarginRate" => 0.004,
-        //        "initialMarginRate" => 0.008,
-        //        "riskBaseVol" => 10000,
-        //        "riskIncrVol" => 200000,
-        //        "riskIncrMmr" => 0.004,
-        //        "riskIncrImr" => 0.004,
-        //        "riskLevelLimit" => 5,
-        //        "priceCoefficientVariation" => 0.1,
-        //        "indexOrigin" => ["BINANCE","GATEIO","HUOBI","MXC"],
-        //        "state" => 0, // 0 enabled, 1 delivery, 2 completed, 3 offline, 4 pause
-        //        "isNew" => false,
-        //        "isHot" => true,
-        //        "isHidden" => false
+        //        "symbol": "BTC_USDT",
+        //        "displayName": "BTC_USDT永续",
+        //        "displayNameEn": "BTC_USDT SWAP",
+        //        "positionOpenType": 3,
+        //        "baseCoin": "BTC",
+        //        "quoteCoin": "USDT",
+        //        "settleCoin": "USDT",
+        //        "contractSize": 0.0001,
+        //        "minLeverage": 1,
+        //        "maxLeverage": 125,
+        //        "priceScale": 2,
+        //        "volScale": 0,
+        //        "amountScale": 4,
+        //        "priceUnit": 0.5,
+        //        "volUnit": 1,
+        //        "minVol": 1,
+        //        "maxVol": 1000000,
+        //        "bidLimitPriceRate": 0.1,
+        //        "askLimitPriceRate": 0.1,
+        //        "takerFeeRate": 0.0006,
+        //        "makerFeeRate": 0.0002,
+        //        "maintenanceMarginRate": 0.004,
+        //        "initialMarginRate": 0.008,
+        //        "riskBaseVol": 10000,
+        //        "riskIncrVol": 200000,
+        //        "riskIncrMmr": 0.004,
+        //        "riskIncrImr": 0.004,
+        //        "riskLevelLimit": 5,
+        //        "priceCoefficientVariation": 0.1,
+        //        "indexOrigin": ["BINANCE","GATEIO","HUOBI","MXC"],
+        //        "state": 0, // 0 enabled, 1 delivery, 2 completed, 3 offline, 4 pause
+        //        "isNew": false,
+        //        "isHot": true,
+        //        "isHidden": false
         //    }
         //
         $marketId = $this->safe_string($info, 'symbol');
@@ -5010,10 +4994,10 @@ class mexc extends Exchange {
     public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
         //
         //    {
-        //        coin => "USDT",
-        //        network => "BNB Smart Chain(BEP20)",
-        //        $address => "0x0d48003e0c27c5de62b97c9b4cdb31fdd29da619",
-        //        memo =>  null
+        //        coin: "USDT",
+        //        network: "BNB Smart Chain(BEP20)",
+        //        address: "0x0d48003e0c27c5de62b97c9b4cdb31fdd29da619",
+        //        memo:  null
         //    }
         //
         $address = $this->safe_string($depositAddress, 'address');
@@ -5053,7 +5037,7 @@ class mexc extends Exchange {
         $networkCode = $this->safe_string($params, 'network');
         $networkId = null;
         if ($networkCode !== null) {
-            // createDepositAddress and fetchDepositAddress use a different $network-id compared to withdraw
+            // createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
             $networkUnified = $this->network_id_to_code($networkCode, $code);
             $networks = $this->safe_dict($currency, 'networks', array());
             if (($networkUnified !== null) && (is_array($networks) && array_key_exists($networkUnified ?? '', $networks))) {
@@ -5070,15 +5054,15 @@ class mexc extends Exchange {
         $params = $this->omit($params, 'network');
         $response = Async\await($this->spotPrivateGetCapitalDepositAddress($this->extend($request, $params)));
         //
-        //    array(
+        //    [
         //        {
-        //            coin => "USDT",
-        //            $network => "BNB Smart Chain(BEP20)",
-        //            address => "0x0d48003e0c27c5de62b97c9b4cdb31fdd29da619",
-        //            memo =>  null
+        //            coin: "USDT",
+        //            network: "BNB Smart Chain(BEP20)",
+        //            address: "0x0d48003e0c27c5de62b97c9b4cdb31fdd29da619",
+        //            memo:  null
         //        }
         //        ...
-        //    )
+        //    ]
         //
         $addressStructures = $this->parse_deposit_addresses($response, null, false);
         return $this->index_by($addressStructures, 'network');
@@ -5110,7 +5094,7 @@ class mexc extends Exchange {
         if ($networkCode === null) {
             throw new ArgumentsRequired($this->id . ' createDepositAddress requires a `$network` parameter');
         }
-        // createDepositAddress and fetchDepositAddress use a different $network-id compared to withdraw
+        // createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
         $networkId = null;
         $networkUnified = $this->network_id_to_code($networkCode, $code);
         $networks = $this->safe_dict($currency, 'networks', array());
@@ -5127,10 +5111,10 @@ class mexc extends Exchange {
         $params = $this->omit($params, 'network');
         $response = Async\await($this->spotPrivatePostCapitalDepositAddress($this->extend($request, $params)));
         //     {
-        //        "coin" => "EOS",
-        //        "network" => "EOS",
-        //        "address" => "zzqqqqqqqqqq",
-        //        "memo" => "MX10068"
+        //        "coin": "EOS",
+        //        "network": "EOS",
+        //        "address": "zzqqqqqqqqqq",
+        //        "memo": "MX10068"
         //     }
         return $this->parse_deposit_address($response, $currency);
     }
@@ -5192,11 +5176,11 @@ class mexc extends Exchange {
             Async\await($this->load_markets());
         }
         $request = array(
-            // 'coin' => $currency['id'] . network example => USDT-TRX,
-            // 'status' => 'status',
-            // 'startTime' => $since, // default 90 days
-            // 'endTime' => $this->nonce(),
-            // 'limit' => $limit, // default 1000, maximum 1000
+            // 'coin': currency['id'] + network example: USDT-TRX,
+            // 'status': 'status',
+            // 'startTime': since, // default 90 days
+            // 'endTime': this.nonce(),
+            // 'limit': limit, // default 1000, maximum 1000
         );
         $currency = null;
         if ($code !== null) {
@@ -5221,23 +5205,23 @@ class mexc extends Exchange {
         }
         $response = Async\await($this->spotPrivateGetCapitalDepositHisrec($this->extend($request, $params)));
         //
-        // array(
+        // [
         //     {
-        //         "amount" => "10",
-        //         "coin" => "USDC-TRX",
-        //         "network" => "TRX",
-        //         "status" => "5",
-        //         "address" => "TSMcEDDvkqY9dz8RkFnrS86U59GwEZjfvh",
-        //         "txId" => "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b:0",
-        //         "insertTime" => "1664805021000",
-        //         "unlockConfirm" => "200",
-        //         "confirmTimes" => "203",
-        //         "memo" => "xxyy1122",
-        //         "transHash" => "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
-        //         "updateTime" => "1664805621000",
-        //         "netWork => "TRX"
+        //         "amount": "10",
+        //         "coin": "USDC-TRX",
+        //         "network": "TRX",
+        //         "status": "5",
+        //         "address": "TSMcEDDvkqY9dz8RkFnrS86U59GwEZjfvh",
+        //         "txId": "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b:0",
+        //         "insertTime": "1664805021000",
+        //         "unlockConfirm": "200",
+        //         "confirmTimes": "203",
+        //         "memo": "xxyy1122",
+        //         "transHash": "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
+        //         "updateTime": "1664805621000",
+        //         "netWork: "TRX"
         //     }
-        // )
+        // ]
         //
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
@@ -5262,11 +5246,11 @@ class mexc extends Exchange {
             Async\await($this->load_markets());
         }
         $request = array(
-            // 'coin' => $currency['id'],
-            // 'status' => 'status',
-            // 'startTime' => $since, // default 90 days
-            // 'endTime' => $this->nonce(),
-            // 'limit' => $limit, // default 1000, maximum 1000
+            // 'coin': currency['id'],
+            // 'status': 'status',
+            // 'startTime': since, // default 90 days
+            // 'endTime': this.nonce(),
+            // 'limit': limit, // default 1000, maximum 1000
         );
         $currency = null;
         if ($code !== null) {
@@ -5284,27 +5268,27 @@ class mexc extends Exchange {
         }
         $response = Async\await($this->spotPrivateGetCapitalWithdrawHistory($this->extend($request, $params)));
         //
-        // array(
+        // [
         //     {
-        //       "id" => "adcd1c8322154de691b815eedcd10c42",
-        //       "txId" => "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0:0",
-        //       "coin" => "USDC-MATIC",
-        //       "network" => "MATIC",
-        //       "address" => "0xeE6C7a415995312ED52c53a0f8f03e165e0A5D62",
-        //       "amount" => "2",
-        //       "transferType" => "0",
-        //       "status" => "7",
-        //       "transactionFee" => "1",
-        //       "confirmNo" => null,
-        //       "applyTime" => "1664882739000",
-        //       "remark" => '',
-        //       "memo" => null,
-        //       "explorerUrl" => "https://etherscan.io/tx/0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
-        //       "transHash" => "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
-        //       "updateTime" => "1664882799000",
-        //       "netWork => "MATIC"
+        //       "id": "adcd1c8322154de691b815eedcd10c42",
+        //       "txId": "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0:0",
+        //       "coin": "USDC-MATIC",
+        //       "network": "MATIC",
+        //       "address": "0xeE6C7a415995312ED52c53a0f8f03e165e0A5D62",
+        //       "amount": "2",
+        //       "transferType": "0",
+        //       "status": "7",
+        //       "transactionFee": "1",
+        //       "confirmNo": null,
+        //       "applyTime": "1664882739000",
+        //       "remark": '',
+        //       "memo": null,
+        //       "explorerUrl": "https://etherscan.io/tx/0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
+        //       "transHash": "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
+        //       "updateTime": "1664882799000",
+        //       "netWork: "MATIC"
         //     }
-        // )
+        // ]
         //
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
@@ -5314,41 +5298,41 @@ class mexc extends Exchange {
         // fetchDeposits
         //
         // {
-        //     "amount" => "10",
-        //     "coin" => "USDC-TRX",
-        //     "network" => "TRX",
-        //     "status" => "5",
-        //     "address" => "TSMcEDDvkqY9dz8RkFnrS86U59GwEZjfvh",
-        //     "txId" => "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b:0",
-        //     "insertTime" => "1664805021000",
-        //     "unlockConfirm" => "200",
-        //     "confirmTimes" => "203",
-        //     "memo" => "xxyy1122",
-        //     "transHash" => "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
-        //     "updateTime" => "1664805621000",
-        //     "netWork => "TRX"
+        //     "amount": "10",
+        //     "coin": "USDC-TRX",
+        //     "network": "TRX",
+        //     "status": "5",
+        //     "address": "TSMcEDDvkqY9dz8RkFnrS86U59GwEZjfvh",
+        //     "txId": "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b:0",
+        //     "insertTime": "1664805021000",
+        //     "unlockConfirm": "200",
+        //     "confirmTimes": "203",
+        //     "memo": "xxyy1122",
+        //     "transHash": "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
+        //     "updateTime": "1664805621000",
+        //     "netWork: "TRX"
         // }
         //
         // fetchWithdrawals
         //
         // {
-        //     "id" => "adcd1c8322154de691b815eedcd10c42",
-        //     "txId" => "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0:0",
-        //     "coin" => "USDC-MATIC",
-        //     "network" => "MATIC",
-        //     "address" => "0xeE6C7a415995312ED52c53a0f8f03e165e0A5D62",
-        //     "amount" => "2",
-        //     "transferType" => "0",
-        //     "status" => "7",
-        //     "transactionFee" => "1",
-        //     "confirmNo" => null,
-        //     "applyTime" => "1664882739000",
-        //     "remark" => "",
-        //     "memo" => null,
-        //     "explorerUrl" => "https://etherscan.io/tx/0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
-        //     "transHash" => "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
-        //     "updateTime" => "1664882799000",
-        //     "netWork => "MATIC"
+        //     "id": "adcd1c8322154de691b815eedcd10c42",
+        //     "txId": "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0:0",
+        //     "coin": "USDC-MATIC",
+        //     "network": "MATIC",
+        //     "address": "0xeE6C7a415995312ED52c53a0f8f03e165e0A5D62",
+        //     "amount": "2",
+        //     "transferType": "0",
+        //     "status": "7",
+        //     "transactionFee": "1",
+        //     "confirmNo": null,
+        //     "applyTime": "1664882739000",
+        //     "remark": "",
+        //     "memo": null,
+        //     "explorerUrl": "https://etherscan.io/tx/0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
+        //     "transHash": "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
+        //     "updateTime": "1664882799000",
+        //     "netWork: "MATIC"
         //   }
         //
         // withdraw
@@ -5391,7 +5375,7 @@ class mexc extends Exchange {
             );
         }
         if ($type === 'withdrawal') {
-            // mexc withdrawal amount includes the $fee
+            // mexc withdrawal amount includes the fee
             $amountString = Precise::string_sub($amountString, $feeCostString);
         }
         return array(
@@ -5465,9 +5449,9 @@ class mexc extends Exchange {
         $response = Async\await($this->contractPrivatePostPositionCloseAll($params));
         //
         //     {
-        //         "success" => true,
-        //         "code" => 0,
-        //         "data" => array()
+        //         "success": true,
+        //         "code": 0,
+        //         "data": []
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -5519,32 +5503,32 @@ class mexc extends Exchange {
         $response = Async\await($this->contractPrivateGetPositionOpenPositions($params));
         //
         //     {
-        //         "success" => true,
-        //         "code" => 0,
-        //         "data" => array(
+        //         "success": true,
+        //         "code": 0,
+        //         "data": [
         //             {
-        //                 "positionId" => 1394650,
-        //                 "symbol" => "ETH_USDT",
-        //                 "positionType" => 1,
-        //                 "openType" => 1,
-        //                 "state" => 1,
-        //                 "holdVol" => 1,
-        //                 "frozenVol" => 0,
-        //                 "closeVol" => 0,
-        //                 "holdAvgPrice" => 1217.3,
-        //                 "openAvgPrice" => 1217.3,
-        //                 "closeAvgPrice" => 0,
-        //                 "liquidatePrice" => 1211.2,
-        //                 "oim" => 0.1290338,
-        //                 "im" => 0.1290338,
-        //                 "holdFee" => 0,
-        //                 "realised" => -0.0073,
-        //                 "leverage" => 100,
-        //                 "createTime" => 1609991676000,
-        //                 "updateTime" => 1609991676000,
-        //                 "autoAddIm" => false
+        //                 "positionId": 1394650,
+        //                 "symbol": "ETH_USDT",
+        //                 "positionType": 1,
+        //                 "openType": 1,
+        //                 "state": 1,
+        //                 "holdVol": 1,
+        //                 "frozenVol": 0,
+        //                 "closeVol": 0,
+        //                 "holdAvgPrice": 1217.3,
+        //                 "openAvgPrice": 1217.3,
+        //                 "closeAvgPrice": 0,
+        //                 "liquidatePrice": 1211.2,
+        //                 "oim": 0.1290338,
+        //                 "im": 0.1290338,
+        //                 "holdFee": 0,
+        //                 "realised": -0.0073,
+        //                 "leverage": 100,
+        //                 "createTime": 1609991676000,
+        //                 "updateTime": 1609991676000,
+        //                 "autoAddIm": false
         //             }
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -5556,60 +5540,60 @@ class mexc extends Exchange {
         // fetchPositions
         //
         //     {
-        //         "positionId" => 1394650,
-        //         "symbol" => "ETH_USDT",
-        //         "positionType" => 1,
-        //         "openType" => 1,
-        //         "state" => 1,
-        //         "holdVol" => 1,
-        //         "frozenVol" => 0,
-        //         "closeVol" => 0,
-        //         "holdAvgPrice" => 1217.3,
-        //         "openAvgPrice" => 1217.3,
-        //         "closeAvgPrice" => 0,
-        //         "liquidatePrice" => 1211.2,
-        //         "oim" => 0.1290338,
-        //         "im" => 0.1290338,
-        //         "holdFee" => 0,
-        //         "realised" => -0.0073,
-        //         "leverage" => 100,
-        //         "createTime" => 1609991676000,
-        //         "updateTime" => 1609991676000,
-        //         "autoAddIm" => false
+        //         "positionId": 1394650,
+        //         "symbol": "ETH_USDT",
+        //         "positionType": 1,
+        //         "openType": 1,
+        //         "state": 1,
+        //         "holdVol": 1,
+        //         "frozenVol": 0,
+        //         "closeVol": 0,
+        //         "holdAvgPrice": 1217.3,
+        //         "openAvgPrice": 1217.3,
+        //         "closeAvgPrice": 0,
+        //         "liquidatePrice": 1211.2,
+        //         "oim": 0.1290338,
+        //         "im": 0.1290338,
+        //         "holdFee": 0,
+        //         "realised": -0.0073,
+        //         "leverage": 100,
+        //         "createTime": 1609991676000,
+        //         "updateTime": 1609991676000,
+        //         "autoAddIm": false
         //     }
         //
         // fetchPositionsHistory
         //
         //    {
-        //        positionId => '390281084',
-        //        $symbol => 'RVN_USDT',
-        //        positionType => '1',
-        //        $openType => '2',
-        //        state => '3',
-        //        holdVol => '0',
-        //        frozenVol => '0',
-        //        closeVol => '1141',
-        //        holdAvgPrice => '0.03491',
-        //        holdAvgPriceFullyScale => '0.03491',
-        //        openAvgPrice => '0.03491',
-        //        openAvgPriceFullyScale => '0.03491',
-        //        closeAvgPrice => '0.03494',
-        //        liquidatePrice => '0.03433',
-        //        oim => '0',
-        //        im => '0',
-        //        holdFee => '0',
-        //        realised => '0.1829',
-        //        $leverage => '50',
-        //        createTime => '1711512408000',
-        //        updateTime => '1711512553000',
-        //        autoAddIm => false,
-        //        version => '4',
-        //        profitRatio => '0.0227',
-        //        newOpenAvgPrice => '0.03491',
-        //        newCloseAvgPrice => '0.03494',
-        //        closeProfitLoss => '0.3423',
-        //        fee => '0.1593977',
-        //        positionShowStatus => 'CLOSED'
+        //        positionId: '390281084',
+        //        symbol: 'RVN_USDT',
+        //        positionType: '1',
+        //        openType: '2',
+        //        state: '3',
+        //        holdVol: '0',
+        //        frozenVol: '0',
+        //        closeVol: '1141',
+        //        holdAvgPrice: '0.03491',
+        //        holdAvgPriceFullyScale: '0.03491',
+        //        openAvgPrice: '0.03491',
+        //        openAvgPriceFullyScale: '0.03491',
+        //        closeAvgPrice: '0.03494',
+        //        liquidatePrice: '0.03433',
+        //        oim: '0',
+        //        im: '0',
+        //        holdFee: '0',
+        //        realised: '0.1829',
+        //        leverage: '50',
+        //        createTime: '1711512408000',
+        //        updateTime: '1711512553000',
+        //        autoAddIm: false,
+        //        version: '4',
+        //        profitRatio: '0.0227',
+        //        newOpenAvgPrice: '0.03491',
+        //        newCloseAvgPrice: '0.03494',
+        //        closeProfitLoss: '0.3423',
+        //        fee: '0.1593977',
+        //        positionShowStatus: 'CLOSED'
         //    }
         //
         $market = $this->safe_market($this->safe_string($position, 'symbol'), $market, null, 'swap');
@@ -5681,14 +5665,14 @@ class mexc extends Exchange {
             $response = Async\await($this->spotPrivateGetAssetInternalTransferRecord($this->extend($request, $query)));
             //
             //     {
-            //         "code" => "200",
-            //         "data" => {
-            //             "currency" => "USDT",
-            //             "amount" => "1",
-            //             "transact_id" => "954877a2ef54499db9b28a7cf9ebcf41",
-            //             "from" => "MAIN",
-            //             "to" => "CONTRACT",
-            //             "transact_state" => "SUCCESS"
+            //         "code": "200",
+            //         "data": {
+            //             "currency": "USDT",
+            //             "amount": "1",
+            //             "transact_id": "954877a2ef54499db9b28a7cf9ebcf41",
+            //             "from": "MAIN",
+            //             "to": "CONTRACT",
+            //             "transact_state": "SUCCESS"
             //         }
             //     }
             //
@@ -5765,20 +5749,20 @@ class mexc extends Exchange {
             //
             //
             // {
-            //     "rows" => array(
+            //     "rows": [
             //         {
-            //         "tranId" => "cdf0d2a618b5458c965baefe6b1d0859",
-            //         "clientTranId" => null,
-            //         "asset" => "USDT",
-            //         "amount" => "1",
-            //         "fromAccountType" => "FUTURES",
-            //         "toAccountType" => "SPOT",
-            //         "symbol" => null,
-            //         "status" => "SUCCESS",
-            //         "timestamp" => 1759328309000
+            //         "tranId": "cdf0d2a618b5458c965baefe6b1d0859",
+            //         "clientTranId": null,
+            //         "asset": "USDT",
+            //         "amount": "1",
+            //         "fromAccountType": "FUTURES",
+            //         "toAccountType": "SPOT",
+            //         "symbol": null,
+            //         "status": "SUCCESS",
+            //         "timestamp": 1759328309000
             //         }
-            //     ),
-            //     "total" => 1
+            //     ],
+            //     "total": 1
             // }
             $resultList = $this->safe_list($response, 'rows', array());
         } elseif ($marketType === 'swap') {
@@ -5790,25 +5774,25 @@ class mexc extends Exchange {
             $resultList = $this->safe_value($data, 'resultList');
             //
             //     {
-            //         "success" => true,
-            //         "code" => "0",
-            //         "data" => {
-            //             "pageSize" => "20",
-            //             "totalCount" => "10",
-            //             "totalPage" => "1",
-            //             "currentPage" => "1",
-            //             "resultList" => array(
-            //                 array(
-            //                     "id" => "2980812",
-            //                     "txid" => "fa8a1e7bf05940a3b7025856dc48d025",
-            //                     "currency" => "USDT",
-            //                     "amount" => "22.90213135",
-            //                     "type" => "IN",
-            //                     "state" => "SUCCESS",
-            //                     "createTime" => "1648849076000",
-            //                     "updateTime" => "1648849076000"
-            //                 ),
-            //             )
+            //         "success": true,
+            //         "code": "0",
+            //         "data": {
+            //             "pageSize": "20",
+            //             "totalCount": "10",
+            //             "totalPage": "1",
+            //             "currentPage": "1",
+            //             "resultList": [
+            //                 {
+            //                     "id": "2980812",
+            //                     "txid": "fa8a1e7bf05940a3b7025856dc48d025",
+            //                     "currency": "USDT",
+            //                     "amount": "22.90213135",
+            //                     "type": "IN",
+            //                     "state": "SUCCESS",
+            //                     "createTime": "1648849076000",
+            //                     "updateTime": "1648849076000"
+            //                 },
+            //             ]
             //         }
             //     }
             //
@@ -5871,7 +5855,7 @@ class mexc extends Exchange {
         $response = Async\await($this->spotPrivatePostCapitalTransfer($this->extend($request, $params)));
         //
         //     {
-        //         "tranId" => "ebb06123e6a64f4ab234b396c548d57e"
+        //         "tranId": "ebb06123e6a64f4ab234b396c548d57e"
         //     }
         //
         $transaction = $this->parse_transfer($response, $currency);
@@ -5884,45 +5868,45 @@ class mexc extends Exchange {
 
     public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
-        // spot => fetchTransfer
+        // spot: fetchTransfer
         //
         //     {
-        //         "currency" => "USDT",
-        //         "amount" => "1",
-        //         "transact_id" => "b60c1df8e7b24b268858003f374ecb75",
-        //         "from" => "MAIN",
-        //         "to" => "CONTRACT",
-        //         "transact_state" => "WAIT"
+        //         "currency": "USDT",
+        //         "amount": "1",
+        //         "transact_id": "b60c1df8e7b24b268858003f374ecb75",
+        //         "from": "MAIN",
+        //         "to": "CONTRACT",
+        //         "transact_state": "WAIT"
         //     }
         //
-        // swap => fetchTransfer
+        // swap: fetchTransfer
         //
         //     {
-        //         "currency" => "USDT",
-        //         "amount" => "22.90213135",
-        //         "txid" => "fa8a1e7bf05940a3b7025856dc48d025",
-        //         "id" => "2980812",
-        //         "type" => "IN",
-        //         "state" => "SUCCESS",
-        //         "createTime" => "1648849076000",
-        //         "updateTime" => "1648849076000"
+        //         "currency": "USDT",
+        //         "amount": "22.90213135",
+        //         "txid": "fa8a1e7bf05940a3b7025856dc48d025",
+        //         "id": "2980812",
+        //         "type": "IN",
+        //         "state": "SUCCESS",
+        //         "createTime": "1648849076000",
+        //         "updateTime": "1648849076000"
         //     }
         //         {
-        //         "tranId" => "cdf0d2a618b5458c965baefe6b1d0859",
-        //         "clientTranId" => null,
-        //         "asset" => "USDT",
-        //         "amount" => "1",
-        //         "fromAccountType" => "FUTURES",
-        //         "toAccountType" => "SPOT",
-        //         "symbol" => null,
-        //         "status" => "SUCCESS",
-        //         "timestamp" => 1759328309000
+        //         "tranId": "cdf0d2a618b5458c965baefe6b1d0859",
+        //         "clientTranId": null,
+        //         "asset": "USDT",
+        //         "amount": "1",
+        //         "fromAccountType": "FUTURES",
+        //         "toAccountType": "SPOT",
+        //         "symbol": null,
+        //         "status": "SUCCESS",
+        //         "timestamp": 1759328309000
         //         }
         //
-        // $transfer
+        // transfer
         //
         //     {
-        //         "tranId" => "ebb06123e6a64f4ab234b396c548d57e"
+        //         "tranId": "ebb06123e6a64f4ab234b396c548d57e"
         //     }
         //
         $currencyId = $this->safe_string_2($transfer, 'currency', 'asset');
@@ -5985,7 +5969,7 @@ class mexc extends Exchange {
          * make a withdrawal
          *
          * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/withdrawnew // on-chain withdrawal
-         * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/internal-transfer // $internal transfer
+         * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/internal-transfer // internal transfer
          *
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
@@ -6123,33 +6107,33 @@ class mexc extends Exchange {
         }
         $response = Async\await($this->spotPrivateGetCapitalConfigGetall($params));
         //
-        //    array(
+        //    [
         //       {
-        //           "coin" => "AGLD",
-        //           "name" => "Adventure Gold",
-        //           "networkList" => array(
-        //               array(
-        //                   "coin" => "AGLD",
-        //                   "depositDesc" => null,
-        //                   "depositEnable" => true,
-        //                   "minConfirm" => "0",
-        //                   "name" => "Adventure Gold",
-        //                   "network" => "ERC20",
-        //                   "withdrawEnable" => true,
-        //                   "withdrawFee" => "10.000000000000000000",
-        //                   "withdrawIntegerMultiple" => null,
-        //                   "withdrawMax" => "1200000.000000000000000000",
-        //                   "withdrawMin" => "20.000000000000000000",
-        //                   "sameAddress" => false,
-        //                   "contract" => "0x32353a6c91143bfd6c7d363b546e62a9a2489a20",
-        //                   "withdrawTips" => null,
-        //                   "depositTips" => null
+        //           "coin": "AGLD",
+        //           "name": "Adventure Gold",
+        //           "networkList": [
+        //               {
+        //                   "coin": "AGLD",
+        //                   "depositDesc": null,
+        //                   "depositEnable": true,
+        //                   "minConfirm": "0",
+        //                   "name": "Adventure Gold",
+        //                   "network": "ERC20",
+        //                   "withdrawEnable": true,
+        //                   "withdrawFee": "10.000000000000000000",
+        //                   "withdrawIntegerMultiple": null,
+        //                   "withdrawMax": "1200000.000000000000000000",
+        //                   "withdrawMin": "20.000000000000000000",
+        //                   "sameAddress": false,
+        //                   "contract": "0x32353a6c91143bfd6c7d363b546e62a9a2489a20",
+        //                   "withdrawTips": null,
+        //                   "depositTips": null
         //               }
         //               ...
-        //           )
-        //       ),
+        //           ]
+        //       },
         //       ...
-        //    )
+        //    ]
         //
         return $this->parse_transaction_fees($response, $codes);
     }
@@ -6175,31 +6159,31 @@ class mexc extends Exchange {
     public function parse_transaction_fee(mixed $transaction, ?array $currency = null) {
         //
         //    {
-        //        "coin" => "AGLD",
-        //        "name" => "Adventure Gold",
-        //        "networkList" => array(
+        //        "coin": "AGLD",
+        //        "name": "Adventure Gold",
+        //        "networkList": [
         //            {
-        //                "coin" => "AGLD",
-        //                "depositDesc" => null,
-        //                "depositEnable" => true,
-        //                "minConfirm" => "0",
-        //                "name" => "Adventure Gold",
-        //                "network" => "ERC20",
-        //                "withdrawEnable" => true,
-        //                "withdrawFee" => "10.000000000000000000",
-        //                "withdrawIntegerMultiple" => null,
-        //                "withdrawMax" => "1200000.000000000000000000",
-        //                "withdrawMin" => "20.000000000000000000",
-        //                "sameAddress" => false,
-        //                "contract" => "0x32353a6c91143bfd6c7d363b546e62a9a2489a20",
-        //                "withdrawTips" => null,
-        //                "depositTips" => null
+        //                "coin": "AGLD",
+        //                "depositDesc": null,
+        //                "depositEnable": true,
+        //                "minConfirm": "0",
+        //                "name": "Adventure Gold",
+        //                "network": "ERC20",
+        //                "withdrawEnable": true,
+        //                "withdrawFee": "10.000000000000000000",
+        //                "withdrawIntegerMultiple": null,
+        //                "withdrawMax": "1200000.000000000000000000",
+        //                "withdrawMin": "20.000000000000000000",
+        //                "sameAddress": false,
+        //                "contract": "0x32353a6c91143bfd6c7d363b546e62a9a2489a20",
+        //                "withdrawTips": null,
+        //                "depositTips": null
         //            }
         //            ...
-        //        )
+        //        ]
         //    }
         //
-        $networkList = $this->safe_value($transaction, 'networkList', array());
+        $networkList = $this->safe_list($transaction, 'networkList', array());
         $result = array();
         for ($j = 0; $j < count($networkList); $j++) {
             $networkEntry = $networkList[$j];
@@ -6230,33 +6214,33 @@ class mexc extends Exchange {
         }
         $response = Async\await($this->spotPrivateGetCapitalConfigGetall($params));
         //
-        //    array(
+        //    [
         //       {
-        //           "coin" => "AGLD",
-        //           "name" => "Adventure Gold",
-        //           "networkList" => array(
-        //               array(
-        //                   "coin" => "AGLD",
-        //                   "depositDesc" => null,
-        //                   "depositEnable" => true,
-        //                   "minConfirm" => "0",
-        //                   "name" => "Adventure Gold",
-        //                   "network" => "ERC20",
-        //                   "withdrawEnable" => true,
-        //                   "withdrawFee" => "10.000000000000000000",
-        //                   "withdrawIntegerMultiple" => null,
-        //                   "withdrawMax" => "1200000.000000000000000000",
-        //                   "withdrawMin" => "20.000000000000000000",
-        //                   "sameAddress" => false,
-        //                   "contract" => "0x32353a6c91143bfd6c7d363b546e62a9a2489a20",
-        //                   "withdrawTips" => null,
-        //                   "depositTips" => null
+        //           "coin": "AGLD",
+        //           "name": "Adventure Gold",
+        //           "networkList": [
+        //               {
+        //                   "coin": "AGLD",
+        //                   "depositDesc": null,
+        //                   "depositEnable": true,
+        //                   "minConfirm": "0",
+        //                   "name": "Adventure Gold",
+        //                   "network": "ERC20",
+        //                   "withdrawEnable": true,
+        //                   "withdrawFee": "10.000000000000000000",
+        //                   "withdrawIntegerMultiple": null,
+        //                   "withdrawMax": "1200000.000000000000000000",
+        //                   "withdrawMin": "20.000000000000000000",
+        //                   "sameAddress": false,
+        //                   "contract": "0x32353a6c91143bfd6c7d363b546e62a9a2489a20",
+        //                   "withdrawTips": null,
+        //                   "depositTips": null
         //               }
         //               ...
-        //           )
-        //       ),
+        //           ]
+        //       },
         //       ...
-        //    )
+        //    ]
         //
         return $this->parse_deposit_withdraw_fees($response, $codes, 'coin');
     }
@@ -6264,31 +6248,31 @@ class mexc extends Exchange {
     public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null) {
         //
         //    {
-        //        "coin" => "AGLD",
-        //        "name" => "Adventure Gold",
-        //        "networkList" => array(
+        //        "coin": "AGLD",
+        //        "name": "Adventure Gold",
+        //        "networkList": [
         //            {
-        //                "coin" => "AGLD",
-        //                "depositDesc" => null,
-        //                "depositEnable" => true,
-        //                "minConfirm" => "0",
-        //                "name" => "Adventure Gold",
-        //                "network" => "ERC20",
-        //                "withdrawEnable" => true,
-        //                "withdrawFee" => "10.000000000000000000",
-        //                "withdrawIntegerMultiple" => null,
-        //                "withdrawMax" => "1200000.000000000000000000",
-        //                "withdrawMin" => "20.000000000000000000",
-        //                "sameAddress" => false,
-        //                "contract" => "0x32353a6c91143bfd6c7d363b546e62a9a2489a20",
-        //                "withdrawTips" => null,
-        //                "depositTips" => null
+        //                "coin": "AGLD",
+        //                "depositDesc": null,
+        //                "depositEnable": true,
+        //                "minConfirm": "0",
+        //                "name": "Adventure Gold",
+        //                "network": "ERC20",
+        //                "withdrawEnable": true,
+        //                "withdrawFee": "10.000000000000000000",
+        //                "withdrawIntegerMultiple": null,
+        //                "withdrawMax": "1200000.000000000000000000",
+        //                "withdrawMin": "20.000000000000000000",
+        //                "sameAddress": false,
+        //                "contract": "0x32353a6c91143bfd6c7d363b546e62a9a2489a20",
+        //                "withdrawTips": null,
+        //                "depositTips": null
         //            }
         //            ...
-        //        )
+        //        ]
         //    }
         //
-        $networkList = $this->safe_value($fee, 'networkList', array());
+        $networkList = $this->safe_list($fee, 'networkList', array());
         $result = $this->deposit_withdraw_fee($fee);
         for ($j = 0; $j < count($networkList); $j++) {
             $networkEntry = $networkList[$j];
@@ -6334,32 +6318,32 @@ class mexc extends Exchange {
         $response = Async\await($this->contractPrivateGetPositionLeverage($this->extend($request, $params)));
         //
         //     {
-        //         "success" => true,
-        //         "code" => 0,
-        //         "data" => array(
-        //             array(
-        //                 "level" => 1,
-        //                 "maxVol" => 463300,
-        //                 "mmr" => 0.004,
-        //                 "imr" => 0.005,
-        //                 "positionType" => 1,
-        //                 "openType" => 1,
-        //                 "leverage" => 20,
-        //                 "limitBySys" => false,
-        //                 "currentMmr" => 0.004
-        //             ),
+        //         "success": true,
+        //         "code": 0,
+        //         "data": [
         //             {
-        //                 "level" => 1,
-        //                 "maxVol" => 463300,
-        //                 "mmr" => 0.004,
-        //                 "imr" => 0.005,
-        //                 "positionType" => 2,
-        //                 "openType" => 1,
-        //                 "leverage" => 20,
-        //                 "limitBySys" => false,
-        //                 "currentMmr" => 0.004
+        //                 "level": 1,
+        //                 "maxVol": 463300,
+        //                 "mmr": 0.004,
+        //                 "imr": 0.005,
+        //                 "positionType": 1,
+        //                 "openType": 1,
+        //                 "leverage": 20,
+        //                 "limitBySys": false,
+        //                 "currentMmr": 0.004
+        //             },
+        //             {
+        //                 "level": 1,
+        //                 "maxVol": 463300,
+        //                 "mmr": 0.004,
+        //                 "imr": 0.005,
+        //                 "positionType": 2,
+        //                 "openType": 1,
+        //                 "leverage": 20,
+        //                 "limitBySys": false,
+        //                 "currentMmr": 0.004
         //             }
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -6445,42 +6429,42 @@ class mexc extends Exchange {
         $response = Async\await($this->contractPrivateGetPositionListHistoryPositions($this->extend($request, $params)));
         //
         //    {
-        //        success => true,
-        //        code => '0',
-        //        $data => array(
-        //            array(
-        //                positionId => '390281084',
-        //                symbol => 'RVN_USDT',
-        //                positionType => '1',
-        //                openType => '2',
-        //                state => '3',
-        //                holdVol => '0',
-        //                frozenVol => '0',
-        //                closeVol => '1141',
-        //                holdAvgPrice => '0.03491',
-        //                holdAvgPriceFullyScale => '0.03491',
-        //                openAvgPrice => '0.03491',
-        //                openAvgPriceFullyScale => '0.03491',
-        //                closeAvgPrice => '0.03494',
-        //                liquidatePrice => '0.03433',
-        //                oim => '0',
-        //                im => '0',
-        //                holdFee => '0',
-        //                realised => '0.1829',
-        //                leverage => '50',
-        //                createTime => '1711512408000',
-        //                updateTime => '1711512553000',
-        //                autoAddIm => false,
-        //                version => '4',
-        //                profitRatio => '0.0227',
-        //                newOpenAvgPrice => '0.03491',
-        //                newCloseAvgPrice => '0.03494',
-        //                closeProfitLoss => '0.3423',
-        //                fee => '0.1593977',
-        //                positionShowStatus => 'CLOSED'
-        //            ),
+        //        success: true,
+        //        code: '0',
+        //        data: [
+        //            {
+        //                positionId: '390281084',
+        //                symbol: 'RVN_USDT',
+        //                positionType: '1',
+        //                openType: '2',
+        //                state: '3',
+        //                holdVol: '0',
+        //                frozenVol: '0',
+        //                closeVol: '1141',
+        //                holdAvgPrice: '0.03491',
+        //                holdAvgPriceFullyScale: '0.03491',
+        //                openAvgPrice: '0.03491',
+        //                openAvgPriceFullyScale: '0.03491',
+        //                closeAvgPrice: '0.03494',
+        //                liquidatePrice: '0.03433',
+        //                oim: '0',
+        //                im: '0',
+        //                holdFee: '0',
+        //                realised: '0.1829',
+        //                leverage: '50',
+        //                createTime: '1711512408000',
+        //                updateTime: '1711512553000',
+        //                autoAddIm: false,
+        //                version: '4',
+        //                profitRatio: '0.0227',
+        //                newOpenAvgPrice: '0.03491',
+        //                newCloseAvgPrice: '0.03494',
+        //                closeProfitLoss: '0.3423',
+        //                fee: '0.1593977',
+        //                positionShowStatus: 'CLOSED'
+        //            },
         //            ...
-        //        )
+        //        ]
         //    }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -6534,9 +6518,9 @@ class mexc extends Exchange {
         $params = $this->omit($params, 'direction');
         $response = Async\await($this->contractPrivatePostPositionChangeLeverage($this->extend($request, $params)));
         //
-        // array( success => true, code => '0' )
+        // { success: true, code: '0' }
         //
-        return $this->parse_leverage($response, $market); // widened to Dict to match the base setMarginMode return (array()) — narrowing it to Leverage breaks the Go IExchange interface
+        return $this->parse_leverage($response, $market); // widened to Dict to match the base setMarginMode return ({}) — narrowing it to Leverage breaks the Go IExchange interface
     }
 
     public function nonce() {
@@ -6625,14 +6609,14 @@ class mexc extends Exchange {
             return null;
         }
         // spot
-        //     array("code":-1128,"msg":"Combination of optional parameters invalid.","_extend":null)
-        //     array("success":false,"code":123456,"message":"Order quantity error....")
+        //     {"code":-1128,"msg":"Combination of optional parameters invalid.","_extend":null}
+        //     {"success":false,"code":123456,"message":"Order quantity error...."}
         //
         // contract
         //
-        //     array("code":10232,"msg":"The currency not exist")
-        //     array("code":10216,"msg":"No available deposit address")
-        //     array("success":true, "code":0, "data":1634095541710)
+        //     {"code":10232,"msg":"The currency not exist"}
+        //     {"code":10216,"msg":"No available deposit address"}
+        //     {"success":true, "code":0, "data":1634095541710}
         //
         $success = $this->safe_bool($response, 'success', false); // v1
         if ($success === true) {

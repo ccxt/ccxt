@@ -5,7 +5,7 @@ package io.github.ccxt.types;
 
 import java.util.Map;
 
-public final class BorrowInterest {
+public final class BorrowInterest extends TypedMap {
     public String symbol;
     public String currency;
     public Double interest;
@@ -18,6 +18,7 @@ public final class BorrowInterest {
 
     @SuppressWarnings("unchecked")
     public BorrowInterest(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.symbol = TypeHelper.safeString(data, "symbol");
         this.currency = TypeHelper.safeString(data, "currency");

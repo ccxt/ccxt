@@ -184,6 +184,8 @@ class bithumb(Exchange, ImplicitAPI):
                         'v1/orders/chance': {'cost': 1},
                         'v1/order': {'cost': 1},
                         'v1/orders': {'cost': 1},
+                        'v2/orders/pending': {'cost': 1},
+                        'v2/orders/history': {'cost': 1},
                         'v1/twap': {'cost': 1},
                         'v1/withdraws': {'cost': 1},
                         'v1/withdraws/krw': {'cost': 1},
@@ -219,6 +221,7 @@ class bithumb(Exchange, ImplicitAPI):
                         'v2/orders': {'cost': 1},
                         'v2/orders/batch': {'cost': 6},  # max 20 requests per second
                         'v2/orders/cancel': {'cost': 6},  # max 20 requests per second
+                        'v2/orders/search': {'cost': 1},
                         'v1/twap': {'cost': 1},
                         'v1/withdraws/coin': {'cost': 1},
                         'v1/withdraws/krw': {'cost': 1},
@@ -347,7 +350,7 @@ class bithumb(Exchange, ImplicitAPI):
                 '400': BadRequest,
                 'Bad Request(SSL)': BadRequest,
                 'Bad Request(Bad Method)': BadRequest,
-                'Bad Request.(Auth Data)': AuthenticationError,  # {"status": "5100", "message": "Bad Request.(Auth Data)"}
+                'Bad Request.(Auth Data)': AuthenticationError,  # { "status": "5100", "message": "Bad Request.(Auth Data)" }
                 'Not Member': AuthenticationError,
                 'Invalid Apikey': AuthenticationError,  # {"status":"5300","message":"Invalid Apikey"}
                 'Method Not Allowed.(Access IP)': PermissionDenied,
@@ -373,7 +376,7 @@ class bithumb(Exchange, ImplicitAPI):
             'options': {
                 'generation': 2,  # either API generation 1 or 2
                 # Bithumb v2 ticker endpoint returns HTTP 414 when the `markets` query string is too long.
-                # Keep self conservative to reduce requests while staying below URL-length limits.
+                # Keep this conservative to reduce requests while staying below URL-length limits.
                 'fetchTickersGeneration2MaxMarketIdsPerRequest': 300,
                 'createMarketBuyOrderRequiresPrice': True,
                 'quoteCurrencies': {
@@ -403,8 +406,8 @@ class bithumb(Exchange, ImplicitAPI):
 
     def safe_market(self, marketId: Str = None, market: Market = None, delimiter: Str = None, marketType: Str = None) -> MarketInterface:
         # bithumb has a different type of conflict in markets, because
-        # their ids are the base currency(BTC for instance), so we can have
-        # multiple "BTC" ids representing the different markets(BTC/ETH, "BTC/DOGE", etc)
+        # their ids are the base currency (BTC for instance), so we can have
+        # multiple "BTC" ids representing the different markets (BTC/ETH, "BTC/DOGE", etc)
         # since they're the same we just need to return one
         return super(bithumb, self).safe_market(marketId, market, delimiter, 'spot')
 
@@ -644,7 +647,7 @@ class bithumb(Exchange, ImplicitAPI):
         #             "balance": "51026",
         #             "locked": "0",
         #             "avg_buy_price": "0",
-        #             "avg_buy_price_modified": False,
+        #             "avg_buy_price_modified": false,
         #             "unit_currency": "KRW"
         #         },
         #     ]
@@ -700,7 +703,7 @@ class bithumb(Exchange, ImplicitAPI):
             #             "balance": "51026",
             #             "locked": "0",
             #             "avg_buy_price": "0",
-            #             "avg_buy_price_modified": False,
+            #             "avg_buy_price_modified": false,
             #             "unit_currency": "KRW"
             #         },
             #     ]
@@ -830,7 +833,7 @@ class bithumb(Exchange, ImplicitAPI):
         #         "acc_trade_value_24H":"34247610416.8974",
         #         "fluctate_24H":"8700",
         #         "fluctate_rate_24H":"3.96",
-        #         "date":"1587710327264",  # fetchTickers inject self
+        #         "date":"1587710327264", // fetchTickers inject this
         #     }
         #
         # generation 2: fetchTicker, fetchTickers
@@ -895,7 +898,7 @@ class bithumb(Exchange, ImplicitAPI):
         #         "lowest_52_week_price": 81110000,
         #         "lowest_52_week_date": "2026-02-06",
         #         "market_state": "ACTIVE",
-        #         "is_trading_suspended": False,
+        #         "is_trading_suspended": false,
         #         "delisting_date": "",
         #         "market_warning": "NONE",
         #         "timestamp": 1783655148485,
@@ -912,7 +915,7 @@ class bithumb(Exchange, ImplicitAPI):
         nonZeroOpen = self.omit_zero(open)
         if (marketId is not None) and (nonZeroOpen is not None) and (close is not None):
             computedChange = Precise.string_sub(close, open)
-            # Some v2 payloads return signed_change_price while open/last imply a non-zero move.
+            # Some v2 payloads return signed_change_price as 0 while open/last imply a non-zero move.
             if (change is not None) and Precise.string_eq(change, '0') and not Precise.string_eq(computedChange, '0'):
                 change = computedChange
                 percentage = None
@@ -1208,12 +1211,12 @@ class bithumb(Exchange, ImplicitAPI):
         # generation 1
         #
         #     [
-        #         1576823400000,  # 기준 시간
-        #         "8284000",  # 시가
-        #         "8286000",  # 종가
-        #         "8289000",  # 고가
-        #         "8276000",  # 저가
-        #         "15.41503692"  # 거래량
+        #         1576823400000, // 기준 시간
+        #         "8284000", // 시가
+        #         "8286000", // 종가
+        #         "8289000", // 고가
+        #         "8276000", // 저가
+        #         "15.41503692" // 거래량
         #     ]
         #
         # generation 2
@@ -1262,7 +1265,7 @@ class bithumb(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.generation]: if you want to use the API generation 1 or 2, default is 2
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1329,20 +1332,20 @@ class bithumb(Exchange, ImplicitAPI):
             #         "status": "0000",
             #         "data": {
             #             [
-            #                 1576823400000,  # 기준 시간
-            #                 "8284000",  # 시가
-            #                 "8286000",  # 종가
-            #                 "8289000",  # 고가
-            #                 "8276000",  # 저가
-            #                 "15.41503692"  # 거래량
+            #                 1576823400000, // 기준 시간
+            #                 "8284000", // 시가
+            #                 "8286000", // 종가
+            #                 "8289000", // 고가
+            #                 "8276000", // 저가
+            #                 "15.41503692" // 거래량
             #             ],
             #             [
-            #                 1576824000000,  # 기준 시간
-            #                 "8284000",  # 시가
-            #                 "8281000",  # 종가
-            #                 "8289000",  # 고가
-            #                 "8275000",  # 저가
-            #                 "6.19584467"  # 거래량
+            #                 1576824000000, // 기준 시간
+            #                 "8284000", // 시가
+            #                 "8281000", // 종가
+            #                 "8289000", // 고가
+            #                 "8275000", // 저가
+            #                 "6.19584467" // 거래량
             #             ],
             #         }
             #     }
@@ -1352,7 +1355,7 @@ class bithumb(Exchange, ImplicitAPI):
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
-        # generation 1: fetchTrades(public)
+        # generation 1: fetchTrades (public)
         #
         #     {
         #         "transaction_date":"2020-04-23 22:21:46",
@@ -1362,7 +1365,7 @@ class bithumb(Exchange, ImplicitAPI):
         #         "total":"108337"
         #     }
         #
-        # generation 1: fetchOrder(private)
+        # generation 1: fetchOrder (private)
         #
         #     {
         #         "transaction_date": "1572497603902030",
@@ -1648,7 +1651,7 @@ class bithumb(Exchange, ImplicitAPI):
                 createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
                 if createMarketBuyOrderRequiresPrice:
                     if (price is None) and (cost is None):
-                        raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
+                        raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
                     else:
                         amountString = self.number_to_string(amount)
                         priceString = self.number_to_string(price)
@@ -1766,7 +1769,7 @@ class bithumb(Exchange, ImplicitAPI):
 
     async def create_twap_order(self, symbol: str, side: OrderSide, amount: float, duration: float, params={}) -> Order:
         """
-        create a trade order that is executed TWAP order over a specified duration.
+        create a trade order that is executed as a TWAP order over a specified duration.
 
         https://apidocs.bithumb.com/reference/twap-%EC%A3%BC%EB%AC%B8-%EC%9A%94%EC%B2%AD
 
@@ -1846,7 +1849,7 @@ class bithumb(Exchange, ImplicitAPI):
                 response = await self.privateGetV1Twap(self.extend(request, params))
                 #
                 #     {
-                #         "has_next": False,
+                #         "has_next": false,
                 #         "next_key": null,
                 #         "orders": [
                 #             {
@@ -1968,14 +1971,14 @@ class bithumb(Exchange, ImplicitAPI):
         #     {
         #         "transaction_date": "1572497603668315",
         #         "type": "bid",
-        #         "order_status": "Completed",  # Completed, Cancel ...
+        #         "order_status": "Completed", // Completed, Cancel ...
         #         "order_currency": "BTC",
         #         "payment_currency": "KRW",
-        #         "watch_price": "0",  # present in Cancel order
+        #         "watch_price": "0", // present in Cancel order
         #         "order_price": "8601000",
         #         "order_qty": "0.007",
-        #         "cancel_date": "",  # filled in Cancel order
-        #         "cancel_type": "",  # filled in Cancel order, i.e. 사용자취소
+        #         "cancel_date": "", // filled in Cancel order
+        #         "cancel_type": "", // filled in Cancel order, i.e. 사용자취소
         #         "contract": [
         #             {
         #                 "transaction_date": "1572497603902030",
@@ -2276,7 +2279,7 @@ class bithumb(Exchange, ImplicitAPI):
             response = await self.privateGetV1Twap(self.extend(request, params))
             #
             #     {
-            #         "has_next": False,
+            #         "has_next": false,
             #         "next_key": null,
             #         "orders": [
             #             {
@@ -2429,7 +2432,7 @@ class bithumb(Exchange, ImplicitAPI):
                 raise ArgumentsRequired(self.id + ' cancelOrder() requires a market with defined base and quote')
             side_in_params = ('side' in params)
             if not side_in_params:
-                raise ArgumentsRequired(self.id + ' cancelOrder() requires a `side` parameter(sell or buy)')
+                raise ArgumentsRequired(self.id + ' cancelOrder() requires a `side` parameter (sell or buy)')
             side = None
             if params['side'] == 'buy':
                 side = 'bid'
@@ -3061,7 +3064,7 @@ class bithumb(Exchange, ImplicitAPI):
         }
 
     def fix_comma_number(self, numberStr: object):
-        # some endpoints need self https://github.com/ccxt/ccxt/issues/11031
+        # some endpoints need this https://github.com/ccxt/ccxt/issues/11031
         if numberStr is None:
             return None
         finalNumberStr = numberStr
@@ -3105,6 +3108,9 @@ class bithumb(Exchange, ImplicitAPI):
         queryKeysLength = len(queryKeys)
         hasQuery = (queryKeysLength > 0)
         if api == 'public':
+            headers = {
+                'OPEN-API-PARTNER': 'CCXT',
+            }
             if hasQuery:
                 url += '?' + self.urlencode(query)
         else:
@@ -3113,6 +3119,7 @@ class bithumb(Exchange, ImplicitAPI):
             if isVersionedApi:
                 headers = {
                     'Accept': 'application/json',
+                    'OPEN-API-PARTNER': 'CCXT',
                 }
                 request = {
                     'access_key': self.apiKey,
@@ -3151,6 +3158,7 @@ class bithumb(Exchange, ImplicitAPI):
                     'Api-Key': self.apiKey,
                     'Api-Sign': signature64,
                     'Api-Nonce': nonce,
+                    'OPEN-API-PARTNER': 'CCXT',
                 }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 

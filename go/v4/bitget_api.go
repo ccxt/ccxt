@@ -8,3186 +8,3956 @@
 package ccxt
 
 // PublicCommonGetV2PublicAnnoucements returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicCommonGetV2PublicAnnoucements(args ...any) <-chan any {
+func (this *Bitget) PublicCommonGetV2PublicAnnoucements(args ...any) <-chan any {
 	return this.callEndpointAsync("publicCommonGetV2PublicAnnoucements", args...)
 }
 
 // PublicCommonGetV2PublicTime returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicCommonGetV2PublicTime(args ...any) <-chan any {
+func (this *Bitget) PublicCommonGetV2PublicTime(args ...any) <-chan any {
 	return this.callEndpointAsync("publicCommonGetV2PublicTime", args...)
 }
 
 // PublicSpotGetSpotV1NoticeQueryAllNotices returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicSpotGetSpotV1NoticeQueryAllNotices(args ...any) <-chan any {
+func (this *Bitget) PublicSpotGetSpotV1NoticeQueryAllNotices(args ...any) <-chan any {
 	return this.callEndpointAsync("publicSpotGetSpotV1NoticeQueryAllNotices", args...)
 }
 
 // PublicSpotGetSpotV1PublicTime returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicSpotGetSpotV1PublicTime(args ...any) <-chan any {
+func (this *Bitget) PublicSpotGetSpotV1PublicTime(args ...any) <-chan any {
 	return this.callEndpointAsync("publicSpotGetSpotV1PublicTime", args...)
 }
 
 // PublicSpotGetSpotV1PublicCurrencies returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicSpotGetSpotV1PublicCurrencies(args ...any) <-chan any {
+func (this *Bitget) PublicSpotGetSpotV1PublicCurrencies(args ...any) <-chan any {
 	return this.callEndpointAsync("publicSpotGetSpotV1PublicCurrencies", args...)
 }
 
 // PublicSpotGetSpotV1PublicProducts returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicSpotGetSpotV1PublicProducts(args ...any) <-chan any {
+func (this *Bitget) PublicSpotGetSpotV1PublicProducts(args ...any) <-chan any {
 	return this.callEndpointAsync("publicSpotGetSpotV1PublicProducts", args...)
 }
 
 // PublicSpotGetSpotV1PublicProduct returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicSpotGetSpotV1PublicProduct(args ...any) <-chan any {
+func (this *Bitget) PublicSpotGetSpotV1PublicProduct(args ...any) <-chan any {
 	return this.callEndpointAsync("publicSpotGetSpotV1PublicProduct", args...)
 }
 
 // PublicSpotGetSpotV1MarketTicker returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicSpotGetSpotV1MarketTicker(args ...any) <-chan any {
+func (this *Bitget) PublicSpotGetSpotV1MarketTicker(args ...any) <-chan any {
 	return this.callEndpointAsync("publicSpotGetSpotV1MarketTicker", args...)
 }
 
 // PublicSpotGetSpotV1MarketTickers returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicSpotGetSpotV1MarketTickers(args ...any) <-chan any {
+func (this *Bitget) PublicSpotGetSpotV1MarketTickers(args ...any) <-chan any {
 	return this.callEndpointAsync("publicSpotGetSpotV1MarketTickers", args...)
 }
 
 // PublicSpotGetSpotV1MarketFills returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicSpotGetSpotV1MarketFills(args ...any) <-chan any {
+func (this *Bitget) PublicSpotGetSpotV1MarketFills(args ...any) <-chan any {
 	return this.callEndpointAsync("publicSpotGetSpotV1MarketFills", args...)
 }
 
 // PublicSpotGetSpotV1MarketFillsHistory returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicSpotGetSpotV1MarketFillsHistory(args ...any) <-chan any {
+func (this *Bitget) PublicSpotGetSpotV1MarketFillsHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("publicSpotGetSpotV1MarketFillsHistory", args...)
 }
 
 // PublicSpotGetSpotV1MarketCandles returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicSpotGetSpotV1MarketCandles(args ...any) <-chan any {
+func (this *Bitget) PublicSpotGetSpotV1MarketCandles(args ...any) <-chan any {
 	return this.callEndpointAsync("publicSpotGetSpotV1MarketCandles", args...)
 }
 
 // PublicSpotGetSpotV1MarketDepth returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicSpotGetSpotV1MarketDepth(args ...any) <-chan any {
+func (this *Bitget) PublicSpotGetSpotV1MarketDepth(args ...any) <-chan any {
 	return this.callEndpointAsync("publicSpotGetSpotV1MarketDepth", args...)
 }
 
 // PublicSpotGetSpotV1MarketSpotVipLevel returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicSpotGetSpotV1MarketSpotVipLevel(args ...any) <-chan any {
+func (this *Bitget) PublicSpotGetSpotV1MarketSpotVipLevel(args ...any) <-chan any {
 	return this.callEndpointAsync("publicSpotGetSpotV1MarketSpotVipLevel", args...)
 }
 
 // PublicSpotGetSpotV1MarketMergeDepth returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicSpotGetSpotV1MarketMergeDepth(args ...any) <-chan any {
+func (this *Bitget) PublicSpotGetSpotV1MarketMergeDepth(args ...any) <-chan any {
 	return this.callEndpointAsync("publicSpotGetSpotV1MarketMergeDepth", args...)
 }
 
 // PublicSpotGetSpotV1MarketHistoryCandles returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicSpotGetSpotV1MarketHistoryCandles(args ...any) <-chan any {
+func (this *Bitget) PublicSpotGetSpotV1MarketHistoryCandles(args ...any) <-chan any {
 	return this.callEndpointAsync("publicSpotGetSpotV1MarketHistoryCandles", args...)
 }
 
 // PublicSpotGetSpotV1PublicLoanCoinInfos returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicSpotGetSpotV1PublicLoanCoinInfos(args ...any) <-chan any {
+func (this *Bitget) PublicSpotGetSpotV1PublicLoanCoinInfos(args ...any) <-chan any {
 	return this.callEndpointAsync("publicSpotGetSpotV1PublicLoanCoinInfos", args...)
 }
 
 // PublicSpotGetSpotV1PublicLoanHourInterest returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicSpotGetSpotV1PublicLoanHourInterest(args ...any) <-chan any {
+func (this *Bitget) PublicSpotGetSpotV1PublicLoanHourInterest(args ...any) <-chan any {
 	return this.callEndpointAsync("publicSpotGetSpotV1PublicLoanHourInterest", args...)
 }
 
 // PublicSpotGetV2SpotPublicCoins returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicSpotGetV2SpotPublicCoins(args ...any) <-chan any {
+func (this *Bitget) PublicSpotGetV2SpotPublicCoins(args ...any) <-chan any {
 	return this.callEndpointAsync("publicSpotGetV2SpotPublicCoins", args...)
 }
 
 // PublicSpotGetV2SpotPublicSymbols returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicSpotGetV2SpotPublicSymbols(args ...any) <-chan any {
+func (this *Bitget) PublicSpotGetV2SpotPublicSymbols(args ...any) <-chan any {
 	return this.callEndpointAsync("publicSpotGetV2SpotPublicSymbols", args...)
 }
 
 // PublicSpotGetV2SpotMarketVipFeeRate returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicSpotGetV2SpotMarketVipFeeRate(args ...any) <-chan any {
+func (this *Bitget) PublicSpotGetV2SpotMarketVipFeeRate(args ...any) <-chan any {
 	return this.callEndpointAsync("publicSpotGetV2SpotMarketVipFeeRate", args...)
 }
 
 // PublicSpotGetV2SpotMarketTickers returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicSpotGetV2SpotMarketTickers(args ...any) <-chan any {
+func (this *Bitget) PublicSpotGetV2SpotMarketTickers(args ...any) <-chan any {
 	return this.callEndpointAsync("publicSpotGetV2SpotMarketTickers", args...)
 }
 
 // PublicSpotGetV2SpotMarketMergeDepth returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicSpotGetV2SpotMarketMergeDepth(args ...any) <-chan any {
+func (this *Bitget) PublicSpotGetV2SpotMarketMergeDepth(args ...any) <-chan any {
 	return this.callEndpointAsync("publicSpotGetV2SpotMarketMergeDepth", args...)
 }
 
 // PublicSpotGetV2SpotMarketOrderbook returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicSpotGetV2SpotMarketOrderbook(args ...any) <-chan any {
+func (this *Bitget) PublicSpotGetV2SpotMarketOrderbook(args ...any) <-chan any {
 	return this.callEndpointAsync("publicSpotGetV2SpotMarketOrderbook", args...)
 }
 
 // PublicSpotGetV2SpotMarketCandles returns a channel that yields a JSON object, a JSON array or a JSON scalar.
-func (this *BitgetCore) PublicSpotGetV2SpotMarketCandles(args ...any) <-chan any {
+func (this *Bitget) PublicSpotGetV2SpotMarketCandles(args ...any) <-chan any {
 	return this.callEndpointAsync("publicSpotGetV2SpotMarketCandles", args...)
 }
 
 // PublicSpotGetV2SpotMarketHistoryCandles returns a channel that yields a JSON object, a JSON array or a JSON scalar.
-func (this *BitgetCore) PublicSpotGetV2SpotMarketHistoryCandles(args ...any) <-chan any {
+func (this *Bitget) PublicSpotGetV2SpotMarketHistoryCandles(args ...any) <-chan any {
 	return this.callEndpointAsync("publicSpotGetV2SpotMarketHistoryCandles", args...)
 }
 
 // PublicSpotGetV2SpotMarketFills returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicSpotGetV2SpotMarketFills(args ...any) <-chan any {
+func (this *Bitget) PublicSpotGetV2SpotMarketFills(args ...any) <-chan any {
 	return this.callEndpointAsync("publicSpotGetV2SpotMarketFills", args...)
 }
 
 // PublicSpotGetV2SpotMarketFillsHistory returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicSpotGetV2SpotMarketFillsHistory(args ...any) <-chan any {
+func (this *Bitget) PublicSpotGetV2SpotMarketFillsHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("publicSpotGetV2SpotMarketFillsHistory", args...)
 }
 
 // PublicMixGetMixV1MarketContracts returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicMixGetMixV1MarketContracts(args ...any) <-chan any {
+func (this *Bitget) PublicMixGetMixV1MarketContracts(args ...any) <-chan any {
 	return this.callEndpointAsync("publicMixGetMixV1MarketContracts", args...)
 }
 
 // PublicMixGetMixV1MarketDepth returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicMixGetMixV1MarketDepth(args ...any) <-chan any {
+func (this *Bitget) PublicMixGetMixV1MarketDepth(args ...any) <-chan any {
 	return this.callEndpointAsync("publicMixGetMixV1MarketDepth", args...)
 }
 
 // PublicMixGetMixV1MarketTicker returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicMixGetMixV1MarketTicker(args ...any) <-chan any {
+func (this *Bitget) PublicMixGetMixV1MarketTicker(args ...any) <-chan any {
 	return this.callEndpointAsync("publicMixGetMixV1MarketTicker", args...)
 }
 
 // PublicMixGetMixV1MarketTickers returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicMixGetMixV1MarketTickers(args ...any) <-chan any {
+func (this *Bitget) PublicMixGetMixV1MarketTickers(args ...any) <-chan any {
 	return this.callEndpointAsync("publicMixGetMixV1MarketTickers", args...)
 }
 
 // PublicMixGetMixV1MarketContractVipLevel returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicMixGetMixV1MarketContractVipLevel(args ...any) <-chan any {
+func (this *Bitget) PublicMixGetMixV1MarketContractVipLevel(args ...any) <-chan any {
 	return this.callEndpointAsync("publicMixGetMixV1MarketContractVipLevel", args...)
 }
 
 // PublicMixGetMixV1MarketFills returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicMixGetMixV1MarketFills(args ...any) <-chan any {
+func (this *Bitget) PublicMixGetMixV1MarketFills(args ...any) <-chan any {
 	return this.callEndpointAsync("publicMixGetMixV1MarketFills", args...)
 }
 
 // PublicMixGetMixV1MarketFillsHistory returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicMixGetMixV1MarketFillsHistory(args ...any) <-chan any {
+func (this *Bitget) PublicMixGetMixV1MarketFillsHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("publicMixGetMixV1MarketFillsHistory", args...)
 }
 
 // PublicMixGetMixV1MarketCandles returns a channel that yields a JSON array.
-func (this *BitgetCore) PublicMixGetMixV1MarketCandles(args ...any) <-chan any {
+func (this *Bitget) PublicMixGetMixV1MarketCandles(args ...any) <-chan any {
 	return this.callEndpointAsync("publicMixGetMixV1MarketCandles", args...)
 }
 
 // PublicMixGetMixV1MarketIndex returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicMixGetMixV1MarketIndex(args ...any) <-chan any {
+func (this *Bitget) PublicMixGetMixV1MarketIndex(args ...any) <-chan any {
 	return this.callEndpointAsync("publicMixGetMixV1MarketIndex", args...)
 }
 
 // PublicMixGetMixV1MarketFundingTime returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicMixGetMixV1MarketFundingTime(args ...any) <-chan any {
+func (this *Bitget) PublicMixGetMixV1MarketFundingTime(args ...any) <-chan any {
 	return this.callEndpointAsync("publicMixGetMixV1MarketFundingTime", args...)
 }
 
 // PublicMixGetMixV1MarketHistoryFundRate returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicMixGetMixV1MarketHistoryFundRate(args ...any) <-chan any {
+func (this *Bitget) PublicMixGetMixV1MarketHistoryFundRate(args ...any) <-chan any {
 	return this.callEndpointAsync("publicMixGetMixV1MarketHistoryFundRate", args...)
 }
 
 // PublicMixGetMixV1MarketCurrentFundRate returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicMixGetMixV1MarketCurrentFundRate(args ...any) <-chan any {
+func (this *Bitget) PublicMixGetMixV1MarketCurrentFundRate(args ...any) <-chan any {
 	return this.callEndpointAsync("publicMixGetMixV1MarketCurrentFundRate", args...)
 }
 
 // PublicMixGetMixV1MarketOpenInterest returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicMixGetMixV1MarketOpenInterest(args ...any) <-chan any {
+func (this *Bitget) PublicMixGetMixV1MarketOpenInterest(args ...any) <-chan any {
 	return this.callEndpointAsync("publicMixGetMixV1MarketOpenInterest", args...)
 }
 
 // PublicMixGetMixV1MarketMarkPrice returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicMixGetMixV1MarketMarkPrice(args ...any) <-chan any {
+func (this *Bitget) PublicMixGetMixV1MarketMarkPrice(args ...any) <-chan any {
 	return this.callEndpointAsync("publicMixGetMixV1MarketMarkPrice", args...)
 }
 
 // PublicMixGetMixV1MarketSymbolLeverage returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicMixGetMixV1MarketSymbolLeverage(args ...any) <-chan any {
+func (this *Bitget) PublicMixGetMixV1MarketSymbolLeverage(args ...any) <-chan any {
 	return this.callEndpointAsync("publicMixGetMixV1MarketSymbolLeverage", args...)
 }
 
 // PublicMixGetMixV1MarketQueryPositionLever returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicMixGetMixV1MarketQueryPositionLever(args ...any) <-chan any {
+func (this *Bitget) PublicMixGetMixV1MarketQueryPositionLever(args ...any) <-chan any {
 	return this.callEndpointAsync("publicMixGetMixV1MarketQueryPositionLever", args...)
 }
 
 // PublicMixGetMixV1MarketOpenLimit returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicMixGetMixV1MarketOpenLimit(args ...any) <-chan any {
+func (this *Bitget) PublicMixGetMixV1MarketOpenLimit(args ...any) <-chan any {
 	return this.callEndpointAsync("publicMixGetMixV1MarketOpenLimit", args...)
 }
 
 // PublicMixGetMixV1MarketHistoryCandles returns a channel that yields a JSON array.
-func (this *BitgetCore) PublicMixGetMixV1MarketHistoryCandles(args ...any) <-chan any {
+func (this *Bitget) PublicMixGetMixV1MarketHistoryCandles(args ...any) <-chan any {
 	return this.callEndpointAsync("publicMixGetMixV1MarketHistoryCandles", args...)
 }
 
 // PublicMixGetMixV1MarketHistoryIndexCandles returns a channel that yields a JSON array.
-func (this *BitgetCore) PublicMixGetMixV1MarketHistoryIndexCandles(args ...any) <-chan any {
+func (this *Bitget) PublicMixGetMixV1MarketHistoryIndexCandles(args ...any) <-chan any {
 	return this.callEndpointAsync("publicMixGetMixV1MarketHistoryIndexCandles", args...)
 }
 
 // PublicMixGetMixV1MarketHistoryMarkCandles returns a channel that yields a JSON array.
-func (this *BitgetCore) PublicMixGetMixV1MarketHistoryMarkCandles(args ...any) <-chan any {
+func (this *Bitget) PublicMixGetMixV1MarketHistoryMarkCandles(args ...any) <-chan any {
 	return this.callEndpointAsync("publicMixGetMixV1MarketHistoryMarkCandles", args...)
 }
 
 // PublicMixGetMixV1MarketMergeDepth returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicMixGetMixV1MarketMergeDepth(args ...any) <-chan any {
+func (this *Bitget) PublicMixGetMixV1MarketMergeDepth(args ...any) <-chan any {
 	return this.callEndpointAsync("publicMixGetMixV1MarketMergeDepth", args...)
 }
 
 // PublicMixGetV2MixMarketVipFeeRate returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicMixGetV2MixMarketVipFeeRate(args ...any) <-chan any {
+func (this *Bitget) PublicMixGetV2MixMarketVipFeeRate(args ...any) <-chan any {
 	return this.callEndpointAsync("publicMixGetV2MixMarketVipFeeRate", args...)
 }
 
 // PublicMixGetV2MixMarketUnionInterestRateHistory returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicMixGetV2MixMarketUnionInterestRateHistory(args ...any) <-chan any {
+func (this *Bitget) PublicMixGetV2MixMarketUnionInterestRateHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("publicMixGetV2MixMarketUnionInterestRateHistory", args...)
 }
 
 // PublicMixGetV2MixMarketExchangeRate returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicMixGetV2MixMarketExchangeRate(args ...any) <-chan any {
+func (this *Bitget) PublicMixGetV2MixMarketExchangeRate(args ...any) <-chan any {
 	return this.callEndpointAsync("publicMixGetV2MixMarketExchangeRate", args...)
 }
 
 // PublicMixGetV2MixMarketDiscountRate returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicMixGetV2MixMarketDiscountRate(args ...any) <-chan any {
+func (this *Bitget) PublicMixGetV2MixMarketDiscountRate(args ...any) <-chan any {
 	return this.callEndpointAsync("publicMixGetV2MixMarketDiscountRate", args...)
 }
 
 // PublicMixGetV2MixMarketMergeDepth returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicMixGetV2MixMarketMergeDepth(args ...any) <-chan any {
+func (this *Bitget) PublicMixGetV2MixMarketMergeDepth(args ...any) <-chan any {
 	return this.callEndpointAsync("publicMixGetV2MixMarketMergeDepth", args...)
 }
 
 // PublicMixGetV2MixMarketTicker returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicMixGetV2MixMarketTicker(args ...any) <-chan any {
+func (this *Bitget) PublicMixGetV2MixMarketTicker(args ...any) <-chan any {
 	return this.callEndpointAsync("publicMixGetV2MixMarketTicker", args...)
 }
 
 // PublicMixGetV2MixMarketTickers returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicMixGetV2MixMarketTickers(args ...any) <-chan any {
+func (this *Bitget) PublicMixGetV2MixMarketTickers(args ...any) <-chan any {
 	return this.callEndpointAsync("publicMixGetV2MixMarketTickers", args...)
 }
 
 // PublicMixGetV2MixMarketFills returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicMixGetV2MixMarketFills(args ...any) <-chan any {
+func (this *Bitget) PublicMixGetV2MixMarketFills(args ...any) <-chan any {
 	return this.callEndpointAsync("publicMixGetV2MixMarketFills", args...)
 }
 
 // PublicMixGetV2MixMarketFillsHistory returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicMixGetV2MixMarketFillsHistory(args ...any) <-chan any {
+func (this *Bitget) PublicMixGetV2MixMarketFillsHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("publicMixGetV2MixMarketFillsHistory", args...)
 }
 
 // PublicMixGetV2MixMarketCandles returns a channel that yields a JSON object, a JSON array or a JSON scalar.
-func (this *BitgetCore) PublicMixGetV2MixMarketCandles(args ...any) <-chan any {
+func (this *Bitget) PublicMixGetV2MixMarketCandles(args ...any) <-chan any {
 	return this.callEndpointAsync("publicMixGetV2MixMarketCandles", args...)
 }
 
 // PublicMixGetV2MixMarketHistoryCandles returns a channel that yields a JSON object, a JSON array or a JSON scalar.
-func (this *BitgetCore) PublicMixGetV2MixMarketHistoryCandles(args ...any) <-chan any {
+func (this *Bitget) PublicMixGetV2MixMarketHistoryCandles(args ...any) <-chan any {
 	return this.callEndpointAsync("publicMixGetV2MixMarketHistoryCandles", args...)
 }
 
 // PublicMixGetV2MixMarketHistoryIndexCandles returns a channel that yields a JSON object, a JSON array or a JSON scalar.
-func (this *BitgetCore) PublicMixGetV2MixMarketHistoryIndexCandles(args ...any) <-chan any {
+func (this *Bitget) PublicMixGetV2MixMarketHistoryIndexCandles(args ...any) <-chan any {
 	return this.callEndpointAsync("publicMixGetV2MixMarketHistoryIndexCandles", args...)
 }
 
 // PublicMixGetV2MixMarketHistoryMarkCandles returns a channel that yields a JSON object, a JSON array or a JSON scalar.
-func (this *BitgetCore) PublicMixGetV2MixMarketHistoryMarkCandles(args ...any) <-chan any {
+func (this *Bitget) PublicMixGetV2MixMarketHistoryMarkCandles(args ...any) <-chan any {
 	return this.callEndpointAsync("publicMixGetV2MixMarketHistoryMarkCandles", args...)
 }
 
 // PublicMixGetV2MixMarketOpenInterest returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicMixGetV2MixMarketOpenInterest(args ...any) <-chan any {
+func (this *Bitget) PublicMixGetV2MixMarketOpenInterest(args ...any) <-chan any {
 	return this.callEndpointAsync("publicMixGetV2MixMarketOpenInterest", args...)
 }
 
 // PublicMixGetV2MixMarketFundingTime returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicMixGetV2MixMarketFundingTime(args ...any) <-chan any {
+func (this *Bitget) PublicMixGetV2MixMarketFundingTime(args ...any) <-chan any {
 	return this.callEndpointAsync("publicMixGetV2MixMarketFundingTime", args...)
 }
 
 // PublicMixGetV2MixMarketSymbolPrice returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicMixGetV2MixMarketSymbolPrice(args ...any) <-chan any {
+func (this *Bitget) PublicMixGetV2MixMarketSymbolPrice(args ...any) <-chan any {
 	return this.callEndpointAsync("publicMixGetV2MixMarketSymbolPrice", args...)
 }
 
 // PublicMixGetV2MixMarketHistoryFundRate returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicMixGetV2MixMarketHistoryFundRate(args ...any) <-chan any {
+func (this *Bitget) PublicMixGetV2MixMarketHistoryFundRate(args ...any) <-chan any {
 	return this.callEndpointAsync("publicMixGetV2MixMarketHistoryFundRate", args...)
 }
 
 // PublicMixGetV2MixMarketCurrentFundRate returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicMixGetV2MixMarketCurrentFundRate(args ...any) <-chan any {
+func (this *Bitget) PublicMixGetV2MixMarketCurrentFundRate(args ...any) <-chan any {
 	return this.callEndpointAsync("publicMixGetV2MixMarketCurrentFundRate", args...)
 }
 
 // PublicMixGetV2MixMarketOiLimit returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicMixGetV2MixMarketOiLimit(args ...any) <-chan any {
+func (this *Bitget) PublicMixGetV2MixMarketOiLimit(args ...any) <-chan any {
 	return this.callEndpointAsync("publicMixGetV2MixMarketOiLimit", args...)
 }
 
 // PublicMixGetV2MixMarketContracts returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicMixGetV2MixMarketContracts(args ...any) <-chan any {
+func (this *Bitget) PublicMixGetV2MixMarketContracts(args ...any) <-chan any {
 	return this.callEndpointAsync("publicMixGetV2MixMarketContracts", args...)
 }
 
 // PublicMixGetV2MixMarketQueryPositionLever returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicMixGetV2MixMarketQueryPositionLever(args ...any) <-chan any {
+func (this *Bitget) PublicMixGetV2MixMarketQueryPositionLever(args ...any) <-chan any {
 	return this.callEndpointAsync("publicMixGetV2MixMarketQueryPositionLever", args...)
 }
 
 // PublicMixGetV2MixMarketAccountLongShort returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicMixGetV2MixMarketAccountLongShort(args ...any) <-chan any {
+func (this *Bitget) PublicMixGetV2MixMarketAccountLongShort(args ...any) <-chan any {
 	return this.callEndpointAsync("publicMixGetV2MixMarketAccountLongShort", args...)
 }
 
 // PublicMarginGetMarginV1CrossPublicInterestRateAndLimit returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicMarginGetMarginV1CrossPublicInterestRateAndLimit(args ...any) <-chan any {
+func (this *Bitget) PublicMarginGetMarginV1CrossPublicInterestRateAndLimit(args ...any) <-chan any {
 	return this.callEndpointAsync("publicMarginGetMarginV1CrossPublicInterestRateAndLimit", args...)
 }
 
 // PublicMarginGetMarginV1IsolatedPublicInterestRateAndLimit returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicMarginGetMarginV1IsolatedPublicInterestRateAndLimit(args ...any) <-chan any {
+func (this *Bitget) PublicMarginGetMarginV1IsolatedPublicInterestRateAndLimit(args ...any) <-chan any {
 	return this.callEndpointAsync("publicMarginGetMarginV1IsolatedPublicInterestRateAndLimit", args...)
 }
 
 // PublicMarginGetMarginV1CrossPublicTierData returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicMarginGetMarginV1CrossPublicTierData(args ...any) <-chan any {
+func (this *Bitget) PublicMarginGetMarginV1CrossPublicTierData(args ...any) <-chan any {
 	return this.callEndpointAsync("publicMarginGetMarginV1CrossPublicTierData", args...)
 }
 
 // PublicMarginGetMarginV1IsolatedPublicTierData returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicMarginGetMarginV1IsolatedPublicTierData(args ...any) <-chan any {
+func (this *Bitget) PublicMarginGetMarginV1IsolatedPublicTierData(args ...any) <-chan any {
 	return this.callEndpointAsync("publicMarginGetMarginV1IsolatedPublicTierData", args...)
 }
 
 // PublicMarginGetMarginV1PublicCurrencies returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicMarginGetMarginV1PublicCurrencies(args ...any) <-chan any {
+func (this *Bitget) PublicMarginGetMarginV1PublicCurrencies(args ...any) <-chan any {
 	return this.callEndpointAsync("publicMarginGetMarginV1PublicCurrencies", args...)
 }
 
 // PublicMarginGetV2MarginCurrencies returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicMarginGetV2MarginCurrencies(args ...any) <-chan any {
+func (this *Bitget) PublicMarginGetV2MarginCurrencies(args ...any) <-chan any {
 	return this.callEndpointAsync("publicMarginGetV2MarginCurrencies", args...)
 }
 
 // PublicMarginGetV2MarginMarketLongShortRatio returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicMarginGetV2MarginMarketLongShortRatio(args ...any) <-chan any {
+func (this *Bitget) PublicMarginGetV2MarginMarketLongShortRatio(args ...any) <-chan any {
 	return this.callEndpointAsync("publicMarginGetV2MarginMarketLongShortRatio", args...)
 }
 
 // PublicEarnGetV2EarnLoanPublicCoinInfos returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicEarnGetV2EarnLoanPublicCoinInfos(args ...any) <-chan any {
+func (this *Bitget) PublicEarnGetV2EarnLoanPublicCoinInfos(args ...any) <-chan any {
 	return this.callEndpointAsync("publicEarnGetV2EarnLoanPublicCoinInfos", args...)
 }
 
 // PublicEarnGetV2EarnLoanPublicHourInterest returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicEarnGetV2EarnLoanPublicHourInterest(args ...any) <-chan any {
+func (this *Bitget) PublicEarnGetV2EarnLoanPublicHourInterest(args ...any) <-chan any {
 	return this.callEndpointAsync("publicEarnGetV2EarnLoanPublicHourInterest", args...)
 }
 
 // PublicUtaGetV3MarketInstruments returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicUtaGetV3MarketInstruments(args ...any) <-chan any {
+func (this *Bitget) PublicUtaGetV3MarketInstruments(args ...any) <-chan any {
 	return this.callEndpointAsync("publicUtaGetV3MarketInstruments", args...)
 }
 
 // PublicUtaGetV3MarketTickers returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicUtaGetV3MarketTickers(args ...any) <-chan any {
+func (this *Bitget) PublicUtaGetV3MarketTickers(args ...any) <-chan any {
 	return this.callEndpointAsync("publicUtaGetV3MarketTickers", args...)
 }
 
 // PublicUtaGetV3MarketOrderbook returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicUtaGetV3MarketOrderbook(args ...any) <-chan any {
+func (this *Bitget) PublicUtaGetV3MarketOrderbook(args ...any) <-chan any {
 	return this.callEndpointAsync("publicUtaGetV3MarketOrderbook", args...)
 }
 
 // PublicUtaGetV3MarketFills returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicUtaGetV3MarketFills(args ...any) <-chan any {
+func (this *Bitget) PublicUtaGetV3MarketFills(args ...any) <-chan any {
 	return this.callEndpointAsync("publicUtaGetV3MarketFills", args...)
 }
 
 // PublicUtaGetV3MarketProofOfReserves returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicUtaGetV3MarketProofOfReserves(args ...any) <-chan any {
+func (this *Bitget) PublicUtaGetV3MarketProofOfReserves(args ...any) <-chan any {
 	return this.callEndpointAsync("publicUtaGetV3MarketProofOfReserves", args...)
 }
 
 // PublicUtaGetV3MarketOpenInterest returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicUtaGetV3MarketOpenInterest(args ...any) <-chan any {
+func (this *Bitget) PublicUtaGetV3MarketOpenInterest(args ...any) <-chan any {
 	return this.callEndpointAsync("publicUtaGetV3MarketOpenInterest", args...)
 }
 
 // PublicUtaGetV3MarketCandles returns a channel that yields a JSON object, a JSON array or a JSON scalar.
-func (this *BitgetCore) PublicUtaGetV3MarketCandles(args ...any) <-chan any {
+func (this *Bitget) PublicUtaGetV3MarketCandles(args ...any) <-chan any {
 	return this.callEndpointAsync("publicUtaGetV3MarketCandles", args...)
 }
 
 // PublicUtaGetV3MarketHistoryCandles returns a channel that yields a JSON object, a JSON array or a JSON scalar.
-func (this *BitgetCore) PublicUtaGetV3MarketHistoryCandles(args ...any) <-chan any {
+func (this *Bitget) PublicUtaGetV3MarketHistoryCandles(args ...any) <-chan any {
 	return this.callEndpointAsync("publicUtaGetV3MarketHistoryCandles", args...)
 }
 
 // PublicUtaGetV3MarketCurrentFundRate returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicUtaGetV3MarketCurrentFundRate(args ...any) <-chan any {
+func (this *Bitget) PublicUtaGetV3MarketCurrentFundRate(args ...any) <-chan any {
 	return this.callEndpointAsync("publicUtaGetV3MarketCurrentFundRate", args...)
 }
 
 // PublicUtaGetV3MarketHistoryFundRate returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicUtaGetV3MarketHistoryFundRate(args ...any) <-chan any {
+func (this *Bitget) PublicUtaGetV3MarketHistoryFundRate(args ...any) <-chan any {
 	return this.callEndpointAsync("publicUtaGetV3MarketHistoryFundRate", args...)
 }
 
 // PublicUtaGetV3MarketRiskReserve returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicUtaGetV3MarketRiskReserve(args ...any) <-chan any {
+func (this *Bitget) PublicUtaGetV3MarketRiskReserve(args ...any) <-chan any {
 	return this.callEndpointAsync("publicUtaGetV3MarketRiskReserve", args...)
 }
 
 // PublicUtaGetV3MarketDiscountRate returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicUtaGetV3MarketDiscountRate(args ...any) <-chan any {
+func (this *Bitget) PublicUtaGetV3MarketDiscountRate(args ...any) <-chan any {
 	return this.callEndpointAsync("publicUtaGetV3MarketDiscountRate", args...)
 }
 
 // PublicUtaGetV3MarketMarginLoans returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicUtaGetV3MarketMarginLoans(args ...any) <-chan any {
+func (this *Bitget) PublicUtaGetV3MarketMarginLoans(args ...any) <-chan any {
 	return this.callEndpointAsync("publicUtaGetV3MarketMarginLoans", args...)
 }
 
 // PublicUtaGetV3MarketPositionTier returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicUtaGetV3MarketPositionTier(args ...any) <-chan any {
+func (this *Bitget) PublicUtaGetV3MarketPositionTier(args ...any) <-chan any {
 	return this.callEndpointAsync("publicUtaGetV3MarketPositionTier", args...)
 }
 
 // PublicUtaGetV3MarketOiLimit returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicUtaGetV3MarketOiLimit(args ...any) <-chan any {
+func (this *Bitget) PublicUtaGetV3MarketOiLimit(args ...any) <-chan any {
 	return this.callEndpointAsync("publicUtaGetV3MarketOiLimit", args...)
 }
 
 // PublicUtaGetV3MarketIndexComponents returns a channel that yields a JSON object.
-func (this *BitgetCore) PublicUtaGetV3MarketIndexComponents(args ...any) <-chan any {
+func (this *Bitget) PublicUtaGetV3MarketIndexComponents(args ...any) <-chan any {
 	return this.callEndpointAsync("publicUtaGetV3MarketIndexComponents", args...)
 }
 
+// PublicUtaGetV3MarketRiskReserveAll returns a channel that yields a JSON object.
+func (this *Bitget) PublicUtaGetV3MarketRiskReserveAll(args ...any) <-chan any {
+	return this.callEndpointAsync("publicUtaGetV3MarketRiskReserveAll", args...)
+}
+
+// PublicUtaGetV3MarketRiskReserveHour returns a channel that yields a JSON object.
+func (this *Bitget) PublicUtaGetV3MarketRiskReserveHour(args ...any) <-chan any {
+	return this.callEndpointAsync("publicUtaGetV3MarketRiskReserveHour", args...)
+}
+
+// PublicUtaGetV3MarketScoreWeights returns a channel that yields a JSON object.
+func (this *Bitget) PublicUtaGetV3MarketScoreWeights(args ...any) <-chan any {
+	return this.callEndpointAsync("publicUtaGetV3MarketScoreWeights", args...)
+}
+
+// PublicUtaGetV3MarketFeeGroup returns a channel that yields a JSON object.
+func (this *Bitget) PublicUtaGetV3MarketFeeGroup(args ...any) <-chan any {
+	return this.callEndpointAsync("publicUtaGetV3MarketFeeGroup", args...)
+}
+
+// PublicUtaGetV3MarketCashDividendRecords returns a channel that yields a JSON object.
+func (this *Bitget) PublicUtaGetV3MarketCashDividendRecords(args ...any) <-chan any {
+	return this.callEndpointAsync("publicUtaGetV3MarketCashDividendRecords", args...)
+}
+
+// PublicUtaGetV3MarketSplitRecords returns a channel that yields a JSON object.
+func (this *Bitget) PublicUtaGetV3MarketSplitRecords(args ...any) <-chan any {
+	return this.callEndpointAsync("publicUtaGetV3MarketSplitRecords", args...)
+}
+
+// PublicUtaGetV3MarketLiquidations returns a channel that yields a JSON object.
+func (this *Bitget) PublicUtaGetV3MarketLiquidations(args ...any) <-chan any {
+	return this.callEndpointAsync("publicUtaGetV3MarketLiquidations", args...)
+}
+
+// PublicUtaGetV3MarketRpiOrderbook returns a channel that yields a JSON object.
+func (this *Bitget) PublicUtaGetV3MarketRpiOrderbook(args ...any) <-chan any {
+	return this.callEndpointAsync("publicUtaGetV3MarketRpiOrderbook", args...)
+}
+
+// PublicUtaGetV3MarketRpiSymbols returns a channel that yields a JSON object.
+func (this *Bitget) PublicUtaGetV3MarketRpiSymbols(args ...any) <-chan any {
+	return this.callEndpointAsync("publicUtaGetV3MarketRpiSymbols", args...)
+}
+
+// PublicUtaGetV3MarketSpotWhaleFlow returns a channel that yields a JSON object.
+func (this *Bitget) PublicUtaGetV3MarketSpotWhaleFlow(args ...any) <-chan any {
+	return this.callEndpointAsync("publicUtaGetV3MarketSpotWhaleFlow", args...)
+}
+
+// PublicUtaGetV3MarketSpotFundFlow returns a channel that yields a JSON object.
+func (this *Bitget) PublicUtaGetV3MarketSpotFundFlow(args ...any) <-chan any {
+	return this.callEndpointAsync("publicUtaGetV3MarketSpotFundFlow", args...)
+}
+
+// PublicUtaGetV3MarketSpotNetFlow returns a channel that yields a JSON object.
+func (this *Bitget) PublicUtaGetV3MarketSpotNetFlow(args ...any) <-chan any {
+	return this.callEndpointAsync("publicUtaGetV3MarketSpotNetFlow", args...)
+}
+
+// PublicUtaGetV3MarketMarginLongShort returns a channel that yields a JSON object.
+func (this *Bitget) PublicUtaGetV3MarketMarginLongShort(args ...any) <-chan any {
+	return this.callEndpointAsync("publicUtaGetV3MarketMarginLongShort", args...)
+}
+
+// PublicUtaGetV3MarketMarginLoanGrowth returns a channel that yields a JSON object.
+func (this *Bitget) PublicUtaGetV3MarketMarginLoanGrowth(args ...any) <-chan any {
+	return this.callEndpointAsync("publicUtaGetV3MarketMarginLoanGrowth", args...)
+}
+
+// PublicUtaGetV3MarketMarginIsolatedBorrow returns a channel that yields a JSON object.
+func (this *Bitget) PublicUtaGetV3MarketMarginIsolatedBorrow(args ...any) <-chan any {
+	return this.callEndpointAsync("publicUtaGetV3MarketMarginIsolatedBorrow", args...)
+}
+
+// PublicUtaGetV3MarketFuturesActiveBuySell returns a channel that yields a JSON object.
+func (this *Bitget) PublicUtaGetV3MarketFuturesActiveBuySell(args ...any) <-chan any {
+	return this.callEndpointAsync("publicUtaGetV3MarketFuturesActiveBuySell", args...)
+}
+
+// PublicUtaGetV3MarketFuturesLongShort returns a channel that yields a JSON object.
+func (this *Bitget) PublicUtaGetV3MarketFuturesLongShort(args ...any) <-chan any {
+	return this.callEndpointAsync("publicUtaGetV3MarketFuturesLongShort", args...)
+}
+
+// PublicUtaGetV3MarketFuturesPositionLongShort returns a channel that yields a JSON object.
+func (this *Bitget) PublicUtaGetV3MarketFuturesPositionLongShort(args ...any) <-chan any {
+	return this.callEndpointAsync("publicUtaGetV3MarketFuturesPositionLongShort", args...)
+}
+
+// PublicUtaGetV3MarketFuturesAccountLongShort returns a channel that yields a JSON object.
+func (this *Bitget) PublicUtaGetV3MarketFuturesAccountLongShort(args ...any) <-chan any {
+	return this.callEndpointAsync("publicUtaGetV3MarketFuturesAccountLongShort", args...)
+}
+
+// PublicUtaGetV3RealityMarketStockInfo returns a channel that yields a JSON object.
+func (this *Bitget) PublicUtaGetV3RealityMarketStockInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("publicUtaGetV3RealityMarketStockInfo", args...)
+}
+
+// PublicUtaGetV3RealityMarketStates returns a channel that yields a JSON object.
+func (this *Bitget) PublicUtaGetV3RealityMarketStates(args ...any) <-chan any {
+	return this.callEndpointAsync("publicUtaGetV3RealityMarketStates", args...)
+}
+
+// PublicUtaGetV3RealityMarketCalendar returns a channel that yields a JSON object.
+func (this *Bitget) PublicUtaGetV3RealityMarketCalendar(args ...any) <-chan any {
+	return this.callEndpointAsync("publicUtaGetV3RealityMarketCalendar", args...)
+}
+
+// PublicUtaGetV3RealityMarketCompanyOverview returns a channel that yields a JSON object.
+func (this *Bitget) PublicUtaGetV3RealityMarketCompanyOverview(args ...any) <-chan any {
+	return this.callEndpointAsync("publicUtaGetV3RealityMarketCompanyOverview", args...)
+}
+
+// PublicUtaGetV3RealityMarketValuationIndicators returns a channel that yields a JSON object.
+func (this *Bitget) PublicUtaGetV3RealityMarketValuationIndicators(args ...any) <-chan any {
+	return this.callEndpointAsync("publicUtaGetV3RealityMarketValuationIndicators", args...)
+}
+
+// PublicUtaGetV3RealityMarketEarningsForecast returns a channel that yields a JSON object.
+func (this *Bitget) PublicUtaGetV3RealityMarketEarningsForecast(args ...any) <-chan any {
+	return this.callEndpointAsync("publicUtaGetV3RealityMarketEarningsForecast", args...)
+}
+
+// PublicUtaGetV3RealityMarketSuspensionResumptionInfo returns a channel that yields a JSON object.
+func (this *Bitget) PublicUtaGetV3RealityMarketSuspensionResumptionInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("publicUtaGetV3RealityMarketSuspensionResumptionInfo", args...)
+}
+
+// PublicUtaGetV3RealityMarketDividends returns a channel that yields a JSON object.
+func (this *Bitget) PublicUtaGetV3RealityMarketDividends(args ...any) <-chan any {
+	return this.callEndpointAsync("publicUtaGetV3RealityMarketDividends", args...)
+}
+
+// PublicUtaGetV3RealityMarketShareCapitalChange returns a channel that yields a JSON object.
+func (this *Bitget) PublicUtaGetV3RealityMarketShareCapitalChange(args ...any) <-chan any {
+	return this.callEndpointAsync("publicUtaGetV3RealityMarketShareCapitalChange", args...)
+}
+
+// PublicUtaGetV3RealityMarketInnerTrades returns a channel that yields a JSON object.
+func (this *Bitget) PublicUtaGetV3RealityMarketInnerTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("publicUtaGetV3RealityMarketInnerTrades", args...)
+}
+
+// PublicUtaGetV3RealityMarketExecutiveShareholdings returns a channel that yields a JSON object.
+func (this *Bitget) PublicUtaGetV3RealityMarketExecutiveShareholdings(args ...any) <-chan any {
+	return this.callEndpointAsync("publicUtaGetV3RealityMarketExecutiveShareholdings", args...)
+}
+
+// PublicUtaGetV3RealityMarketShareholdDetail returns a channel that yields a JSON object.
+func (this *Bitget) PublicUtaGetV3RealityMarketShareholdDetail(args ...any) <-chan any {
+	return this.callEndpointAsync("publicUtaGetV3RealityMarketShareholdDetail", args...)
+}
+
+// PublicUtaGetV3AccountCustomCollateralCoins returns a channel that yields a JSON object.
+func (this *Bitget) PublicUtaGetV3AccountCustomCollateralCoins(args ...any) <-chan any {
+	return this.callEndpointAsync("publicUtaGetV3AccountCustomCollateralCoins", args...)
+}
+
 // PrivateSpotGetSpotV1WalletDepositAddress returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotGetSpotV1WalletDepositAddress(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotGetSpotV1WalletDepositAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotGetSpotV1WalletDepositAddress", args...)
 }
 
 // PrivateSpotGetSpotV1WalletWithdrawalList returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotGetSpotV1WalletWithdrawalList(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotGetSpotV1WalletWithdrawalList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotGetSpotV1WalletWithdrawalList", args...)
 }
 
 // PrivateSpotGetSpotV1WalletDepositList returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotGetSpotV1WalletDepositList(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotGetSpotV1WalletDepositList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotGetSpotV1WalletDepositList", args...)
 }
 
 // PrivateSpotGetSpotV1AccountGetInfo returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotGetSpotV1AccountGetInfo(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotGetSpotV1AccountGetInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotGetSpotV1AccountGetInfo", args...)
 }
 
 // PrivateSpotGetSpotV1AccountAssets returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotGetSpotV1AccountAssets(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotGetSpotV1AccountAssets(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotGetSpotV1AccountAssets", args...)
 }
 
 // PrivateSpotGetSpotV1AccountAssetsLite returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotGetSpotV1AccountAssetsLite(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotGetSpotV1AccountAssetsLite(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotGetSpotV1AccountAssetsLite", args...)
 }
 
 // PrivateSpotGetSpotV1AccountTransferRecords returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotGetSpotV1AccountTransferRecords(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotGetSpotV1AccountTransferRecords(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotGetSpotV1AccountTransferRecords", args...)
 }
 
 // PrivateSpotGetSpotV1ConvertCurrencies returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotGetSpotV1ConvertCurrencies(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotGetSpotV1ConvertCurrencies(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotGetSpotV1ConvertCurrencies", args...)
 }
 
 // PrivateSpotGetSpotV1ConvertConvertRecord returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotGetSpotV1ConvertConvertRecord(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotGetSpotV1ConvertConvertRecord(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotGetSpotV1ConvertConvertRecord", args...)
 }
 
 // PrivateSpotGetSpotV1LoanOngoingOrders returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotGetSpotV1LoanOngoingOrders(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotGetSpotV1LoanOngoingOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotGetSpotV1LoanOngoingOrders", args...)
 }
 
 // PrivateSpotGetSpotV1LoanRepayHistory returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotGetSpotV1LoanRepayHistory(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotGetSpotV1LoanRepayHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotGetSpotV1LoanRepayHistory", args...)
 }
 
 // PrivateSpotGetSpotV1LoanReviseHistory returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotGetSpotV1LoanReviseHistory(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotGetSpotV1LoanReviseHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotGetSpotV1LoanReviseHistory", args...)
 }
 
 // PrivateSpotGetSpotV1LoanBorrowHistory returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotGetSpotV1LoanBorrowHistory(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotGetSpotV1LoanBorrowHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotGetSpotV1LoanBorrowHistory", args...)
 }
 
 // PrivateSpotGetSpotV1LoanDebts returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotGetSpotV1LoanDebts(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotGetSpotV1LoanDebts(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotGetSpotV1LoanDebts", args...)
 }
 
 // PrivateSpotGetV2SpotTradeOrderInfo returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotGetV2SpotTradeOrderInfo(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotGetV2SpotTradeOrderInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotGetV2SpotTradeOrderInfo", args...)
 }
 
 // PrivateSpotGetV2SpotTradeUnfilledOrders returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotGetV2SpotTradeUnfilledOrders(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotGetV2SpotTradeUnfilledOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotGetV2SpotTradeUnfilledOrders", args...)
 }
 
 // PrivateSpotGetV2SpotTradeHistoryOrders returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotGetV2SpotTradeHistoryOrders(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotGetV2SpotTradeHistoryOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotGetV2SpotTradeHistoryOrders", args...)
 }
 
 // PrivateSpotGetV2SpotTradeFills returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotGetV2SpotTradeFills(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotGetV2SpotTradeFills(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotGetV2SpotTradeFills", args...)
 }
 
 // PrivateSpotGetV2SpotTradeCurrentPlanOrder returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotGetV2SpotTradeCurrentPlanOrder(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotGetV2SpotTradeCurrentPlanOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotGetV2SpotTradeCurrentPlanOrder", args...)
 }
 
 // PrivateSpotGetV2SpotTradeHistoryPlanOrder returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotGetV2SpotTradeHistoryPlanOrder(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotGetV2SpotTradeHistoryPlanOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotGetV2SpotTradeHistoryPlanOrder", args...)
 }
 
 // PrivateSpotGetV2SpotAccountInfo returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotGetV2SpotAccountInfo(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotGetV2SpotAccountInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotGetV2SpotAccountInfo", args...)
 }
 
 // PrivateSpotGetV2SpotAccountAssets returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotGetV2SpotAccountAssets(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotGetV2SpotAccountAssets(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotGetV2SpotAccountAssets", args...)
 }
 
 // PrivateSpotGetV2SpotAccountSubaccountAssets returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotGetV2SpotAccountSubaccountAssets(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotGetV2SpotAccountSubaccountAssets(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotGetV2SpotAccountSubaccountAssets", args...)
 }
 
 // PrivateSpotGetV2SpotAccountBills returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotGetV2SpotAccountBills(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotGetV2SpotAccountBills(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotGetV2SpotAccountBills", args...)
 }
 
 // PrivateSpotGetV2SpotAccountTransferRecords returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotGetV2SpotAccountTransferRecords(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotGetV2SpotAccountTransferRecords(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotGetV2SpotAccountTransferRecords", args...)
 }
 
 // PrivateSpotGetV2AccountFundingAssets returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotGetV2AccountFundingAssets(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotGetV2AccountFundingAssets(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotGetV2AccountFundingAssets", args...)
 }
 
 // PrivateSpotGetV2AccountBotAssets returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotGetV2AccountBotAssets(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotGetV2AccountBotAssets(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotGetV2AccountBotAssets", args...)
 }
 
 // PrivateSpotGetV2AccountAllAccountBalance returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotGetV2AccountAllAccountBalance(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotGetV2AccountAllAccountBalance(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotGetV2AccountAllAccountBalance", args...)
 }
 
 // PrivateSpotGetV2SpotWalletDepositAddress returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotGetV2SpotWalletDepositAddress(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotGetV2SpotWalletDepositAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotGetV2SpotWalletDepositAddress", args...)
 }
 
 // PrivateSpotGetV2SpotWalletDepositRecords returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotGetV2SpotWalletDepositRecords(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotGetV2SpotWalletDepositRecords(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotGetV2SpotWalletDepositRecords", args...)
 }
 
 // PrivateSpotGetV2SpotWalletWithdrawalRecords returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotGetV2SpotWalletWithdrawalRecords(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotGetV2SpotWalletWithdrawalRecords(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotGetV2SpotWalletWithdrawalRecords", args...)
 }
 
 // PrivateSpotGetV2SpotAccountUpgradeStatus returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotGetV2SpotAccountUpgradeStatus(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotGetV2SpotAccountUpgradeStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotGetV2SpotAccountUpgradeStatus", args...)
 }
 
 // PrivateSpotPostSpotV1WalletTransfer returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostSpotV1WalletTransfer(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostSpotV1WalletTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostSpotV1WalletTransfer", args...)
 }
 
 // PrivateSpotPostSpotV1WalletTransferV2 returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostSpotV1WalletTransferV2(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostSpotV1WalletTransferV2(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostSpotV1WalletTransferV2", args...)
 }
 
 // PrivateSpotPostSpotV1WalletSubTransfer returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostSpotV1WalletSubTransfer(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostSpotV1WalletSubTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostSpotV1WalletSubTransfer", args...)
 }
 
 // PrivateSpotPostSpotV1WalletWithdrawal returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostSpotV1WalletWithdrawal(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostSpotV1WalletWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostSpotV1WalletWithdrawal", args...)
 }
 
 // PrivateSpotPostSpotV1WalletWithdrawalV2 returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostSpotV1WalletWithdrawalV2(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostSpotV1WalletWithdrawalV2(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostSpotV1WalletWithdrawalV2", args...)
 }
 
 // PrivateSpotPostSpotV1WalletWithdrawalInner returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostSpotV1WalletWithdrawalInner(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostSpotV1WalletWithdrawalInner(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostSpotV1WalletWithdrawalInner", args...)
 }
 
 // PrivateSpotPostSpotV1WalletWithdrawalInnerV2 returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostSpotV1WalletWithdrawalInnerV2(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostSpotV1WalletWithdrawalInnerV2(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostSpotV1WalletWithdrawalInnerV2", args...)
 }
 
 // PrivateSpotPostSpotV1AccountSubAccountSpotAssets returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostSpotV1AccountSubAccountSpotAssets(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostSpotV1AccountSubAccountSpotAssets(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostSpotV1AccountSubAccountSpotAssets", args...)
 }
 
 // PrivateSpotPostSpotV1AccountBills returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostSpotV1AccountBills(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostSpotV1AccountBills(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostSpotV1AccountBills", args...)
 }
 
 // PrivateSpotPostSpotV1TradeOrders returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostSpotV1TradeOrders(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostSpotV1TradeOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostSpotV1TradeOrders", args...)
 }
 
 // PrivateSpotPostSpotV1TradeBatchOrders returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostSpotV1TradeBatchOrders(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostSpotV1TradeBatchOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostSpotV1TradeBatchOrders", args...)
 }
 
 // PrivateSpotPostSpotV1TradeCancelOrder returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostSpotV1TradeCancelOrder(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostSpotV1TradeCancelOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostSpotV1TradeCancelOrder", args...)
 }
 
 // PrivateSpotPostSpotV1TradeCancelOrderV2 returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostSpotV1TradeCancelOrderV2(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostSpotV1TradeCancelOrderV2(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostSpotV1TradeCancelOrderV2", args...)
 }
 
 // PrivateSpotPostSpotV1TradeCancelSymbolOrder returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostSpotV1TradeCancelSymbolOrder(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostSpotV1TradeCancelSymbolOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostSpotV1TradeCancelSymbolOrder", args...)
 }
 
 // PrivateSpotPostSpotV1TradeCancelBatchOrders returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostSpotV1TradeCancelBatchOrders(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostSpotV1TradeCancelBatchOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostSpotV1TradeCancelBatchOrders", args...)
 }
 
 // PrivateSpotPostSpotV1TradeCancelBatchOrdersV2 returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostSpotV1TradeCancelBatchOrdersV2(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostSpotV1TradeCancelBatchOrdersV2(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostSpotV1TradeCancelBatchOrdersV2", args...)
 }
 
 // PrivateSpotPostSpotV1TradeOrderInfo returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostSpotV1TradeOrderInfo(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostSpotV1TradeOrderInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostSpotV1TradeOrderInfo", args...)
 }
 
 // PrivateSpotPostSpotV1TradeOpenOrders returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostSpotV1TradeOpenOrders(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostSpotV1TradeOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostSpotV1TradeOpenOrders", args...)
 }
 
 // PrivateSpotPostSpotV1TradeHistory returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostSpotV1TradeHistory(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostSpotV1TradeHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostSpotV1TradeHistory", args...)
 }
 
 // PrivateSpotPostSpotV1TradeFills returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostSpotV1TradeFills(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostSpotV1TradeFills(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostSpotV1TradeFills", args...)
 }
 
 // PrivateSpotPostSpotV1PlanPlacePlan returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostSpotV1PlanPlacePlan(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostSpotV1PlanPlacePlan(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostSpotV1PlanPlacePlan", args...)
 }
 
 // PrivateSpotPostSpotV1PlanModifyPlan returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostSpotV1PlanModifyPlan(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostSpotV1PlanModifyPlan(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostSpotV1PlanModifyPlan", args...)
 }
 
 // PrivateSpotPostSpotV1PlanCancelPlan returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostSpotV1PlanCancelPlan(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostSpotV1PlanCancelPlan(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostSpotV1PlanCancelPlan", args...)
 }
 
 // PrivateSpotPostSpotV1PlanCurrentPlan returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostSpotV1PlanCurrentPlan(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostSpotV1PlanCurrentPlan(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostSpotV1PlanCurrentPlan", args...)
 }
 
 // PrivateSpotPostSpotV1PlanHistoryPlan returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostSpotV1PlanHistoryPlan(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostSpotV1PlanHistoryPlan(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostSpotV1PlanHistoryPlan", args...)
 }
 
 // PrivateSpotPostSpotV1PlanBatchCancelPlan returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostSpotV1PlanBatchCancelPlan(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostSpotV1PlanBatchCancelPlan(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostSpotV1PlanBatchCancelPlan", args...)
 }
 
 // PrivateSpotPostSpotV1ConvertQuotedPrice returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostSpotV1ConvertQuotedPrice(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostSpotV1ConvertQuotedPrice(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostSpotV1ConvertQuotedPrice", args...)
 }
 
 // PrivateSpotPostSpotV1ConvertTrade returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostSpotV1ConvertTrade(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostSpotV1ConvertTrade(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostSpotV1ConvertTrade", args...)
 }
 
 // PrivateSpotPostSpotV1LoanBorrow returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostSpotV1LoanBorrow(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostSpotV1LoanBorrow(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostSpotV1LoanBorrow", args...)
 }
 
 // PrivateSpotPostSpotV1LoanRepay returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostSpotV1LoanRepay(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostSpotV1LoanRepay(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostSpotV1LoanRepay", args...)
 }
 
 // PrivateSpotPostSpotV1LoanRevisePledge returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostSpotV1LoanRevisePledge(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostSpotV1LoanRevisePledge(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostSpotV1LoanRevisePledge", args...)
 }
 
 // PrivateSpotPostSpotV1TraceOrderOrderCurrentList returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostSpotV1TraceOrderOrderCurrentList(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostSpotV1TraceOrderOrderCurrentList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostSpotV1TraceOrderOrderCurrentList", args...)
 }
 
 // PrivateSpotPostSpotV1TraceOrderOrderHistoryList returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostSpotV1TraceOrderOrderHistoryList(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostSpotV1TraceOrderOrderHistoryList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostSpotV1TraceOrderOrderHistoryList", args...)
 }
 
 // PrivateSpotPostSpotV1TraceOrderCloseTrackingOrder returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostSpotV1TraceOrderCloseTrackingOrder(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostSpotV1TraceOrderCloseTrackingOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostSpotV1TraceOrderCloseTrackingOrder", args...)
 }
 
 // PrivateSpotPostSpotV1TraceOrderUpdateTpsl returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostSpotV1TraceOrderUpdateTpsl(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostSpotV1TraceOrderUpdateTpsl(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostSpotV1TraceOrderUpdateTpsl", args...)
 }
 
 // PrivateSpotPostSpotV1TraceOrderFollowerEndOrder returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostSpotV1TraceOrderFollowerEndOrder(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostSpotV1TraceOrderFollowerEndOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostSpotV1TraceOrderFollowerEndOrder", args...)
 }
 
 // PrivateSpotPostSpotV1TraceOrderSpotInfoList returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostSpotV1TraceOrderSpotInfoList(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostSpotV1TraceOrderSpotInfoList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostSpotV1TraceOrderSpotInfoList", args...)
 }
 
 // PrivateSpotPostSpotV1TraceConfigGetTraderSettings returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostSpotV1TraceConfigGetTraderSettings(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostSpotV1TraceConfigGetTraderSettings(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostSpotV1TraceConfigGetTraderSettings", args...)
 }
 
 // PrivateSpotPostSpotV1TraceConfigGetFollowerSettings returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostSpotV1TraceConfigGetFollowerSettings(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostSpotV1TraceConfigGetFollowerSettings(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostSpotV1TraceConfigGetFollowerSettings", args...)
 }
 
 // PrivateSpotPostSpotV1TraceUserMyTraders returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostSpotV1TraceUserMyTraders(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostSpotV1TraceUserMyTraders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostSpotV1TraceUserMyTraders", args...)
 }
 
 // PrivateSpotPostSpotV1TraceConfigSetFollowerConfig returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostSpotV1TraceConfigSetFollowerConfig(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostSpotV1TraceConfigSetFollowerConfig(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostSpotV1TraceConfigSetFollowerConfig", args...)
 }
 
 // PrivateSpotPostSpotV1TraceUserMyFollowers returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostSpotV1TraceUserMyFollowers(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostSpotV1TraceUserMyFollowers(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostSpotV1TraceUserMyFollowers", args...)
 }
 
 // PrivateSpotPostSpotV1TraceConfigSetProductCode returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostSpotV1TraceConfigSetProductCode(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostSpotV1TraceConfigSetProductCode(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostSpotV1TraceConfigSetProductCode", args...)
 }
 
 // PrivateSpotPostSpotV1TraceUserRemoveTrader returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostSpotV1TraceUserRemoveTrader(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostSpotV1TraceUserRemoveTrader(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostSpotV1TraceUserRemoveTrader", args...)
 }
 
 // PrivateSpotPostSpotV1TraceGetRemovableFollower returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostSpotV1TraceGetRemovableFollower(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostSpotV1TraceGetRemovableFollower(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostSpotV1TraceGetRemovableFollower", args...)
 }
 
 // PrivateSpotPostSpotV1TraceUserRemoveFollower returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostSpotV1TraceUserRemoveFollower(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostSpotV1TraceUserRemoveFollower(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostSpotV1TraceUserRemoveFollower", args...)
 }
 
 // PrivateSpotPostSpotV1TraceProfitTotalProfitInfo returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostSpotV1TraceProfitTotalProfitInfo(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostSpotV1TraceProfitTotalProfitInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostSpotV1TraceProfitTotalProfitInfo", args...)
 }
 
 // PrivateSpotPostSpotV1TraceProfitTotalProfitList returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostSpotV1TraceProfitTotalProfitList(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostSpotV1TraceProfitTotalProfitList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostSpotV1TraceProfitTotalProfitList", args...)
 }
 
 // PrivateSpotPostSpotV1TraceProfitProfitHisList returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostSpotV1TraceProfitProfitHisList(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostSpotV1TraceProfitProfitHisList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostSpotV1TraceProfitProfitHisList", args...)
 }
 
 // PrivateSpotPostSpotV1TraceProfitProfitHisDetailList returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostSpotV1TraceProfitProfitHisDetailList(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostSpotV1TraceProfitProfitHisDetailList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostSpotV1TraceProfitProfitHisDetailList", args...)
 }
 
 // PrivateSpotPostSpotV1TraceProfitWaitProfitDetailList returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostSpotV1TraceProfitWaitProfitDetailList(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostSpotV1TraceProfitWaitProfitDetailList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostSpotV1TraceProfitWaitProfitDetailList", args...)
 }
 
 // PrivateSpotPostSpotV1TraceUserGetTraderInfo returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostSpotV1TraceUserGetTraderInfo(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostSpotV1TraceUserGetTraderInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostSpotV1TraceUserGetTraderInfo", args...)
 }
 
 // PrivateSpotPostV2SpotTradePlaceOrder returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostV2SpotTradePlaceOrder(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostV2SpotTradePlaceOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostV2SpotTradePlaceOrder", args...)
 }
 
 // PrivateSpotPostV2SpotTradeCancelOrder returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostV2SpotTradeCancelOrder(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostV2SpotTradeCancelOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostV2SpotTradeCancelOrder", args...)
 }
 
 // PrivateSpotPostV2SpotTradeBatchOrders returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostV2SpotTradeBatchOrders(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostV2SpotTradeBatchOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostV2SpotTradeBatchOrders", args...)
 }
 
 // PrivateSpotPostV2SpotTradeBatchCancelOrder returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostV2SpotTradeBatchCancelOrder(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostV2SpotTradeBatchCancelOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostV2SpotTradeBatchCancelOrder", args...)
 }
 
 // PrivateSpotPostV2SpotTradeCancelSymbolOrder returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostV2SpotTradeCancelSymbolOrder(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostV2SpotTradeCancelSymbolOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostV2SpotTradeCancelSymbolOrder", args...)
 }
 
 // PrivateSpotPostV2SpotTradePlacePlanOrder returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostV2SpotTradePlacePlanOrder(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostV2SpotTradePlacePlanOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostV2SpotTradePlacePlanOrder", args...)
 }
 
 // PrivateSpotPostV2SpotTradeModifyPlanOrder returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostV2SpotTradeModifyPlanOrder(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostV2SpotTradeModifyPlanOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostV2SpotTradeModifyPlanOrder", args...)
 }
 
 // PrivateSpotPostV2SpotTradeCancelPlanOrder returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostV2SpotTradeCancelPlanOrder(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostV2SpotTradeCancelPlanOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostV2SpotTradeCancelPlanOrder", args...)
 }
 
 // PrivateSpotPostV2SpotTradeCancelReplaceOrder returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostV2SpotTradeCancelReplaceOrder(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostV2SpotTradeCancelReplaceOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostV2SpotTradeCancelReplaceOrder", args...)
 }
 
 // PrivateSpotPostV2SpotTradeBatchCancelPlanOrder returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostV2SpotTradeBatchCancelPlanOrder(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostV2SpotTradeBatchCancelPlanOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostV2SpotTradeBatchCancelPlanOrder", args...)
 }
 
 // PrivateSpotPostV2SpotWalletTransfer returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostV2SpotWalletTransfer(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostV2SpotWalletTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostV2SpotWalletTransfer", args...)
 }
 
 // PrivateSpotPostV2SpotWalletSubaccountTransfer returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostV2SpotWalletSubaccountTransfer(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostV2SpotWalletSubaccountTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostV2SpotWalletSubaccountTransfer", args...)
 }
 
 // PrivateSpotPostV2SpotWalletWithdrawal returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostV2SpotWalletWithdrawal(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostV2SpotWalletWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostV2SpotWalletWithdrawal", args...)
 }
 
 // PrivateSpotPostV2SpotWalletCancelWithdrawal returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostV2SpotWalletCancelWithdrawal(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostV2SpotWalletCancelWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostV2SpotWalletCancelWithdrawal", args...)
 }
 
 // PrivateSpotPostV2SpotWalletModifyDepositAccount returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostV2SpotWalletModifyDepositAccount(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostV2SpotWalletModifyDepositAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostV2SpotWalletModifyDepositAccount", args...)
 }
 
 // PrivateSpotPostV2SpotAccountUpgrade returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateSpotPostV2SpotAccountUpgrade(args ...any) <-chan any {
+func (this *Bitget) PrivateSpotPostV2SpotAccountUpgrade(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostV2SpotAccountUpgrade", args...)
 }
 
 // PrivateMixGetMixV1AccountAccount returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixGetMixV1AccountAccount(args ...any) <-chan any {
+func (this *Bitget) PrivateMixGetMixV1AccountAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixGetMixV1AccountAccount", args...)
 }
 
 // PrivateMixGetMixV1AccountAccounts returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixGetMixV1AccountAccounts(args ...any) <-chan any {
+func (this *Bitget) PrivateMixGetMixV1AccountAccounts(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixGetMixV1AccountAccounts", args...)
 }
 
 // PrivateMixGetMixV1PositionSinglePosition returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixGetMixV1PositionSinglePosition(args ...any) <-chan any {
+func (this *Bitget) PrivateMixGetMixV1PositionSinglePosition(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixGetMixV1PositionSinglePosition", args...)
 }
 
 // PrivateMixGetMixV1PositionSinglePositionV2 returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixGetMixV1PositionSinglePositionV2(args ...any) <-chan any {
+func (this *Bitget) PrivateMixGetMixV1PositionSinglePositionV2(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixGetMixV1PositionSinglePositionV2", args...)
 }
 
 // PrivateMixGetMixV1PositionAllPosition returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixGetMixV1PositionAllPosition(args ...any) <-chan any {
+func (this *Bitget) PrivateMixGetMixV1PositionAllPosition(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixGetMixV1PositionAllPosition", args...)
 }
 
 // PrivateMixGetMixV1PositionAllPositionV2 returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixGetMixV1PositionAllPositionV2(args ...any) <-chan any {
+func (this *Bitget) PrivateMixGetMixV1PositionAllPositionV2(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixGetMixV1PositionAllPositionV2", args...)
 }
 
 // PrivateMixGetMixV1PositionHistoryPosition returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixGetMixV1PositionHistoryPosition(args ...any) <-chan any {
+func (this *Bitget) PrivateMixGetMixV1PositionHistoryPosition(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixGetMixV1PositionHistoryPosition", args...)
 }
 
 // PrivateMixGetMixV1AccountAccountBill returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixGetMixV1AccountAccountBill(args ...any) <-chan any {
+func (this *Bitget) PrivateMixGetMixV1AccountAccountBill(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixGetMixV1AccountAccountBill", args...)
 }
 
 // PrivateMixGetMixV1AccountAccountBusinessBill returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixGetMixV1AccountAccountBusinessBill(args ...any) <-chan any {
+func (this *Bitget) PrivateMixGetMixV1AccountAccountBusinessBill(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixGetMixV1AccountAccountBusinessBill", args...)
 }
 
 // PrivateMixGetMixV1OrderCurrent returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixGetMixV1OrderCurrent(args ...any) <-chan any {
+func (this *Bitget) PrivateMixGetMixV1OrderCurrent(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixGetMixV1OrderCurrent", args...)
 }
 
 // PrivateMixGetMixV1OrderMarginCoinCurrent returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixGetMixV1OrderMarginCoinCurrent(args ...any) <-chan any {
+func (this *Bitget) PrivateMixGetMixV1OrderMarginCoinCurrent(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixGetMixV1OrderMarginCoinCurrent", args...)
 }
 
 // PrivateMixGetMixV1OrderHistory returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixGetMixV1OrderHistory(args ...any) <-chan any {
+func (this *Bitget) PrivateMixGetMixV1OrderHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixGetMixV1OrderHistory", args...)
 }
 
 // PrivateMixGetMixV1OrderHistoryProductType returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixGetMixV1OrderHistoryProductType(args ...any) <-chan any {
+func (this *Bitget) PrivateMixGetMixV1OrderHistoryProductType(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixGetMixV1OrderHistoryProductType", args...)
 }
 
 // PrivateMixGetMixV1OrderDetail returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixGetMixV1OrderDetail(args ...any) <-chan any {
+func (this *Bitget) PrivateMixGetMixV1OrderDetail(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixGetMixV1OrderDetail", args...)
 }
 
 // PrivateMixGetMixV1OrderFills returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixGetMixV1OrderFills(args ...any) <-chan any {
+func (this *Bitget) PrivateMixGetMixV1OrderFills(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixGetMixV1OrderFills", args...)
 }
 
 // PrivateMixGetMixV1OrderAllFills returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixGetMixV1OrderAllFills(args ...any) <-chan any {
+func (this *Bitget) PrivateMixGetMixV1OrderAllFills(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixGetMixV1OrderAllFills", args...)
 }
 
 // PrivateMixGetMixV1PlanCurrentPlan returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixGetMixV1PlanCurrentPlan(args ...any) <-chan any {
+func (this *Bitget) PrivateMixGetMixV1PlanCurrentPlan(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixGetMixV1PlanCurrentPlan", args...)
 }
 
 // PrivateMixGetMixV1PlanHistoryPlan returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixGetMixV1PlanHistoryPlan(args ...any) <-chan any {
+func (this *Bitget) PrivateMixGetMixV1PlanHistoryPlan(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixGetMixV1PlanHistoryPlan", args...)
 }
 
 // PrivateMixGetMixV1TraceCurrentTrack returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixGetMixV1TraceCurrentTrack(args ...any) <-chan any {
+func (this *Bitget) PrivateMixGetMixV1TraceCurrentTrack(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixGetMixV1TraceCurrentTrack", args...)
 }
 
 // PrivateMixGetMixV1TraceFollowerOrder returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixGetMixV1TraceFollowerOrder(args ...any) <-chan any {
+func (this *Bitget) PrivateMixGetMixV1TraceFollowerOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixGetMixV1TraceFollowerOrder", args...)
 }
 
 // PrivateMixGetMixV1TraceFollowerHistoryOrders returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixGetMixV1TraceFollowerHistoryOrders(args ...any) <-chan any {
+func (this *Bitget) PrivateMixGetMixV1TraceFollowerHistoryOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixGetMixV1TraceFollowerHistoryOrders", args...)
 }
 
 // PrivateMixGetMixV1TraceHistoryTrack returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixGetMixV1TraceHistoryTrack(args ...any) <-chan any {
+func (this *Bitget) PrivateMixGetMixV1TraceHistoryTrack(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixGetMixV1TraceHistoryTrack", args...)
 }
 
 // PrivateMixGetMixV1TraceSummary returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixGetMixV1TraceSummary(args ...any) <-chan any {
+func (this *Bitget) PrivateMixGetMixV1TraceSummary(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixGetMixV1TraceSummary", args...)
 }
 
 // PrivateMixGetMixV1TraceProfitSettleTokenIdGroup returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixGetMixV1TraceProfitSettleTokenIdGroup(args ...any) <-chan any {
+func (this *Bitget) PrivateMixGetMixV1TraceProfitSettleTokenIdGroup(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixGetMixV1TraceProfitSettleTokenIdGroup", args...)
 }
 
 // PrivateMixGetMixV1TraceProfitDateGroupList returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixGetMixV1TraceProfitDateGroupList(args ...any) <-chan any {
+func (this *Bitget) PrivateMixGetMixV1TraceProfitDateGroupList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixGetMixV1TraceProfitDateGroupList", args...)
 }
 
 // PrivateMixGetMixV1TradeProfitDateList returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixGetMixV1TradeProfitDateList(args ...any) <-chan any {
+func (this *Bitget) PrivateMixGetMixV1TradeProfitDateList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixGetMixV1TradeProfitDateList", args...)
 }
 
 // PrivateMixGetMixV1TraceWaitProfitDateList returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixGetMixV1TraceWaitProfitDateList(args ...any) <-chan any {
+func (this *Bitget) PrivateMixGetMixV1TraceWaitProfitDateList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixGetMixV1TraceWaitProfitDateList", args...)
 }
 
 // PrivateMixGetMixV1TraceTraderSymbols returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixGetMixV1TraceTraderSymbols(args ...any) <-chan any {
+func (this *Bitget) PrivateMixGetMixV1TraceTraderSymbols(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixGetMixV1TraceTraderSymbols", args...)
 }
 
 // PrivateMixGetMixV1TraceTraderList returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixGetMixV1TraceTraderList(args ...any) <-chan any {
+func (this *Bitget) PrivateMixGetMixV1TraceTraderList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixGetMixV1TraceTraderList", args...)
 }
 
 // PrivateMixGetMixV1TraceTraderDetail returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixGetMixV1TraceTraderDetail(args ...any) <-chan any {
+func (this *Bitget) PrivateMixGetMixV1TraceTraderDetail(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixGetMixV1TraceTraderDetail", args...)
 }
 
 // PrivateMixGetMixV1TraceQueryTraceConfig returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixGetMixV1TraceQueryTraceConfig(args ...any) <-chan any {
+func (this *Bitget) PrivateMixGetMixV1TraceQueryTraceConfig(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixGetMixV1TraceQueryTraceConfig", args...)
 }
 
 // PrivateMixGetV2MixAccountAccount returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixGetV2MixAccountAccount(args ...any) <-chan any {
+func (this *Bitget) PrivateMixGetV2MixAccountAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixGetV2MixAccountAccount", args...)
 }
 
 // PrivateMixGetV2MixAccountAccounts returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixGetV2MixAccountAccounts(args ...any) <-chan any {
+func (this *Bitget) PrivateMixGetV2MixAccountAccounts(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixGetV2MixAccountAccounts", args...)
 }
 
 // PrivateMixGetV2MixAccountSubAccountAssets returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixGetV2MixAccountSubAccountAssets(args ...any) <-chan any {
+func (this *Bitget) PrivateMixGetV2MixAccountSubAccountAssets(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixGetV2MixAccountSubAccountAssets", args...)
 }
 
 // PrivateMixGetV2MixAccountInterestHistory returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixGetV2MixAccountInterestHistory(args ...any) <-chan any {
+func (this *Bitget) PrivateMixGetV2MixAccountInterestHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixGetV2MixAccountInterestHistory", args...)
 }
 
 // PrivateMixGetV2MixAccountMaxOpen returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixGetV2MixAccountMaxOpen(args ...any) <-chan any {
+func (this *Bitget) PrivateMixGetV2MixAccountMaxOpen(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixGetV2MixAccountMaxOpen", args...)
 }
 
 // PrivateMixGetV2MixAccountLiqPrice returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixGetV2MixAccountLiqPrice(args ...any) <-chan any {
+func (this *Bitget) PrivateMixGetV2MixAccountLiqPrice(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixGetV2MixAccountLiqPrice", args...)
 }
 
 // PrivateMixGetV2MixAccountOpenCount returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixGetV2MixAccountOpenCount(args ...any) <-chan any {
+func (this *Bitget) PrivateMixGetV2MixAccountOpenCount(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixGetV2MixAccountOpenCount", args...)
 }
 
 // PrivateMixGetV2MixAccountBill returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixGetV2MixAccountBill(args ...any) <-chan any {
+func (this *Bitget) PrivateMixGetV2MixAccountBill(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixGetV2MixAccountBill", args...)
 }
 
 // PrivateMixGetV2MixAccountTransferLimits returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixGetV2MixAccountTransferLimits(args ...any) <-chan any {
+func (this *Bitget) PrivateMixGetV2MixAccountTransferLimits(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixGetV2MixAccountTransferLimits", args...)
 }
 
 // PrivateMixGetV2MixAccountUnionConfig returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixGetV2MixAccountUnionConfig(args ...any) <-chan any {
+func (this *Bitget) PrivateMixGetV2MixAccountUnionConfig(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixGetV2MixAccountUnionConfig", args...)
 }
 
 // PrivateMixGetV2MixAccountSwitchUnionUsdt returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixGetV2MixAccountSwitchUnionUsdt(args ...any) <-chan any {
+func (this *Bitget) PrivateMixGetV2MixAccountSwitchUnionUsdt(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixGetV2MixAccountSwitchUnionUsdt", args...)
 }
 
 // PrivateMixGetV2MixAccountIsolatedSymbols returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixGetV2MixAccountIsolatedSymbols(args ...any) <-chan any {
+func (this *Bitget) PrivateMixGetV2MixAccountIsolatedSymbols(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixGetV2MixAccountIsolatedSymbols", args...)
 }
 
 // PrivateMixGetV2MixMarketQueryPositionLever returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixGetV2MixMarketQueryPositionLever(args ...any) <-chan any {
+func (this *Bitget) PrivateMixGetV2MixMarketQueryPositionLever(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixGetV2MixMarketQueryPositionLever", args...)
 }
 
 // PrivateMixGetV2MixPositionSinglePosition returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixGetV2MixPositionSinglePosition(args ...any) <-chan any {
+func (this *Bitget) PrivateMixGetV2MixPositionSinglePosition(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixGetV2MixPositionSinglePosition", args...)
 }
 
 // PrivateMixGetV2MixPositionAllPosition returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixGetV2MixPositionAllPosition(args ...any) <-chan any {
+func (this *Bitget) PrivateMixGetV2MixPositionAllPosition(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixGetV2MixPositionAllPosition", args...)
 }
 
 // PrivateMixGetV2MixPositionAdlRank returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixGetV2MixPositionAdlRank(args ...any) <-chan any {
+func (this *Bitget) PrivateMixGetV2MixPositionAdlRank(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixGetV2MixPositionAdlRank", args...)
 }
 
 // PrivateMixGetV2MixPositionHistoryPosition returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixGetV2MixPositionHistoryPosition(args ...any) <-chan any {
+func (this *Bitget) PrivateMixGetV2MixPositionHistoryPosition(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixGetV2MixPositionHistoryPosition", args...)
 }
 
 // PrivateMixGetV2MixOrderDetail returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixGetV2MixOrderDetail(args ...any) <-chan any {
+func (this *Bitget) PrivateMixGetV2MixOrderDetail(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixGetV2MixOrderDetail", args...)
 }
 
 // PrivateMixGetV2MixOrderFills returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixGetV2MixOrderFills(args ...any) <-chan any {
+func (this *Bitget) PrivateMixGetV2MixOrderFills(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixGetV2MixOrderFills", args...)
 }
 
 // PrivateMixGetV2MixOrderFillHistory returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixGetV2MixOrderFillHistory(args ...any) <-chan any {
+func (this *Bitget) PrivateMixGetV2MixOrderFillHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixGetV2MixOrderFillHistory", args...)
 }
 
 // PrivateMixGetV2MixOrderOrdersPending returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixGetV2MixOrderOrdersPending(args ...any) <-chan any {
+func (this *Bitget) PrivateMixGetV2MixOrderOrdersPending(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixGetV2MixOrderOrdersPending", args...)
 }
 
 // PrivateMixGetV2MixOrderOrdersHistory returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixGetV2MixOrderOrdersHistory(args ...any) <-chan any {
+func (this *Bitget) PrivateMixGetV2MixOrderOrdersHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixGetV2MixOrderOrdersHistory", args...)
 }
 
 // PrivateMixGetV2MixOrderPlanSubOrder returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixGetV2MixOrderPlanSubOrder(args ...any) <-chan any {
+func (this *Bitget) PrivateMixGetV2MixOrderPlanSubOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixGetV2MixOrderPlanSubOrder", args...)
 }
 
 // PrivateMixGetV2MixOrderOrdersPlanPending returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixGetV2MixOrderOrdersPlanPending(args ...any) <-chan any {
+func (this *Bitget) PrivateMixGetV2MixOrderOrdersPlanPending(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixGetV2MixOrderOrdersPlanPending", args...)
 }
 
 // PrivateMixGetV2MixOrderOrdersPlanHistory returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixGetV2MixOrderOrdersPlanHistory(args ...any) <-chan any {
+func (this *Bitget) PrivateMixGetV2MixOrderOrdersPlanHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixGetV2MixOrderOrdersPlanHistory", args...)
 }
 
 // PrivateMixGetV2MixMarketPositionLongShort returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixGetV2MixMarketPositionLongShort(args ...any) <-chan any {
+func (this *Bitget) PrivateMixGetV2MixMarketPositionLongShort(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixGetV2MixMarketPositionLongShort", args...)
 }
 
 // PrivateMixPostMixV1AccountSubAccountContractAssets returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostMixV1AccountSubAccountContractAssets(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostMixV1AccountSubAccountContractAssets(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostMixV1AccountSubAccountContractAssets", args...)
 }
 
 // PrivateMixPostMixV1AccountOpenCount returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostMixV1AccountOpenCount(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostMixV1AccountOpenCount(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostMixV1AccountOpenCount", args...)
 }
 
 // PrivateMixPostMixV1AccountSetLeverage returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostMixV1AccountSetLeverage(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostMixV1AccountSetLeverage(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostMixV1AccountSetLeverage", args...)
 }
 
 // PrivateMixPostMixV1AccountSetMargin returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostMixV1AccountSetMargin(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostMixV1AccountSetMargin(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostMixV1AccountSetMargin", args...)
 }
 
 // PrivateMixPostMixV1AccountSetMarginMode returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostMixV1AccountSetMarginMode(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostMixV1AccountSetMarginMode(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostMixV1AccountSetMarginMode", args...)
 }
 
 // PrivateMixPostMixV1AccountSetPositionMode returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostMixV1AccountSetPositionMode(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostMixV1AccountSetPositionMode(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostMixV1AccountSetPositionMode", args...)
 }
 
 // PrivateMixPostMixV1OrderPlaceOrder returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostMixV1OrderPlaceOrder(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostMixV1OrderPlaceOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostMixV1OrderPlaceOrder", args...)
 }
 
 // PrivateMixPostMixV1OrderBatchOrders returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostMixV1OrderBatchOrders(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostMixV1OrderBatchOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostMixV1OrderBatchOrders", args...)
 }
 
 // PrivateMixPostMixV1OrderCancelOrder returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostMixV1OrderCancelOrder(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostMixV1OrderCancelOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostMixV1OrderCancelOrder", args...)
 }
 
 // PrivateMixPostMixV1OrderCancelBatchOrders returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostMixV1OrderCancelBatchOrders(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostMixV1OrderCancelBatchOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostMixV1OrderCancelBatchOrders", args...)
 }
 
 // PrivateMixPostMixV1OrderModifyOrder returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostMixV1OrderModifyOrder(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostMixV1OrderModifyOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostMixV1OrderModifyOrder", args...)
 }
 
 // PrivateMixPostMixV1OrderCancelSymbolOrders returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostMixV1OrderCancelSymbolOrders(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostMixV1OrderCancelSymbolOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostMixV1OrderCancelSymbolOrders", args...)
 }
 
 // PrivateMixPostMixV1OrderCancelAllOrders returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostMixV1OrderCancelAllOrders(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostMixV1OrderCancelAllOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostMixV1OrderCancelAllOrders", args...)
 }
 
 // PrivateMixPostMixV1OrderCloseAllPositions returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostMixV1OrderCloseAllPositions(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostMixV1OrderCloseAllPositions(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostMixV1OrderCloseAllPositions", args...)
 }
 
 // PrivateMixPostMixV1PlanPlacePlan returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostMixV1PlanPlacePlan(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostMixV1PlanPlacePlan(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostMixV1PlanPlacePlan", args...)
 }
 
 // PrivateMixPostMixV1PlanModifyPlan returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostMixV1PlanModifyPlan(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostMixV1PlanModifyPlan(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostMixV1PlanModifyPlan", args...)
 }
 
 // PrivateMixPostMixV1PlanModifyPlanPreset returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostMixV1PlanModifyPlanPreset(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostMixV1PlanModifyPlanPreset(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostMixV1PlanModifyPlanPreset", args...)
 }
 
 // PrivateMixPostMixV1PlanPlaceTPSL returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostMixV1PlanPlaceTPSL(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostMixV1PlanPlaceTPSL(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostMixV1PlanPlaceTPSL", args...)
 }
 
 // PrivateMixPostMixV1PlanPlaceTrailStop returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostMixV1PlanPlaceTrailStop(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostMixV1PlanPlaceTrailStop(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostMixV1PlanPlaceTrailStop", args...)
 }
 
 // PrivateMixPostMixV1PlanPlacePositionsTPSL returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostMixV1PlanPlacePositionsTPSL(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostMixV1PlanPlacePositionsTPSL(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostMixV1PlanPlacePositionsTPSL", args...)
 }
 
 // PrivateMixPostMixV1PlanModifyTPSLPlan returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostMixV1PlanModifyTPSLPlan(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostMixV1PlanModifyTPSLPlan(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostMixV1PlanModifyTPSLPlan", args...)
 }
 
 // PrivateMixPostMixV1PlanCancelPlan returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostMixV1PlanCancelPlan(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostMixV1PlanCancelPlan(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostMixV1PlanCancelPlan", args...)
 }
 
 // PrivateMixPostMixV1PlanCancelSymbolPlan returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostMixV1PlanCancelSymbolPlan(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostMixV1PlanCancelSymbolPlan(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostMixV1PlanCancelSymbolPlan", args...)
 }
 
 // PrivateMixPostMixV1PlanCancelAllPlan returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostMixV1PlanCancelAllPlan(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostMixV1PlanCancelAllPlan(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostMixV1PlanCancelAllPlan", args...)
 }
 
 // PrivateMixPostMixV1TraceCloseTrackOrder returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostMixV1TraceCloseTrackOrder(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostMixV1TraceCloseTrackOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostMixV1TraceCloseTrackOrder", args...)
 }
 
 // PrivateMixPostMixV1TraceModifyTPSL returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostMixV1TraceModifyTPSL(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostMixV1TraceModifyTPSL(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostMixV1TraceModifyTPSL", args...)
 }
 
 // PrivateMixPostMixV1TraceCloseTrackOrderBySymbol returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostMixV1TraceCloseTrackOrderBySymbol(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostMixV1TraceCloseTrackOrderBySymbol(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostMixV1TraceCloseTrackOrderBySymbol", args...)
 }
 
 // PrivateMixPostMixV1TraceSetUpCopySymbols returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostMixV1TraceSetUpCopySymbols(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostMixV1TraceSetUpCopySymbols(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostMixV1TraceSetUpCopySymbols", args...)
 }
 
 // PrivateMixPostMixV1TraceFollowerSetBatchTraceConfig returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostMixV1TraceFollowerSetBatchTraceConfig(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostMixV1TraceFollowerSetBatchTraceConfig(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostMixV1TraceFollowerSetBatchTraceConfig", args...)
 }
 
 // PrivateMixPostMixV1TraceFollowerCloseByTrackingNo returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostMixV1TraceFollowerCloseByTrackingNo(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostMixV1TraceFollowerCloseByTrackingNo(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostMixV1TraceFollowerCloseByTrackingNo", args...)
 }
 
 // PrivateMixPostMixV1TraceFollowerCloseByAll returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostMixV1TraceFollowerCloseByAll(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostMixV1TraceFollowerCloseByAll(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostMixV1TraceFollowerCloseByAll", args...)
 }
 
 // PrivateMixPostMixV1TraceFollowerSetTpsl returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostMixV1TraceFollowerSetTpsl(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostMixV1TraceFollowerSetTpsl(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostMixV1TraceFollowerSetTpsl", args...)
 }
 
 // PrivateMixPostMixV1TraceCancelCopyTrader returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostMixV1TraceCancelCopyTrader(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostMixV1TraceCancelCopyTrader(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostMixV1TraceCancelCopyTrader", args...)
 }
 
 // PrivateMixPostMixV1TraceTraderUpdateConfig returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostMixV1TraceTraderUpdateConfig(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostMixV1TraceTraderUpdateConfig(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostMixV1TraceTraderUpdateConfig", args...)
 }
 
 // PrivateMixPostMixV1TraceMyTraderList returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostMixV1TraceMyTraderList(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostMixV1TraceMyTraderList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostMixV1TraceMyTraderList", args...)
 }
 
 // PrivateMixPostMixV1TraceMyFollowerList returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostMixV1TraceMyFollowerList(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostMixV1TraceMyFollowerList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostMixV1TraceMyFollowerList", args...)
 }
 
 // PrivateMixPostMixV1TraceRemoveFollower returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostMixV1TraceRemoveFollower(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostMixV1TraceRemoveFollower(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostMixV1TraceRemoveFollower", args...)
 }
 
 // PrivateMixPostMixV1TracePublicGetFollowerConfig returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostMixV1TracePublicGetFollowerConfig(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostMixV1TracePublicGetFollowerConfig(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostMixV1TracePublicGetFollowerConfig", args...)
 }
 
 // PrivateMixPostMixV1TraceReportOrderHistoryList returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostMixV1TraceReportOrderHistoryList(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostMixV1TraceReportOrderHistoryList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostMixV1TraceReportOrderHistoryList", args...)
 }
 
 // PrivateMixPostMixV1TraceReportOrderCurrentList returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostMixV1TraceReportOrderCurrentList(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostMixV1TraceReportOrderCurrentList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostMixV1TraceReportOrderCurrentList", args...)
 }
 
 // PrivateMixPostMixV1TraceQueryTraderTpslRatioConfig returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostMixV1TraceQueryTraderTpslRatioConfig(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostMixV1TraceQueryTraderTpslRatioConfig(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostMixV1TraceQueryTraderTpslRatioConfig", args...)
 }
 
 // PrivateMixPostMixV1TraceTraderUpdateTpslRatioConfig returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostMixV1TraceTraderUpdateTpslRatioConfig(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostMixV1TraceTraderUpdateTpslRatioConfig(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostMixV1TraceTraderUpdateTpslRatioConfig", args...)
 }
 
 // PrivateMixPostV2MixAccountSetAutoMargin returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostV2MixAccountSetAutoMargin(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostV2MixAccountSetAutoMargin(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostV2MixAccountSetAutoMargin", args...)
 }
 
 // PrivateMixPostV2MixAccountSetLeverage returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostV2MixAccountSetLeverage(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostV2MixAccountSetLeverage(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostV2MixAccountSetLeverage", args...)
 }
 
 // PrivateMixPostV2MixAccountSetAllLeverage returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostV2MixAccountSetAllLeverage(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostV2MixAccountSetAllLeverage(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostV2MixAccountSetAllLeverage", args...)
 }
 
 // PrivateMixPostV2MixAccountSetMargin returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostV2MixAccountSetMargin(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostV2MixAccountSetMargin(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostV2MixAccountSetMargin", args...)
 }
 
 // PrivateMixPostV2MixAccountSetAssetMode returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostV2MixAccountSetAssetMode(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostV2MixAccountSetAssetMode(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostV2MixAccountSetAssetMode", args...)
 }
 
 // PrivateMixPostV2MixAccountSetMarginMode returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostV2MixAccountSetMarginMode(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostV2MixAccountSetMarginMode(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostV2MixAccountSetMarginMode", args...)
 }
 
 // PrivateMixPostV2MixAccountUnionConvert returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostV2MixAccountUnionConvert(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostV2MixAccountUnionConvert(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostV2MixAccountUnionConvert", args...)
 }
 
 // PrivateMixPostV2MixAccountSetPositionMode returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostV2MixAccountSetPositionMode(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostV2MixAccountSetPositionMode(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostV2MixAccountSetPositionMode", args...)
 }
 
 // PrivateMixPostV2MixOrderPlaceOrder returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostV2MixOrderPlaceOrder(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostV2MixOrderPlaceOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostV2MixOrderPlaceOrder", args...)
 }
 
 // PrivateMixPostV2MixOrderClickBackhand returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostV2MixOrderClickBackhand(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostV2MixOrderClickBackhand(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostV2MixOrderClickBackhand", args...)
 }
 
 // PrivateMixPostV2MixOrderBatchPlaceOrder returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostV2MixOrderBatchPlaceOrder(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostV2MixOrderBatchPlaceOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostV2MixOrderBatchPlaceOrder", args...)
 }
 
 // PrivateMixPostV2MixOrderModifyOrder returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostV2MixOrderModifyOrder(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostV2MixOrderModifyOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostV2MixOrderModifyOrder", args...)
 }
 
 // PrivateMixPostV2MixOrderCancelOrder returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostV2MixOrderCancelOrder(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostV2MixOrderCancelOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostV2MixOrderCancelOrder", args...)
 }
 
 // PrivateMixPostV2MixOrderBatchCancelOrders returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostV2MixOrderBatchCancelOrders(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostV2MixOrderBatchCancelOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostV2MixOrderBatchCancelOrders", args...)
 }
 
 // PrivateMixPostV2MixOrderClosePositions returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostV2MixOrderClosePositions(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostV2MixOrderClosePositions(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostV2MixOrderClosePositions", args...)
 }
 
 // PrivateMixPostV2MixOrderCancelAllOrders returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostV2MixOrderCancelAllOrders(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostV2MixOrderCancelAllOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostV2MixOrderCancelAllOrders", args...)
 }
 
 // PrivateMixPostV2MixOrderPlaceTpslOrder returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostV2MixOrderPlaceTpslOrder(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostV2MixOrderPlaceTpslOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostV2MixOrderPlaceTpslOrder", args...)
 }
 
 // PrivateMixPostV2MixOrderPlacePosTpsl returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostV2MixOrderPlacePosTpsl(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostV2MixOrderPlacePosTpsl(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostV2MixOrderPlacePosTpsl", args...)
 }
 
 // PrivateMixPostV2MixOrderPlacePlanOrder returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostV2MixOrderPlacePlanOrder(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostV2MixOrderPlacePlanOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostV2MixOrderPlacePlanOrder", args...)
 }
 
 // PrivateMixPostV2MixOrderModifyTpslOrder returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostV2MixOrderModifyTpslOrder(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostV2MixOrderModifyTpslOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostV2MixOrderModifyTpslOrder", args...)
 }
 
 // PrivateMixPostV2MixOrderModifyPlanOrder returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostV2MixOrderModifyPlanOrder(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostV2MixOrderModifyPlanOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostV2MixOrderModifyPlanOrder", args...)
 }
 
 // PrivateMixPostV2MixOrderCancelPlanOrder returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMixPostV2MixOrderCancelPlanOrder(args ...any) <-chan any {
+func (this *Bitget) PrivateMixPostV2MixOrderCancelPlanOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMixPostV2MixOrderCancelPlanOrder", args...)
 }
 
 // PrivateUserGetUserV1FeeQuery returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUserGetUserV1FeeQuery(args ...any) <-chan any {
+func (this *Bitget) PrivateUserGetUserV1FeeQuery(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUserGetUserV1FeeQuery", args...)
 }
 
 // PrivateUserGetUserV1SubVirtualList returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUserGetUserV1SubVirtualList(args ...any) <-chan any {
+func (this *Bitget) PrivateUserGetUserV1SubVirtualList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUserGetUserV1SubVirtualList", args...)
 }
 
 // PrivateUserGetUserV1SubVirtualApiList returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUserGetUserV1SubVirtualApiList(args ...any) <-chan any {
+func (this *Bitget) PrivateUserGetUserV1SubVirtualApiList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUserGetUserV1SubVirtualApiList", args...)
 }
 
 // PrivateUserGetUserV1TaxSpotRecord returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUserGetUserV1TaxSpotRecord(args ...any) <-chan any {
+func (this *Bitget) PrivateUserGetUserV1TaxSpotRecord(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUserGetUserV1TaxSpotRecord", args...)
 }
 
 // PrivateUserGetUserV1TaxFutureRecord returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUserGetUserV1TaxFutureRecord(args ...any) <-chan any {
+func (this *Bitget) PrivateUserGetUserV1TaxFutureRecord(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUserGetUserV1TaxFutureRecord", args...)
 }
 
 // PrivateUserGetUserV1TaxMarginRecord returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUserGetUserV1TaxMarginRecord(args ...any) <-chan any {
+func (this *Bitget) PrivateUserGetUserV1TaxMarginRecord(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUserGetUserV1TaxMarginRecord", args...)
 }
 
 // PrivateUserGetUserV1TaxP2pRecord returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUserGetUserV1TaxP2pRecord(args ...any) <-chan any {
+func (this *Bitget) PrivateUserGetUserV1TaxP2pRecord(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUserGetUserV1TaxP2pRecord", args...)
 }
 
 // PrivateUserGetV2UserVirtualSubaccountList returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUserGetV2UserVirtualSubaccountList(args ...any) <-chan any {
+func (this *Bitget) PrivateUserGetV2UserVirtualSubaccountList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUserGetV2UserVirtualSubaccountList", args...)
 }
 
 // PrivateUserGetV2UserVirtualSubaccountApikeyList returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUserGetV2UserVirtualSubaccountApikeyList(args ...any) <-chan any {
+func (this *Bitget) PrivateUserGetV2UserVirtualSubaccountApikeyList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUserGetV2UserVirtualSubaccountApikeyList", args...)
 }
 
 // PrivateUserPostUserV1SubVirtualCreate returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUserPostUserV1SubVirtualCreate(args ...any) <-chan any {
+func (this *Bitget) PrivateUserPostUserV1SubVirtualCreate(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUserPostUserV1SubVirtualCreate", args...)
 }
 
 // PrivateUserPostUserV1SubVirtualModify returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUserPostUserV1SubVirtualModify(args ...any) <-chan any {
+func (this *Bitget) PrivateUserPostUserV1SubVirtualModify(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUserPostUserV1SubVirtualModify", args...)
 }
 
 // PrivateUserPostUserV1SubVirtualApiBatchCreate returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUserPostUserV1SubVirtualApiBatchCreate(args ...any) <-chan any {
+func (this *Bitget) PrivateUserPostUserV1SubVirtualApiBatchCreate(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUserPostUserV1SubVirtualApiBatchCreate", args...)
 }
 
 // PrivateUserPostUserV1SubVirtualApiCreate returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUserPostUserV1SubVirtualApiCreate(args ...any) <-chan any {
+func (this *Bitget) PrivateUserPostUserV1SubVirtualApiCreate(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUserPostUserV1SubVirtualApiCreate", args...)
 }
 
 // PrivateUserPostUserV1SubVirtualApiModify returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUserPostUserV1SubVirtualApiModify(args ...any) <-chan any {
+func (this *Bitget) PrivateUserPostUserV1SubVirtualApiModify(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUserPostUserV1SubVirtualApiModify", args...)
 }
 
 // PrivateUserPostV2UserCreateVirtualSubaccount returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUserPostV2UserCreateVirtualSubaccount(args ...any) <-chan any {
+func (this *Bitget) PrivateUserPostV2UserCreateVirtualSubaccount(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUserPostV2UserCreateVirtualSubaccount", args...)
 }
 
 // PrivateUserPostV2UserModifyVirtualSubaccount returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUserPostV2UserModifyVirtualSubaccount(args ...any) <-chan any {
+func (this *Bitget) PrivateUserPostV2UserModifyVirtualSubaccount(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUserPostV2UserModifyVirtualSubaccount", args...)
 }
 
 // PrivateUserPostV2UserBatchCreateSubaccountAndApikey returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUserPostV2UserBatchCreateSubaccountAndApikey(args ...any) <-chan any {
+func (this *Bitget) PrivateUserPostV2UserBatchCreateSubaccountAndApikey(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUserPostV2UserBatchCreateSubaccountAndApikey", args...)
 }
 
 // PrivateUserPostV2UserCreateVirtualSubaccountApikey returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUserPostV2UserCreateVirtualSubaccountApikey(args ...any) <-chan any {
+func (this *Bitget) PrivateUserPostV2UserCreateVirtualSubaccountApikey(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUserPostV2UserCreateVirtualSubaccountApikey", args...)
 }
 
 // PrivateUserPostV2UserModifyVirtualSubaccountApikey returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUserPostV2UserModifyVirtualSubaccountApikey(args ...any) <-chan any {
+func (this *Bitget) PrivateUserPostV2UserModifyVirtualSubaccountApikey(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUserPostV2UserModifyVirtualSubaccountApikey", args...)
 }
 
+// PrivateUserPostV2UserCreateAgentSubaccount returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUserPostV2UserCreateAgentSubaccount(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUserPostV2UserCreateAgentSubaccount", args...)
+}
+
 // PrivateP2pGetP2pV1MerchantMerchantList returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateP2pGetP2pV1MerchantMerchantList(args ...any) <-chan any {
+func (this *Bitget) PrivateP2pGetP2pV1MerchantMerchantList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateP2pGetP2pV1MerchantMerchantList", args...)
 }
 
 // PrivateP2pGetP2pV1MerchantMerchantInfo returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateP2pGetP2pV1MerchantMerchantInfo(args ...any) <-chan any {
+func (this *Bitget) PrivateP2pGetP2pV1MerchantMerchantInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("privateP2pGetP2pV1MerchantMerchantInfo", args...)
 }
 
 // PrivateP2pGetP2pV1MerchantAdvList returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateP2pGetP2pV1MerchantAdvList(args ...any) <-chan any {
+func (this *Bitget) PrivateP2pGetP2pV1MerchantAdvList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateP2pGetP2pV1MerchantAdvList", args...)
 }
 
 // PrivateP2pGetP2pV1MerchantOrderList returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateP2pGetP2pV1MerchantOrderList(args ...any) <-chan any {
+func (this *Bitget) PrivateP2pGetP2pV1MerchantOrderList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateP2pGetP2pV1MerchantOrderList", args...)
 }
 
 // PrivateP2pGetV2P2pMerchantList returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateP2pGetV2P2pMerchantList(args ...any) <-chan any {
+func (this *Bitget) PrivateP2pGetV2P2pMerchantList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateP2pGetV2P2pMerchantList", args...)
 }
 
 // PrivateP2pGetV2P2pMerchantInfo returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateP2pGetV2P2pMerchantInfo(args ...any) <-chan any {
+func (this *Bitget) PrivateP2pGetV2P2pMerchantInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("privateP2pGetV2P2pMerchantInfo", args...)
 }
 
 // PrivateP2pGetV2P2pOrderList returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateP2pGetV2P2pOrderList(args ...any) <-chan any {
+func (this *Bitget) PrivateP2pGetV2P2pOrderList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateP2pGetV2P2pOrderList", args...)
 }
 
 // PrivateP2pGetV2P2pAdvList returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateP2pGetV2P2pAdvList(args ...any) <-chan any {
+func (this *Bitget) PrivateP2pGetV2P2pAdvList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateP2pGetV2P2pAdvList", args...)
 }
 
 // PrivateBrokerGetBrokerV1AccountInfo returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateBrokerGetBrokerV1AccountInfo(args ...any) <-chan any {
+func (this *Bitget) PrivateBrokerGetBrokerV1AccountInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("privateBrokerGetBrokerV1AccountInfo", args...)
 }
 
 // PrivateBrokerGetBrokerV1AccountSubList returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateBrokerGetBrokerV1AccountSubList(args ...any) <-chan any {
+func (this *Bitget) PrivateBrokerGetBrokerV1AccountSubList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateBrokerGetBrokerV1AccountSubList", args...)
 }
 
 // PrivateBrokerGetBrokerV1AccountSubEmail returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateBrokerGetBrokerV1AccountSubEmail(args ...any) <-chan any {
+func (this *Bitget) PrivateBrokerGetBrokerV1AccountSubEmail(args ...any) <-chan any {
 	return this.callEndpointAsync("privateBrokerGetBrokerV1AccountSubEmail", args...)
 }
 
 // PrivateBrokerGetBrokerV1AccountSubSpotAssets returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateBrokerGetBrokerV1AccountSubSpotAssets(args ...any) <-chan any {
+func (this *Bitget) PrivateBrokerGetBrokerV1AccountSubSpotAssets(args ...any) <-chan any {
 	return this.callEndpointAsync("privateBrokerGetBrokerV1AccountSubSpotAssets", args...)
 }
 
 // PrivateBrokerGetBrokerV1AccountSubFutureAssets returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateBrokerGetBrokerV1AccountSubFutureAssets(args ...any) <-chan any {
+func (this *Bitget) PrivateBrokerGetBrokerV1AccountSubFutureAssets(args ...any) <-chan any {
 	return this.callEndpointAsync("privateBrokerGetBrokerV1AccountSubFutureAssets", args...)
 }
 
 // PrivateBrokerGetBrokerV1AccountSubaccountTransfer returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateBrokerGetBrokerV1AccountSubaccountTransfer(args ...any) <-chan any {
+func (this *Bitget) PrivateBrokerGetBrokerV1AccountSubaccountTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("privateBrokerGetBrokerV1AccountSubaccountTransfer", args...)
 }
 
 // PrivateBrokerGetBrokerV1AccountSubaccountDeposit returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateBrokerGetBrokerV1AccountSubaccountDeposit(args ...any) <-chan any {
+func (this *Bitget) PrivateBrokerGetBrokerV1AccountSubaccountDeposit(args ...any) <-chan any {
 	return this.callEndpointAsync("privateBrokerGetBrokerV1AccountSubaccountDeposit", args...)
 }
 
 // PrivateBrokerGetBrokerV1AccountSubaccountWithdrawal returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateBrokerGetBrokerV1AccountSubaccountWithdrawal(args ...any) <-chan any {
+func (this *Bitget) PrivateBrokerGetBrokerV1AccountSubaccountWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privateBrokerGetBrokerV1AccountSubaccountWithdrawal", args...)
 }
 
 // PrivateBrokerGetBrokerV1AccountSubApiList returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateBrokerGetBrokerV1AccountSubApiList(args ...any) <-chan any {
+func (this *Bitget) PrivateBrokerGetBrokerV1AccountSubApiList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateBrokerGetBrokerV1AccountSubApiList", args...)
 }
 
 // PrivateBrokerGetV2BrokerAccountInfo returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateBrokerGetV2BrokerAccountInfo(args ...any) <-chan any {
+func (this *Bitget) PrivateBrokerGetV2BrokerAccountInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("privateBrokerGetV2BrokerAccountInfo", args...)
 }
 
 // PrivateBrokerGetV2BrokerAccountSubaccountList returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateBrokerGetV2BrokerAccountSubaccountList(args ...any) <-chan any {
+func (this *Bitget) PrivateBrokerGetV2BrokerAccountSubaccountList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateBrokerGetV2BrokerAccountSubaccountList", args...)
 }
 
 // PrivateBrokerGetV2BrokerAccountSubaccountEmail returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateBrokerGetV2BrokerAccountSubaccountEmail(args ...any) <-chan any {
+func (this *Bitget) PrivateBrokerGetV2BrokerAccountSubaccountEmail(args ...any) <-chan any {
 	return this.callEndpointAsync("privateBrokerGetV2BrokerAccountSubaccountEmail", args...)
 }
 
 // PrivateBrokerGetV2BrokerAccountSubaccountSpotAssets returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateBrokerGetV2BrokerAccountSubaccountSpotAssets(args ...any) <-chan any {
+func (this *Bitget) PrivateBrokerGetV2BrokerAccountSubaccountSpotAssets(args ...any) <-chan any {
 	return this.callEndpointAsync("privateBrokerGetV2BrokerAccountSubaccountSpotAssets", args...)
 }
 
 // PrivateBrokerGetV2BrokerAccountSubaccountFutureAssets returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateBrokerGetV2BrokerAccountSubaccountFutureAssets(args ...any) <-chan any {
+func (this *Bitget) PrivateBrokerGetV2BrokerAccountSubaccountFutureAssets(args ...any) <-chan any {
 	return this.callEndpointAsync("privateBrokerGetV2BrokerAccountSubaccountFutureAssets", args...)
 }
 
 // PrivateBrokerGetV2BrokerManageSubaccountApikeyList returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateBrokerGetV2BrokerManageSubaccountApikeyList(args ...any) <-chan any {
+func (this *Bitget) PrivateBrokerGetV2BrokerManageSubaccountApikeyList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateBrokerGetV2BrokerManageSubaccountApikeyList", args...)
 }
 
+// PrivateBrokerGetV2BrokerSubCustomerList returns a channel that yields a JSON object.
+func (this *Bitget) PrivateBrokerGetV2BrokerSubCustomerList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateBrokerGetV2BrokerSubCustomerList", args...)
+}
+
+// PrivateBrokerGetV2BrokerAgentCommission returns a channel that yields a JSON object.
+func (this *Bitget) PrivateBrokerGetV2BrokerAgentCommission(args ...any) <-chan any {
+	return this.callEndpointAsync("privateBrokerGetV2BrokerAgentCommission", args...)
+}
+
+// PrivateBrokerGetV2BrokerCustomerCommissions returns a channel that yields a JSON object.
+func (this *Bitget) PrivateBrokerGetV2BrokerCustomerCommissions(args ...any) <-chan any {
+	return this.callEndpointAsync("privateBrokerGetV2BrokerCustomerCommissions", args...)
+}
+
+// PrivateBrokerGetV2BrokerCustomerKycResult returns a channel that yields a JSON object.
+func (this *Bitget) PrivateBrokerGetV2BrokerCustomerKycResult(args ...any) <-chan any {
+	return this.callEndpointAsync("privateBrokerGetV2BrokerCustomerKycResult", args...)
+}
+
+// PrivateBrokerGetV2BrokerOrderCommission returns a channel that yields a JSON object.
+func (this *Bitget) PrivateBrokerGetV2BrokerOrderCommission(args ...any) <-chan any {
+	return this.callEndpointAsync("privateBrokerGetV2BrokerOrderCommission", args...)
+}
+
+// PrivateBrokerGetV2BrokerRebateInfo returns a channel that yields a JSON object.
+func (this *Bitget) PrivateBrokerGetV2BrokerRebateInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateBrokerGetV2BrokerRebateInfo", args...)
+}
+
+// PrivateBrokerGetV2BrokerTotalCommission returns a channel that yields a JSON object.
+func (this *Bitget) PrivateBrokerGetV2BrokerTotalCommission(args ...any) <-chan any {
+	return this.callEndpointAsync("privateBrokerGetV2BrokerTotalCommission", args...)
+}
+
 // PrivateBrokerPostBrokerV1AccountSubCreate returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateBrokerPostBrokerV1AccountSubCreate(args ...any) <-chan any {
+func (this *Bitget) PrivateBrokerPostBrokerV1AccountSubCreate(args ...any) <-chan any {
 	return this.callEndpointAsync("privateBrokerPostBrokerV1AccountSubCreate", args...)
 }
 
 // PrivateBrokerPostBrokerV1AccountSubModify returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateBrokerPostBrokerV1AccountSubModify(args ...any) <-chan any {
+func (this *Bitget) PrivateBrokerPostBrokerV1AccountSubModify(args ...any) <-chan any {
 	return this.callEndpointAsync("privateBrokerPostBrokerV1AccountSubModify", args...)
 }
 
 // PrivateBrokerPostBrokerV1AccountSubModifyEmail returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateBrokerPostBrokerV1AccountSubModifyEmail(args ...any) <-chan any {
+func (this *Bitget) PrivateBrokerPostBrokerV1AccountSubModifyEmail(args ...any) <-chan any {
 	return this.callEndpointAsync("privateBrokerPostBrokerV1AccountSubModifyEmail", args...)
 }
 
 // PrivateBrokerPostBrokerV1AccountSubAddress returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateBrokerPostBrokerV1AccountSubAddress(args ...any) <-chan any {
+func (this *Bitget) PrivateBrokerPostBrokerV1AccountSubAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privateBrokerPostBrokerV1AccountSubAddress", args...)
 }
 
 // PrivateBrokerPostBrokerV1AccountSubWithdrawal returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateBrokerPostBrokerV1AccountSubWithdrawal(args ...any) <-chan any {
+func (this *Bitget) PrivateBrokerPostBrokerV1AccountSubWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privateBrokerPostBrokerV1AccountSubWithdrawal", args...)
 }
 
 // PrivateBrokerPostBrokerV1AccountSubAutoTransfer returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateBrokerPostBrokerV1AccountSubAutoTransfer(args ...any) <-chan any {
+func (this *Bitget) PrivateBrokerPostBrokerV1AccountSubAutoTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("privateBrokerPostBrokerV1AccountSubAutoTransfer", args...)
 }
 
 // PrivateBrokerPostBrokerV1AccountSubApiCreate returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateBrokerPostBrokerV1AccountSubApiCreate(args ...any) <-chan any {
+func (this *Bitget) PrivateBrokerPostBrokerV1AccountSubApiCreate(args ...any) <-chan any {
 	return this.callEndpointAsync("privateBrokerPostBrokerV1AccountSubApiCreate", args...)
 }
 
 // PrivateBrokerPostBrokerV1AccountSubApiModify returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateBrokerPostBrokerV1AccountSubApiModify(args ...any) <-chan any {
+func (this *Bitget) PrivateBrokerPostBrokerV1AccountSubApiModify(args ...any) <-chan any {
 	return this.callEndpointAsync("privateBrokerPostBrokerV1AccountSubApiModify", args...)
 }
 
 // PrivateBrokerPostV2BrokerAccountModifySubaccountEmail returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateBrokerPostV2BrokerAccountModifySubaccountEmail(args ...any) <-chan any {
+func (this *Bitget) PrivateBrokerPostV2BrokerAccountModifySubaccountEmail(args ...any) <-chan any {
 	return this.callEndpointAsync("privateBrokerPostV2BrokerAccountModifySubaccountEmail", args...)
 }
 
 // PrivateBrokerPostV2BrokerAccountCreateSubaccount returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateBrokerPostV2BrokerAccountCreateSubaccount(args ...any) <-chan any {
+func (this *Bitget) PrivateBrokerPostV2BrokerAccountCreateSubaccount(args ...any) <-chan any {
 	return this.callEndpointAsync("privateBrokerPostV2BrokerAccountCreateSubaccount", args...)
 }
 
 // PrivateBrokerPostV2BrokerAccountModifySubaccount returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateBrokerPostV2BrokerAccountModifySubaccount(args ...any) <-chan any {
+func (this *Bitget) PrivateBrokerPostV2BrokerAccountModifySubaccount(args ...any) <-chan any {
 	return this.callEndpointAsync("privateBrokerPostV2BrokerAccountModifySubaccount", args...)
 }
 
 // PrivateBrokerPostV2BrokerAccountSubaccountAddress returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateBrokerPostV2BrokerAccountSubaccountAddress(args ...any) <-chan any {
+func (this *Bitget) PrivateBrokerPostV2BrokerAccountSubaccountAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privateBrokerPostV2BrokerAccountSubaccountAddress", args...)
 }
 
 // PrivateBrokerPostV2BrokerAccountSubaccountWithdrawal returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateBrokerPostV2BrokerAccountSubaccountWithdrawal(args ...any) <-chan any {
+func (this *Bitget) PrivateBrokerPostV2BrokerAccountSubaccountWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privateBrokerPostV2BrokerAccountSubaccountWithdrawal", args...)
 }
 
 // PrivateBrokerPostV2BrokerAccountSetSubaccountAutotransfer returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateBrokerPostV2BrokerAccountSetSubaccountAutotransfer(args ...any) <-chan any {
+func (this *Bitget) PrivateBrokerPostV2BrokerAccountSetSubaccountAutotransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("privateBrokerPostV2BrokerAccountSetSubaccountAutotransfer", args...)
 }
 
 // PrivateBrokerPostV2BrokerManageCreateSubaccountApikey returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateBrokerPostV2BrokerManageCreateSubaccountApikey(args ...any) <-chan any {
+func (this *Bitget) PrivateBrokerPostV2BrokerManageCreateSubaccountApikey(args ...any) <-chan any {
 	return this.callEndpointAsync("privateBrokerPostV2BrokerManageCreateSubaccountApikey", args...)
 }
 
 // PrivateBrokerPostV2BrokerManageModifySubaccountApikey returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateBrokerPostV2BrokerManageModifySubaccountApikey(args ...any) <-chan any {
+func (this *Bitget) PrivateBrokerPostV2BrokerManageModifySubaccountApikey(args ...any) <-chan any {
 	return this.callEndpointAsync("privateBrokerPostV2BrokerManageModifySubaccountApikey", args...)
 }
 
+// PrivateBrokerPostV2BrokerCustomerAsset returns a channel that yields a JSON object.
+func (this *Bitget) PrivateBrokerPostV2BrokerCustomerAsset(args ...any) <-chan any {
+	return this.callEndpointAsync("privateBrokerPostV2BrokerCustomerAsset", args...)
+}
+
+// PrivateBrokerPostV2BrokerCustomerDeposit returns a channel that yields a JSON object.
+func (this *Bitget) PrivateBrokerPostV2BrokerCustomerDeposit(args ...any) <-chan any {
+	return this.callEndpointAsync("privateBrokerPostV2BrokerCustomerDeposit", args...)
+}
+
+// PrivateBrokerPostV2BrokerCustomerList returns a channel that yields a JSON object.
+func (this *Bitget) PrivateBrokerPostV2BrokerCustomerList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateBrokerPostV2BrokerCustomerList", args...)
+}
+
+// PrivateBrokerPostV2BrokerCustomerTradeVolume returns a channel that yields a JSON object.
+func (this *Bitget) PrivateBrokerPostV2BrokerCustomerTradeVolume(args ...any) <-chan any {
+	return this.callEndpointAsync("privateBrokerPostV2BrokerCustomerTradeVolume", args...)
+}
+
 // PrivateMarginGetMarginV1CrossAccountRiskRate returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginGetMarginV1CrossAccountRiskRate(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginGetMarginV1CrossAccountRiskRate(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginGetMarginV1CrossAccountRiskRate", args...)
 }
 
 // PrivateMarginGetMarginV1CrossAccountMaxTransferOutAmount returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginGetMarginV1CrossAccountMaxTransferOutAmount(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginGetMarginV1CrossAccountMaxTransferOutAmount(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginGetMarginV1CrossAccountMaxTransferOutAmount", args...)
 }
 
 // PrivateMarginGetMarginV1IsolatedAccountMaxTransferOutAmount returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginGetMarginV1IsolatedAccountMaxTransferOutAmount(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginGetMarginV1IsolatedAccountMaxTransferOutAmount(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginGetMarginV1IsolatedAccountMaxTransferOutAmount", args...)
 }
 
 // PrivateMarginGetMarginV1IsolatedOrderOpenOrders returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginGetMarginV1IsolatedOrderOpenOrders(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginGetMarginV1IsolatedOrderOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginGetMarginV1IsolatedOrderOpenOrders", args...)
 }
 
 // PrivateMarginGetMarginV1IsolatedOrderHistory returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginGetMarginV1IsolatedOrderHistory(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginGetMarginV1IsolatedOrderHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginGetMarginV1IsolatedOrderHistory", args...)
 }
 
 // PrivateMarginGetMarginV1IsolatedOrderFills returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginGetMarginV1IsolatedOrderFills(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginGetMarginV1IsolatedOrderFills(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginGetMarginV1IsolatedOrderFills", args...)
 }
 
 // PrivateMarginGetMarginV1IsolatedLoanList returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginGetMarginV1IsolatedLoanList(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginGetMarginV1IsolatedLoanList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginGetMarginV1IsolatedLoanList", args...)
 }
 
 // PrivateMarginGetMarginV1IsolatedRepayList returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginGetMarginV1IsolatedRepayList(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginGetMarginV1IsolatedRepayList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginGetMarginV1IsolatedRepayList", args...)
 }
 
 // PrivateMarginGetMarginV1IsolatedInterestList returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginGetMarginV1IsolatedInterestList(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginGetMarginV1IsolatedInterestList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginGetMarginV1IsolatedInterestList", args...)
 }
 
 // PrivateMarginGetMarginV1IsolatedLiquidationList returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginGetMarginV1IsolatedLiquidationList(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginGetMarginV1IsolatedLiquidationList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginGetMarginV1IsolatedLiquidationList", args...)
 }
 
 // PrivateMarginGetMarginV1IsolatedFinList returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginGetMarginV1IsolatedFinList(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginGetMarginV1IsolatedFinList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginGetMarginV1IsolatedFinList", args...)
 }
 
 // PrivateMarginGetMarginV1CrossOrderOpenOrders returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginGetMarginV1CrossOrderOpenOrders(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginGetMarginV1CrossOrderOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginGetMarginV1CrossOrderOpenOrders", args...)
 }
 
 // PrivateMarginGetMarginV1CrossOrderHistory returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginGetMarginV1CrossOrderHistory(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginGetMarginV1CrossOrderHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginGetMarginV1CrossOrderHistory", args...)
 }
 
 // PrivateMarginGetMarginV1CrossOrderFills returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginGetMarginV1CrossOrderFills(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginGetMarginV1CrossOrderFills(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginGetMarginV1CrossOrderFills", args...)
 }
 
 // PrivateMarginGetMarginV1CrossLoanList returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginGetMarginV1CrossLoanList(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginGetMarginV1CrossLoanList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginGetMarginV1CrossLoanList", args...)
 }
 
 // PrivateMarginGetMarginV1CrossRepayList returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginGetMarginV1CrossRepayList(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginGetMarginV1CrossRepayList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginGetMarginV1CrossRepayList", args...)
 }
 
 // PrivateMarginGetMarginV1CrossInterestList returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginGetMarginV1CrossInterestList(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginGetMarginV1CrossInterestList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginGetMarginV1CrossInterestList", args...)
 }
 
 // PrivateMarginGetMarginV1CrossLiquidationList returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginGetMarginV1CrossLiquidationList(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginGetMarginV1CrossLiquidationList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginGetMarginV1CrossLiquidationList", args...)
 }
 
 // PrivateMarginGetMarginV1CrossFinList returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginGetMarginV1CrossFinList(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginGetMarginV1CrossFinList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginGetMarginV1CrossFinList", args...)
 }
 
 // PrivateMarginGetMarginV1CrossAccountAssets returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginGetMarginV1CrossAccountAssets(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginGetMarginV1CrossAccountAssets(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginGetMarginV1CrossAccountAssets", args...)
 }
 
 // PrivateMarginGetMarginV1IsolatedAccountAssets returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginGetMarginV1IsolatedAccountAssets(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginGetMarginV1IsolatedAccountAssets(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginGetMarginV1IsolatedAccountAssets", args...)
 }
 
 // PrivateMarginGetV2MarginCrossedBorrowHistory returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginGetV2MarginCrossedBorrowHistory(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginGetV2MarginCrossedBorrowHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginGetV2MarginCrossedBorrowHistory", args...)
 }
 
 // PrivateMarginGetV2MarginCrossedRepayHistory returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginGetV2MarginCrossedRepayHistory(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginGetV2MarginCrossedRepayHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginGetV2MarginCrossedRepayHistory", args...)
 }
 
 // PrivateMarginGetV2MarginCrossedInterestHistory returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginGetV2MarginCrossedInterestHistory(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginGetV2MarginCrossedInterestHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginGetV2MarginCrossedInterestHistory", args...)
 }
 
 // PrivateMarginGetV2MarginCrossedLiquidationHistory returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginGetV2MarginCrossedLiquidationHistory(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginGetV2MarginCrossedLiquidationHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginGetV2MarginCrossedLiquidationHistory", args...)
 }
 
 // PrivateMarginGetV2MarginCrossedFinancialRecords returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginGetV2MarginCrossedFinancialRecords(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginGetV2MarginCrossedFinancialRecords(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginGetV2MarginCrossedFinancialRecords", args...)
 }
 
 // PrivateMarginGetV2MarginCrossedAccountAssets returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginGetV2MarginCrossedAccountAssets(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginGetV2MarginCrossedAccountAssets(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginGetV2MarginCrossedAccountAssets", args...)
 }
 
 // PrivateMarginGetV2MarginCrossedAccountRiskRate returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginGetV2MarginCrossedAccountRiskRate(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginGetV2MarginCrossedAccountRiskRate(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginGetV2MarginCrossedAccountRiskRate", args...)
 }
 
 // PrivateMarginGetV2MarginCrossedAccountMaxBorrowableAmount returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginGetV2MarginCrossedAccountMaxBorrowableAmount(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginGetV2MarginCrossedAccountMaxBorrowableAmount(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginGetV2MarginCrossedAccountMaxBorrowableAmount", args...)
 }
 
 // PrivateMarginGetV2MarginCrossedAccountMaxTransferOutAmount returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginGetV2MarginCrossedAccountMaxTransferOutAmount(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginGetV2MarginCrossedAccountMaxTransferOutAmount(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginGetV2MarginCrossedAccountMaxTransferOutAmount", args...)
 }
 
 // PrivateMarginGetV2MarginCrossedInterestRateAndLimit returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginGetV2MarginCrossedInterestRateAndLimit(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginGetV2MarginCrossedInterestRateAndLimit(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginGetV2MarginCrossedInterestRateAndLimit", args...)
 }
 
 // PrivateMarginGetV2MarginCrossedTierData returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginGetV2MarginCrossedTierData(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginGetV2MarginCrossedTierData(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginGetV2MarginCrossedTierData", args...)
 }
 
 // PrivateMarginGetV2MarginCrossedOpenOrders returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginGetV2MarginCrossedOpenOrders(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginGetV2MarginCrossedOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginGetV2MarginCrossedOpenOrders", args...)
 }
 
 // PrivateMarginGetV2MarginCrossedHistoryOrders returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginGetV2MarginCrossedHistoryOrders(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginGetV2MarginCrossedHistoryOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginGetV2MarginCrossedHistoryOrders", args...)
 }
 
 // PrivateMarginGetV2MarginCrossedFills returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginGetV2MarginCrossedFills(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginGetV2MarginCrossedFills(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginGetV2MarginCrossedFills", args...)
 }
 
 // PrivateMarginGetV2MarginIsolatedBorrowHistory returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginGetV2MarginIsolatedBorrowHistory(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginGetV2MarginIsolatedBorrowHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginGetV2MarginIsolatedBorrowHistory", args...)
 }
 
 // PrivateMarginGetV2MarginIsolatedRepayHistory returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginGetV2MarginIsolatedRepayHistory(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginGetV2MarginIsolatedRepayHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginGetV2MarginIsolatedRepayHistory", args...)
 }
 
 // PrivateMarginGetV2MarginIsolatedInterestHistory returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginGetV2MarginIsolatedInterestHistory(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginGetV2MarginIsolatedInterestHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginGetV2MarginIsolatedInterestHistory", args...)
 }
 
 // PrivateMarginGetV2MarginIsolatedLiquidationHistory returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginGetV2MarginIsolatedLiquidationHistory(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginGetV2MarginIsolatedLiquidationHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginGetV2MarginIsolatedLiquidationHistory", args...)
 }
 
 // PrivateMarginGetV2MarginIsolatedFinancialRecords returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginGetV2MarginIsolatedFinancialRecords(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginGetV2MarginIsolatedFinancialRecords(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginGetV2MarginIsolatedFinancialRecords", args...)
 }
 
 // PrivateMarginGetV2MarginIsolatedAccountAssets returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginGetV2MarginIsolatedAccountAssets(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginGetV2MarginIsolatedAccountAssets(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginGetV2MarginIsolatedAccountAssets", args...)
 }
 
 // PrivateMarginGetV2MarginIsolatedAccountRiskRate returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginGetV2MarginIsolatedAccountRiskRate(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginGetV2MarginIsolatedAccountRiskRate(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginGetV2MarginIsolatedAccountRiskRate", args...)
 }
 
 // PrivateMarginGetV2MarginIsolatedAccountMaxBorrowableAmount returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginGetV2MarginIsolatedAccountMaxBorrowableAmount(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginGetV2MarginIsolatedAccountMaxBorrowableAmount(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginGetV2MarginIsolatedAccountMaxBorrowableAmount", args...)
 }
 
 // PrivateMarginGetV2MarginIsolatedAccountMaxTransferOutAmount returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginGetV2MarginIsolatedAccountMaxTransferOutAmount(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginGetV2MarginIsolatedAccountMaxTransferOutAmount(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginGetV2MarginIsolatedAccountMaxTransferOutAmount", args...)
 }
 
 // PrivateMarginGetV2MarginIsolatedInterestRateAndLimit returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginGetV2MarginIsolatedInterestRateAndLimit(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginGetV2MarginIsolatedInterestRateAndLimit(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginGetV2MarginIsolatedInterestRateAndLimit", args...)
 }
 
 // PrivateMarginGetV2MarginIsolatedTierData returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginGetV2MarginIsolatedTierData(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginGetV2MarginIsolatedTierData(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginGetV2MarginIsolatedTierData", args...)
 }
 
 // PrivateMarginGetV2MarginIsolatedOpenOrders returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginGetV2MarginIsolatedOpenOrders(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginGetV2MarginIsolatedOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginGetV2MarginIsolatedOpenOrders", args...)
 }
 
 // PrivateMarginGetV2MarginIsolatedHistoryOrders returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginGetV2MarginIsolatedHistoryOrders(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginGetV2MarginIsolatedHistoryOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginGetV2MarginIsolatedHistoryOrders", args...)
 }
 
 // PrivateMarginGetV2MarginIsolatedFills returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginGetV2MarginIsolatedFills(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginGetV2MarginIsolatedFills(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginGetV2MarginIsolatedFills", args...)
 }
 
 // PrivateMarginPostMarginV1CrossAccountBorrow returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginPostMarginV1CrossAccountBorrow(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginPostMarginV1CrossAccountBorrow(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginPostMarginV1CrossAccountBorrow", args...)
 }
 
 // PrivateMarginPostMarginV1IsolatedAccountBorrow returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginPostMarginV1IsolatedAccountBorrow(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginPostMarginV1IsolatedAccountBorrow(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginPostMarginV1IsolatedAccountBorrow", args...)
 }
 
 // PrivateMarginPostMarginV1CrossAccountRepay returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginPostMarginV1CrossAccountRepay(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginPostMarginV1CrossAccountRepay(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginPostMarginV1CrossAccountRepay", args...)
 }
 
 // PrivateMarginPostMarginV1IsolatedAccountRepay returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginPostMarginV1IsolatedAccountRepay(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginPostMarginV1IsolatedAccountRepay(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginPostMarginV1IsolatedAccountRepay", args...)
 }
 
 // PrivateMarginPostMarginV1IsolatedAccountRiskRate returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginPostMarginV1IsolatedAccountRiskRate(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginPostMarginV1IsolatedAccountRiskRate(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginPostMarginV1IsolatedAccountRiskRate", args...)
 }
 
 // PrivateMarginPostMarginV1CrossAccountMaxBorrowableAmount returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginPostMarginV1CrossAccountMaxBorrowableAmount(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginPostMarginV1CrossAccountMaxBorrowableAmount(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginPostMarginV1CrossAccountMaxBorrowableAmount", args...)
 }
 
 // PrivateMarginPostMarginV1IsolatedAccountMaxBorrowableAmount returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginPostMarginV1IsolatedAccountMaxBorrowableAmount(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginPostMarginV1IsolatedAccountMaxBorrowableAmount(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginPostMarginV1IsolatedAccountMaxBorrowableAmount", args...)
 }
 
 // PrivateMarginPostMarginV1IsolatedAccountFlashRepay returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginPostMarginV1IsolatedAccountFlashRepay(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginPostMarginV1IsolatedAccountFlashRepay(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginPostMarginV1IsolatedAccountFlashRepay", args...)
 }
 
 // PrivateMarginPostMarginV1IsolatedAccountQueryFlashRepayStatus returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginPostMarginV1IsolatedAccountQueryFlashRepayStatus(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginPostMarginV1IsolatedAccountQueryFlashRepayStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginPostMarginV1IsolatedAccountQueryFlashRepayStatus", args...)
 }
 
 // PrivateMarginPostMarginV1CrossAccountFlashRepay returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginPostMarginV1CrossAccountFlashRepay(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginPostMarginV1CrossAccountFlashRepay(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginPostMarginV1CrossAccountFlashRepay", args...)
 }
 
 // PrivateMarginPostMarginV1CrossAccountQueryFlashRepayStatus returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginPostMarginV1CrossAccountQueryFlashRepayStatus(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginPostMarginV1CrossAccountQueryFlashRepayStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginPostMarginV1CrossAccountQueryFlashRepayStatus", args...)
 }
 
 // PrivateMarginPostMarginV1IsolatedOrderPlaceOrder returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginPostMarginV1IsolatedOrderPlaceOrder(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginPostMarginV1IsolatedOrderPlaceOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginPostMarginV1IsolatedOrderPlaceOrder", args...)
 }
 
 // PrivateMarginPostMarginV1IsolatedOrderBatchPlaceOrder returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginPostMarginV1IsolatedOrderBatchPlaceOrder(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginPostMarginV1IsolatedOrderBatchPlaceOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginPostMarginV1IsolatedOrderBatchPlaceOrder", args...)
 }
 
 // PrivateMarginPostMarginV1IsolatedOrderCancelOrder returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginPostMarginV1IsolatedOrderCancelOrder(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginPostMarginV1IsolatedOrderCancelOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginPostMarginV1IsolatedOrderCancelOrder", args...)
 }
 
 // PrivateMarginPostMarginV1IsolatedOrderBatchCancelOrder returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginPostMarginV1IsolatedOrderBatchCancelOrder(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginPostMarginV1IsolatedOrderBatchCancelOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginPostMarginV1IsolatedOrderBatchCancelOrder", args...)
 }
 
 // PrivateMarginPostMarginV1CrossOrderPlaceOrder returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginPostMarginV1CrossOrderPlaceOrder(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginPostMarginV1CrossOrderPlaceOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginPostMarginV1CrossOrderPlaceOrder", args...)
 }
 
 // PrivateMarginPostMarginV1CrossOrderBatchPlaceOrder returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginPostMarginV1CrossOrderBatchPlaceOrder(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginPostMarginV1CrossOrderBatchPlaceOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginPostMarginV1CrossOrderBatchPlaceOrder", args...)
 }
 
 // PrivateMarginPostMarginV1CrossOrderCancelOrder returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginPostMarginV1CrossOrderCancelOrder(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginPostMarginV1CrossOrderCancelOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginPostMarginV1CrossOrderCancelOrder", args...)
 }
 
 // PrivateMarginPostMarginV1CrossOrderBatchCancelOrder returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginPostMarginV1CrossOrderBatchCancelOrder(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginPostMarginV1CrossOrderBatchCancelOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginPostMarginV1CrossOrderBatchCancelOrder", args...)
 }
 
 // PrivateMarginPostV2MarginCrossedAccountBorrow returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginPostV2MarginCrossedAccountBorrow(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginPostV2MarginCrossedAccountBorrow(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginPostV2MarginCrossedAccountBorrow", args...)
 }
 
 // PrivateMarginPostV2MarginCrossedAccountRepay returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginPostV2MarginCrossedAccountRepay(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginPostV2MarginCrossedAccountRepay(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginPostV2MarginCrossedAccountRepay", args...)
 }
 
 // PrivateMarginPostV2MarginCrossedAccountFlashRepay returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginPostV2MarginCrossedAccountFlashRepay(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginPostV2MarginCrossedAccountFlashRepay(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginPostV2MarginCrossedAccountFlashRepay", args...)
 }
 
 // PrivateMarginPostV2MarginCrossedAccountQueryFlashRepayStatus returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginPostV2MarginCrossedAccountQueryFlashRepayStatus(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginPostV2MarginCrossedAccountQueryFlashRepayStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginPostV2MarginCrossedAccountQueryFlashRepayStatus", args...)
 }
 
 // PrivateMarginPostV2MarginCrossedPlaceOrder returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginPostV2MarginCrossedPlaceOrder(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginPostV2MarginCrossedPlaceOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginPostV2MarginCrossedPlaceOrder", args...)
 }
 
 // PrivateMarginPostV2MarginCrossedBatchPlaceOrder returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginPostV2MarginCrossedBatchPlaceOrder(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginPostV2MarginCrossedBatchPlaceOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginPostV2MarginCrossedBatchPlaceOrder", args...)
 }
 
 // PrivateMarginPostV2MarginCrossedCancelOrder returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginPostV2MarginCrossedCancelOrder(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginPostV2MarginCrossedCancelOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginPostV2MarginCrossedCancelOrder", args...)
 }
 
 // PrivateMarginPostV2MarginCrossedBatchCancelOrder returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginPostV2MarginCrossedBatchCancelOrder(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginPostV2MarginCrossedBatchCancelOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginPostV2MarginCrossedBatchCancelOrder", args...)
 }
 
 // PrivateMarginPostV2MarginIsolatedAccountBorrow returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginPostV2MarginIsolatedAccountBorrow(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginPostV2MarginIsolatedAccountBorrow(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginPostV2MarginIsolatedAccountBorrow", args...)
 }
 
 // PrivateMarginPostV2MarginIsolatedAccountRepay returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginPostV2MarginIsolatedAccountRepay(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginPostV2MarginIsolatedAccountRepay(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginPostV2MarginIsolatedAccountRepay", args...)
 }
 
 // PrivateMarginPostV2MarginIsolatedAccountFlashRepay returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginPostV2MarginIsolatedAccountFlashRepay(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginPostV2MarginIsolatedAccountFlashRepay(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginPostV2MarginIsolatedAccountFlashRepay", args...)
 }
 
 // PrivateMarginPostV2MarginIsolatedAccountQueryFlashRepayStatus returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginPostV2MarginIsolatedAccountQueryFlashRepayStatus(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginPostV2MarginIsolatedAccountQueryFlashRepayStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginPostV2MarginIsolatedAccountQueryFlashRepayStatus", args...)
 }
 
 // PrivateMarginPostV2MarginIsolatedPlaceOrder returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginPostV2MarginIsolatedPlaceOrder(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginPostV2MarginIsolatedPlaceOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginPostV2MarginIsolatedPlaceOrder", args...)
 }
 
 // PrivateMarginPostV2MarginIsolatedBatchPlaceOrder returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginPostV2MarginIsolatedBatchPlaceOrder(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginPostV2MarginIsolatedBatchPlaceOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginPostV2MarginIsolatedBatchPlaceOrder", args...)
 }
 
 // PrivateMarginPostV2MarginIsolatedCancelOrder returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginPostV2MarginIsolatedCancelOrder(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginPostV2MarginIsolatedCancelOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginPostV2MarginIsolatedCancelOrder", args...)
 }
 
 // PrivateMarginPostV2MarginIsolatedBatchCancelOrder returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateMarginPostV2MarginIsolatedBatchCancelOrder(args ...any) <-chan any {
+func (this *Bitget) PrivateMarginPostV2MarginIsolatedBatchCancelOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateMarginPostV2MarginIsolatedBatchCancelOrder", args...)
 }
 
 // PrivateCopyGetV2CopyMixTraderOrderCurrentTrack returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateCopyGetV2CopyMixTraderOrderCurrentTrack(args ...any) <-chan any {
+func (this *Bitget) PrivateCopyGetV2CopyMixTraderOrderCurrentTrack(args ...any) <-chan any {
 	return this.callEndpointAsync("privateCopyGetV2CopyMixTraderOrderCurrentTrack", args...)
 }
 
 // PrivateCopyGetV2CopyMixTraderOrderHistoryTrack returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateCopyGetV2CopyMixTraderOrderHistoryTrack(args ...any) <-chan any {
+func (this *Bitget) PrivateCopyGetV2CopyMixTraderOrderHistoryTrack(args ...any) <-chan any {
 	return this.callEndpointAsync("privateCopyGetV2CopyMixTraderOrderHistoryTrack", args...)
 }
 
 // PrivateCopyGetV2CopyMixTraderOrderTotalDetail returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateCopyGetV2CopyMixTraderOrderTotalDetail(args ...any) <-chan any {
+func (this *Bitget) PrivateCopyGetV2CopyMixTraderOrderTotalDetail(args ...any) <-chan any {
 	return this.callEndpointAsync("privateCopyGetV2CopyMixTraderOrderTotalDetail", args...)
 }
 
 // PrivateCopyGetV2CopyMixTraderProfitHistorySummarys returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateCopyGetV2CopyMixTraderProfitHistorySummarys(args ...any) <-chan any {
+func (this *Bitget) PrivateCopyGetV2CopyMixTraderProfitHistorySummarys(args ...any) <-chan any {
 	return this.callEndpointAsync("privateCopyGetV2CopyMixTraderProfitHistorySummarys", args...)
 }
 
 // PrivateCopyGetV2CopyMixTraderProfitHistoryDetails returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateCopyGetV2CopyMixTraderProfitHistoryDetails(args ...any) <-chan any {
+func (this *Bitget) PrivateCopyGetV2CopyMixTraderProfitHistoryDetails(args ...any) <-chan any {
 	return this.callEndpointAsync("privateCopyGetV2CopyMixTraderProfitHistoryDetails", args...)
 }
 
 // PrivateCopyGetV2CopyMixTraderProfitDetails returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateCopyGetV2CopyMixTraderProfitDetails(args ...any) <-chan any {
+func (this *Bitget) PrivateCopyGetV2CopyMixTraderProfitDetails(args ...any) <-chan any {
 	return this.callEndpointAsync("privateCopyGetV2CopyMixTraderProfitDetails", args...)
 }
 
 // PrivateCopyGetV2CopyMixTraderProfitsGroupCoinDate returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateCopyGetV2CopyMixTraderProfitsGroupCoinDate(args ...any) <-chan any {
+func (this *Bitget) PrivateCopyGetV2CopyMixTraderProfitsGroupCoinDate(args ...any) <-chan any {
 	return this.callEndpointAsync("privateCopyGetV2CopyMixTraderProfitsGroupCoinDate", args...)
 }
 
 // PrivateCopyGetV2CopyMixTraderConfigQuerySymbols returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateCopyGetV2CopyMixTraderConfigQuerySymbols(args ...any) <-chan any {
+func (this *Bitget) PrivateCopyGetV2CopyMixTraderConfigQuerySymbols(args ...any) <-chan any {
 	return this.callEndpointAsync("privateCopyGetV2CopyMixTraderConfigQuerySymbols", args...)
 }
 
 // PrivateCopyGetV2CopyMixTraderConfigQueryFollowers returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateCopyGetV2CopyMixTraderConfigQueryFollowers(args ...any) <-chan any {
+func (this *Bitget) PrivateCopyGetV2CopyMixTraderConfigQueryFollowers(args ...any) <-chan any {
 	return this.callEndpointAsync("privateCopyGetV2CopyMixTraderConfigQueryFollowers", args...)
 }
 
 // PrivateCopyGetV2CopyMixFollowerQueryCurrentOrders returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateCopyGetV2CopyMixFollowerQueryCurrentOrders(args ...any) <-chan any {
+func (this *Bitget) PrivateCopyGetV2CopyMixFollowerQueryCurrentOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateCopyGetV2CopyMixFollowerQueryCurrentOrders", args...)
 }
 
 // PrivateCopyGetV2CopyMixFollowerQueryHistoryOrders returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateCopyGetV2CopyMixFollowerQueryHistoryOrders(args ...any) <-chan any {
+func (this *Bitget) PrivateCopyGetV2CopyMixFollowerQueryHistoryOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateCopyGetV2CopyMixFollowerQueryHistoryOrders", args...)
 }
 
 // PrivateCopyGetV2CopyMixFollowerQuerySettings returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateCopyGetV2CopyMixFollowerQuerySettings(args ...any) <-chan any {
+func (this *Bitget) PrivateCopyGetV2CopyMixFollowerQuerySettings(args ...any) <-chan any {
 	return this.callEndpointAsync("privateCopyGetV2CopyMixFollowerQuerySettings", args...)
 }
 
 // PrivateCopyGetV2CopyMixFollowerQueryTraders returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateCopyGetV2CopyMixFollowerQueryTraders(args ...any) <-chan any {
+func (this *Bitget) PrivateCopyGetV2CopyMixFollowerQueryTraders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateCopyGetV2CopyMixFollowerQueryTraders", args...)
 }
 
 // PrivateCopyGetV2CopyMixFollowerQueryQuantityLimit returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateCopyGetV2CopyMixFollowerQueryQuantityLimit(args ...any) <-chan any {
+func (this *Bitget) PrivateCopyGetV2CopyMixFollowerQueryQuantityLimit(args ...any) <-chan any {
 	return this.callEndpointAsync("privateCopyGetV2CopyMixFollowerQueryQuantityLimit", args...)
 }
 
 // PrivateCopyGetV2CopyMixBrokerQueryTraders returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateCopyGetV2CopyMixBrokerQueryTraders(args ...any) <-chan any {
+func (this *Bitget) PrivateCopyGetV2CopyMixBrokerQueryTraders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateCopyGetV2CopyMixBrokerQueryTraders", args...)
 }
 
 // PrivateCopyGetV2CopyMixBrokerQueryHistoryTraces returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateCopyGetV2CopyMixBrokerQueryHistoryTraces(args ...any) <-chan any {
+func (this *Bitget) PrivateCopyGetV2CopyMixBrokerQueryHistoryTraces(args ...any) <-chan any {
 	return this.callEndpointAsync("privateCopyGetV2CopyMixBrokerQueryHistoryTraces", args...)
 }
 
 // PrivateCopyGetV2CopyMixBrokerQueryCurrentTraces returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateCopyGetV2CopyMixBrokerQueryCurrentTraces(args ...any) <-chan any {
+func (this *Bitget) PrivateCopyGetV2CopyMixBrokerQueryCurrentTraces(args ...any) <-chan any {
 	return this.callEndpointAsync("privateCopyGetV2CopyMixBrokerQueryCurrentTraces", args...)
 }
 
 // PrivateCopyGetV2CopySpotTraderProfitSummarys returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateCopyGetV2CopySpotTraderProfitSummarys(args ...any) <-chan any {
+func (this *Bitget) PrivateCopyGetV2CopySpotTraderProfitSummarys(args ...any) <-chan any {
 	return this.callEndpointAsync("privateCopyGetV2CopySpotTraderProfitSummarys", args...)
 }
 
 // PrivateCopyGetV2CopySpotTraderProfitHistoryDetails returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateCopyGetV2CopySpotTraderProfitHistoryDetails(args ...any) <-chan any {
+func (this *Bitget) PrivateCopyGetV2CopySpotTraderProfitHistoryDetails(args ...any) <-chan any {
 	return this.callEndpointAsync("privateCopyGetV2CopySpotTraderProfitHistoryDetails", args...)
 }
 
 // PrivateCopyGetV2CopySpotTraderProfitDetails returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateCopyGetV2CopySpotTraderProfitDetails(args ...any) <-chan any {
+func (this *Bitget) PrivateCopyGetV2CopySpotTraderProfitDetails(args ...any) <-chan any {
 	return this.callEndpointAsync("privateCopyGetV2CopySpotTraderProfitDetails", args...)
 }
 
 // PrivateCopyGetV2CopySpotTraderOrderTotalDetail returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateCopyGetV2CopySpotTraderOrderTotalDetail(args ...any) <-chan any {
+func (this *Bitget) PrivateCopyGetV2CopySpotTraderOrderTotalDetail(args ...any) <-chan any {
 	return this.callEndpointAsync("privateCopyGetV2CopySpotTraderOrderTotalDetail", args...)
 }
 
 // PrivateCopyGetV2CopySpotTraderOrderHistoryTrack returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateCopyGetV2CopySpotTraderOrderHistoryTrack(args ...any) <-chan any {
+func (this *Bitget) PrivateCopyGetV2CopySpotTraderOrderHistoryTrack(args ...any) <-chan any {
 	return this.callEndpointAsync("privateCopyGetV2CopySpotTraderOrderHistoryTrack", args...)
 }
 
 // PrivateCopyGetV2CopySpotTraderOrderCurrentTrack returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateCopyGetV2CopySpotTraderOrderCurrentTrack(args ...any) <-chan any {
+func (this *Bitget) PrivateCopyGetV2CopySpotTraderOrderCurrentTrack(args ...any) <-chan any {
 	return this.callEndpointAsync("privateCopyGetV2CopySpotTraderOrderCurrentTrack", args...)
 }
 
 // PrivateCopyGetV2CopySpotTraderConfigQuerySettings returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateCopyGetV2CopySpotTraderConfigQuerySettings(args ...any) <-chan any {
+func (this *Bitget) PrivateCopyGetV2CopySpotTraderConfigQuerySettings(args ...any) <-chan any {
 	return this.callEndpointAsync("privateCopyGetV2CopySpotTraderConfigQuerySettings", args...)
 }
 
 // PrivateCopyGetV2CopySpotTraderConfigQueryFollowers returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateCopyGetV2CopySpotTraderConfigQueryFollowers(args ...any) <-chan any {
+func (this *Bitget) PrivateCopyGetV2CopySpotTraderConfigQueryFollowers(args ...any) <-chan any {
 	return this.callEndpointAsync("privateCopyGetV2CopySpotTraderConfigQueryFollowers", args...)
 }
 
 // PrivateCopyGetV2CopySpotFollowerQueryTraders returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateCopyGetV2CopySpotFollowerQueryTraders(args ...any) <-chan any {
+func (this *Bitget) PrivateCopyGetV2CopySpotFollowerQueryTraders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateCopyGetV2CopySpotFollowerQueryTraders", args...)
 }
 
 // PrivateCopyGetV2CopySpotFollowerQueryTraderSymbols returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateCopyGetV2CopySpotFollowerQueryTraderSymbols(args ...any) <-chan any {
+func (this *Bitget) PrivateCopyGetV2CopySpotFollowerQueryTraderSymbols(args ...any) <-chan any {
 	return this.callEndpointAsync("privateCopyGetV2CopySpotFollowerQueryTraderSymbols", args...)
 }
 
 // PrivateCopyGetV2CopySpotFollowerQuerySettings returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateCopyGetV2CopySpotFollowerQuerySettings(args ...any) <-chan any {
+func (this *Bitget) PrivateCopyGetV2CopySpotFollowerQuerySettings(args ...any) <-chan any {
 	return this.callEndpointAsync("privateCopyGetV2CopySpotFollowerQuerySettings", args...)
 }
 
 // PrivateCopyGetV2CopySpotFollowerQueryHistoryOrders returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateCopyGetV2CopySpotFollowerQueryHistoryOrders(args ...any) <-chan any {
+func (this *Bitget) PrivateCopyGetV2CopySpotFollowerQueryHistoryOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateCopyGetV2CopySpotFollowerQueryHistoryOrders", args...)
 }
 
 // PrivateCopyGetV2CopySpotFollowerQueryCurrentOrders returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateCopyGetV2CopySpotFollowerQueryCurrentOrders(args ...any) <-chan any {
+func (this *Bitget) PrivateCopyGetV2CopySpotFollowerQueryCurrentOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateCopyGetV2CopySpotFollowerQueryCurrentOrders", args...)
 }
 
 // PrivateCopyPostV2CopyMixTraderOrderModifyTpsl returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateCopyPostV2CopyMixTraderOrderModifyTpsl(args ...any) <-chan any {
+func (this *Bitget) PrivateCopyPostV2CopyMixTraderOrderModifyTpsl(args ...any) <-chan any {
 	return this.callEndpointAsync("privateCopyPostV2CopyMixTraderOrderModifyTpsl", args...)
 }
 
 // PrivateCopyPostV2CopyMixTraderOrderClosePositions returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateCopyPostV2CopyMixTraderOrderClosePositions(args ...any) <-chan any {
+func (this *Bitget) PrivateCopyPostV2CopyMixTraderOrderClosePositions(args ...any) <-chan any {
 	return this.callEndpointAsync("privateCopyPostV2CopyMixTraderOrderClosePositions", args...)
 }
 
 // PrivateCopyPostV2CopyMixTraderConfigSettingSymbols returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateCopyPostV2CopyMixTraderConfigSettingSymbols(args ...any) <-chan any {
+func (this *Bitget) PrivateCopyPostV2CopyMixTraderConfigSettingSymbols(args ...any) <-chan any {
 	return this.callEndpointAsync("privateCopyPostV2CopyMixTraderConfigSettingSymbols", args...)
 }
 
 // PrivateCopyPostV2CopyMixTraderConfigSettingBase returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateCopyPostV2CopyMixTraderConfigSettingBase(args ...any) <-chan any {
+func (this *Bitget) PrivateCopyPostV2CopyMixTraderConfigSettingBase(args ...any) <-chan any {
 	return this.callEndpointAsync("privateCopyPostV2CopyMixTraderConfigSettingBase", args...)
 }
 
 // PrivateCopyPostV2CopyMixTraderConfigRemoveFollower returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateCopyPostV2CopyMixTraderConfigRemoveFollower(args ...any) <-chan any {
+func (this *Bitget) PrivateCopyPostV2CopyMixTraderConfigRemoveFollower(args ...any) <-chan any {
 	return this.callEndpointAsync("privateCopyPostV2CopyMixTraderConfigRemoveFollower", args...)
 }
 
 // PrivateCopyPostV2CopyMixFollowerSettingTpsl returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateCopyPostV2CopyMixFollowerSettingTpsl(args ...any) <-chan any {
+func (this *Bitget) PrivateCopyPostV2CopyMixFollowerSettingTpsl(args ...any) <-chan any {
 	return this.callEndpointAsync("privateCopyPostV2CopyMixFollowerSettingTpsl", args...)
 }
 
 // PrivateCopyPostV2CopyMixFollowerSettings returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateCopyPostV2CopyMixFollowerSettings(args ...any) <-chan any {
+func (this *Bitget) PrivateCopyPostV2CopyMixFollowerSettings(args ...any) <-chan any {
 	return this.callEndpointAsync("privateCopyPostV2CopyMixFollowerSettings", args...)
 }
 
 // PrivateCopyPostV2CopyMixFollowerClosePositions returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateCopyPostV2CopyMixFollowerClosePositions(args ...any) <-chan any {
+func (this *Bitget) PrivateCopyPostV2CopyMixFollowerClosePositions(args ...any) <-chan any {
 	return this.callEndpointAsync("privateCopyPostV2CopyMixFollowerClosePositions", args...)
 }
 
 // PrivateCopyPostV2CopyMixFollowerCancelTrader returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateCopyPostV2CopyMixFollowerCancelTrader(args ...any) <-chan any {
+func (this *Bitget) PrivateCopyPostV2CopyMixFollowerCancelTrader(args ...any) <-chan any {
 	return this.callEndpointAsync("privateCopyPostV2CopyMixFollowerCancelTrader", args...)
 }
 
 // PrivateCopyPostV2CopySpotTraderOrderModifyTpsl returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateCopyPostV2CopySpotTraderOrderModifyTpsl(args ...any) <-chan any {
+func (this *Bitget) PrivateCopyPostV2CopySpotTraderOrderModifyTpsl(args ...any) <-chan any {
 	return this.callEndpointAsync("privateCopyPostV2CopySpotTraderOrderModifyTpsl", args...)
 }
 
 // PrivateCopyPostV2CopySpotTraderOrderCloseTracking returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateCopyPostV2CopySpotTraderOrderCloseTracking(args ...any) <-chan any {
+func (this *Bitget) PrivateCopyPostV2CopySpotTraderOrderCloseTracking(args ...any) <-chan any {
 	return this.callEndpointAsync("privateCopyPostV2CopySpotTraderOrderCloseTracking", args...)
 }
 
 // PrivateCopyPostV2CopySpotTraderConfigSettingSymbols returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateCopyPostV2CopySpotTraderConfigSettingSymbols(args ...any) <-chan any {
+func (this *Bitget) PrivateCopyPostV2CopySpotTraderConfigSettingSymbols(args ...any) <-chan any {
 	return this.callEndpointAsync("privateCopyPostV2CopySpotTraderConfigSettingSymbols", args...)
 }
 
 // PrivateCopyPostV2CopySpotTraderConfigRemoveFollower returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateCopyPostV2CopySpotTraderConfigRemoveFollower(args ...any) <-chan any {
+func (this *Bitget) PrivateCopyPostV2CopySpotTraderConfigRemoveFollower(args ...any) <-chan any {
 	return this.callEndpointAsync("privateCopyPostV2CopySpotTraderConfigRemoveFollower", args...)
 }
 
 // PrivateCopyPostV2CopySpotFollowerStopOrder returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateCopyPostV2CopySpotFollowerStopOrder(args ...any) <-chan any {
+func (this *Bitget) PrivateCopyPostV2CopySpotFollowerStopOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateCopyPostV2CopySpotFollowerStopOrder", args...)
 }
 
 // PrivateCopyPostV2CopySpotFollowerSettings returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateCopyPostV2CopySpotFollowerSettings(args ...any) <-chan any {
+func (this *Bitget) PrivateCopyPostV2CopySpotFollowerSettings(args ...any) <-chan any {
 	return this.callEndpointAsync("privateCopyPostV2CopySpotFollowerSettings", args...)
 }
 
 // PrivateCopyPostV2CopySpotFollowerSettingTpsl returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateCopyPostV2CopySpotFollowerSettingTpsl(args ...any) <-chan any {
+func (this *Bitget) PrivateCopyPostV2CopySpotFollowerSettingTpsl(args ...any) <-chan any {
 	return this.callEndpointAsync("privateCopyPostV2CopySpotFollowerSettingTpsl", args...)
 }
 
 // PrivateCopyPostV2CopySpotFollowerOrderCloseTracking returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateCopyPostV2CopySpotFollowerOrderCloseTracking(args ...any) <-chan any {
+func (this *Bitget) PrivateCopyPostV2CopySpotFollowerOrderCloseTracking(args ...any) <-chan any {
 	return this.callEndpointAsync("privateCopyPostV2CopySpotFollowerOrderCloseTracking", args...)
 }
 
 // PrivateCopyPostV2CopySpotFollowerCancelTrader returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateCopyPostV2CopySpotFollowerCancelTrader(args ...any) <-chan any {
+func (this *Bitget) PrivateCopyPostV2CopySpotFollowerCancelTrader(args ...any) <-chan any {
 	return this.callEndpointAsync("privateCopyPostV2CopySpotFollowerCancelTrader", args...)
 }
 
 // PrivateTaxGetV2TaxSpotRecord returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateTaxGetV2TaxSpotRecord(args ...any) <-chan any {
+func (this *Bitget) PrivateTaxGetV2TaxSpotRecord(args ...any) <-chan any {
 	return this.callEndpointAsync("privateTaxGetV2TaxSpotRecord", args...)
 }
 
 // PrivateTaxGetV2TaxFutureRecord returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateTaxGetV2TaxFutureRecord(args ...any) <-chan any {
+func (this *Bitget) PrivateTaxGetV2TaxFutureRecord(args ...any) <-chan any {
 	return this.callEndpointAsync("privateTaxGetV2TaxFutureRecord", args...)
 }
 
 // PrivateTaxGetV2TaxMarginRecord returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateTaxGetV2TaxMarginRecord(args ...any) <-chan any {
+func (this *Bitget) PrivateTaxGetV2TaxMarginRecord(args ...any) <-chan any {
 	return this.callEndpointAsync("privateTaxGetV2TaxMarginRecord", args...)
 }
 
 // PrivateTaxGetV2TaxP2pRecord returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateTaxGetV2TaxP2pRecord(args ...any) <-chan any {
+func (this *Bitget) PrivateTaxGetV2TaxP2pRecord(args ...any) <-chan any {
 	return this.callEndpointAsync("privateTaxGetV2TaxP2pRecord", args...)
 }
 
 // PrivateConvertGetV2ConvertCurrencies returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateConvertGetV2ConvertCurrencies(args ...any) <-chan any {
+func (this *Bitget) PrivateConvertGetV2ConvertCurrencies(args ...any) <-chan any {
 	return this.callEndpointAsync("privateConvertGetV2ConvertCurrencies", args...)
 }
 
 // PrivateConvertGetV2ConvertQuotedPrice returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateConvertGetV2ConvertQuotedPrice(args ...any) <-chan any {
+func (this *Bitget) PrivateConvertGetV2ConvertQuotedPrice(args ...any) <-chan any {
 	return this.callEndpointAsync("privateConvertGetV2ConvertQuotedPrice", args...)
 }
 
 // PrivateConvertGetV2ConvertConvertRecord returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateConvertGetV2ConvertConvertRecord(args ...any) <-chan any {
+func (this *Bitget) PrivateConvertGetV2ConvertConvertRecord(args ...any) <-chan any {
 	return this.callEndpointAsync("privateConvertGetV2ConvertConvertRecord", args...)
 }
 
 // PrivateConvertGetV2ConvertBgbConvertCoinList returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateConvertGetV2ConvertBgbConvertCoinList(args ...any) <-chan any {
+func (this *Bitget) PrivateConvertGetV2ConvertBgbConvertCoinList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateConvertGetV2ConvertBgbConvertCoinList", args...)
 }
 
 // PrivateConvertGetV2ConvertBgbConvertRecords returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateConvertGetV2ConvertBgbConvertRecords(args ...any) <-chan any {
+func (this *Bitget) PrivateConvertGetV2ConvertBgbConvertRecords(args ...any) <-chan any {
 	return this.callEndpointAsync("privateConvertGetV2ConvertBgbConvertRecords", args...)
 }
 
 // PrivateConvertPostV2ConvertTrade returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateConvertPostV2ConvertTrade(args ...any) <-chan any {
+func (this *Bitget) PrivateConvertPostV2ConvertTrade(args ...any) <-chan any {
 	return this.callEndpointAsync("privateConvertPostV2ConvertTrade", args...)
 }
 
 // PrivateConvertPostV2ConvertBgbConvert returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateConvertPostV2ConvertBgbConvert(args ...any) <-chan any {
+func (this *Bitget) PrivateConvertPostV2ConvertBgbConvert(args ...any) <-chan any {
 	return this.callEndpointAsync("privateConvertPostV2ConvertBgbConvert", args...)
 }
 
 // PrivateEarnGetV2EarnSavingsProduct returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateEarnGetV2EarnSavingsProduct(args ...any) <-chan any {
+func (this *Bitget) PrivateEarnGetV2EarnSavingsProduct(args ...any) <-chan any {
 	return this.callEndpointAsync("privateEarnGetV2EarnSavingsProduct", args...)
 }
 
 // PrivateEarnGetV2EarnSavingsAccount returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateEarnGetV2EarnSavingsAccount(args ...any) <-chan any {
+func (this *Bitget) PrivateEarnGetV2EarnSavingsAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("privateEarnGetV2EarnSavingsAccount", args...)
 }
 
 // PrivateEarnGetV2EarnSavingsAssets returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateEarnGetV2EarnSavingsAssets(args ...any) <-chan any {
+func (this *Bitget) PrivateEarnGetV2EarnSavingsAssets(args ...any) <-chan any {
 	return this.callEndpointAsync("privateEarnGetV2EarnSavingsAssets", args...)
 }
 
 // PrivateEarnGetV2EarnSavingsRecords returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateEarnGetV2EarnSavingsRecords(args ...any) <-chan any {
+func (this *Bitget) PrivateEarnGetV2EarnSavingsRecords(args ...any) <-chan any {
 	return this.callEndpointAsync("privateEarnGetV2EarnSavingsRecords", args...)
 }
 
 // PrivateEarnGetV2EarnSavingsSubscribeInfo returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateEarnGetV2EarnSavingsSubscribeInfo(args ...any) <-chan any {
+func (this *Bitget) PrivateEarnGetV2EarnSavingsSubscribeInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("privateEarnGetV2EarnSavingsSubscribeInfo", args...)
 }
 
 // PrivateEarnGetV2EarnSavingsSubscribeResult returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateEarnGetV2EarnSavingsSubscribeResult(args ...any) <-chan any {
+func (this *Bitget) PrivateEarnGetV2EarnSavingsSubscribeResult(args ...any) <-chan any {
 	return this.callEndpointAsync("privateEarnGetV2EarnSavingsSubscribeResult", args...)
 }
 
 // PrivateEarnGetV2EarnSavingsRedeemResult returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateEarnGetV2EarnSavingsRedeemResult(args ...any) <-chan any {
+func (this *Bitget) PrivateEarnGetV2EarnSavingsRedeemResult(args ...any) <-chan any {
 	return this.callEndpointAsync("privateEarnGetV2EarnSavingsRedeemResult", args...)
 }
 
 // PrivateEarnGetV2EarnSharkfinProduct returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateEarnGetV2EarnSharkfinProduct(args ...any) <-chan any {
+func (this *Bitget) PrivateEarnGetV2EarnSharkfinProduct(args ...any) <-chan any {
 	return this.callEndpointAsync("privateEarnGetV2EarnSharkfinProduct", args...)
 }
 
 // PrivateEarnGetV2EarnSharkfinAccount returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateEarnGetV2EarnSharkfinAccount(args ...any) <-chan any {
+func (this *Bitget) PrivateEarnGetV2EarnSharkfinAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("privateEarnGetV2EarnSharkfinAccount", args...)
 }
 
 // PrivateEarnGetV2EarnSharkfinAssets returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateEarnGetV2EarnSharkfinAssets(args ...any) <-chan any {
+func (this *Bitget) PrivateEarnGetV2EarnSharkfinAssets(args ...any) <-chan any {
 	return this.callEndpointAsync("privateEarnGetV2EarnSharkfinAssets", args...)
 }
 
 // PrivateEarnGetV2EarnSharkfinRecords returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateEarnGetV2EarnSharkfinRecords(args ...any) <-chan any {
+func (this *Bitget) PrivateEarnGetV2EarnSharkfinRecords(args ...any) <-chan any {
 	return this.callEndpointAsync("privateEarnGetV2EarnSharkfinRecords", args...)
 }
 
 // PrivateEarnGetV2EarnSharkfinSubscribeInfo returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateEarnGetV2EarnSharkfinSubscribeInfo(args ...any) <-chan any {
+func (this *Bitget) PrivateEarnGetV2EarnSharkfinSubscribeInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("privateEarnGetV2EarnSharkfinSubscribeInfo", args...)
 }
 
 // PrivateEarnGetV2EarnSharkfinSubscribeResult returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateEarnGetV2EarnSharkfinSubscribeResult(args ...any) <-chan any {
+func (this *Bitget) PrivateEarnGetV2EarnSharkfinSubscribeResult(args ...any) <-chan any {
 	return this.callEndpointAsync("privateEarnGetV2EarnSharkfinSubscribeResult", args...)
 }
 
 // PrivateEarnGetV2EarnLoanOngoingOrders returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateEarnGetV2EarnLoanOngoingOrders(args ...any) <-chan any {
+func (this *Bitget) PrivateEarnGetV2EarnLoanOngoingOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateEarnGetV2EarnLoanOngoingOrders", args...)
 }
 
 // PrivateEarnGetV2EarnLoanRepayHistory returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateEarnGetV2EarnLoanRepayHistory(args ...any) <-chan any {
+func (this *Bitget) PrivateEarnGetV2EarnLoanRepayHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateEarnGetV2EarnLoanRepayHistory", args...)
 }
 
 // PrivateEarnGetV2EarnLoanReviseHistory returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateEarnGetV2EarnLoanReviseHistory(args ...any) <-chan any {
+func (this *Bitget) PrivateEarnGetV2EarnLoanReviseHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateEarnGetV2EarnLoanReviseHistory", args...)
 }
 
 // PrivateEarnGetV2EarnLoanBorrowHistory returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateEarnGetV2EarnLoanBorrowHistory(args ...any) <-chan any {
+func (this *Bitget) PrivateEarnGetV2EarnLoanBorrowHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateEarnGetV2EarnLoanBorrowHistory", args...)
 }
 
 // PrivateEarnGetV2EarnLoanDebts returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateEarnGetV2EarnLoanDebts(args ...any) <-chan any {
+func (this *Bitget) PrivateEarnGetV2EarnLoanDebts(args ...any) <-chan any {
 	return this.callEndpointAsync("privateEarnGetV2EarnLoanDebts", args...)
 }
 
 // PrivateEarnGetV2EarnLoanReduces returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateEarnGetV2EarnLoanReduces(args ...any) <-chan any {
+func (this *Bitget) PrivateEarnGetV2EarnLoanReduces(args ...any) <-chan any {
 	return this.callEndpointAsync("privateEarnGetV2EarnLoanReduces", args...)
 }
 
 // PrivateEarnGetV2EarnAccountAssets returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateEarnGetV2EarnAccountAssets(args ...any) <-chan any {
+func (this *Bitget) PrivateEarnGetV2EarnAccountAssets(args ...any) <-chan any {
 	return this.callEndpointAsync("privateEarnGetV2EarnAccountAssets", args...)
 }
 
+// PrivateEarnGetV2EarnEliteProduct returns a channel that yields a JSON object.
+func (this *Bitget) PrivateEarnGetV2EarnEliteProduct(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEarnGetV2EarnEliteProduct", args...)
+}
+
+// PrivateEarnGetV2EarnEliteAssets returns a channel that yields a JSON object.
+func (this *Bitget) PrivateEarnGetV2EarnEliteAssets(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEarnGetV2EarnEliteAssets", args...)
+}
+
+// PrivateEarnGetV2EarnEliteRecords returns a channel that yields a JSON object.
+func (this *Bitget) PrivateEarnGetV2EarnEliteRecords(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEarnGetV2EarnEliteRecords", args...)
+}
+
+// PrivateEarnGetV2EarnEliteSubscribeInfo returns a channel that yields a JSON object.
+func (this *Bitget) PrivateEarnGetV2EarnEliteSubscribeInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEarnGetV2EarnEliteSubscribeInfo", args...)
+}
+
+// PrivateEarnGetV2EarnEliteSubscribeResult returns a channel that yields a JSON object.
+func (this *Bitget) PrivateEarnGetV2EarnEliteSubscribeResult(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEarnGetV2EarnEliteSubscribeResult", args...)
+}
+
+// PrivateEarnGetV2EarnEliteRedeemInfo returns a channel that yields a JSON object.
+func (this *Bitget) PrivateEarnGetV2EarnEliteRedeemInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEarnGetV2EarnEliteRedeemInfo", args...)
+}
+
 // PrivateEarnPostV2EarnSavingsSubscribe returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateEarnPostV2EarnSavingsSubscribe(args ...any) <-chan any {
+func (this *Bitget) PrivateEarnPostV2EarnSavingsSubscribe(args ...any) <-chan any {
 	return this.callEndpointAsync("privateEarnPostV2EarnSavingsSubscribe", args...)
 }
 
 // PrivateEarnPostV2EarnSavingsRedeem returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateEarnPostV2EarnSavingsRedeem(args ...any) <-chan any {
+func (this *Bitget) PrivateEarnPostV2EarnSavingsRedeem(args ...any) <-chan any {
 	return this.callEndpointAsync("privateEarnPostV2EarnSavingsRedeem", args...)
 }
 
 // PrivateEarnPostV2EarnSharkfinSubscribe returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateEarnPostV2EarnSharkfinSubscribe(args ...any) <-chan any {
+func (this *Bitget) PrivateEarnPostV2EarnSharkfinSubscribe(args ...any) <-chan any {
 	return this.callEndpointAsync("privateEarnPostV2EarnSharkfinSubscribe", args...)
 }
 
 // PrivateEarnPostV2EarnLoanBorrow returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateEarnPostV2EarnLoanBorrow(args ...any) <-chan any {
+func (this *Bitget) PrivateEarnPostV2EarnLoanBorrow(args ...any) <-chan any {
 	return this.callEndpointAsync("privateEarnPostV2EarnLoanBorrow", args...)
 }
 
 // PrivateEarnPostV2EarnLoanRepay returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateEarnPostV2EarnLoanRepay(args ...any) <-chan any {
+func (this *Bitget) PrivateEarnPostV2EarnLoanRepay(args ...any) <-chan any {
 	return this.callEndpointAsync("privateEarnPostV2EarnLoanRepay", args...)
 }
 
 // PrivateEarnPostV2EarnLoanRevisePledge returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateEarnPostV2EarnLoanRevisePledge(args ...any) <-chan any {
+func (this *Bitget) PrivateEarnPostV2EarnLoanRevisePledge(args ...any) <-chan any {
 	return this.callEndpointAsync("privateEarnPostV2EarnLoanRevisePledge", args...)
 }
 
+// PrivateEarnPostV2EarnEliteSubscribe returns a channel that yields a JSON object.
+func (this *Bitget) PrivateEarnPostV2EarnEliteSubscribe(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEarnPostV2EarnEliteSubscribe", args...)
+}
+
+// PrivateEarnPostV2EarnEliteRedeem returns a channel that yields a JSON object.
+func (this *Bitget) PrivateEarnPostV2EarnEliteRedeem(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEarnPostV2EarnEliteRedeem", args...)
+}
+
 // PrivateCommonGetV2CommonTradeRate returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateCommonGetV2CommonTradeRate(args ...any) <-chan any {
+func (this *Bitget) PrivateCommonGetV2CommonTradeRate(args ...any) <-chan any {
 	return this.callEndpointAsync("privateCommonGetV2CommonTradeRate", args...)
 }
 
 // PrivateUtaGetV3AccountAssets returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaGetV3AccountAssets(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3AccountAssets(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaGetV3AccountAssets", args...)
 }
 
 // PrivateUtaGetV3AccountFundingAssets returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaGetV3AccountFundingAssets(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3AccountFundingAssets(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaGetV3AccountFundingAssets", args...)
 }
 
 // PrivateUtaGetV3AccountSettings returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaGetV3AccountSettings(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3AccountSettings(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaGetV3AccountSettings", args...)
 }
 
 // PrivateUtaGetV3AccountFinancialRecords returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaGetV3AccountFinancialRecords(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3AccountFinancialRecords(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaGetV3AccountFinancialRecords", args...)
 }
 
 // PrivateUtaGetV3AccountRepayableCoins returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaGetV3AccountRepayableCoins(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3AccountRepayableCoins(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaGetV3AccountRepayableCoins", args...)
 }
 
 // PrivateUtaGetV3AccountPaymentCoins returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaGetV3AccountPaymentCoins(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3AccountPaymentCoins(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaGetV3AccountPaymentCoins", args...)
 }
 
 // PrivateUtaGetV3AccountConvertRecords returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaGetV3AccountConvertRecords(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3AccountConvertRecords(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaGetV3AccountConvertRecords", args...)
 }
 
 // PrivateUtaGetV3AccountDeductInfo returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaGetV3AccountDeductInfo(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3AccountDeductInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaGetV3AccountDeductInfo", args...)
 }
 
 // PrivateUtaGetV3AccountFeeRate returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaGetV3AccountFeeRate(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3AccountFeeRate(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaGetV3AccountFeeRate", args...)
 }
 
 // PrivateUtaGetV3AccountSwitchStatus returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaGetV3AccountSwitchStatus(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3AccountSwitchStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaGetV3AccountSwitchStatus", args...)
 }
 
 // PrivateUtaGetV3AccountMaxTransferable returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaGetV3AccountMaxTransferable(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3AccountMaxTransferable(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaGetV3AccountMaxTransferable", args...)
 }
 
 // PrivateUtaGetV3AccountOpenInterestLimit returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaGetV3AccountOpenInterestLimit(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3AccountOpenInterestLimit(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaGetV3AccountOpenInterestLimit", args...)
 }
 
 // PrivateUtaGetV3AccountSubUnifiedAssets returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaGetV3AccountSubUnifiedAssets(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3AccountSubUnifiedAssets(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaGetV3AccountSubUnifiedAssets", args...)
 }
 
 // PrivateUtaGetV3AccountTransferableCoins returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaGetV3AccountTransferableCoins(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3AccountTransferableCoins(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaGetV3AccountTransferableCoins", args...)
 }
 
 // PrivateUtaGetV3AccountSubTransferRecord returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaGetV3AccountSubTransferRecord(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3AccountSubTransferRecord(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaGetV3AccountSubTransferRecord", args...)
 }
 
 // PrivateUtaGetV3AccountDepositAddress returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaGetV3AccountDepositAddress(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3AccountDepositAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaGetV3AccountDepositAddress", args...)
 }
 
 // PrivateUtaGetV3AccountSubDepositAddress returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaGetV3AccountSubDepositAddress(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3AccountSubDepositAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaGetV3AccountSubDepositAddress", args...)
 }
 
 // PrivateUtaGetV3AccountDepositRecords returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaGetV3AccountDepositRecords(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3AccountDepositRecords(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaGetV3AccountDepositRecords", args...)
 }
 
 // PrivateUtaGetV3AccountSubDepositRecords returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaGetV3AccountSubDepositRecords(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3AccountSubDepositRecords(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaGetV3AccountSubDepositRecords", args...)
 }
 
 // PrivateUtaGetV3AccountWithdrawalRecords returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaGetV3AccountWithdrawalRecords(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3AccountWithdrawalRecords(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaGetV3AccountWithdrawalRecords", args...)
 }
 
 // PrivateUtaGetV3BrokerSubList returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaGetV3BrokerSubList(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3BrokerSubList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaGetV3BrokerSubList", args...)
 }
 
 // PrivateUtaGetV3BrokerAllSubDepositWithdrawal returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaGetV3BrokerAllSubDepositWithdrawal(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3BrokerAllSubDepositWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaGetV3BrokerAllSubDepositWithdrawal", args...)
 }
 
 // PrivateUtaGetV3BrokerCommission returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaGetV3BrokerCommission(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3BrokerCommission(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaGetV3BrokerCommission", args...)
 }
 
 // PrivateUtaGetV3BrokerQuerySubApikey returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaGetV3BrokerQuerySubApikey(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3BrokerQuerySubApikey(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaGetV3BrokerQuerySubApikey", args...)
 }
 
 // PrivateUtaGetV3InsLoanTransfered returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaGetV3InsLoanTransfered(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3InsLoanTransfered(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaGetV3InsLoanTransfered", args...)
 }
 
 // PrivateUtaGetV3InsLoanSymbols returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaGetV3InsLoanSymbols(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3InsLoanSymbols(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaGetV3InsLoanSymbols", args...)
 }
 
 // PrivateUtaGetV3InsLoanRiskUnit returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaGetV3InsLoanRiskUnit(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3InsLoanRiskUnit(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaGetV3InsLoanRiskUnit", args...)
 }
 
 // PrivateUtaGetV3InsLoanRepaidHistory returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaGetV3InsLoanRepaidHistory(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3InsLoanRepaidHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaGetV3InsLoanRepaidHistory", args...)
 }
 
 // PrivateUtaGetV3InsLoanProductInfos returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaGetV3InsLoanProductInfos(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3InsLoanProductInfos(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaGetV3InsLoanProductInfos", args...)
 }
 
 // PrivateUtaGetV3InsLoanLoanOrder returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaGetV3InsLoanLoanOrder(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3InsLoanLoanOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaGetV3InsLoanLoanOrder", args...)
 }
 
 // PrivateUtaGetV3InsLoanLtvConvert returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaGetV3InsLoanLtvConvert(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3InsLoanLtvConvert(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaGetV3InsLoanLtvConvert", args...)
 }
 
 // PrivateUtaGetV3InsLoanEnsureCoinsConvert returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaGetV3InsLoanEnsureCoinsConvert(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3InsLoanEnsureCoinsConvert(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaGetV3InsLoanEnsureCoinsConvert", args...)
 }
 
 // PrivateUtaGetV3LoanCoins returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaGetV3LoanCoins(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3LoanCoins(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaGetV3LoanCoins", args...)
 }
 
 // PrivateUtaGetV3LoanInterest returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaGetV3LoanInterest(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3LoanInterest(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaGetV3LoanInterest", args...)
 }
 
 // PrivateUtaGetV3LoanBorrowOngoing returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaGetV3LoanBorrowOngoing(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3LoanBorrowOngoing(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaGetV3LoanBorrowOngoing", args...)
 }
 
 // PrivateUtaGetV3LoanBorrowHistory returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaGetV3LoanBorrowHistory(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3LoanBorrowHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaGetV3LoanBorrowHistory", args...)
 }
 
 // PrivateUtaGetV3LoanRepayHistory returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaGetV3LoanRepayHistory(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3LoanRepayHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaGetV3LoanRepayHistory", args...)
 }
 
 // PrivateUtaGetV3LoanPledgeRateHistory returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaGetV3LoanPledgeRateHistory(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3LoanPledgeRateHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaGetV3LoanPledgeRateHistory", args...)
 }
 
 // PrivateUtaGetV3LoanDebts returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaGetV3LoanDebts(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3LoanDebts(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaGetV3LoanDebts", args...)
 }
 
 // PrivateUtaGetV3LoanReduces returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaGetV3LoanReduces(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3LoanReduces(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaGetV3LoanReduces", args...)
 }
 
 // PrivateUtaGetV3PositionCurrentPosition returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaGetV3PositionCurrentPosition(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3PositionCurrentPosition(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaGetV3PositionCurrentPosition", args...)
 }
 
 // PrivateUtaGetV3PositionHistoryPosition returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaGetV3PositionHistoryPosition(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3PositionHistoryPosition(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaGetV3PositionHistoryPosition", args...)
 }
 
 // PrivateUtaGetV3PositionAdlRank returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaGetV3PositionAdlRank(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3PositionAdlRank(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaGetV3PositionAdlRank", args...)
 }
 
 // PrivateUtaGetV3TaxRecords returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaGetV3TaxRecords(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3TaxRecords(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaGetV3TaxRecords", args...)
 }
 
 // PrivateUtaGetV3TradeOrderInfo returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaGetV3TradeOrderInfo(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3TradeOrderInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaGetV3TradeOrderInfo", args...)
 }
 
 // PrivateUtaGetV3TradeUnfilledOrders returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaGetV3TradeUnfilledOrders(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3TradeUnfilledOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaGetV3TradeUnfilledOrders", args...)
 }
 
 // PrivateUtaGetV3TradeUnfilledStrategyOrders returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaGetV3TradeUnfilledStrategyOrders(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3TradeUnfilledStrategyOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaGetV3TradeUnfilledStrategyOrders", args...)
 }
 
 // PrivateUtaGetV3TradeHistoryOrders returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaGetV3TradeHistoryOrders(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3TradeHistoryOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaGetV3TradeHistoryOrders", args...)
 }
 
 // PrivateUtaGetV3TradeHistoryStrategyOrders returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaGetV3TradeHistoryStrategyOrders(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3TradeHistoryStrategyOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaGetV3TradeHistoryStrategyOrders", args...)
 }
 
 // PrivateUtaGetV3TradeFills returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaGetV3TradeFills(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3TradeFills(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaGetV3TradeFills", args...)
 }
 
 // PrivateUtaGetV3UserSubList returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaGetV3UserSubList(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3UserSubList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaGetV3UserSubList", args...)
 }
 
 // PrivateUtaGetV3UserSubApiList returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaGetV3UserSubApiList(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaGetV3UserSubApiList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaGetV3UserSubApiList", args...)
 }
 
+// PrivateUtaGetV3AccountInfo returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3AccountInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3AccountInfo", args...)
+}
+
+// PrivateUtaGetV3AccountAllFeeRate returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3AccountAllFeeRate(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3AccountAllFeeRate", args...)
+}
+
+// PrivateUtaGetV3AccountDeltaInfo returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3AccountDeltaInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3AccountDeltaInfo", args...)
+}
+
+// PrivateUtaGetV3AccountWithdrawAddress returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3AccountWithdrawAddress(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3AccountWithdrawAddress", args...)
+}
+
+// PrivateUtaGetV3AccountMaxWithdrawal returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3AccountMaxWithdrawal(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3AccountMaxWithdrawal", args...)
+}
+
+// PrivateUtaGetV3AccountMovePositionHistory returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3AccountMovePositionHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3AccountMovePositionHistory", args...)
+}
+
+// PrivateUtaGetV3AccountCollateralType returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3AccountCollateralType(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3AccountCollateralType", args...)
+}
+
+// PrivateUtaGetV3AccountPreSetLeverage returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3AccountPreSetLeverage(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3AccountPreSetLeverage", args...)
+}
+
+// PrivateUtaGetV3AccountEligibleSymbols returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3AccountEligibleSymbols(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3AccountEligibleSymbols", args...)
+}
+
+// PrivateUtaGetV3AccountEligibleMarginTier returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3AccountEligibleMarginTier(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3AccountEligibleMarginTier", args...)
+}
+
+// PrivateUtaGetV3AccountEligibleLoanInfo returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3AccountEligibleLoanInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3AccountEligibleLoanInfo", args...)
+}
+
+// PrivateUtaGetV3AccountEligibleDiscountRate returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3AccountEligibleDiscountRate(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3AccountEligibleDiscountRate", args...)
+}
+
+// PrivateUtaGetV3AccountFundingFinancialRecords returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3AccountFundingFinancialRecords(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3AccountFundingFinancialRecords", args...)
+}
+
+// PrivateUtaGetV3AccountRealityOrderbook returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3AccountRealityOrderbook(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3AccountRealityOrderbook", args...)
+}
+
+// PrivateUtaGetV3AccountRealityFills returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3AccountRealityFills(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3AccountRealityFills", args...)
+}
+
+// PrivateUtaGetV3CopyFuturesTradingPairs returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3CopyFuturesTradingPairs(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3CopyFuturesTradingPairs", args...)
+}
+
+// PrivateUtaGetV3CopyFuturesPositionSummary returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3CopyFuturesPositionSummary(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3CopyFuturesPositionSummary", args...)
+}
+
+// PrivateUtaGetV3CopyFuturesMaxTransferable returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3CopyFuturesMaxTransferable(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3CopyFuturesMaxTransferable", args...)
+}
+
+// PrivateUtaGetV3CopyFuturesTransferRecord returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3CopyFuturesTransferRecord(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3CopyFuturesTransferRecord", args...)
+}
+
+// PrivateUtaGetV3CopyFuturesCurrentFollower returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3CopyFuturesCurrentFollower(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3CopyFuturesCurrentFollower", args...)
+}
+
+// PrivateUtaGetV3CopyFuturesHistoryFollower returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3CopyFuturesHistoryFollower(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3CopyFuturesHistoryFollower", args...)
+}
+
+// PrivateUtaGetV3CopyFuturesProfitSummary returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3CopyFuturesProfitSummary(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3CopyFuturesProfitSummary", args...)
+}
+
+// PrivateUtaGetV3CopyFuturesProfitDetails returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3CopyFuturesProfitDetails(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3CopyFuturesProfitDetails", args...)
+}
+
+// PrivateUtaGetV3ConvertSmallAssets returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3ConvertSmallAssets(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3ConvertSmallAssets", args...)
+}
+
+// PrivateUtaGetV3ConvertSmallAssetsHistory returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3ConvertSmallAssetsHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3ConvertSmallAssetsHistory", args...)
+}
+
+// PrivateUtaGetV3EarnEliteProduct returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3EarnEliteProduct(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3EarnEliteProduct", args...)
+}
+
+// PrivateUtaGetV3EarnEliteAssets returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3EarnEliteAssets(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3EarnEliteAssets", args...)
+}
+
+// PrivateUtaGetV3EarnEliteSubscribeInfo returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3EarnEliteSubscribeInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3EarnEliteSubscribeInfo", args...)
+}
+
+// PrivateUtaGetV3EarnEliteRecords returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3EarnEliteRecords(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3EarnEliteRecords", args...)
+}
+
+// PrivateUtaGetV3EarnEliteSubscribeResult returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3EarnEliteSubscribeResult(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3EarnEliteSubscribeResult", args...)
+}
+
+// PrivateUtaGetV3EarnEliteRedeemInfo returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3EarnEliteRedeemInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3EarnEliteRedeemInfo", args...)
+}
+
+// PrivateUtaGetV3TradeLoanData returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3TradeLoanData(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3TradeLoanData", args...)
+}
+
+// PrivateUtaGetV3TradeStrategySubOrders returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3TradeStrategySubOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3TradeStrategySubOrders", args...)
+}
+
+// PrivateUtaGetV3TradeGridBotDetail returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3TradeGridBotDetail(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3TradeGridBotDetail", args...)
+}
+
+// PrivateUtaGetV3TradeGridListDetails returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3TradeGridListDetails(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3TradeGridListDetails", args...)
+}
+
+// PrivateUtaGetV3TradeGridNeutralBotDetail returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3TradeGridNeutralBotDetail(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3TradeGridNeutralBotDetail", args...)
+}
+
+// PrivateUtaGetV3TradeGridNeutralListDetails returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3TradeGridNeutralListDetails(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3TradeGridNeutralListDetails", args...)
+}
+
+// PrivateUtaGetV3UserRateLimitQuota returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3UserRateLimitQuota(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3UserRateLimitQuota", args...)
+}
+
+// PrivateUtaGetV3StockplusMarketOptionQuote returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3StockplusMarketOptionQuote(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3StockplusMarketOptionQuote", args...)
+}
+
+// PrivateUtaGetV3StockplusMarketOptionChainInfo returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3StockplusMarketOptionChainInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3StockplusMarketOptionChainInfo", args...)
+}
+
+// PrivateUtaGetV3StockplusMarketOptionExpiryDate returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3StockplusMarketOptionExpiryDate(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3StockplusMarketOptionExpiryDate", args...)
+}
+
+// PrivateUtaGetV3StockplusMarketOptionVolume returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3StockplusMarketOptionVolume(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3StockplusMarketOptionVolume", args...)
+}
+
+// PrivateUtaGetV3StockplusMarketDepth returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3StockplusMarketDepth(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3StockplusMarketDepth", args...)
+}
+
+// PrivateUtaGetV3StockplusMarketStatic returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3StockplusMarketStatic(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3StockplusMarketStatic", args...)
+}
+
+// PrivateUtaGetV3StockplusMarketQuote returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3StockplusMarketQuote(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3StockplusMarketQuote", args...)
+}
+
+// PrivateUtaGetV3StockplusMarketTrade returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3StockplusMarketTrade(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3StockplusMarketTrade", args...)
+}
+
+// PrivateUtaGetV3StockplusMarketIntraday returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3StockplusMarketIntraday(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3StockplusMarketIntraday", args...)
+}
+
+// PrivateUtaGetV3StockplusMarketHistoryCandlestick returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3StockplusMarketHistoryCandlestick(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3StockplusMarketHistoryCandlestick", args...)
+}
+
+// PrivateUtaGetV3StockplusMarketCandlestick returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3StockplusMarketCandlestick(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3StockplusMarketCandlestick", args...)
+}
+
+// PrivateUtaGetV3StockplusTradeTodayOrders returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3StockplusTradeTodayOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3StockplusTradeTodayOrders", args...)
+}
+
+// PrivateUtaGetV3StockplusTradeHistoryOrders returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3StockplusTradeHistoryOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3StockplusTradeHistoryOrders", args...)
+}
+
+// PrivateUtaGetV3StockplusTradeOrderDetail returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3StockplusTradeOrderDetail(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3StockplusTradeOrderDetail", args...)
+}
+
+// PrivateUtaGetV3StockplusTradeTodayExecutions returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3StockplusTradeTodayExecutions(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3StockplusTradeTodayExecutions", args...)
+}
+
+// PrivateUtaGetV3StockplusTradeHistoryExecutions returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3StockplusTradeHistoryExecutions(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3StockplusTradeHistoryExecutions", args...)
+}
+
+// PrivateUtaGetV3StockplusAssetAccount returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3StockplusAssetAccount(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3StockplusAssetAccount", args...)
+}
+
+// PrivateUtaGetV3StockplusAssetCashFlow returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3StockplusAssetCashFlow(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3StockplusAssetCashFlow", args...)
+}
+
+// PrivateUtaGetV3StockplusAssetStockPosition returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3StockplusAssetStockPosition(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3StockplusAssetStockPosition", args...)
+}
+
+// PrivateUtaGetV3StockplusAssetTransferRecords returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3StockplusAssetTransferRecords(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3StockplusAssetTransferRecords", args...)
+}
+
+// PrivateUtaGetV3P2pAdList returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3P2pAdList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3P2pAdList", args...)
+}
+
+// PrivateUtaGetV3P2pAdInfo returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3P2pAdInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3P2pAdInfo", args...)
+}
+
+// PrivateUtaGetV3P2pAdLimit returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3P2pAdLimit(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3P2pAdLimit", args...)
+}
+
+// PrivateUtaGetV3P2pMyAds returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3P2pMyAds(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3P2pMyAds", args...)
+}
+
+// PrivateUtaGetV3P2pPendingOrders returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3P2pPendingOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3P2pPendingOrders", args...)
+}
+
+// PrivateUtaGetV3P2pAllOrders returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3P2pAllOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3P2pAllOrders", args...)
+}
+
+// PrivateUtaGetV3P2pOrderInfo returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3P2pOrderInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3P2pOrderInfo", args...)
+}
+
+// PrivateUtaGetV3P2pUserInfo returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3P2pUserInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3P2pUserInfo", args...)
+}
+
+// PrivateUtaGetV3P2pCurrencies returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3P2pCurrencies(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3P2pCurrencies", args...)
+}
+
+// PrivateUtaGetV3P2pPayMethod returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3P2pPayMethod(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3P2pPayMethod", args...)
+}
+
+// PrivateUtaGetV3P2pBalance returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3P2pBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3P2pBalance", args...)
+}
+
+// PrivateUtaGetV3P2pExchangeRate returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaGetV3P2pExchangeRate(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaGetV3P2pExchangeRate", args...)
+}
+
 // PrivateUtaPostV3AccountSetLeverage returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaPostV3AccountSetLeverage(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaPostV3AccountSetLeverage(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaPostV3AccountSetLeverage", args...)
 }
 
 // PrivateUtaPostV3AccountSetHoldMode returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaPostV3AccountSetHoldMode(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaPostV3AccountSetHoldMode(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaPostV3AccountSetHoldMode", args...)
 }
 
 // PrivateUtaPostV3AccountRepay returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaPostV3AccountRepay(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaPostV3AccountRepay(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaPostV3AccountRepay", args...)
 }
 
 // PrivateUtaPostV3AccountSwitchDeduct returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaPostV3AccountSwitchDeduct(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaPostV3AccountSwitchDeduct(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaPostV3AccountSwitchDeduct", args...)
 }
 
 // PrivateUtaPostV3AccountDepositAccount returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaPostV3AccountDepositAccount(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaPostV3AccountDepositAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaPostV3AccountDepositAccount", args...)
 }
 
 // PrivateUtaPostV3AccountSwitch returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaPostV3AccountSwitch(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaPostV3AccountSwitch(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaPostV3AccountSwitch", args...)
 }
 
 // PrivateUtaPostV3AccountAdjustAccountMode returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaPostV3AccountAdjustAccountMode(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaPostV3AccountAdjustAccountMode(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaPostV3AccountAdjustAccountMode", args...)
 }
 
 // PrivateUtaPostV3AccountTransfer returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaPostV3AccountTransfer(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaPostV3AccountTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaPostV3AccountTransfer", args...)
 }
 
 // PrivateUtaPostV3AccountSubTransfer returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaPostV3AccountSubTransfer(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaPostV3AccountSubTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaPostV3AccountSubTransfer", args...)
 }
 
 // PrivateUtaPostV3AccountSubMasterTransfer returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaPostV3AccountSubMasterTransfer(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaPostV3AccountSubMasterTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaPostV3AccountSubMasterTransfer", args...)
 }
 
 // PrivateUtaPostV3AccountMaxOpenAvailable returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaPostV3AccountMaxOpenAvailable(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaPostV3AccountMaxOpenAvailable(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaPostV3AccountMaxOpenAvailable", args...)
 }
 
 // PrivateUtaPostV3AccountWithdrawal returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaPostV3AccountWithdrawal(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaPostV3AccountWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaPostV3AccountWithdrawal", args...)
 }
 
 // PrivateUtaPostV3BrokerCreateSub returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaPostV3BrokerCreateSub(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaPostV3BrokerCreateSub(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaPostV3BrokerCreateSub", args...)
 }
 
 // PrivateUtaPostV3BrokerModifySub returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaPostV3BrokerModifySub(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaPostV3BrokerModifySub(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaPostV3BrokerModifySub", args...)
 }
 
 // PrivateUtaPostV3BrokerSubWithdrawal returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaPostV3BrokerSubWithdrawal(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaPostV3BrokerSubWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaPostV3BrokerSubWithdrawal", args...)
 }
 
 // PrivateUtaPostV3BrokerSubDepositAddress returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaPostV3BrokerSubDepositAddress(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaPostV3BrokerSubDepositAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaPostV3BrokerSubDepositAddress", args...)
 }
 
 // PrivateUtaPostV3BrokerCreateSubApikey returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaPostV3BrokerCreateSubApikey(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaPostV3BrokerCreateSubApikey(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaPostV3BrokerCreateSubApikey", args...)
 }
 
 // PrivateUtaPostV3BrokerModifySubApikey returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaPostV3BrokerModifySubApikey(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaPostV3BrokerModifySubApikey(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaPostV3BrokerModifySubApikey", args...)
 }
 
 // PrivateUtaPostV3BrokerDeleteSubApikey returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaPostV3BrokerDeleteSubApikey(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaPostV3BrokerDeleteSubApikey(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaPostV3BrokerDeleteSubApikey", args...)
 }
 
 // PrivateUtaPostV3InsLoanBindUid returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaPostV3InsLoanBindUid(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaPostV3InsLoanBindUid(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaPostV3InsLoanBindUid", args...)
 }
 
 // PrivateUtaPostV3LoanBorrow returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaPostV3LoanBorrow(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaPostV3LoanBorrow(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaPostV3LoanBorrow", args...)
 }
 
 // PrivateUtaPostV3LoanRepay returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaPostV3LoanRepay(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaPostV3LoanRepay(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaPostV3LoanRepay", args...)
 }
 
 // PrivateUtaPostV3LoanRevisePledge returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaPostV3LoanRevisePledge(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaPostV3LoanRevisePledge(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaPostV3LoanRevisePledge", args...)
 }
 
 // PrivateUtaPostV3TradePlaceOrder returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaPostV3TradePlaceOrder(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaPostV3TradePlaceOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaPostV3TradePlaceOrder", args...)
 }
 
 // PrivateUtaPostV3TradePlaceStrategyOrder returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaPostV3TradePlaceStrategyOrder(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaPostV3TradePlaceStrategyOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaPostV3TradePlaceStrategyOrder", args...)
 }
 
 // PrivateUtaPostV3TradeModifyOrder returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaPostV3TradeModifyOrder(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaPostV3TradeModifyOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaPostV3TradeModifyOrder", args...)
 }
 
 // PrivateUtaPostV3TradeModifyStrategyOrder returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaPostV3TradeModifyStrategyOrder(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaPostV3TradeModifyStrategyOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaPostV3TradeModifyStrategyOrder", args...)
 }
 
 // PrivateUtaPostV3TradeCancelOrder returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaPostV3TradeCancelOrder(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaPostV3TradeCancelOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaPostV3TradeCancelOrder", args...)
 }
 
 // PrivateUtaPostV3TradeCancelStrategyOrder returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaPostV3TradeCancelStrategyOrder(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaPostV3TradeCancelStrategyOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaPostV3TradeCancelStrategyOrder", args...)
 }
 
 // PrivateUtaPostV3TradePlaceBatch returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaPostV3TradePlaceBatch(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaPostV3TradePlaceBatch(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaPostV3TradePlaceBatch", args...)
 }
 
 // PrivateUtaPostV3TradeBatchModifyOrder returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaPostV3TradeBatchModifyOrder(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaPostV3TradeBatchModifyOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaPostV3TradeBatchModifyOrder", args...)
 }
 
 // PrivateUtaPostV3TradeCancelBatch returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaPostV3TradeCancelBatch(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaPostV3TradeCancelBatch(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaPostV3TradeCancelBatch", args...)
 }
 
 // PrivateUtaPostV3TradeCancelSymbolOrder returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaPostV3TradeCancelSymbolOrder(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaPostV3TradeCancelSymbolOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaPostV3TradeCancelSymbolOrder", args...)
 }
 
 // PrivateUtaPostV3TradeClosePositions returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaPostV3TradeClosePositions(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaPostV3TradeClosePositions(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaPostV3TradeClosePositions", args...)
 }
 
 // PrivateUtaPostV3TradeCountdownCancelAll returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaPostV3TradeCountdownCancelAll(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaPostV3TradeCountdownCancelAll(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaPostV3TradeCountdownCancelAll", args...)
 }
 
 // PrivateUtaPostV3UserCreateSub returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaPostV3UserCreateSub(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaPostV3UserCreateSub(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaPostV3UserCreateSub", args...)
 }
 
 // PrivateUtaPostV3UserFreezeSub returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaPostV3UserFreezeSub(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaPostV3UserFreezeSub(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaPostV3UserFreezeSub", args...)
 }
 
 // PrivateUtaPostV3UserCreateSubApi returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaPostV3UserCreateSubApi(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaPostV3UserCreateSubApi(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaPostV3UserCreateSubApi", args...)
 }
 
 // PrivateUtaPostV3UserUpdateSubApi returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaPostV3UserUpdateSubApi(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaPostV3UserUpdateSubApi(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaPostV3UserUpdateSubApi", args...)
 }
 
 // PrivateUtaPostV3UserDeleteSubApi returns a channel that yields a JSON object.
-func (this *BitgetCore) PrivateUtaPostV3UserDeleteSubApi(args ...any) <-chan any {
+func (this *Bitget) PrivateUtaPostV3UserDeleteSubApi(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUtaPostV3UserDeleteSubApi", args...)
+}
+
+// PrivateUtaPostV3AccountMovePositions returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaPostV3AccountMovePositions(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3AccountMovePositions", args...)
+}
+
+// PrivateUtaPostV3AccountCancelWithdrawal returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaPostV3AccountCancelWithdrawal(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3AccountCancelWithdrawal", args...)
+}
+
+// PrivateUtaPostV3AccountSetMargin returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaPostV3AccountSetMargin(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3AccountSetMargin", args...)
+}
+
+// PrivateUtaPostV3AccountSetCollateralType returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaPostV3AccountSetCollateralType(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3AccountSetCollateralType", args...)
+}
+
+// PrivateUtaPostV3CopyFuturesTransfer returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaPostV3CopyFuturesTransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3CopyFuturesTransfer", args...)
+}
+
+// PrivateUtaPostV3ConvertSmallAssetsTrade returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaPostV3ConvertSmallAssetsTrade(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3ConvertSmallAssetsTrade", args...)
+}
+
+// PrivateUtaPostV3EarnEliteSubscribe returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaPostV3EarnEliteSubscribe(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3EarnEliteSubscribe", args...)
+}
+
+// PrivateUtaPostV3EarnEliteRedeem returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaPostV3EarnEliteRedeem(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3EarnEliteRedeem", args...)
+}
+
+// PrivateUtaPostV3TradePlaceRealityOrder returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaPostV3TradePlaceRealityOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3TradePlaceRealityOrder", args...)
+}
+
+// PrivateUtaPostV3TradeCancelRealityOrder returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaPostV3TradeCancelRealityOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3TradeCancelRealityOrder", args...)
+}
+
+// PrivateUtaPostV3TradeGridValidate returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaPostV3TradeGridValidate(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3TradeGridValidate", args...)
+}
+
+// PrivateUtaPostV3TradeGridCreateBot returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaPostV3TradeGridCreateBot(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3TradeGridCreateBot", args...)
+}
+
+// PrivateUtaPostV3TradeGridModifyBot returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaPostV3TradeGridModifyBot(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3TradeGridModifyBot", args...)
+}
+
+// PrivateUtaPostV3TradeGridModifyGridInterval returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaPostV3TradeGridModifyGridInterval(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3TradeGridModifyGridInterval", args...)
+}
+
+// PrivateUtaPostV3TradeGridAddInvestment returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaPostV3TradeGridAddInvestment(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3TradeGridAddInvestment", args...)
+}
+
+// PrivateUtaPostV3TradeGridCloseBot returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaPostV3TradeGridCloseBot(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3TradeGridCloseBot", args...)
+}
+
+// PrivateUtaPostV3TradeGridValidateNeutral returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaPostV3TradeGridValidateNeutral(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3TradeGridValidateNeutral", args...)
+}
+
+// PrivateUtaPostV3TradeGridCreateNeutralBot returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaPostV3TradeGridCreateNeutralBot(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3TradeGridCreateNeutralBot", args...)
+}
+
+// PrivateUtaPostV3TradeGridModifyNeutralBot returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaPostV3TradeGridModifyNeutralBot(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3TradeGridModifyNeutralBot", args...)
+}
+
+// PrivateUtaPostV3TradeGridModifyNeutralGridInterval returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaPostV3TradeGridModifyNeutralGridInterval(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3TradeGridModifyNeutralGridInterval", args...)
+}
+
+// PrivateUtaPostV3UserSetRateLimitQuota returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaPostV3UserSetRateLimitQuota(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3UserSetRateLimitQuota", args...)
+}
+
+// PrivateUtaPostV3UserSubAccountAgentCreate returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaPostV3UserSubAccountAgentCreate(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3UserSubAccountAgentCreate", args...)
+}
+
+// PrivateUtaPostV3StockplusTradePlaceOrder returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaPostV3StockplusTradePlaceOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3StockplusTradePlaceOrder", args...)
+}
+
+// PrivateUtaPostV3StockplusTradeCancelOrder returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaPostV3StockplusTradeCancelOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3StockplusTradeCancelOrder", args...)
+}
+
+// PrivateUtaPostV3StockplusTradeModifyOrder returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaPostV3StockplusTradeModifyOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3StockplusTradeModifyOrder", args...)
+}
+
+// PrivateUtaPostV3StockplusAssetTransfer returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaPostV3StockplusAssetTransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3StockplusAssetTransfer", args...)
+}
+
+// PrivateUtaPostV3P2pAdCreate returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaPostV3P2pAdCreate(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3P2pAdCreate", args...)
+}
+
+// PrivateUtaPostV3P2pAdUpdate returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaPostV3P2pAdUpdate(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3P2pAdUpdate", args...)
+}
+
+// PrivateUtaPostV3P2pAdOperate returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaPostV3P2pAdOperate(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3P2pAdOperate", args...)
+}
+
+// PrivateUtaPostV3P2pFeeSimulate returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaPostV3P2pFeeSimulate(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3P2pFeeSimulate", args...)
+}
+
+// PrivateUtaPostV3P2pOrderPay returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaPostV3P2pOrderPay(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3P2pOrderPay", args...)
+}
+
+// PrivateUtaPostV3P2pOrderRelease returns a channel that yields a JSON object.
+func (this *Bitget) PrivateUtaPostV3P2pOrderRelease(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUtaPostV3P2pOrderRelease", args...)
 }

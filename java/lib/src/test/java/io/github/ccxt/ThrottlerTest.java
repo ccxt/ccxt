@@ -113,12 +113,16 @@ class ThrottlerTest {
     }
 
     @Test
-    void testFirstRequestCompletesImmediately() throws Exception {
-        var throttler = new Throttler(config(50, "leakyBucket"));
-        long start = System.currentTimeMillis();
+    void testFirstRequestDoesNotRequireTokenRefill() throws Exception {
+        Map<String, Object> cfg = config(50, "leakyBucket");
+        cfg.put("tokens", 0.0);
+        cfg.put("capacity", 0.0);
+        cfg.put("refillRate", 0.0);
+        var throttler = new Throttler(cfg);
+        // The first request is allowed at zero tokens. With refill disabled,
+        // waiting for tokens cannot pass just because the worker starts late.
+        // This timeout bounds a stalled test; it is not a latency requirement.
         throttler.throttle(1.0).get(5, TimeUnit.SECONDS);
-        long elapsed = System.currentTimeMillis() - start;
-        assertTrue(elapsed < 30, "First request should complete immediately, took " + elapsed + "ms");
     }
 
     @Test

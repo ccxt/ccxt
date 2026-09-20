@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 
 
 pub struct NdaxCore {
@@ -1324,8 +1328,8 @@ impl NdaxCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_979: bool = true;
-            while { if !__for_first_979 { i = add(&i, &Value::Int(1)); } __for_first_979 = false; is_less_than(&i, &get_array_length(&orderbook)) } {
+            let mut __for_first_987: bool = true;
+            while { if !__for_first_987 { i = add(&i, &Value::Int(1)); } __for_first_987 = false; is_less_than(&i, &get_array_length(&orderbook)) } {
             let mut level: Value = get_value(&orderbook, &i);
             let mut level: Value = get_value(&orderbook, &i);
             if is_equal(&timestamp, &Value::Null) {
@@ -1346,7 +1350,7 @@ impl NdaxCore {
             }
             let mut bidask: Value = self.parse_order_book_bid_ask(level.clone(), &[priceKey.clone(), amountKey.clone()]);
             let mut levelSide: Value = self.safe_integer(level.clone(), Value::Int(9), &[]);
-            let mut side: Value = ternary(is_true(&(!is_equal(&levelSide, &Value::Null) && !is_equal(&levelSide, &Value::Null) && !is_equal(&levelSide, &Value::Int(0)))), asksKey.clone(), bidsKey.clone());
+            let mut side: Value = ternary(is_true(&(!is_equal(&levelSide, &Value::Null) && !is_equal(&levelSide, &Value::Int(0)))), asksKey.clone(), bidsKey.clone());
             crate::runtime::append_to_object_array(&mut result, &side, bidask.clone());
         }
         }
@@ -1760,8 +1764,12 @@ impl NdaxCore {
             timestamp = self.safe_integer(trade.clone(), Value::Int(6), &[]);
             id = self.safe_string(trade.clone(), Value::Int(0), &[]);
             marketId = self.safe_string(trade.clone(), Value::Int(1), &[]);
-            let mut takerSide: Value = self.safe_value(trade.clone(), Value::Int(8), &[]);
-            side = ternary(is_true(&(is_equal(&takerSide, &Value::Bool(true)))), Value::Str("sell".to_string()), Value::Str("buy".to_string()));
+            let mut takerSide: Value = self.safe_integer(trade.clone(), Value::Int(8), &[]);
+            if is_equal(&takerSide, &Value::Int(0)) {
+                side = Value::Str("buy".to_string());
+            }  else if is_equal(&takerSide, &Value::Int(1)) {
+                side = Value::Str("sell".to_string());
+            }
             orderId = self.safe_string(trade.clone(), Value::Int(4), &[]);
         }  else {
             timestamp = self.safe_integer2(trade.clone(), Value::Str("TradeTimeMS".to_string()), Value::Str("ReceiveTime".to_string()), &[]);
@@ -1879,8 +1887,8 @@ impl NdaxCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_980: bool = true;
-            while { if !__for_first_980 { i = add(&i, &Value::Int(1)); } __for_first_980 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_988: bool = true;
+            while { if !__for_first_988 { i = add(&i, &Value::Int(1)); } __for_first_988 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut accountId: Value = self.safe_string(response.clone(), i.clone(), &[]);
             append_to_array(&mut result, Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1907,8 +1915,8 @@ impl NdaxCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_981: bool = true;
-            while { if !__for_first_981 { i = add(&i, &Value::Int(1)); } __for_first_981 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_989: bool = true;
+            while { if !__for_first_989 { i = add(&i, &Value::Int(1)); } __for_first_989 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut balance: Value = get_value(&response, &i);
             let mut balance: Value = get_value(&response, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "ProductId", &[]);

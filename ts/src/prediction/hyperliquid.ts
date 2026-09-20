@@ -3,12 +3,11 @@ import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from '../abstract/prediction/hyperliquid.js';
 import { Precise } from '../base/Precise.js';
 import { ecdsa } from '../base/functions/crypto.js';
-import type {
-    Int, int, Str, Num, Dict,
+import type { Int, int, Str, Num, Dict,
     Market, PredictionOrderBook, OHLCV,
     Balances, fetchEventsParams,
     Strings,
-    PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, NullableDict, List, Endpoint} from '../base/types.js';
+    PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, NullableDict, List, Endpoint } from '../base/types.js';
 import { ArgumentsRequired, ExchangeError, OrderNotFound, InvalidOrder, InsufficientFunds, RateLimitExceeded } from '../base/errors.js';
 
 // ---------------------------------------------------------------------------
@@ -704,7 +703,7 @@ export default class hyperliquid extends Exchange {
                 continue;
             }
             // Build minimal ticker from mid price
-            const ticker = this.parsePredictionTicker ({ 'levels': [ [], [] ], 'mid': mid, 'time': this.milliseconds () }, outcomeObj as any);
+            const ticker = this.parsePredictionTicker ({ 'levels': [ [], [] ], 'mid': mid }, outcomeObj as any);
             tickers[outcomeHandle] = ticker;
         }
         return tickers;
@@ -730,8 +729,7 @@ export default class hyperliquid extends Exchange {
         //         "time": 1704290104840
         //     }
         //
-        const now = this.milliseconds ();
-        const timestamp = this.safeInteger (raw, 'time', now);
+        const timestamp = this.safeInteger (raw, 'time');
         // the 2nd arg carries the outcome object (callers pass the resolved outcome)
         const mkt = this.safeOutcome (undefined, market);
         const outcome = this.safeString (mkt, 'outcome');
@@ -1332,8 +1330,8 @@ export default class hyperliquid extends Exchange {
             'id': oid,
             'clientOrderId': clientOrderId,
             'info': response,
-            'timestamp': nonce,
-            'datetime': this.iso8601 (nonce),
+            'timestamp': undefined,
+            'datetime': undefined,
             'status': orderStatus,
             'outcome': this.safeString (outcomeObj, 'outcome', outcome),
             'outcomeId': this.safeString (outcomeObj, 'id'),
@@ -1452,8 +1450,8 @@ export default class hyperliquid extends Exchange {
                 'outcomeId': this.safeString (outcomeObj, 'id'),
                 'label': this.safeString (outcomeObj, 'label'),
                 'market': this.safeString (outcomeObj, 'market'),
-                'timestamp': this.milliseconds (),
-                'datetime': this.iso8601 (this.milliseconds ()),
+                'timestamp': undefined,
+                'datetime': undefined,
             };
             orders.push (this.safePredictionOrder (order));
         }

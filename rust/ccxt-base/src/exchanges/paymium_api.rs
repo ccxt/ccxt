@@ -77,6 +77,11 @@ impl PaymiumCore {
         self.call_method(Value::Str("private_get_user_price_alerts".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetUserWithdrawals` implicit endpoint.
+    pub async fn private_get_user_withdrawals(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_user_withdrawals".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetMerchantGetPaymentUuid` implicit endpoint.
     pub async fn private_get_merchant_get_payment_uuid(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_merchant_get_payment_uuid".to_string()), optional_args).await

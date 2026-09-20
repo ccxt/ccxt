@@ -314,6 +314,38 @@ export default class bitget extends Exchange {
                             'v3/market/position-tier': { 'cost': 1 } as Endpoint<Dict>,
                             'v3/market/oi-limit': { 'cost': 2 } as Endpoint<Dict>,
                             'v3/market/index-components': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/market/risk-reserve-all': { 'cost': 6.6667 } as Endpoint<Dict>, // 3 times/1s (IP) => 20/3 = 6.6667
+                            'v3/market/risk-reserve-hour': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/market/score-weights': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/market/fee-group': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/market/cash-dividend-records': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/market/split-records': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/market/liquidations': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/market/rpi-orderbook': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/market/rpi-symbols': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/market/spot-whale-flow': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/market/spot-fund-flow': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/market/spot-net-flow': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/market/margin-long-short': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/market/margin-loan-growth': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/market/margin-isolated-borrow': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/market/futures-active-buy-sell': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/market/futures-long-short': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/market/futures-position-long-short': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/market/futures-account-long-short': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/reality/market/stock-info': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/reality/market/states': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/reality/market/calendar': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/reality/market/company-overview': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/reality/market/valuation-indicators': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/reality/market/earnings-forecast': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/reality/market/suspension-resumption-info': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/reality/market/dividends': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/reality/market/share-capital-change': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/reality/market/inner-trades': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/reality/market/executive-shareholdings': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/reality/market/sharehold-detail': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/account/custom-collateral-coins': { 'cost': 2 } as Endpoint<Dict>,
                         },
                     },
                 },
@@ -574,6 +606,7 @@ export default class bitget extends Exchange {
                             'v2/user/batch-create-subaccount-and-apikey': { 'cost': 20 } as Endpoint<Dict>,
                             'v2/user/create-virtual-subaccount-apikey': { 'cost': 4 } as Endpoint<Dict>,
                             'v2/user/modify-virtual-subaccount-apikey': { 'cost': 4 } as Endpoint<Dict>,
+                            'v2/user/create-agent-subaccount': { 'cost': 20 } as Endpoint<Dict>,
                         },
                     },
                     'p2p': {
@@ -605,6 +638,13 @@ export default class bitget extends Exchange {
                             'v2/broker/account/subaccount-spot-assets': { 'cost': 2 } as Endpoint<Dict>,
                             'v2/broker/account/subaccount-future-assets': { 'cost': 2 } as Endpoint<Dict>,
                             'v2/broker/manage/subaccount-apikey-list': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/broker/sub-customer-list': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/broker/agent-commission': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/broker/customer-commissions': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/broker/customer-kyc-result': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/broker/order-commission': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/broker/rebate-info': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/broker/total-commission': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'post': {
                             'broker/v1/account/sub-create': { 'cost': 20 } as Endpoint<Dict>, // 1 times/1s (UID) => 20/1 = 20
@@ -623,6 +663,10 @@ export default class bitget extends Exchange {
                             'v2/broker/account/set-subaccount-autotransfer': { 'cost': 2 } as Endpoint<Dict>,
                             'v2/broker/manage/create-subaccount-apikey': { 'cost': 2 } as Endpoint<Dict>,
                             'v2/broker/manage/modify-subaccount-apikey': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/broker/customer-asset': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/broker/customer-deposit': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/broker/customer-list': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/broker/customer-trade-volume': { 'cost': 2 } as Endpoint<Dict>,
                         },
                     },
                     'margin': {
@@ -812,6 +856,12 @@ export default class bitget extends Exchange {
                             'v2/earn/loan/debts': { 'cost': 2 } as Endpoint<Dict>,
                             'v2/earn/loan/reduces': { 'cost': 2 } as Endpoint<Dict>,
                             'v2/earn/account/assets': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/earn/elite/product': { 'cost': 4 } as Endpoint<Dict>,
+                            'v2/earn/elite/assets': { 'cost': 4 } as Endpoint<Dict>,
+                            'v2/earn/elite/records': { 'cost': 4 } as Endpoint<Dict>,
+                            'v2/earn/elite/subscribe-info': { 'cost': 4 } as Endpoint<Dict>,
+                            'v2/earn/elite/subscribe-result': { 'cost': 4 } as Endpoint<Dict>,
+                            'v2/earn/elite/redeem-info': { 'cost': 4 } as Endpoint<Dict>,
                         },
                         'post': {
                             'v2/earn/savings/subscribe': { 'cost': 2 } as Endpoint<Dict>,
@@ -820,6 +870,8 @@ export default class bitget extends Exchange {
                             'v2/earn/loan/borrow': { 'cost': 2 } as Endpoint<Dict>,
                             'v2/earn/loan/repay': { 'cost': 2 } as Endpoint<Dict>,
                             'v2/earn/loan/revise-pledge': { 'cost': 2 } as Endpoint<Dict>,
+                            'v2/earn/elite/subscribe': { 'cost': 4 } as Endpoint<Dict>,
+                            'v2/earn/elite/redeem': { 'cost': 4 } as Endpoint<Dict>,
                         },
                     },
                     'common': {
@@ -881,6 +933,76 @@ export default class bitget extends Exchange {
                             'v3/trade/fills': { 'cost': 1 } as Endpoint<Dict>,
                             'v3/user/sub-list': { 'cost': 2 } as Endpoint<Dict>,
                             'v3/user/sub-api-list': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/account/info': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/account/all-fee-rate': { 'cost': 6.6667 } as Endpoint<Dict>, // 3 times/1s (UID) => 20/3 = 6.6667
+                            'v3/account/delta-info': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/account/withdraw-address': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/account/max-withdrawal': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/account/move-position-history': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/account/collateral-type': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/account/pre-set-leverage': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/account/eligible-symbols': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/account/eligible-margin-tier': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/account/eligible-loan-info': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/account/eligible-discount-rate': { 'cost': 1 } as Endpoint<Dict>,
+                            'v3/account/funding-financial-records': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/account/reality-orderbook': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/account/reality-fills': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/copy/futures/trading-pairs': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/copy/futures/position-summary': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/copy/futures/max-transferable': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/copy/futures/transfer-record': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/copy/futures/current-follower': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/copy/futures/history-follower': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/copy/futures/profit-summary': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/copy/futures/profit-details': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/convert/small-assets': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/convert/small-assets-history': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/earn/elite-product': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/earn/elite-assets': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/earn/elite-subscribe-info': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/earn/elite-records': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/earn/elite-subscribe-result': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/earn/elite-redeem-info': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/trade/loan-data': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/trade/strategy-sub-orders': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/trade/grid/bot-detail': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/trade/grid/list-details': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/trade/grid/neutral-bot-detail': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/trade/grid/neutral-list-details': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/user/rate-limit-quota': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/stockplus/market/option-quote': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/stockplus/market/option-chain-info': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/stockplus/market/option-expiry-date': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/stockplus/market/option-volume': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/stockplus/market/depth': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/stockplus/market/static': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/stockplus/market/quote': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/stockplus/market/trade': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/stockplus/market/intraday': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/stockplus/market/history-candlestick': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/stockplus/market/candlestick': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/stockplus/trade/today-orders': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/stockplus/trade/history-orders': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/stockplus/trade/order-detail': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/stockplus/trade/today-executions': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/stockplus/trade/history-executions': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/stockplus/asset/account': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/stockplus/asset/cash-flow': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/stockplus/asset/stock-position': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/stockplus/asset/transfer-records': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/p2p/ad-list': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/p2p/ad-info': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/p2p/ad-limit': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/p2p/my-ads': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/p2p/pending-orders': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/p2p/all-orders': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/p2p/order-info': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/p2p/user-info': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/p2p/currencies': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/p2p/pay-method': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/p2p/balance': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/p2p/exchange-rate': { 'cost': 2 } as Endpoint<Dict>,
                         },
                         'post': {
                             'v3/account/set-leverage': { 'cost': 2 } as Endpoint<Dict>,
@@ -923,6 +1045,38 @@ export default class bitget extends Exchange {
                             'v3/user/create-sub-api': { 'cost': 2 } as Endpoint<Dict>,
                             'v3/user/update-sub-api': { 'cost': 2 } as Endpoint<Dict>,
                             'v3/user/delete-sub-api': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/account/move-positions': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/account/cancel-withdrawal': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/account/set-margin': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/account/set-collateral-type': { 'cost': 10 } as Endpoint<Dict>,
+                            'v3/copy/futures/transfer': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/convert/small-assets-trade': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/earn/elite-subscribe': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/earn/elite-redeem': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/trade/place-reality-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/trade/cancel-reality-order': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/trade/grid/validate': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/trade/grid/create-bot': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/trade/grid/modify-bot': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/trade/grid/modify-grid-interval': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/trade/grid/add-investment': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/trade/grid/close-bot': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/trade/grid/validate-neutral': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/trade/grid/create-neutral-bot': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/trade/grid/modify-neutral-bot': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/trade/grid/modify-neutral-grid-interval': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/user/set-rate-limit-quota': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/user/sub-account/agent-create': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/stockplus/trade/place-order': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/stockplus/trade/cancel-order': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/stockplus/trade/modify-order': { 'cost': 20 } as Endpoint<Dict>,
+                            'v3/stockplus/asset/transfer': { 'cost': 4 } as Endpoint<Dict>,
+                            'v3/p2p/ad-create': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/p2p/ad-update': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/p2p/ad-operate': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/p2p/fee-simulate': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/p2p/order-pay': { 'cost': 2 } as Endpoint<Dict>,
+                            'v3/p2p/order-release': { 'cost': 2 } as Endpoint<Dict>,
                         },
                     },
                 },
@@ -1304,7 +1458,8 @@ export default class bitget extends Exchange {
                     '40014': PermissionDenied, // Incorrect permissions
                     '40015': ExchangeError, // System is abnormal, please try again later
                     '40016': PermissionDenied, // The user must bind the phone or Google
-                    '40017': ExchangeError, // Parameter verification failed
+                    '40017': BadRequest, // Parameter verification failed
+                    '400172': BadRequest, // {"code":"400172","msg":"Parameter verification failed","requestTime":1789206270550,"data":null} - v3 uta twin of 40017
                     '40018': PermissionDenied, // Invalid IP
                     '40019': BadRequest, // {"code":"40019","msg":"Parameter QLCUSDT_SPBL cannot be empty","requestTime":1679196063659,"data":null}
                     '40031': AccountSuspended, // The account has been cancelled and cannot be used again
@@ -4217,9 +4372,11 @@ export default class bitget extends Exchange {
      * @name bitget#fetchTradingFee
      * @description fetch the trading fees for a market
      * @see https://www.bitget.com/api-doc/common/public/Get-Trade-Rate
+     * @see https://www.bitget.com/docs/catalog/account/assets-balance#get-account-fee-rate
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'isolated' or 'cross', for finding the fee rate of spot margin trading pairs
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     override async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
@@ -4230,6 +4387,27 @@ export default class bitget extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
+        let uta: Bool = undefined;
+        [ uta, params ] = await this.handleUTAAndParams (params, 'fetchTradingFee', false);
+        if (uta === true) {
+            let productType: Str = undefined;
+            [ productType, params ] = this.handleProductTypeAndParams (market, params);
+            request['category'] = productType;
+            const utaResponse = await this.privateUtaGetV3AccountFeeRate (this.extend (request, params));
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1789206261241,
+            //         "data": {
+            //             "makerFeeRate": "0.001",
+            //             "takerFeeRate": "0.001"
+            //         }
+            //     }
+            //
+            const utaData = this.safeDict (utaResponse, 'data', {});
+            return this.parseTradingFee (utaData, market);
+        }
         let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchTradingFee', params);
         if (market['spot'] === true) {
@@ -4264,9 +4442,11 @@ export default class bitget extends Exchange {
      * @see https://www.bitget.com/api-doc/spot/market/Get-Symbols
      * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbols-Contracts
      * @see https://www.bitget.com/api-doc/margin/common/support-currencies
+     * @see https://www.bitget.com/docs/catalog/account/risk-position#get-all-symbol-fee-rates
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @param {boolean} [params.margin] set to true for spot margin
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     override async fetchTradingFees (params: Dict = {}): Promise<TradingFees> {
@@ -4278,6 +4458,57 @@ export default class bitget extends Exchange {
         let marketType: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchTradingFees', params);
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTradingFees', undefined, params);
+        let uta: Bool = undefined;
+        [ uta, params ] = await this.handleUTAAndParams (params, 'fetchTradingFees', false);
+        if (uta === true) {
+            const utaMargin = this.safeBool (params, 'margin', false);
+            params = this.omit (params, 'margin');
+            const request: Dict = {};
+            if (marketType === 'spot') {
+                if ((marginMode !== undefined) || (utaMargin === true)) {
+                    request['category'] = 'MARGIN';
+                } else {
+                    request['category'] = 'SPOT';
+                }
+            } else if ((marketType === 'swap') || (marketType === 'future')) {
+                let productType: Str = undefined;
+                [ productType, params ] = this.handleProductTypeAndParams (undefined, params);
+                request['category'] = productType;
+            } else {
+                throw new NotSupported (this.id + ' does not support ' + marketType + ' market');
+            }
+            const utaResponse = await this.privateUtaGetV3AccountAllFeeRate (this.extend (request, params));
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1789206286428,
+            //         "data": [
+            //             {
+            //                 "makerFeeRate": "0.00036",
+            //                 "takerFeeRate": "0.001",
+            //                 "symbol": "BTCUSDT"
+            //             }
+            //         ]
+            //     }
+            //
+            const rows = this.safeList (utaResponse, 'data', []);
+            const utaResult: Dict = {};
+            for (let i = 0; i < rows.length; i++) {
+                const entry = rows[i];
+                const entryMarketId = this.safeString (entry, 'symbol');
+                if ((entryMarketId === undefined) || (this.markets_by_id === undefined) || !(entryMarketId in this.markets_by_id)) {
+                    continue; // skip ids missing from the loaded market map, a raw id must not become a unified symbol key
+                }
+                const entryMarket = this.safeMarket (entryMarketId, undefined, undefined, marketType);
+                const entrySymbol = this.safeString (entryMarket, 'symbol');
+                if ((entrySymbol === undefined) || (entrySymbol === entryMarketId)) {
+                    continue; // safeMarket found no market of this type and fell back to a raw-id structure
+                }
+                utaResult[entrySymbol] = this.parseTradingFee (entry, entryMarket);
+            }
+            return utaResult;
+        }
         if (marketType === 'spot') {
             const margin = this.safeBool (params, 'margin', false);
             params = this.omit (params, 'margin');
@@ -4365,7 +4596,7 @@ export default class bitget extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const result: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
@@ -7710,13 +7941,17 @@ export default class bitget extends Exchange {
      * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
      * @see https://www.bitget.com/api-doc/spot/account/Get-Account-Bills
      * @see https://www.bitget.com/api-doc/contract/account/Get-Account-Bill
+     * @see https://www.bitget.com/docs/catalog/account/assets-balance#get-financial-records
+     * @see https://www.bitget.com/docs/catalog/account/assets-balance#get-funding-financial-records
      * @param {string} [code] unified currency code, default is undefined
-     * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
+     * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined, the uta endpoints allow a window of at most 30 days between since and until
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] end time in ms
      * @param {string} [params.symbol] *contract only* unified market symbol
-     * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+     * @param {string} [params.productType] *contract and uta only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+     * @param {string} [params.type] set to 'funding' with uta to fetch the funding account ledger instead of the trading account ledger
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
@@ -7732,14 +7967,28 @@ export default class bitget extends Exchange {
         }
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchLedger', market, params);
+        let uta: Bool = undefined;
+        [ uta, params ] = await this.handleUTAAndParams (params, 'fetchLedger', false);
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate');
         if (paginate) {
+            if (uta === true) {
+                // re-inject the resolved modes, the handle* helpers stripped them from params and the recursive paginated calls would silently fall back to the defaults
+                params = this.extend (params, { 'uta': true, 'type': marketType });
+                if (symbol !== undefined) {
+                    params = this.extend (params, { 'symbol': symbol });
+                }
+                return await this.fetchPaginatedCallCursor ('fetchLedger', code, since, limit, params, 'id', 'cursor', undefined, 100) as LedgerEntry[];
+            }
             let cursorReceived: Str = undefined;
             if (marketType !== 'spot') {
                 cursorReceived = 'endId';
             }
-            return await this.fetchPaginatedCallCursor ('fetchLedger', symbol, since, limit, params, cursorReceived, 'idLessThan') as LedgerEntry[];
+            params = this.extend (params, { 'type': marketType });
+            if (symbol !== undefined) {
+                params = this.extend (params, { 'symbol': symbol });
+            }
+            return await this.fetchPaginatedCallCursor ('fetchLedger', code, since, limit, params, cursorReceived, 'idLessThan') as LedgerEntry[];
         }
         let currency: Currency = undefined;
         let request: Dict = {};
@@ -7755,6 +8004,79 @@ export default class bitget extends Exchange {
             request['limit'] = limit;
         }
         let response = undefined;
+        if (uta === true) {
+            if (marketType === 'funding') {
+                response = await this.privateUtaGetV3AccountFundingFinancialRecords (this.extend (request, params));
+                //
+                //     {
+                //         "code": "00000",
+                //         "msg": "success",
+                //         "requestTime": 1789303180637,
+                //         "data": {
+                //             "list": [
+                //                 {
+                //                     "id": "1477183363639320585",
+                //                     "coin": "USDT",
+                //                     "groupType": "transfer",
+                //                     "type": "transfer_out",
+                //                     "amount": "-30.00000000",
+                //                     "balance": "0.00000000",
+                //                     "ts": "1787913879280"
+                //                 }
+                //             ],
+                //             "cursor": "1477183354042753024"
+                //         }
+                //     }
+                //
+            } else {
+                let marginMode: Str = undefined;
+                [ marginMode, params ] = this.handleMarginModeAndParams ('fetchLedger', params);
+                if (marketType === 'spot') {
+                    if (marginMode !== undefined) {
+                        request['category'] = 'MARGIN';
+                    } else {
+                        request['category'] = 'SPOT';
+                    }
+                } else {
+                    let productType: Str = undefined;
+                    [ productType, params ] = this.handleProductTypeAndParams (market, params);
+                    request['category'] = productType;
+                }
+                if (symbol !== undefined) {
+                    request['symbol'] = this.safeString (market, 'id');
+                }
+                response = await this.privateUtaGetV3AccountFinancialRecords (this.extend (request, params));
+                //
+                //     {
+                //         "code": "00000",
+                //         "msg": "success",
+                //         "requestTime": 1750135478641,
+                //         "data": {
+                //             "list": [
+                //                 {
+                //                     "category": "Margin",
+                //                     "id": "13111111111111111",
+                //                     "symbol": "BTCUSDT",
+                //                     "coin": "BTC",
+                //                     "type": "ORDER_DEALT_IN",
+                //                     "positionType": "crossed",
+                //                     "fee": "-0.00000531",
+                //                     "positionAmount": "0.001",
+                //                     "positionBalance": "0.001",
+                //                     "amount": "0.00531168",
+                //                     "balance": "55.10017801",
+                //                     "ts": "1745853486185"
+                //                 }
+                //             ],
+                //             "cursor": "122222222222222222"
+                //         }
+                //     }
+                //
+            }
+            const utaData = this.safeDict (response, 'data', {});
+            const list = this.safeList (utaData, 'list', []);
+            return this.parseLedger (list, currency, since, limit);
+        }
         if (marketType === 'spot') {
             response = await this.privateSpotGetV2SpotAccountBills (this.extend (request, params));
         } else {
@@ -7846,36 +8168,74 @@ export default class bitget extends Exchange {
         //         "cTime": "1700728034996"
         //     }
         //
+        // uta financial records
+        //
+        //     {
+        //         "category": "Margin",
+        //         "id": "13111111111111111",
+        //         "symbol": "BTCUSDT",
+        //         "coin": "BTC",
+        //         "type": "ORDER_DEALT_IN",
+        //         "positionType": "crossed",
+        //         "fee": "-0.00000531",
+        //         "positionAmount": "0.001",
+        //         "positionBalance": "0.001",
+        //         "amount": "0.00531168",
+        //         "balance": "55.10017801",
+        //         "ts": "1745853486185"
+        //     }
+        //
+        // uta funding financial records
+        //
+        //     {
+        //         "id": "1477183363639320585",
+        //         "coin": "USDT",
+        //         "groupType": "transfer",
+        //         "type": "transfer_out",
+        //         "amount": "-30.00000000",
+        //         "balance": "0.00000000",
+        //         "ts": "1787913879280"
+        //     }
+        //
         const currencyId = this.safeString (item, 'coin');
         const code = this.safeCurrencyCode (currencyId, currency);
         currency = this.safeCurrency (currencyId, currency);
-        const timestamp = this.safeInteger (item, 'cTime');
-        const after = this.safeNumber (item, 'balance');
-        const fee = this.safeNumber2 (item, 'fees', 'fee');
+        const timestamp = this.safeInteger2 (item, 'cTime', 'ts');
+        const balanceString = this.safeString (item, 'balance');
+        const after = this.parseNumber (balanceString);
+        const feeCostString = this.safeString2 (item, 'fees', 'fee');
+        let feeCost: Num = undefined;
+        if (feeCostString !== undefined) {
+            feeCost = this.parseNumber (Precise.stringAbs (feeCostString)); // deliberate for both generations, uta reports charged fees as negative values and the v2 fields hold signed values too
+        }
         const amountRaw = this.safeString2 (item, 'size', 'amount', '');
         const amount = this.parseNumber (Precise.stringAbs (amountRaw));
+        let before: Num = undefined;
+        if ((balanceString !== undefined) && (amountRaw !== '')) {
+            before = this.parseNumber (Precise.stringSub (balanceString, amountRaw)); // subtract the signed change from the after-balance, the base derivation assumes a signed amount and would produce a negative before on outflows
+        }
         let direction = 'in';
         if (amountRaw.indexOf ('-') >= 0) {
             direction = 'out';
         }
         return this.safeLedgerEntry ({
             'info': item,
-            'id': this.safeString (item, 'billId'),
+            'id': this.safeString2 (item, 'billId', 'id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'direction': direction,
             'account': undefined,
             'referenceId': undefined,
             'referenceAccount': undefined,
-            'type': this.parseLedgerType (this.safeString (item, 'businessType')),
+            'type': this.parseLedgerType (this.safeStringN (item, [ 'businessType', 'groupType', 'type' ])),
             'currency': code,
             'amount': amount,
-            'before': undefined,
+            'before': before,
             'after': after,
             'status': undefined,
             'fee': {
                 'currency': code,
-                'cost': fee,
+                'cost': feeCost,
             },
         }, currency) as LedgerEntry;
     }
@@ -7922,6 +8282,151 @@ export default class bitget extends Exchange {
             'withdraw': 'withdrawal',
             'buy': 'trade',
             'sell': 'trade',
+            // uta funding financial records groupType values
+            'transaction': 'transaction',
+            'transfer': 'transfer',
+            'financial': 'transaction',
+            'strategy': 'trade',
+            'trace': 'trade',
+            'loan': 'transaction',
+            'fait': 'transaction',
+            'convert': 'trade',
+            'ipo_prime': 'transaction',
+            'pre_c2c': 'trade',
+            'paptrading': 'trade',
+            'on_chain': 'transaction',
+            'debit': 'transaction',
+            'cfd': 'trade',
+            'pay': 'transaction',
+            'compliance_wall': 'transaction',
+            'live': 'transaction',
+            'broker': 'transaction',
+            'rwa': 'transaction',
+            'stock': 'trade',
+            // uta financial records type values
+            'TRANSFER_IN': 'transfer',
+            'TRANSFER_OUT': 'transfer',
+            'RESERVE_TRANSFER_IN': 'transfer',
+            'RESERVE_TRANSFER_OUT': 'transfer',
+            'LIQ_TRANSFER_IN': 'transfer',
+            'LIQ_TRANSFER_OUT': 'transfer',
+            'ON_CHAIN_TRANSFER_REFUND': 'transfer',
+            'ON_CHAIN_TRANSFER_OUT': 'transfer',
+            'MT5_TRANSFER_IN': 'transfer',
+            'MT5_REFUND_IN': 'transfer',
+            'MT5_TRANSFER_OUT': 'transfer',
+            'TRACE_TRANSFER_USER_OUT': 'transfer',
+            'TRACE_TRANSFER_USER_IN': 'transfer',
+            'TRACE_TRANSFER_REFUND_IN': 'transfer',
+            'FINANCIAL_TRANSFER_OUT': 'transfer',
+            'FINANCIAL_TRANSFER_IN': 'transfer',
+            'CONVERT_TRANSFER_IN': 'transfer',
+            'CONVERT_TRANSFER_OUT': 'transfer',
+            'BGPAY_TRANSFER_OUT': 'transfer',
+            'BGPAY_REFUND_IN': 'transfer',
+            'ORDER_DEALT_FROZEN_OUT': 'trade',
+            'ORDER_DEALT_IN': 'trade',
+            'OPEN_LONG': 'trade',
+            'OPEN_SHORT': 'trade',
+            'BUY_DEAL': 'trade',
+            'SELL_DEAL': 'trade',
+            'CLOSE_LONG': 'trade',
+            'CLOSE_SHORT': 'trade',
+            'FORCE_CLOSE_LONG': 'trade',
+            'FORCE_CLOSE_SHORT': 'trade',
+            'BURST_CLOSE_LONG': 'trade',
+            'BURST_CLOSE_SHORT': 'trade',
+            'OFFSET_REDUCE_CLOSE_LONG': 'trade',
+            'OFFSET_REDUCE_CLOSE_SHORT': 'trade',
+            'FORCE_BUY_SSM': 'trade',
+            'FORCE_SELL_SSM': 'trade',
+            'BURST_BUY_SSM': 'trade',
+            'BURST_SELL_SSM': 'trade',
+            'RISK_LIQ_USER_IN': 'trade',
+            'RISK_LIQ_USER_OUT': 'trade',
+            'LIQ_FUND_OUT': 'trade',
+            'LIQ_FUND_IN': 'trade',
+            'LIQ_CONVERT_USER_OUT': 'trade',
+            'LIQ_CONVERT_SYS_IN': 'trade',
+            'LIQ_CONVERT_SYS_OUT': 'trade',
+            'LIQ_CONVERT_USER_IN': 'trade',
+            'MARGIN_OPEN_LONG': 'trade',
+            'MARGIN_OPEN_SHORT': 'trade',
+            'MARIN_BUY_DEAL': 'trade',
+            'MARIN_SELL_DEAL': 'trade',
+            'MARGIN_BACK': 'trade',
+            'MARGIN_OFFSET_IN_SSM_LONG': 'trade',
+            'MARGIN_OFFSET_IN_SSM_SHORT': 'trade',
+            'FIXED_OFFSET_IN_SSM_LONG': 'trade',
+            'FIXED_OFFSET_IN_SSM_SHORT': 'trade',
+            'FIXED_CLOSE_LONG': 'trade',
+            'FIXED_CLOSE_SHORT': 'trade',
+            'FIXED_FORCE_CLOSE_LONG': 'trade',
+            'FIXED_FORCE_CLOSE_SHORT': 'trade',
+            'FIXED_BURST_CLOSE_LONG': 'trade',
+            'FIXED_BURST_CLOSE_SHORT': 'trade',
+            'FIXED_ADL_CLOSE_LONG': 'trade',
+            'FIXED_ADL_CLOSE_SHORT': 'trade',
+            'FIXED_RISK_LIQ_USER_IN': 'trade',
+            'FIXED_RISK_LIQ_USER_OUT': 'trade',
+            'FIXED_FORCE_BUY_SSM': 'trade',
+            'FIXED_FORCE_SELL_SSM': 'trade',
+            'FIXED_BURST_BUY_SSM': 'trade',
+            'FIXED_BURST_SELL_SSM': 'trade',
+            'RWA_CONTRACT_REBASE_USER_OPEN_LONG': 'trade',
+            'RWA_CONTRACT_REBASE_USER_OPEN_SHORT': 'trade',
+            'RWA_CONTRACT_REBASE_USER_CLOSE_LONG': 'trade',
+            'RWA_CONTRACT_REBASE_USER_CLOSE_SHORT': 'trade',
+            'RWA_CONTRACT_REBASE_USER_BUY_IN_SSM': 'trade',
+            'RWA_CONTRACT_REBASE_USER_SELL_IN_SSM': 'trade',
+            'ORDER_PLF_FEE_OUT': 'fee',
+            'INTEREST_SETTLEMENT_OUT': 'fee',
+            'INTEREST_REPAYMENT': 'fee',
+            'CONTRACT_MAIN_SETTLE_FEE_USER_IN': 'fee',
+            'CONTRACT_MAIN_SETTLE_FEE_USER_OUT': 'fee',
+            'MARGIN_SETTLE_FEE_USER_IN': 'fee',
+            'MARGIN_SETTLE_FEE_USER_OUT': 'fee',
+            'LIQ_FEE': 'fee',
+            'SMALL_ASSET_FEE_SYS_IN': 'fee',
+            'RWA_FIXED_SETTLE_FEE_USER_IN': 'fee',
+            'RWA_FIXED_SETTLE_FEE_USER_OUT': 'fee',
+            'RWA_CONTRACT_MAIN_SETTLE_FEE_SYSTEM_IN': 'fee',
+            'RWA_CONTRACT_MAIN_SETTLE_FEE_SYSTEM_OUT': 'fee',
+            'RWA_CONTRACT_MAIN_SETTLE_FEE_SYSTEM_KEEP_IN': 'fee',
+            'RWA_CONTRACT_MAIN_SETTLE_FEE_SYSTEM_KEEP_OUT': 'fee',
+            'RWA_CONTRACT_MAIN_SETTLE_FEE_USER_IN': 'fee',
+            'RWA_CONTRACT_MAIN_SETTLE_FEE_USER_OUT': 'fee',
+            'INCREASE_MARGIN': 'margin',
+            'REDUCE_MARGIN': 'margin',
+            'MARGIN_LEVER_ORDER_REFROZEN': 'margin',
+            'MARGIN_LEVER_ORDER_FROZEN': 'margin',
+            'MARGIN_LEVER_POS_IN': 'margin',
+            'CONVERSION_UPON_DELISTING': 'transaction',
+            'EXCHANGE_SOURCE_TOKEN_USER_OUT': 'transaction',
+            'EXCHANGE_TARGET_TOKEN_USER_IN': 'transaction',
+            'BORROW': 'transaction',
+            'REPAYMENT': 'transaction',
+            'LIQ_REPAYMENT': 'transaction',
+            'DELIST_MARGIN_TOKEN_SOURCE_USER_OUT': 'transaction',
+            'DELIST_MARGIN_TOKEN_SOURCE_SYS_IN': 'transaction',
+            'DELIST_MARGIN_TOKEN_TARGET_SYS_OUT': 'transaction',
+            'DELIST_MARGIN_TOKEN_TARGET_USER_IN': 'transaction',
+            'CONFISCATE_TOKEN_USER_OUT': 'transaction',
+            'CONFISCATE_TOKEN_SYS_IN': 'transaction',
+            'DELIST_SMALL_BALANCE_USER_OUT': 'transaction',
+            'DELIST_SMALL_BALANCE_SYS_IN': 'transaction',
+            'DELIST_SMALL_LIABILITY_SYS_OUT': 'transaction',
+            'DELIST_SMALL_LIABILITY_USER_IN': 'transaction',
+            'SMALL_ASSET_SOURCE_TOKEN_USER_OUT': 'transaction',
+            'SMALL_ASSET_SOURCE_TOKEN_SYS_IN': 'transaction',
+            'SMALL_ASSET_TARGET_TOKEN_SYS_OUT': 'transaction',
+            'SMALL_ASSET_TARGET_TOKEN_USER_IN': 'transaction',
+            'TRACE_LOCK_USER_OUT': 'transaction',
+            'TRACE_LOCK_USER_IN': 'transaction',
+            'TRACE_SHARE_BENEFIT_USER_OUT': 'referral',
+            'TRACE_SHARE_BENEFIT_SYSTEM_IN': 'referral',
+            'TRACE_SHARE_BENEFIT_SYSTEM_OUT': 'referral',
+            'TRACE_SHARE_BENEFIT_USER_IN': 'referral',
         };
         return this.safeString (types, (type as string), type);
     }
@@ -9808,7 +10313,7 @@ export default class bitget extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         data['ts'] = this.safeInteger (response, 'requestTime');
         return this.parseTransfer (data, currency);
     }
@@ -9889,7 +10394,7 @@ export default class bitget extends Exchange {
         //         "transfer": "true""
         //     }
         //
-        const chains = this.safeValue (fee, 'chains', []);
+        const chains = this.safeList (fee, 'chains', []);
         const chainsLength = chains.length;
         const result: Dict = {
             'info': fee,
@@ -10400,7 +10905,7 @@ export default class bitget extends Exchange {
         //
         const timestamp = this.safeInteger (response, 'requestTime');
         const data = this.safeValue (response, 'data', []);
-        const first = this.safeValue (data, 0, {});
+        const first = this.safeDict (data, 0, {});
         first['timestamp'] = timestamp;
         return this.parseIsolatedBorrowRate (first, market);
     }
@@ -10525,7 +11030,7 @@ export default class bitget extends Exchange {
             //     }
             //
             const data = this.safeValue (response, 'data', []);
-            result = this.safeValue (data, 0, {});
+            result = this.safeDict (data, 0, {});
         }
         const timestamp = this.safeInteger (response, 'requestTime');
         result['timestamp'] = timestamp;

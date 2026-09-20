@@ -213,7 +213,7 @@ class onetrading(ccxt.async_support.onetrading):
         #         "time": "2022-06-23T16:41:00.004162Z"
         #     }
         #
-        tickers = self.safe_value(message, 'ticker_updates', [])
+        tickers = self.safe_list(message, 'ticker_updates', [])
         datetime = self.safe_string(message, 'time')
         for i in range(0, len(tickers)):
             ticker = tickers[i]
@@ -390,7 +390,7 @@ class onetrading(ccxt.async_support.onetrading):
 
     def handle_delta(self, orderbook: object, delta: object):
         #
-        #   ['BUY', "0.053595", "0"]
+        #   [ 'BUY', "0.053595", "0" ]
         #
         bidAsk = self.parse_order_book_bid_ask(delta, 1, 2)
         type = self.safe_string(delta, 0)
@@ -401,13 +401,13 @@ class onetrading(ccxt.async_support.onetrading):
             asks = orderbook['asks']
             asks.storeArray(bidAsk)
         else:
-            raise NotSupported(self.id + ' watchOrderBook() received unknown change type ' + self.json(delta))
+            raise NotSupported(self.id + ' watchOrderBook () received unknown change type ' + self.json(delta))
 
     def handle_deltas(self, orderbook: object, deltas: object):
         #
         #    [
-        #       ['BUY', "0.053593", "0"],
-        #       ['SELL', "0.053698", "0"]
+        #       [ 'BUY', "0.053593", "0" ],
+        #       [ 'SELL', "0.053698", "0" ]
         #    ]
         #
         for i in range(0, len(deltas)):
@@ -654,7 +654,7 @@ class onetrading(ccxt.async_support.onetrading):
         #                 "sequence": 7633339971,
         #                 "status": "FILLED_FULLY",
         #                 "average_price": "19645.48",
-        #                 "is_post_only": False,
+        #                 "is_post_only": false,
         #                 "order_book_sequence": 866885897,
         #                 "time_last_updated": "2022-06-28T06:10:02.766983Z",
         #                 "update_modification_sequence": 866885897
@@ -696,7 +696,7 @@ class onetrading(ccxt.async_support.onetrading):
         if self.myTrades is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             self.myTrades = ArrayCacheBySymbolById(limit)
-        rawOrders = self.safe_value(message, 'orders', [])
+        rawOrders = self.safe_list(message, 'orders', [])
         rawOrdersLength = len(rawOrders)
         if rawOrdersLength == 0:
             return
@@ -706,7 +706,7 @@ class onetrading(ccxt.async_support.onetrading):
             symbol = self.safe_string(order, 'symbol', '')
             orders.append(order)
             client.resolve(self.orders, 'orders:' + symbol)
-            rawTrades = self.safe_value(rawOrders[i], 'trades', [])
+            rawTrades = self.safe_list(rawOrders[i], 'trades', [])
             for ii in range(0, len(rawTrades)):
                 trade = self.parse_trade(rawTrades[ii])
                 symbol = self.safe_string(trade, 'symbol', symbol)
@@ -730,7 +730,7 @@ class onetrading(ccxt.async_support.onetrading):
         #             "time": "2022-06-29T04:33:29.661257Z",
         #             "order": {
         #                 "time_in_force": "GOOD_TILL_CANCELLED",
-        #                 "is_post_only": False,
+        #                 "is_post_only": false,
         #                 "order_id": "8892fd69-5ebd-496b-aaa4-269b4c18aa77",
         #                 "account_holder": "43202c1a-48dc-423e-b336-bb65baccc7bd",
         #                 "account_id": "49302c1a-48dc-423e-b336-bb65baccc7bd",
@@ -951,7 +951,7 @@ class onetrading(ccxt.async_support.onetrading):
             orderId = self.safe_string(update, 'order_id')
             datetime = self.safe_string_2(update, 'time', 'timestamp')
             previousOrderArray = self.filter_by_array(self.orders, 'id', orderId, False)
-            previousOrder = self.safe_value(previousOrderArray, 0, {})
+            previousOrder = self.safe_dict(previousOrderArray, 0, {})
             symbol = previousOrder['symbol']
             filled = self.safe_string(update, 'filled_amount')
             status = self.parse_ws_order_status(updateType)
@@ -1024,7 +1024,7 @@ class onetrading(ccxt.async_support.onetrading):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1087,7 +1087,7 @@ class onetrading(ccxt.async_support.onetrading):
         #  snapshot
         #     {
         #         "instrument_code": "BTC_EUR",
-        #         "granularity": {unit: "MONTHS", period: 1},
+        #         "granularity": { unit: "MONTHS", period: 1 },
         #         "high": "29750.81",
         #         "low": "16764.59",
         #         "open": "29556.02",

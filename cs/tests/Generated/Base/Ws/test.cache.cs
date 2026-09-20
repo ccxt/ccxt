@@ -125,7 +125,7 @@ public partial class BaseTest
         // ----------------------------------------------------------------------------
         
             var cacheSymbolId5 = new ArrayCacheBySymbolById(5);
-            for (object i = 1; isLessThan(i, 11); postFixIncrement(ref i))
+            for (int i = 1; isLessThan(i, 11); postFixIncrement(ref i))
             {
                 cacheSymbolId5.append(new Dictionary<string, object>() {
                     { "symbol", "BTC/USDT" },
@@ -154,7 +154,7 @@ public partial class BaseTest
             { "id", "10" },
             { "i", 10 },
         }}));
-            for (object i = 1; isLessThan(i, 11); postFixIncrement(ref i))
+            for (int i = 1; isLessThan(i, 11); postFixIncrement(ref i))
             {
                 cacheSymbolId5.append(new Dictionary<string, object>() {
                     { "symbol", "BTC/USDT" },
@@ -237,7 +237,7 @@ public partial class BaseTest
             { "id", "7" },
             { "i", 27 },
         }}));
-            for (object i = 30; isLessThan(i, 33); postFixIncrement(ref i))
+            for (int i = 30; isLessThan(i, 33); postFixIncrement(ref i))
             {
                 cacheSymbolId5.append(new Dictionary<string, object>() {
                     { "symbol", "BTC/USDT" },
@@ -327,7 +327,7 @@ public partial class BaseTest
             string symbol = "BTC/USDT";
             var cacheSymbolId2 = new ArrayCacheBySymbolById();
             int initialLength = 5;
-            for (object i = 0; isLessThan(i, initialLength); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, initialLength); postFixIncrement(ref i))
             {
                 cacheSymbolId2.append(new Dictionary<string, object>() {
                     { "symbol", symbol },
@@ -342,7 +342,7 @@ public partial class BaseTest
         
             var cacheSymbolId3 = new ArrayCacheBySymbolById();
             int appendItemsLength = 3;
-            for (object i = 0; isLessThan(i, appendItemsLength); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, appendItemsLength); postFixIncrement(ref i))
             {
                 cacheSymbolId3.append(new Dictionary<string, object>() {
                     { "symbol", symbol },
@@ -363,7 +363,7 @@ public partial class BaseTest
             symbol = "BTC/USDT";
             var cacheSymbolId4 = new ArrayCacheBySymbolById();
             initialLength = 5;
-            for (object i = 0; isLessThan(i, initialLength); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, initialLength); postFixIncrement(ref i))
             {
                 cacheSymbolId4.append(new Dictionary<string, object>() {
                     { "symbol", symbol },
@@ -378,7 +378,7 @@ public partial class BaseTest
         
             var cacheSymbolId6 = new ArrayCacheBySymbolById();
             appendItemsLength = 3;
-            for (object i = 0; isLessThan(i, appendItemsLength); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, appendItemsLength); postFixIncrement(ref i))
             {
                 cacheSymbolId6.append(new Dictionary<string, object>() {
                     { "symbol", symbol },
@@ -425,14 +425,14 @@ public partial class BaseTest
             // test testLimitArrayCacheByTimestamp limit
             var timestampCache2 = new ArrayCacheByTimestamp();
             initialLength = 5;
-            for (object i = 0; isLessThan(i, initialLength); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, initialLength); postFixIncrement(ref i))
             {
                 timestampCache2.append(new List<object>() {multiply(i, 10), multiply(i, 10), multiply(i, 10), multiply(i, 10)});
             }
             limited = timestampCache2.getLimit(null, null);
             Assert(isEqual(initialLength, limited));
             appendItemsLength = 3;
-            for (object i = 0; isLessThan(i, appendItemsLength); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, appendItemsLength); postFixIncrement(ref i))
             {
                 timestampCache2.append(new List<object>() {multiply(i, 4), multiply(i, 4), multiply(i, 4), multiply(i, 4)});
             }
@@ -830,7 +830,7 @@ public partial class BaseTest
             // create a fresh row at the end, which proves the hashmap entry went away with
             // the evicted candle instead of leaking
             var cacheTimestampLimited = new ArrayCacheByTimestamp(3);
-            for (object i = 1; isLessThan(i, 7); postFixIncrement(ref i))
+            for (int i = 1; isLessThan(i, 7); postFixIncrement(ref i))
             {
                 cacheTimestampLimited.append(new List<object>() {multiply(i, 100), i, i, i});
             }
@@ -912,7 +912,7 @@ public partial class BaseTest
             // symbols used to leak one empty object per symbol into the hashmap forever,
             // so the map grew without bound even though the array stayed at maxSize
             var cacheEvictBuckets = new ArrayCacheBySymbolById(3);
-            for (object i = 0; isLessThan(i, 10); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, 10); postFixIncrement(ref i))
             {
                 cacheEvictBuckets.append(new Dictionary<string, object>() {
                     { "symbol", add(add("S", ((object)i).ToString()), "/USDT") },

@@ -82,10 +82,10 @@ class extended(ccxt.async_support.extended):
         #         "data": {
         #             "m": "BTC-USD",
         #             "b": [
-        #                 {"p": "25670", "q": "0.1"}
+        #                 { "p": "25670", "q": "0.1" }
         #             ],
         #             "a": [
-        #                 {"p": "25770", "q": "0.1"}
+        #                 { "p": "25770", "q": "0.1" }
         #             ]
         #         },
         #         "seq": 1
@@ -300,7 +300,7 @@ class extended(ccxt.async_support.extended):
         #                     "fee": "0.0000000000000000",
         #                     "tradeType": "DELEVERAGE",
         #                     "createdTime": 1701563440000,
-        #                     "isTaker": True
+        #                     "isTaker": true
         #                 }
         #             ]
         #         },
@@ -431,8 +431,8 @@ class extended(ccxt.async_support.extended):
         #                     "qty": "10.000000",
         #                     "filledQty": "3.513000",
         #                     "payedFee": "0.513000",
-        #                     "reduceOnly": True,
-        #                     "postOnly": False,
+        #                     "reduceOnly": true,
+        #                     "postOnly": false,
         #                     "createdTime": 1715885888571,
         #                     "updatedTime": 1715885888571,
         #                     "expireTime": 1715885888571
@@ -679,7 +679,7 @@ class extended(ccxt.async_support.extended):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.candleType]: candle type: 'trades'(default), 'mark-prices', or 'index-prices'
         :param str [params.price]: *ignored if params.candleType is set* 'mark' or 'index' for mark price and index price candles
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -766,7 +766,7 @@ class extended(ccxt.async_support.extended):
 
     def handle_error_message(self, client: Client, message: object) -> Bool:
         #
-        #     {"status": "ERROR", "error": {"code": 1001, "message": "Market not found."}}
+        #     { "status": "ERROR", "error": { "code": 1001, "message": "Market not found." } }
         #
         error = self.safe_value(message, 'error')
         if error is None:

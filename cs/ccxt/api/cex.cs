@@ -144,6 +144,13 @@ public partial class cex : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privatePostGetOrderBook",parameters);
     }
 
+    /// <summary>Calls the privatePostGetTicker endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostGetTicker (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostGetTicker",parameters);
+    }
+
     /// <summary>Calls the privatePostGetCandles endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privatePostGetCandles (object parameters = null)

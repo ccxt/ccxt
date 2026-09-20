@@ -222,6 +222,14 @@ pub fn setExchangeProp(_exchange: Value, _prop: Value, _value: Value) {
 /// `Null` clears it.
 pub fn setFetchResponse(exchange: &mut Value, response: Value) -> Value {
     ccxt::set_value(exchange, &Value::Str("__fetchResponse".to_string()), response);
+    ccxt::set_value(exchange, &Value::Str("__fetchResponseByUrl".to_string()), Value::Null);
+    exchange.clone()
+}
+
+/// Serves a body per url fragment for methods that call several endpoints;
+/// one shared body cannot cover two endpoints of different declared shapes.
+pub fn setFetchResponseByUrl(exchange: &mut Value, responsesByUrl: Value) -> Value {
+    ccxt::set_value(exchange, &Value::Str("__fetchResponseByUrl".to_string()), responsesByUrl);
     exchange.clone()
 }
 
@@ -233,14 +241,14 @@ pub fn setFetchResponse(exchange: &mut Value, response: Value) -> Value {
 pub fn initExchange(exchange_id: Value, optional_args: &[Value]) -> Value {
     let cfg = optional_args.get(0).cloned().unwrap_or(Value::Map(HashMap::new()));
     let id = match &exchange_id { Value::Str(s) => s.clone(), _ => String::new() };
+    // optional_args[1] is the wsTests flag (initExchange(id, cfg, ws)).
+    let ws = matches!(optional_args.get(1), Some(Value::Bool(true)));
     // Always build the real exchange Core so `exchange.<method>(...)` in
     // tests runs the same code a user gets from `ccxt` (mirrors Go's
     // typed-interface dispatch). `apply_config` accepts pre-loaded
     // `markets` / `options` from offline harnesses (broker-id tests,
     // static request/response) — the cached Core simply uses them.
     if !id.is_empty() {
-        // optional_args[1] is the wsTests flag (initExchange(id, cfg, ws)).
-        let ws = matches!(optional_args.get(1), Some(Value::Bool(true)));
         crate::live_dispatch::ensure_live_core(&id, cfg.clone(), ws);
         // `--useProxy`: TS source mutates `exchange.httpProxy = …` on the
         // Value object directly. The Rust transpiler emits that as a
@@ -275,7 +283,7 @@ pub fn initExchange(exchange_id: Value, optional_args: &[Value]) -> Value {
     // Snapshot the real exchange so its `describe()` output (notably
     // `options.brokerId`, which broker-id tests assert) is present.
     // Falls back to a bare config map for ids with no registered Core.
-    let snap = crate::registry::exchange_snapshot(&id, cfg.clone());
+    let snap = crate::registry::exchange_snapshot(&id, cfg.clone(), ws);
     if let Value::Dict(m_arc) = snap {
         let mut m = std::sync::Arc::try_unwrap(m_arc).unwrap_or_else(|a| (*a).clone());
         m.insert("id".to_string(), exchange_id.clone());
@@ -516,6 +524,7 @@ pub trait ExchangeOps {
     fn deep_extend(&self, a: Value, optional_args: &[Value]) -> Value;
     fn deepExtend(&self, a: Value, optional_args: &[Value]) -> Value;
     fn index_by(&self, arr: Value, key: Value) -> Value;
+    fn group_by(&self, arr: Value, key: Value, optional_args: &[Value]) -> Value;
     fn filter_by(&self, arr: Value, key: Value, value: Value, optional_args: &[Value]) -> Value;
     fn number_to_string(&self, n: Value) -> Value;
     fn precision_from_string(&self, s: Value) -> Value;
@@ -540,6 +549,7 @@ pub trait ExchangeOps {
     /// the receiver and first arg are the same Value, hence the
     /// `_redundant_exchange` slot. Mutates the Value-map keyed by `key`.
     fn set_property(&mut self, redundant_exchange: Value, key: Value, value: Value);
+    fn get_fetch_cache(&mut self) -> Value;
     fn parse_timeframe(&self, tf: Value) -> Value;
     fn iso8601(&self, ts: Value) -> Value;
     fn milliseconds(&self) -> Value;
@@ -564,6 +574,7 @@ impl ExchangeOps for Value {
     fn deep_extend(&self, a: Value, o: &[Value]) -> Value { with_base(|e| e.deep_extend(a, o)) }
     fn deepExtend(&self, a: Value, o: &[Value]) -> Value { with_base(|e| e.deep_extend(a, o)) }
     fn index_by(&self, arr: Value, key: Value) -> Value { with_base(|e| e.index_by(arr, key)) }
+    fn group_by(&self, arr: Value, key: Value, o: &[Value]) -> Value { with_base(|e| e.group_by(arr, key, o)) }
     fn filter_by(&self, arr: Value, key: Value, value: Value, o: &[Value]) -> Value { with_base(|e| e.filter_by(arr, key, value, o)) }
     fn number_to_string(&self, n: Value) -> Value { with_base(|e| e.number_to_string(n)) }
     fn precision_from_string(&self, s: Value) -> Value { with_base(|e| e.precision_from_string(s)) }
@@ -620,6 +631,7 @@ impl ExchangeOps for Value {
     fn set_property(&mut self, _redundant_exchange: Value, key: Value, value: Value) {
         ccxt::set_value(self, &key, value);
     }
+    fn get_fetch_cache(&mut self) -> Value { with_base(|e| e.get_fetch_cache()) }
     /// camelCase alias — some test files slip through the snake-case rewrite.
     fn safeString(&self, d: Value, key: Value, o: &[Value]) -> Value {
         with_base(|e| e.safe_string(d, key, o))

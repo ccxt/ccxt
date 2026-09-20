@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official deribit API documentation:** [docs.deribit.com](https://docs.deribit.com/v2) · [github.com](https://github.com/deribit)
 
-> 122 implicit endpoints across 2 access groups.
+> 147 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -74,16 +74,19 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `publicGetUnsubscribe` | GET | `unsubscribe` | 1 |
 | `publicGetUnsubscribeAll` | GET | `unsubscribe_all` | 1 |
 | `publicGetGetAnnouncements` | GET | `get_announcements` | 1 |
+| `publicGetGetAprHistory` | GET | `get_apr_history` | 1 |
 | `publicGetGetBookSummaryByCurrency` | GET | `get_book_summary_by_currency` | 1 |
 | `publicGetGetBookSummaryByInstrument` | GET | `get_book_summary_by_instrument` | 1 |
 | `publicGetGetContractSize` | GET | `get_contract_size` | 1 |
 | `publicGetGetCurrencies` | GET | `get_currencies` | 1 |
 | `publicGetGetDeliveryPrices` | GET | `get_delivery_prices` | 1 |
+| `publicGetGetExpirations` | GET | `get_expirations` | 1 |
 | `publicGetGetFundingChartData` | GET | `get_funding_chart_data` | 1 |
 | `publicGetGetFundingRateHistory` | GET | `get_funding_rate_history` | 1 |
 | `publicGetGetFundingRateValue` | GET | `get_funding_rate_value` | 1 |
 | `publicGetGetHistoricalVolatility` | GET | `get_historical_volatility` | 1 |
 | `publicGetGetIndex` | GET | `get_index` | 1 |
+| `publicGetGetIndexChartData` | GET | `get_index_chart_data` | 1 |
 | `publicGetGetIndexPrice` | GET | `get_index_price` | 1 |
 | `publicGetGetIndexPriceNames` | GET | `get_index_price_names` | 1 |
 | `publicGetGetInstrument` | GET | `get_instrument` | 1 |
@@ -96,6 +99,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `publicGetGetLastTradesByInstrumentAndTime` | GET | `get_last_trades_by_instrument_and_time` | 1 |
 | `publicGetGetMarkPriceHistory` | GET | `get_mark_price_history` | 1 |
 | `publicGetGetOrderBook` | GET | `get_order_book` | 1 |
+| `publicGetGetSupportedIndexNames` | GET | `get_supported_index_names` | 1 |
 | `publicGetGetTradeVolumes` | GET | `get_trade_volumes` | 1 |
 | `publicGetGetTradingviewChartData` | GET | `get_tradingview_chart_data` | 1 |
 | `publicGetGetVolatilityIndexData` | GET | `get_volatility_index_data` | 1 |
@@ -125,6 +129,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetGetAccountSummary` | GET | `get_account_summary` | 1 |
 | `privateGetGetAccountSummaries` | GET | `get_account_summaries` | 1 |
 | `privateGetGetAffiliateProgramInfo` | GET | `get_affiliate_program_info` | 1 |
+| `privateGetGetCurrencies` | GET | `get_currencies` | 1 |
 | `privateGetGetEmailLanguage` | GET | `get_email_language` | 1 |
 | `privateGetGetNewAnnouncements` | GET | `get_new_announcements` | 1 |
 | `privateGetGetPortfolioMargins` | GET | `get_portfolio_margins` | 1 |
@@ -139,15 +144,22 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetResetApiKey` | GET | `reset_api_key` | 1 |
 | `privateGetSetAnnouncementAsRead` | GET | `set_announcement_as_read` | 1 |
 | `privateGetSetApiKeyAsDefault` | GET | `set_api_key_as_default` | 1 |
+| `privateGetSetDisabledTradingProducts` | GET | `set_disabled_trading_products` | 1 |
 | `privateGetSetEmailForSubaccount` | GET | `set_email_for_subaccount` | 1 |
 | `privateGetSetEmailLanguage` | GET | `set_email_language` | 1 |
 | `privateGetSetPasswordForSubaccount` | GET | `set_password_for_subaccount` | 1 |
+| `privateGetSimulatePortfolio` | GET | `simulate_portfolio` | 1 |
 | `privateGetToggleNotificationsFromSubaccount` | GET | `toggle_notifications_from_subaccount` | 1 |
 | `privateGetToggleSubaccountLogin` | GET | `toggle_subaccount_login` | 1 |
+| `privateGetApproveBlockTrade` | GET | `approve_block_trade` | 1 |
 | `privateGetExecuteBlockTrade` | GET | `execute_block_trade` | 4 |
 | `privateGetGetBlockTrade` | GET | `get_block_trade` | 1 |
+| `privateGetGetBlockTradeRequests` | GET | `get_block_trade_requests` | 1 |
+| `privateGetGetBlockTrades` | GET | `get_block_trades` | 1 |
 | `privateGetGetLastBlockTradesByCurrency` | GET | `get_last_block_trades_by_currency` | 1 |
 | `privateGetInvalidateBlockTradeSignature` | GET | `invalidate_block_trade_signature` | 1 |
+| `privateGetRejectBlockTrade` | GET | `reject_block_trade` | 1 |
+| `privateGetSimulateBlockTrade` | GET | `simulate_block_trade` | 4 |
 | `privateGetVerifyBlockTrade` | GET | `verify_block_trade` | 4 |
 | `privateGetBuy` | GET | `buy` | 4 |
 | `privateGetSell` | GET | `sell` | 4 |
@@ -158,15 +170,20 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetCancelAllByCurrency` | GET | `cancel_all_by_currency` | 4 |
 | `privateGetCancelAllByInstrument` | GET | `cancel_all_by_instrument` | 4 |
 | `privateGetCancelByLabel` | GET | `cancel_by_label` | 4 |
+| `privateGetCancelQuotes` | GET | `cancel_quotes` | 4 |
 | `privateGetClosePosition` | GET | `close_position` | 4 |
 | `privateGetGetMargins` | GET | `get_margins` | 1 |
 | `privateGetGetMmpConfig` | GET | `get_mmp_config` | 1 |
+| `privateGetGetMmpStatus` | GET | `get_mmp_status` | 1 |
+| `privateGetGetOpenOrders` | GET | `get_open_orders` | 1 |
 | `privateGetGetOpenOrdersByCurrency` | GET | `get_open_orders_by_currency` | 1 |
 | `privateGetGetOpenOrdersByInstrument` | GET | `get_open_orders_by_instrument` | 1 |
+| `privateGetGetOpenOrdersByLabel` | GET | `get_open_orders_by_label` | 1 |
 | `privateGetGetOrderHistoryByCurrency` | GET | `get_order_history_by_currency` | 1 |
 | `privateGetGetOrderHistoryByInstrument` | GET | `get_order_history_by_instrument` | 1 |
 | `privateGetGetOrderMarginByIds` | GET | `get_order_margin_by_ids` | 1 |
 | `privateGetGetOrderState` | GET | `get_order_state` | 1 |
+| `privateGetGetOrderStateByLabel` | GET | `get_order_state_by_label` | 1 |
 | `privateGetGetStopOrderHistory` | GET | `get_stop_order_history` | 1 |
 | `privateGetGetTriggerOrderHistory` | GET | `get_trigger_order_history` | 1 |
 | `privateGetGetUserTradesByCurrency` | GET | `get_user_trades_by_currency` | 1 |
@@ -174,18 +191,26 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetGetUserTradesByInstrument` | GET | `get_user_trades_by_instrument` | 1 |
 | `privateGetGetUserTradesByInstrumentAndTime` | GET | `get_user_trades_by_instrument_and_time` | 1 |
 | `privateGetGetUserTradesByOrder` | GET | `get_user_trades_by_order` | 1 |
+| `privateGetMassQuote` | GET | `mass_quote` | 4 |
+| `privateGetMovePositions` | GET | `move_positions` | 4 |
 | `privateGetResetMmp` | GET | `reset_mmp` | 1 |
 | `privateGetSetMmpConfig` | GET | `set_mmp_config` | 1 |
 | `privateGetGetSettlementHistoryByInstrument` | GET | `get_settlement_history_by_instrument` | 1 |
 | `privateGetGetSettlementHistoryByCurrency` | GET | `get_settlement_history_by_currency` | 1 |
+| `privateGetAddToAddressBook` | GET | `add_to_address_book` | 1 |
 | `privateGetCancelTransferById` | GET | `cancel_transfer_by_id` | 1 |
 | `privateGetCancelWithdrawal` | GET | `cancel_withdrawal` | 1 |
 | `privateGetCreateDepositAddress` | GET | `create_deposit_address` | 1 |
+| `privateGetGetAddressBook` | GET | `get_address_book` | 1 |
 | `privateGetGetCurrentDepositAddress` | GET | `get_current_deposit_address` | 1 |
 | `privateGetGetDeposits` | GET | `get_deposits` | 1 |
+| `privateGetGetRewardEligibility` | GET | `get_reward_eligibility` | 1 |
 | `privateGetGetTransfers` | GET | `get_transfers` | 1 |
 | `privateGetGetWithdrawals` | GET | `get_withdrawals` | 1 |
+| `privateGetRemoveFromAddressBook` | GET | `remove_from_address_book` | 1 |
+| `privateGetSetClearanceOriginator` | GET | `set_clearance_originator` | 1 |
 | `privateGetSubmitTransferToSubaccount` | GET | `submit_transfer_to_subaccount` | 1 |
 | `privateGetSubmitTransferToUser` | GET | `submit_transfer_to_user` | 1 |
+| `privateGetUpdateInAddressBook` | GET | `update_in_address_book` | 1 |
 | `privateGetWithdraw` | GET | `withdraw` | 1 |
 

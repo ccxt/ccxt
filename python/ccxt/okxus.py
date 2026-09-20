@@ -12,7 +12,7 @@ class okxus(okx, ImplicitAPI):
     def describe(self) -> object:
         return self.deep_extend(super(okxus, self).describe(), {
             'id': 'okxus',
-            'name': 'OKX(US)',
+            'name': 'OKX (US)',
             'certified': False,
             'pro': True,
             'hostname': 'us.okx.com',

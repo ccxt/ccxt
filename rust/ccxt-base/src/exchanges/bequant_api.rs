@@ -252,6 +252,11 @@ impl BequantCore {
         self.call_method(Value::Str("private_get_margin_history_clearing".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetMarginSettings` implicit endpoint.
+    pub async fn private_get_margin_settings(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_margin_settings".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetFuturesBalance` implicit endpoint.
     pub async fn private_get_futures_balance(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_futures_balance".to_string()), optional_args).await
@@ -317,6 +322,11 @@ impl BequantCore {
         self.call_method(Value::Str("private_get_futures_history_clearing".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetUserApiKeys` implicit endpoint.
+    pub async fn private_get_user_api_keys(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_user_api_keys".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetWalletBalance` implicit endpoint.
     pub async fn private_get_wallet_balance(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_wallet_balance".to_string()), optional_args).await
@@ -325,6 +335,11 @@ impl BequantCore {
     /// Auto-generated wrapper for the `privateGetWalletBalanceCurrency` implicit endpoint.
     pub async fn private_get_wallet_balance_currency(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_wallet_balance_currency".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetWalletCryptoAddressWhiteList` implicit endpoint.
+    pub async fn private_get_wallet_crypto_address_white_list(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_wallet_crypto_address_white_list".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetWalletCryptoAddress` implicit endpoint.
@@ -360,6 +375,11 @@ impl BequantCore {
     /// Auto-generated wrapper for the `privateGetWalletCryptoFeeEstimate` implicit endpoint.
     pub async fn private_get_wallet_crypto_fee_estimate(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_wallet_crypto_fee_estimate".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetWalletCryptoFeeWithdrawHash` implicit endpoint.
+    pub async fn private_get_wallet_crypto_fee_withdraw_hash(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_wallet_crypto_fee_withdraw_hash".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetWalletAirdrops` implicit endpoint.
@@ -457,6 +477,11 @@ impl BequantCore {
         self.call_method(Value::Str("private_post_wallet_crypto_fees_estimate".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privatePostWalletCryptoFeeEstimateBulk` implicit endpoint.
+    pub async fn private_post_wallet_crypto_fee_estimate_bulk(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_wallet_crypto_fee_estimate_bulk".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privatePostWalletAirdropsIdClaim` implicit endpoint.
     pub async fn private_post_wallet_airdrops_id_claim(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_wallet_airdrops_id_claim".to_string()), optional_args).await
@@ -475,6 +500,16 @@ impl BequantCore {
     /// Auto-generated wrapper for the `privatePostSubAccountTransfer` implicit endpoint.
     pub async fn private_post_sub_account_transfer(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_sub_account_transfer".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostSubAccountTransferSubToSuper` implicit endpoint.
+    pub async fn private_post_sub_account_transfer_sub_to_super(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_sub_account_transfer_sub_to_super".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostSubAccountTransferSubToSub` implicit endpoint.
+    pub async fn private_post_sub_account_transfer_sub_to_sub(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_sub_account_transfer_sub_to_sub".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostSubAccountAcl` implicit endpoint.
@@ -557,9 +592,24 @@ impl BequantCore {
         self.call_method(Value::Str("private_put_margin_account_isolated_symbol".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privatePutMarginSettingsAmm` implicit endpoint.
+    pub async fn private_put_margin_settings_amm(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_put_margin_settings_amm".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePutMarginMarginSettingsAmr` implicit endpoint.
+    pub async fn private_put_margin_margin_settings_amr(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_put_margin_margin_settings_amr".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privatePutFuturesAccountIsolatedSymbol` implicit endpoint.
     pub async fn private_put_futures_account_isolated_symbol(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_put_futures_account_isolated_symbol".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePutFuturesMarginSettingsAmr` implicit endpoint.
+    pub async fn private_put_futures_margin_settings_amr(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_put_futures_margin_settings_amr".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePutWalletCryptoWithdrawId` implicit endpoint.

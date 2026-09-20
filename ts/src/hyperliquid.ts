@@ -368,6 +368,12 @@ export default class hyperliquid extends Exchange {
         this.options['sandboxMode'] = enabled;
     }
 
+    override nonce () {
+        // the venue nonce is a millisecond timestamp and must be strictly increasing per signer
+        // incrementingNonce () reads this and bumps past the previous value when two signed actions share a millisecond
+        return this.milliseconds ();
+    }
+
     override market (symbol: Str): MarketInterface {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' market() requires a symbol argument');
@@ -604,7 +610,13 @@ export default class hyperliquid extends Exchange {
             }
         } else {
             const fetchDexesLength = fetchDexes.length;
-            for (let i = 1; i < maxLimit; i++) {
+            // index 0 is the null main dex, so the loop runs 1..maxLimit to load
+            // exactly maxLimit dexes. do NOT rewrite this as `i <= maxLimit`: the
+            // python transpiler collapses every for-loop bound to an exclusive
+            // range(), so `<=` silently emits range(1, maxLimit) and loads one dex
+            // too few (build/transpile.ts treats <, <=, > and >= identically)
+            const maxIteration = this.sum (maxLimit, 1);
+            for (let i = 1; i < maxIteration; i++) {
                 if (i >= fetchDexesLength) {
                     break;
                 }
@@ -1640,7 +1652,14 @@ export default class hyperliquid extends Exchange {
 
     override amountToPrecision (symbol: Str, amount: any) {
         const market = this.market (symbol);
-        return this.decimalToPrecision (amount, ROUND, market['precision']['amount'], this.precisionMode, this.paddingMode);
+        const result = this.decimalToPrecision (amount, ROUND, market['precision']['amount'], this.precisionMode, this.paddingMode);
+        // a size of zero is meaningful to hyperliquid, a whole position tp/sl order is sent
+        // with grouping positionTpsl and size 0, so only reject a positive amount that
+        // became zero after rounding, never an explicitly requested zero
+        if (Precise.stringEq (result, '0') && Precise.stringGt (this.numberToString (amount), '0')) {
+            throw new InvalidOrder (this.id + ' amount of ' + market['symbol'] + ' must be greater than minimum amount precision of ' + this.numberToString (market['precision']['amount']));
+        }
+        return result;
     }
 
     override priceToPrecision (symbol: Str, price: any): Str {
@@ -1837,7 +1856,7 @@ export default class hyperliquid extends Exchange {
             'type': 'setReferrer',
             'code': this.safeString (this.options, 'ref', 'CCXT1'),
         };
-        const nonce = this.milliseconds ();
+        const nonce = this.incrementingNonce ();
         const signature = this.signL1Action (action, nonce);
         const request: Dict = {
             'action': action,
@@ -1855,7 +1874,7 @@ export default class hyperliquid extends Exchange {
     }
 
     async approveBuilderFee (builder: string, maxFeeRate: string) {
-        const nonce = this.milliseconds ();
+        const nonce = this.incrementingNonce ();
         const isSandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         const payload: Dict = {
             'hyperliquidChain': (isSandboxMode === true) ? 'Testnet' : 'Mainnet',
@@ -1984,7 +2003,7 @@ export default class hyperliquid extends Exchange {
     async setUserAbstraction (abstraction: string, params = {}) {
         let userAddress: Str = undefined;
         [ userAddress, params ] = this.handlePublicAddress ('setUserAbstraction', params);
-        const nonce = this.milliseconds ();
+        const nonce = this.incrementingNonce ();
         const isSandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         const type = this.safeString (params, 'type', 'userSetAbstraction');
         params = this.omit (params, 'type');
@@ -2032,7 +2051,7 @@ export default class hyperliquid extends Exchange {
     async enableUserDexAbstraction (enabled: boolean, params = {}) {
         let userAddress: Str = undefined;
         [ userAddress, params ] = this.handlePublicAddress ('enableUserDexAbstraction', params);
-        const nonce = this.milliseconds ();
+        const nonce = this.incrementingNonce ();
         const isSandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         const type = this.safeString (params, 'type', 'userDexAbstraction');
         params = this.omit (params, 'type');
@@ -2077,7 +2096,7 @@ export default class hyperliquid extends Exchange {
      * @returns dictionary response from the exchange
      */
     async setAgentAbstraction (abstraction: string, params = {}) {
-        const nonce = this.milliseconds ();
+        const nonce = this.incrementingNonce ();
         const request: Dict = {
             'nonce': nonce,
         };
@@ -2143,7 +2162,7 @@ export default class hyperliquid extends Exchange {
         }
         await this.initializeClient ();
         const market = this.market (symbol);
-        const nonce = this.milliseconds ();
+        const nonce = this.incrementingNonce ();
         const isBuy = (side === 'BUY');
         let vaultAddress: Str = undefined;
         const randomize = this.safeBool (params, 'randomize', false);
@@ -2354,7 +2373,7 @@ export default class hyperliquid extends Exchange {
             }
         }
         params = this.omit (params, [ 'slippage', 'clientOrderId', 'client_id', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce' ]);
-        const nonce = this.milliseconds ();
+        const nonce = this.incrementingNonce ();
         const orderReq: List = [];
         let grouping = 'na';
         for (let i = 0; i < orders.length; i++) {
@@ -2427,7 +2446,8 @@ export default class hyperliquid extends Exchange {
             'grouping': grouping,
         };
         if (this.safeBool (this.options, 'approvedBuilderFee', false)) {
-            const wallet = this.safeStringLower (this.options, 'builder', '0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6');
+            const builder = '0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6';
+            const wallet = this.safeStringLower (this.options, 'builder', builder.toLowerCase ());
             // when builderFee is disabled the builder is still attached but with a 0% fee (f = 0), for statistics purposes only
             let feeInt = this.safeInteger (this.options, 'feeInt', 10);
             if (!this.safeBool (this.options, 'builderFee', true)) {
@@ -2553,7 +2573,7 @@ export default class hyperliquid extends Exchange {
             'a': this.parseToInt (market['baseId']),
             't': this.parseToNumeric (id),
         };
-        const nonce = this.milliseconds ();
+        const nonce = this.incrementingNonce ();
         const signature = this.signL1Action (action, nonce, vaultAddress);
         const request: Dict = {
             'action': action,
@@ -2603,7 +2623,7 @@ export default class hyperliquid extends Exchange {
         const market = this.market (symbol);
         let clientOrderId = this.safeValue2 (params, 'clientOrderId', 'client_id');
         params = this.omit (params, [ 'clientOrderId', 'client_id' ]);
-        const nonce = this.milliseconds ();
+        const nonce = this.incrementingNonce ();
         const request: Dict = {
             'nonce': nonce,
             // 'vaultAddress': vaultAddress,
@@ -2667,7 +2687,7 @@ export default class hyperliquid extends Exchange {
             await this.loadMarkets ();
         }
         await this.initializeClient ();
-        const nonce = this.milliseconds ();
+        const nonce = this.incrementingNonce ();
         const request: Dict = {
             'nonce': nonce,
             // 'vaultAddress': vaultAddress,
@@ -2746,7 +2766,7 @@ export default class hyperliquid extends Exchange {
         }
         await this.initializeClient ();
         params = this.omit (params, [ 'clientOrderId', 'client_id' ]);
-        const nonce = this.milliseconds ();
+        const nonce = this.incrementingNonce ();
         const request: Dict = {
             'nonce': nonce,
             // 'vaultAddress': vaultAddress,
@@ -2876,7 +2896,7 @@ export default class hyperliquid extends Exchange {
             };
             modifies.push (modifyReq);
         }
-        const nonce = this.milliseconds ();
+        const nonce = this.incrementingNonce ();
         const modifyAction: Dict = {
             'type': 'batchModify',
             'modifies': modifies,
@@ -3002,7 +3022,7 @@ export default class hyperliquid extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const nonce = this.milliseconds ();
+        const nonce = this.incrementingNonce ();
         const request: Dict = {
             'nonce': nonce,
         };
@@ -3941,7 +3961,7 @@ export default class hyperliquid extends Exchange {
         }
         const asset = this.parseToInt (market['baseId']);
         const isCross = (marginMode === 'cross');
-        const nonce = this.milliseconds ();
+        const nonce = this.incrementingNonce ();
         params = this.omit (params, [ 'leverage' ]);
         const updateAction: Dict = {
             'type': 'updateLeverage',
@@ -3999,7 +4019,7 @@ export default class hyperliquid extends Exchange {
         const marginMode = this.safeString (params, 'marginMode', 'cross');
         const isCross = (marginMode === 'cross');
         const asset = this.parseToInt (market['baseId']);
-        const nonce = this.milliseconds ();
+        const nonce = this.incrementingNonce ();
         params = this.omit (params, 'marginMode');
         const updateAction: Dict = {
             'type': 'updateLeverage',
@@ -4075,7 +4095,7 @@ export default class hyperliquid extends Exchange {
         if (type === 'reduce') {
             sz = -sz;
         }
-        const nonce = this.milliseconds ();
+        const nonce = this.incrementingNonce ();
         const updateAction: Dict = {
             'type': 'updateIsolatedMargin',
             'asset': asset,
@@ -4148,7 +4168,7 @@ export default class hyperliquid extends Exchange {
             await this.loadMarkets ();
         }
         const isSandboxMode = this.safeBool (this.options, 'sandboxMode');
-        const nonce = this.milliseconds ();
+        const nonce = this.incrementingNonce ();
         if (this.inArray (fromAccount, [ 'spot', 'swap', 'perp' ])) {
             // handle swap <> spot account transfer
             if (!this.inArray (toAccount, [ 'spot', 'swap', 'perp' ])) {
@@ -4304,7 +4324,7 @@ export default class hyperliquid extends Exchange {
         [ vaultAddress, params ] = this.handleOptionAndParams (params, 'withdraw', 'vaultAddress');
         vaultAddress = this.formatVaultAddress (vaultAddress);
         params = this.omit (params, 'vaultAddress');
-        const nonce = this.milliseconds ();
+        const nonce = this.incrementingNonce ();
         let action: Dict = {};
         let sig: Dict;
         if (vaultAddress !== undefined) {
@@ -4918,7 +4938,7 @@ export default class hyperliquid extends Exchange {
      * @returns {object} a response object
      */
     async reserveRequestWeight (weight: Num, params = {}): Promise<Dict> {
-        const nonce = this.milliseconds ();
+        const nonce = this.incrementingNonce ();
         const request: Dict = {
             'nonce': nonce,
         };
@@ -4943,7 +4963,7 @@ export default class hyperliquid extends Exchange {
      * @returns {object} a response object
      */
     override async createSubAccount (name: string, params = {}) {
-        const nonce = this.milliseconds ();
+        const nonce = this.incrementingNonce ();
         const request: Dict = {
             'nonce': nonce,
         };

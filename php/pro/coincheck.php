@@ -79,24 +79,24 @@ class coincheck extends \ccxt\async\coincheck {
 
     public function handle_order_book(mixed $client, mixed $message) {
         //
-        //     array(
+        //     [
         //         "btc_jpy",
         //         {
-        //             "bids" => array(
-        //                 array(
+        //             "bids": [
+        //                 [
         //                     "6288279.0",
         //                     "0"
-        //                 )
-        //             ),
-        //             "asks" => array(
-        //                 array(
+        //                 ]
+        //             ],
+        //             "asks": [
+        //                 [
         //                     "6290314.0",
         //                     "0"
-        //                 )
-        //             ),
-        //             "last_update_at" => "1705396097"
+        //                 ]
+        //             ],
+        //             "last_update_at": "1705396097"
         //         }
-        //     )
+        //     ]
         //
         $symbol = $this->symbol($this->safe_string($message, 0));
         $data = $this->safe_value($message, 1, array());
@@ -151,8 +151,8 @@ class coincheck extends \ccxt\async\coincheck {
 
     public function handle_trades(Client $client, mixed $message) {
         //
-        //     array(
-        //         array(
+        //     [
+        //         [
         //             "1663318663", // transaction timestamp (unix time)
         //             "2357062", // transaction ID
         //             "btc_jpy", // pair
@@ -161,8 +161,8 @@ class coincheck extends \ccxt\async\coincheck {
         //             "sell", // order side
         //             "1193401", // ID of the Taker
         //             "2078767" // ID of the Maker
-        //         )
-        //     )
+        //         ]
+        //     ]
         //
         $first = $this->safe_value($message, 0, array());
         $symbol = $this->symbol($this->safe_string($first, 2));
@@ -183,16 +183,16 @@ class coincheck extends \ccxt\async\coincheck {
 
     public function parse_ws_trade(array $trade, ?array $market = null): array {
         //
-        //     array(
-        //         "1663318663", // transaction $timestamp (unix time)
+        //     [
+        //         "1663318663", // transaction timestamp (unix time)
         //         "2357062", // transaction ID
         //         "btc_jpy", // pair
         //         "2820896.0", // transaction rate
         //         "5.0", // transaction amount
-        //         "sell", // order $side
+        //         "sell", // order side
         //         "1193401", // ID of the Taker
         //         "2078767" // ID of the Maker
-        //     )
+        //     ]
         //
         $symbol = $this->symbol($this->safe_string($trade, 2));
         $timestamp = $this->safe_timestamp($trade, 0);

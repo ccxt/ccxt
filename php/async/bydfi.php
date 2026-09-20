@@ -229,6 +229,12 @@ class bydfi extends Exchange {
                         'v1/fapi/trade/history_trade' => array( 'cost' => 1 ),
                         'v1/fapi/trade/position_history' => array( 'cost' => 1 ),
                         'v1/fapi/trade/positions' => array( 'cost' => 1 ),
+                        'v2/fapi/trade/open_order' => array( 'cost' => 1 ),
+                        'v2/fapi/trade/plan_order' => array( 'cost' => 1 ),
+                        'v2/fapi/trade/history_order' => array( 'cost' => 1 ),
+                        'v2/fapi/trade/history_trade' => array( 'cost' => 1 ),
+                        'v2/fapi/trade/position_history' => array( 'cost' => 1 ),
+                        'v2/fapi/trade/positions' => array( 'cost' => 1 ),
                         'v1/fapi/account/balance' => array( 'cost' => 1 ),
                         'v1/fapi/user_data/assets_margin' => array( 'cost' => 1 ),
                         'v1/fapi/user_data/position_side/dual' => array( 'cost' => 1 ),
@@ -251,6 +257,13 @@ class bydfi extends Exchange {
                         'v1/fapi/trade/cancel_all_order' => array( 'cost' => 1 ),
                         'v1/fapi/trade/leverage' => array( 'cost' => 1 ),
                         'v1/fapi/trade/batch_leverage_margin' => array( 'cost' => 1 ), // https://developers.bydfi.com/en/futures/trade#modify-leverage-and-margin-type-with-one-click
+                        'v2/fapi/trade/place_order' => array( 'cost' => 1 ),
+                        'v2/fapi/trade/batch_place_order' => array( 'cost' => 1 ),
+                        'v2/fapi/trade/edit_order' => array( 'cost' => 1 ),
+                        'v2/fapi/trade/batch_edit_order' => array( 'cost' => 1 ),
+                        'v2/fapi/trade/cancel_order' => array( 'cost' => 1 ),
+                        'v2/fapi/trade/batch_cancel_order' => array( 'cost' => 1 ),
+                        'v2/fapi/trade/cancel_all_order' => array( 'cost' => 1 ),
                         'v1/fapi/user_data/margin_type' => array( 'cost' => 1 ),
                         'v1/fapi/user_data/position_side/dual' => array( 'cost' => 1 ),
                         'v1/agent/internal_withdrawal' => array( 'cost' => 1 ), // https://developers.bydfi.com/en/agent/#internal-withdrawal
@@ -349,10 +362,10 @@ class bydfi extends Exchange {
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
-                    '101001' => '\\ccxt\\AuthenticationError', // array("code":101001,"message":"Apikey doesn't exist!")
-                    '101103' => '\\ccxt\\AuthenticationError', // array("code":101103,"message":"Invalid API-key, IP, or permissions for action.")
-                    '102001' => '\\ccxt\\BadRequest', // array("code":102001,"message":"Unsupported transfer type")
-                    '102002' => '\\ccxt\\PermissionDenied', // array("code":102002,"message":"The current account does not support transfer of this currency")
+                    '101001' => '\\ccxt\\AuthenticationError', // {"code":101001,"message":"Apikey doesn't exist!"}
+                    '101103' => '\\ccxt\\AuthenticationError', // {"code":101103,"message":"Invalid API-key, IP, or permissions for action."}
+                    '102001' => '\\ccxt\\BadRequest', // {"code":102001,"message":"Unsupported transfer type"}
+                    '102002' => '\\ccxt\\PermissionDenied', // {"code":102002,"message":"The current account does not support transfer of this currency"}
                     '401' => '\\ccxt\\AuthenticationError', // 401 Unauthorized – Invalid API Key
                     '500' => '\\ccxt\\ExchangeError', // 500 Internal Error
                     '501' => '\\ccxt\\ExchangeError', // 501 System Busy
@@ -362,13 +375,13 @@ class bydfi extends Exchange {
                     '513' => '\\ccxt\\BadRequest', // 513 Invalid Request
                     '514' => '\\ccxt\\BadRequest', // 514 Duplicate Request
                     '600' => '\\ccxt\\BadRequest', // 600 Parameter Error
-                    'Position does not exist' => '\\ccxt\\BadRequest', // array("code":100036,"message":"Position does not exist")
-                    'Requires transaction permissions' => '\\ccxt\\PermissionDenied', // array("code":101107,"message":"Requires transaction permissions")
-                    'Service error' => '\\ccxt\\ExchangeError', // array( msg => 'Service error', code => '-1' )
-                    'transfer failed' => '\\ccxt\\InsufficientFunds', // array("code":500,"message":"transfer failed","success":false)
+                    'Position does not exist' => '\\ccxt\\BadRequest', // {"code":100036,"message":"Position does not exist"}
+                    'Requires transaction permissions' => '\\ccxt\\PermissionDenied', // {"code":101107,"message":"Requires transaction permissions"}
+                    'Service error' => '\\ccxt\\ExchangeError', // { msg: 'Service error', code: '-1' }
+                    'transfer failed' => '\\ccxt\\InsufficientFunds', // {"code":500,"message":"transfer failed","success":false}
                 ),
                 'broad' => array(
-                    'is missing' => '\\ccxt\\ArgumentsRequired', // array("code":600,"message":"The parameter 'startTime' is missing")
+                    'is missing' => '\\ccxt\\ArgumentsRequired', // {"code":600,"message":"The parameter 'startTime' is missing"}
                 ),
             ),
             'commonCurrencies' => array(
@@ -415,41 +428,41 @@ class bydfi extends Exchange {
         $response = Async\await($this->publicGetV1FapiMarketExchangeInfo($params));
         //
         //     {
-        //         "code" => "200",
-        //         "message" => "success",
-        //         "data" => array(
-        //             array(
-        //                 "symbol" => "CLANKER-USDT",
-        //                 "baseAsset" => "CLANKER",
-        //                 "marginAsset" => "USDT",
-        //                 "quoteAsset" => "USDT",
-        //                 "contractFactor" => "0.01",
-        //                 "limitMaxQty" => "50000",
-        //                 "limitMinQty" => "1",
-        //                 "marketMaxQty" => "10000",
-        //                 "marketMinQty" => "1",
-        //                 "pricePrecision" => "8",
-        //                 "basePrecision" => "8",
-        //                 "feeRateTaker" => "0.0006",
-        //                 "feeRateMaker" => "0.0002",
-        //                 "liqFeeRate" => "0.0006",
-        //                 "openBuyLimitRateMax" => "0.05",
-        //                 "openSellLimitRateMax" => "100",
-        //                 "openBuyLimitRateMin" => "0.98",
-        //                 "openSellLimitRateMin" => "0.05",
-        //                 "priceOrderPrecision" => "2",
-        //                 "baseShowPrecision" => "2",
-        //                 "maxLeverageLevel" => "20",
-        //                 "volumePrecision" => "2",
-        //                 "maxLimitOrderNum" => "200",
-        //                 "maxPlanOrderNum" => "10",
-        //                 "reverse" => false,
-        //                 "onboardTime" => "1763373600000",
-        //                 "status" => "NORMAL"
-        //             ),
+        //         "code": "200",
+        //         "message": "success",
+        //         "data": [
+        //             {
+        //                 "symbol": "CLANKER-USDT",
+        //                 "baseAsset": "CLANKER",
+        //                 "marginAsset": "USDT",
+        //                 "quoteAsset": "USDT",
+        //                 "contractFactor": "0.01",
+        //                 "limitMaxQty": "50000",
+        //                 "limitMinQty": "1",
+        //                 "marketMaxQty": "10000",
+        //                 "marketMinQty": "1",
+        //                 "pricePrecision": "8",
+        //                 "basePrecision": "8",
+        //                 "feeRateTaker": "0.0006",
+        //                 "feeRateMaker": "0.0002",
+        //                 "liqFeeRate": "0.0006",
+        //                 "openBuyLimitRateMax": "0.05",
+        //                 "openSellLimitRateMax": "100",
+        //                 "openBuyLimitRateMin": "0.98",
+        //                 "openSellLimitRateMin": "0.05",
+        //                 "priceOrderPrecision": "2",
+        //                 "baseShowPrecision": "2",
+        //                 "maxLeverageLevel": "20",
+        //                 "volumePrecision": "2",
+        //                 "maxLimitOrderNum": "200",
+        //                 "maxPlanOrderNum": "10",
+        //                 "reverse": false,
+        //                 "onboardTime": "1763373600000",
+        //                 "status": "NORMAL"
+        //             },
         //             ...
-        //         ),
-        //         "success" => true
+        //         ],
+        //         "success": true
         //     }
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_markets($data);
@@ -458,33 +471,33 @@ class bydfi extends Exchange {
     public function parse_market(array $market): array {
         //
         //     {
-        //         "symbol" => "CLANKER-USDT",
-        //         "baseAsset" => "CLANKER",
-        //         "marginAsset" => "USDT",
-        //         "quoteAsset" => "USDT",
-        //         "contractFactor" => "0.01",
-        //         "limitMaxQty" => "50000",
-        //         "limitMinQty" => "1",
-        //         "marketMaxQty" => "10000",
-        //         "marketMinQty" => "1",
-        //         "pricePrecision" => "8",
-        //         "basePrecision" => "8",
-        //         "feeRateTaker" => "0.0006",
-        //         "feeRateMaker" => "0.0002",
-        //         "liqFeeRate" => "0.0006",
-        //         "openBuyLimitRateMax" => "0.05",
-        //         "openSellLimitRateMax" => "100",
-        //         "openBuyLimitRateMin" => "0.98",
-        //         "openSellLimitRateMin" => "0.05",
-        //         "priceOrderPrecision" => "2",
-        //         "baseShowPrecision" => "2",
-        //         "maxLeverageLevel" => "20",
-        //         "volumePrecision" => "2",
-        //         "maxLimitOrderNum" => "200",
-        //         "maxPlanOrderNum" => "10",
-        //         "reverse" => false,
-        //         "onboardTime" => "1763373600000",
-        //         "status" => "NORMAL"
+        //         "symbol": "CLANKER-USDT",
+        //         "baseAsset": "CLANKER",
+        //         "marginAsset": "USDT",
+        //         "quoteAsset": "USDT",
+        //         "contractFactor": "0.01",
+        //         "limitMaxQty": "50000",
+        //         "limitMinQty": "1",
+        //         "marketMaxQty": "10000",
+        //         "marketMinQty": "1",
+        //         "pricePrecision": "8",
+        //         "basePrecision": "8",
+        //         "feeRateTaker": "0.0006",
+        //         "feeRateMaker": "0.0002",
+        //         "liqFeeRate": "0.0006",
+        //         "openBuyLimitRateMax": "0.05",
+        //         "openSellLimitRateMax": "100",
+        //         "openBuyLimitRateMin": "0.98",
+        //         "openSellLimitRateMin": "0.05",
+        //         "priceOrderPrecision": "2",
+        //         "baseShowPrecision": "2",
+        //         "maxLeverageLevel": "20",
+        //         "volumePrecision": "2",
+        //         "maxLimitOrderNum": "200",
+        //         "maxPlanOrderNum": "10",
+        //         "reverse": false,
+        //         "onboardTime": "1763373600000",
+        //         "status": "NORMAL"
         //     }
         //
         $id = $this->safe_string($market, 'symbol');
@@ -594,33 +607,32 @@ class bydfi extends Exchange {
         $response = Async\await($this->publicGetV1FapiMarketDepth($this->extend($request, $params)));
         //
         //     {
-        //         "code" => 200,
-        //         "message" => "success",
-        //         "data" => array(
-        //             "lastUpdateId" => "221780076",
-        //             "symbol" => "ETH-USDT",
-        //             "asks" => array(
-        //                 array(
-        //                     "price" => "2958.21",
-        //                     "amount" => "39478"
-        //                 ),
+        //         "code": 200,
+        //         "message": "success",
+        //         "data": {
+        //             "lastUpdateId": "221780076",
+        //             "symbol": "ETH-USDT",
+        //             "asks": [
+        //                 {
+        //                     "price": "2958.21",
+        //                     "amount": "39478"
+        //                 },
         //                 ...
-        //             ),
-        //             "bids" => array(
-        //                 array(
-        //                     "price" => "2958.19",
-        //                     "amount" => "174498"
-        //                 ),
+        //             ],
+        //             "bids": [
+        //                 {
+        //                     "price": "2958.19",
+        //                     "amount": "174498"
+        //                 },
         //                 ...
-        //             ),
-        //             "e" => "221780076"
-        //         ),
-        //         "success" => true
+        //             ],
+        //             "e": "221780076"
+        //         },
+        //         "success": true
         //     }
         //
         $data = $this->safe_dict($response, 'data', array());
-        $timestamp = $this->milliseconds();
-        $orderBook = $this->parse_order_book($data, $market['symbol'], $timestamp, 'bids', 'asks', 'price', 'amount');
+        $orderBook = $this->parse_order_book($data, $market['symbol'], null, 'bids', 'asks', 'price', 'amount');
         $orderBook['nonce'] = $this->safe_integer($data, 'lastUpdateId');
         return $orderBook;
     }
@@ -670,19 +682,19 @@ class bydfi extends Exchange {
         $response = Async\await($this->publicGetV1FapiMarketTrades($this->extend($request, $params)));
         //
         //     {
-        //         "code" => 200,
-        //         "message" => "success",
-        //         "data" => array(
+        //         "code": 200,
+        //         "message": "success",
+        //         "data": [
         //             {
-        //                 "id" => "7407825178362667008",
-        //                 "symbol" => "ETH-USDT",
-        //                 "price" => "2970.49",
-        //                 "quantity" => "63",
-        //                 "side" => "SELL",
-        //                 "time" => 1766163153218
+        //                 "id": "7407825178362667008",
+        //                 "symbol": "ETH-USDT",
+        //                 "price": "2970.49",
+        //                 "quantity": "63",
+        //                 "side": "SELL",
+        //                 "time": 1766163153218
         //             }
-        //         ),
-        //         "success" => true
+        //         ],
+        //         "success": true
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -737,28 +749,28 @@ class bydfi extends Exchange {
         $response = Async\await($this->privateGetV1FapiTradeHistoryTrade($this->extend($request, $params)));
         //
         //     {
-        //         "code" => 200,
-        //         "message" => "success",
-        //         "data" => array(
+        //         "code": 200,
+        //         "message": "success",
+        //         "data": [
         //             {
-        //                 "orderId" => "7408919189505597440",
-        //                 "wallet" => "W001",
-        //                 "symbol" => "ETH-USDC",
-        //                 "time" => "1766423985842",
-        //                 "dealPrice" => "3032.45",
-        //                 "dealVolume" => "1",
-        //                 "fee" => "0",
-        //                 "side" => "BUY",
-        //                 "type" => "2",
-        //                 "liqPrice" => null,
-        //                 "basePrecision" => "8",
-        //                 "baseShowPrecision" => "2",
-        //                 "tradePnl" => "0",
-        //                 "marginType" => "CROSS",
-        //                 "leverageLevel" => 1
+        //                 "orderId": "7408919189505597440",
+        //                 "wallet": "W001",
+        //                 "symbol": "ETH-USDC",
+        //                 "time": "1766423985842",
+        //                 "dealPrice": "3032.45",
+        //                 "dealVolume": "1",
+        //                 "fee": "0",
+        //                 "side": "BUY",
+        //                 "type": "2",
+        //                 "liqPrice": null,
+        //                 "basePrecision": "8",
+        //                 "baseShowPrecision": "2",
+        //                 "tradePnl": "0",
+        //                 "marginType": "CROSS",
+        //                 "leverageLevel": 1
         //             }
-        //         ),
-        //         "success" => true
+        //         ],
+        //         "success": true
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -769,31 +781,31 @@ class bydfi extends Exchange {
         //
         // fetchTrades
         //     {
-        //         "id" => "7407825178362667008",
-        //         "symbol" => "ETH-USDT",
-        //         "price" => "2970.49",
-        //         "quantity" => "63",
-        //         "side" => "SELL",
-        //         "time" => 1766163153218
+        //         "id": "7407825178362667008",
+        //         "symbol": "ETH-USDT",
+        //         "price": "2970.49",
+        //         "quantity": "63",
+        //         "side": "SELL",
+        //         "time": 1766163153218
         //     }
         //
         // fetchMyTrades
         //     {
-        //         "orderId" => "7408919189505597440",
-        //         "wallet" => "W001",
-        //         "symbol" => "ETH-USDC",
-        //         "time" => "1766423985842",
-        //         "dealPrice" => "3032.45",
-        //         "dealVolume" => "1",
-        //         "fee" => "0",
-        //         "side" => "BUY",
-        //         "type" => "2",
-        //         "liqPrice" => null,
-        //         "basePrecision" => "8",
-        //         "baseShowPrecision" => "2",
-        //         "tradePnl" => "0",
-        //         "marginType" => "CROSS",
-        //         "leverageLevel" => 1
+        //         "orderId": "7408919189505597440",
+        //         "wallet": "W001",
+        //         "symbol": "ETH-USDC",
+        //         "time": "1766423985842",
+        //         "dealPrice": "3032.45",
+        //         "dealVolume": "1",
+        //         "fee": "0",
+        //         "side": "BUY",
+        //         "type": "2",
+        //         "liqPrice": null,
+        //         "basePrecision": "8",
+        //         "baseShowPrecision": "2",
+        //         "tradePnl": "0",
+        //         "marginType": "CROSS",
+        //         "leverageLevel": 1
         //     }
         //
         $marketId = $this->safe_string($trade, 'symbol');
@@ -809,7 +821,7 @@ class bydfi extends Exchange {
             );
         }
         $orderId = $this->safe_string($trade, 'orderId');
-        $side = null; // fetchMyTrades always returns $side BUY
+        $side = null; // fetchMyTrades always returns side BUY
         if ($orderId === null) {
             // from fetchTrades
             $side = $this->safe_string_lower($trade, 'side');
@@ -856,7 +868,7 @@ class bydfi extends Exchange {
          * @param {int} [$limit] the maximum amount of candles to fetch (max 500)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -902,20 +914,20 @@ class bydfi extends Exchange {
         $response = Async\await($this->publicGetV1FapiMarketKlines($this->extend($request, $params)));
         //
         //     {
-        //         "code" => 200,
-        //         "message" => "success",
-        //         "data" => array(
+        //         "code": 200,
+        //         "message": "success",
+        //         "data": [
         //             {
-        //                 "s" => "ETH-USDT",
-        //                 "t" => "1766166000000",
-        //                 "c" => "2964.990000000000000000",
-        //                 "o" => "2967.830000000000000000",
-        //                 "h" => "2967.830000000000000000",
-        //                 "l" => "2964.130000000000000000",
-        //                 "v" => "20358.000000000000000000"
+        //                 "s": "ETH-USDT",
+        //                 "t": "1766166000000",
+        //                 "c": "2964.990000000000000000",
+        //                 "o": "2967.830000000000000000",
+        //                 "h": "2967.830000000000000000",
+        //                 "l": "2964.130000000000000000",
+        //                 "v": "20358.000000000000000000"
         //             }
-        //         ),
-        //         "success" => true
+        //         ],
+        //         "success": true
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -926,13 +938,13 @@ class bydfi extends Exchange {
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     {
-        //         "s" => "ETH-USDT",
-        //         "t" => "1766166000000",
-        //         "c" => "2964.990000000000000000",
-        //         "o" => "2967.830000000000000000",
-        //         "h" => "2967.830000000000000000",
-        //         "l" => "2964.130000000000000000",
-        //         "v" => "20358.000000000000000000"
+        //         "s": "ETH-USDT",
+        //         "t": "1766166000000",
+        //         "c": "2964.990000000000000000",
+        //         "o": "2967.830000000000000000",
+        //         "h": "2967.830000000000000000",
+        //         "l": "2964.130000000000000000",
+        //         "v": "20358.000000000000000000"
         //     }
         //
         return array(
@@ -965,20 +977,20 @@ class bydfi extends Exchange {
         $response = Async\await($this->publicGetV1FapiMarketTicker24hr($params));
         //
         //     {
-        //         "code" => 200,
-        //         "message" => "success",
-        //         "data" => array(
+        //         "code": 200,
+        //         "message": "success",
+        //         "data": [
         //             {
-        //                 "symbol" => "BTC-USDT",
-        //                 "open" => "86452.9",
-        //                 "high" => "89371.2",
-        //                 "low" => "84418.5",
-        //                 "last" => "87050.3",
-        //                 "vol" => "12938783",
-        //                 "time" => 1766169423872
+        //                 "symbol": "BTC-USDT",
+        //                 "open": "86452.9",
+        //                 "high": "89371.2",
+        //                 "low": "84418.5",
+        //                 "last": "87050.3",
+        //                 "vol": "12938783",
+        //                 "time": 1766169423872
         //             }
-        //         ),
-        //         "success" => true
+        //         ],
+        //         "success": true
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -1016,13 +1028,13 @@ class bydfi extends Exchange {
         //
         // fetchTicker/fetchTickers
         //     {
-        //         "symbol" => "BTC-USDT",
-        //         "open" => "86452.9",
-        //         "high" => "89371.2",
-        //         "low" => "84418.5",
-        //         "last" => "87050.3",
-        //         "vol" => "12938783",
-        //         "time" => 1766169423872
+        //         "symbol": "BTC-USDT",
+        //         "open": "86452.9",
+        //         "high": "89371.2",
+        //         "low": "84418.5",
+        //         "last": "87050.3",
+        //         "vol": "12938783",
+        //         "time": 1766169423872
         //     }
         //
         $marketId = $this->safe_string_2($ticker, 'symbol', 's');
@@ -1079,15 +1091,15 @@ class bydfi extends Exchange {
         $response = Async\await($this->publicGetV1FapiMarketFundingRate($this->extend($request, $params)));
         //
         //     {
-        //         "code" => 200,
-        //         "message" => "success",
-        //         "data" => array(
-        //             "symbol" => "BTC-USDT",
-        //             "lastFundingRate" => "0.0001",
-        //             "nextFundingTime" => "1766188800000",
-        //             "time" => "1766170665007"
-        //         ),
-        //         "success" => true
+        //         "code": 200,
+        //         "message": "success",
+        //         "data": {
+        //             "symbol": "BTC-USDT",
+        //             "lastFundingRate": "0.0001",
+        //             "nextFundingTime": "1766188800000",
+        //             "time": "1766170665007"
+        //         },
+        //         "success": true
         //     }
         //
         $data = $this->safe_dict($response, 'data');
@@ -1097,10 +1109,10 @@ class bydfi extends Exchange {
     public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         //
         //     {
-        //         "symbol" => "BTC-USDT",
-        //         "lastFundingRate" => "0.0001",
-        //         "nextFundingTime" => "1766188800000",
-        //         "time" => "1766170665007"
+        //         "symbol": "BTC-USDT",
+        //         "lastFundingRate": "0.0001",
+        //         "nextFundingTime": "1766188800000",
+        //         "time": "1766170665007"
         //     }
         //
         $marketId = $this->safe_string($contract, 'symbol');
@@ -1170,17 +1182,17 @@ class bydfi extends Exchange {
         $response = Async\await($this->publicGetV1FapiMarketFundingRateHistory($this->extend($request, $params)));
         //
         //     {
-        //         "code" => 200,
-        //         "message" => "success",
-        //         "data" => array(
+        //         "code": 200,
+        //         "message": "success",
+        //         "data": [
         //             {
-        //                 "symbol" => "ETH-USDT",
-        //                 "fundingRate" => "0.00000025",
-        //                 "fundingTime" => "1765584000000",
-        //                 "markPrice" => "3083.2"
+        //                 "symbol": "ETH-USDT",
+        //                 "fundingRate": "0.00000025",
+        //                 "fundingTime": "1765584000000",
+        //                 "markPrice": "3083.2"
         //             }
-        //         ),
-        //         "success" => true
+        //         ],
+        //         "success": true
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -1190,10 +1202,10 @@ class bydfi extends Exchange {
     public function parse_funding_rate_history(mixed $contract, ?array $market = null) {
         //
         //     {
-        //         "symbol" => "ETH-USDT",
-        //         "fundingRate" => "0.00000025",
-        //         "fundingTime" => "1765584000000",
-        //         "markPrice" => "3083.2"
+        //         "symbol": "ETH-USDT",
+        //         "fundingRate": "0.00000025",
+        //         "fundingTime": "1765584000000",
+        //         "markPrice": "3083.2"
         //     }
         //
         $marketId = $this->safe_string($contract, 'symbol');
@@ -1248,32 +1260,32 @@ class bydfi extends Exchange {
         $response = Async\await($this->privatePostV1FapiTradePlaceOrder($orderRequest));
         //
         //     {
-        //         "code" => 200,
-        //         "message" => "success",
-        //         "data" => array(
-        //             "wallet" => "W001",
-        //             "symbol" => "ETH-USDT",
-        //             "orderId" => "7408875768086683648",
-        //             "clientOrderId" => "7408875768086683648",
-        //             "price" => "1000",
-        //             "origQty" => "10",
-        //             "avgPrice" => null,
-        //             "executedQty" => "0",
-        //             "orderType" => "LIMIT",
-        //             "side" => "BUY",
-        //             "status" => "NEW",
-        //             "stopPrice" => null,
-        //             "activatePrice" => null,
-        //             "timeInForce" => null,
-        //             "workingType" => "CONTRACT_PRICE",
-        //             "positionSide" => "BOTH",
-        //             "priceProtect" => false,
-        //             "reduceOnly" => false,
-        //             "closePosition" => false,
-        //             "createTime" => "1766413633367",
-        //             "updateTime" => "1766413633367"
-        //         ),
-        //         "success" => true
+        //         "code": 200,
+        //         "message": "success",
+        //         "data": {
+        //             "wallet": "W001",
+        //             "symbol": "ETH-USDT",
+        //             "orderId": "7408875768086683648",
+        //             "clientOrderId": "7408875768086683648",
+        //             "price": "1000",
+        //             "origQty": "10",
+        //             "avgPrice": null,
+        //             "executedQty": "0",
+        //             "orderType": "LIMIT",
+        //             "side": "BUY",
+        //             "status": "NEW",
+        //             "stopPrice": null,
+        //             "activatePrice": null,
+        //             "timeInForce": null,
+        //             "workingType": "CONTRACT_PRICE",
+        //             "positionSide": "BOTH",
+        //             "priceProtect": false,
+        //             "reduceOnly": false,
+        //             "closePosition": false,
+        //             "createTime": "1766413633367",
+        //             "updateTime": "1766413633367"
+        //         },
+        //         "success": true
         //     }
         //
         $data = $this->safe_dict($response, 'data', array());
@@ -1294,18 +1306,18 @@ class bydfi extends Exchange {
         $request = array(
             'symbol' => $market['id'],
             'side' => strtoupper($side),
-            // 'positionSide' => STRING Position direction, not required in single position mode, default and can only be BOTH; required in dual position mode, and can only choose LONG or SHORT
-            // 'type' => STRING Order $type LIMIT / MARKET / STOP / TAKE_PROFIT / STOP_MARKET / TAKE_PROFIT_MARKET / TRAILING_STOP_MARKET
-            // 'reduceOnly' => BOOL true, false; defaults to false in non-dual mode; not accepted in dual mode; not supported when using $closePosition->
-            // 'quantity' => DECIMAL Order quantity, not supported with $closePosition->
-            // 'price' => DECIMAL Order $price
-            // 'clientOrderId' => STRING User-defined order number, must not be repeated in pending orders. If blank, the system will assign automatically
-            // 'stopPrice' => DECIMAL Trigger $price, only required for STOP, STOP_MARKET, TAKE_PROFIT, TAKE_PROFIT_MARKET
-            // 'closePosition' => BOOL true, false; all positions closed after triggering, only supported in STOP_MARKET and TAKE_PROFIT_MARKET; not used with quantity; has a self-closing effect, not used with $reduceOnly
-            // 'activationPrice' => DECIMAL Trailing stop activation $price, required for TRAILING_STOP_MARKET, default to current $market $price upon order (supports different $workingType)
-            // 'callbackRate' => DECIMAL Trailing stop callback rate, can range from [0.1, 5], where 1 represents 1%, only required for TRAILING_STOP_MARKET
-            // 'timeInForce' => STRING Validity method GTC / FOK / POST_ONLY / IOC / TRAILING_STOP
-            // 'workingType' => STRING $stopPrice trigger $type => MARK_PRICE(marking $price), CONTRACT_PRICE(latest contract $price). Default CONTRACT_PRICE
+            // 'positionSide': STRING Position direction, not required in single position mode, default and can only be BOTH; required in dual position mode, and can only choose LONG or SHORT
+            // 'type': STRING Order type LIMIT / MARKET / STOP / TAKE_PROFIT / STOP_MARKET / TAKE_PROFIT_MARKET / TRAILING_STOP_MARKET
+            // 'reduceOnly': BOOL true, false; defaults to false in non-dual mode; not accepted in dual mode; not supported when using closePosition.
+            // 'quantity': DECIMAL Order quantity, not supported with closePosition.
+            // 'price': DECIMAL Order price
+            // 'clientOrderId': STRING User-defined order number, must not be repeated in pending orders. If blank, the system will assign automatically
+            // 'stopPrice': DECIMAL Trigger price, only required for STOP, STOP_MARKET, TAKE_PROFIT, TAKE_PROFIT_MARKET
+            // 'closePosition': BOOL true, false; all positions closed after triggering, only supported in STOP_MARKET and TAKE_PROFIT_MARKET; not used with quantity; has a self-closing effect, not used with reduceOnly
+            // 'activationPrice': DECIMAL Trailing stop activation price, required for TRAILING_STOP_MARKET, default to current market price upon order (supports different workingType)
+            // 'callbackRate': DECIMAL Trailing stop callback rate, can range from [0.1, 5], where 1 represents 1%, only required for TRAILING_STOP_MARKET
+            // 'timeInForce': STRING Validity method GTC / FOK / POST_ONLY / IOC / TRAILING_STOP
+            // 'workingType': STRING stopPrice trigger type: MARK_PRICE(marking price), CONTRACT_PRICE(latest contract price). Default CONTRACT_PRICE
         );
         $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
         $isStopLossOrder = ($stopLossPrice !== null);
@@ -1575,34 +1587,34 @@ class bydfi extends Exchange {
         $response = Async\await($this->privatePostV1FapiTradeCancelAllOrder($this->extend($request, $params)));
         //
         //     {
-        //         "code" => 200,
-        //         "message" => "success",
-        //         "data" => array(
+        //         "code": 200,
+        //         "message": "success",
+        //         "data": [
         //             {
-        //                 "wallet" => "W001",
-        //                 "symbol" => "ETH-USDT",
-        //                 "orderId" => "7408875768086683648",
-        //                 "clientOrderId" => "7408875768086683648",
-        //                 "price" => "1000",
-        //                 "origQty" => "10",
-        //                 "avgPrice" => "0",
-        //                 "executedQty" => "0",
-        //                 "orderType" => "LIMIT",
-        //                 "side" => "BUY",
-        //                 "status" => "CANCELED",
-        //                 "stopPrice" => null,
-        //                 "activatePrice" => null,
-        //                 "timeInForce" => null,
-        //                 "workingType" => "CONTRACT_PRICE",
-        //                 "positionSide" => "BOTH",
-        //                 "priceProtect" => false,
-        //                 "reduceOnly" => false,
-        //                 "closePosition" => false,
-        //                 "createTime" => "1766413633367",
-        //                 "updateTime" => "1766413633370"
+        //                 "wallet": "W001",
+        //                 "symbol": "ETH-USDT",
+        //                 "orderId": "7408875768086683648",
+        //                 "clientOrderId": "7408875768086683648",
+        //                 "price": "1000",
+        //                 "origQty": "10",
+        //                 "avgPrice": "0",
+        //                 "executedQty": "0",
+        //                 "orderType": "LIMIT",
+        //                 "side": "BUY",
+        //                 "status": "CANCELED",
+        //                 "stopPrice": null,
+        //                 "activatePrice": null,
+        //                 "timeInForce": null,
+        //                 "workingType": "CONTRACT_PRICE",
+        //                 "positionSide": "BOTH",
+        //                 "priceProtect": false,
+        //                 "reduceOnly": false,
+        //                 "closePosition": false,
+        //                 "createTime": "1766413633367",
+        //                 "updateTime": "1766413633370"
         //             }
-        //         ),
-        //         "success" => true
+        //         ],
+        //         "success": true
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -1646,34 +1658,34 @@ class bydfi extends Exchange {
         if (!$trigger) {
             //
             //     {
-            //         "code" => 200,
-            //         "message" => "success",
-            //         "data" => array(
+            //         "code": 200,
+            //         "message": "success",
+            //         "data": [
             //             {
-            //                 "wallet" => "W001",
-            //                 "symbol" => "ETH-USDC",
-            //                 "orderId" => "7408896083240091648",
-            //                 "clientOrderId" => "7408896083240091648",
-            //                 "price" => "999",
-            //                 "origQty" => "1",
-            //                 "avgPrice" => "0",
-            //                 "executedQty" => "0",
-            //                 "orderType" => "LIMIT",
-            //                 "side" => "BUY",
-            //                 "status" => "NEW",
-            //                 "stopPrice" => null,
-            //                 "activatePrice" => null,
-            //                 "timeInForce" => null,
-            //                 "workingType" => "CONTRACT_PRICE",
-            //                 "positionSide" => "BOTH",
-            //                 "priceProtect" => false,
-            //                 "reduceOnly" => false,
-            //                 "closePosition" => false,
-            //                 "createTime" => "1766418476877",
-            //                 "updateTime" => "1766418476880"
+            //                 "wallet": "W001",
+            //                 "symbol": "ETH-USDC",
+            //                 "orderId": "7408896083240091648",
+            //                 "clientOrderId": "7408896083240091648",
+            //                 "price": "999",
+            //                 "origQty": "1",
+            //                 "avgPrice": "0",
+            //                 "executedQty": "0",
+            //                 "orderType": "LIMIT",
+            //                 "side": "BUY",
+            //                 "status": "NEW",
+            //                 "stopPrice": null,
+            //                 "activatePrice": null,
+            //                 "timeInForce": null,
+            //                 "workingType": "CONTRACT_PRICE",
+            //                 "positionSide": "BOTH",
+            //                 "priceProtect": false,
+            //                 "reduceOnly": false,
+            //                 "closePosition": false,
+            //                 "createTime": "1766418476877",
+            //                 "updateTime": "1766418476880"
             //             }
-            //         ),
-            //         "success" => true
+            //         ],
+            //         "success": true
             //     }
             //
             $response = Async\await($this->privateGetV1FapiTradeOpenOrder($this->extend($request, $params)));
@@ -1782,47 +1794,47 @@ class bydfi extends Exchange {
         $response = Async\await($this->privateGetV1FapiTradeHistoryOrder($this->extend($request, $params)));
         //
         //     {
-        //         "code" => 200,
-        //         "message" => "success",
-        //         "data" => array(
+        //         "code": 200,
+        //         "message": "success",
+        //         "data": [
         //             {
-        //                 "orderId" => "7408919189505597440",
-        //                 "orderType" => "MARKET",
-        //                 "symbol" => "ETH-USDC",
-        //                 "origQty" => "1",
-        //                 "side" => "BUY",
-        //                 "positionSide" => "BOTH",
-        //                 "positionAvgPrice" => null,
-        //                 "positionVolume" => null,
-        //                 "positionType" => null,
-        //                 "reduceOnly" => false,
-        //                 "closePosition" => false,
-        //                 "action" => null,
-        //                 "price" => "3032.45",
-        //                 "avgPrice" => "3032.45",
-        //                 "brkPrice" => null,
-        //                 "dealVolume" => null,
-        //                 "status" => "2",
-        //                 "wallet" => "W001",
-        //                 "alias" => null,
-        //                 "contractId" => null,
-        //                 "mtime" => "1766423985842",
-        //                 "ctime" => "1766423985840",
-        //                 "fixedPrice" => null,
-        //                 "direction" => null,
-        //                 "triggerPrice" => null,
-        //                 "priceType" => null,
-        //                 "basePrecision" => "8",
-        //                 "baseShowPrecision" => "2",
-        //                 "strategyType" => null,
-        //                 "leverageLevel" => 1,
-        //                 "marginType" => "CROSS",
-        //                 "remark" => null,
-        //                 "callbackRate" => null,
-        //                 "activationPrice" => null
+        //                 "orderId": "7408919189505597440",
+        //                 "orderType": "MARKET",
+        //                 "symbol": "ETH-USDC",
+        //                 "origQty": "1",
+        //                 "side": "BUY",
+        //                 "positionSide": "BOTH",
+        //                 "positionAvgPrice": null,
+        //                 "positionVolume": null,
+        //                 "positionType": null,
+        //                 "reduceOnly": false,
+        //                 "closePosition": false,
+        //                 "action": null,
+        //                 "price": "3032.45",
+        //                 "avgPrice": "3032.45",
+        //                 "brkPrice": null,
+        //                 "dealVolume": null,
+        //                 "status": "2",
+        //                 "wallet": "W001",
+        //                 "alias": null,
+        //                 "contractId": null,
+        //                 "mtime": "1766423985842",
+        //                 "ctime": "1766423985840",
+        //                 "fixedPrice": null,
+        //                 "direction": null,
+        //                 "triggerPrice": null,
+        //                 "priceType": null,
+        //                 "basePrecision": "8",
+        //                 "baseShowPrecision": "2",
+        //                 "strategyType": null,
+        //                 "leverageLevel": 1,
+        //                 "marginType": "CROSS",
+        //                 "remark": null,
+        //                 "callbackRate": null,
+        //                 "activationPrice": null
         //             }
-        //         ),
-        //         "success" => true
+        //         ],
+        //         "success": true
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -1837,15 +1849,15 @@ class bydfi extends Exchange {
         $startTime = $since;
         if ($startTime === null) {
             if ($until === null) {
-                // both $since and $until are null
+                // both since and until are undefined
                 $startTime = $now - $sevenDays;
                 $until = $now;
             } else {
-                // $since is null but $until is defined
+                // since is undefined but until is defined
                 $startTime = $until - $sevenDays;
             }
         } elseif ($until === null) {
-            // $until is null but $since is defined
+            // until is undefined but since is defined
             $delta = $now - $startTime;
             if ($delta > $sevenDays) {
                 $until = $startTime . $sevenDays;
@@ -1864,65 +1876,65 @@ class bydfi extends Exchange {
         //
         // createOrder, fetchOpenOrders, fetchOpenOrder
         //     {
-        //         "wallet" => "W001",
-        //         "symbol" => "ETH-USDT",
-        //         "orderId" => "7408875768086683648",
-        //         "clientOrderId" => "7408875768086683648",
-        //         "price" => "1000",
-        //         "origQty" => "10",
-        //         "avgPrice" => "0",
-        //         "executedQty" => "0",
-        //         "orderType" => "LIMIT",
-        //         "side" => "BUY",
-        //         "status" => "CANCELED",
-        //         "stopPrice" => null,
-        //         "activatePrice" => null,
-        //         "timeInForce" => null,
-        //         "workingType" => "CONTRACT_PRICE",
-        //         "positionSide" => "BOTH",
-        //         "priceProtect" => false,
-        //         "reduceOnly" => false,
-        //         "closePosition" => false,
-        //         "createTime" => "1766413633367",
-        //         "updateTime" => "1766413633370"
+        //         "wallet": "W001",
+        //         "symbol": "ETH-USDT",
+        //         "orderId": "7408875768086683648",
+        //         "clientOrderId": "7408875768086683648",
+        //         "price": "1000",
+        //         "origQty": "10",
+        //         "avgPrice": "0",
+        //         "executedQty": "0",
+        //         "orderType": "LIMIT",
+        //         "side": "BUY",
+        //         "status": "CANCELED",
+        //         "stopPrice": null,
+        //         "activatePrice": null,
+        //         "timeInForce": null,
+        //         "workingType": "CONTRACT_PRICE",
+        //         "positionSide": "BOTH",
+        //         "priceProtect": false,
+        //         "reduceOnly": false,
+        //         "closePosition": false,
+        //         "createTime": "1766413633367",
+        //         "updateTime": "1766413633370"
         //     }
         //
         // fetchCanceledAndClosedOrders
         //     {
-        //         "orderId" => "7408919189505597440",
-        //         "orderType" => "MARKET",
-        //         "symbol" => "ETH-USDC",
-        //         "origQty" => "1",
-        //         "side" => "BUY",
-        //         "positionSide" => "BOTH",
-        //         "positionAvgPrice" => null,
-        //         "positionVolume" => null,
-        //         "positionType" => null,
-        //         "reduceOnly" => false,
-        //         "closePosition" => false,
-        //         "action" => null,
-        //         "price" => "3032.45",
-        //         "avgPrice" => "3032.45",
-        //         "brkPrice" => null,
-        //         "dealVolume" => null,
-        //         "status" => "2",
-        //         "wallet" => "W001",
-        //         "alias" => null,
-        //         "contractId" => null,
-        //         "mtime" => "1766423985842",
-        //         "ctime" => "1766423985840",
-        //         "fixedPrice" => null,
-        //         "direction" => null,
-        //         "triggerPrice" => null,
-        //         "priceType" => null,
-        //         "basePrecision" => "8",
-        //         "baseShowPrecision" => "2",
-        //         "strategyType" => null,
-        //         "leverageLevel" => 1,
-        //         "marginType" => "CROSS",
-        //         "remark" => null,
-        //         "callbackRate" => null,
-        //         "activationPrice" => null
+        //         "orderId": "7408919189505597440",
+        //         "orderType": "MARKET",
+        //         "symbol": "ETH-USDC",
+        //         "origQty": "1",
+        //         "side": "BUY",
+        //         "positionSide": "BOTH",
+        //         "positionAvgPrice": null,
+        //         "positionVolume": null,
+        //         "positionType": null,
+        //         "reduceOnly": false,
+        //         "closePosition": false,
+        //         "action": null,
+        //         "price": "3032.45",
+        //         "avgPrice": "3032.45",
+        //         "brkPrice": null,
+        //         "dealVolume": null,
+        //         "status": "2",
+        //         "wallet": "W001",
+        //         "alias": null,
+        //         "contractId": null,
+        //         "mtime": "1766423985842",
+        //         "ctime": "1766423985840",
+        //         "fixedPrice": null,
+        //         "direction": null,
+        //         "triggerPrice": null,
+        //         "priceType": null,
+        //         "basePrecision": "8",
+        //         "baseShowPrecision": "2",
+        //         "strategyType": null,
+        //         "leverageLevel": 1,
+        //         "marginType": "CROSS",
+        //         "remark": null,
+        //         "callbackRate": null,
+        //         "activationPrice": null
         //     }
         //
         $marketId = $this->safe_string($order, 'symbol');
@@ -2078,14 +2090,14 @@ class bydfi extends Exchange {
         $response = Async\await($this->privateGetV1FapiTradeLeverage($this->extend($request, $params)));
         //
         //     {
-        //         "code" => 200,
-        //         "message" => "success",
-        //         "data" => array(
-        //             "symbol" => "ETH-USDC",
-        //             "leverage" => 1,
-        //             "maxNotionalValue" => "100000000"
-        //         ),
-        //         "success" => true
+        //         "code": 200,
+        //         "message": "success",
+        //         "data": {
+        //             "symbol": "ETH-USDC",
+        //             "leverage": 1,
+        //             "maxNotionalValue": "100000000"
+        //         },
+        //         "success": true
         //     }
         //
         $data = $this->safe_dict($response, 'data', array());
@@ -2130,24 +2142,24 @@ class bydfi extends Exchange {
         $response = Async\await($this->privateGetV1FapiTradePositions($this->extend($request, $params)));
         //
         //     {
-        //         "code" => 200,
-        //         "message" => "success",
-        //         "data" => array(
+        //         "code": 200,
+        //         "message": "success",
+        //         "data": [
         //             {
-        //                 "symbol" => "ETH-USDC",
-        //                 "side" => "BUY",
-        //                 "volume" => "0.001",
-        //                 "avgPrice" => "3032.45",
-        //                 "liqPrice" => "0",
-        //                 "markPrice" => "3032.37",
-        //                 "unPnl" => "-0.00008",
-        //                 "positionMargin" => "0",
-        //                 "settleCoin" => "USDC",
-        //                 "im" => "3.03245",
-        //                 "mm" => "0.007581125"
+        //                 "symbol": "ETH-USDC",
+        //                 "side": "BUY",
+        //                 "volume": "0.001",
+        //                 "avgPrice": "3032.45",
+        //                 "liqPrice": "0",
+        //                 "markPrice": "3032.37",
+        //                 "unPnl": "-0.00008",
+        //                 "positionMargin": "0",
+        //                 "settleCoin": "USDC",
+        //                 "im": "3.03245",
+        //                 "mm": "0.007581125"
         //             }
-        //         ),
-        //         "success" => true
+        //         ],
+        //         "success": true
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -2189,52 +2201,52 @@ class bydfi extends Exchange {
         //
         // fetchPositions, fetchPositionsForSymbol
         //     {
-        //         "symbol" => "ETH-USDC",
-        //         "side" => "BUY",
-        //         "volume" => "0.001",
-        //         "avgPrice" => "3032.45",
-        //         "liqPrice" => "0",
-        //         "markPrice" => "3032.37",
-        //         "unPnl" => "-0.00008",
-        //         "positionMargin" => "0",
-        //         "settleCoin" => "USDC",
-        //         "im" => "3.03245",
-        //         "mm" => "0.007581125"
+        //         "symbol": "ETH-USDC",
+        //         "side": "BUY",
+        //         "volume": "0.001",
+        //         "avgPrice": "3032.45",
+        //         "liqPrice": "0",
+        //         "markPrice": "3032.37",
+        //         "unPnl": "-0.00008",
+        //         "positionMargin": "0",
+        //         "settleCoin": "USDC",
+        //         "im": "3.03245",
+        //         "mm": "0.007581125"
         //     }
         //
         // fetchPositionsHistory
         //     {
-        //         "id" => "16788366",
-        //         "wallet" => "W001",
-        //         "currency" => "USDC",
-        //         "symbol" => "ETH-USDC",
-        //         "side" => "BUY",
-        //         "positionSide" => "BOTH",
-        //         "leverage" => 1,
-        //         "avgOpenPositionPrice" => "3032.45",
-        //         "openPositionVolume" => "1",
-        //         "openCount" => 1,
-        //         "highPrice" => "3032.45",
-        //         "lowPrice" => "2953.67",
-        //         "avgClosePositionPrice" => "2953.67",
-        //         "closePositionVolume" => "1",
-        //         "closePositionCost" => "2.95367",
-        //         "closeCount" => 1,
-        //         "positionProfits" => "-0.07878",
-        //         "lossBonus" => "0",
-        //         "capitalFeeTotal" => "-0.00026361",
-        //         "capitalFeeOutCash" => "-0.00026361",
-        //         "capitalFeeInCash" => "0",
-        //         "capitalFeeBonus" => "0",
-        //         "openFeeTotal" => "-0.00181947",
-        //         "openFeeBonus" => "0",
-        //         "closeFeeTotal" => "-0.00177221",
-        //         "closeFeeBonus" => "0",
-        //         "liqLoss" => "0",
-        //         "liqClosed" => false,
-        //         "sequence" => "53685341336",
-        //         "updateTime" => "1766494929423",
-        //         "createTime" => "1766423985842"
+        //         "id": "16788366",
+        //         "wallet": "W001",
+        //         "currency": "USDC",
+        //         "symbol": "ETH-USDC",
+        //         "side": "BUY",
+        //         "positionSide": "BOTH",
+        //         "leverage": 1,
+        //         "avgOpenPositionPrice": "3032.45",
+        //         "openPositionVolume": "1",
+        //         "openCount": 1,
+        //         "highPrice": "3032.45",
+        //         "lowPrice": "2953.67",
+        //         "avgClosePositionPrice": "2953.67",
+        //         "closePositionVolume": "1",
+        //         "closePositionCost": "2.95367",
+        //         "closeCount": 1,
+        //         "positionProfits": "-0.07878",
+        //         "lossBonus": "0",
+        //         "capitalFeeTotal": "-0.00026361",
+        //         "capitalFeeOutCash": "-0.00026361",
+        //         "capitalFeeInCash": "0",
+        //         "capitalFeeBonus": "0",
+        //         "openFeeTotal": "-0.00181947",
+        //         "openFeeBonus": "0",
+        //         "closeFeeTotal": "-0.00177221",
+        //         "closeFeeBonus": "0",
+        //         "liqLoss": "0",
+        //         "liqClosed": false,
+        //         "sequence": "53685341336",
+        //         "updateTime": "1766494929423",
+        //         "createTime": "1766423985842"
         //     }
         //
         $marketId = $this->safe_string($position, 'symbol');
@@ -2256,7 +2268,7 @@ class bydfi extends Exchange {
         $contractSize = $this->safe_string($market, 'contractSize');
         $contracts = $this->safe_string_2($position, 'volume', 'openPositionVolume');
         if (!$isFetchPositionsHistory) {
-            // in fetchPositions, the 'volume' is in base currency units, need to convert to $contracts
+            // in fetchPositions, the 'volume' is in base currency units, need to convert to contracts
             $contracts = Precise::string_div($contracts, $contractSize);
         }
         $timestamp = $this->safe_integer($position, 'createTime');
@@ -2373,44 +2385,44 @@ class bydfi extends Exchange {
         $response = Async\await($this->privateGetV1FapiTradePositionHistory($this->extend($request, $params)));
         //
         //     {
-        //         "code" => 200,
-        //         "message" => "success",
-        //         "data" => array(
+        //         "code": 200,
+        //         "message": "success",
+        //         "data": [
         //             {
-        //                 "id" => "16788366",
-        //                 "wallet" => "W001",
-        //                 "currency" => "USDC",
-        //                 "symbol" => "ETH-USDC",
-        //                 "side" => "BUY",
-        //                 "positionSide" => "BOTH",
-        //                 "leverage" => 1,
-        //                 "avgOpenPositionPrice" => "3032.45",
-        //                 "openPositionVolume" => "1",
-        //                 "openCount" => 1,
-        //                 "highPrice" => "3032.45",
-        //                 "lowPrice" => "2953.67",
-        //                 "avgClosePositionPrice" => "2953.67",
-        //                 "closePositionVolume" => "1",
-        //                 "closePositionCost" => "2.95367",
-        //                 "closeCount" => 1,
-        //                 "positionProfits" => "-0.07878",
-        //                 "lossBonus" => "0",
-        //                 "capitalFeeTotal" => "-0.00026361",
-        //                 "capitalFeeOutCash" => "-0.00026361",
-        //                 "capitalFeeInCash" => "0",
-        //                 "capitalFeeBonus" => "0",
-        //                 "openFeeTotal" => "-0.00181947",
-        //                 "openFeeBonus" => "0",
-        //                 "closeFeeTotal" => "-0.00177221",
-        //                 "closeFeeBonus" => "0",
-        //                 "liqLoss" => "0",
-        //                 "liqClosed" => false,
-        //                 "sequence" => "53685341336",
-        //                 "updateTime" => "1766494929423",
-        //                 "createTime" => "1766423985842"
+        //                 "id": "16788366",
+        //                 "wallet": "W001",
+        //                 "currency": "USDC",
+        //                 "symbol": "ETH-USDC",
+        //                 "side": "BUY",
+        //                 "positionSide": "BOTH",
+        //                 "leverage": 1,
+        //                 "avgOpenPositionPrice": "3032.45",
+        //                 "openPositionVolume": "1",
+        //                 "openCount": 1,
+        //                 "highPrice": "3032.45",
+        //                 "lowPrice": "2953.67",
+        //                 "avgClosePositionPrice": "2953.67",
+        //                 "closePositionVolume": "1",
+        //                 "closePositionCost": "2.95367",
+        //                 "closeCount": 1,
+        //                 "positionProfits": "-0.07878",
+        //                 "lossBonus": "0",
+        //                 "capitalFeeTotal": "-0.00026361",
+        //                 "capitalFeeOutCash": "-0.00026361",
+        //                 "capitalFeeInCash": "0",
+        //                 "capitalFeeBonus": "0",
+        //                 "openFeeTotal": "-0.00181947",
+        //                 "openFeeBonus": "0",
+        //                 "closeFeeTotal": "-0.00177221",
+        //                 "closeFeeBonus": "0",
+        //                 "liqLoss": "0",
+        //                 "liqClosed": false,
+        //                 "sequence": "53685341336",
+        //                 "updateTime": "1766494929423",
+        //                 "createTime": "1766423985842"
         //             }
-        //         ),
-        //         "success" => true
+        //         ],
+        //         "success": true
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -2450,14 +2462,14 @@ class bydfi extends Exchange {
         $response = Async\await($this->privateGetV1FapiUserDataAssetsMargin($this->extend($request, $params)));
         //
         //     {
-        //         "code" => 200,
-        //         "message" => "success",
-        //         "data" => array(
-        //             "wallet" => "W001",
-        //             "symbol" => "ETH-USDC",
-        //             "marginType" => "CROSS"
-        //         ),
-        //         "success" => true
+        //         "code": 200,
+        //         "message": "success",
+        //         "data": {
+        //             "wallet": "W001",
+        //             "symbol": "ETH-USDC",
+        //             "marginType": "CROSS"
+        //         },
+        //         "success": true
         //     }
         //
         $data = $this->safe_dict($response, 'data', array());
@@ -2553,9 +2565,9 @@ class bydfi extends Exchange {
         );
         //
         //     {
-        //         "code" => 200,
-        //         "message" => "success",
-        //         "success" => true
+        //         "code": 200,
+        //         "message": "success",
+        //         "success": true
         //     }
         //
         return Async\await($this->privatePostV1FapiUserDataPositionSideDual($this->extend($request, $params)));
@@ -2600,19 +2612,19 @@ class bydfi extends Exchange {
         $response = Async\await($this->privateGetV1FapiUserDataPositionSideDual($this->extend($request, $params)));
         //
         //     {
-        //         "code" => 200,
-        //         "message" => "success",
-        //         "data" => array(
-        //             "wallet" => "W001",
-        //             "contractType" => "FUTURE",
-        //             "settleCoin" => "USDT",
-        //             "positionType" => "HEDGE",
-        //             "unitModel" => 2,
-        //             "pricingModel" => "FLAG",
-        //             "priceProtection" => "CLOSE",
-        //             "totalWallet" => 2
-        //         ),
-        //         "success" => true
+        //         "code": 200,
+        //         "message": "success",
+        //         "data": {
+        //             "wallet": "W001",
+        //             "contractType": "FUTURE",
+        //             "settleCoin": "USDT",
+        //             "positionType": "HEDGE",
+        //             "unitModel": 2,
+        //             "pricingModel": "FLAG",
+        //             "priceProtection": "CLOSE",
+        //             "totalWallet": 2
+        //         },
+        //         "success": true
         //     }
         //
         $data = $this->safe_dict($response, 'data', array());
@@ -2654,18 +2666,18 @@ class bydfi extends Exchange {
             $request['walletType'] = $parsedAccountType;
             //
             //     {
-            //         "code" => 200,
-            //         "message" => "success",
-            //         "data" => array(
+            //         "code": 200,
+            //         "message": "success",
+            //         "data": [
             //             {
-            //                 "walletType" => "spot",
-            //                 "asset" => "USDC",
-            //                 "total" => "100",
-            //                 "available" => "100",
-            //                 "frozen" => "0"
+            //                 "walletType": "spot",
+            //                 "asset": "USDC",
+            //                 "total": "100",
+            //                 "available": "100",
+            //                 "frozen": "0"
             //             }
-            //         ),
-            //         "success" => true
+            //         ],
+            //         "success": true
             //     }
             //
             $response = Async\await($this->privateGetV1AccountAssets($this->extend($request, $params)));
@@ -2673,31 +2685,31 @@ class bydfi extends Exchange {
             $request['wallet'] = $wallet;
             //
             //     {
-            //         "code" => 200,
-            //         "message" => "success",
-            //         "data" => array(
-            //             array(
-            //                 "wallet" => "W001",
-            //                 "asset" => "USDT",
-            //                 "balance" => "0",
-            //                 "frozen" => "0",
-            //                 "positionMargin" => "0",
-            //                 "availableBalance" => "0",
-            //                 "canWithdrawAmount" => "0",
-            //                 "bonusAmount" => "0"
-            //             ),
+            //         "code": 200,
+            //         "message": "success",
+            //         "data": [
             //             {
-            //                 "wallet" => "W001",
-            //                 "asset" => "USDC",
-            //                 "balance" => "99.99505828",
-            //                 "frozen" => "4.0024",
-            //                 "positionMargin" => "2.95342",
-            //                 "availableBalance" => "92.96020828",
-            //                 "canWithdrawAmount" => "92.96020828",
-            //                 "bonusAmount" => "0"
+            //                 "wallet": "W001",
+            //                 "asset": "USDT",
+            //                 "balance": "0",
+            //                 "frozen": "0",
+            //                 "positionMargin": "0",
+            //                 "availableBalance": "0",
+            //                 "canWithdrawAmount": "0",
+            //                 "bonusAmount": "0"
+            //             },
+            //             {
+            //                 "wallet": "W001",
+            //                 "asset": "USDC",
+            //                 "balance": "99.99505828",
+            //                 "frozen": "4.0024",
+            //                 "positionMargin": "2.95342",
+            //                 "availableBalance": "92.96020828",
+            //                 "canWithdrawAmount": "92.96020828",
+            //                 "bonusAmount": "0"
             //             }
-            //         ),
-            //         "success" => true
+            //         ],
+            //         "success": true
             //     }
             $response = Async\await($this->privateGetV1FapiAccountBalance($this->extend($request, $params)));
         }
@@ -2706,11 +2718,10 @@ class bydfi extends Exchange {
     }
 
     public function parse_balance(mixed $response): array {
-        $timestamp = $this->milliseconds();
         $result = array(
             'info' => $response,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
         );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
@@ -2759,18 +2770,15 @@ class bydfi extends Exchange {
         $response = Async\await($this->privatePostV1AccountTransfer($this->extend($request, $params)));
         //
         //     {
-        //         "code" => 200,
-        //         "message" => "success",
-        //         "success" => true
+        //         "code": 200,
+        //         "message": "success",
+        //         "success": true
         //     }
         //
         $transfer = $this->parse_transfer($response, $currency);
         $transferOptions = $this->safe_dict($this->options, 'transfer', array());
         $fillResponseFromRequest = $this->safe_bool($transferOptions, 'fillResponseFromRequest', true);
         if ($fillResponseFromRequest === true) {
-            $timestamp = $this->milliseconds();
-            $transfer['timestamp'] = $timestamp;
-            $transfer['datetime'] = $this->iso8601($timestamp);
             $transfer['currency'] = $code;
             $transfer['fromAccount'] = $fromAccount;
             $transfer['toAccount'] = $toAccount;
@@ -2830,21 +2838,21 @@ class bydfi extends Exchange {
         $response = Async\await($this->privateGetV1AccountTransferRecords($this->extend($request, $params)));
         //
         //     {
-        //         "code" => 200,
-        //         "message" => "success",
-        //         "data" => array(
+        //         "code": 200,
+        //         "message": "success",
+        //         "data": [
         //             {
-        //                 "orderId" => "1209991065294581760",
-        //                 "txId" => "6km5fRK83Gwdp43HA479DW1Colh2pKyS",
-        //                 "sourceWallet" => "SPOT",
-        //                 "targetWallet" => "SWAP",
-        //                 "asset" => "USDC",
-        //                 "amount" => "100",
-        //                 "status" => "SUCCESS",
-        //                 "timestamp" => 1766413950000
+        //                 "orderId": "1209991065294581760",
+        //                 "txId": "6km5fRK83Gwdp43HA479DW1Colh2pKyS",
+        //                 "sourceWallet": "SPOT",
+        //                 "targetWallet": "SWAP",
+        //                 "asset": "USDC",
+        //                 "amount": "100",
+        //                 "status": "SUCCESS",
+        //                 "timestamp": 1766413950000
         //             }
-        //         ),
-        //         "success" => true
+        //         ],
+        //         "success": true
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -2853,23 +2861,23 @@ class bydfi extends Exchange {
 
     public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
-        // $transfer
+        // transfer
         //     {
-        //         "code" => 200,
-        //         "message" => "success",
-        //         "success" => true
+        //         "code": 200,
+        //         "message": "success",
+        //         "success": true
         //     }
         //
         // fetchTransfers
         //     {
-        //         "orderId" => "1209991065294581760",
-        //         "txId" => "6km5fRK83Gwdp43HA479DW1Colh2pKyS",
-        //         "sourceWallet" => "SPOT",
-        //         "targetWallet" => "SWAP",
-        //         "asset" => "USDC",
-        //         "amount" => "100",
-        //         "status" => "SUCCESS",
-        //         "timestamp" => 1766413950000
+        //         "orderId": "1209991065294581760",
+        //         "txId": "6km5fRK83Gwdp43HA479DW1Colh2pKyS",
+        //         "sourceWallet": "SPOT",
+        //         "targetWallet": "SWAP",
+        //         "asset": "USDC",
+        //         "amount": "100",
+        //         "status": "SUCCESS",
+        //         "timestamp": 1766413950000
         //     }
         //
         $status = $this->safe_string_upper_2($transfer, 'message', 'status');
@@ -2971,15 +2979,15 @@ class bydfi extends Exchange {
         $startTime = $since;
         if ($startTime === null) {
             if ($until === null) {
-                // both $since and $until are null
+                // both since and until are undefined
                 $startTime = $now - $sevenDays;
                 $until = $now;
             } else {
-                // $since is null but $until is defined
+                // since is undefined but until is defined
                 $startTime = $until - $sevenDays;
             }
         } elseif ($until === null) {
-            // $until is null but $since is defined
+            // until is undefined but since is defined
             $delta = $now - $startTime;
             if ($delta > $sevenDays) {
                 $until = $startTime . $sevenDays;
@@ -2995,23 +3003,23 @@ class bydfi extends Exchange {
         if ($type === 'deposit') {
             //
             //     {
-            //         "code" => 200,
-            //         "message" => "success",
-            //         "data" => array(
+            //         "code": 200,
+            //         "message": "success",
+            //         "data": [
             //             {
-            //                 "orderId" => "1208864446987255809",
-            //                 "asset" => "USDC",
-            //                 "amount" => "200",
-            //                 "status" => "SUCCESS",
-            //                 "txId" => "0xd059a82a55ffc737722bd23c1ef3db2884ce8525b72ff0b3c038b430ce0c8ca5",
-            //                 "network" => "ETH",
-            //                 "address" => "0x8346b46f6aa9843c09f79f1c170a37aca83c8fcd",
-            //                 "addressTag" => null,
-            //                 "finishTime" => 1766145475000,
-            //                 "createTime" => 1766145344000
+            //                 "orderId": "1208864446987255809",
+            //                 "asset": "USDC",
+            //                 "amount": "200",
+            //                 "status": "SUCCESS",
+            //                 "txId": "0xd059a82a55ffc737722bd23c1ef3db2884ce8525b72ff0b3c038b430ce0c8ca5",
+            //                 "network": "ETH",
+            //                 "address": "0x8346b46f6aa9843c09f79f1c170a37aca83c8fcd",
+            //                 "addressTag": null,
+            //                 "finishTime": 1766145475000,
+            //                 "createTime": 1766145344000
             //             }
-            //         ),
-            //         "success" => true
+            //         ],
+            //         "success": true
             //     }
             //
             $response = Async\await($this->privateGetV1SpotDepositRecords($this->extend($request, $params)));
@@ -3033,16 +3041,16 @@ class bydfi extends Exchange {
         //
         // fetchDeposits
         //     {
-        //         "orderId" => "1208864446987255809",
-        //         "asset" => "USDC",
-        //         "amount" => "200",
-        //         "status" => "SUCCESS",
-        //         "txId" => "0xd059a82a55ffc737722bd23c1ef3db2884ce8525b72ff0b3c038b430ce0c8ca5",
-        //         "network" => "ETH",
-        //         "address" => "0x8346b46f6aa9843c09f79f1c170a37aca83c8fcd",
-        //         "addressTag" => null,
-        //         "finishTime" => 1766145475000,
-        //         "createTime" => 1766145344000
+        //         "orderId": "1208864446987255809",
+        //         "asset": "USDC",
+        //         "amount": "200",
+        //         "status": "SUCCESS",
+        //         "txId": "0xd059a82a55ffc737722bd23c1ef3db2884ce8525b72ff0b3c038b430ce0c8ca5",
+        //         "network": "ETH",
+        //         "address": "0x8346b46f6aa9843c09f79f1c170a37aca83c8fcd",
+        //         "addressTag": null,
+        //         "finishTime": 1766145475000,
+        //         "createTime": 1766145344000
         //     }
         //
         $currencyId = $this->safe_string($transaction, 'asset');
@@ -3134,8 +3142,8 @@ class bydfi extends Exchange {
         }
         //
         //     {
-        //         "code" => 101107,
-        //         "message" => "Requires transaction permissions"
+        //         "code": 101107,
+        //         "message": "Requires transaction permissions"
         //     }
         //
         $code = $this->safe_string($response, 'code');
@@ -3145,7 +3153,7 @@ class bydfi extends Exchange {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
-            throw new ExchangeError($feedback); // unknown $message
+            throw new ExchangeError($feedback); // unknown message
         }
         return null;
     }
