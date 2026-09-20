@@ -2852,7 +2852,7 @@ export default class bitmex extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    override parseFundingRate (contract: string, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         // see response sample under "fetchMarkets" because same endpoint is being used here
         const datetime = this.safeString (contract, 'timestamp');
         const marketId = this.safeString (contract, 'symbol');

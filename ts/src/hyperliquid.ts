@@ -1405,7 +1405,7 @@ export default class hyperliquid extends Exchange {
         return this.parseFundingRates (result, symbols);
     }
 
-    override parseFundingRate (info: string, market: Market = undefined): FundingRate {
+    override parseFundingRate (info: any, market: Market = undefined): FundingRate {
         //
         //     {
         //         "maxLeverage": "50",
@@ -3116,7 +3116,7 @@ export default class hyperliquid extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingRateHistory[];
     }
 
-    getDexFromHip3Symbol (market: Market): Str {
+    getDexFromHip3Symbol (market: Market) {
         const baseName = this.safeString (market, 'baseName', '');
         const part = baseName.split (':');
         const partsLength = part.length;

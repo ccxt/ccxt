@@ -1405,7 +1405,7 @@ export default class bitteam extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseValueToPricision (valueObject: Dict, valueKey: string, preciseObject: any, precisionKey: string): Str {
+    parseValueToPricision (valueObject: Dict, valueKey: string, preciseObject: any, precisionKey: string) {
         const valueRawString = this.safeString (valueObject, valueKey);
         const precisionRawString = this.safeString (preciseObject, precisionKey);
         if (valueRawString === undefined || precisionRawString === undefined) {

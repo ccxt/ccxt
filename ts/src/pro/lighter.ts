@@ -858,7 +858,7 @@ export default class lighter extends lighterRest {
         return await this.unsubscribe (messageHash, this.extend (request, params));
     }
 
-    parseWsLiquidation (liquidation: Dict, market: Market = undefined): Liquidation | undefined {
+    parseWsLiquidation (liquidation: Dict, market: Market = undefined) {
         //
         //     {
         //         "trade_id": 526801155,

@@ -2792,7 +2792,7 @@ export default class gate extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
-    parseFundingHistory (info: Dict, market: Market = undefined): FundingHistory {
+    parseFundingHistory (info: any, market: Market = undefined) {
         //
         //    {
         //        "time": 1646899200,

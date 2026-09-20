@@ -1656,7 +1656,7 @@ export default class bitfinex extends Exchange {
         return this.safeString (statuses, state as IndexType, status);
     }
 
-    parseOrderFlags (flags: Str): Str[] | undefined {
+    parseOrderFlags (flags: Str) {
         // flags can be added to each other...
         const flagValues: Dict = {
             '1024': [ 'reduceOnly' ],
@@ -3396,7 +3396,7 @@ export default class bitfinex extends Exchange {
         return reversedArray as FundingRateHistory[];
     }
 
-    override parseFundingRate (contract: string, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //
         //       [
         //          "tBTCF0:USTF0",

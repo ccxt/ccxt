@@ -2739,21 +2739,6 @@ export default class derive extends Exchange {
         throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a subaccount_id parameter inside \'params\' or exchange.options[\'subaccount_id\']=ID.');
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     handleDeriveWalletAddress (methodName: string, params: Dict) {
         let deriveWalletAddress: Str = undefined;
         [ deriveWalletAddress, params ] = this.handleOptionAndParams (params, methodName, 'deriveWalletAddress');

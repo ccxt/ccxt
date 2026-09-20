@@ -1049,7 +1049,7 @@ export default class bitstamp extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    getCurrencyIdFromTransaction (transaction: Dict): Str {
+    getCurrencyIdFromTransaction (transaction: Dict) {
         //
         //     {
         //         "fee": "0.00000000",

@@ -3563,7 +3563,7 @@ export default class whitebit extends Exchange {
         return this.parseFundingRates (data, symbols);
     }
 
-    override parseFundingRate (contract: string, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //
         // {
         //     "ticker_id":"ADA_PERP",
@@ -3676,7 +3676,7 @@ export default class whitebit extends Exchange {
         return this.parseFundingHistories (data, market, since, limit);
     }
 
-    parseFundingHistory (contract: Dict, market: Market = undefined): FundingHistory {
+    parseFundingHistory (contract: any, market: Market = undefined) {
         //
         //     {
         //         "market": "BTC_PERP",

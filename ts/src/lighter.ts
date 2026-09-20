@@ -1714,7 +1714,7 @@ export default class lighter extends Exchange {
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
-    override parseFundingRate (contract: string, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //
         //     {
         //         "market_id": 0,

@@ -645,7 +645,7 @@ export default class delta extends Exchange {
         return markets;
     }
 
-    indexByStringifiedNumericId (input: NullableDict): Dict | undefined {
+    indexByStringifiedNumericId (input: NullableDict) {
         const result: Dict = {};
         if (input === undefined) {
             return undefined;

@@ -3085,7 +3085,6 @@ export default class kraken extends Exchange {
         } as Transaction;
     }
 
-
     parseTransactionsByType (type: any, transactions: any, code: Str = undefined, since: Int = undefined, limit: Int = undefined) {
         const result: List = [];
         for (let i = 0; i < transactions.length; i++) {

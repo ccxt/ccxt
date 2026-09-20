@@ -3059,7 +3059,7 @@ export default class krakenfutures extends Exchange {
         return this.indexBy (fundingRates, 'symbol');
     }
 
-    override parseFundingRate (ticker: string, market: Market = undefined): FundingRate {
+    override parseFundingRate (ticker: any, market: Market = undefined): FundingRate {
         //
         //     {
         //         "symbol": "PF_ENJUSD",

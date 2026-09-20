@@ -1749,7 +1749,7 @@ export default class coinsph extends Exchange {
         }, market);
     }
 
-    parseOrderSide (status: Str): Str {
+    parseOrderSide (status: Str) {
         const statuses: Dict = {
             'BUY': 'buy',
             'SELL': 'sell',
@@ -1760,7 +1760,7 @@ export default class coinsph extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    encodeOrderSide (status: Str): Str {
+    encodeOrderSide (status: Str) {
         const statuses: Dict = {
             'buy': 'BUY',
             'sell': 'SELL',
@@ -1771,7 +1771,7 @@ export default class coinsph extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderType (status: Str): Str {
+    parseOrderType (status: Str) {
         const statuses: Dict = {
             'MARKET': 'market',
             'LIMIT': 'limit',
@@ -1787,7 +1787,7 @@ export default class coinsph extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    encodeOrderType (status: Str): Str {
+    encodeOrderType (status: Str) {
         const statuses: Dict = {
             'market': 'MARKET',
             'limit': 'LIMIT',
@@ -1818,7 +1818,7 @@ export default class coinsph extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderTimeInForce (status: Str): Str {
+    parseOrderTimeInForce (status: Str) {
         const statuses: Dict = {
             'GTC': 'GTC',
             'FOK': 'FOK',

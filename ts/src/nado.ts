@@ -2913,7 +2913,7 @@ export default class nado extends Exchange {
         return Precise.stringDiv (Precise.stringMul (value, '1000000000000000000'), '1', 0);
     }
 
-    parseX18 (value: Str): Num {
+    parseX18 (value: Str) {
         if (value === undefined) {
             return undefined;
         }

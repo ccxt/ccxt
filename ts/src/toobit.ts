@@ -1588,7 +1588,7 @@ export default class toobit extends Exchange {
         return this.parseFundingRates (response, symbols);
     }
 
-    override parseFundingRate (contract: string, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         const marketId = this.safeString (contract, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         const nextFundingRate = this.safeNumber (contract, 'rate');
@@ -2042,7 +2042,7 @@ export default class toobit extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderType (status: Str): Str {
+    parseOrderType (status: Str) {
         const statuses: Dict = {
             'MARKET': 'market',
             'LIMIT': 'limit',

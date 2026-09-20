@@ -3286,7 +3286,7 @@ export default class bithumb extends Exchange {
         } as DepositAddress;
     }
 
-    fixCommaNumber (numberStr: Str): Str {
+    fixCommaNumber (numberStr: Str) {
         // some endpoints need this https://github.com/ccxt/ccxt/issues/11031
         if (numberStr === undefined) {
             return undefined;
