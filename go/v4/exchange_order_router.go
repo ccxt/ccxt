@@ -176,6 +176,14 @@ type OrderRouter struct {
 	balancesCache  string
 	balancesLoaded bool
 
+	// Whether this router manages balances at all. TWO decisions used to ride on `venues`: where
+	// you can trade, and what you hold. The first is a filter - free, and it cannot go stale. The
+	// second costs an authenticated call per venue and made one bad key enough to kill a quote.
+	// So the filter is always on and the wallet reads are a mode you ask for. There is
+	// deliberately no middle setting: a router that half-knows your balances is worse than one
+	// that knows none of them.
+	TrackBalances bool
+
 	TimeoutMs      float64
 	MaxNotionalUsd float64
 
@@ -232,6 +240,7 @@ func NewOrderRouter(config map[string]any) (*OrderRouter, error) {
 		ApiKey:          apiKey,
 		BaseUrl:         baseUrl,
 		Venues:          routerVenuesAt(config, "venues"),
+		TrackBalances:   routerBoolAt(config, "trackBalances", false),
 		TimeoutMs:       timeoutMs,
 		MaxNotionalUsd:  maxNotionalUsd,
 		ExecutedPlanIds: []string{},
@@ -669,7 +678,7 @@ func (this *OrderRouter) FetchRoute(fromAsset string, toAsset string, params map
 		if merged["exchanges"] == nil {
 			merged["exchanges"] = strings.Join(storedIds, ",")
 		}
-		if merged["balances"] == nil {
+		if this.TrackBalances && merged["balances"] == nil {
 			loaded, loadErr := this.LoadBalances(false)
 			if loadErr != nil {
 				return nil, loadErr
@@ -1223,7 +1232,8 @@ func (this *OrderRouter) FetchCachedOrderBook(exchangeId string, symbol string) 
 // stays a single HTTP request. Called for you by FetchRoute; call it yourself to
 // prime the cache at start-up, or with reload to refresh it.
 func (this *OrderRouter) LoadBalances(reload bool) (string, error) {
-	if len(this.Venues) == 0 {
+	if !this.TrackBalances || len(this.Venues) == 0 {
+		// not this router's job: it was not asked to manage balances
 		return "", nil
 	}
 	if this.balancesLoaded && !reload {

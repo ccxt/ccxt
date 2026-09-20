@@ -8804,16 +8804,33 @@ call against a venue, not even a read.
 `strategy` and `dryRun` are independent on purpose: `strategy` says only HOW the orders go out,
 `dryRun` says only WHETHER. That is why rehearsing a `limit_protected` run is sayable.
 
-**Hold your venues on the router and a quote stays one call.** `new OrderRouter ({ venues })`
-answers three questions at once: which venues a route may name — you cannot trade where you hold
-no keys — what it can be funded from, and where the orders go. The `exchanges` filter costs
-nothing and cannot go stale. The balances behind it are read **once and cached**, exactly as
-`loadMarkets` caches, so `fetchRoute` stays a single HTTP request however often you call it.
+**Hold your venues on the router.** `new OrderRouter ({ venues })` says where you can trade:
+routes are filtered to those venues — you cannot trade where you hold no keys — and `execute`
+sends the orders to those same instances. The filter costs nothing, touches no venue, and cannot
+go stale, so it is always on.
 
-`loadBalances ()` primes that cache at start-up and `loadBalances (true)` refreshes it. You rarely
-need either: a live `execute` **drops the cache itself**, because placing an order is precisely
-what makes the cached holdings wrong, and it drops it *before* dispatch — a run that throws half
-way through has still moved money. A rehearsal places nothing and keeps the cache.
+**Whether the router also reads your wallets is a separate mode**, because it is a separate
+decision with a real price: one authenticated call per venue, holdings that go stale the moment
+anything moves, and a bad key on any one venue failing the whole quote.
+
+| | `fetchRoute` | Routes are |
+|---|---|---|
+| `{ venues }` | one HTTP request, no venue touched | the best price on venues you can trade |
+| `{ venues, trackBalances: true }` | reads each wallet once, then one request | the best price **you can actually fund** |
+
+There is deliberately no setting in between. A router that half-knows your balances is worse than
+one that knows none of them, which is also why there is no expiry to tune: the holdings are either
+managed or they are not.
+
+With `trackBalances`, the wallets are read **once and cached**, exactly as `loadMarkets` caches, so
+`fetchRoute` stays a single HTTP request however often you call it. `loadBalances ()` primes that
+cache at start-up and `loadBalances (true)` refreshes it — but you rarely need either, because a
+live `execute` **drops the cache itself**. Placing an order is precisely what makes the cached
+holdings wrong, and it is dropped *before* dispatch: a run that throws half way through has still
+moved money. A rehearsal reaches no venue and keeps the cache.
+
+Want real-time holdings instead? Drive it yourself — `watchBalance ()` on your own pro instances,
+then `router.invalidateBalances ()`. The router never opens a socket you did not open.
 
 Anything you pass at the call site wins: your own `exchanges`, your own `balances`, your own
 venues argument to `execute`.

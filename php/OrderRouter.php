@@ -174,6 +174,13 @@ class OrderRouter {
         //  so a live execute drops it.
         $this->balancesCache = '';
         $this->balancesLoaded = false;
+        //  Whether this router manages balances at all. TWO decisions used to ride on `venues`: where
+        //  you can trade, and what you hold. The first is a filter - free, and it cannot go stale. The
+        //  second costs an authenticated call per venue and made one bad key enough to kill a quote.
+        //  So the filter is always on and the wallet reads are a mode you ask for. There is
+        //  deliberately no middle setting: a router that half-knows your balances is worse than one
+        //  that knows none of them.
+        $this->trackBalances = $this->boolAt($config, 'trackBalances', false);
         $this->timeoutMs = $this->numberAt($config, 'timeoutMs', self::DEFAULT_TIMEOUT_MS);
         $maxNotionalUsd = $this->numberAt($config, 'maxNotionalUsd', self::NO_CAP);
         if ($maxNotionalUsd < 0) {
@@ -626,7 +633,7 @@ class OrderRouter {
             if (!isset($merged['exchanges'])) {
                 $merged['exchanges'] = implode(',', $storedIds);
             }
-            if (!isset($merged['balances'])) {
+            if ($this->trackBalances && !isset($merged['balances'])) {
                 $merged['balances'] = $this->loadBalances();
             }
             $params = $merged;
@@ -1103,7 +1110,8 @@ class OrderRouter {
      * @return string the rendered balances string, empty when the router holds no venues
      */
     public function loadBalances($reload = false) {
-        if (count($this->venues) === 0) {
+        if (!$this->trackBalances || count($this->venues) === 0) {
+            //  not this router's job: it was not asked to manage balances
             return '';
         }
         if ($this->balancesLoaded && !$reload) {

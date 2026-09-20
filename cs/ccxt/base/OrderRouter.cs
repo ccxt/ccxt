@@ -176,6 +176,14 @@ public class OrderRouter
 
     private bool balancesLoaded = false;
 
+    //  Whether this router manages balances at all. TWO decisions used to ride on `venues`: where
+    //  you can trade, and what you hold. The first is a filter - free, and it cannot go stale. The
+    //  second costs an authenticated call per venue and made one bad key enough to kill a quote.
+    //  So the filter is always on and the wallet reads are a mode you ask for. There is
+    //  deliberately no middle setting: a router that half-knows your balances is worse than one
+    //  that knows none of them.
+    public bool trackBalances { get; private set; }
+
     public double timeoutMs { get; private set; }
 
     public double maxNotionalUsd { get; private set; }
@@ -220,6 +228,7 @@ public class OrderRouter
         this.baseUrl = url;
         //  The venues this router trades through, held once instead of passed to every call.
         this.venues = this.VenuesAt(config, "venues");
+        this.trackBalances = this.BoolAt(config, "trackBalances", false);
         this.timeoutMs = this.NumberAt(config, "timeoutMs", DefaultTimeoutMs);
         var configuredCap = this.NumberAt(config, "maxNotionalUsd", NoCap);
         if (configuredCap < 0)
@@ -776,7 +785,7 @@ public class OrderRouter
             {
                 merged["exchanges"] = string.Join(",", storedIds);
             }
-            if (!merged.ContainsKey("balances") || merged["balances"] == null)
+            if (this.trackBalances && (!merged.ContainsKey("balances") || merged["balances"] == null))
             {
                 merged["balances"] = await this.LoadBalances();
             }
@@ -1492,8 +1501,9 @@ public class OrderRouter
     /// </summary>
     public async Task<string> LoadBalances(bool reload = false)
     {
-        if (this.venues.Count == 0)
+        if (!this.trackBalances || this.venues.Count == 0)
         {
+            //  not this router's job: it was not asked to manage balances
             return "";
         }
         if (this.balancesLoaded && !reload)

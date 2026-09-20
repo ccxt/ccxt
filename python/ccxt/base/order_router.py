@@ -203,6 +203,13 @@ class OrderRouter:
         # wrong, so a live execute drops it.
         self.balances_cache = ''
         self.balances_loaded = False
+        # Whether this router manages balances at all. TWO decisions used to ride on `venues`: where
+        # you can trade, and what you hold. The first is a filter - free, and it cannot go stale. The
+        # second costs an authenticated call per venue and made one bad key enough to kill a quote.
+        # So the filter is always on and the wallet reads are a mode you ask for. There is
+        # deliberately no middle setting: a router that half-knows your balances is worse than one
+        # that knows none of them.
+        self.track_balances = self.bool_at(config, 'trackBalances', False)
         self.timeout_ms = self.number_at(config, 'timeoutMs', OrderRouter.DEFAULT_TIMEOUT_MS)
         max_notional_usd = self.number_at(config, 'maxNotionalUsd', OrderRouter.NO_CAP)
         if max_notional_usd < 0:
@@ -567,7 +574,7 @@ class OrderRouter:
                 merged[key] = params[key]
             if merged.get('exchanges') is None:
                 merged['exchanges'] = ','.join(stored_ids)
-            if merged.get('balances') is None:
+            if self.track_balances and merged.get('balances') is None:
                 merged['balances'] = self.load_balances()
             params = merged
         # HOLDINGS NEVER TRAVEL IN A URL. The service scrubs balances out of its own
@@ -948,7 +955,8 @@ class OrderRouter:
         :param bool [reload]: True re-reads the wallets even when they are already cached
         :returns str: the rendered balances string, empty when the router holds no venues
         """
-        if len(self.venues) == 0:
+        if not self.track_balances or len(self.venues) == 0:
+            # not this router's job: it was not asked to manage balances
             return ''
         if self.balances_loaded and not reload:
             return self.balances_cache

@@ -241,6 +241,12 @@ pub struct OrderRouter {
     //  HTTP request and must stay that way. Placing an order is what makes balances wrong,
     //  so a live execute drops it. A Mutex because fetch_route takes &self.
     balances_cache: std::sync::Mutex<Option<String>>,
+
+    //  Whether this router manages balances at all. TWO decisions used to ride on `venues`:
+    //  where you can trade, and what you hold. The first is a filter - free, and it cannot go
+    //  stale. The second costs an authenticated call per venue and made one bad key enough to
+    //  kill a quote. So the filter is always on and the wallet reads are a mode you ask for.
+    track_balances: bool,
 }
 
 // ---------------------------------------------------------------------------
@@ -579,6 +585,7 @@ impl OrderRouter {
             on_step: None,
             venues: std::collections::BTreeMap::new(),
             balances_cache: std::sync::Mutex::new(None),
+            track_balances: false,
         };
         // The service dropped API keys in favour of per-IP rate limiting, so an empty key is
         // the normal case and must not error. A key supplied anyway is CARRIED rather than
@@ -610,6 +617,7 @@ impl OrderRouter {
             on_step: None,
             venues: std::collections::BTreeMap::new(),
             balances_cache: std::sync::Mutex::new(None),
+            track_balances: false,
         })
     }
 
@@ -629,6 +637,13 @@ impl OrderRouter {
     /// is a setter in Rust and a constructor key everywhere else.
     pub fn set_venues(&mut self, venues: std::collections::BTreeMap<String, Box<dyn RouterVenue>>) {
         self.venues = venues;
+    }
+
+    /// Turns balance tracking on or off. Off (the default), fetch_route never touches a venue
+    /// and stays a single HTTP request; on, it routes on what you can actually fund.
+    pub fn set_track_balances(&mut self, track: bool) {
+        self.track_balances = track;
+        self.invalidate_balances();
     }
 
     /// Removes the stored venues, so fetch_route stops filtering and funding on them.
@@ -1996,7 +2011,7 @@ impl OrderRouter {
                 let ids: Vec<String> = self.venues.keys().cloned().collect();
                 map.insert("exchanges".into(), Value::Str(ids.join(",")));
             }
-            if field(params, "balances").is_none() {
+            if self.track_balances && field(params, "balances").is_none() {
                 map.insert("balances".into(), Value::Str(self.load_balances(false).await?));
             }
             owned_params = Value::Map(map);
@@ -3691,7 +3706,8 @@ impl OrderRouter {
     /// request. Called for you by `fetch_route`; call it yourself to prime the cache at
     /// start-up, or with `reload` to refresh it.
     pub async fn load_balances(&self, reload: bool) -> RouterResult<String> {
-        if self.venues.is_empty() {
+        if !self.track_balances || self.venues.is_empty() {
+            //  not this router's job: it was not asked to manage balances
             return Ok(String::new());
         }
         if !reload {

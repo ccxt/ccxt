@@ -124,6 +124,8 @@ class OrderRouter {
      * @param {object} config client configuration
      * @param {string} [config.apiKey] optional. The router service is public and rate-limits by IP, so no key is needed; one supplied here is still sent as the x-api-key header, which a keyless server ignores
      * @param {string} [config.baseUrl] router base url, defaults to https://docs.ccxt.com/router/api
+     * @param {object} [config.venues] exchangeId to a ccxt exchange instance. Routes are filtered to these, and execute sends orders to them
+     * @param {bool} [config.trackBalances] read those venues' wallets and route on what you can actually fund, default false. Off, fetchRoute never touches a venue and stays a single HTTP request
      * @param {int} [config.timeoutMs] request timeout in milliseconds, defaults to 30000
      * @param {float} [config.maxNotionalUsd] optional per-trade USD notional guardrail. Omitted or 0 means NO cap and no notional check at all; any positive value is honoured exactly, never clamped
      * @returns {OrderRouter} a router client
@@ -147,6 +149,7 @@ class OrderRouter {
         this.venues = this.dictAt(config, 'venues');
         this.balancesCache = '';
         this.balancesLoaded = false;
+        this.trackBalances = this.boolAt(config, 'trackBalances', false);
         this.timeoutMs = this.numberAt(config, 'timeoutMs', OrderRouter.DEFAULT_TIMEOUT_MS);
         const maxNotionalUsd = this.numberAt(config, 'maxNotionalUsd', OrderRouter.NO_CAP);
         if (maxNotionalUsd < 0) {
@@ -524,7 +527,7 @@ class OrderRouter {
             if (merged['exchanges'] === undefined || merged['exchanges'] === null) {
                 merged['exchanges'] = storedIds.join(',');
             }
-            if (merged['balances'] === undefined || merged['balances'] === null) {
+            if (this.trackBalances && (merged['balances'] === undefined || merged['balances'] === null)) {
                 merged['balances'] = await this.loadBalances();
             }
             params = merged;
@@ -1231,7 +1234,8 @@ class OrderRouter {
      * @returns {string} the rendered balances string, empty when the router holds no venues
      */
     async loadBalances(reload = false) {
-        if (Object.keys(this.venues).length === 0) {
+        if (!this.trackBalances || Object.keys(this.venues).length === 0) {
+            //  not this router's job: it was not asked to manage balances
             return '';
         }
         if (this.balancesLoaded && !reload) {

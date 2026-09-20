@@ -691,12 +691,36 @@ function twoHopRoute (): any {
     };
 }
 
+test ('venues alone filter but never read a wallet: balance tracking is a mode you ask for', async () => {
+    //  TWO decisions, and they were riding on one config key. Handing the router your venues
+    //  says where you can trade — a filter that costs nothing and cannot go stale. It does NOT
+    //  say "read my wallets", which costs an authenticated call per venue and goes stale the
+    //  moment anything moves. Implicit balances also meant one bad key killed a whole quote.
+    const venue = new StubVenue ('stub');
+    const filtering = new OrderRouter ({ 'venues': { 'stub': venue } });
+    const stub = stubRouteFetch ();
+    let sent = '';
+    try {
+        await filtering.fetchRoute ('USDT', 'BTC', { 'amountIn': 20 });
+        sent = stub.lastUrl ();
+    } finally {
+        stub.restore ();
+    }
+    assert.ok (sent.indexOf ('exchanges=stub') >= 0, 'the filter is always applied: ' + sent);
+    assert.ok (sent.indexOf ('balances') < 0, 'and no holdings were sent: ' + sent);
+    assert.deepStrictEqual (venue.calls, [], 'not one wallet was read');
+    //  loadBalances is inert in this mode: the router does not manage balances at all
+    const loaded = await filtering.loadBalances ();
+    assert.strictEqual (loaded, '', 'loadBalances is a no-op when the router is not tracking');
+    assert.deepStrictEqual (venue.calls, [], 'still no wallet read');
+});
+
 test ('the balances behind a route are read once and cached, so a quote is one call', async () => {
     //  fetchRoute is ONE HTTP request. Reading every venue's wallet on every quote turned it
     //  into one request plus a wallet read per venue, which is the wrong shape for something
     //  called in a loop. Balances are loaded once and cached, exactly as loadMarkets caches.
     const venue = new StubVenue ('stub');
-    const held = new OrderRouter ({ 'venues': { 'stub': venue } });
+    const held = new OrderRouter ({ 'venues': { 'stub': venue }, 'trackBalances': true });
     const stub = stubRouteFetch ();
     try {
         await held.fetchRoute ('USDT', 'BTC', { 'amountIn': 20 });
@@ -715,7 +739,7 @@ test ('loadBalances refreshes on demand, and a live execute invalidates the cach
     //  reaches a venue therefore drops the cache, so the next quote cannot be funded against
     //  holdings that predate the trade. A rehearsal touches nothing and keeps it.
     const venue = new StubVenue ('stub');
-    const held = new OrderRouter ({ 'venues': { 'stub': venue } });
+    const held = new OrderRouter ({ 'venues': { 'stub': venue }, 'trackBalances': true });
     const stub = stubRouteFetch ();
     let route: Dict = {};
     try {
@@ -753,7 +777,7 @@ test ('venues given to the constructor filter the route and fund it, and execute
     //  name a venue you hold no keys for; it should be funded from what you actually hold; and
     //  the orders go to those same instances. A call-site argument still wins over all three.
     const venue = new StubVenue ('stub');
-    const held = new OrderRouter ({ 'venues': { 'stub': venue } });
+    const held = new OrderRouter ({ 'venues': { 'stub': venue }, 'trackBalances': true });
     const sent: Dict[] = [];
     const realFetch = globalThis.fetch;
     (globalThis as any).fetch = async (url: any, init: any) => {
@@ -1471,13 +1495,15 @@ test ('fetchRouteWithBalances trims to the router 64-entry cap, dropping the sma
 function stubRouteFetch () {
     const realFetch = globalThis.fetch;
     let count = 0;
-    (globalThis as any).fetch = async () => {
+    let lastUrl = '';
+    (globalThis as any).fetch = async (url: any) => {
         count = count + 1;
+        lastUrl = (url === undefined) ? '' : url.toString ();
         const answer = oneLegRoute ('buy', 'BTC', 'USDT', 0.2, 100);
         answer['balancesApplied'] = 'stub.BTC:1,stub.USDT:1000';
         return { 'ok': true, 'status': 200, 'headers': { 'get': () => null }, 'text': async () => JSON.stringify (answer) } as any;
     };
-    return { 'restore': () => { globalThis.fetch = realFetch; }, 'count': () => count };
+    return { 'restore': () => { globalThis.fetch = realFetch; }, 'count': () => count, 'lastUrl': () => lastUrl };
 }
 
 function stubFetch (status: number, bodyText: string, headers: any = {}) {
