@@ -8791,7 +8791,7 @@ plan can be inspected, logged, diffed and tested before anything is placed.
 | `fetchRouteWithBalances (from, to, venues, params)` | HTTP + venues | reads live balances from the supplied exchange instances first, so the route is one you can actually fund |
 | `buildExecutionPlan (route, options)` | none | flattens hops and legs into an ordered list of concrete orders |
 | `checkExecutionPlanSafety (plan, markets, options)` | none | checks each step against per-venue market rules and the hard per-trade USD notional cap |
-| `execute (plan, venues, options)` | **places orders** | the only impure method |
+| `execute (routeOrPlan, venues, options)` | **places orders** | the only impure method. Takes a route as well as a plan, building the plan itself when given one |
 | `reconcileExecutionStep (plan, i, realisedOut)` | none | compares what a step produced against what the route predicted; resizes downstream hops, or halts |
 | `buildUnwindPlan (report)` | none | for a halted run, the reverse orders that sell each stranded residual back toward the from-asset |
 
@@ -8800,9 +8800,28 @@ plan can be inspected, logged, diffed and tested before anything is placed.
 `execute` defaults to `dry_run`, and **`options.live !== true` forces `dry_run` regardless of the
 strategy requested** — a call that looks live but forgot the flag places nothing.
 
+**The whole pipeline is two calls.** `execute` accepts the route itself, and does the rest: it
+builds the plan, loads each venue's markets if they are not loaded, runs `checkExecutionPlanSafety`
+and **throws rather than place anything** when a violation is blocking. A refusal a caller can
+forget to read is not a refusal, so it is not returned for inspection — it is raised.
+
 ```javascript
-const plan = router.buildExecutionPlan (route, {});
-const violations = router.checkExecutionPlanSafety (plan, markets, {});
+const route = await router.fetchRoute ('USDT', 'BTC', { 'amountIn': 1000 });
+const report = await router.execute (route, { 'binance': binance, 'kraken': kraken }, {
+    'strategy': 'sequential',
+    'live': true,
+    'usdRates': { 'USDT': 1 },
+});
+```
+
+The stages in between stay public, and take the same options, for when you want to see or change
+what will be placed before it is — log the plan, diff it, veto it, or hand-assemble one of your own:
+
+```javascript
+const plan = router.buildExecutionPlan (route, { 'slippageBps': 50 });
+const violations = router.checkExecutionPlanSafety (plan, markets, { 'maxNotionalUsd': 25 });
+//  blocking: true means do not send this; blocking: false is advisory, and
+//  amount_precision / price_precision are advisory on almost every real route
 if (violations.length === 0) {
     const report = await router.execute (plan, { 'binance': binance, 'kraken': kraken }, {
         'strategy': 'sequential',
@@ -8811,6 +8830,9 @@ if (violations.length === 0) {
     });
 }
 ```
+
+When a route is passed, `buildExecutionPlan`'s own options — `slippageBps` and
+`reconcileToleranceRatio` — travel in the same options dict as the execution options.
 
 ### Strategies
 

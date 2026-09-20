@@ -984,17 +984,16 @@ if err != nil {
 // exactly one of amountIn / amountOut
 route, err := router.FetchRoute("USDT", "BTC", map[string]any{"amountIn": 1000.0})
 
-// routing and executing are separate steps; everything between is PURE (no I/O)
-plan, err := router.BuildExecutionPlan(route, nil)   // errors when the route is incoherent
-violations := router.CheckExecutionPlanSafety(plan, markets, nil)
-if len(violations) == 0 {
-    venues := map[string]ccxt.IExchange{"binance": binance, "kraken": kraken}
-    report, err := router.Execute(plan, venues, map[string]any{
-        "strategy":  "sequential",
-        "live":      true,
-        "usdRates":  map[string]any{"USDT": 1.0},
-    })
-}
+// Execute takes the route directly: it builds the plan, loads each venue's markets and
+// runs the safety check itself, refusing to place anything on a blocking violation
+venues := map[string]ccxt.IExchange{"binance": binance, "kraken": kraken}
+report, err := router.Execute(route, venues, map[string]any{
+    "strategy":  "sequential",
+    "live":      true,
+    "usdRates":  map[string]any{"USDT": 1.0},
+})
+// want to see or change the plan first? the steps in between are public and PURE (no I/O):
+// BuildExecutionPlan(route, nil) then CheckExecutionPlanSafety(plan, markets, nil)
 ```
 
 Go note: the typed `Order` carries a single `Fee` and no `Fees` list, so on a venue that reports

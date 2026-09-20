@@ -719,6 +719,27 @@ def test_dry_run_is_the_default():
         assert other.calls == []
 
 
+@test('execute takes a route directly, so the simple path is fetch_route then execute')
+def test_execute_takes_a_route_directly():
+    # build_execution_plan is PURE and derives entirely from the route, so making the
+    # caller run it was ceremony. It stays public for when you want to inspect or change
+    # the plan; you just no longer have to.
+    route = one_leg_route('buy', 'BTC', 'USDT', 0.2, 100)
+    via_route = StubVenue('stub')
+    from_route = router.execute(route, {'stub': via_route}, {
+        'strategy': 'sequential', 'live': True, 'usdRates': {'USDT': 1}, 'idempotencyKey': 'via-route',
+    })
+    via_plan = StubVenue('stub')
+    plan = router.build_execution_plan(route, {})
+    from_plan = router.execute(plan, {'stub': via_plan}, {
+        'strategy': 'sequential', 'live': True, 'usdRates': {'USDT': 1}, 'idempotencyKey': 'via-plan',
+    })
+    assert len(from_route['steps']) == len(from_plan['steps'])
+    assert from_route['steps'][0]['status'] == 'filled'
+    assert from_plan['steps'][0]['status'] == 'filled'
+    assert via_route.calls == via_plan.calls, 'the same orders reach the venue either way'
+
+
 @test('execute refuses to go live without a way to value the trade in USD — when a cap is set')
 def test_live_needs_usd_rates():
     plan = router.build_execution_plan(one_leg_route('buy', 'BTC', 'USDT', 0.2, 100), {})

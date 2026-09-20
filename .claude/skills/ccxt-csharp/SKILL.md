@@ -970,18 +970,16 @@ var router = new ccxt.OrderRouter(new dict());
 // exactly one of amountIn / amountOut
 var route = await router.FetchRoute("USDT", "BTC", new dict() { { "amountIn", 1000 } });
 
-// routing and executing are separate steps; everything between is PURE (no I/O)
-var plan = router.BuildExecutionPlan(route, new dict());
-var violations = router.CheckExecutionPlanSafety(plan, markets, new dict());
-if (violations.Count == 0)
-{
-    var venues = new Dictionary<string, Exchange>() { { "binance", binance }, { "kraken", kraken } };
-    var report = await router.Execute(plan, venues, new dict() {
-        { "strategy", "sequential" },
-        { "live", true },
-        { "usdRates", new dict() { { "USDT", 1 } } },
-    });
-}
+// Execute takes the route directly: it builds the plan, loads each venue's markets and
+// runs the safety check itself, refusing to place anything on a blocking violation
+var venues = new Dictionary<string, Exchange>() { { "binance", binance }, { "kraken", kraken } };
+var report = await router.Execute(route, venues, new dict() {
+    { "strategy", "sequential" },
+    { "live", true },
+    { "usdRates", new dict() { { "USDT", 1 } } },
+});
+// want to see or change the plan first? the steps in between are public and PURE (no I/O):
+// BuildExecutionPlan(route, new dict()) then CheckExecutionPlanSafety(plan, markets, new dict())
 ```
 
 `execute` defaults to `dry_run`, and **anything other than an explicit live flag forces `dry_run`

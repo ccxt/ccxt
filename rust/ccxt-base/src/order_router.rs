@@ -3365,6 +3365,18 @@ impl OrderRouter {
         venues: &std::collections::BTreeMap<String, Box<dyn RouterVenue>>,
         options: &Value,
     ) -> RouterResult<Value> {
+        //  A ROUTE is accepted here as well as a plan. buildExecutionPlan is pure and derives
+        //  entirely from the route, so requiring the caller to run it first was ceremony: two
+        //  calls that can only ever happen in that order, with nothing to do in between unless
+        //  you actually want to inspect the plan. Told apart by shape rather than by a flag - a
+        //  route carries `hops`, a plan carries `steps`, and nothing carries both.
+        let built_from_route;
+        let plan = if self.list_at(plan, "steps").is_empty() && !self.list_at(plan, "hops").is_empty() {
+            built_from_route = self.build_execution_plan(plan, options)?;
+            &built_from_route
+        } else {
+            plan
+        };
         let requested_strategy = self.string_at(options, "strategy", "dry_run");
         if !KNOWN_STRATEGIES.contains(&requested_strategy.as_str()) {
             return Err(bad_request(&format!(

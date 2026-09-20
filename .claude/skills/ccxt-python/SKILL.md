@@ -1064,15 +1064,15 @@ router = ccxt.OrderRouter()
 route = router.fetch_route('USDT', 'BTC', {'amountIn': 1000})
 print(route['effectiveRate'], route['impactBps'], route['fillRatio'])
 
-# routing and executing are separate steps; everything between is PURE (no I/O)
-plan = router.build_execution_plan(route, {})
-violations = router.check_execution_plan_safety(plan, markets, {})
-if not violations:
-    report = router.execute(plan, {'binance': binance, 'kraken': kraken}, {
-        'strategy': 'sequential',
-        'live': True,
-        'usdRates': {'USDT': 1},
-    })
+# execute takes the route directly: it builds the plan, loads each venue's markets and
+# runs the safety check itself, refusing to place anything on a blocking violation
+report = router.execute(route, {'binance': binance, 'kraken': kraken}, {
+    'strategy': 'sequential',
+    'live': True,
+    'usdRates': {'USDT': 1},
+})
+# want to see or change the plan first? the steps in between are public and PURE (no I/O):
+# build_execution_plan(route, {}) then check_execution_plan_safety(plan, markets, {})
 ```
 
 `execute` defaults to `dry_run`, and **anything other than an explicit live flag forces `dry_run`

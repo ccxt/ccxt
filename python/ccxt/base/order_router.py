@@ -1701,6 +1701,13 @@ class OrderRouter:
         :param callable [options['onStep']]: called after each step completes and reconciles, never mid-order, with one event dict describing that step. Return 'halt' to stop the route cleanly(haltReason becomes halted_by_on_step); any other value continues. It can only STOP a route, never resume one already halted. Do NO network I/O here — it sits between orders on the money path. A hook that raises is recorded as on_step_hook_failed and the run continues, because losing the report would destroy the only account of orders that are already live
         :returns dict: an execution report with per-step results, openOrders, errors and the halt verdict
         """
+        # A ROUTE is accepted here as well as a plan. buildExecutionPlan is pure and derives
+        # entirely from the route, so requiring the caller to run it first was ceremony: two
+        # calls that can only ever happen in that order, with nothing to do in between unless
+        # you actually want to inspect the plan. Told apart by shape rather than by a flag - a
+        # route carries `hops`, a plan carries `steps`, and nothing carries both.
+        if len(self.list_at(plan, 'steps')) == 0 and len(self.list_at(plan, 'hops')) > 0:
+            plan = self.build_execution_plan(plan, options)
         requested_strategy = self.string_at(options, 'strategy', 'dry_run')
         if requested_strategy not in KNOWN_STRATEGIES:
             raise BadRequest('OrderRouter: unknown execution strategy ' + requested_strategy)

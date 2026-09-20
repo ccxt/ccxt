@@ -7,10 +7,16 @@
 // to your actual size, fee-adjusted, and split across venues when that beats
 // any single one.
 //
-// This example PLACES NOTHING. It asks for a recommendation, prints it, then
-// walks the rest of the pipeline — plan, safety check, execute — with execute
-// in its default dry_run, which makes not one call against a venue, not even a
-// read. See the comment on the execute() call for what turning it live costs.
+// THE WHOLE PIPELINE IS TWO CALLS: fetchRoute, then execute. execute takes the
+// route directly, and does the rest itself — building the plan, loading each
+// venue's markets, and checking every order against that venue's real rules
+// before anything is sent. The pieces are all public (buildExecutionPlan,
+// checkExecutionPlanSafety) for when you want to inspect or change what happens
+// in between; see order-router-custom-plan.ts. You just don't have to.
+//
+// This example PLACES NOTHING: execute defaults to dry_run, and anything short
+// of an explicit `live: true` stays a rehearsal, so a call that looks live but
+// forgot the flag places nothing.
 //
 // Usage:
 //   npm run tsBuild && node js/examples/ts/order-router.js
@@ -21,10 +27,9 @@ import ccxt from '../../js/ccxt.js';
 import type { Dict } from '../../js/src/base/types.js';
 
 async function main () {
-    const router = new ccxt.OrderRouter ({
-        // 'baseUrl': 'https://docs.ccxt.com/router/api',  // the default
-    });
+    const router = new ccxt.OrderRouter ();
 
+    // ---- 1. what is the cheapest way to do this? ---------------------------
     // Exactly one of amountIn or amountOut — never both, and never neither.
     // They are different book traversals, not a unit conversion: amountIn walks
     // until the money runs out, amountOut walks until the size is reached.
@@ -58,72 +63,31 @@ async function main () {
         }
     }
 
-    // ---- from a route to orders -------------------------------------------
-    // Routing and executing are separate steps on purpose. Everything between
-    // them is PURE — no I/O, same input same output in all six languages — so a
-    // plan can be inspected, logged and diffed before anything is placed.
-
-    // Flattens the hops and legs above into an ordered list of concrete orders.
-    // The plan carries the route's requestId, which is what a live run uses as
-    // its idempotency identity; see the execute() call below.
-    const plan = router.buildExecutionPlan (route, {});
-    console.log ('plan            ', plan['steps'].length, 'order(s), requestId', plan['requestId']);
-
-    // execute() needs the exchange instances themselves, keyed by the id the
-    // plan names. Only the venues this plan actually uses are constructed.
+    // ---- 2. do it ----------------------------------------------------------
+    // execute needs the exchange instances themselves, keyed by the id the route
+    // names — that part is yours, because these are the objects that will carry
+    // your API credentials. Everything else it derives.
     const venues: Dict = {};
-    const markets: Dict = {};
-    const steps = plan['steps'];
-    for (let i = 0; i < steps.length; i++) {
-        const exchangeId = steps[i]['exchangeId'];
-        if (venues[exchangeId] === undefined) {
-            const venue = new (ccxt as Dict)[exchangeId] ({});
-            // The one network cost added here: the safety check below is only
-            // as good as the market rules it reads. dry_run itself needs none.
-            await venue.loadMarkets ();
-            venues[exchangeId] = venue;
-            markets[exchangeId] = venue.markets;
+    for (let i = 0; i < hops.length; i++) {
+        const legs = hops[i]['legs'];
+        for (let j = 0; j < legs.length; j++) {
+            const exchangeId = legs[j]['exchangeId'];
+            if (venues[exchangeId] === undefined) {
+                venues[exchangeId] = new (ccxt as Dict)[exchangeId] ({});
+            }
         }
     }
 
-    // Checks every step against that venue's REAL market rules — minimum
-    // amount, minimum cost, precision — plus the per-trade notional cap. This
-    // is where a size that looked fine in the route turns out to be untradeable.
-    // The cap is opt-in and honoured exactly as passed; omit it and none runs.
-    const violations = router.checkExecutionPlanSafety (plan, markets, {
-        'maxNotionalUsd': 25,
-        'usdRates': { 'USDT': 1 },
-    });
-    // A violation is not automatically fatal. `blocking: true` means do not send this
-    // plan; `blocking: false` is advisory — the commonest being amount_precision and
-    // price_precision, which simply say the router's unrounded numbers need putting on
-    // the market's tick before they go out. Treating every violation as a refusal makes
-    // the rest of this pipeline unreachable on a perfectly ordinary route.
-    const blocking = [];
-    for (let i = 0; i < violations.length; i++) {
-        if (violations[i]['blocking']) {
-            blocking.push (violations[i]);
-        } else {
-            console.log ('advisory:', violations[i]['code'], '-', violations[i]['message']);
-        }
-    }
-    if (blocking.length > 0) {
-        console.log ('plan rejected before any venue was contacted:');
-        for (let i = 0; i < blocking.length; i++) {
-            console.log ('   ', blocking[i]);
-        }
-        await closeAll (venues);
-        return;
-    }
-
-    // THE default, and the reason this example is safe to run: anything short
-    // of an explicit `live: true` is a rehearsal, so a call that looks live but
-    // forgot the flag places nothing. Going live means real orders with real
-    // money — read the strategy table in wiki/Manual.md first, keep the
-    // notional cap on, and know that a live run also requires an identity so a
-    // re-run cannot re-place a filled order.
-    const report = await router.execute (plan, venues, {
+    // Going live means real orders with real money: set `live: true`, read the
+    // strategy table in wiki/Manual.md first, and keep maxNotionalUsd on. The
+    // cap is opt-in and honoured exactly as passed; usdRates is what lets it be
+    // evaluated at all. A live run also needs an identity, which the route's
+    // requestId supplies, so a re-run cannot re-place a filled order.
+    const report = await router.execute (route, venues, {
         'strategy': 'sequential',
+        'live': false,
+        'usdRates': { 'USDT': 1 },
+        'maxNotionalUsd': 25,
         //  Called after each step completes and reconciles, never mid-order. Return 'halt' to
         //  stop the route; anything else continues. It can only stop a route, never resume one
         //  the reconciliation already halted. Do no network I/O here: it sits between orders.
@@ -131,9 +95,6 @@ async function main () {
             console.log ('  step', event['stepIndex'], event['status'], '->', event['outAmount'], event['outAsset']);
             return '';
         },
-        'live': false,
-        'usdRates': { 'USDT': 1 },
-        'maxNotionalUsd': 25,
     });
 
     console.log ('strategy        ', report['strategy'], '(requested', report['requestedStrategy'] + ')');

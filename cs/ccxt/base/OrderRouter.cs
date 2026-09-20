@@ -2521,6 +2521,15 @@ public class OrderRouter
     /// </returns>
     public async Task<dict> Execute(dict plan, Dictionary<string, Exchange> venues, dict options = null)
     {
+        //  A ROUTE is accepted here as well as a plan. buildExecutionPlan is pure and derives
+        //  entirely from the route, so requiring the caller to run it first was ceremony: two
+        //  calls that can only ever happen in that order, with nothing to do in between unless
+        //  you actually want to inspect the plan. Told apart by shape rather than by a flag - a
+        //  route carries `hops`, a plan carries `steps`, and nothing carries both.
+        if (this.ListAt(plan, "steps").Count == 0 && this.ListAt(plan, "hops").Count > 0)
+        {
+            plan = this.BuildExecutionPlan(plan, options);
+        }
         var requestedStrategy = this.StringAt(options, "strategy", "dry_run");
         if (!KNOWN_STRATEGIES.Contains(requestedStrategy))
         {

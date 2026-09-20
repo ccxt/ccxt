@@ -2043,6 +2043,14 @@ class OrderRouter {
 
     public function execute($plan, $venues, $options = array()) {
         $this->assertSyncVenues($venues);
+        //  A ROUTE is accepted here as well as a plan. buildExecutionPlan is pure and derives
+        //  entirely from the route, so requiring the caller to run it first was ceremony: two
+        //  calls that can only ever happen in that order, with nothing to do in between unless
+        //  you actually want to inspect the plan. Told apart by shape rather than by a flag - a
+        //  route carries `hops`, a plan carries `steps`, and nothing carries both.
+        if (count($this->listAt($plan, 'steps')) === 0 && count($this->listAt($plan, 'hops')) > 0) {
+            $plan = $this->buildExecutionPlan($plan, $options);
+        }
         $requestedStrategy = $this->stringAt($options, 'strategy', 'dry_run');
         if (!in_array($requestedStrategy, self::KNOWN_STRATEGIES, true)) {
             throw new BadRequest('OrderRouter: unknown execution strategy ' . $requestedStrategy);

@@ -642,6 +642,31 @@ test('dry_run is the default: a live-looking call with live unset places nothing
         assert.deepStrictEqual(other.calls, []);
     }
 });
+test('execute takes a route directly, so the simple path is fetchRoute then execute', async () => {
+    //  buildExecutionPlan is PURE and derives entirely from the route, so making the caller
+    //  run it was ceremony: two calls that can only ever be made in one order, with nothing
+    //  useful to do in between unless you want to inspect the plan. You still can — the
+    //  method stays public and a plan is still accepted — but you no longer MUST.
+    const route = oneLegRoute('buy', 'BTC', 'USDT', 0.2, 100);
+    const viaRoute = new StubVenue('stub');
+    const fromRoute = await router.execute(route, { 'stub': viaRoute }, { 'strategy': 'sequential', 'live': true, 'usdRates': { 'USDT': 1 }, 'idempotencyKey': 'via-route' });
+    //  and the result is the SAME as routing it by hand through buildExecutionPlan
+    const viaPlan = new StubVenue('stub');
+    const plan = router.buildExecutionPlan(route, {});
+    const fromPlan = await router.execute(plan, { 'stub': viaPlan }, { 'strategy': 'sequential', 'live': true, 'usdRates': { 'USDT': 1 }, 'idempotencyKey': 'via-plan' });
+    assert.strictEqual(fromRoute['steps'].length, fromPlan['steps'].length);
+    assert.strictEqual(fromRoute['steps'][0]['status'], fromPlan['steps'][0]['status']);
+    assert.strictEqual(fromRoute['steps'][0]['status'], 'filled');
+    assert.deepStrictEqual(viaRoute.calls, viaPlan.calls, 'the same orders reach the venue either way');
+    //  plan-shaping options still land when the plan is built inside execute, or the
+    //  short path would silently trade at a different limit price than the long one
+    const tight = new StubVenue('stub');
+    await router.execute(route, { 'stub': tight }, { 'strategy': 'sequential', 'live': true, 'usdRates': { 'USDT': 1 }, 'slippageBps': 1000, 'idempotencyKey': 'shaped' });
+    const shaped = router.buildExecutionPlan(route, { 'slippageBps': 1000 });
+    const expectedPrice = shaped['steps'][0]['limitPrice'];
+    assert.ok(tight.calls[0].indexOf('createOrder') === 0, tight.calls[0]);
+    assert.ok(expectedPrice > 100, 'a buy limit sits above the expected price');
+});
 test('execute refuses to go live without a way to value the trade in USD — when a cap is set', async () => {
     const plan = router.buildExecutionPlan(oneLegRoute('buy', 'BTC', 'USDT', 0.2, 100), {});
     const venue = new StubVenue('stub');

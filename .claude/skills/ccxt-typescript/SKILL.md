@@ -1000,16 +1000,15 @@ const router = new ccxt.OrderRouter ();
 const route = await router.fetchRoute ('USDT', 'BTC', { 'amountIn': 1000 });
 console.log (route['effectiveRate'], route['impactBps'], route['fillRatio']);
 
-//  routing and executing are separate steps; everything between is PURE (no I/O)
-const plan = router.buildExecutionPlan (route, {});
-const violations = router.checkExecutionPlanSafety (plan, markets, {});
-if (violations.length === 0) {
-    const report = await router.execute (plan, { 'binance': binance, 'kraken': kraken }, {
-        'strategy': 'sequential',
-        'live': true,
-        'usdRates': { 'USDT': 1 },
-    });
-}
+//  execute takes the route directly: it builds the plan, loads each venue's markets and
+//  runs the safety check itself, refusing to place anything on a blocking violation
+const report = await router.execute (route, { 'binance': binance, 'kraken': kraken }, {
+    'strategy': 'sequential',
+    'live': true,
+    'usdRates': { 'USDT': 1 },
+});
+//  want to see or change the plan first? the steps in between are public and PURE (no I/O):
+//  buildExecutionPlan (route, {}) then checkExecutionPlanSafety (plan, markets, {})
 ```
 
 `execute` defaults to `dry_run`, and **anything other than an explicit live flag forces `dry_run`

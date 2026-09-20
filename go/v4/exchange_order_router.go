@@ -2029,6 +2029,18 @@ func (this *OrderRouter) RecordExecutedPlan(planId string) {
 }
 
 func (this *OrderRouter) Execute(plan map[string]any, venues map[string]IExchange, options map[string]any) (map[string]any, error) {
+	// A ROUTE is accepted here as well as a plan. buildExecutionPlan is pure and derives
+	// entirely from the route, so requiring the caller to run it first was ceremony: two
+	// calls that can only ever happen in that order, with nothing to do in between unless
+	// you actually want to inspect the plan. Told apart by shape rather than by a flag - a
+	// route carries `hops`, a plan carries `steps`, and nothing carries both.
+	if len(routerListAt(plan, "steps")) == 0 && len(routerListAt(plan, "hops")) > 0 {
+		built, buildErr := this.BuildExecutionPlan(plan, options)
+		if buildErr != nil {
+			return nil, buildErr
+		}
+		plan = built
+	}
 	requestedStrategy := routerStringAt(options, "strategy", "dry_run")
 	known := false
 	for i := 0; i < len(orderRouterKnownStrategies); i++ {

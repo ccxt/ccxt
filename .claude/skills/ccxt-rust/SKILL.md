@@ -970,8 +970,11 @@ use ccxt_base::Value;
 
 let router = OrderRouter::new(&Value::Map(config))?;
 let route = router.fetch_route("USDT", "BTC", &Value::Map(params)).await?;   // exactly one of amountIn / amountOut
-let plan = router.build_execution_plan(&route, &Value::Map(HashMap::new()))?;
-let report = router.execute(&plan, &venues, &options).await?;
+// execute takes the route directly: it builds the plan, loads each venue's markets and
+// runs the safety check itself, refusing to place anything on a blocking violation
+let report = router.execute(&route, &venues, &options).await?;
+// want to see or change the plan first? the steps in between are public and PURE (no I/O):
+// build_execution_plan(&route, ...) then check_execution_plan_safety(&plan, &markets, ...)
 ```
 
 Rust differs from the other five ports in two places, both forced by the language:

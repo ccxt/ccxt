@@ -961,6 +961,26 @@ function order_router_test_unwind_buy_is_fundable($router) {
 //  3. execute — stub venues only, and not one real order anywhere
 //  ---------------------------------------------------------------------------
 
+function order_router_test_execute_takes_a_route_directly($router) {
+    //  buildExecutionPlan is PURE and derives entirely from the route, so making the caller
+    //  run it was ceremony. It stays public for when you want to inspect or change the plan;
+    //  you just no longer have to.
+    $route = order_router_one_leg_route('buy', 'BTC', 'USDT', 0.2, 100);
+    $viaRoute = new OrderRouterStubVenue('stub');
+    $fromRoute = $router->execute($route, array('stub' => $viaRoute), array(
+        'strategy' => 'sequential', 'live' => true, 'usdRates' => array('USDT' => 1), 'idempotencyKey' => 'via-route',
+    ));
+    $viaPlan = new OrderRouterStubVenue('stub');
+    $plan = $router->buildExecutionPlan($route, array());
+    $fromPlan = $router->execute($plan, array('stub' => $viaPlan), array(
+        'strategy' => 'sequential', 'live' => true, 'usdRates' => array('USDT' => 1), 'idempotencyKey' => 'via-plan',
+    ));
+    order_router_assert(count($fromRoute['steps']) === count($fromPlan['steps']), 'the same number of steps either way');
+    order_router_assert($fromRoute['steps'][0]['status'] === 'filled', 'the route path filled');
+    order_router_assert($fromPlan['steps'][0]['status'] === 'filled', 'the plan path filled');
+    order_router_assert($viaRoute->calls === $viaPlan->calls, 'the same orders reach the venue either way');
+}
+
 function order_router_test_dry_run_is_the_default($router) {
     $plan = $router->buildExecutionPlan(order_router_one_leg_route('buy', 'BTC', 'USDT', 0.2, 100), array());
     $venue = new OrderRouterStubVenue('stub');
@@ -1835,6 +1855,7 @@ function test_order_router() {
         'streamUrl upgrades the scheme and refuses what /stream/route refuses' => 'ccxt\order_router_test_stream_url',
         'buildUnwindPlan is never automatic and never nets across venues' => 'ccxt\order_router_test_unwind_is_never_automatic',
         'a buy-side unwind order never spends more quote than the residual actually holds' => 'ccxt\order_router_test_unwind_buy_is_fundable',
+        'execute takes a route directly, so the simple path is fetchRoute then execute' => 'ccxt\order_router_test_execute_takes_a_route_directly',
         'dry_run is the default: a live-looking call with live unset places nothing' => 'ccxt\order_router_test_dry_run_is_the_default',
         'execute refuses to go live without a way to value the trade in USD — when a cap is set' => 'ccxt\order_router_test_execute_refuses_unvaluable',
         'execute refuses to go live above a cap the caller set' => 'ccxt\order_router_test_execute_refuses_above_cap',

@@ -972,16 +972,15 @@ $router = new \ccxt\OrderRouter();
 $route = $router->fetchRoute('USDT', 'BTC', array('amountIn' => 1000));
 echo $route['effectiveRate'], ' ', $route['impactBps'], ' ', $route['fillRatio'], "\n";
 
-// routing and executing are separate steps; everything between is PURE (no I/O)
-$plan = $router->buildExecutionPlan($route, array());
-$violations = $router->checkExecutionPlanSafety($plan, $markets, array());
-if (count($violations) === 0) {
-    $report = $router->execute($plan, array('binance' => $binance, 'kraken' => $kraken), array(
-        'strategy' => 'sequential',
-        'live' => true,
-        'usdRates' => array('USDT' => 1),
-    ));
-}
+// execute takes the route directly: it builds the plan, loads each venue's markets and
+// runs the safety check itself, refusing to place anything on a blocking violation
+$report = $router->execute($route, array('binance' => $binance, 'kraken' => $kraken), array(
+    'strategy' => 'sequential',
+    'live' => true,
+    'usdRates' => array('USDT' => 1),
+));
+// want to see or change the plan first? the steps in between are public and PURE (no I/O):
+// buildExecutionPlan($route, array()) then checkExecutionPlanSafety($plan, $markets, array())
 ```
 
 **This client is synchronous.** It refuses `ccxt\async\` and `ccxt\pro\` exchange instances

@@ -520,10 +520,12 @@ declare class OrderRouter {
      * @method
      * @name OrderRouter#execute
      * @description executes a plan against live exchange instances. THE ONLY IMPURE METHOD. dry_run is the default and options.live !== true forces dry_run regardless of the strategy requested, so a call that looks live but forgot the flag places nothing
-     * @param {object} plan a plan from buildExecutionPlan, or a caller-assembled plan of the same shape — this method never assumes the plan came from the routing service
+     * @param {object} plan a RouteResult from fetchRoute, a plan from buildExecutionPlan, or a caller-assembled plan of the same shape — this method never assumes it came from the routing service. A route is turned into a plan here, so the simple path is fetchRoute then execute; build the plan yourself when you want to inspect or change it first
      * @param {object} venues a dictionary of exchangeId to a ccxt exchange instance
      * @param {object} [options] execution options
      * @param {string} [options.strategy] dry_run, sequential, parallel_within_hop, limit_protected, best_effort or atomic_ish
+     * @param {float} [options.slippageBps] only when a route is passed: how far the limit sits from the expected price, default 25
+     * @param {float} [options.reconcileToleranceRatio] only when a route is passed: the shortfall ratio reconcileExecutionStep halts on, default 0.02
      * @param {bool} [options.live] must be exactly true for any order to be placed
      * @param {object} [options.usdRates] currency code to USD price, required when live because the notional cap cannot be enforced without it
      * @param {bool} [options.allowMarketOrders] permit a market order when the venue cannot do IOC, default false
