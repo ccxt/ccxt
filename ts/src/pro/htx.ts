@@ -2826,7 +2826,7 @@ export default class htx extends htxRest {
         }, market);
     }
 
-    getUrlByMarketType (type: any, isLinear: boolean = true, isPrivate: boolean = false, isFeed: boolean = false, isV5: boolean = false): Str {
+    getUrlByMarketType (type: any, isLinear = true, isPrivate = false, isFeed = false, isV5 = false): Str {
         const api = this.safeString (this.options, 'api', 'api');
         const hostname: Dict = { 'hostname': this.hostname };
         let hostnameURL: Str = undefined;
