@@ -351,8 +351,8 @@ export default class digifinex extends Exchange {
         currency: Str;
         rate: number;
         period: number;
-        timestamp: number;
-        datetime: string | undefined;
+        timestamp: undefined;
+        datetime: undefined;
         info: any;
     };
     parseBorrowRates(info: any[], codeKey: Str): Dict;

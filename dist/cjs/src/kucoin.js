@@ -9338,7 +9338,7 @@ class kucoin extends kucoin$1["default"] {
         //     }
         //
         const timestampId = this.safeString2(info, 'createdAt', 'timestamp');
-        let timestamp = this.milliseconds();
+        let timestamp = undefined;
         if (timestampId !== undefined) {
             timestamp = this.parseToInt(timestampId.slice(0, 13));
         }
@@ -9879,15 +9879,14 @@ class kucoin extends kucoin$1["default"] {
         //         "actualSize": 10
         //     }
         //
-        const timestamp = this.milliseconds();
         const currencyId = this.safeString(info, 'currency');
         return {
             'id': this.safeString(info, 'orderNo'),
             'currency': this.safeCurrencyCode(currencyId, currency),
             'amount': this.safeNumber(info, 'actualSize'),
             'symbol': undefined,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'info': info,
         };
     }

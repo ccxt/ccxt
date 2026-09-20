@@ -2526,11 +2526,10 @@ func (this *Bitteam) ParseBalance(response any) any {
 	//         }
 	//     }
 	//
-	var timestamp int64 = this.Milliseconds()
 	var balance map[string]any = map[string]any{
 		"info":      response,
-		"timestamp": timestamp,
-		"datetime":  this.Iso8601(timestamp),
+		"timestamp": nil,
+		"datetime":  nil,
 	}
 	var result any = this.SafeDict(response, "result", map[string]any{})
 	var balanceByCurrencies any = this.Omit(result, []any{"free", "used", "total"})
@@ -2582,8 +2581,8 @@ func (this *Bitteam) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...a
 	_ = params
 	if this.Markets == nil {
 
-		retRes222112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes222112)
+		retRes222012 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes222012)
 	}
 	var currency any = nil
 	var request map[string]any = map[string]any{}

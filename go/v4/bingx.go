@@ -106,7 +106,7 @@ func (this *Bingx) Describe() any {
 			"fetchPositionHistory":                 true,
 			"fetchPositionMode":                    true,
 			"fetchPositions":                       true,
-			"fetchPositionsHistory":                true,
+			"fetchPositionsHistory":                false,
 			"fetchTicker":                          true,
 			"fetchTickers":                         true,
 			"fetchTime":                            true,
@@ -2163,7 +2163,7 @@ func (this *Bingx) ParseTrade(trade any, optionalArgs ...any) any {
 		}
 	}
 	return this.SafeTrade(map[string]any{
-		"id":           this.SafeString2(trade, "id", "t"),
+		"id":           this.SafeStringN(trade, []any{"id", "t", "fillId"}),
 		"info":         trade,
 		"timestamp":    time,
 		"datetime":     this.Iso8601(time),

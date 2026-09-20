@@ -27,7 +27,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 public class Polymarket extends PolymarketApi
 {
@@ -615,12 +614,12 @@ public class Polymarket extends PolymarketApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object queries = (List<Object>)(this.parseSearchQueries(parameters));
             Object rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries")));
-            Object queriesLength = ((List<?>)queries).size();
+            Object queriesLength = Helpers.getArrayLength(queries);
             Object rawEvents = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isGreaterThan(queriesLength, 0))
+            if (Helpers.isTrue(Helpers.isGreaterThan(queriesLength, 0)))
             {
                 rawEvents = (this.fetchRawEventsBySearch(queries, rest)).join();
             } else
@@ -629,20 +628,20 @@ public class Polymarket extends PolymarketApi
             }
             List<Object> flatMarkets = new ArrayList<Object>(Arrays.asList());
             Map<String, Object> eventsDict = new HashMap<String, Object>() {{}};
-            for (var rei = 0; rei < ((List<?>)rawEvents).size(); rei++)
+            for (var rei = 0; Helpers.isLessThan(rei, Helpers.getArrayLength(rawEvents)); rei++)
             {
                 Object rawEvent = Helpers.GetValue(rawEvents, rei);
-                Object ccxtMarkets = this.parseEventToMarkets((Map<String, Object>) (rawEvent));
-                for (var mi = 0; mi < ((List<?>)ccxtMarkets).size(); mi++)
+                Object ccxtMarkets = this.parseEventToMarkets(rawEvent);
+                for (var mi = 0; Helpers.isLessThan(mi, Helpers.getArrayLength(ccxtMarkets)); mi++)
                 {
                     ((List<Object>)flatMarkets).add(Helpers.GetValue(ccxtMarkets, mi));
                 }
-                Object parsedEvent = this.parseEvent((Map<String, Object>) (rawEvent));
+                Object parsedEvent = this.parseEvent(rawEvent);
                 String eventSlug = this.safeString(rawEvent, "slug");
-                if ((!java.util.Objects.equals(eventSlug, null)) && (!java.util.Objects.equals(eventSlug, "")))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(eventSlug, null))) && Helpers.isTrue((!Helpers.isEqual(eventSlug, "")))))
                 {
                     String eventKey = this.shortenSlug(eventSlug);
-                    ((Map<String, Object>)eventsDict).put((String)eventKey, parsedEvent);
+                    Helpers.addElementToObject(eventsDict, eventKey, parsedEvent);
                 }
             }
             this.events = eventsDict;
@@ -667,7 +666,7 @@ public class Polymarket extends PolymarketApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Long resultLimit = this.safeInteger(parameters, "limit");
             // fixed page size (gamma's limit_per_type). do NOT tie it to `limit`: that made a small
             // limit fan out into many tiny-page requests (limit:1 -> ~one request per matching event).
@@ -677,26 +676,26 @@ public class Polymarket extends PolymarketApi
             // map the unified sort/status onto the gamma search params
             String sort = this.safeString(parameters, "sort");
             String sortParam = "volume";
-            if (java.util.Objects.equals(sort, "liquidity"))
+            if (Helpers.isTrue(Helpers.isEqual(sort, "liquidity")))
             {
                 sortParam = "liquidity";
-            } else if (java.util.Objects.equals(sort, "newest"))
+            } else if (Helpers.isTrue(Helpers.isEqual(sort, "newest")))
             {
                 sortParam = "startDate";
             }
             String status = this.safeString(parameters, "status", "active");
             String eventsStatus = "active";
-            if ((java.util.Objects.equals(status, "closed")) || (java.util.Objects.equals(status, "inactive")))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(status, "closed"))) || Helpers.isTrue((Helpers.isEqual(status, "inactive")))))
             {
                 eventsStatus = "closed";
-            } else if (java.util.Objects.equals(status, "all"))
+            } else if (Helpers.isTrue(Helpers.isEqual(status, "all")))
             {
                 eventsStatus = null;
             }
             Object rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("limit", "sort", "status", "searchIn", "eventId", "slug", "query", "queries", "searchPageSize", "maxSearchPages")));
             Map<String, Object> seen = new HashMap<String, Object>() {{}};
             List<Object> rawEvents = new ArrayList<Object>(Arrays.asList());
-            for (var qi = 0; qi < ((List<?>)queries).size(); qi++)
+            for (var qi = 0; Helpers.isLessThan(qi, Helpers.getArrayLength(queries)); qi++)
             {
                 Object q = Helpers.GetValue(queries, qi);
                 final Object finalSortParam = sortParam;
@@ -706,9 +705,9 @@ public class Polymarket extends PolymarketApi
                     put( "sort", finalSortParam );
                     put( "ascending", false );
                 }};
-                if (!java.util.Objects.equals(eventsStatus, null))
+                if (Helpers.isTrue(!Helpers.isEqual(eventsStatus, null)))
                 {
-                    ((Map<String, Object>)baseRequest).put("events_status", eventsStatus);
+                    Helpers.addElementToObject(baseRequest, "events_status", eventsStatus);
                 }
                 Object firstRequest = new HashMap<String, Object>() {{
                     put( "page", 1 );
@@ -716,16 +715,16 @@ public class Polymarket extends PolymarketApi
                 firstRequest = this.extend(this.extend(firstRequest, baseRequest), rest);
                 Map<String, Object> first = (this.gammaPublicGetPublicSearch(firstRequest)).join();
                 Object firstEvents = (List<Object>)(this.safeList(first, "events", new ArrayList<Object>(Arrays.asList())));
-                Object firstEventsLength = ((List<?>)firstEvents).size();
-                Map<String, Object> pagination = (Map<String, Object>) this.safeDict(first, "pagination", new HashMap<String, Object>() {{}});
+                Object firstEventsLength = Helpers.getArrayLength(firstEvents);
+                Object pagination = this.safeDict(first, "pagination", new HashMap<String, Object>() {{}});
                 Long totalResults = this.safeInteger(pagination, "totalResults", firstEventsLength);
                 Object totalPages = Math.ceil(Double.parseDouble(Helpers.toString(Helpers.divide(totalResults, pageSize))));
                 // only page as far as `limit` needs (applyEventFetchParams slices to it afterwards);
                 // with no limit, cap the fan-out at options.maxSearchPages so a broad query stays bounded
-                if (!java.util.Objects.equals(resultLimit, null))
+                if (Helpers.isTrue(!Helpers.isEqual(resultLimit, null)))
                 {
                     Object limitPages = Math.ceil(Double.parseDouble(Helpers.toString(Helpers.divide(resultLimit, pageSize))));
-                    if (Helpers.isLessThan(limitPages, totalPages))
+                    if (Helpers.isTrue(Helpers.isLessThan(limitPages, totalPages)))
                     {
                         totalPages = limitPages;
                     }
@@ -733,7 +732,7 @@ public class Polymarket extends PolymarketApi
                 {
                     Long optionMaxPages = this.safeInteger(this.options, "maxSearchPages", 5);
                     Long maxSearchPages = this.safeInteger(parameters, "maxSearchPages", optionMaxPages);
-                    if (Helpers.isLessThan(maxSearchPages, totalPages))
+                    if (Helpers.isTrue(Helpers.isLessThan(maxSearchPages, totalPages)))
                     {
                         totalPages = maxSearchPages;
                     }
@@ -744,7 +743,7 @@ public class Polymarket extends PolymarketApi
                     ((List<Object>)remainingPages).add(p);
                 }
                 List<Object> restPromises = new ArrayList<Object>(Arrays.asList());
-                for (var pi = 0; pi < ((List<?>)remainingPages).size(); pi++)
+                for (var pi = 0; Helpers.isLessThan(pi, Helpers.getArrayLength(remainingPages)); pi++)
                 {
                     final Object finalPi = pi;
                     Object pageRequest = new HashMap<String, Object>() {{
@@ -755,25 +754,25 @@ public class Polymarket extends PolymarketApi
                 }
                 Object restResponses = (Helpers.promiseAll(restPromises)).join();
                 List<Object> allEvents = new ArrayList<Object>(Arrays.asList());
-                for (var fi = 0; fi < ((List<?>)firstEvents).size(); fi++)
+                for (var fi = 0; Helpers.isLessThan(fi, Helpers.getArrayLength(firstEvents)); fi++)
                 {
                     ((List<Object>)allEvents).add(Helpers.GetValue(firstEvents, fi));
                 }
-                for (var ri = 0; ri < ((List<?>)restResponses).size(); ri++)
+                for (var ri = 0; Helpers.isLessThan(ri, Helpers.getArrayLength(restResponses)); ri++)
                 {
                     Object pageEvents = (List<Object>)(this.safeList(Helpers.GetValue(restResponses, ri), "events", new ArrayList<Object>(Arrays.asList())));
-                    for (var ei = 0; ei < ((List<?>)pageEvents).size(); ei++)
+                    for (var ei = 0; Helpers.isLessThan(ei, Helpers.getArrayLength(pageEvents)); ei++)
                     {
                         ((List<Object>)allEvents).add(Helpers.GetValue(pageEvents, ei));
                     }
                 }
-                for (var ei = 0; ei < ((List<?>)allEvents).size(); ei++)
+                for (var ei = 0; Helpers.isLessThan(ei, Helpers.getArrayLength(allEvents)); ei++)
                 {
-                    Object rawEvent = (allEvents == null || ei < 0 || ei >= allEvents.size() ? null : allEvents.get(ei));
+                    Object rawEvent = Helpers.GetValue(allEvents, ei);
                     String eventId = this.safeString(rawEvent, "id");
-                    if ((!java.util.Objects.equals(eventId, null) && !java.util.Objects.equals(eventId, "")) && !(seen.containsKey(eventId)))
+                    if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(eventId, null)) && Helpers.isTrue(!Helpers.isEqual(eventId, "")))) && !Helpers.isTrue((Helpers.inOp(seen, eventId)))))
                     {
-                        ((Map<String, Object>)seen).put((String)eventId, true);
+                        Helpers.addElementToObject(seen, eventId, true);
                         ((List<Object>)rawEvents).add(rawEvent);
                     }
                 }
@@ -798,14 +797,14 @@ public class Polymarket extends PolymarketApi
         Object chars = this.stringToCharsArray(lower);
         Object slug = "";
         Boolean pendingSep = false;
-        for (var i = 0; i < ((List<?>)chars).size(); i++)
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(chars)); i++)
         {
             Object ch = Helpers.GetValue(chars, i);
-            if (((String)allowed).indexOf(((String)ch)) >= 0)
+            if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(allowed, ch), 0)))
             {
-                if (Boolean.TRUE.equals(pendingSep) && (!java.util.Objects.equals(slug, "")))
+                if (Helpers.isTrue(Helpers.isTrue(pendingSep) && Helpers.isTrue((!Helpers.isEqual(slug, "")))))
                 {
-                    slug = (slug + "-");
+                    slug = Helpers.add(slug, "-");
                 }
                 slug = Helpers.add(slug, ch);
                 pendingSep = false;
@@ -814,7 +813,7 @@ public class Polymarket extends PolymarketApi
                 pendingSep = true;
             }
         }
-        if (java.util.Objects.equals(slug, ""))
+        if (Helpers.isTrue(Helpers.isEqual(slug, "")))
         {
             // a tag with no alphanumerics at all — pass it through so gamma just returns no match
             return lower;
@@ -840,7 +839,7 @@ public class Polymarket extends PolymarketApi
 
             // gamma hard-caps each response at 100 events regardless of the requested limit, so the
             // page size must be that cap or pagination never advances (the > check below stays false)
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Long pageSize = this.safeInteger(this.options, "eventsPageSize", 100);
             // scope the listing: without a search query loadMarkets would otherwise dump every
             // active event (tens of thousands of markets). Cap to `limit` events (most-traded first).
@@ -850,10 +849,10 @@ public class Polymarket extends PolymarketApi
             // sort maps to the gamma `order` field; 'volume' is the default ranking
             String sort = this.safeString(parameters, "sort");
             String order = "volume";
-            if (java.util.Objects.equals(sort, "liquidity"))
+            if (Helpers.isTrue(Helpers.isEqual(sort, "liquidity")))
             {
                 order = "liquidity";
-            } else if (java.util.Objects.equals(sort, "newest"))
+            } else if (Helpers.isTrue(Helpers.isEqual(sort, "newest")))
             {
                 order = "startDate";
             }
@@ -868,44 +867,44 @@ public class Polymarket extends PolymarketApi
             // push requested tags server-side (gamma accepts one tag_slug per request) so a tags-only
             // fetchEvents returns the tagged events rather than filtering the top-volume listing down
             // to nothing; multiple tags run one listing per tag, unioned and deduped by event id
-            List<Object> requestedTags = (List<Object>) this.safeList(parameters, "tags", new ArrayList<Object>(Arrays.asList()));
-            Object requestedTagsLength = ((List<?>)requestedTags).size();
-            if (Helpers.isGreaterThan(requestedTagsLength, 1))
+            Object requestedTags = this.safeList(parameters, "tags", new ArrayList<Object>(Arrays.asList()));
+            Object requestedTagsLength = Helpers.getArrayLength(requestedTags);
+            if (Helpers.isTrue(Helpers.isGreaterThan(requestedTagsLength, 1)))
             {
                 Map<String, Object> seen = new HashMap<String, Object>() {{}};
                 List<Object> unioned = new ArrayList<Object>(Arrays.asList());
                 for (var ti = 0; Helpers.isLessThan(ti, requestedTagsLength); ti++)
                 {
                     Map<String, Object> singleTagParams = this.extend(new HashMap<String, Object>() {{}}, parameters);
-                    Helpers.addElementToObject(singleTagParams, "tags", new ArrayList<Object>(Arrays.asList((requestedTags == null || ti < 0 || ti >= requestedTags.size() ? null : requestedTags.get(ti)))));
+                    Helpers.addElementToObject(singleTagParams, "tags", new ArrayList<Object>(Arrays.asList(Helpers.GetValue(requestedTags, ti))));
                     Object tagEvents = (this.fetchRawEventsList(singleTagParams)).join();
-                    for (var ei = 0; ei < ((List<?>)tagEvents).size(); ei++)
+                    for (var ei = 0; Helpers.isLessThan(ei, Helpers.getArrayLength(tagEvents)); ei++)
                     {
                         Object rawEvent = Helpers.GetValue(tagEvents, ei);
                         String eventId = this.safeString(rawEvent, "id");
-                        if ((!java.util.Objects.equals(eventId, null)) && !(seen.containsKey(eventId)))
+                        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(eventId, null))) && !Helpers.isTrue((Helpers.inOp(seen, eventId)))))
                         {
-                            ((Map<String, Object>)seen).put((String)eventId, true);
+                            Helpers.addElementToObject(seen, eventId, true);
                             ((List<Object>)unioned).add(rawEvent);
                         }
                     }
                 }
                 return unioned;
             }
-            if (Helpers.isGreaterThan(requestedTagsLength, 0))
+            if (Helpers.isTrue(Helpers.isGreaterThan(requestedTagsLength, 0)))
             {
                 // gamma matches tag_slug case-insensitively but only in slug form ("fed-rates"),
                 // so human-readable labels ("Fed Rates") must be slugified first
-                ((Map<String, Object>)baseRequest).put("tag_slug", this.tagToSlug(this.safeString(requestedTags, 0)));
+                Helpers.addElementToObject(baseRequest, "tag_slug", this.tagToSlug(this.safeString(requestedTags, 0)));
             }
-            if (java.util.Objects.equals(status, "active"))
+            if (Helpers.isTrue(Helpers.isEqual(status, "active")))
             {
-                ((Map<String, Object>)baseRequest).put("active", true);
-                ((Map<String, Object>)baseRequest).put("closed", false);
-            } else if ((java.util.Objects.equals(status, "closed")) || (java.util.Objects.equals(status, "inactive")))
+                Helpers.addElementToObject(baseRequest, "active", true);
+                Helpers.addElementToObject(baseRequest, "closed", false);
+            } else if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(status, "closed"))) || Helpers.isTrue((Helpers.isEqual(status, "inactive")))))
             {
-                ((Map<String, Object>)baseRequest).put("active", false);
-                ((Map<String, Object>)baseRequest).put("closed", true);
+                Helpers.addElementToObject(baseRequest, "active", false);
+                Helpers.addElementToObject(baseRequest, "closed", true);
             }
             // 'all' — no active/closed filter
             // fetch page 1 first; if full, fire remaining pages in parallel
@@ -914,15 +913,15 @@ public class Polymarket extends PolymarketApi
             }};
             firstPageRequest = this.extend(firstPageRequest, baseRequest);
             List<Object> firstPageResponse = (this.gammaPublicGetEvents(firstPageRequest)).join();
-            Object firstPageIsArray = (firstPageResponse instanceof List);
-            List<Object> firstPage = ((Boolean.TRUE.equals(firstPageIsArray))) ? firstPageResponse : new ArrayList<Object>(Arrays.asList());
-            Object firstPageLength = ((List<?>)firstPage).size();
+            Object firstPageIsArray = Helpers.isArray(firstPageResponse);
+            List<Object> firstPage = ((Helpers.isTrue((firstPageIsArray)))) ? firstPageResponse : new ArrayList<Object>(Arrays.asList());
+            Object firstPageLength = Helpers.getArrayLength(firstPage);
             List<Object> allRawEvents = new ArrayList<Object>(Arrays.asList());
             for (var fi = 0; Helpers.isLessThan(fi, firstPageLength); fi++)
             {
-                ((List<Object>)allRawEvents).add((firstPage == null || fi < 0 || fi >= firstPage.size() ? null : firstPage.get(fi)));
+                ((List<Object>)allRawEvents).add(Helpers.GetValue(firstPage, fi));
             }
-            if (Helpers.isGreaterThanOrEqual(firstPageLength, pageSize))
+            if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(firstPageLength, pageSize)))
             {
                 List<Object> offsets = new ArrayList<Object>(Arrays.asList());
                 for (var p = 1; Helpers.isLessThan(p, maxPages); p++)
@@ -930,7 +929,7 @@ public class Polymarket extends PolymarketApi
                     ((List<Object>)offsets).add(Helpers.multiply(p, pageSize));
                 }
                 List<Object> restPromises = new ArrayList<Object>(Arrays.asList());
-                for (var oi = 0; oi < ((List<?>)offsets).size(); oi++)
+                for (var oi = 0; Helpers.isLessThan(oi, Helpers.getArrayLength(offsets)); oi++)
                 {
                     final Object finalOi = oi;
                     Object pageRequest = new HashMap<String, Object>() {{
@@ -940,9 +939,9 @@ public class Polymarket extends PolymarketApi
                     ((List<Object>)restPromises).add(this.gammaPublicGetEvents(pageRequest));
                 }
                 Object restPages = (Helpers.promiseAll(restPromises)).join();
-                for (var ri = 0; ri < ((List<?>)restPages).size(); ri++)
+                for (var ri = 0; Helpers.isLessThan(ri, Helpers.getArrayLength(restPages)); ri++)
                 {
-                    Object page = (((!java.util.Objects.equals(Helpers.GetValue(restPages, ri), null)))) ? Helpers.GetValue(restPages, ri) : new ArrayList<Object>(Arrays.asList());
+                    Object page = ((Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(restPages, ri), null))))) ? Helpers.GetValue(restPages, ri) : new ArrayList<Object>(Arrays.asList());
                     Object pageLength = Helpers.getArrayLength(page);
                     for (var pi = 0; Helpers.isLessThan(pi, pageLength); pi++)
                     {
@@ -950,8 +949,8 @@ public class Polymarket extends PolymarketApi
                     }
                 }
             }
-            Object allRawEventsLength = ((List<?>)allRawEvents).size();
-            if (Helpers.isGreaterThan(allRawEventsLength, limit))
+            Object allRawEventsLength = Helpers.getArrayLength(allRawEvents);
+            if (Helpers.isTrue(Helpers.isGreaterThan(allRawEventsLength, limit)))
             {
                 return this.arraySlice(allRawEvents, 0, limit);
             }
@@ -960,7 +959,7 @@ public class Polymarket extends PolymarketApi
 
     }
 
-    public Object parseEventToMarkets(Map<String, Object> eventVar)
+    public Object parseEventToMarkets(Object eventVar)
     {
         String eventSlug = this.safeString(eventVar, "slug", this.safeString(eventVar, "id"));
         Object rawMarkets = (List<Object>)(this.safeList(eventVar, "markets", new ArrayList<Object>(Arrays.asList())));
@@ -1051,23 +1050,23 @@ public class Polymarket extends PolymarketApi
         //    "feeType":null
         // }
         //
-        for (var mi = 0; mi < ((List<?>)rawMarkets).size(); mi++)
+        for (var mi = 0; Helpers.isLessThan(mi, Helpers.getArrayLength(rawMarkets)); mi++)
         {
             Object market = Helpers.GetValue(rawMarkets, mi);
             String conditionId = this.safeString(market, "conditionId");
             String marketId = this.safeString(market, "id");
             String marketSlug = this.safeString(market, "slug", conditionId);
-            Boolean active = (Boolean) this.safeBool(market, "active", false);
-            Boolean closed = (Boolean) this.safeBool(market, "closed", false);
+            Object active = this.safeBool(market, "active", false);
+            Object closed = this.safeBool(market, "closed", false);
             // resolution: a closed/uma-resolved market settles each outcome price to 0 or 1
-            Boolean marketResolved = (java.util.Objects.equals(closed, true)) || (java.util.Objects.equals(this.safeStringLower(market, "umaResolutionStatus"), "resolved"));
+            Boolean marketResolved = Helpers.isTrue((Helpers.isEqual(closed, true))) || Helpers.isTrue((Helpers.isEqual(this.safeStringLower(market, "umaResolutionStatus"), "resolved")));
             Object resolvedOutcome = null;
             // gamma exposes the order-book tick as orderPriceMinTickSize; minimumTickSize is the clob alias
             Double tickSize = this.safeNumber2(market, "orderPriceMinTickSize", "minimumTickSize", 0.01);
             // real per-market min order size (shares) and price tick — don't hardcode 1 / 0.01..0.99
             Double orderMinSize = this.safeNumber(market, "orderMinSize", 1);
             Object priceMax = this.parseNumber(Precise.stringSub("1", this.numberToString(tickSize)));
-            Boolean negRisk = (Boolean) this.safeBool(market, "negRisk", false);
+            Object negRisk = this.safeBool(market, "negRisk", false);
             String endDate = this.safeString(market, "endDate", this.safeString(market, "end_date_iso"));
             // Gamma API returns these arrays as JSON-encoded strings
             Object outcomeLabels = new ArrayList<Object>(Arrays.asList());
@@ -1077,35 +1076,35 @@ public class Polymarket extends PolymarketApi
             Object parsedTokenIds = this.parseJson(this.safeString(market, "clobTokenIds", "[]"));
             Object parsedPrices = this.parseJson(this.safeString(market, "outcomePrices", "[]"));
             Object parsedOutcomesLength = null;
-            if (!java.util.Objects.equals(parsedOutcomes, null))
+            if (Helpers.isTrue(!Helpers.isEqual(parsedOutcomes, null)))
             {
-                parsedOutcomesLength = ((List<?>)(List<Object>)(parsedOutcomes)).size();
+                parsedOutcomesLength = Helpers.getArrayLength((List<Object>)(parsedOutcomes));
             }
             Object parsedTokenIdsLength = null;
-            if (!java.util.Objects.equals(parsedTokenIds, null))
+            if (Helpers.isTrue(!Helpers.isEqual(parsedTokenIds, null)))
             {
-                parsedTokenIdsLength = ((List<?>)(List<Object>)(parsedTokenIds)).size();
+                parsedTokenIdsLength = Helpers.getArrayLength((List<Object>)(parsedTokenIds));
             }
             Object parsedPricesLength = null;
-            if (!java.util.Objects.equals(parsedPrices, null))
+            if (Helpers.isTrue(!Helpers.isEqual(parsedPrices, null)))
             {
-                parsedPricesLength = ((List<?>)(List<Object>)(parsedPrices)).size();
+                parsedPricesLength = Helpers.getArrayLength((List<Object>)(parsedPrices));
             }
-            if ((!java.util.Objects.equals(parsedOutcomes, null)) && (!java.util.Objects.equals(parsedOutcomesLength, null)))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(parsedOutcomes, null))) && Helpers.isTrue((!Helpers.isEqual(parsedOutcomesLength, null)))))
             {
                 outcomeLabels = (List<Object>)(parsedOutcomes);
             }
-            if ((!java.util.Objects.equals(parsedTokenIds, null)) && (!java.util.Objects.equals(parsedTokenIdsLength, null)))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(parsedTokenIds, null))) && Helpers.isTrue((!Helpers.isEqual(parsedTokenIdsLength, null)))))
             {
                 clobTokenIds = (List<Object>)(parsedTokenIds);
             }
-            if ((!java.util.Objects.equals(parsedPrices, null)) && (!java.util.Objects.equals(parsedPricesLength, null)))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(parsedPrices, null))) && Helpers.isTrue((!Helpers.isEqual(parsedPricesLength, null)))))
             {
                 outcomePrices = parsedPrices;
             }
-            Object outcomeLabelsLength = ((List<?>)outcomeLabels).size();
-            Object clobTokenIdsLength = ((List<?>)clobTokenIds).size();
-            if (java.util.Objects.equals(outcomeLabelsLength, 0) || java.util.Objects.equals(clobTokenIdsLength, 0))
+            Object outcomeLabelsLength = Helpers.getArrayLength(outcomeLabels);
+            Object clobTokenIdsLength = Helpers.getArrayLength(clobTokenIds);
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(outcomeLabelsLength, 0)) || Helpers.isTrue(Helpers.isEqual(clobTokenIdsLength, 0))))
             {
                 continue;
             }
@@ -1113,30 +1112,30 @@ public class Polymarket extends PolymarketApi
             Object marketSymbol = this.slugToMarketSymbol(eventSlug, marketSlug);
             // Build outcomes array
             List<Object> outcomes = new ArrayList<Object>(Arrays.asList());
-            for (var oi = 0; oi < ((List<?>)outcomeLabels).size(); oi++)
+            for (var oi = 0; Helpers.isLessThan(oi, Helpers.getArrayLength(outcomeLabels)); oi++)
             {
                 Object outcomeLabel = Helpers.GetValue(outcomeLabels, oi);
                 Object clobTokenId = Helpers.GetValue(clobTokenIds, oi);
                 Double outcomePrice = this.safeNumber(outcomePrices, oi);
-                if ((java.util.Objects.equals(clobTokenId, null)) || (java.util.Objects.equals(clobTokenId, "")))
+                if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(clobTokenId, null))) || Helpers.isTrue((Helpers.isEqual(clobTokenId, "")))))
                 {
                     continue;
                 }
                 Object outcomeHandle = this.slugToOutcomeSymbol(eventSlug, marketSlug, outcomeLabel);
                 Object winnerRaw = null;
                 Object settleFractionRaw = null;
-                if (Boolean.TRUE.equals(marketResolved) && (!java.util.Objects.equals(outcomePrice, null)))
+                if (Helpers.isTrue(Helpers.isTrue(marketResolved) && Helpers.isTrue((!Helpers.isEqual(outcomePrice, null)))))
                 {
                     // a genuinely-settled polymarket outcome is at 1 (won) or 0 (lost). a market
                     // that is only closed-for-trading (not yet UMA-resolved) still has fractional
                     // prices — don't report a fractional mid as a final settleFraction; leave the
                     // outcome-level fields undefined until a decisive price exists
-                    if (Helpers.isGreaterThanOrEqual(outcomePrice, 0.99))
+                    if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(outcomePrice, 0.99)))
                     {
                         winnerRaw = true;
                         settleFractionRaw = 1;
                         resolvedOutcome = outcomeHandle;
-                    } else if (Helpers.isLessThanOrEqual(outcomePrice, 0.01))
+                    } else if (Helpers.isTrue(Helpers.isLessThanOrEqual(outcomePrice, 0.01)))
                     {
                         winnerRaw = false;
                         settleFractionRaw = 0;
@@ -1156,7 +1155,7 @@ final Object finalClobTokenId = clobTokenId;
                     put( "market", marketSymbol );
                     put( "label", outcomeLabel );
                     put( "price", finalOutcomePrice );
-                    put( "active", (java.util.Objects.equals(finalActive, true)) && (!java.util.Objects.equals(finalClosed, true)) );
+                    put( "active", Helpers.isTrue((Helpers.isEqual(finalActive, true))) && Helpers.isTrue((!Helpers.isEqual(finalClosed, true))) );
                     put( "winner", winner );
                     put( "settleFraction", settleFraction );
                     put( "precision", new HashMap<String, Object>() {{
@@ -1167,8 +1166,8 @@ final Object finalClobTokenId = clobTokenId;
                     put( "info", market );
                 }});
             }
-            String baseId = (((!java.util.Objects.equals(conditionId, null)))) ? conditionId : marketId;
-            String marketType = (((Helpers.isGreaterThan(outcomeLabelsLength, 2)))) ? "categorical" : "binary";
+            String baseId = ((Helpers.isTrue((!Helpers.isEqual(conditionId, null))))) ? conditionId : marketId;
+            String marketType = ((Helpers.isTrue((Helpers.isGreaterThan(outcomeLabelsLength, 2))))) ? "categorical" : "binary";
             // effectively-final copy for the market object literal below (reassigned in the loop)
             Object marketResolvedOutcome = resolvedOutcome;
             ((List<Object>)result).add(new HashMap<String, Object>() {{
@@ -1190,14 +1189,14 @@ final Object finalClobTokenId = clobTokenId;
                 put( "future", false );
                 put( "option", false );
                 put( "prediction", true );
-                put( "active", (java.util.Objects.equals(active, true)) && (!java.util.Objects.equals(closed, true)) );
+                put( "active", Helpers.isTrue((Helpers.isEqual(active, true))) && Helpers.isTrue((!Helpers.isEqual(closed, true))) );
                 put( "resolved", marketResolved );
                 put( "resolvedOutcome", marketResolvedOutcome );
                 put( "contract", false );
                 put( "linear", null );
                 put( "inverse", null );
                 put( "contractSize", null );
-                put( "expiry", (((!java.util.Objects.equals(endDate, null) && !java.util.Objects.equals(endDate, "")))) ? Polymarket.this.parse8601(endDate) : null );
+                put( "expiry", ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(endDate, null)) && Helpers.isTrue(!Helpers.isEqual(endDate, "")))))) ? Polymarket.this.parse8601(endDate) : null );
                 put( "expiryDatetime", endDate );
                 put( "strike", null );
                 put( "optionType", null );
@@ -1258,35 +1257,35 @@ final Object finalClobTokenId = clobTokenId;
             // non-ids) and falls through to the search path and its local BadSymbol below.
             // absence must be `< 0` — the php transpiler maps that to `=== false`, while a literal
             // `=== -1` passes through and never matches mb_strpos's false return
-            if ((((String)outcomeSymbol).indexOf(":") < 0) && (java.util.Objects.equals(this.outcomeSearchQuery(outcomeSymbol), null)))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isLessThan(Helpers.getIndexOf(outcomeSymbol, ":"), 0))) && Helpers.isTrue((Helpers.isEqual(this.outcomeSearchQuery(outcomeSymbol), null)))))
             {
                 List<Object> response = (this.gammaPublicGetMarkets(new HashMap<String, Object>() {{
                     put( "clob_token_ids", outcomeSymbol );
                 }})).join();
-                List<Object> rawMarkets = (((!java.util.Objects.equals(response, null)))) ? response : new ArrayList<Object>(Arrays.asList());
-                Object rawMarketsLength = ((List<?>)rawMarkets).size();
-                if (Helpers.isGreaterThan(rawMarketsLength, 0))
+                List<Object> rawMarkets = ((Helpers.isTrue((!Helpers.isEqual(response, null))))) ? response : new ArrayList<Object>(Arrays.asList());
+                Object rawMarketsLength = Helpers.getArrayLength(rawMarkets);
+                if (Helpers.isTrue(Helpers.isGreaterThan(rawMarketsLength, 0)))
                 {
-                    if (java.util.Objects.equals(this.markets, null))
+                    if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
                     {
                         this.markets = this.createSafeDictionary();
                     }
-                    Object ccxtMarkets = this.parseEventToMarkets((Map<String, Object>) (new HashMap<String, Object>() {{
+                    Object ccxtMarkets = this.parseEventToMarkets(new HashMap<String, Object>() {{
                         put( "markets", rawMarkets );
-                    }}));
-                    Object ccxtMarketsLength = ((List<?>)ccxtMarkets).size();
+                    }});
+                    Object ccxtMarketsLength = Helpers.getArrayLength(ccxtMarkets);
                     for (var i = 0; Helpers.isLessThan(i, ccxtMarketsLength); i++)
                     {
                         Object mkt = Helpers.GetValue(ccxtMarkets, i);
-                        if (java.util.Objects.equals(mkt, null))
+                        if (Helpers.isTrue(Helpers.isEqual(mkt, null)))
                         {
-                            throw new ExchangeError((this.id + " fetchOutcome() could not resolve mkt")) ;
+                            throw new ExchangeError(Helpers.add(this.id, " fetchOutcome() could not resolve mkt")) ;
                         }
-                        Helpers.addElementToObject(this.markets, ((Map<String, Object>)mkt).get("market"), mkt);
+                        Helpers.addElementToObject(this.markets, Helpers.GetValue(mkt, "market"), mkt);
                     }
                     this.populateOutcomes();
                     Object byId = this.safeValue(this.outcomes_by_id, outcomeSymbol);
-                    if (!java.util.Objects.equals(byId, null))
+                    if (Helpers.isTrue(!Helpers.isEqual(byId, null)))
                     {
                         return byId;
                     }
@@ -1312,22 +1311,22 @@ final Object finalClobTokenId = clobTokenId;
         return BaseExchange.supplyAsync(() -> {
 
             List<Object> tokenIds = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)outcomeSymbols).size(); i++)
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(outcomeSymbols)); i++)
             {
                 Object outcomeSymbol = Helpers.GetValue(outcomeSymbols, i);
                 // only id-like symbols (no ':', no searchable words) belong in the by-id batch —
                 // see the same gate in fetchOutcome. absence must be `< 0` — the php transpiler
                 // maps that to `=== false`, while a literal `=== -1` passes through and never
                 // matches mb_strpos's false return
-                if ((((String)outcomeSymbol).indexOf(":") < 0) && (java.util.Objects.equals(this.outcomeSearchQuery(outcomeSymbol), null)))
+                if (Helpers.isTrue(Helpers.isTrue((Helpers.isLessThan(Helpers.getIndexOf(outcomeSymbol, ":"), 0))) && Helpers.isTrue((Helpers.isEqual(this.outcomeSearchQuery(outcomeSymbol), null)))))
                 {
                     ((List<Object>)tokenIds).add(outcomeSymbol);
                 }
             }
-            Object tokenIdsLength = ((List<?>)tokenIds).size();
-            if (Helpers.isGreaterThan(tokenIdsLength, 0))
+            Object tokenIdsLength = Helpers.getArrayLength(tokenIds);
+            if (Helpers.isTrue(Helpers.isGreaterThan(tokenIdsLength, 0)))
             {
-                if (java.util.Objects.equals(this.markets, null))
+                if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
                 {
                     this.markets = this.createSafeDictionary();
                 }
@@ -1337,7 +1336,7 @@ final Object finalClobTokenId = clobTokenId;
                 while (Helpers.isLessThan(startIndex, tokenIdsLength))
                 {
                     Object endIndex = this.sum(startIndex, chunkSize);
-                    if (Helpers.isGreaterThan(endIndex, tokenIdsLength))
+                    if (Helpers.isTrue(Helpers.isGreaterThan(endIndex, tokenIdsLength)))
                     {
                         endIndex = tokenIdsLength;
                     }
@@ -1352,26 +1351,26 @@ final Object finalClobTokenId = clobTokenId;
                         put( "clob_token_ids", chunk );
                         put( "limit", chunkSize );
                     }})).join();
-                    List<Object> rawMarkets = (((!java.util.Objects.equals(response, null)))) ? response : new ArrayList<Object>(Arrays.asList());
-                    Object ccxtMarkets = this.parseEventToMarkets((Map<String, Object>) (new HashMap<String, Object>() {{
+                    List<Object> rawMarkets = ((Helpers.isTrue((!Helpers.isEqual(response, null))))) ? response : new ArrayList<Object>(Arrays.asList());
+                    Object ccxtMarkets = this.parseEventToMarkets(new HashMap<String, Object>() {{
                         put( "markets", rawMarkets );
-                    }}));
-                    for (var i = 0; i < ((List<?>)ccxtMarkets).size(); i++)
+                    }});
+                    for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ccxtMarkets)); i++)
                     {
                         Object mkt = Helpers.GetValue(ccxtMarkets, i);
-                        if (java.util.Objects.equals(mkt, null))
+                        if (Helpers.isTrue(Helpers.isEqual(mkt, null)))
                         {
-                            throw new ExchangeError((this.id + " fetchOutcomes() could not resolve mkt")) ;
+                            throw new ExchangeError(Helpers.add(this.id, " fetchOutcomes() could not resolve mkt")) ;
                         }
-                        Helpers.addElementToObject(this.markets, ((Map<String, Object>)mkt).get("market"), mkt);
+                        Helpers.addElementToObject(this.markets, Helpers.GetValue(mkt, "market"), mkt);
                     }
                     startIndex = this.sum(startIndex, chunkSize);
                 }
                 this.populateOutcomes();
             }
-            for (var i = 0; i < ((List<?>)outcomeSymbols).size(); i++)
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(outcomeSymbols)); i++)
             {
-                if (!Boolean.TRUE.equals(this.hasOutcome(Helpers.GetValue(outcomeSymbols, i))))
+                if (!Helpers.isTrue(this.hasOutcome(Helpers.GetValue(outcomeSymbols, i))))
                 {
                     (this.fetchOutcome(Helpers.GetValue(outcomeSymbols, i))).join();
                 }
@@ -1397,7 +1396,7 @@ final Object finalClobTokenId = clobTokenId;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object outcomeObj = (this.loadOutcome(outcome)).join();
             Object tokenId = Helpers.GetValue(outcomeObj, "outcomeId");
             List<Object> promises = new ArrayList<Object>(Arrays.asList(this.clobPublicGetMidpoint(new HashMap<String, Object>() {{
@@ -1470,39 +1469,39 @@ final Object finalClobTokenId = clobTokenId;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object outcomes = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(outcomes, null))
+            Object outcomes = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(outcomes, null)))
             {
-                throw new ArgumentsRequired((this.id + " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles or token ids to fetch (discover them via fetchEvents ())")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles or token ids to fetch (discover them via fetchEvents ())")) ;
             }
             // batch-resolve the uncached outcomes (one gamma request per 50 token ids)
             (this.loadOutcomes(outcomes)).join();
             List<Object> targets = new ArrayList<Object>(Arrays.asList());
-            for (var oi = 0; oi < ((List<?>)outcomes).size(); oi++)
+            for (var oi = 0; Helpers.isLessThan(oi, Helpers.getArrayLength(outcomes)); oi++)
             {
                 ((List<Object>)targets).add(Helpers.GetValue(outcomes, oi));
             }
             Map<String, Object> outcomesByTokenId = new HashMap<String, Object>() {{}};
             List<Object> tokenIds = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)targets).size(); i++)
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(targets)); i++)
             {
-                Object outcomeObj = this.outcome((targets == null || i < 0 || i >= targets.size() ? null : targets.get(i)));
+                Object outcomeObj = this.outcome(Helpers.GetValue(targets, i));
                 String tokenId = this.safeString(outcomeObj, "outcomeId");
-                if ((!java.util.Objects.equals(tokenId, null)) && !(outcomesByTokenId.containsKey(tokenId)))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(tokenId, null))) && !Helpers.isTrue((Helpers.inOp(outcomesByTokenId, tokenId)))))
                 {
-                    ((Map<String, Object>)outcomesByTokenId).put((String)tokenId, outcomeObj);
+                    Helpers.addElementToObject(outcomesByTokenId, tokenId, outcomeObj);
                     ((List<Object>)tokenIds).add(tokenId);
                 }
             }
             Long chunkSize = this.safeInteger(this.options, "fetchTickersBatchSize", 200);
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            Object tokenIdsLength = ((List<?>)tokenIds).size();
+            Object tokenIdsLength = Helpers.getArrayLength(tokenIds);
             Object startIndex = 0;
             while (Helpers.isLessThan(startIndex, tokenIdsLength))
             {
                 Object endIndex = this.sum(startIndex, chunkSize);
-                if (Helpers.isGreaterThan(endIndex, tokenIdsLength))
+                if (Helpers.isTrue(Helpers.isGreaterThan(endIndex, tokenIdsLength)))
                 {
                     endIndex = tokenIdsLength;
                 }
@@ -1516,30 +1515,30 @@ final Object finalClobTokenId = clobTokenId;
                 }
                 List<Object> promises = new ArrayList<Object>(Arrays.asList(this.clobPublicPostBooks(bookParams), this.clobPublicPostMidpoints(bookParams), this.clobPublicPostLastTradesPrices(bookParams)));
                 Object responses = (Helpers.promiseAll(promises)).join();
-                Object booksResponse = (responses == null || 0 >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(0));
-                Object midpoints = (responses == null || 1 >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(1));
-                Object lastTradesResponse = (responses == null || 2 >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(2));
-                Object booksIsArray = (booksResponse instanceof List);
-                Object books = ((Boolean.TRUE.equals(booksIsArray))) ? booksResponse : new ArrayList<Object>(Arrays.asList());
-                Object lastTradesIsArray = (lastTradesResponse instanceof List);
-                Object lastTrades = ((Boolean.TRUE.equals(lastTradesIsArray))) ? lastTradesResponse : new ArrayList<Object>(Arrays.asList());
+                Object booksResponse = Helpers.GetValue(responses, 0);
+                Object midpoints = Helpers.GetValue(responses, 1);
+                Object lastTradesResponse = Helpers.GetValue(responses, 2);
+                Object booksIsArray = Helpers.isArray(booksResponse);
+                Object books = ((Helpers.isTrue((booksIsArray)))) ? booksResponse : new ArrayList<Object>(Arrays.asList());
+                Object lastTradesIsArray = Helpers.isArray(lastTradesResponse);
+                Object lastTrades = ((Helpers.isTrue((lastTradesIsArray)))) ? lastTradesResponse : new ArrayList<Object>(Arrays.asList());
                 Map<String, Object> lastTradesByTokenId = new HashMap<String, Object>() {{}};
-                Object lastTradesLength = ((List<?>)lastTrades).size();
+                Object lastTradesLength = Helpers.getArrayLength(lastTrades);
                 for (var li = 0; Helpers.isLessThan(li, lastTradesLength); li++)
                 {
                     Object lastTradeEntry = Helpers.GetValue(lastTrades, li);
                     String lastTradeTokenId = this.safeString(lastTradeEntry, "token_id");
-                    if (!java.util.Objects.equals(lastTradeTokenId, null))
+                    if (Helpers.isTrue(!Helpers.isEqual(lastTradeTokenId, null)))
                     {
-                        ((Map<String, Object>)lastTradesByTokenId).put((String)lastTradeTokenId, lastTradeEntry);
+                        Helpers.addElementToObject(lastTradesByTokenId, lastTradeTokenId, lastTradeEntry);
                     }
                 }
-                Object booksLength = ((List<?>)books).size();
+                Object booksLength = Helpers.getArrayLength(books);
                 for (var i = 0; Helpers.isLessThan(i, booksLength); i++)
                 {
                     Object book = Helpers.GetValue(books, i);
                     String tokenId = this.safeString(book, "asset_id");
-                    if ((java.util.Objects.equals(tokenId, null)) || !(outcomesByTokenId.containsKey(tokenId)))
+                    if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(tokenId, null))) || !Helpers.isTrue((Helpers.inOp(outcomesByTokenId, tokenId)))))
                     {
                         continue;
                     }
@@ -1555,7 +1554,7 @@ final Object finalClobTokenId = clobTokenId;
                     }};
                     Object ticker = this.parsePredictionTicker(tickerInput, outcomeObj);
                     String symbolKey = this.safeString(ticker, "outcome", tokenId);
-                    ((Map<String, Object>)result).put((String)symbolKey, ticker);
+                    Helpers.addElementToObject(result, symbolKey, ticker);
                 }
                 startIndex = this.sum(startIndex, chunkSize);
             }
@@ -1608,33 +1607,33 @@ final Object finalClobTokenId = clobTokenId;
         //         }
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Map<String, Object> midpointData = (Map<String, Object>) this.safeDict(ticker, "midpoint", new HashMap<String, Object>() {{}});
-        Map<String, Object> bookData = (Map<String, Object>) this.safeDict(ticker, "book", new HashMap<String, Object>() {{}});
+        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object midpointData = this.safeDict(ticker, "midpoint", new HashMap<String, Object>() {{}});
+        Object bookData = this.safeDict(ticker, "book", new HashMap<String, Object>() {{}});
         Double mid = this.safeNumber(midpointData, "mid");
         Object bids = (List<Object>)(this.safeList(bookData, "bids", new ArrayList<Object>(Arrays.asList())));
         Object asks = (List<Object>)(this.safeList(bookData, "asks", new ArrayList<Object>(Arrays.asList())));
-        Object bidsLength = ((List<?>)bids).size();
-        Object asksLength = ((List<?>)asks).size();
+        Object bidsLength = Helpers.getArrayLength(bids);
+        Object asksLength = Helpers.getArrayLength(asks);
         // the CLOB book endpoint returns levels sorted away from the touch (bids ascending, asks descending), so the best level is the last entry
-        Object bestBid = (((Helpers.isGreaterThan(bidsLength, 0)))) ? Helpers.GetValue(bids, Helpers.subtract(bidsLength, 1)) : null;
-        Object bestAsk = (((Helpers.isGreaterThan(asksLength, 0)))) ? Helpers.GetValue(asks, Helpers.subtract(asksLength, 1)) : null;
+        Object bestBid = ((Helpers.isTrue((Helpers.isGreaterThan(bidsLength, 0))))) ? Helpers.GetValue(bids, Helpers.subtract(bidsLength, 1)) : null;
+        Object bestAsk = ((Helpers.isTrue((Helpers.isGreaterThan(asksLength, 0))))) ? Helpers.GetValue(asks, Helpers.subtract(asksLength, 1)) : null;
         // book.last_trade_price is market-level and denominated in whichever token traded last —
         // on the complementary token it is the OTHER side's price, so only the per-token
         // last-trade-price endpoint value is usable here; that endpoint reports "0" for a
         // never-traded token, which also falls back to the mid
-        Map<String, Object> lastTradeData = (Map<String, Object>) this.safeDict(ticker, "lastTrade", new HashMap<String, Object>() {{}});
+        Object lastTradeData = this.safeDict(ticker, "lastTrade", new HashMap<String, Object>() {{}});
         Object last = this.safeNumber(lastTradeData, "price");
-        if ((java.util.Objects.equals(last, null)) || (Helpers.isEqual(last, 0)))
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(last, null))) || Helpers.isTrue((Helpers.isEqual(last, 0)))))
         {
             last = mid;
         }
         Object outcome = this.safeOutcomeSymbol(null, market);
-        Long timestamp = this.safeInteger(bookData, "timestamp", this.milliseconds());
+        Long timestamp = this.safeInteger(bookData, "timestamp");
         Object quoteVolume = null;
-        if (!java.util.Objects.equals(market, null))
+        if (Helpers.isTrue(!Helpers.isEqual(market, null)))
         {
-            quoteVolume = this.safeNumber2(((Map<String, Object>)market).get("info"), "volume24hr", "volume");
+            quoteVolume = this.safeNumber2(Helpers.GetValue(market, "info"), "volume24hr", "volume");
         }
         final Object finalMarket = market;
         final Object finalLast = last;
@@ -1681,8 +1680,8 @@ final Object finalClobTokenId = clobTokenId;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object limit = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             Object outcomeObj = (this.loadOutcome(outcome)).join();
             Object tokenId = Helpers.GetValue(outcomeObj, "outcomeId");
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1710,7 +1709,7 @@ final Object finalClobTokenId = clobTokenId;
             //     }
             //
             Long timestamp = this.safeInteger(response, "timestamp");
-            Map<String, Object> orderbook = (Map<String, Object>) this.parseOrderBook(response, this.safeOutcomeSymbol(outcome, outcomeObj), timestamp, "bids", "asks", "price", "size");
+            Object orderbook = this.parseOrderBook(response, this.safeOutcomeSymbol(outcome, outcomeObj), timestamp, "bids", "asks", "price", "size");
             return this.safePredictionOrderBook(orderbook, outcomeObj);
         }).thenApply(PredictionOrderBook::new);
 
@@ -1734,14 +1733,14 @@ final Object finalClobTokenId = clobTokenId;
         return BaseExchange.supplyAsync(() -> {
 
             // hoisted keys list: chaining join onto Object.keys breaks the python transpiler
-            Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            if (!(((Map<?, ?>)this.timeframes).containsKey(timeframe)))
+            Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            if (!Helpers.isTrue((Helpers.inOp(this.timeframes, timeframe))))
             {
                 Object supportedKeys = Helpers.objectKeys(this.timeframes);
-                throw new BadRequest(((((this.id + " fetchOHLCV() unsupported timeframe ") + timeframe) + ", supported timeframes are ") + String.join(", ", (List<String>)supportedKeys))) ;
+                throw new BadRequest(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOHLCV() unsupported timeframe "), timeframe), ", supported timeframes are "), String.join(", ", (List<String>)supportedKeys))) ;
             }
             Object outcomeObj = (this.loadOutcome(outcome)).join();
             Object tokenId = Helpers.GetValue(outcomeObj, "outcomeId");
@@ -1749,17 +1748,17 @@ final Object finalClobTokenId = clobTokenId;
             Object nowS = this.seconds();
             Object startS = null;
             Object endS = nowS;
-            if (!java.util.Objects.equals(since, null))
+            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
                 startS = this.parseToInt(Helpers.divide(since, 1000));
-                if (!java.util.Objects.equals(limit, null))
+                if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
                 {
                     Object endBound = this.sum(startS, Helpers.multiply(Helpers.multiply(limit, fidelityMin), 60));
-                    endS = (((Helpers.isLessThan(endBound, nowS)))) ? endBound : nowS;
+                    endS = ((Helpers.isTrue((Helpers.isLessThan(endBound, nowS))))) ? endBound : nowS;
                 }
             } else
             {
-                Object barCount = (((!java.util.Objects.equals(limit, null)))) ? limit : 100;
+                Object barCount = ((Helpers.isTrue((!Helpers.isEqual(limit, null))))) ? limit : 100;
                 startS = Helpers.subtract(nowS, (Helpers.multiply(Helpers.multiply(barCount, fidelityMin), 60)));
             }
             // the venue rejects startTs/endTs spans over 15 days ("interval is too long")
@@ -1767,9 +1766,9 @@ final Object finalClobTokenId = clobTokenId;
             // `since` anchor (oldest chunk first, consistent with since/limit paging),
             // or the most recent window when no `since` was given
             Long maxWindow = this.safeInteger(this.options, "maxPricesHistoryWindow", 1296000);
-            if (Helpers.isGreaterThan((Helpers.subtract(endS, startS)), maxWindow))
+            if (Helpers.isTrue(Helpers.isGreaterThan((Helpers.subtract(endS, startS)), maxWindow)))
             {
-                if (!java.util.Objects.equals(since, null))
+                if (Helpers.isTrue(!Helpers.isEqual(since, null)))
                 {
                     endS = this.sum(startS, maxWindow);
                 } else
@@ -1799,12 +1798,12 @@ final Object finalClobTokenId = clobTokenId;
             // build open/high/low/close/volume. Assumes history is sorted ascending by time.
             Object resolutionMs = Helpers.multiply(Helpers.multiply(fidelityMin, 60), 1000);
             Map<String, Object> buckets = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)history).size(); i++)
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(history)); i++)
             {
                 Object item = Helpers.GetValue(history, i);
                 Long t = this.safeInteger(item, "t");
                 Double price = this.safeNumber(item, "p");
-                if ((java.util.Objects.equals(t, null)) || (java.util.Objects.equals(price, null)))
+                if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(t, null))) || Helpers.isTrue((Helpers.isEqual(price, null)))))
                 {
                     continue;
                 }
@@ -1813,42 +1812,42 @@ final Object finalClobTokenId = clobTokenId;
                 // the venue supplies no candle volume ({t, p} ticks only) — leave it undefined
                 // rather than fabricating a 0, probing s/v in case the field ever appears
                 Object vol = this.safeNumber(item, "s");
-                if (java.util.Objects.equals(vol, null))
+                if (Helpers.isTrue(Helpers.isEqual(vol, null)))
                 {
                     vol = this.safeNumber(item, "v");
                 }
                 Object bucketKey = String.valueOf(snappedMs);
-                if (!(buckets.containsKey(bucketKey)))
+                if (!Helpers.isTrue((Helpers.inOp(buckets, bucketKey))))
                 {
-                    ((Map<String, Object>)buckets).put((String)bucketKey, new ArrayList<Object>(Arrays.asList(snappedMs, price, price, price, price, vol)));
+                    Helpers.addElementToObject(buckets, bucketKey, new ArrayList<Object>(Arrays.asList(snappedMs, price, price, price, price, vol)));
                 } else
                 {
                     Object candle = Helpers.GetValue(buckets, bucketKey);
-                    Helpers.addElementToObject(candle, 2, Helpers.mathMax(((List<Object>)candle).get(2), price)); // high
-                    Helpers.addElementToObject(candle, 3, Helpers.mathMin(((List<Object>)candle).get(3), price)); // low
+                    Helpers.addElementToObject(candle, 2, Helpers.mathMax(Helpers.GetValue(candle, 2), price)); // high
+                    Helpers.addElementToObject(candle, 3, Helpers.mathMin(Helpers.GetValue(candle, 3), price)); // low
                     Helpers.addElementToObject(candle, 4, price); // close (last tick wins)
-                    if (!java.util.Objects.equals(vol, null))
+                    if (Helpers.isTrue(!Helpers.isEqual(vol, null)))
                     {
-                        Object prevVol = ((List<Object>)candle).get(5);
-                        Helpers.addElementToObject(candle, 5, (((java.util.Objects.equals(prevVol, null)))) ? vol : this.sum(prevVol, vol)); // volume
+                        Object prevVol = Helpers.GetValue(candle, 5);
+                        Helpers.addElementToObject(candle, 5, ((Helpers.isTrue((Helpers.isEqual(prevVol, null))))) ? vol : this.sum(prevVol, vol)); // volume
                     }
-                    ((Map<String, Object>)buckets).put((String)bucketKey, candle); // reassign after mutation, php arrays are value types
+                    Helpers.addElementToObject(buckets, bucketKey, candle); // reassign after mutation, php arrays are value types
                 }
             }
-            List<Object> bucketKeys = new ArrayList<Object>(buckets.keySet());
+            Object bucketKeys = Helpers.objectKeys(buckets);
             List<Object> unsortedCandles = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)bucketKeys).size(); i++)
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(bucketKeys)); i++)
             {
-                ((List<Object>)unsortedCandles).add(Helpers.GetValue(buckets, (bucketKeys == null || i < 0 || i >= bucketKeys.size() ? null : bucketKeys.get(i))));
+                ((List<Object>)unsortedCandles).add(Helpers.GetValue(buckets, Helpers.GetValue(bucketKeys, i)));
             }
             List<Object> candles = this.sortBy(unsortedCandles, 0);
-            Object candlesLength = ((List<?>)candles).size();
-            if ((!java.util.Objects.equals(limit, null)) && (Helpers.isGreaterThan(candlesLength, limit)))
+            Object candlesLength = Helpers.getArrayLength(candles);
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(limit, null))) && Helpers.isTrue((Helpers.isGreaterThan(candlesLength, limit)))))
             {
                 return this.arraySlice(candles, Helpers.opNeg(limit));
             }
             return candles;
-        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
 
     }
 
@@ -1861,7 +1860,7 @@ final Object finalClobTokenId = clobTokenId;
         //         "p": "0.265"
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        Object market = Helpers.getArg(optionalArgs, 0, null);
         Double price = this.safeNumber(ohlcv, "p");
         return new ArrayList<Object>(Arrays.asList(this.safeTimestamp(ohlcv, "t"), price, price, price, price, null));
     }
@@ -1879,7 +1878,7 @@ final Object finalClobTokenId = clobTokenId;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             String response = (this.clobPublicGetTime(parameters)).join();
             //
             //     1781273248
@@ -1902,15 +1901,15 @@ final Object finalClobTokenId = clobTokenId;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             String response = (this.gammaPublicGetStatus(parameters)).join();
             //
             //     OK
             //
-            Boolean ok = (java.util.Objects.equals(response, "OK")) || (java.util.Objects.equals(response, "ok"));
+            Boolean ok = Helpers.isTrue((Helpers.isEqual(response, "OK"))) || Helpers.isTrue((Helpers.isEqual(response, "ok")));
             final Object finalResponse = response;
             return new HashMap<String, Object>() {{
-                put( "status", ((Boolean.TRUE.equals(ok))) ? "ok" : "maintenance" );
+                put( "status", ((Helpers.isTrue(ok))) ? "ok" : "maintenance" );
                 put( "updated", null );
                 put( "eta", null );
                 put( "url", null );
@@ -1934,13 +1933,13 @@ final Object finalClobTokenId = clobTokenId;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object outcomeObj = (this.loadOutcome(outcome)).join();
-            Map<String, Object> outcomeInfo = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
+            Object outcomeInfo = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             String conditionId = this.safeString(outcomeInfo, "conditionId");
-            if (java.util.Objects.equals(conditionId, null))
+            if (Helpers.isTrue(Helpers.isEqual(conditionId, null)))
             {
-                throw new BadRequest(((this.id + " fetchOpenInterest() requires outcome.info.conditionId for ") + outcome)) ;
+                throw new BadRequest(Helpers.add(Helpers.add(this.id, " fetchOpenInterest() requires outcome.info.conditionId for "), outcome)) ;
             }
             final Object finalConditionId = conditionId;
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1950,7 +1949,7 @@ final Object finalClobTokenId = clobTokenId;
             //
             //     [ { "market": "0x7976b8...92", "value": 4925662.470476 } ]
             //
-            Map<String, Object> first = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
+            Object first = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
             return this.parsePredictionOpenInterest(first, ((Object)outcomeObj));
         }).thenApply(PredictionOpenInterest::new);
 
@@ -1961,21 +1960,20 @@ final Object finalClobTokenId = clobTokenId;
         //
         //     { "market": "0x7976b8...92", "value": 4925662.470476 }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Long timestamp = this.milliseconds();
+        Object market = Helpers.getArg(optionalArgs, 0, null);
         Object openInterest = this.safeOpenInterest(new HashMap<String, Object>() {{
             put( "symbol", Polymarket.this.safeOutcomeSymbol(null, market) );
             put( "openInterestAmount", null );
             put( "openInterestValue", Polymarket.this.safeNumber(interest, "value") );
             put( "baseVolume", null );
             put( "quoteVolume", null );
-            put( "timestamp", timestamp );
-            put( "datetime", Polymarket.this.iso8601(timestamp) );
+            put( "timestamp", null );
+            put( "datetime", null );
             put( "info", interest );
         }}, market);
-        ((Map<String, Object>)openInterest).put("outcome", this.safeOutcomeSymbol(null, market));
-        ((Map<String, Object>)openInterest).put("outcomeId", this.safeString(market, "outcomeId"));
-        ((Map<String, Object>)openInterest).put("market", this.safeString(market, "market"));
+        Helpers.addElementToObject(openInterest, "outcome", this.safeOutcomeSymbol(null, market));
+        Helpers.addElementToObject(openInterest, "outcomeId", this.safeString(market, "outcomeId"));
+        Helpers.addElementToObject(openInterest, "market", this.safeString(market, "market"));
         ((Map<String,Object>)openInterest).remove("symbol");
         return openInterest;
     }
@@ -1994,7 +1992,7 @@ final Object finalClobTokenId = clobTokenId;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object outcomeObj = (this.loadOutcome(outcome)).join();
             String tokenId = this.safeString(outcomeObj, "outcomeId");
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2005,7 +2003,7 @@ final Object finalClobTokenId = clobTokenId;
             //     { "base_fee": 30 }   // base fee in basis points
             //
             String baseFeeBps = this.safeString(response, "base_fee");
-            Object rate = (((!java.util.Objects.equals(baseFeeBps, null)))) ? this.parseNumber(Precise.stringDiv(baseFeeBps, "10000")) : null;
+            Object rate = ((Helpers.isTrue((!Helpers.isEqual(baseFeeBps, null))))) ? this.parseNumber(Precise.stringDiv(baseFeeBps, "10000")) : null;
             return new HashMap<String, Object>() {{
                 put( "info", response );
                 put( "outcome", Polymarket.this.safeOutcomeSymbol(null, ((Object)outcomeObj)) );
@@ -2036,16 +2034,16 @@ final Object finalClobTokenId = clobTokenId;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            Object since = Helpers.getArg(optionalArgs, 0, null);
+            Object limit = Helpers.getArg(optionalArgs, 1, null);
+            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             Object outcomeObj = (this.loadOutcome(outcome)).join();
             Object tokenId = Helpers.GetValue(outcomeObj, "outcomeId");
-            Map<String, Object> outcomeInfo = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
+            Object outcomeInfo = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             String conditionId = this.safeString(outcomeInfo, "conditionId");
-            if (java.util.Objects.equals(conditionId, null))
+            if (Helpers.isTrue(Helpers.isEqual(conditionId, null)))
             {
-                throw new BadRequest((String)Helpers.add((this.id + " fetchTrades() requires outcome.info.conditionId for an outcome "), tokenId)) ;
+                throw new BadRequest(Helpers.add(Helpers.add(this.id, " fetchTrades() requires outcome.info.conditionId for an outcome "), tokenId)) ;
             }
             // the endpoint filters by market conditionId (which spans BOTH outcome tokens), then we narrow
             // to the requested token client-side below. applying the user's `limit` to this request and
@@ -2056,15 +2054,15 @@ final Object finalClobTokenId = clobTokenId;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", finalConditionId );
             }};
-            ((Map<String, Object>)request).put("limit", this.safeInteger(this.options, "tradesPageSize", 500));
+            Helpers.addElementToObject(request, "limit", this.safeInteger(this.options, "tradesPageSize", 500));
             List<Object> response = (this.dataPublicGetTrades(this.extend(request, parameters))).join();
-            Object rawTrades = (((response instanceof List))) ? response : this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Object rawTrades = ((Helpers.isTrue(Helpers.isArray(response)))) ? response : this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> filteredTrades = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)rawTrades).size(); i++)
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawTrades)); i++)
             {
                 Object trade = Helpers.GetValue(rawTrades, i);
                 String tradeAsset = this.safeString(trade, "asset");
-                if (java.util.Objects.equals(tradeAsset, tokenId))
+                if (Helpers.isTrue(Helpers.isEqual(tradeAsset, tokenId)))
                 {
                     ((List<Object>)filteredTrades).add(trade);
                 }
@@ -2072,7 +2070,7 @@ final Object finalClobTokenId = clobTokenId;
             // the trades are already narrowed to this outcome by asset id above;
             // parsePredictionTrade resolves the outcome from each trade's asset id
             return this.parsePredictionTrades(filteredTrades, null, since, limit);
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
 
     }
 
@@ -2092,22 +2090,22 @@ final Object finalClobTokenId = clobTokenId;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object outcome = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object outcome = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             (this.loadApiCredentials()).join();
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object outcomeObj = null;
-            if (!java.util.Objects.equals(outcome, null))
+            if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
             {
                 outcomeObj = (this.loadOutcome(outcome)).join();
-                ((Map<String, Object>)request).put("asset_id", Helpers.GetValue(outcomeObj, "outcomeId"));
+                Helpers.addElementToObject(request, "asset_id", Helpers.GetValue(outcomeObj, "outcomeId"));
             }
             Map<String, Object> response = (this.clobPrivateGetDataTrades(this.extend(request, parameters))).join();
-            Object rawTrades = (((response instanceof List))) ? response : this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Object rawTrades = ((Helpers.isTrue(Helpers.isArray(response)))) ? response : this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parsePredictionTrades(rawTrades, outcomeObj, since, limit);
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
 
     }
 
@@ -2130,32 +2128,32 @@ final Object finalClobTokenId = clobTokenId;
 
             // the /data/trades endpoint has no order filter, so fetch the user's trades and keep
             // the ones where this order was the taker or one of the matched makers
-            Object outcome = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object outcome = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             Object trades = (this.fetchMyTrades((Object)(outcome), (Object)(null), (Object)(null), (Object)(parameters))).join();
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)trades).size(); i++)
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(trades)); i++)
             {
                 Object trade = Helpers.GetValue(trades, i);
-                Map<String, Object> info = (Map<String, Object>) this.safeDict(trade, "info", new HashMap<String, Object>() {{}});
-                Boolean belongs = (java.util.Objects.equals(this.safeString(trade, "order"), id)) || (java.util.Objects.equals(this.safeString(info, "taker_order_id"), id));
-                List<Object> makerOrders = (List<Object>) this.safeList(info, "maker_orders", new ArrayList<Object>(Arrays.asList()));
-                for (var j = 0; j < ((List<?>)makerOrders).size(); j++)
+                Object info = this.safeDict(trade, "info", new HashMap<String, Object>() {{}});
+                Boolean belongs = Helpers.isTrue((Helpers.isEqual(this.safeString(trade, "order"), id))) || Helpers.isTrue((Helpers.isEqual(this.safeString(info, "taker_order_id"), id)));
+                Object makerOrders = this.safeList(info, "maker_orders", new ArrayList<Object>(Arrays.asList()));
+                for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(makerOrders)); j++)
                 {
-                    if (java.util.Objects.equals(this.safeString((makerOrders == null || j < 0 || j >= makerOrders.size() ? null : makerOrders.get(j)), "order_id"), id))
+                    if (Helpers.isTrue(Helpers.isEqual(this.safeString(Helpers.GetValue(makerOrders, j), "order_id"), id)))
                     {
                         belongs = true;
                     }
                 }
-                if (Boolean.TRUE.equals(belongs))
+                if (Helpers.isTrue(belongs))
                 {
                     ((List<Object>)result).add(trade);
                 }
             }
             return this.filterBySinceLimit(result, since, limit);
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
 
     }
 
@@ -2172,25 +2170,25 @@ final Object finalClobTokenId = clobTokenId;
     {
         // public data-api trades use 'asset'/'orderId'/'transactionHash'/'timestamp';
         // the private CLOB /data/trades use 'asset_id'/'taker_order_id'/'transaction_hash'/'match_time'
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        Object market = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("transactionHash", "transaction_hash", "id")));
         Long timestamp = this.safeIntegerProduct(trade, "timestamp", 1000);
-        if (java.util.Objects.equals(timestamp, null))
+        if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
         {
             timestamp = this.safeIntegerProduct(trade, "match_time", 1000);
         }
         Double price = this.safeNumber(trade, "price");
         Double amount = this.safeNumber(trade, "size");
         String rawSide = this.safeStringLower(trade, "side");
-        Object side = (((java.util.Objects.equals(rawSide, "buy") || java.util.Objects.equals(rawSide, "sell")))) ? rawSide : null;
+        Object side = ((Helpers.isTrue((Helpers.isTrue(Helpers.isEqual(rawSide, "buy")) || Helpers.isTrue(Helpers.isEqual(rawSide, "sell")))))) ? rawSide : null;
         String assetId = this.safeString2(trade, "asset", "asset_id");
-        Object mkt = (((!java.util.Objects.equals(market, null)))) ? market : this.safeOutcome(assetId);
+        Object mkt = ((Helpers.isTrue((!Helpers.isEqual(market, null))))) ? market : this.safeOutcome(assetId);
         Object outcome = this.safeOutcomeSymbol(null, mkt);
         String rawTakerOrMaker = this.safeStringLower(trade, "trader_side");
-        Object takerOrMaker = (((java.util.Objects.equals(rawTakerOrMaker, "taker") || java.util.Objects.equals(rawTakerOrMaker, "maker")))) ? rawTakerOrMaker : null;
+        Object takerOrMaker = ((Helpers.isTrue((Helpers.isTrue(Helpers.isEqual(rawTakerOrMaker, "taker")) || Helpers.isTrue(Helpers.isEqual(rawTakerOrMaker, "maker")))))) ? rawTakerOrMaker : null;
         String feeRateBps = this.safeString(trade, "fee_rate_bps");
         Object fee = null;
-        if (!java.util.Objects.equals(feeRateBps, null))
+        if (Helpers.isTrue(!Helpers.isEqual(feeRateBps, null)))
         {
             final Object finalFeeRateBps = feeRateBps;
             fee = new HashMap<String, Object>() {{
@@ -2234,7 +2232,7 @@ final Object finalClobTokenId = clobTokenId;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             (this.loadApiCredentials()).join();
             // the collateral balance is tied to the signature type / funder that holds the USDC
             Long signatureType = (Long) this.safeInteger2(parameters, "signatureType", "signature_type", this.safeInteger(this.options, "signatureType", 3));
@@ -2265,12 +2263,12 @@ final Object finalClobTokenId = clobTokenId;
         // 'balance' is the raw USDC collateral in 6-decimal units (e.g. "8992211" = 8.992211 USDC)
         String raw = this.safeString(response, "balance");
         Object total = null;
-        if (!java.util.Objects.equals(raw, null))
+        if (Helpers.isTrue(!Helpers.isEqual(raw, null)))
         {
             total = this.parseNumber(Precise.stringDiv(raw, "1000000"));
         }
         final Object finalTotal = total;
-        ((Map<String, Object>)result).put("USDC", new HashMap<String, Object>() {{
+        Helpers.addElementToObject(result, "USDC", new HashMap<String, Object>() {{
     put( "free", finalTotal );
     put( "used", null );
     put( "total", finalTotal );
@@ -2292,55 +2290,55 @@ final Object finalClobTokenId = clobTokenId;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object outcomes = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object outcomes = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             Object outcomesLength = 0;
-            if (!java.util.Objects.equals(outcomes, null))
+            if (Helpers.isTrue(!Helpers.isEqual(outcomes, null)))
             {
-                outcomesLength = ((List<?>)outcomes).size();
+                outcomesLength = Helpers.getArrayLength(outcomes);
                 (this.loadOutcomes(outcomes)).join();
             }
             // no bulk warm-up on the unfiltered path: the positions request is self-contained and
             // labels resolve cache-only via safeOutcome (raw token ids when the cache is cold)
-            if (java.util.Objects.equals(this.walletAddress, null))
+            if (Helpers.isTrue(Helpers.isEqual(this.walletAddress, null)))
             {
-                throw new ArgumentsRequired((this.id + " walletAddress is required to fetchPositions")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " walletAddress is required to fetchPositions")) ;
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "user", Polymarket.this.walletAddress );
             }};
             Map<String, Object> response = (this.dataPublicGetPositions(this.extend(request, parameters))).join();
-            List<Object> positions = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Object positions = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             // parse without the base outcome filter (it resolves standard markets, not outcome tokens),
             // then filter by the requested outcomes' token ids ourselves
             Object parsed = this.parsePredictionPositions(positions);
-            if (java.util.Objects.equals(outcomesLength, 0))
+            if (Helpers.isTrue(Helpers.isEqual(outcomesLength, 0)))
             {
                 return parsed;
             }
             Map<String, Object> wantedIds = new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(outcomes, null))
+            if (Helpers.isTrue(Helpers.isEqual(outcomes, null)))
             {
-                throw new ExchangeError((this.id + " fetchPositions() missing outcomes")) ;
+                throw new ExchangeError(Helpers.add(this.id, " fetchPositions() missing outcomes")) ;
             }
-            for (var i = 0; i < ((List<?>)outcomes).size(); i++)
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(outcomes)); i++)
             {
                 Object outcomeObj = this.outcome(Helpers.GetValue(outcomes, i));
                 Helpers.addElementToObject(wantedIds, Helpers.GetValue(outcomeObj, "outcomeId"), true);
             }
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)parsed).size(); i++)
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(parsed)); i++)
             {
                 Object position = Helpers.GetValue(parsed, i);
-                Map<String, Object> info = (Map<String, Object>) this.safeDict(position, "info", new HashMap<String, Object>() {{}});
+                Object info = this.safeDict(position, "info", new HashMap<String, Object>() {{}});
                 String assetId = this.safeString(info, "asset");
-                if ((!java.util.Objects.equals(assetId, null)) && (wantedIds.containsKey(assetId)))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(assetId, null))) && Helpers.isTrue((Helpers.inOp(wantedIds, assetId)))))
                 {
                     ((List<Object>)result).add(position);
                 }
             }
             return result;
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionPosition::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, PredictionPosition::new));
 
     }
 
@@ -2358,7 +2356,7 @@ final Object finalClobTokenId = clobTokenId;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object positions = (this.fetchPositions((Object)(new ArrayList<Object>(Arrays.asList(outcome))), (Object)(parameters))).join();
             return this.safeDict(positions, 0);
         }).thenApply(PredictionPosition::new);
@@ -2376,14 +2374,14 @@ final Object finalClobTokenId = clobTokenId;
      */
     public Object parsePredictionPosition(Object position, Object... optionalArgs)
     {
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        Object market = Helpers.getArg(optionalArgs, 0, null);
         String tokenId = this.safeString(position, "asset");
         Object marketData = this.safeOutcome(tokenId, market);
         Double size = this.safeNumber(position, "size");
         Double entryPrice = this.safeNumber(position, "avgPrice");
         Double curPrice = this.safeNumber(position, "currentPrice");
         Object notional = null;
-        if ((!java.util.Objects.equals(size, null)) && (!java.util.Objects.equals(curPrice, null)))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(size, null))) && Helpers.isTrue((!Helpers.isEqual(curPrice, null)))))
         {
             notional = Helpers.multiply(size, curPrice);
         }
@@ -2439,22 +2437,22 @@ final Object finalClobTokenId = clobTokenId;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object outcome = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object outcome = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             (this.loadApiCredentials()).join();
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object outcomeObj = null;
-            if (!java.util.Objects.equals(outcome, null))
+            if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
             {
                 outcomeObj = (this.loadOutcome(outcome)).join();
-                ((Map<String, Object>)request).put("asset_id", Helpers.GetValue(outcomeObj, "outcomeId"));
+                Helpers.addElementToObject(request, "asset_id", Helpers.GetValue(outcomeObj, "outcomeId"));
             }
             Map<String, Object> response = (this.clobPrivateGetDataOrders(this.extend(request, parameters))).join();
             Object orders = (List<Object>)(this.safeList(response, "data", new ArrayList<Object>(Arrays.asList())));
             return this.parsePredictionOrders(orders, outcomeObj, since, limit);
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 
@@ -2475,8 +2473,8 @@ final Object finalClobTokenId = clobTokenId;
 
             // the request only needs the order id; the outcome is a labelling hint, so resolve it from
             // cache (no network) — fetchOrder stays a single request even on a cold cache.
-            Object outcome = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object outcome = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             (this.loadApiCredentials()).join();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", id );
@@ -2508,7 +2506,7 @@ final Object finalClobTokenId = clobTokenId;
         //     "success":true
         // }
         // fetchOrder/fetchOpenOrders return 'id'; the createOrder POST response returns 'orderID'
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        Object market = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString2(order, "id", "orderID");
         String tokenId = this.safeString(order, "asset_id");
         Object mkt = this.safeOutcome(tokenId, market);
@@ -2556,7 +2554,7 @@ final Object finalClobTokenId = clobTokenId;
      * @param {string} status the raw polymarket order status
      * @returns {string} a unified order status
      */
-    public String parseOrderStatus(String status)
+    public String parseOrderStatus(Object status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "live", "open" );
@@ -2602,11 +2600,11 @@ final Object finalClobTokenId = clobTokenId;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object price = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             (this.loadApiCredentials()).join();
             (this.loadOutcome(outcome)).join();
-            Object built = this.buildClobOrderBody((String) (outcome), (String) (type), (String) (side), amount, price, parameters);
+            Object built = this.buildClobOrderBody(outcome, type, side, amount, price, parameters);
             Map<String, Object> response = (this.clobPrivatePostOrder(this.safeDict(built, "body"))).join();
             // request echo first so the response's real orderID/status/success win on overlap
             Map<String, Object> enriched = this.extend(this.safeDict(built, "request"), response);
@@ -2631,16 +2629,16 @@ final Object finalClobTokenId = clobTokenId;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             (this.loadApiCredentials()).join();
             // buildClobOrderBody resolves outcomes synchronously from the cache, so batch-warm the
             // requested outcomes first (one gamma request for all uncached token ids)
             List<Object> orderOutcomes = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)orders).size(); i++)
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
                 Object o = Helpers.GetValue(orders, i);
                 String __oc = this.safeString(o, "outcome");
-                if (!java.util.Objects.equals(__oc, null))
+                if (Helpers.isTrue(!Helpers.isEqual(__oc, null)))
                 {
                     ((List<Object>)orderOutcomes).add(__oc);
                 }
@@ -2650,11 +2648,11 @@ final Object finalClobTokenId = clobTokenId;
             List<Object> outcomes = new ArrayList<Object>(Arrays.asList());
             List<Object> requests = new ArrayList<Object>(Arrays.asList());
             Long batchSalt = this.milliseconds();
-            for (var i = 0; i < ((List<?>)orders).size(); i++)
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
                 Object o = Helpers.GetValue(orders, i);
                 Object orderParams = this.safeDict(o, "params", new HashMap<String, Object>() {{}});
-                if (java.util.Objects.equals(this.safeString(orderParams, "salt"), null))
+                if (Helpers.isTrue(Helpers.isEqual(this.safeString(orderParams, "salt"), null)))
                 {
                     // a distinct salt per order so two identical orders in one batch don't collide
                     final Object finalI = i;
@@ -2669,14 +2667,14 @@ final Object finalClobTokenId = clobTokenId;
             }
             List<Object> response = (this.clobPrivatePostOrders(bodies)).join();
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            if ((response instanceof List))
+            if (Helpers.isTrue(Helpers.isArray(response)))
             {
-                for (var i = 0; i < ((List<?>)response).size(); i++)
+                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
                 {
                     // request echo first so the response's real orderID/status win on overlap
-                    Map<String, Object> enriched = this.extend((requests == null || i < 0 || i >= requests.size() ? null : requests.get(i)), (response == null || i < 0 || i >= response.size() ? null : response.get(i)));
-                    Object parsedItem = this.parsePredictionOrder(enriched, ((Object)(outcomes == null || i < 0 || i >= outcomes.size() ? null : outcomes.get(i))));
-                    Helpers.addElementToObject(parsedItem, "info", (response == null || i < 0 || i >= response.size() ? null : response.get(i))); // keep info the raw exchange response
+                    Map<String, Object> enriched = this.extend(Helpers.GetValue(requests, i), Helpers.GetValue(response, i));
+                    Object parsedItem = this.parsePredictionOrder(enriched, ((Object)Helpers.GetValue(outcomes, i)));
+                    Helpers.addElementToObject(parsedItem, "info", Helpers.GetValue(response, i)); // keep info the raw exchange response
                     ((List<Object>)result).add(parsedItem);
                 }
             } else
@@ -2684,7 +2682,7 @@ final Object finalClobTokenId = clobTokenId;
                 ((List<Object>)result).add(this.parsePredictionOrder(response));
             }
             return result;
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 
@@ -2695,63 +2693,63 @@ final Object finalClobTokenId = clobTokenId;
      * @description builds and signs a single CLOB order request body (shared by createOrder and createOrders)
      * @returns {object} an object with 'body' (the signed order request) and 'outcome' (the resolved outcome)
      */
-    public Object buildClobOrderBody(String outcome, String type, String side, Object amount, Object... optionalArgs)
+    public Object buildClobOrderBody(Object outcome, Object type, Object side, Object amount, Object... optionalArgs)
     {
         // pure builder, no network I/O — intentionally synchronous. a no-op async method
         // transpiles in php to a promise-typed wrapper around a body that returns a plain
         // dict, which throws a TypeError
         // outcome () validates the outcome against the loaded outcomes (built from events or markets)
-        Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+        Object price = Helpers.getArg(optionalArgs, 0, null);
+        Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
         Object outcomeObj = this.outcome(outcome);
         Object tokenId = Helpers.GetValue(outcomeObj, "outcomeId");
         Object sideStr = ((String)((String)side)).toUpperCase();
-        Boolean isMarket = (java.util.Objects.equals(type, "market"));
+        Boolean isMarket = (Helpers.isEqual(type, "market"));
         // CCXT type (limit/market) maps to a polymarket time-in-force: limit -> GTC, market -> FOK.
         // native override: params.orderType (GTC, GTD, FOK or FAK)
         String orderTypeStr = this.safeStringUpper(parameters, "orderType");
-        if (java.util.Objects.equals(orderTypeStr, null))
+        if (Helpers.isTrue(Helpers.isEqual(orderTypeStr, null)))
         {
             // otherwise map the unified `timeInForce` onto polymarket's orderType vocabulary
             String unifiedTif = this.safeStringUpper(parameters, "timeInForce");
-            if (java.util.Objects.equals(unifiedTif, "GTC"))
+            if (Helpers.isTrue(Helpers.isEqual(unifiedTif, "GTC")))
             {
                 orderTypeStr = "GTC";
-            } else if (java.util.Objects.equals(unifiedTif, "FOK"))
+            } else if (Helpers.isTrue(Helpers.isEqual(unifiedTif, "FOK")))
             {
                 orderTypeStr = "FOK";
-            } else if (java.util.Objects.equals(unifiedTif, "IOC"))
+            } else if (Helpers.isTrue(Helpers.isEqual(unifiedTif, "IOC")))
             {
                 orderTypeStr = "FAK"; // fill-and-kill == immediate-or-cancel
-            } else if (java.util.Objects.equals(unifiedTif, "GTD"))
+            } else if (Helpers.isTrue(Helpers.isEqual(unifiedTif, "GTD")))
             {
                 orderTypeStr = "GTD";
             }
         }
-        if (java.util.Objects.equals(orderTypeStr, null))
+        if (Helpers.isTrue(Helpers.isEqual(orderTypeStr, null)))
         {
-            orderTypeStr = ((Boolean.TRUE.equals(isMarket))) ? "FOK" : "GTC";
+            orderTypeStr = ((Helpers.isTrue(isMarket))) ? "FOK" : "GTC";
         }
-        if (java.util.Objects.equals(price, null))
+        if (Helpers.isTrue(Helpers.isEqual(price, null)))
         {
-            if (!Boolean.TRUE.equals(isMarket))
+            if (!Helpers.isTrue(isMarket))
             {
-                throw new ArgumentsRequired((this.id + " createOrder() requires a price for limit orders")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a price for limit orders")) ;
             }
             // market order without an explicit price: use the outcome's current price as the marketable reference
             price = this.safeNumber(outcomeObj, "price");
-            if (java.util.Objects.equals(price, null))
+            if (Helpers.isTrue(Helpers.isEqual(price, null)))
             {
-                throw new ArgumentsRequired((this.id + " createOrder() could not determine a price from the outcome, pass an explicit price")) ;
+                throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() could not determine a price from the outcome, pass an explicit price")) ;
             }
         }
         // tick size + neg-risk flag drive the rounding and the verifying contract; both are read from the
         // outcome object (set in parseMarket) and can be overridden via params to keep requests deterministic
-        Map<String, Object> outcomePrecision = (Map<String, Object>) this.safeDict(outcomeObj, "precision", new HashMap<String, Object>() {{}});
+        Object outcomePrecision = this.safeDict(outcomeObj, "precision", new HashMap<String, Object>() {{}});
         String tickSize = this.safeString(parameters, "tickSize", this.numberToString(this.safeNumber(outcomePrecision, "price", 0.01)));
         Object negRisk = this.safeBool(parameters, "negRisk", this.safeBool(outcomeObj, "negRisk", false));
         // maker-only: the CLOB rejects the order if it would immediately take
-        Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly", false);
+        Object postOnly = this.safeBool(parameters, "postOnly", false);
         // 0=EOA, 1=POLY_PROXY, 2=GNOSIS_SAFE, 3=POLY_1271 (deposit wallet, default); funder/maker holds the USDC
         Long signatureType = (Long) this.safeInteger2(parameters, "signatureType", "signature_type", this.safeInteger(this.options, "signatureType", 3));
         // the signer/owner is the EOA behind the privateKey; the funder/maker is the proxy or deposit wallet (walletAddress)
@@ -2765,10 +2763,10 @@ final Object finalClobTokenId = clobTokenId;
         // a market buy can be sized by USDC cost instead of shares (see createMarketBuyOrderWithCost)
         Double cost = this.safeNumber(parameters, "cost");
         Object rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("signatureType", "signature_type", "funder", "maker", "orderType", "timeInForce", "postOnly", "tickSize", "negRisk", "salt", "timestamp", "expiration", "cost", "builder", "builderCode")));
-        Object amounts = this.polymarketOrderRawAmounts((String) (sideStr), amount, price, (String) (tickSize), cost);
+        Object amounts = this.polymarketOrderRawAmounts(sideStr, amount, price, tickSize, cost);
         String makerAmount = this.safeString(amounts, "makerAmount");
         String takerAmount = this.safeString(amounts, "takerAmount");
-        Object sideInt = (((java.util.Objects.equals(sideStr, "BUY")))) ? 0 : 1;
+        Object sideInt = ((Helpers.isTrue((Helpers.isEqual(sideStr, "BUY"))))) ? 0 : 1;
         String bytes32Zero = "0x0000000000000000000000000000000000000000000000000000000000000000";
         // builder attribution: the order's bytes32 builder field packs the builder fee (bps,
         // upper 12 bytes) and the builder wallet (lower 20 bytes); when options.builderFee is
@@ -2776,19 +2774,19 @@ final Object finalClobTokenId = clobTokenId;
         // the user is not charged; a full 32-byte builder code is passed through unchanged
         String builderRaw = this.safeStringLower2(parameters, "builder", "builderCode", this.safeStringLower(this.options, "builder"));
         String builderBytes32 = bytes32Zero;
-        if (!java.util.Objects.equals(builderRaw, null))
+        if (Helpers.isTrue(!Helpers.isEqual(builderRaw, null)))
         {
             Object builderHex = this.remove0xPrefix(builderRaw);
-            if (Helpers.getArrayLength(builderHex) <= 40)
+            if (Helpers.isTrue(Helpers.isLessThanOrEqual(Helpers.getArrayLength(builderHex), 40)))
             {
-                Boolean builderFeeEnabled = (Boolean) this.safeBool(this.options, "builderFee", true);
+                Object builderFeeEnabled = this.safeBool(this.options, "builderFee", true);
                 Object feeRate = 0;
-                if (java.util.Objects.equals(builderFeeEnabled, true))
+                if (Helpers.isTrue(Helpers.isEqual(builderFeeEnabled, true)))
                 {
                     feeRate = this.safeInteger(this.options, "feeRate", 0);
                 }
                 Object feeHex = this.intToBase16(feeRate);
-                feeHex = (((String)feeHex).length() >= 24 ? ((String)feeHex).substring(((String)feeHex).length() - 24) : String.format("%" + (24 - ((String)feeHex).length()) + "s", "").replace(' ', '0') + ((String)feeHex));
+                feeHex = Helpers.padStart(((String)feeHex), ((Number)24).intValue(), "0".charAt(0));
                 Object addressHex = builderHex;
                 addressHex = Helpers.padStart(((String)addressHex), ((Number)40).intValue(), "0".charAt(0));
                 builderHex = Helpers.add(feeHex, addressHex);
@@ -2802,7 +2800,7 @@ final Object finalClobTokenId = clobTokenId;
         // wallet.isValidSignature and the inner ERC-7739 domain's verifyingContract is the wallet (the EOA
         // still produces the signature and is checked on-chain as the wallet owner). Otherwise signer = EOA.
         Object maker = funder;
-        Object signer = ((((signatureType != null && signatureType == 3)))) ? funder : eoa;
+        Object signer = ((Helpers.isTrue((Helpers.isEqual(signatureType, 3))))) ? funder : eoa;
         final Object finalSignatureType = signatureType;
         final Object finalBuilderBytes32 = builderBytes32;
         Map<String, Object> message = new HashMap<String, Object>() {{
@@ -2820,9 +2818,9 @@ final Object finalClobTokenId = clobTokenId;
         }};
         String exchangeV2 = this.safeString(this.options, "exchangeAddress", "0xE111180000d2663C0091e4f400237545B87B996B");
         String negRiskExchangeV2 = this.safeString(this.options, "negRiskExchangeAddress", "0xe2222d279d744050d28e00520010520000310F59");
-        String exchangeAddress = (((java.util.Objects.equals(negRisk, true)))) ? negRiskExchangeV2 : exchangeV2;
+        String exchangeAddress = ((Helpers.isTrue((Helpers.isEqual(negRisk, true))))) ? negRiskExchangeV2 : exchangeV2;
         String domainVersion = this.safeString(this.options, "ctfExchangeVersion", "2");
-        String signature = this.signClobOrder((Map<String, Object>) (message), exchangeAddress, domainVersion, signatureType);
+        String signature = this.signClobOrder(message, exchangeAddress, domainVersion, signatureType);
         String owner = this.safeString(this.options, "l2ApiKey", this.apiKey);
         final Object finalSideStr = sideStr;
         final Object finalOrderTypeStr = orderTypeStr;
@@ -2859,10 +2857,10 @@ final Object finalClobTokenId = clobTokenId;
             put( "time_in_force", finalOrderTypeStr );
             put( "postOnly", postOnly );
         }};
-        if (java.util.Objects.equals(cost, null))
+        if (Helpers.isTrue(Helpers.isEqual(cost, null)))
         {
             // a cost-sized market buy specifies spend, not shares — leave size to the fill
-            ((Map<String, Object>)requestEcho).put("original_size", amount);
+            Helpers.addElementToObject(requestEcho, "original_size", amount);
         }
         return new HashMap<String, Object>() {{
             put( "body", Polymarket.this.extend(rest, orderBody) );
@@ -2886,7 +2884,7 @@ final Object finalClobTokenId = clobTokenId;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> request = this.extend(parameters, new HashMap<String, Object>() {{
                 put( "cost", cost );
             }});
@@ -2895,9 +2893,9 @@ final Object finalClobTokenId = clobTokenId;
 
     }
 
-    public Object polymarketOrderRawAmounts(String side, Object size, Object price, String tickSize, Object... optionalArgs)
+    public Object polymarketOrderRawAmounts(Object side, Object size, Object price, Object tickSize, Object... optionalArgs)
     {
-        Object cost = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        Object cost = Helpers.getArg(optionalArgs, 0, null);
         Map<String, Object> configs = new HashMap<String, Object>() {{
             put( "0.1", new HashMap<String, Object>() {{
                 put( "price", 1 );
@@ -2928,7 +2926,7 @@ final Object finalClobTokenId = clobTokenId;
         Object rawPrice = this.decimalToPrecision(priceStr, ROUND, priceDecimals, DECIMAL_PLACES);
         Object makerRaw = null;
         Object takerRaw = null;
-        if ((!java.util.Objects.equals(cost, null)) && (java.util.Objects.equals(side, "BUY")))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(cost, null))) && Helpers.isTrue((Helpers.isEqual(side, "BUY")))))
         {
             // cost-sized market buy: maker pays `cost` USDC, taker receives cost/price shares.
             // truncate the shares so the implied price (cost/shares) stays >= the limit, otherwise
@@ -2936,7 +2934,7 @@ final Object finalClobTokenId = clobTokenId;
             Object costStr = this.numberToString(cost);
             makerRaw = this.decimalToPrecision(costStr, TRUNCATE, sizeDecimals, DECIMAL_PLACES);
             takerRaw = this.decimalToPrecision(Precise.stringDiv(makerRaw, rawPrice), TRUNCATE, amountDecimals, DECIMAL_PLACES);
-        } else if (java.util.Objects.equals(side, "BUY"))
+        } else if (Helpers.isTrue(Helpers.isEqual(side, "BUY")))
         {
             Object sizeStr = this.numberToString(size);
             takerRaw = this.decimalToPrecision(sizeStr, TRUNCATE, sizeDecimals, DECIMAL_PLACES);
@@ -2956,7 +2954,7 @@ final Object finalClobTokenId = clobTokenId;
         }};
     }
 
-    public String signClobOrder(Map<String, Object> message, Object exchangeAddress, Object domainVersion, Object sigType)
+    public String signClobOrder(Object message, Object exchangeAddress, Object domainVersion, Object sigType)
     {
         // param is sigType, not signatureType: the php regex transpiler would rewrite the
         // substring "signatureType" inside the orderTypeString literal below into the local
@@ -3009,7 +3007,7 @@ final Object finalClobTokenId = clobTokenId;
         }};
         // parseToInt: php types the number param as float, and 3.0 !== 3 (int) is true under
         // strict comparison, which would always wrongly select the EOA path
-        if (!Helpers.isEqual(this.parseToInt(sigType), 3))
+        if (Helpers.isTrue(!Helpers.isEqual(this.parseToInt(sigType), 3)))
         {
             // standard EOA EIP-712 order signature
             Object encoded = this.ethEncodeStructuredData(orderDomain, new HashMap<String, Object>() {{
@@ -3018,14 +3016,14 @@ final Object finalClobTokenId = clobTokenId;
             Object eoaSig = this.signMessage(encoded, this.privateKey);
             // lowercase: intToBase16 emits uppercase hex in some target languages, but the
             // signature is case-insensitive bytes and the rest of the hex is lowercase
-            Object eoaSignature = Helpers.add(Helpers.add(Helpers.add("0x", this.remove0xPrefix(((Map<String, Object>)eoaSig).get("r"))), this.remove0xPrefix(((Map<String, Object>)eoaSig).get("s"))), this.intToBase16(((Map<String, Object>)eoaSig).get("v")));
+            Object eoaSignature = Helpers.add(Helpers.add(Helpers.add("0x", this.remove0xPrefix(Helpers.GetValue(eoaSig, "r"))), this.remove0xPrefix(Helpers.GetValue(eoaSig, "s"))), this.intToBase16(Helpers.GetValue(eoaSig, "v")));
             return ((String)eoaSignature).toLowerCase();
         }
         // POLY_1271 — ERC-7739 wrapped signature validated on-chain by the deposit wallet.
         // ethAbiEncode needs portable value types: bytes32 as binary, uint256 as bigint
         // raw hex/decimal strings encode in ethers/JS but throw in the python/php codecs
         Object orderTypeHash = this.hash(this.encode(orderTypeString), keccak(), "binary");
-        Object contentsData = this.ethAbiEncode(new ArrayList<Object>(Arrays.asList("bytes32", "uint256", "address", "address", "uint256", "uint256", "uint256", "uint8", "uint8", "uint256", "bytes32", "bytes32")), new ArrayList<Object>(Arrays.asList(orderTypeHash, this.convertToBigInt(((Map<String, Object>)message).get("salt")), ((Map<String, Object>)message).get("maker"), ((Map<String, Object>)message).get("signer"), this.convertToBigInt(((Map<String, Object>)message).get("tokenId")), this.convertToBigInt(((Map<String, Object>)message).get("makerAmount")), this.convertToBigInt(((Map<String, Object>)message).get("takerAmount")), ((Map<String, Object>)message).get("side"), ((Map<String, Object>)message).get("signatureType"), this.convertToBigInt(((Map<String, Object>)message).get("timestamp")), this.base16ToBinary(this.remove0xPrefix(((Map<String, Object>)message).get("metadata"))), this.base16ToBinary(this.remove0xPrefix(((Map<String, Object>)message).get("builder"))))));
+        Object contentsData = this.ethAbiEncode(new ArrayList<Object>(Arrays.asList("bytes32", "uint256", "address", "address", "uint256", "uint256", "uint256", "uint8", "uint8", "uint256", "bytes32", "bytes32")), new ArrayList<Object>(Arrays.asList(orderTypeHash, this.convertToBigInt(Helpers.GetValue(message, "salt")), Helpers.GetValue(message, "maker"), Helpers.GetValue(message, "signer"), this.convertToBigInt(Helpers.GetValue(message, "tokenId")), this.convertToBigInt(Helpers.GetValue(message, "makerAmount")), this.convertToBigInt(Helpers.GetValue(message, "takerAmount")), Helpers.GetValue(message, "side"), Helpers.GetValue(message, "signatureType"), this.convertToBigInt(Helpers.GetValue(message, "timestamp")), this.base16ToBinary(this.remove0xPrefix(Helpers.GetValue(message, "metadata"))), this.base16ToBinary(this.remove0xPrefix(Helpers.GetValue(message, "builder"))))));
         String contentsHash = Helpers.add("0x", this.hash(contentsData, keccak(), "hex"));
         Object domainTypeHash = this.hash(this.encode("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"), keccak(), "binary");
         Object nameHash = this.hash(this.encode(domainName), keccak(), "binary");
@@ -3057,7 +3055,7 @@ final Object finalClobTokenId = clobTokenId;
             put( "name", "DepositWallet" );
             put( "version", "1" );
             put( "chainId", chainIdValue );
-            put( "verifyingContract", ((Map<String, Object>)message).get("signer") );
+            put( "verifyingContract", Helpers.GetValue(message, "signer") );
             put( "salt", bytes32Zero );
         }};
         Object innerEncoded = this.ethEncodeStructuredData(orderDomain, new HashMap<String, Object>() {{
@@ -3065,7 +3063,7 @@ final Object finalClobTokenId = clobTokenId;
             put( "Order", orderStruct );
         }}, innerValue);
         Object innerSigObj = this.signMessage(innerEncoded, this.privateKey);
-        Object innerSig = Helpers.add(Helpers.add(this.remove0xPrefix(((Map<String, Object>)innerSigObj).get("r")), this.remove0xPrefix(((Map<String, Object>)innerSigObj).get("s"))), this.intToBase16(((Map<String, Object>)innerSigObj).get("v")));
+        Object innerSig = Helpers.add(Helpers.add(this.remove0xPrefix(Helpers.GetValue(innerSigObj, "r")), this.remove0xPrefix(Helpers.GetValue(innerSigObj, "s"))), this.intToBase16(Helpers.GetValue(innerSigObj, "v")));
         // innerSig(65) || appDomainSep(32) || contentsHash(32) || contentsType || uint16_BE(len)
         // orderTypeString.length is used inline (not via a `const n = str.length;` statement) so the
         // php transpiler emits strlen() — the standalone statement form wrongly becomes count() (array)
@@ -3074,7 +3072,7 @@ final Object finalClobTokenId = clobTokenId;
         // simple identifier) picks it up instead of leaking a padStart() function call
         Object lenHex = Helpers.padStart(ctLenHex, ((Number)4).intValue(), ((String)"0").charAt(0));
         Object orderTypeStringHex = this.binaryToBase16(this.encode(orderTypeString));
-        Object wrappedSignature = Helpers.add(Helpers.add(Helpers.add(Helpers.add(("0x" + innerSig), this.remove0xPrefix(appDomainSep)), this.remove0xPrefix(contentsHash)), orderTypeStringHex), lenHex);
+        Object wrappedSignature = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("0x", innerSig), this.remove0xPrefix(appDomainSep)), this.remove0xPrefix(contentsHash)), orderTypeStringHex), lenHex);
         // lowercase for byte-stable output across languages (intToBase16/binaryToBase16 emit
         // uppercase hex in some targets); the signature is case-insensitive bytes
         return ((String)wrappedSignature).toLowerCase();
@@ -3095,8 +3093,8 @@ final Object finalClobTokenId = clobTokenId;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object outcome = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object outcome = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             (this.loadApiCredentials()).join();
             // cancelling by id needs no market data, so events do not have to be loaded first
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3105,9 +3103,9 @@ final Object finalClobTokenId = clobTokenId;
             Map<String, Object> response = (this.clobPrivateDeleteOrder(this.extend(request, parameters))).join();
             // the DELETE endpoint returns { canceled: [id], not_canceled: { id: reason } } with no order
             // fields, so report the cancellation outcome explicitly rather than parsing an empty order
-            Map<String, Object> notCanceled = (Map<String, Object>) this.safeDict(response, "not_canceled", new HashMap<String, Object>() {{}});
+            Object notCanceled = this.safeDict(response, "not_canceled", new HashMap<String, Object>() {{}});
             String failureReason = this.safeString(notCanceled, id);
-            String status = (((java.util.Objects.equals(failureReason, null)))) ? "canceled" : "open";
+            String status = ((Helpers.isTrue((Helpers.isEqual(failureReason, null))))) ? "canceled" : "open";
             return this.safePredictionOrder(new HashMap<String, Object>() {{
                 put( "id", id );
                 put( "status", status );
@@ -3132,14 +3130,14 @@ final Object finalClobTokenId = clobTokenId;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object outcome = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object outcome = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             (this.loadApiCredentials()).join();
             // the request body is the bare array of order ids (DELETE /orders), so params are not merged
             Map<String, Object> response = (this.clobPrivateDeleteOrders(ids)).join();
-            List<Object> canceled = (List<Object>) this.safeList(response, "canceled", new ArrayList<Object>(Arrays.asList()));
+            Object canceled = this.safeList(response, "canceled", new ArrayList<Object>(Arrays.asList()));
             List<Object> orders = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)canceled).size(); i++)
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(canceled)); i++)
             {
     final Object finalI = i;
                             ((List<Object>)orders).add(this.safePredictionOrder(new HashMap<String, Object>() {{
@@ -3149,7 +3147,7 @@ final Object finalClobTokenId = clobTokenId;
                 }}));
             }
             return orders;
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 
@@ -3168,11 +3166,11 @@ final Object finalClobTokenId = clobTokenId;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object outcome = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object outcome = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             (this.loadApiCredentials()).join();
             Object response = null;
-            if (!java.util.Objects.equals(outcome, null))
+            if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
             {
                 // scope to a single outcome token via DELETE /cancel-market-orders { asset_id }
                 Object outcomeObj = (this.loadOutcome(outcome)).join();
@@ -3185,9 +3183,9 @@ final Object finalClobTokenId = clobTokenId;
                 // cancel every open order via DELETE /cancel-all (no body, no market data needed)
                 response = (this.clobPrivateDeleteCancelAll(parameters)).join();
             }
-            List<Object> canceled = (List<Object>) this.safeList(response, "canceled", new ArrayList<Object>(Arrays.asList()));
+            Object canceled = this.safeList(response, "canceled", new ArrayList<Object>(Arrays.asList()));
             List<Object> orders = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)canceled).size(); i++)
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(canceled)); i++)
             {
     final Object finalI = i;
                 final Object finalResponse = response;
@@ -3198,7 +3196,7 @@ final Object finalClobTokenId = clobTokenId;
                 }}));
             }
             return orders;
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 
@@ -3227,33 +3225,33 @@ final Object finalClobTokenId = clobTokenId;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             this.requireEventQuery(parameters);
             String requestedEventId = this.safeString(parameters, "eventId");
             String requestedSlug = this.safeString(parameters, "slug");
             Object queries = this.parseSearchQueries(parameters);
             Object rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries", "eventId", "slug")));
-            if (java.util.Objects.equals(queries, null))
+            if (Helpers.isTrue(Helpers.isEqual(queries, null)))
             {
-                throw new ExchangeError((this.id + " fetchEvents() missing queries")) ;
+                throw new ExchangeError(Helpers.add(this.id, " fetchEvents() missing queries")) ;
             }
-            Object queriesLength = ((List<?>)queries).size();
+            Object queriesLength = Helpers.getArrayLength(queries);
             Object rawEvents = new ArrayList<Object>(Arrays.asList());
-            if ((!java.util.Objects.equals(requestedEventId, null)) || (!java.util.Objects.equals(requestedSlug, null)))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(requestedEventId, null))) || Helpers.isTrue((!Helpers.isEqual(requestedSlug, null)))))
             {
                 // direct lookup by event id or slug via the events endpoint (returns a list)
                 Map<String, Object> lookup = new HashMap<String, Object>() {{}};
-                if (!java.util.Objects.equals(requestedEventId, null))
+                if (Helpers.isTrue(!Helpers.isEqual(requestedEventId, null)))
                 {
-                    ((Map<String, Object>)lookup).put("id", requestedEventId);
+                    Helpers.addElementToObject(lookup, "id", requestedEventId);
                 } else
                 {
-                    ((Map<String, Object>)lookup).put("slug", requestedSlug);
+                    Helpers.addElementToObject(lookup, "slug", requestedSlug);
                 }
                 List<Object> response = (this.gammaPublicGetEvents(lookup)).join();
-                Object responseIsArray = (response instanceof List);
-                rawEvents = ((Boolean.TRUE.equals(responseIsArray))) ? response : new ArrayList<Object>(Arrays.asList());
-            } else if (Helpers.isGreaterThan(queriesLength, 0))
+                Object responseIsArray = Helpers.isArray(response);
+                rawEvents = ((Helpers.isTrue((responseIsArray)))) ? response : new ArrayList<Object>(Arrays.asList());
+            } else if (Helpers.isTrue(Helpers.isGreaterThan(queriesLength, 0)))
             {
                 rawEvents = (this.fetchRawEventsBySearch(queries, rest)).join();
             } else
@@ -3261,56 +3259,56 @@ final Object finalClobTokenId = clobTokenId;
                 rawEvents = (this.fetchRawEventsList(rest)).join();
             }
             // Parse and merge into class-level caches
-            if (java.util.Objects.equals(this.events, null))
+            if (Helpers.isTrue(Helpers.isEqual(this.events, null)))
             {
                 this.events = new HashMap<String, Object>() {{}};
             }
-            if (java.util.Objects.equals(this.markets, null))
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 this.markets = this.createSafeDictionary();
             }
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var rei = 0; rei < ((List<?>)rawEvents).size(); rei++)
+            for (var rei = 0; Helpers.isLessThan(rei, Helpers.getArrayLength(rawEvents)); rei++)
             {
                 Object rawEvent = Helpers.GetValue(rawEvents, rei);
                 Object eventForParsing = rawEvent;
-                Object ccxtMarkets = this.parseEventToMarkets((Map<String, Object>) (eventForParsing));
-                Object ccxtMarketsLength = ((List<?>)ccxtMarkets).size();
-                if (java.util.Objects.equals(ccxtMarketsLength, 0))
+                Object ccxtMarkets = this.parseEventToMarkets(eventForParsing);
+                Object ccxtMarketsLength = Helpers.getArrayLength(ccxtMarkets);
+                if (Helpers.isTrue(Helpers.isEqual(ccxtMarketsLength, 0)))
                 {
                     // search results may omit the nested markets, fall back to the detail endpoint
                     String eventId = this.safeString(rawEvent, "id");
                     String rawEventSlug = this.safeString(rawEvent, "slug");
                     Object detailedEvent = null;
-                    if (!java.util.Objects.equals(eventId, null))
+                    if (Helpers.isTrue(!Helpers.isEqual(eventId, null)))
                     {
                         final Object finalEventId = eventId;
                         detailedEvent = (this.gammaPublicGetEventsId(new HashMap<String, Object>() {{
                             put( "id", finalEventId );
                         }})).join();
-                    } else if (!java.util.Objects.equals(rawEventSlug, null))
+                    } else if (Helpers.isTrue(!Helpers.isEqual(rawEventSlug, null)))
                     {
                         final Object finalRawEventSlug = rawEventSlug;
                         detailedEvent = (this.gammaPublicGetEventsSlugSlug(new HashMap<String, Object>() {{
                             put( "slug", finalRawEventSlug );
                         }})).join();
                     }
-                    if (!java.util.Objects.equals(detailedEvent, null))
+                    if (Helpers.isTrue(!Helpers.isEqual(detailedEvent, null)))
                     {
                         eventForParsing = this.safeValue(detailedEvent, "event", detailedEvent);
-                        ccxtMarkets = this.parseEventToMarkets((Map<String, Object>) (eventForParsing));
+                        ccxtMarkets = this.parseEventToMarkets(eventForParsing);
                     }
                 }
-                for (var mi = 0; mi < ((List<?>)ccxtMarkets).size(); mi++)
+                for (var mi = 0; Helpers.isLessThan(mi, Helpers.getArrayLength(ccxtMarkets)); mi++)
                 {
                     Object m = Helpers.GetValue(ccxtMarkets, mi);
-                    if (java.util.Objects.equals(m, null))
+                    if (Helpers.isTrue(Helpers.isEqual(m, null)))
                     {
-                        throw new ExchangeError((this.id + " fetchEvents() missing m")) ;
+                        throw new ExchangeError(Helpers.add(this.id, " fetchEvents() missing m")) ;
                     }
-                    Helpers.addElementToObject(this.markets, ((Map<String, Object>)m).get("market"), m);
+                    Helpers.addElementToObject(this.markets, Helpers.GetValue(m, "market"), m);
                 }
-                Object parsedEvent = this.parseEvent((Map<String, Object>) (eventForParsing));
+                Object parsedEvent = this.parseEvent(eventForParsing);
                 ((List<Object>)result).add(parsedEvent);
             }
             // populateOutcomes rebuilds the outcome cache from the markets registered above; the
@@ -3318,18 +3316,18 @@ final Object finalClobTokenId = clobTokenId;
             // eventId/slug/status/tags/searchIn/sort/limit filters, so all five venues behave the same
             this.populateOutcomes();
             Object effectiveParams = parameters;
-            if (Helpers.isGreaterThan(queriesLength, 0))
+            if (Helpers.isTrue(Helpers.isGreaterThan(queriesLength, 0)))
             {
                 // the gamma search endpoint is fuzzy, so default to refining by active status and a
                 // title match (the caller can override); the other venues search exactly and need no
                 // such default. inject the defaults as explicit params so the shared pipeline stays
                 // the single behaviour definition
                 effectiveParams = this.extend(new HashMap<String, Object>() {{}}, parameters);
-                ((Map<String, Object>)effectiveParams).put("status", this.safeString(parameters, "status", "active"));
-                ((Map<String, Object>)effectiveParams).put("searchIn", this.safeString(parameters, "searchIn", "title"));
+                Helpers.addElementToObject(effectiveParams, "status", this.safeString(parameters, "status", "active"));
+                Helpers.addElementToObject(effectiveParams, "searchIn", this.safeString(parameters, "searchIn", "title"));
             }
             return this.applyEventFetchParams(result, effectiveParams, queries);
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionEvent::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, PredictionEvent::new));
 
     }
 
@@ -3348,9 +3346,9 @@ final Object finalClobTokenId = clobTokenId;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object response = null;
-            if (((String)id).indexOf("-") >= 0)
+            if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(id, "-"), 0)))
             {
                 response = (this.gammaPublicGetEventsSlugSlug(this.extend(new HashMap<String, Object>() {{
                     put( "slug", id );
@@ -3362,18 +3360,18 @@ final Object finalClobTokenId = clobTokenId;
                 }}, parameters))).join();
             }
             Object eventForParsing = this.safeDict(response, "event", response);
-            if (java.util.Objects.equals(eventForParsing, null))
+            if (Helpers.isTrue(Helpers.isEqual(eventForParsing, null)))
             {
                 eventForParsing = new HashMap<String, Object>() {{}};
             }
-            Object eventVar = this.parseEvent((Map<String, Object>) (eventForParsing));
+            Object eventVar = this.parseEvent(eventForParsing);
             this.indexEventOutcomes(eventVar);
             return eventVar;
         }).thenApply(PredictionEvent::new);
 
     }
 
-    public Object parseEvent(Map<String, Object> rawEvent)
+    public Object parseEvent(Object rawEvent)
     {
         // {
         //     "id": "73113",
@@ -3434,31 +3432,31 @@ final Object finalClobTokenId = clobTokenId;
         //     "deploying": false,
         //     "requiresTranslation": false
         // }
-        Object marketsList = this.parseEventToMarkets((Map<String, Object>) (rawEvent));
+        Object marketsList = this.parseEventToMarkets(rawEvent);
         String slug = this.safeString(rawEvent, "slug");
         // gamma events use camelCase keys (createdAt/endDate/image/updatedAt/closed);
         // the snake_case fallbacks cover older payload shapes
         String createdAt = this.safeString2(rawEvent, "createdAt", "created_date_iso");
         String endDate = this.safeString2(rawEvent, "endDate", "end_date_iso");
         String updatedAt = this.safeString2(rawEvent, "updatedAt", "last_updated_date_iso");
-        Boolean rawActive = (Boolean) this.safeBool(rawEvent, "active");
-        Boolean closed = (Boolean) this.safeBool(rawEvent, "closed", false);
+        Object rawActive = this.safeBool(rawEvent, "active");
+        Object closed = this.safeBool(rawEvent, "closed", false);
         Object active = null;
-        if (!java.util.Objects.equals(rawActive, null))
+        if (Helpers.isTrue(!Helpers.isEqual(rawActive, null)))
         {
-            active = (java.util.Objects.equals(rawActive, true)) && (!java.util.Objects.equals(closed, true));
+            active = Helpers.isTrue((Helpers.isEqual(rawActive, true))) && Helpers.isTrue((!Helpers.isEqual(closed, true)));
         }
         // surface gamma's tag objects as a top-level string[] so the unified `tags` filter
         // — filterEventsByTags reads event['tags'], not event.info.tags — can actually match.
         // prefer the human-readable label ("Fed Rates") over the slug — matching is
         // normalized (normalizeTagKey), so the display form is free to be the friendly one
-        List<Object> rawTags = (List<Object>) this.safeList(rawEvent, "tags", new ArrayList<Object>(Arrays.asList()));
-        Object rawTagsLength = ((List<?>)rawTags).size();
+        Object rawTags = this.safeList(rawEvent, "tags", new ArrayList<Object>(Arrays.asList()));
+        Object rawTagsLength = Helpers.getArrayLength(rawTags);
         List<Object> parsedTags = new ArrayList<Object>(Arrays.asList());
         for (var ti = 0; Helpers.isLessThan(ti, rawTagsLength); ti++)
         {
-            String tagLabel = this.safeString2((rawTags == null || ti < 0 || ti >= rawTags.size() ? null : rawTags.get(ti)), "label", "slug");
-            if (!java.util.Objects.equals(tagLabel, null))
+            String tagLabel = this.safeString2(Helpers.GetValue(rawTags, ti), "label", "slug");
+            if (Helpers.isTrue(!Helpers.isEqual(tagLabel, null)))
             {
                 ((List<Object>)parsedTags).add(tagLabel);
             }
@@ -3468,7 +3466,7 @@ final Object finalClobTokenId = clobTokenId;
         return this.extend(new HashMap<String, Object>() {{
             put( "id", Polymarket.this.safeString(rawEvent, "id") );
             put( "slug", finalSlug );
-            put( "event", (((!java.util.Objects.equals(finalSlug, null) && !java.util.Objects.equals(finalSlug, "")))) ? Polymarket.this.shortenSlug(finalSlug) : null );
+            put( "event", ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(finalSlug, null)) && Helpers.isTrue(!Helpers.isEqual(finalSlug, "")))))) ? Polymarket.this.shortenSlug(finalSlug) : null );
             put( "title", Polymarket.this.safeString(rawEvent, "title") );
             put( "tags", parsedTags );
             put( "markets", marketsList );
@@ -3499,10 +3497,10 @@ final Object finalClobTokenId = clobTokenId;
     public Object parseEvents(Object rawEvents)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)rawEvents).size(); i++)
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawEvents)); i++)
         {
             Object rawEvent = Helpers.GetValue(rawEvents, i);
-            ((List<Object>)result).add(this.parseEvent((Map<String, Object>) (rawEvent)));
+            ((List<Object>)result).add(this.parseEvent(rawEvent));
         }
         return result;
     }
@@ -3512,16 +3510,16 @@ final Object finalClobTokenId = clobTokenId;
         // the CLOB api returns { "error": "..." } (and createOrder variants use "errorMsg");
         // map the known messages so callers can distinguish a dead book or a rejected order
         // from a transport outage (the base otherwise maps a bare 404 to a retryable error)
-        if (java.util.Objects.equals(response, null))
+        if (Helpers.isTrue(Helpers.isEqual(response, null)))
         {
             return null;
         }
         String errorMessage = this.safeString2(response, "error", "errorMsg");
-        if (!java.util.Objects.equals(errorMessage, null))
+        if (Helpers.isTrue(!Helpers.isEqual(errorMessage, null)))
         {
-            String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorMessage, feedback);
-            this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), errorMessage, feedback);
+            Object feedback = Helpers.add(Helpers.add(this.id, " "), body);
+            this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), errorMessage, feedback);
+            this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), errorMessage, feedback);
         }
         return null;
     }
@@ -3542,80 +3540,80 @@ final Object finalClobTokenId = clobTokenId;
     public Object sign(Object path, Object... optionalArgs)
     {
         // api is either a string ('gamma') or array (['gamma', 'public'])
-        Object api = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "gamma";
-        Object method = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET";
-        Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
-        Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
-        Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
-        Object apiGroup = (((api instanceof String))) ? api : Helpers.GetValue(api, 0);
-        Object access = (((api instanceof String))) ? "public" : Helpers.GetValue(api, 1);
-        Object baseUrls = ((Map<String, Object>)this.urls).get("api");
-        String baseUrl = this.safeString(baseUrls, apiGroup, ((Map<String, Object>)baseUrls).get("gamma"));
-        String url = ((baseUrl + "/") + this.implodeParams(path, parameters));
+        Object api = Helpers.getArg(optionalArgs, 0, "gamma");
+        Object method = Helpers.getArg(optionalArgs, 1, "GET");
+        Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
+        Object headers = Helpers.getArg(optionalArgs, 3, null);
+        Object body = Helpers.getArg(optionalArgs, 4, null);
+        Object apiGroup = ((Helpers.isTrue((api instanceof String)))) ? api : Helpers.GetValue(api, 0);
+        Object access = ((Helpers.isTrue((api instanceof String)))) ? "public" : Helpers.GetValue(api, 1);
+        Object baseUrls = Helpers.GetValue(this.urls, "api");
+        String baseUrl = this.safeString(baseUrls, apiGroup, Helpers.GetValue(baseUrls, "gamma"));
+        Object url = Helpers.add(Helpers.add(baseUrl, "/"), this.implodeParams(path, parameters));
         // an empty params container must not become a body: in PHP an empty array is
         // indistinguishable from an empty dict, so a bare Array.isArray check would json it to "[]"
         Boolean isArrayBody = false;
-        if ((parameters instanceof List))
+        if (Helpers.isTrue(Helpers.isArray(parameters)))
         {
             Object paramsList = (List<Object>)(parameters);
-            Object paramsListLength = ((List<?>)paramsList).size();
+            Object paramsListLength = Helpers.getArrayLength(paramsList);
             isArrayBody = Helpers.isGreaterThan(paramsListLength, 0);
         }
         Object query = new HashMap<String, Object>() {{}};
-        if (!Boolean.TRUE.equals(isArrayBody))
+        if (!Helpers.isTrue(isArrayBody))
         {
             query = this.omit(parameters, this.extractParams(path));
         }
-        if (java.util.Objects.equals(method, "GET"))
+        if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
         {
             // array-valued params must repeat the key (gamma's clob_token_ids rejects
             // comma-joined ids); scalar-only queries keep the plain encoder — the repeat
             // encoder capitalizes booleans ("False") under the C# base
             Boolean hasArrayParam = false;
-            List<Object> queryKeys = new ArrayList<Object>(((Map<String, Object>)query).keySet());
-            for (var i = 0; i < ((List<?>)queryKeys).size(); i++)
+            Object queryKeys = Helpers.objectKeys(query);
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(queryKeys)); i++)
             {
-                if ((Helpers.GetValue(query, (queryKeys == null || i < 0 || i >= queryKeys.size() ? null : queryKeys.get(i))) instanceof List))
+                if (Helpers.isTrue(Helpers.isArray(Helpers.GetValue(query, Helpers.GetValue(queryKeys, i)))))
                 {
                     hasArrayParam = true;
                 }
             }
-            Object querystring = ((Boolean.TRUE.equals(hasArrayParam))) ? this.urlencodeWithArrayRepeat(query) : this.urlencode(query);
-            if (!java.util.Objects.equals(querystring, ""))
+            Object querystring = ((Helpers.isTrue(hasArrayParam))) ? this.urlencodeWithArrayRepeat(query) : this.urlencode(query);
+            if (Helpers.isTrue(!Helpers.isEqual(querystring, "")))
             {
-                url = (url + ("?" + querystring));
+                url = Helpers.add(url, Helpers.add("?", querystring));
             }
-        } else if (Boolean.TRUE.equals(isArrayBody))
+        } else if (Helpers.isTrue(isArrayBody))
         {
             body = this.json(parameters);
         } else
         {
-            List<Object> queryKeys = new ArrayList<Object>(((Map<String, Object>)query).keySet());
-            Object queryKeysLength = ((List<?>)queryKeys).size();
-            if (Helpers.isGreaterThan(queryKeysLength, 0))
+            Object queryKeys = Helpers.objectKeys(query);
+            Object queryKeysLength = Helpers.getArrayLength(queryKeys);
+            if (Helpers.isTrue(Helpers.isGreaterThan(queryKeysLength, 0)))
             {
                 body = this.json(query);
             }
         }
-        Object headerDefaults = (((!java.util.Objects.equals(headers, null)))) ? headers : new HashMap<String, Object>() {{}};
+        Object headerDefaults = ((Helpers.isTrue((!Helpers.isEqual(headers, null))))) ? headers : new HashMap<String, Object>() {{}};
         headers = this.extend(new HashMap<String, Object>() {{
             put( "Accept", "application/json" );
             put( "Content-Type", "application/json" );
         }}, headerDefaults);
-        if (java.util.Objects.equals(access, "private"))
+        if (Helpers.isTrue(Helpers.isEqual(access, "private")))
         {
             // 'auth/derive-api-key' is built by concatenation so the substring "api" sits at a
             // string-literal boundary: the php regex transpiler rewrites a bare "api" flanked by
             // '-' into the local var '$api' (it only skips quote/slash-adjacent matches), which
             // would corrupt the literal to 'auth/derive-$api-key' and break this check
-            String deriveApiKeyPath = ("auth/derive-" + "api-key");
-            Boolean isL1Auth = (java.util.Objects.equals(path, "auth/api-key")) || (java.util.Objects.equals(path, deriveApiKeyPath)) || (java.util.Objects.equals(path, "auth/api-keys"));
-            if (Boolean.TRUE.equals(isL1Auth))
+            String deriveApiKeyPath = Helpers.add("auth/derive-", "api-key");
+            Boolean isL1Auth = Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(path, "auth/api-key"))) || Helpers.isTrue((Helpers.isEqual(path, deriveApiKeyPath)))) || Helpers.isTrue((Helpers.isEqual(path, "auth/api-keys")));
+            if (Helpers.isTrue(isL1Auth))
             {
                 // L1 (private-key / EIP-712) auth used to create or derive the L2 api credentials
-                if (java.util.Objects.equals(this.privateKey, null))
+                if (Helpers.isTrue(Helpers.isEqual(this.privateKey, null)))
                 {
-                    throw new ArgumentsRequired((Helpers.add((this.id + " "), path) + " requires a privateKey")) ;
+                    throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " "), path), " requires a privateKey")) ;
                 }
                 // the L1 signer/owner is the EOA behind the privateKey (walletAddress is the proxy/deposit wallet, not the signer)
                 Object address = this.ethChecksumAddress(this.ethGetAddressFromPrivateKey(this.privateKey));
@@ -3637,13 +3635,13 @@ final Object finalClobTokenId = clobTokenId;
                 String secret = this.safeString(this.options, "l2Secret", this.secret);
                 String passphrase = this.safeString(this.options, "l2Passphrase", this.password);
                 // POLY_ADDRESS is the api-key owner = the signer EOA (derived from the privateKey when present)
-                Object address = (((!java.util.Objects.equals(this.privateKey, null)))) ? this.ethChecksumAddress(this.ethGetAddressFromPrivateKey(this.privateKey)) : this.walletAddress;
+                Object address = ((Helpers.isTrue((!Helpers.isEqual(this.privateKey, null))))) ? this.ethChecksumAddress(this.ethGetAddressFromPrivateKey(this.privateKey)) : this.walletAddress;
                 Object timestamp = String.valueOf(this.seconds());
                 // the L2 HMAC signs only the request path (no query string), matching
                 // @polymarket/clob-client — query params are sent separately, not signed
-                String requestPath = ("/" + this.implodeParams(path, parameters));
-                Object auth = (Helpers.add(timestamp, method) + requestPath);
-                if (!java.util.Objects.equals(body, null))
+                String requestPath = Helpers.add("/", this.implodeParams(path, parameters));
+                Object auth = Helpers.add(Helpers.add(timestamp, method), requestPath);
+                if (Helpers.isTrue(!Helpers.isEqual(body, null)))
                 {
                     auth = Helpers.add(auth, body);
                 }
@@ -3651,13 +3649,13 @@ final Object finalClobTokenId = clobTokenId;
                 // unchained replaceAll: the php transpiler only converts the outermost .replaceAll
                 // in a chain, leaving the inner call as an (invalid) method call
                 Object normalizedSecret = ((String)secret);
-                normalizedSecret = (normalizedSecret == null ? null : ((String)normalizedSecret).replace("-", "+"));
-                normalizedSecret = (normalizedSecret == null ? null : ((String)normalizedSecret).replace("_", "/"));
+                normalizedSecret = Helpers.replaceAll(((String)normalizedSecret), "-", "+");
+                normalizedSecret = Helpers.replaceAll(((String)normalizedSecret), "_", "/");
                 Object secretBytes = this.base64ToBinary(normalizedSecret);
                 Object signature = this.hmac(this.encode(auth), secretBytes, sha256(), "base64");
                 // url-safe base64, preserving '=' padding (matches the reference client)
-                signature = (signature == null ? null : ((String)signature).replace("+", "-"));
-                signature = (signature == null ? null : ((String)signature).replace("/", "_"));
+                signature = Helpers.replaceAll(((String)signature), "+", "-");
+                signature = Helpers.replaceAll(((String)signature), "/", "_");
                 final Object finalSignature = signature;
                 final Object finalTimestamp = timestamp;
                 headers = this.extend(headers, new HashMap<String, Object>() {{
@@ -3696,10 +3694,10 @@ final Object finalClobTokenId = clobTokenId;
         Object hashChars = this.stringToCharsArray(hashHex);
         String upperNibbles = "89abcdef";
         Object result = "";
-        for (var i = 0; i < ((List<?>)addrChars).size(); i++)
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(addrChars)); i++)
         {
             Object ch = Helpers.GetValue(addrChars, i);
-            if (Helpers.getIndexOf(upperNibbles, Helpers.GetValue(hashChars, i)) >= 0)
+            if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(upperNibbles, Helpers.GetValue(hashChars, i)), 0)))
             {
                 result = Helpers.add(result, ((String)ch).toUpperCase());
             } else
@@ -3707,27 +3705,27 @@ final Object finalClobTokenId = clobTokenId;
                 result = Helpers.add(result, ch);
             }
         }
-        return ("0x" + result);
+        return Helpers.add("0x", result);
     }
 
     public Object signHash(Object hash, Object privateKey)
     {
-        Object signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
+        Object signature = ecdsa(Helpers.slice(hash, Helpers.opNeg(64), null), Helpers.slice(privateKey, Helpers.opNeg(64), null), secp256k1(), null);
         // assign before padStart so the PHP str_pad regex matches (it only handles a bare identifier)
         Object rRaw = Helpers.GetValue(signature, "r");
         Object sRaw = Helpers.GetValue(signature, "s");
-        Object r = (((String)rRaw).length() >= 64 ? ((String)rRaw).substring(((String)rRaw).length() - 64) : String.format("%" + (64 - ((String)rRaw).length()) + "s", "").replace(' ', '0') + ((String)rRaw));
-        Object s = (((String)sRaw).length() >= 64 ? ((String)sRaw).substring(((String)sRaw).length() - 64) : String.format("%" + (64 - ((String)sRaw).length()) + "s", "").replace(' ', '0') + ((String)sRaw));
+        Object r = Helpers.padStart(((String)rRaw), ((Number)64).intValue(), "0".charAt(0));
+        Object s = Helpers.padStart(((String)sRaw), ((Number)64).intValue(), "0".charAt(0));
         return new HashMap<String, Object>() {{
-            put( "r", ("0x" + r) );
-            put( "s", ("0x" + s) );
+            put( "r", Helpers.add("0x", r) );
+            put( "s", Helpers.add("0x", s) );
             put( "v", Polymarket.this.sum(27, Helpers.GetValue(signature, "v")) );
         }};
     }
 
     public Object signMessage(Object message, Object privateKey)
     {
-        return this.signHash(this.hashMessage(message), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))));
+        return this.signHash(this.hashMessage(message), Helpers.slice(privateKey, Helpers.opNeg(64), null));
     }
 
     public Object signClobAuth(Object address, Object timestamp, Object nonce)
@@ -3761,7 +3759,7 @@ final Object finalClobTokenId = clobTokenId;
         }};
         Object encoded = this.ethEncodeStructuredData(domain, messageTypes, messageData);
         Object sig = this.signMessage(encoded, this.privateKey);
-        return Helpers.add(Helpers.add(Helpers.add("0x", this.remove0xPrefix(((Map<String, Object>)sig).get("r"))), this.remove0xPrefix(((Map<String, Object>)sig).get("s"))), this.intToBase16(((Map<String, Object>)sig).get("v")));
+        return Helpers.add(Helpers.add(Helpers.add("0x", this.remove0xPrefix(Helpers.GetValue(sig, "r"))), this.remove0xPrefix(Helpers.GetValue(sig, "s"))), this.intToBase16(Helpers.GetValue(sig, "v")));
     }
 
     /**
@@ -3778,9 +3776,9 @@ final Object finalClobTokenId = clobTokenId;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> response = (this.clobPrivateGetAuthDeriveApiKey(parameters)).join();
-            return this.setApiCredentials((Map<String, Object>) (response));
+            return this.setApiCredentials(response);
         });
 
     }
@@ -3799,9 +3797,9 @@ final Object finalClobTokenId = clobTokenId;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> response = (this.clobPrivatePostAuthApiKey(parameters)).join();
-            return this.setApiCredentials((Map<String, Object>) (response));
+            return this.setApiCredentials(response);
         });
 
     }
@@ -3819,7 +3817,7 @@ final Object finalClobTokenId = clobTokenId;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object creds = null;
             try
             {
@@ -3828,16 +3826,16 @@ final Object finalClobTokenId = clobTokenId;
             {
                 creds = (this.createApiKey(parameters)).join();
             }
-            if (java.util.Objects.equals(creds, null))
+            if (Helpers.isTrue(Helpers.isEqual(creds, null)))
             {
-                throw new ExchangeError((this.id + " createOrDeriveApiKey() returned no credentials")) ;
+                throw new ExchangeError(Helpers.add(this.id, " createOrDeriveApiKey() returned no credentials")) ;
             }
             return creds;
         });
 
     }
 
-    public Object setApiCredentials(Map<String, Object> response)
+    public Object setApiCredentials(Object response)
     {
         //
         //     { "apiKey": "...", "secret": "...", "passphrase": "..." }
@@ -3849,9 +3847,9 @@ final Object finalClobTokenId = clobTokenId;
         }};
         // cache in options rather than the typed apiKey/secret/password fields so the
         // assignment is valid in the struct-based languages (C#/Go/Java)
-        Helpers.addElementToObject(this.options, "l2ApiKey", ((Map<String, Object>)creds).get("apiKey"));
-        Helpers.addElementToObject(this.options, "l2Secret", ((Map<String, Object>)creds).get("secret"));
-        Helpers.addElementToObject(this.options, "l2Passphrase", ((Map<String, Object>)creds).get("passphrase"));
+        Helpers.addElementToObject(this.options, "l2ApiKey", Helpers.GetValue(creds, "apiKey"));
+        Helpers.addElementToObject(this.options, "l2Secret", Helpers.GetValue(creds, "secret"));
+        Helpers.addElementToObject(this.options, "l2Passphrase", Helpers.GetValue(creds, "passphrase"));
         return creds;
     }
 
@@ -3869,24 +3867,24 @@ final Object finalClobTokenId = clobTokenId;
             // the order signer / L2 POLY_ADDRESS is always the EOA behind the privateKey, so the L2 api key MUST
             // belong to that same EOA — derive it from the privateKey rather than trusting externally supplied
             // creds that may have been issued to a different wallet
-            if (!java.util.Objects.equals(this.privateKey, null))
+            if (Helpers.isTrue(!Helpers.isEqual(this.privateKey, null)))
             {
                 String alreadyDerived = this.safeString(this.options, "l2ApiKey");
-                if (java.util.Objects.equals(alreadyDerived, null))
+                if (Helpers.isTrue(Helpers.isEqual(alreadyDerived, null)))
                 {
                     (this.createOrDeriveApiKey()).join();
                 }
                 return null;
             }
-            Object apiKey = (((!java.util.Objects.equals(this.apiKey, null)))) ? this.apiKey : this.safeString(this.options, "l2ApiKey");
-            Object secret = (((!java.util.Objects.equals(this.secret, null)))) ? this.secret : this.safeString(this.options, "l2Secret");
-            Object passphrase = (((!java.util.Objects.equals(this.password, null)))) ? this.password : this.safeString(this.options, "l2Passphrase");
-            Boolean hasL2 = (!java.util.Objects.equals(apiKey, null)) && (!java.util.Objects.equals(secret, null)) && (!java.util.Objects.equals(passphrase, null));
-            if (Boolean.TRUE.equals(hasL2))
+            Object apiKey = ((Helpers.isTrue((!Helpers.isEqual(this.apiKey, null))))) ? this.apiKey : this.safeString(this.options, "l2ApiKey");
+            Object secret = ((Helpers.isTrue((!Helpers.isEqual(this.secret, null))))) ? this.secret : this.safeString(this.options, "l2Secret");
+            Object passphrase = ((Helpers.isTrue((!Helpers.isEqual(this.password, null))))) ? this.password : this.safeString(this.options, "l2Passphrase");
+            Boolean hasL2 = Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(apiKey, null))) && Helpers.isTrue((!Helpers.isEqual(secret, null)))) && Helpers.isTrue((!Helpers.isEqual(passphrase, null)));
+            if (Helpers.isTrue(hasL2))
             {
                 return null;
             }
-            throw new AuthenticationError((this.id + " requires L2 api credentials (apiKey, secret, password) or a privateKey to derive them")) ;
+            throw new AuthenticationError(Helpers.add(this.id, " requires L2 api credentials (apiKey, secret, password) or a privateKey to derive them")) ;
         });
 
     }
@@ -3903,33 +3901,33 @@ final Object finalClobTokenId = clobTokenId;
         // Polymarket keeps the ws alive with text PING/PONG (not protocol ping-pong frames), so the
         // client's onPong never fires; refresh client.lastPong here on the "PONG" reply, otherwise the
         // base keepalive treats the connection as stale and times it out after maxPingPongMisses.
-        if ((message instanceof String))
+        if (Helpers.isTrue((message instanceof String)))
         {
             client.lastPong = ((Number)this.milliseconds()).longValue();
             return;
         }
-        Object events = (((message instanceof List))) ? message : new ArrayList<Object>(Arrays.asList(message));
-        for (var i = 0; i < ((List<?>)events).size(); i++)
+        Object events = ((Helpers.isTrue(Helpers.isArray(message)))) ? message : new ArrayList<Object>(Arrays.asList(message));
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(events)); i++)
         {
             Object eventVar = Helpers.GetValue(events, i);
-            if ((java.util.Objects.equals(eventVar, null)) || (java.util.Objects.equals(eventVar, null)) || (!(eventVar instanceof Map)))
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(eventVar, null))) || Helpers.isTrue((Helpers.isEqual(eventVar, null)))) || Helpers.isTrue((!(eventVar instanceof Map)))))
             {
                 continue;
             }
             String eventType = this.safeString(eventVar, "event_type");
-            if (java.util.Objects.equals(eventType, "book"))
+            if (Helpers.isTrue(Helpers.isEqual(eventType, "book")))
             {
                 this.handleOrderBookSnapshot(client, eventVar);
-            } else if (java.util.Objects.equals(eventType, "price_change"))
+            } else if (Helpers.isTrue(Helpers.isEqual(eventType, "price_change")))
             {
                 this.handleOrderBookDelta(client, eventVar);
-            } else if (java.util.Objects.equals(eventType, "last_trade_price"))
+            } else if (Helpers.isTrue(Helpers.isEqual(eventType, "last_trade_price")))
             {
                 this.handleTrade(client, eventVar);
-            } else if (java.util.Objects.equals(eventType, "order"))
+            } else if (Helpers.isTrue(Helpers.isEqual(eventType, "order")))
             {
                 this.handleOrder(client, eventVar);
-            } else if (java.util.Objects.equals(eventType, "trade"))
+            } else if (Helpers.isTrue(Helpers.isEqual(eventType, "trade")))
             {
                 this.handleMyTrade(client, eventVar);
             }
@@ -3939,28 +3937,28 @@ final Object finalClobTokenId = clobTokenId;
     public void handleOrderBookSnapshot(Client client, Object eventVar)
     {
         String tokenId = this.safeString(eventVar, "asset_id");
-        String outcome = this.tokenIdToSymbol((String) (tokenId));
-        if (java.util.Objects.equals(outcome, null))
+        String outcome = this.tokenIdToSymbol(tokenId);
+        if (Helpers.isTrue(Helpers.isEqual(outcome, null)))
         {
             return;
         }
-        if (!(((Map<?, ?>)this.orderbooks).containsKey(outcome)))
+        if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, outcome))))
         {
             Object seededBook = this.orderBook(new HashMap<String, Object>() {{}});
             Helpers.addElementToObject(this.orderbooks, outcome, seededBook);
         }
-        Object orderbook = ((Map<?, ?>)this.orderbooks).get(outcome);
+        Object orderbook = Helpers.GetValue(this.orderbooks, outcome);
         Object timestamp = this.parsePolyTimestamp(this.safeString(eventVar, "timestamp"));
         Object rawBids = (List<Object>)(this.safeList(eventVar, "bids", new ArrayList<Object>(Arrays.asList())));
         Object rawAsks = (List<Object>)(this.safeList(eventVar, "asks", new ArrayList<Object>(Arrays.asList())));
         List<Object> bids = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)rawBids).size(); i++)
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawBids)); i++)
         {
             Object b = Helpers.GetValue(rawBids, i);
             ((List<Object>)bids).add(new ArrayList<Object>(Arrays.asList(this.safeNumber(b, "price"), this.safeNumber(b, "size"))));
         }
         List<Object> asks = new ArrayList<Object>(Arrays.asList());
-        for (var j = 0; j < ((List<?>)rawAsks).size(); j++)
+        for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(rawAsks)); j++)
         {
             Object a = Helpers.GetValue(rawAsks, j);
             ((List<Object>)asks).add(new ArrayList<Object>(Arrays.asList(this.safeNumber(a, "price"), this.safeNumber(a, "size"))));
@@ -3976,8 +3974,8 @@ final Object finalOutcome = outcome;
             put( "outcomeId", tokenId );
             put( "market", Polymarket.this.safeString(outcomeObj, "market") );
         }}});
-        client.resolve(orderbook, ("orderbook::" + outcome));
-        client.resolve(orderbook, ("ticker::" + outcome));
+        client.resolve(orderbook, Helpers.add("orderbook::", outcome));
+        client.resolve(orderbook, Helpers.add("ticker::", outcome));
     }
 
     public void handleOrderBookDelta(Client client, Object eventVar)
@@ -3985,42 +3983,42 @@ final Object finalOutcome = outcome;
         Object timestamp = this.parsePolyTimestamp(this.safeString(eventVar, "timestamp"));
         Object changes = (List<Object>)(this.safeList(eventVar, "price_changes", new ArrayList<Object>(Arrays.asList())));
         Map<String, Object> updated = new HashMap<String, Object>() {{}};
-        for (var i = 0; i < ((List<?>)changes).size(); i++)
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(changes)); i++)
         {
             Object change = Helpers.GetValue(changes, i);
             String tokenId = this.safeString(change, "asset_id");
-            String outcome = this.tokenIdToSymbol((String) (tokenId));
-            if ((java.util.Objects.equals(outcome, null)) || !(((Map<?, ?>)this.orderbooks).containsKey(outcome)))
+            String outcome = this.tokenIdToSymbol(tokenId);
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(outcome, null))) || !Helpers.isTrue((Helpers.inOp(this.orderbooks, outcome)))))
             {
                 continue;
             }
-            Object orderbook = ((Map<?, ?>)this.orderbooks).get(outcome);
+            Object orderbook = Helpers.GetValue(this.orderbooks, outcome);
             Double price = this.safeNumber(change, "price");
             Double size = this.safeNumber(change, "size");
-            Boolean isBuy = java.util.Objects.equals(this.safeStringUpper(change, "side", ""), "BUY");
-            Object side = ((Boolean.TRUE.equals(isBuy))) ? Helpers.GetValue(orderbook, "bids") : Helpers.GetValue(orderbook, "asks");
+            Boolean isBuy = Helpers.isEqual(this.safeStringUpper(change, "side", ""), "BUY");
+            Object side = ((Helpers.isTrue(isBuy))) ? Helpers.GetValue(orderbook, "bids") : Helpers.GetValue(orderbook, "asks");
             // storeArray([price, size]) inserts/updates or removes (size=0) the level
             Object sideRef = ((Object)side);
             Helpers.callDynamically(sideRef, "storeArray", new Object[]{new ArrayList<Object>(Arrays.asList(price, size))});
             Helpers.addElementToObject(orderbook, "timestamp", timestamp);
             Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
-            ((Map<String, Object>)updated).put((String)outcome, true);
+            Helpers.addElementToObject(updated, outcome, true);
         }
-        List<Object> updatedSymbols = new ArrayList<Object>(updated.keySet());
-        for (var k = 0; k < ((List<?>)updatedSymbols).size(); k++)
+        Object updatedSymbols = Helpers.objectKeys(updated);
+        for (var k = 0; Helpers.isLessThan(k, Helpers.getArrayLength(updatedSymbols)); k++)
         {
-            Object outcome = (updatedSymbols == null || k < 0 || k >= updatedSymbols.size() ? null : updatedSymbols.get(k));
-            Object orderbook = ((Map<?, ?>)this.orderbooks).get(outcome);
-            client.resolve(orderbook, ("orderbook::" + outcome));
-            client.resolve(orderbook, ("ticker::" + outcome));
+            Object outcome = Helpers.GetValue(updatedSymbols, k);
+            Object orderbook = Helpers.GetValue(this.orderbooks, outcome);
+            client.resolve(orderbook, Helpers.add("orderbook::", outcome));
+            client.resolve(orderbook, Helpers.add("ticker::", outcome));
         }
     }
 
     public void handleTrade(Client client, Object eventVar)
     {
         String tokenId = this.safeString(eventVar, "asset_id");
-        String outcome = this.tokenIdToSymbol((String) (tokenId));
-        if (java.util.Objects.equals(outcome, null))
+        String outcome = this.tokenIdToSymbol(tokenId);
+        if (Helpers.isTrue(Helpers.isEqual(outcome, null)))
         {
             return;
         }
@@ -4047,19 +4045,19 @@ final Object finalOutcome = outcome;
             put( "cost", null );
             put( "fee", null );
         }}, market);
-        if (java.util.Objects.equals(this.trades, null))
+        if (Helpers.isTrue(Helpers.isEqual(this.trades, null)))
         {
             this.trades = new HashMap<String, Object>() {{}};
         }
         Object stored = this.safeValue(this.trades, outcome);
-        if (java.util.Objects.equals(stored, null))
+        if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, outcome, stored);
         }
         Helpers.callDynamically(stored, "append", new Object[]{trade});
-        client.resolve(stored, ("trades::" + outcome));
+        client.resolve(stored, Helpers.add("trades::", outcome));
     }
 
     /**
@@ -4076,18 +4074,18 @@ final Object finalOutcome = outcome;
         final Object outcome3 = outcome2;
         return BaseExchange.supplyAsync(() -> {
             Object outcome = outcome3;
-            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            Object limit = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
             Object outcomeObj = (this.loadOutcome(outcome)).join();
             String tokenId = this.safeString(outcomeObj, "outcomeId");
             outcome = this.safeString(outcomeObj, "outcome");
-            String messageHash = ("orderbook::" + outcome);
-            String subscribeHash = ("subscribe::" + tokenId);
+            String messageHash = Helpers.add("orderbook::", outcome);
+            String subscribeHash = Helpers.add("subscribe::", tokenId);
             Map<String, Object> subscribeMsg = new HashMap<String, Object>() {{
                 put( "assets_ids", new ArrayList<Object>(Arrays.asList(tokenId)) );
                 put( "type", "market" );
             }};
-            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object orderbook = (this.watch(url, messageHash, subscribeMsg, subscribeHash, null)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(PredictionOrderBook::new);
@@ -4109,22 +4107,22 @@ final Object finalOutcome = outcome;
         final Object outcome3 = outcome2;
         return BaseExchange.supplyAsync(() -> {
             Object outcome = outcome3;
-            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            Object since = Helpers.getArg(optionalArgs, 0, null);
+            Object limit = Helpers.getArg(optionalArgs, 1, null);
+            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
             Object outcomeObj = (this.loadOutcome(outcome)).join();
             String tokenId = this.safeString(outcomeObj, "outcomeId");
             outcome = this.safeString(outcomeObj, "outcome");
-            String messageHash = ("trades::" + outcome);
-            String subscribeHash = ("subscribe::" + tokenId);
+            String messageHash = Helpers.add("trades::", outcome);
+            String subscribeHash = Helpers.add("subscribe::", tokenId);
             Map<String, Object> subscribeMsg = new HashMap<String, Object>() {{
                 put( "assets_ids", new ArrayList<Object>(Arrays.asList(tokenId)) );
                 put( "type", "market" );
             }};
-            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object trades = (this.watch(url, messageHash, subscribeMsg, subscribeHash, null)).join();
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
 
     }
 
@@ -4141,40 +4139,40 @@ final Object finalOutcome = outcome;
         final Object outcome3 = outcome2;
         return BaseExchange.supplyAsync(() -> {
             Object outcome = outcome3;
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
             Object outcomeObj = (this.loadOutcome(outcome)).join();
             String tokenId = this.safeString(outcomeObj, "outcomeId");
             outcome = this.safeString(outcomeObj, "outcome");
-            String messageHash = ("ticker::" + outcome);
-            String subscribeHash = ("subscribe::" + tokenId);
+            String messageHash = Helpers.add("ticker::", outcome);
+            String subscribeHash = Helpers.add("subscribe::", tokenId);
             Map<String, Object> subscribeMsg = new HashMap<String, Object>() {{
                 put( "assets_ids", new ArrayList<Object>(Arrays.asList(tokenId)) );
                 put( "type", "market" );
             }};
-            if (java.util.Objects.equals(outcome, null))
+            if (Helpers.isTrue(Helpers.isEqual(outcome, null)))
             {
-                throw new ExchangeError((this.id + " watchTicker() missing outcome")) ;
+                throw new ExchangeError(Helpers.add(this.id, " watchTicker() missing outcome")) ;
             }
-            if (!(((Map<?, ?>)this.orderbooks).containsKey(outcome)))
+            if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, outcome))))
             {
                 Object seededBook = this.orderBook(new HashMap<String, Object>() {{}});
-                if (!java.util.Objects.equals(outcome, null))
+                if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
                 {
                     Helpers.addElementToObject(this.orderbooks, outcome, seededBook);
                 }
             }
-            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object orderbook = (this.watch(url, messageHash, subscribeMsg, subscribeHash, null)).join();
             Object bids = ((Object)Helpers.GetValue(orderbook, "bids"));
             Object asks = ((Object)Helpers.GetValue(orderbook, "asks"));
             Object bestBid = null;
             Object bestBidVolume = null;
             Object bidsLength = 0;
-            if (!java.util.Objects.equals(bids, null))
+            if (Helpers.isTrue(!Helpers.isEqual(bids, null)))
             {
                 bidsLength = Helpers.getArrayLength(bids);
             }
-            if ((!java.util.Objects.equals(bids, null)) && (Helpers.isGreaterThan(bidsLength, 0)))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(bids, null))) && Helpers.isTrue((Helpers.isGreaterThan(bidsLength, 0)))))
             {
                 bestBid = Helpers.GetValue(Helpers.GetValue(bids, 0), 0);
                 bestBidVolume = Helpers.GetValue(Helpers.GetValue(bids, 0), 1);
@@ -4182,21 +4180,21 @@ final Object finalOutcome = outcome;
             Object bestAsk = null;
             Object bestAskVolume = null;
             Object asksLength = 0;
-            if (!java.util.Objects.equals(asks, null))
+            if (Helpers.isTrue(!Helpers.isEqual(asks, null)))
             {
                 asksLength = Helpers.getArrayLength(asks);
             }
-            if ((!java.util.Objects.equals(asks, null)) && (Helpers.isGreaterThan(asksLength, 0)))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(asks, null))) && Helpers.isTrue((Helpers.isGreaterThan(asksLength, 0)))))
             {
                 bestAsk = Helpers.GetValue(Helpers.GetValue(asks, 0), 0);
                 bestAskVolume = Helpers.GetValue(Helpers.GetValue(asks, 0), 1);
             }
             Object mid = null;
-            if ((!java.util.Objects.equals(bestBid, null)) && (!java.util.Objects.equals(bestAsk, null)))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(bestBid, null))) && Helpers.isTrue((!Helpers.isEqual(bestAsk, null)))))
             {
                 String sum = Precise.stringAdd(this.numberToString(bestBid), this.numberToString(bestAsk));
                 mid = this.parseNumber(Precise.stringDiv(sum, "2"));
-            } else if (!java.util.Objects.equals(bestBid, null))
+            } else if (Helpers.isTrue(!Helpers.isEqual(bestBid, null)))
             {
                 mid = bestBid;
             } else
@@ -4255,25 +4253,25 @@ final Object finalOutcome = outcome;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object outcome = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object outcome = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             (this.loadApiCredentials()).join();
             String messageHash = "orders";
-            if (!java.util.Objects.equals(outcome, null))
+            if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
             {
                 Object outcomeObj = (this.loadOutcome(outcome)).join();
                 outcome = this.safeString(outcomeObj, "outcome");
-                messageHash = ("orders::" + outcome);
+                messageHash = Helpers.add("orders::", outcome);
             }
             Object orders = (this.subscribeUserChannel(messageHash, parameters)).join();
-            if (this.newUpdates)
+            if (Helpers.isTrue(this.newUpdates))
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{outcome, limit});
             }
             return this.filterByOutcomeSinceLimit(orders, outcome, since, limit, true);
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, PredictionOrder::new));
 
     }
 
@@ -4293,25 +4291,25 @@ final Object finalOutcome = outcome;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object outcome = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            Object outcome = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
             (this.loadApiCredentials()).join();
             String messageHash = "myTrades";
-            if (!java.util.Objects.equals(outcome, null))
+            if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
             {
                 Object outcomeObj = (this.loadOutcome(outcome)).join();
                 outcome = this.safeString(outcomeObj, "outcome");
-                messageHash = ("myTrades::" + outcome);
+                messageHash = Helpers.add("myTrades::", outcome);
             }
             Object trades = (this.subscribeUserChannel(messageHash, parameters)).join();
-            if (this.newUpdates)
+            if (Helpers.isTrue(this.newUpdates))
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{outcome, limit});
             }
             return this.filterByOutcomeSinceLimit(trades, outcome, since, limit, true);
-        }).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
+        }).thenApply(res -> Helpers.toTypedList(res, PredictionTrade::new));
 
     }
 
@@ -4321,10 +4319,10 @@ final Object finalOutcome = outcome;
         return BaseExchange.supplyAsync(() -> {
 
             // the user channel authenticates inside the subscribe frame, not via HMAC headers
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            Object apiKey = (((!java.util.Objects.equals(this.apiKey, null)))) ? this.apiKey : this.safeString(this.options, "l2ApiKey");
-            Object secret = (((!java.util.Objects.equals(this.secret, null)))) ? this.secret : this.safeString(this.options, "l2Secret");
-            Object passphrase = (((!java.util.Objects.equals(this.password, null)))) ? this.password : this.safeString(this.options, "l2Passphrase");
+            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object apiKey = ((Helpers.isTrue((!Helpers.isEqual(this.apiKey, null))))) ? this.apiKey : this.safeString(this.options, "l2ApiKey");
+            Object secret = ((Helpers.isTrue((!Helpers.isEqual(this.secret, null))))) ? this.secret : this.safeString(this.options, "l2Secret");
+            Object passphrase = ((Helpers.isTrue((!Helpers.isEqual(this.password, null))))) ? this.password : this.safeString(this.options, "l2Passphrase");
             Map<String, Object> auth = new HashMap<String, Object>() {{
                 put( "apiKey", apiKey );
                 put( "secret", secret );
@@ -4336,7 +4334,7 @@ final Object finalOutcome = outcome;
                 put( "markets", new ArrayList<Object>(Arrays.asList()) );
                 put( "type", "user" );
             }};
-            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("wsUser");
+            Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "wsUser");
             String subscribeHash = "user";
             return (this.watch(url, messageHash, this.extend(subscribeMsg, parameters), subscribeHash, null)).join();
         });
@@ -4345,7 +4343,7 @@ final Object finalOutcome = outcome;
 
     public void handleOrder(Client client, Object eventVar)
     {
-        if (java.util.Objects.equals(this.orders, null))
+        if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheByOutcomeById(((Number)limit).intValue());
@@ -4355,15 +4353,15 @@ final Object finalOutcome = outcome;
         Helpers.callDynamically(stored, "append", new Object[]{parsed});
         client.resolve(stored, "orders");
         String outcome = this.safeString(parsed, "outcome");
-        if (!java.util.Objects.equals(outcome, null))
+        if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
         {
-            client.resolve(stored, ("orders::" + outcome));
+            client.resolve(stored, Helpers.add("orders::", outcome));
         }
     }
 
     public void handleMyTrade(Client client, Object eventVar)
     {
-        if (java.util.Objects.equals(this.myTrades, null))
+        if (Helpers.isTrue(Helpers.isEqual(this.myTrades, null)))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache.ArrayCacheByOutcomeById(((Number)limit).intValue());
@@ -4373,41 +4371,41 @@ final Object finalOutcome = outcome;
         Helpers.callDynamically(stored, "append", new Object[]{parsed});
         client.resolve(stored, "myTrades");
         String outcome = this.safeString(parsed, "outcome");
-        if (!java.util.Objects.equals(outcome, null))
+        if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
         {
-            client.resolve(stored, ("myTrades::" + outcome));
+            client.resolve(stored, Helpers.add("myTrades::", outcome));
         }
     }
 
-    public String tokenIdToSymbol(String tokenId)
+    public String tokenIdToSymbol(Object tokenId)
     {
-        if ((java.util.Objects.equals(tokenId, null)) || (java.util.Objects.equals(tokenId, "")))
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(tokenId, null))) || Helpers.isTrue((Helpers.isEqual(tokenId, "")))))
         {
             return null;
         }
         // outcome tokens are keyed in outcomes_by_id (populated by fetchEvents/loadMarkets);
         // fall back to markets_by_id for the standard market lookup
-        Map<String, Object> outcomeObj = (Map<String, Object>) this.safeDict(this.outcomes_by_id, tokenId);
-        if (!java.util.Objects.equals(outcomeObj, null))
+        Object outcomeObj = this.safeDict(this.outcomes_by_id, tokenId);
+        if (Helpers.isTrue(!Helpers.isEqual(outcomeObj, null)))
         {
             return this.safeString(outcomeObj, "outcome");
         }
         // safe dict/string access: a bare marketsById[tokenId] / market['market'] is undefined in JS
         // but raises KeyError in Python when the token isn't a market id (the ws trade path hits this)
-        Map<String, Object> market = (Map<String, Object>) this.safeDict(this.markets_by_id, tokenId);
+        Object market = this.safeDict(this.markets_by_id, tokenId);
         return this.safeString2(market, "market", "symbol");
     }
 
-    public Object parsePolyTimestamp(String raw)
+    public Object parsePolyTimestamp(Object raw)
     {
-        if (java.util.Objects.equals(raw, null))
+        if (Helpers.isTrue(Helpers.isEqual(raw, null)))
         {
-            return this.milliseconds();
+            return null;
         }
         Long n = this.parseToInt(raw);
-        if (java.util.Objects.equals(n, null))
+        if (Helpers.isTrue(Helpers.isEqual(n, null)))
         {
-            return this.milliseconds();
+            return null;
         }
         return n;
     }

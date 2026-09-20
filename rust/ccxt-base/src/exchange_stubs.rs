@@ -1069,6 +1069,12 @@ impl Exchange {
     pub fn unlock_id(&self, _args: &[Value]) -> Value {
         Value::Null
     }
+    pub fn lock_last_nonce(&self, _args: &[Value]) -> Value {
+        Value::Null
+    }
+    pub fn unlock_last_nonce(&self, _args: &[Value]) -> Value {
+        Value::Null
+    }
     pub fn extend_exchange_options(&self, _args: &[Value]) -> Value {
         Value::Null
     }

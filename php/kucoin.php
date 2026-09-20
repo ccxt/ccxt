@@ -9257,7 +9257,7 @@ class kucoin extends Exchange {
         //     }
         //
         $timestampId = $this->safe_string_2($info, 'createdAt', 'timestamp');
-        $timestamp = $this->milliseconds();
+        $timestamp = null;
         if ($timestampId !== null) {
             $timestamp = $this->parse_to_int(mb_substr($timestampId, 0, 13 - 0));
         }
@@ -9806,15 +9806,14 @@ class kucoin extends Exchange {
         //         "actualSize": 10
         //     }
         //
-        $timestamp = $this->milliseconds();
         $currencyId = $this->safe_string($info, 'currency');
         return array(
             'id' => $this->safe_string($info, 'orderNo'),
             'currency' => $this->safe_currency_code($currencyId, $currency),
             'amount' => $this->safe_number($info, 'actualSize'),
             'symbol' => null,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
             'info' => $info,
         );
     }

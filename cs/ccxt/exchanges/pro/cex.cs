@@ -928,7 +928,7 @@ public partial class cex : ccxt.cex
             symbol = add(add(bs, "/"), quote);
         }
         market = this.safeMarket(symbol, market);
-        Int64? time = this.safeInteger(order, "time", this.milliseconds());
+        Int64? time = this.safeInteger(order, "time");
         Int64? timestamp = time;
         if (isTransaction)
         {

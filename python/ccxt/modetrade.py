@@ -2281,11 +2281,11 @@ class modetrade(Exchange, ImplicitAPI):
         currency = None
         if code is not None:
             currency = self.currency(code)
-            request['balance_token'] = currency['id']
+            request['token'] = currency['id']
         if since is not None:
             request['start_t'] = since
         if limit is not None:
-            request['pageSize'] = limit
+            request['size'] = limit
         transactionType = self.safe_string(params, 'type')
         params = self.omit(params, 'type')
         if transactionType is not None:
@@ -2320,21 +2320,43 @@ class modetrade(Exchange, ImplicitAPI):
         return [currency, self.safe_list(data, 'rows', [])]
 
     def parse_ledger_entry(self, item: dict, currency: Currency = None) -> LedgerEntry:
+        #
+        #     {
+        #         "id": "230707030600002",
+        #         "tx_id": "0x4b0714c63cc7abae72bf68e84e25860b88ca651b7d27dad1e32bf4c027fa5326",
+        #         "side": "WITHDRAW",
+        #         "token": "USDC",
+        #         "amount": 555,
+        #         "fee": 123,
+        #         "trans_status": "FAILED",
+        #         "created_time": 1688699193034,
+        #         "updated_time": 1688699193096,
+        #         "chain_id": "986532"
+        #     }
+        #
         currencyId = self.safe_string(item, 'token')
         code = self.safe_currency_code(currencyId, currency)
         currency = self.safe_currency(currencyId, currency)
         amount = self.safe_number(item, 'amount')
-        side = self.safe_string(item, 'token_side')
-        direction = 'in' if (side == 'DEPOSIT') else 'out'
+        side = self.safe_string(item, 'side')
+        direction = None
+        if side is not None:
+            direction = 'in' if (side == 'DEPOSIT') else 'out'
         timestamp = self.safe_integer(item, 'created_time')
-        fee = self.parse_token_and_fee_temp(item, 'fee_token', 'fee_amount')
+        feeCost = self.parse_number(self.safe_string(item, 'fee'))
+        fee = None
+        if feeCost is not None:
+            fee = {
+                'currency': code,
+                'cost': feeCost,
+            }
         return self.safe_ledger_entry({
             'id': self.safe_string(item, 'id'),
             'currency': code,
-            'account': self.safe_string(item, 'account'),
+            'account': None,
             'referenceAccount': None,
             'referenceId': self.safe_string(item, 'tx_id'),
-            'status': self.parse_transaction_status(self.safe_string(item, 'status')),
+            'status': self.parse_transaction_status(self.safe_string(item, 'trans_status')),
             'amount': amount,
             'before': None,
             'after': None,
@@ -2342,7 +2364,7 @@ class modetrade(Exchange, ImplicitAPI):
             'direction': direction,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'type': self.parse_ledger_entry_type(self.safe_string(item, 'type')),
+            'type': self.parse_ledger_entry_type(self.safe_string_2(item, 'type', 'side')),
             'info': item,
         }, currency)
 
@@ -2350,6 +2372,8 @@ class modetrade(Exchange, ImplicitAPI):
         types = {
             'BALANCE': 'transaction',  # Funds moved in/out wallet
             'COLLATERAL': 'transfer',  # Funds moved between portfolios
+            'DEPOSIT': 'transaction',  # Funds deposited from the chain
+            'WITHDRAW': 'transaction',  # Funds withdrawn to the chain
         }
         return self.safe_string(types, type, type)
 
@@ -2371,14 +2395,32 @@ class modetrade(Exchange, ImplicitAPI):
         return self.parse_ledger(rows, currency, since, limit, params)
 
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
-        # example in fetchLedger
-        code = self.safe_string(transaction, 'token')
-        movementDirection = self.safe_string_lower(transaction, 'token_side')
+        #
+        #     {
+        #         "id": "230707030600002",
+        #         "tx_id": "0x4b0714c63cc7abae72bf68e84e25860b88ca651b7d27dad1e32bf4c027fa5326",
+        #         "side": "WITHDRAW",
+        #         "token": "USDC",
+        #         "amount": 555,
+        #         "fee": 123,
+        #         "trans_status": "FAILED",
+        #         "created_time": 1688699193034,
+        #         "updated_time": 1688699193096,
+        #         "chain_id": "986532"
+        #     }
+        #
+        currencyId = self.safe_string(transaction, 'token')
+        code = self.safe_currency_code(currencyId, currency)
+        movementDirection = self.safe_string_lower(transaction, 'side')
         if movementDirection == 'withdraw':
             movementDirection = 'withdrawal'
-        fee = self.parse_token_and_fee_temp(transaction, 'fee_token', 'fee_amount')
-        addressTo = self.safe_string(transaction, 'target_address')
-        addressFrom = self.safe_string(transaction, 'source_address')
+        feeCost = self.parse_number(self.safe_string(transaction, 'fee'))
+        fee = None
+        if feeCost is not None:
+            fee = {
+                'currency': code,
+                'cost': feeCost,
+            }
         timestamp = self.safe_integer(transaction, 'created_time')
         return {
             'info': transaction,
@@ -2387,28 +2429,31 @@ class modetrade(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'address': None,
-            'addressFrom': addressFrom,
-            'addressTo': addressTo,
-            'tag': self.safe_string(transaction, 'extra'),
+            'addressFrom': None,
+            'addressTo': None,
+            'tag': None,
             'tagFrom': None,
             'tagTo': None,
             'type': movementDirection,
             'amount': self.safe_number(transaction, 'amount'),
             'currency': code,
-            'status': self.parse_transaction_status(self.safe_string(transaction, 'status')),
+            'status': self.parse_transaction_status(self.safe_string(transaction, 'trans_status')),
             'updated': self.safe_integer(transaction, 'updated_time'),
             'comment': None,
             'internal': None,
             'fee': fee,
-            'network': None,
+            'network': None,  # raw rows carry only a chain id, no mapping to unified network codes exists yet
         }
 
     def parse_transaction_status(self, status: Str):
         statuses = {
             'NEW': 'pending',
             'CONFIRMING': 'pending',
+            'PENDING': 'pending',
+            'PENDING_REBALANCE': 'pending',
             'PROCESSING': 'pending',
             'COMPLETED': 'ok',
+            'FAILED': 'failed',
             'CANCELED': 'canceled',
         }
         if status is None:
@@ -2476,6 +2521,7 @@ class modetrade(Exchange, ImplicitAPI):
         #         "success":true
         #     }
         #
+        params = self.omit(params, 'side')  # request-side filter, not a unified transaction field
         return self.parse_transactions(rows, currency, since, limit, params)
 
     def get_withdraw_nonce(self, params={}):

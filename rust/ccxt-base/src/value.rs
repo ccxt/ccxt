@@ -2092,10 +2092,11 @@ impl Value {
     /// when called without a snapshot, we just rebind the existing one
     /// (effectively a no-op metadata refresh).
     pub fn reset(&mut self, snapshot: Value) -> Value {
-        // `client.reset(error)` — a WS client handle (carries "url") resets its
-        // registry entry; everything else is an OrderBook snapshot reset.
+        // `client.reset(error)` — a WS client handle (carries "url") rejects its
+        // pending futures with the error; everything else is an OrderBook
+        // snapshot reset.
         if matches!(&self, Value::Dict(d) if d.contains_key("url") && d.contains_key("subscriptions")) {
-            return crate::pro::ws_client::value_reset(self);
+            return crate::pro::ws_client::value_reset(self, snapshot);
         }
         book_reset(self, snapshot);
         self.clone()

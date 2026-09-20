@@ -924,7 +924,6 @@ class coinbaseexchange extends Exchange {
         $symbol = ($market === null) ? null : $market['symbol'];
         if ((gettype($ticker) === 'array' && array_keys($ticker) === array_keys(array_keys($ticker)))) {
             $last = $this->safe_string($ticker, 4);
-            $timestamp = $this->milliseconds();
         } else {
             $timestamp = $this->parse8601($this->safe_value($ticker, 'time'));
             $bid = $this->safe_string($ticker, 'bid');

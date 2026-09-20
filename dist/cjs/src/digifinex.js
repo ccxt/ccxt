@@ -3380,14 +3380,13 @@ class digifinex extends digifinex$1["default"] {
         //         "currency": "USDT"
         //     }
         //
-        const timestamp = this.milliseconds();
         const currencyId = this.safeString(info, 'currency');
         return {
             'currency': this.safeCurrencyCode(currencyId, currency),
             'rate': 0.001, // all interest rates on digifinex are 0.1%
             'period': 86400000,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'info': info,
         };
     }

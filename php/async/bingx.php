@@ -111,7 +111,7 @@ class bingx extends Exchange {
                 'fetchPositionHistory' => true,
                 'fetchPositionMode' => true,
                 'fetchPositions' => true,
-                'fetchPositionsHistory' => true,
+                'fetchPositionsHistory' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
@@ -1621,7 +1621,7 @@ class bingx extends Exchange {
             }
         }
         return $this->safe_trade(array(
-            'id' => $this->safe_string_2($trade, 'id', 't'),
+            'id' => $this->safe_string_n($trade, array( 'id', 't', 'fillId' )),
             'info' => $trade,
             'timestamp' => $time,
             'datetime' => $this->iso8601($time),

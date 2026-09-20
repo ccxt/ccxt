@@ -1549,7 +1549,6 @@ impl CoinbaseexchangeCore {
         let mut symbol: Value = (if (market == Value::Null) { Value::Null } else { market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) });
         if (matches!(&ticker, Value::Arr(_))) {
             last = self.safe_string(ticker.clone(), Value::Int(4), &[]);
-            timestamp = self.milliseconds();
         }  else {
             timestamp = self.parse8601(self.safe_string_k(ticker.clone(), "time", &[]));
             bid = self.safe_string_k(ticker.clone(), "bid", &[]);

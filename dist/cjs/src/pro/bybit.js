@@ -268,7 +268,7 @@ class bybit extends bybit$1["default"] {
             await this.loadMarkets();
         }
         const orderRequest = this.createOrderRequest(symbol, type, side, amount, price, params, true);
-        const url = this.urls['api']['ws']['private']['trade'];
+        const url = this.implodeHostname(this.urls['api']['ws']['private']['trade']);
         await this.authenticate(url);
         const requestId = this.requestId().toString();
         const request = {
@@ -314,7 +314,7 @@ class bybit extends bybit$1["default"] {
             await this.loadMarkets();
         }
         const orderRequest = this.editOrderRequest(id, symbol, type, side, amount, price, params);
-        const url = this.urls['api']['ws']['private']['trade'];
+        const url = this.implodeHostname(this.urls['api']['ws']['private']['trade']);
         await this.authenticate(url);
         const requestId = this.requestId().toString();
         const request = {
@@ -351,7 +351,7 @@ class bybit extends bybit$1["default"] {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrderWs() requires a symbol argument');
         }
         const orderRequest = this.cancelOrderRequest(id, symbol, params);
-        const url = this.urls['api']['ws']['private']['trade'];
+        const url = this.implodeHostname(this.urls['api']['ws']['private']['trade']);
         await this.authenticate(url);
         const requestId = this.requestId().toString();
         if ('orderFilter' in orderRequest) {

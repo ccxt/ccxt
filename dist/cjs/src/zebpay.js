@@ -1897,7 +1897,6 @@ class zebpay extends zebpay$1["default"] {
         //         "status": "ok"
         //    }
         //
-        const timestamp = this.milliseconds();
         return {
             'info': info,
             'symbol': this.safeString(market, 'id'),
@@ -1907,8 +1906,8 @@ class zebpay extends zebpay$1["default"] {
             'total': undefined,
             'code': this.safeString(info, 'code'),
             'status': this.safeString(info, 'status'),
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
         };
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

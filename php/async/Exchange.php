@@ -3878,6 +3878,21 @@ class BaseExchange extends \ccxt\BaseExchange {
         return $this->seconds();
     }
 
+    public function incrementing_nonce() {
+        /**
+         * @ignore
+         * returns a strictly-increasing nonce for venues that reject duplicate nonces per signer; the unit is whatever nonce () returns — the base default is seconds, so a venue that does not override nonce () gets a second-resolution counter that drifts ahead of wall clock under load, while venues needing milliseconds override nonce () as hyperliquid does. The counter is per exchange instance, so it narrows the duplicate-nonce race but does not remove it across instances or processes.
+         * @return {int} a strictly-increasing nonce in the unit returned by nonce ()
+         */
+        $currentNonce = $this->nonce();
+        $this->lock_last_nonce();
+        $lastNonce = $this->safe_integer($this->options, 'lastNonce', 0);
+        $result = ($currentNonce > $lastNonce) ? $currentNonce : $lastNonce + 1;
+        $this->options['lastNonce'] = $result;
+        $this->unlock_last_nonce();
+        return $result;
+    }
+
     public function set_headers(mixed $headers) {
         return $headers;
     }

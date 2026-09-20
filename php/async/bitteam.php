@@ -2249,11 +2249,10 @@ class bitteam extends Exchange {
         //         }
         //     }
         //
-        $timestamp = $this->milliseconds();
         $balance = array(
             'info' => $response,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
         );
         $result = $this->safe_value($response, 'result', array());
         $balanceByCurrencies = $this->omit($result, array( 'free', 'used', 'total' ));

@@ -72,6 +72,7 @@ class krakenfutures extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchPositions' => true,
+                'fetchPositionsHistory' => true,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
@@ -3177,12 +3178,12 @@ class krakenfutures extends Exchange {
     public function fetch_positions(?array $symbols = null, $params = array()): array {
         /**
          *
-         * @see https://docs.kraken.com/api/docs/futures-api/trading/get-open-positions
+         * @see https://docs.kraken.com/api/docs/futures-api/trading/get-open-$positions
          *
-         * Fetches current contract trading positions
+         * Fetches current contract trading $positions
          * @param {string[]} $symbols List of unified $symbols
          * @param {array} [$params] Not used by krakenfutures
-         * @return Parsed exchange $response for positions
+         * @return Parsed exchange $response for $positions
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -3205,12 +3206,6 @@ class krakenfutures extends Exchange {
         //        "serverTime": "2022-03-03T22:51:16.566Z"
         //    }
         //
-        $result = $this->parse_positions($response);
-        return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
-    }
-
-    public function parse_positions(mixed $response, ?array $symbols = null, $params = array()) {
-        $result = array();
         // a degraded response missing openPositions must fail loudly - a flat
         // account and "could not read positions" are not interchangeable for
         // reconciliation logic, see https://github.com/ccxt/ccxt/issues/29710
@@ -3220,11 +3215,96 @@ class krakenfutures extends Exchange {
         if ($positions === null) {
             throw new ExchangeNotAvailable($this->id . ' fetchPositions() returned a $response without an "openPositions" list');
         }
-        for ($i = 0; $i < count($positions); $i++) {
-            $position = $this->parse_position($positions[$i]);
-            $result[] = $position;
+        return $this->parse_positions($positions, $symbols);
+    }
+
+    public function fetch_positions_history(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()): array {
+        /**
+         * fetches historical $positions, by default the events that closed a position
+         *
+         * @see https://docs.kraken.com/api-reference/account-history/get-position-$update-events
+         *
+         * @param {string[]} [$symbols] a list of unified $market $symbols, only a single symbol is filtered by the exchange
+         * @param {int} [$since] timestamp in ms of the earliest position to fetch
+         * @param {int} [$limit] the maximum number of $positions to return
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest position to fetch
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {bool} [$params->opened] set to true to also return the events that opened a position
+         * @param {bool} [$params->increased] set to true to also return the events that increased a position
+         * @param {bool} [$params->decreased] set to true to also return the events that decreased a position
+         * @param {bool} [$params->reversed] set to true to also return the events that reversed a position
+         * @param {bool} [$params->no_change] set to true to also return the events that left the position size untouched
+         * @param {bool} [$params->trades] set to true to also return every $event caused by a trade
+         * @param {bool} [$params->funding_realization] set to true to also return the funding realization events
+         * @param {bool} [$params->settlement] set to true to also return the settlement events
+         * @param {string} [$params->continuation_token] the token of a previous $response, to fetch the next page
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structures~
+         */
+        $this->load_markets();
+        $market = null;
+        if ($symbols !== null) {
+            $symbolsLength = count($symbols);
+            if ($symbolsLength === 1) {
+                $market = $this->market($symbols[0]);
+            }
         }
-        return $result;
+        $request = array(
+            'closed' => true, // the events that closed a position, the unified meaning of a historical position
+        );
+        if ($market !== null) {
+            $request['tradeable'] = $market['id'];
+        }
+        if ($since !== null) {
+            $request['since'] = $since;
+            $request['sort'] = 'asc';
+        }
+        if ($limit !== null) {
+            $request['count'] = $limit;
+        }
+        $until = $this->safe_integer($params, 'until');
+        if ($until !== null) {
+            $params = $this->omit($params, 'until');
+            $request['before'] = $until;
+        }
+        $response = $this->historyGetPositions($this->extend($request, $params));
+        //
+        //    {
+        //        "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
+        //        "elements": [
+        //            {
+        //                "uid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
+        //                "timestamp": 1789646492483,
+        //                "event": {
+        //                    "PositionUpdate": {
+        //                        "tradeable": "PF_DOGEUSD",
+        //                        "oldPosition": "250",
+        //                        "newPosition": "0",
+        //                        "positionChange": "close",
+        //                        "executionPrice": "0.08105",
+        //                        "executionSize": "250",
+        //                        "realizedPnL": "0.05",
+        //                        ...
+        //                    }
+        //                }
+        //            }
+        //        ],
+        //        "len": 2,
+        //        "serverTime": "2026-09-17T18:14:37.761Z"
+        //    }
+        //
+        $elements = $this->safe_list($response, 'elements', array());
+        $updates = array();
+        for ($i = 0; $i < count($elements); $i++) {
+            $event = $this->safe_dict($elements[$i], 'event', array());
+            $update = $this->safe_dict($event, 'PositionUpdate');
+            if ($update !== null) {
+                $updates[] = $update;
+            }
+        }
+        $positions = $this->parse_positions($updates, $symbols);
+        return $this->filter_by_since_limit($positions, $since, $limit);
     }
 
     public function parse_position(array $position, ?array $market = null) {
@@ -3252,35 +3332,97 @@ class krakenfutures extends Exchange {
         //        "maxFixedLeverage":"1.0"
         //    }
         //
+        // position update event (fetchPositionsHistory)
+        //
+        //    {
+        //        "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
+        //        "tradeable": "PF_DOGEUSD",
+        //        "oldPosition": "250",
+        //        "oldAverageEntryPrice": "0.08085",
+        //        "newPosition": "0",
+        //        "newAverageEntryPrice": "0.08085",
+        //        "fillTime": 1789643150594,
+        //        "fee": "0.01013125",
+        //        "feeCurrency": "USD",
+        //        "realizedPnL": "0.05",
+        //        "positionChange": "close",
+        //        "executionUid": "7bfe252a-ab7b-480b-8c52-0ce55e6cba75",
+        //        "executionPrice": "0.08105",
+        //        "executionSize": "250",
+        //        "tradeType": "userExecution",
+        //        "fundingRealizationTime": 1789646492483,
+        //        "realizedFunding": "-0.00000764284",
+        //        "timestamp": 1789646492483,
+        //        "updateReason": "trade"
+        //    }
+        //
+        // the history rows carry a positionChange, the open-position rows do not
+        $positionChange = $this->safe_string($position, 'positionChange');
+        $isHistory = ($positionChange !== null);
         $leverage = $this->safe_number($position, 'maxFixedLeverage');
         $marginType = 'cross';
         if ($leverage !== null) {
             $marginType = 'isolated';
         }
-        $datetime = $this->safe_string($position, 'fillTime');
-        $marketId = $this->safe_string($position, 'symbol');
+        $timestamp = null;
+        $datetime = null;
+        if ($isHistory) {
+            $timestamp = $this->safe_integer($position, 'timestamp');
+            $datetime = $this->iso8601($timestamp);
+        } else {
+            $datetime = $this->safe_string($position, 'fillTime');
+            $timestamp = $this->parse8601($datetime);
+        }
+        $side = $this->safe_string($position, 'side');
+        $entryPrice = $this->safe_string($position, 'price');
+        $contracts = $this->safe_string($position, 'size');
+        if ($isHistory) {
+            // the event describes the position it acted on: an open or an increase
+            // describes the new position, a close, a decrease or a reversal the old
+            // one together with the size that was closed
+            $describesNewPosition = ($positionChange === 'open') || ($positionChange === 'increase');
+            $signedSize = $this->safe_string($position, 'oldPosition');
+            $entryPrice = $this->safe_string($position, 'oldAverageEntryPrice');
+            $contracts = $this->safe_string($position, 'executionSize');
+            if ($describesNewPosition) {
+                $signedSize = $this->safe_string($position, 'newPosition');
+                $entryPrice = $this->safe_string($position, 'newAverageEntryPrice');
+                $contracts = Precise::string_abs($signedSize);
+            } elseif ($positionChange === 'reverse') {
+                $contracts = Precise::string_abs($signedSize); // a reversal closes the whole old position
+            }
+            if (Precise::string_gt($signedSize, '0')) {
+                $side = 'long';
+            } elseif (Precise::string_lt($signedSize, '0')) {
+                $side = 'short';
+            }
+        }
+        $marketId = $this->safe_string_2($position, 'symbol', 'tradeable');
         $market = $this->safe_market($marketId, $market);
         return array(
             'info' => $position,
+            'id' => $this->safe_string($position, 'executionUid'),
             'symbol' => $market['symbol'],
-            'timestamp' => $this->parse8601($datetime),
+            'timestamp' => $timestamp,
             'datetime' => $datetime,
             'initialMargin' => null,
             'initialMarginPercentage' => null,
             'maintenanceMargin' => null,
             'maintenanceMarginPercentage' => null,
-            'entryPrice' => $this->safe_number($position, 'price'),
+            'entryPrice' => $this->parse_number($entryPrice),
             'notional' => null,
             'leverage' => $leverage,
             'unrealizedPnl' => $this->safe_number($position, 'unrealizedPnl'),
-            'contracts' => $this->safe_number($position, 'size'),
+            'realizedPnl' => $this->safe_number($position, 'realizedPnL'),
+            'contracts' => $this->parse_number($contracts),
             'contractSize' => $this->safe_number($market, 'contractSize'),
             'marginRatio' => null,
             'liquidationPrice' => null,
             'markPrice' => null,
+            'lastPrice' => $this->safe_number($position, 'executionPrice'),
             'collateral' => null,
             'marginType' => $marginType,
-            'side' => $this->safe_string($position, 'side'),
+            'side' => $side,
             'percentage' => null,
         );
     }

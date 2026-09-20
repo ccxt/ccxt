@@ -2554,7 +2554,6 @@ func (this *Zebpay) ParseMarginModification(info any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp int64 = this.Milliseconds()
 	return map[string]any{
 		"info":       info,
 		"symbol":     this.SafeString(market, "id"),
@@ -2564,8 +2563,8 @@ func (this *Zebpay) ParseMarginModification(info any, optionalArgs ...any) any {
 		"total":      nil,
 		"code":       this.SafeString(info, "code"),
 		"status":     this.SafeString(info, "status"),
-		"timestamp":  timestamp,
-		"datetime":   this.Iso8601(timestamp),
+		"timestamp":  nil,
+		"datetime":   nil,
 	}
 }
 func (this *Zebpay) Sign(path any, optionalArgs ...any) any {

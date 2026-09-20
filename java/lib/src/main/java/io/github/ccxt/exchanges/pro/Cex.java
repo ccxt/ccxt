@@ -1013,7 +1013,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             symbol = ((base + "/") + quote);
         }
         market = this.safeMarket(symbol, market);
-        Long time = this.safeInteger(order, "time", this.milliseconds());
+        Long time = this.safeInteger(order, "time");
         Object timestamp = time;
         if (Boolean.TRUE.equals(isTransaction))
         {

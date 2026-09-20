@@ -1148,7 +1148,6 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         if ((ticker instanceof List))
         {
             last = this.safeString(ticker, 4);
-            timestamp = this.milliseconds();
         } else
         {
             timestamp = this.parse8601(this.safeString(ticker, "time"));

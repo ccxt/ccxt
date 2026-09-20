@@ -3858,14 +3858,13 @@ public partial class digifinex : Exchange
         //         "currency": "USDT"
         //     }
         //
-        Int64 timestamp = this.milliseconds();
         string? currencyId = this.safeString(info, "currency");
         return new Dictionary<string, object>() {
             { "currency", this.safeCurrencyCode(currencyId, currency) },
             { "rate", 0.001 },
             { "period", 86400000 },
-            { "timestamp", timestamp },
-            { "datetime", this.iso8601(timestamp) },
+            { "timestamp", null },
+            { "datetime", null },
             { "info", info },
         };
     }

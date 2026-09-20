@@ -119,6 +119,7 @@ from ccxt.btse import btse                                            # noqa: F4
 from ccxt.bullish import bullish                                      # noqa: F401
 from ccxt.bybit import bybit                                          # noqa: F401
 from ccxt.bybiteu import bybiteu                                      # noqa: F401
+from ccxt.bybitid import bybitid                                      # noqa: F401
 from ccxt.bydfi import bydfi                                          # noqa: F401
 from ccxt.cex import cex                                              # noqa: F401
 from ccxt.coinbase import coinbase                                    # noqa: F401
@@ -225,6 +226,7 @@ exchanges = [
     'bullish',
     'bybit',
     'bybiteu',
+    'bybitid',
     'bydfi',
     'cex',
     'coinbase',

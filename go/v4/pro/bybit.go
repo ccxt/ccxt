@@ -312,7 +312,7 @@ func (this *Bybit) createOrderWsBody(ch chan any, symbol any, typeVar any, side 
 		ccxt.PanicOnError(retRes26812)
 	}
 	var orderRequest any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params, true)
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "trade")
+	var url any = this.ImplodeHostname(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "trade"))
 
 	retRes2728 := (<-this.AuthenticateAsync(url))
 	ccxt.PanicOnError(retRes2728)
@@ -378,7 +378,7 @@ func (this *Bybit) editOrderWsBody(ch chan any, id any, symbol any, typeVar any,
 		ccxt.PanicOnError(retRes31512)
 	}
 	var orderRequest any = this.EditOrderRequest(id, symbol, typeVar, side, amount, price, params)
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "trade")
+	var url any = this.ImplodeHostname(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "trade"))
 
 	retRes3198 := (<-this.AuthenticateAsync(url))
 	ccxt.PanicOnError(retRes3198)
@@ -433,7 +433,7 @@ func (this *Bybit) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any) a
 		panic(ccxt.ArgumentsRequired(this.Id + " cancelOrderWs() requires a symbol argument"))
 	}
 	var orderRequest any = this.CancelOrderRequest(id, symbol, params)
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "trade")
+	var url any = this.ImplodeHostname(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "trade"))
 
 	retRes3578 := (<-this.AuthenticateAsync(url))
 	ccxt.PanicOnError(retRes3578)
