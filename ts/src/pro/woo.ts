@@ -311,7 +311,7 @@ export default class woo extends wooRest {
         }
     }
 
-    handleOrderBookMessage (client: Client, message: Dict, orderbook: Dict): Dict {
+    handleOrderBookMessage (client: Client, message: Dict, orderbook: any) {
         const data = this.safeDict (message, 'data');
         this.handleDeltas (orderbook['asks'], this.safeList (data, 'asks', []));
         this.handleDeltas (orderbook['bids'], this.safeList (data, 'bids', []));
