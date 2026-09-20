@@ -15,14 +15,6 @@ func strOrNil(s string) any {
 	return s
 }
 
-// The generated cache tests carry the printer's nil-guarded index unwrap
-// (`return DerefScalar(rows[i])`), which is emitted unqualified because the call
-// normally lives in package ccxt; this package imports ccxt by name instead, so it
-// aliases the helper here (the generated files in this folder carry no import block).
-func DerefScalar(v any) any {
-	return ccxt.DerefScalar(v)
-}
-
 func Equals(a any, b any) bool {
 	// return base.Equals(a, b)
 	// should handle a being WsOrderBook or ArrayCache or any other variant
