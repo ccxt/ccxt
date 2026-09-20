@@ -655,6 +655,13 @@ impl OrderRouter {
         self.max_notional_usd
     }
 
+    /// The api key this client carries, empty when it has none. The service is
+    /// public and needs no key; one supplied anyway is sent as `x-api-key`, so a
+    /// deployment fronting the router with its own authentication still works.
+    pub fn api_key(&self) -> &str {
+        &self.api_key
+    }
+
     /// The router base url, with any trailing slashes removed.
     pub fn base_url(&self) -> &str {
         &self.base_url

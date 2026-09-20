@@ -459,8 +459,16 @@ func routerCodes(violations []map[string]any) []string {
 }
 
 func TestOrderRouterConstructorCapIsAnOptInGuardrailAtAnySize(t *testing.T) {
-	if _, err := NewOrderRouter(map[string]any{}); routerErrorCode(err) != "ArgumentsRequired" {
-		t.Fatalf("an apiKey is required, got %v", err)
+	// The service dropped API keys in favour of per-IP rate limiting, so an empty key is
+	// the normal case and must construct. A key supplied anyway is CARRIED, not ignored:
+	// a deployment fronting the router with its own auth is still satisfied by it.
+	keyless, err := NewOrderRouter(map[string]any{})
+	if err != nil || keyless.ApiKey != "" {
+		t.Fatalf("a keyless client constructs and holds an empty apiKey, got %v %v", keyless, err)
+	}
+	keyed, err := NewOrderRouter(map[string]any{"apiKey": "still-works"})
+	if err != nil || keyed.ApiKey != "still-works" {
+		t.Fatalf("a supplied apiKey is carried, not dropped, got %v %v", keyed, err)
 	}
 	// No ceiling. A caller trading thousands is using this correctly, and the type
 	// does not get to decide otherwise — the old hard 25 USD limit came from this

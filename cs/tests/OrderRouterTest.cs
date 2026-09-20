@@ -77,7 +77,7 @@ public class OrderRouterTest
         Run("a bridged route whose hops do not connect is refused", RouteChainBreak);
         Run("a well-formed route still plans normally", RouteWellFormedStillPlans);
         //  2. invariants, asserted directly rather than through the fixture
-        Run("constructor: apiKey is required, and maxNotionalUsd is an opt-in guardrail at any size", ConstructorGuards);
+        Run("constructor: the service is public, and maxNotionalUsd is an opt-in guardrail at any size", ConstructorGuards);
         Run("a hand-built plan carrying only the required fields is executable", HandBuiltPlanIsExecutable);
         Run("the derived limit price and notional follow amount and expectedPrice", DerivedLimitPriceAndNotional);
         Run("the limit price sits on the side that costs you, and only there", LimitPriceSide);
@@ -1001,7 +1001,13 @@ public class OrderRouterTest
 
     private static void ConstructorGuards()
     {
-        Throws<ArgumentsRequired>(() => new OrderRouter(new dict()), "an apiKey is required");
+        //  The service dropped API keys in favour of per-IP rate limiting, so an empty key
+        //  is the normal case and must construct. A key supplied anyway is CARRIED, not
+        //  ignored: a deployment fronting the router with its own auth still works.
+        var keyless = new OrderRouter(new dict());
+        EqualString(keyless.apiKey, "", "a keyless client holds an empty apiKey");
+        var keyed = new OrderRouter(new dict() { { "apiKey", "still-works" } });
+        EqualString(keyed.apiKey, "still-works", "a supplied apiKey is carried, not dropped");
         //  No ceiling. A caller trading thousands is using this correctly, and the
         //  class does not get to decide otherwise — the old hard 25 USD limit came
         //  from this repository's own live-test safety rule, which is not a rule

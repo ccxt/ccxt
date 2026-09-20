@@ -361,8 +361,17 @@ fn capped_client(cap: f64) -> Result<OrderRouter, String> {
 }
 
 fn constructor_guards() -> Result<(), String> {
-    if OrderRouter::new(&config_with(&[])).is_ok() {
-        return Err("an apiKey is required".to_string());
+    // The service dropped API keys in favour of per-IP rate limiting, so an empty
+    // key is the normal case and must construct. A key supplied anyway is CARRIED,
+    // not ignored: a deployment fronting the router with its own auth still works.
+    let keyless = OrderRouter::new(&config_with(&[])).map_err(|e| e.to_string())?;
+    if !keyless.api_key().is_empty() {
+        return Err("a keyless client holds an empty apiKey".to_string());
+    }
+    let keyed = OrderRouter::new(&config_with(&[("apiKey", Value::Str("still-works".into()))]))
+        .map_err(|e| e.to_string())?;
+    if keyed.api_key() != "still-works" {
+        return Err("a supplied apiKey is carried, not dropped".to_string());
     }
     // No ceiling. A caller trading thousands is using this correctly, and the
     // class does not get to decide otherwise — the old hard 25 USD limit came
@@ -1636,7 +1645,7 @@ pub fn run() -> Result<usize, String> {
         ("fixture: numberAt reads one number grammar in all six languages", Box::new(|| fixture_number_at(&router()?, &fixture()?))),
         ("fixture: formatNumber spells one number one way in all six languages", Box::new(|| fixture_format_number(&router()?, &fixture()?))),
         ("fixture: a fee in the acquired asset resizes what the next hop is sized on", Box::new(|| fixture_fee_netting(&router()?, &fixture()?))),
-        ("constructor: apiKey is required, and maxNotionalUsd is an opt-in guardrail at any size", Box::new(constructor_guards)),
+        ("constructor: the service is public, and maxNotionalUsd is an opt-in guardrail at any size", Box::new(constructor_guards)),
         ("a hand-built plan carrying only the required fields is executable", Box::new(|| a_hand_built_plan_with_only_the_required_fields_is_executable(&router()?))),
         ("the derived limit price and notional follow amount and expectedPrice", Box::new(|| derived_limit_price_and_notional_follow_amount_and_expected_price(&router()?))),
         ("the limit price sits on the side that costs you, and only there", Box::new(|| limit_price_side(&router()?))),
