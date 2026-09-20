@@ -2526,13 +2526,13 @@ class modetrade extends Exchange {
         $currency = null;
         if ($code !== null) {
             $currency = $this->currency($code);
-            $request['balance_token'] = $currency['id'];
+            $request['token'] = $currency['id'];
         }
         if ($since !== null) {
             $request['start_t'] = $since;
         }
         if ($limit !== null) {
-            $request['pageSize'] = $limit;
+            $request['size'] = $limit;
         }
         $transactionType = $this->safe_string($params, 'type');
         $params = $this->omit($params, 'type');
@@ -2570,21 +2570,45 @@ class modetrade extends Exchange {
     }
 
     public function parse_ledger_entry(array $item, ?array $currency = null): array {
+        //
+        //     {
+        //         "id": "230707030600002",
+        //         "tx_id": "0x4b0714c63cc7abae72bf68e84e25860b88ca651b7d27dad1e32bf4c027fa5326",
+        //         "side": "WITHDRAW",
+        //         "token": "USDC",
+        //         "amount": 555,
+        //         "fee": 123,
+        //         "trans_status": "FAILED",
+        //         "created_time": 1688699193034,
+        //         "updated_time": 1688699193096,
+        //         "chain_id": "986532"
+        //     }
+        //
         $currencyId = $this->safe_string($item, 'token');
         $code = $this->safe_currency_code($currencyId, $currency);
         $currency = $this->safe_currency($currencyId, $currency);
         $amount = $this->safe_number($item, 'amount');
-        $side = $this->safe_string($item, 'token_side');
-        $direction = ($side === 'DEPOSIT') ? 'in' : 'out';
+        $side = $this->safe_string($item, 'side');
+        $direction = null;
+        if ($side !== null) {
+            $direction = ($side === 'DEPOSIT') ? 'in' : 'out';
+        }
         $timestamp = $this->safe_integer($item, 'created_time');
-        $fee = $this->parse_token_and_fee_temp($item, 'fee_token', 'fee_amount');
+        $feeCost = $this->parse_number($this->safe_string($item, 'fee'));
+        $fee = null;
+        if ($feeCost !== null) {
+            $fee = array(
+                'currency' => $code,
+                'cost' => $feeCost,
+            );
+        }
         return $this->safe_ledger_entry(array(
             'id' => $this->safe_string($item, 'id'),
             'currency' => $code,
-            'account' => $this->safe_string($item, 'account'),
+            'account' => null,
             'referenceAccount' => null,
             'referenceId' => $this->safe_string($item, 'tx_id'),
-            'status' => $this->parse_transaction_status($this->safe_string($item, 'status')),
+            'status' => $this->parse_transaction_status($this->safe_string($item, 'trans_status')),
             'amount' => $amount,
             'before' => null,
             'after' => null,
@@ -2592,7 +2616,7 @@ class modetrade extends Exchange {
             'direction' => $direction,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'type' => $this->parse_ledger_entry_type($this->safe_string($item, 'type')),
+            'type' => $this->parse_ledger_entry_type($this->safe_string_2($item, 'type', 'side')),
             'info' => $item,
         ), $currency);
     }
@@ -2601,6 +2625,8 @@ class modetrade extends Exchange {
         $types = array(
             'BALANCE' => 'transaction', // Funds moved in/out wallet
             'COLLATERAL' => 'transfer', // Funds moved between portfolios
+            'DEPOSIT' => 'transaction', // Funds deposited from the chain
+            'WITHDRAW' => 'transaction', // Funds withdrawn to the chain
         );
         return $this->safe_string($types, $type, $type);
     }
@@ -2628,15 +2654,34 @@ class modetrade extends Exchange {
     }
 
     public function parse_transaction(array $transaction, ?array $currency = null): array {
-        // example in fetchLedger
-        $code = $this->safe_string($transaction, 'token');
-        $movementDirection = $this->safe_string_lower($transaction, 'token_side');
+        //
+        //     {
+        //         "id": "230707030600002",
+        //         "tx_id": "0x4b0714c63cc7abae72bf68e84e25860b88ca651b7d27dad1e32bf4c027fa5326",
+        //         "side": "WITHDRAW",
+        //         "token": "USDC",
+        //         "amount": 555,
+        //         "fee": 123,
+        //         "trans_status": "FAILED",
+        //         "created_time": 1688699193034,
+        //         "updated_time": 1688699193096,
+        //         "chain_id": "986532"
+        //     }
+        //
+        $currencyId = $this->safe_string($transaction, 'token');
+        $code = $this->safe_currency_code($currencyId, $currency);
+        $movementDirection = $this->safe_string_lower($transaction, 'side');
         if ($movementDirection === 'withdraw') {
             $movementDirection = 'withdrawal';
         }
-        $fee = $this->parse_token_and_fee_temp($transaction, 'fee_token', 'fee_amount');
-        $addressTo = $this->safe_string($transaction, 'target_address');
-        $addressFrom = $this->safe_string($transaction, 'source_address');
+        $feeCost = $this->parse_number($this->safe_string($transaction, 'fee'));
+        $fee = null;
+        if ($feeCost !== null) {
+            $fee = array(
+                'currency' => $code,
+                'cost' => $feeCost,
+            );
+        }
         $timestamp = $this->safe_integer($transaction, 'created_time');
         return array(
             'info' => $transaction,
@@ -2645,20 +2690,20 @@ class modetrade extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'address' => null,
-            'addressFrom' => $addressFrom,
-            'addressTo' => $addressTo,
-            'tag' => $this->safe_string($transaction, 'extra'),
+            'addressFrom' => null,
+            'addressTo' => null,
+            'tag' => null,
             'tagFrom' => null,
             'tagTo' => null,
             'type' => $movementDirection,
             'amount' => $this->safe_number($transaction, 'amount'),
             'currency' => $code,
-            'status' => $this->parse_transaction_status($this->safe_string($transaction, 'status')),
+            'status' => $this->parse_transaction_status($this->safe_string($transaction, 'trans_status')),
             'updated' => $this->safe_integer($transaction, 'updated_time'),
             'comment' => null,
             'internal' => null,
             'fee' => $fee,
-            'network' => null,
+            'network' => null, // raw rows carry only a chain id, no mapping to unified network codes exists yet
         );
     }
 
@@ -2666,8 +2711,11 @@ class modetrade extends Exchange {
         $statuses = array(
             'NEW' => 'pending',
             'CONFIRMING' => 'pending',
+            'PENDING' => 'pending',
+            'PENDING_REBALANCE' => 'pending',
             'PROCESSING' => 'pending',
             'COMPLETED' => 'ok',
+            'FAILED' => 'failed',
             'CANCELED' => 'canceled',
         );
         if ($status === null) {
@@ -2751,6 +2799,7 @@ class modetrade extends Exchange {
         //         "success":true
         //     }
         //
+        $params = $this->omit($params, 'side'); // request-side filter, not a unified transaction field
         return $this->parse_transactions($rows, $currency, $since, $limit, $params);
     }
 

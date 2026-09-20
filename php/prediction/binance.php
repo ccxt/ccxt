@@ -829,14 +829,13 @@ class binance extends Exchange {
                 $last = $this->parse_number($lastString);
             }
         }
-        $now = $this->milliseconds();
         return $this->safe_prediction_ticker(array(
             'outcome' => $this->safe_string($outcomeObj, 'outcome'),
             'outcomeId' => $this->safe_string_2($outcomeObj, 'outcomeId', 'id'),
             'label' => $this->safe_string($outcomeObj, 'label'),
             'market' => $this->safe_string($outcomeObj, 'market'),
-            'timestamp' => $now,
-            'datetime' => $this->iso8601($now),
+            'timestamp' => null,
+            'datetime' => null,
             'high' => null,
             'low' => null,
             'bid' => null,
@@ -1975,8 +1974,8 @@ class binance extends Exchange {
                 'outcomeId' => $this->safe_string($outcomeObj, 'id'),
                 'label' => $this->safe_string($outcomeObj, 'label'),
                 'market' => $this->safe_string($outcomeObj, 'market'),
-                'timestamp' => $this->milliseconds(),
-                'datetime' => $this->iso8601($this->milliseconds()),
+                'timestamp' => null,
+                'datetime' => null,
             );
             $orders[] = $this->safe_prediction_order($order);
         }

@@ -941,11 +941,6 @@ class myriad extends Exchange {
         if (($this->safe_number($parsed, 'amount') === null) && ($amount !== null)) {
             $parsed['amount'] = $amount;
         }
-        if ($this->safe_integer($parsed, 'timestamp') === null) {
-            $now = $this->milliseconds();
-            $parsed['timestamp'] = $now;
-            $parsed['datetime'] = $this->iso8601($now);
-        }
         if ($this->safe_string($parsed, 'status') === null) {
             $parsed['status'] = 'open';
         }
@@ -2539,7 +2534,6 @@ class myriad extends Exchange {
                 break;
             }
         }
-        $now = $this->milliseconds();
         // priceChange24h is an ABSOLUTE price delta; derive the previous close and the TRUE
         // percentage from it — setting percentage = the absolute change (as before) was wrong
         $previousClose = null;
@@ -2558,8 +2552,8 @@ class myriad extends Exchange {
             'outcomeId' => $this->safe_string($market, 'id'),
             'label' => $this->safe_string($market, 'label'),
             'market' => $this->safe_string($market, 'market'),
-            'timestamp' => $now,
-            'datetime' => $this->iso8601($now),
+            'timestamp' => null,
+            'datetime' => null,
             'high' => null,
             'low' => null,
             'bid' => $price,
@@ -2705,7 +2699,6 @@ class myriad extends Exchange {
                 break;
             }
         }
-        $timestamp = $this->milliseconds();
         // AMM: synthesize a single bid/ask pair around the current implied price, clamped into the valid (0, 1) range
         $bid = null;
         $ask = null;
@@ -2731,8 +2724,8 @@ class myriad extends Exchange {
             'outcome' => $this->safe_outcome_symbol($outcome, $outcomeObj),
             'bids' => $bids,
             'asks' => $asks,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
             'nonce' => null,
         );
         return $this->safe_prediction_order_book($orderbook, $outcomeObj);
@@ -2762,13 +2755,12 @@ class myriad extends Exchange {
             $rowAmount = Precise::string_div($this->safe_string($row, 1), '1000000000000000000');
             $asks[] = array( $this->parse_number($rowPrice), $this->parse_number($rowAmount) );
         }
-        $timestamp = $this->milliseconds();
         return array(
             'outcome' => $outcome,
             'bids' => $this->sort_by($bids, 0, true),
             'asks' => $this->sort_by($asks, 0),
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
             'nonce' => null,
         );
     }

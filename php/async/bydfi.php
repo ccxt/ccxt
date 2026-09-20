@@ -632,8 +632,7 @@ class bydfi extends Exchange {
         //     }
         //
         $data = $this->safe_dict($response, 'data', array());
-        $timestamp = $this->milliseconds();
-        $orderBook = $this->parse_order_book($data, $market['symbol'], $timestamp, 'bids', 'asks', 'price', 'amount');
+        $orderBook = $this->parse_order_book($data, $market['symbol'], null, 'bids', 'asks', 'price', 'amount');
         $orderBook['nonce'] = $this->safe_integer($data, 'lastUpdateId');
         return $orderBook;
     }
@@ -2719,11 +2718,10 @@ class bydfi extends Exchange {
     }
 
     public function parse_balance(mixed $response): array {
-        $timestamp = $this->milliseconds();
         $result = array(
             'info' => $response,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
         );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
@@ -2781,9 +2779,6 @@ class bydfi extends Exchange {
         $transferOptions = $this->safe_dict($this->options, 'transfer', array());
         $fillResponseFromRequest = $this->safe_bool($transferOptions, 'fillResponseFromRequest', true);
         if ($fillResponseFromRequest === true) {
-            $timestamp = $this->milliseconds();
-            $transfer['timestamp'] = $timestamp;
-            $transfer['datetime'] = $this->iso8601($timestamp);
             $transfer['currency'] = $code;
             $transfer['fromAccount'] = $fromAccount;
             $transfer['toAccount'] = $toAccount;
