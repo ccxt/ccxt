@@ -1075,7 +1075,6 @@ impl HyperliquidCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("levels".to_string(), Value::List(vec![Value::List(vec![]), Value::List(vec![])]));
         m.insert("mid".to_string(), mid.clone());
-        m.insert("time".to_string(), self.milliseconds());
     m
 }), &[outcomeObj.clone()]);
             add_element_to_object(&mut tickers, &outcomeHandle, ticker.clone());
@@ -1107,8 +1106,7 @@ impl HyperliquidCore {
         //         "time": 1704290104840
         //     }
         //
-        let mut now: Value = self.milliseconds();
-        let mut timestamp: Value = self.safe_integer_k(raw.clone(), "time", &[now.clone()]);
+        let mut timestamp: Value = self.safe_integer_k(raw.clone(), "time", &[]);
         // the 2nd arg carries the outcome object (callers pass the resolved outcome)
         let mut mkt: Value = self.safe_outcome(Value::Null, &[market.clone()]);
         let mut outcome: Value = self.safe_string_k(mkt.clone(), "outcome", &[]);
@@ -1887,8 +1885,8 @@ impl HyperliquidCore {
         m.insert("id".to_string(), oid.clone());
         m.insert("clientOrderId".to_string(), clientOrderId.clone());
         m.insert("info".to_string(), response.clone());
-        m.insert("timestamp".to_string(), nonce.clone());
-        m.insert("datetime".to_string(), self.iso8601(nonce.clone()));
+        m.insert("timestamp".to_string(), Value::Null);
+        m.insert("datetime".to_string(), Value::Null);
         m.insert("status".to_string(), orderStatus.clone());
         m.insert("outcome".to_string(), self.safe_string_k(outcomeObj.clone(), "outcome", &[outcome.clone()]));
         m.insert("outcomeId".to_string(), self.safe_string_k(outcomeObj.clone(), "id", &[]));
@@ -2055,8 +2053,8 @@ impl HyperliquidCore {
                     m.insert("outcomeId".to_string(), self.safe_string_k(outcomeObj.clone(), "id", &[]));
                     m.insert("label".to_string(), self.safe_string_k(outcomeObj.clone(), "label", &[]));
                     m.insert("market".to_string(), self.safe_string_k(outcomeObj.clone(), "market", &[]));
-                    m.insert("timestamp".to_string(), self.milliseconds());
-                    m.insert("datetime".to_string(), self.iso8601(self.milliseconds()));
+                    m.insert("timestamp".to_string(), Value::Null);
+                    m.insert("datetime".to_string(), Value::Null);
                 m
             });
             append_to_array(&mut orders, self.safe_prediction_order(order.clone(), &[]));

@@ -1287,7 +1287,7 @@ impl CexCore {
             symbol = add(&add(&base, &Value::Str("/".to_string())), &quote);
         }
         market = self.safe_market(&[symbol.clone(), market.clone()]);
-        let mut time: Value = self.safe_integer_k(order.clone(), "time", &[self.milliseconds()]);
+        let mut time: Value = self.safe_integer_k(order.clone(), "time", &[]);
         let mut timestamp: Value = time.clone();
         if is_true(&isTransaction) {
             timestamp = self.parse8601(time.clone());

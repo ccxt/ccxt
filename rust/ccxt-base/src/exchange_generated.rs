@@ -5026,6 +5026,25 @@ pub trait ExchangeBase:
     Value::Null
 }
 
+/*
+ * @method
+ * @ignore
+ * @name Exchange#incrementingNonce
+ * @description returns a strictly-increasing nonce for venues that reject duplicate nonces per signer; the unit is whatever nonce () returns — the base default is seconds, so a venue that does not override nonce () gets a second-resolution counter that drifts ahead of wall clock under load, while venues needing milliseconds override nonce () as hyperliquid does. The counter is per exchange instance, so it narrows the duplicate-nonce race but does not remove it across instances or processes.
+ * @returns {int} a strictly-increasing nonce in the unit returned by nonce ()
+ */
+    fn incrementing_nonce(&mut self) -> Value {
+        let mut currentNonce: Value = <Self as crate::exchange_generated::ExchangeBase>::nonce(self, );
+        self.lock_last_nonce(&[]);
+        let mut lastNonce: Value = self.safe_integer_k(self.options.clone(), "lastNonce", &[Value::Int(0)]);
+        let mut result: Value = ternary(is_true(&(is_greater_than(&currentNonce, &lastNonce))), currentNonce.clone(), add(&lastNonce, &Value::Int(1)));
+        add_element_to_object(&mut self.options, &Value::Str("lastNonce".to_string()), result.clone());
+        self.unlock_last_nonce(&[]);
+        return result;
+
+    Value::Null
+}
+
     fn set_headers(&self, mut headers: Value) -> Value {
         return headers;
 
@@ -11702,6 +11721,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "handle_until_option" => self.handle_until_option(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args.get(3..).unwrap_or(&[]).to_vec()[..]),
             "handle_withdraw_tag_and_params" => self.handle_withdraw_tag_and_params(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "implode_hostname" => self.implode_hostname(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+            "incrementing_nonce" => self.incrementing_nonce(),
             "integer_precision_to_amount" => self.integer_precision_to_amount(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "invert_flat_string_dictionary" => self.invert_flat_string_dictionary(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "is_decimal_precision" => self.is_decimal_precision(),

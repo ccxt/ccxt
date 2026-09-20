@@ -2688,16 +2688,6 @@ impl ZebpayCore {
 
     pub fn parse_margin_modification(&self, mut info: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        //
-        //    {
-        //         "symbol": "BTCINR",
-        //         "type": "reduce",
-        //         "amount": 1000,
-        //         "code": "INR",
-        //         "status": "ok"
-        //    }
-        //
-        let mut timestamp: Value = self.milliseconds();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), info.clone());
@@ -2708,8 +2698,8 @@ impl ZebpayCore {
         m.insert("total".to_string(), Value::Null);
         m.insert("code".to_string(), self.safe_string_k(info.clone(), "code", &[]));
         m.insert("status".to_string(), self.safe_string_k(info.clone(), "status", &[]));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
+        m.insert("timestamp".to_string(), Value::Null);
+        m.insert("datetime".to_string(), Value::Null);
     m
 });
 
