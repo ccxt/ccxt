@@ -19,7 +19,7 @@ import { execFileSync } from 'child_process';
 import { isMainEntry } from "./transpile.js";
 import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./transpile.js";
 import { unCamelCase } from "../js/src/base/functions.js";
-import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, elementAccessHasStringElements, JAVA_STRING_RETURN_METHODS, JAVA_STRING_PARAM_POSITIONS, patchJavaConsumerStringCasts, patchJavaMapChannelStringCasts, patchJavaStringReceiverCasts, installJavaDeclaredLocalTypes } from './java-local-types.js';
+import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, elementAccessHasStringElements, JAVA_STRING_RETURN_METHODS, JAVA_STRING_PARAM_POSITIONS, patchJavaConsumerStringCasts, patchJavaMapChannelStringCasts, patchJavaStringReceiverCasts, installJavaDeclaredLocalTypes, installJavaObjectParamPositions } from './java-local-types.js';
 import { ZERO_REQUIRED_TYPED_WHITELIST } from "./generateJavaWrappers.js";
 import { typeCoreReturns, typedReturnTable, JAVA_ASYNC_SUPPLIER, JAVA_ASYNC_SUPPLIER_IMPORT, isAsyncLambdaClose } from "./javaTypedCore.js";
 import { applyJavaImports, shortenJavaReferences, ensureJavaImports } from "./javaUtilImports.js";
@@ -1737,6 +1737,12 @@ class NewTranspiler {
         // prints `x.get("lit")`. Installed LAST so the observer sees the final text
         // (also applied per worker thread in java-worker.ts)
         installJavaDeclaredLocalTypes(this.transpiler);
+        // hx7 java-03: box the row-builder parameter positions the pin types `Map<String, Object>`
+        // although the exchange hands them a raw row/list response (parseCurrency / parseTicker /
+        // parseTransfer — the java STATIC_RESPONSE ArrayList->Map sites). Installed LAST so no
+        // earlier installer's proof reads a native type this one removes
+        // (also applied per worker thread in java-worker.ts)
+        installJavaObjectParamPositions(this.transpiler);
         // java-13: hand the generator the printed-Java String proof for a `+` concat
         // anchor (declared-String locals + hand-written String runtime calls) — installed
         // LAST for the same reason (also applied per worker thread in java-worker.ts)
