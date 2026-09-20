@@ -741,7 +741,7 @@ export default class coinbase extends Exchange {
         return result;
     }
 
-    override parseAccount (account: any): Account {
+    override parseAccount (account: Dict): Account {
         //
         // fetchAccountsV2
         //

@@ -935,6 +935,7 @@ export default class woofipro extends Exchange {
         return this.parseTrades (rows, market, since, limit);
     }
 
+
     override parseFundingRate (fundingRate: any, market: Market = undefined): FundingRate {
         //
         //         {
@@ -1010,7 +1011,7 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    override async fetchFundingRate (symbol: string, params: Dict = {}): Promise<FundingRate> {
+    override async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

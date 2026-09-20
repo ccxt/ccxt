@@ -1920,7 +1920,7 @@ export default class foxbit extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    override parseTransaction (transaction: any, currency: Currency = undefined, since: Int = undefined, limit: Int = undefined): Transaction {
+    override parseTransaction (transaction: Dict, currency: Currency = undefined, since: Int = undefined, limit: Int = undefined): Transaction {
         const cryptoDetails = this.safeDict (transaction, 'details_crypto');
         const address = this.safeString2 (cryptoDetails, 'receiving_address', 'destination_address');
         const sn = this.safeString (transaction, 'sn');

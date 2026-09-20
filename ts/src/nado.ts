@@ -1843,7 +1843,7 @@ export default class nado extends Exchange {
      * @param {boolean} [params.edge] whether to retrieve volume and open interest metrics for all chains, defaults to true
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    override async fetchFundingRate (symbol: string, params: Dict = {}): Promise<FundingRate> {
+    override async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (market['swap'] !== true) {
@@ -2340,6 +2340,7 @@ export default class nado extends Exchange {
             'fee': fee,
         }, market);
     }
+
 
     override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //
@@ -3116,7 +3117,7 @@ export default class nado extends Exchange {
         return marketId;
     }
 
-    override sign (path: any, api: any = [], method = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined): Dict {
+    override sign (path: any, api: any = [], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         let endpoint = api[0];
         if (typeof api === 'string') {
             endpoint = api;

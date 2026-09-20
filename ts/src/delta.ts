@@ -2680,7 +2680,7 @@ export default class delta extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    override async fetchFundingRate (symbol: string, params: Dict = {}): Promise<FundingRate> {
+    override async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (market['swap'] !== true) {
@@ -2805,6 +2805,7 @@ export default class delta extends Exchange {
         const rates = this.safeList (response, 'result', []);
         return this.parseFundingRates (rates, symbols);
     }
+
 
     override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //
@@ -4162,7 +4163,7 @@ export default class delta extends Exchange {
         } as ADL;
     }
 
-    override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = {}, body: any = undefined): Dict {
+    override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = {}, body: Str = undefined): Dict {
         const requestPath = '/' + this.version + '/' + this.implodeParams (path, params);
         let url = this.urls['api'][api] + requestPath;
         const query = this.omit (params, this.extractParams (path));

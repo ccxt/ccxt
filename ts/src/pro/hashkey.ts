@@ -185,7 +185,7 @@ export default class hashkey extends hashkeyRest {
      * @param {bool} [params.binary] true or false - default false
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -226,7 +226,7 @@ export default class hashkey extends hashkeyRest {
         //     }
         //
         const data = this.safeList (message, 'data', []);
-        const ticker = this.parseTicker (this.safeDict (data, 0));
+        const ticker = this.parseTicker (this.safeDict (data, 0, {}));
         const symbol = ticker['symbol'];
         const messageHash = 'ticker:' + symbol;
         this.tickers[(symbol as string)] = ticker;
@@ -245,7 +245,7 @@ export default class hashkey extends hashkeyRest {
      * @param {bool} [params.binary] true or false - default false
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -557,6 +557,7 @@ export default class hashkey extends hashkeyRest {
         const symbolSpecificMessageHash = messageHash + ':' + symbol;
         client.resolve (tradesArray, symbolSpecificMessageHash);
     }
+
 
     override parseWsTrade (trade: any, market: Market = undefined): Trade {
         //

@@ -599,7 +599,7 @@ export default class coinbaseinternational extends Exchange {
         return this.parseFundingRate (info, market) as FundingRateHistory;
     }
 
-    override parseFundingRate (contract: any, market: Market = undefined) {
+    override parseFundingRate (contract: string, market: Market = undefined) {
         //
         //    {
         //       "instrument_id":"149264167780483072",

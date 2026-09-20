@@ -1027,7 +1027,7 @@ export default class deepcoin extends deepcoinRest {
         }
     }
 
-    override parseWsOrder (order: any, market: Market = undefined): Order {
+    override parseWsOrder (order: Dict, market: Market = undefined): Order {
         //
         //     {
         //         "D": "0",

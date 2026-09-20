@@ -1463,7 +1463,7 @@ export default class btse extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    override async fetchFundingRate (symbol: string, params: Dict = {}): Promise<FundingRate> {
+    override async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (market['spot'] === true) {
@@ -1505,6 +1505,7 @@ export default class btse extends Exchange {
         }
         return this.parseFundingRates (rows, symbols);
     }
+
 
     override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //
@@ -3772,7 +3773,8 @@ export default class btse extends Exchange {
         return undefined;
     }
 
-    override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined): Dict {
+
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         const baseUrl = this.urls['api'][api];
         let url = baseUrl + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));

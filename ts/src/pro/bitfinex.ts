@@ -461,7 +461,8 @@ export default class bitfinex extends bitfinexRest {
         client.resolve (stored, messageHash);
     }
 
-    override parseWsTrade (trade: any, market: Market = undefined): Trade {
+
+    override parseWsTrade (trade: any, market: Market = undefined) {
         //
         //    [
         //        1128060969, // id
@@ -1182,7 +1183,7 @@ export default class bitfinex extends bitfinexRest {
         return this.safeString (statuses, status, status);
     }
 
-    override parseWsOrder (order: any, market: Market = undefined): Order {
+    override parseWsOrder (order: Dict, market: Market = undefined): Order {
         //
         //   [
         //       97084883506, // order id

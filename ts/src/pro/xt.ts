@@ -690,7 +690,7 @@ export default class xt extends xtRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
      */
-    override async unWatchFundingRate (symbol: string, params: Dict = {}): Promise<any> {
+    override async unWatchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -881,7 +881,7 @@ export default class xt extends xtRest {
         //       }
         //    }
         //
-        const data = this.safeDict (message, 'data');
+        const data = this.safeDict (message, 'data', {});
         const marketId = this.safeString (data, 's');
         if (marketId !== undefined) {
             const cv = this.safeString (data, 'cv');
@@ -1091,7 +1091,7 @@ export default class xt extends xtRest {
         //        }
         //    }
         //
-        const data = this.safeDict (message, 'data');
+        const data = this.safeDict (message, 'data', {});
         const marketId = this.safeStringLower (data, 's');
         if (marketId !== undefined) {
             const trade = this.parseTrade (data);

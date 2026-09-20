@@ -10055,7 +10055,7 @@ export default class kucoin extends Exchange {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta)
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    override async fetchFundingRate (symbol: string, params: Dict = {}): Promise<FundingRate> {
+    override async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -10153,6 +10153,7 @@ export default class kucoin extends Exchange {
         }
         return this.parseFundingRates (rates, symbols);
     }
+
 
     override parseFundingRate (data: any, market: Market = undefined): FundingRate {
         // uta
@@ -11035,7 +11036,7 @@ export default class kucoin extends Exchange {
      * @param {string} [params.positionSide] *required for hedged position* 'BOTH', 'LONG' or 'SHORT' (default is 'BOTH')
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    override async addMargin (symbol: string, amount: number, params: Dict = {}): Promise<MarginModification> {
+    override async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -11096,7 +11097,7 @@ export default class kucoin extends Exchange {
         //        "msg":"Position does not exist"
         //    }
         //
-        const data = this.safeDict (response, 'data');
+        const data = this.safeDict (response, 'data', {});
         return this.extend (this.parseMarginModification (data, market), {
             'amount': this.amountToPrecision (symbol, amount),
             'direction': 'in',
@@ -11147,7 +11148,7 @@ export default class kucoin extends Exchange {
         };
     }
 
-    override parseMarginModification (info: any, market: Market = undefined): MarginModification {
+    override parseMarginModification (info: Dict, market: Market = undefined): MarginModification {
         //
         //    {
         //        "id": "62311d26064e8f00013f2c6d",

@@ -1046,7 +1046,7 @@ export default class bydfi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    override async fetchFundingRate (symbol: string, params: Dict = {}): Promise<FundingRate> {
+    override async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1071,6 +1071,7 @@ export default class bydfi extends Exchange {
         const data = this.safeDict (response, 'data');
         return this.parseFundingRate (data, market);
     }
+
 
     override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //

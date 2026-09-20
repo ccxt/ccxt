@@ -683,7 +683,8 @@ export default class poloniex extends poloniexRest {
         return message;
     }
 
-    override parseWsTrade (trade: any, market: Market = undefined): Trade {
+
+    override parseWsTrade (trade: any, market: Market = undefined) {
         //
         // handleTrade
         //
@@ -764,7 +765,13 @@ export default class poloniex extends poloniexRest {
         return this.safeString (statuses, status, status);
     }
 
-    override parseWsOrderTrade (trade: Dict, market: Market = undefined): Trade {
+
+
+
+
+
+
+    override parseWsOrderTrade (trade: Dict, market: Market = undefined) {
         //
         //    {
         //        "symbol": "BTC_USDT",
@@ -944,7 +951,8 @@ export default class poloniex extends poloniexRest {
         return message;
     }
 
-    override parseWsOrder (order: any, market: Market = undefined): Order {
+
+    override parseWsOrder (order: any, market: Market = undefined) {
         //
         //    {
         //        "symbol": "BTC_USDT",

@@ -3101,7 +3101,7 @@ export default class cryptocom extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    override async fetchFundingRate (symbol: string, params: Dict = {}): Promise<FundingRate> {
+    override async fetchFundingRate (symbol: string, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3136,6 +3136,7 @@ export default class cryptocom extends Exchange {
         const entry = this.safeDict (data, 0, {});
         return this.parseFundingRate (entry, market);
     }
+
 
     override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //

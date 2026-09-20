@@ -836,7 +836,7 @@ export default class coinbase extends coinbaseRest {
         client.resolve (this.orders, 'user');
     }
 
-    override parseWsOrder (order: any, market: Market = undefined): Order {
+    override parseWsOrder (order: Dict, market: Market = undefined): Order {
         //
         //    {
         //        "order_id": "XXX",
@@ -1027,7 +1027,7 @@ export default class coinbase extends coinbaseRest {
         return message;
     }
 
-    override handleMessage (client: any, message: Dict) {
+    override handleMessage (client: Client, message: Dict) {
         const channel = this.safeString (message, 'channel');
         const methods: Dict = {
             'subscriptions': this.handleSubscriptionStatus,
