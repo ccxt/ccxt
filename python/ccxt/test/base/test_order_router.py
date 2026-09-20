@@ -1712,7 +1712,6 @@ def test_dry_run_does_not_consume_a_plan():
     assert retry.calls == []
 
 
-
 @test('the re-execution ledger is bounded, evicts oldest-first, and says so by re-allowing an evicted plan')
 def test_re_execution_ledger_is_bounded():
     bounded = OrderRouter({'apiKey': 'k'})
@@ -1856,7 +1855,6 @@ def test_retry_failed_steps():
     })
     assert second['steps'][0]['status'] == 'outcome_unknown'
     assert count_create_calls(unknown) == 1, 'an order whose outcome is unknown may already be live; it is never re-placed'
-
 
 
 # ---------------------------------------------------------------------------

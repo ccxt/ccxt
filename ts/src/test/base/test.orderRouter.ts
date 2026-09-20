@@ -28,6 +28,7 @@ import { fileURLToPath } from 'url';
 import { test } from 'node:test';
 import OrderRouter from '../../base/OrderRouter.js';
 import { BadRequest, ExchangeError, NotSupported, ArgumentsRequired, RequestTimeout, OperationFailed, BadResponse } from '../../base/errors.js';
+import type { Dict } from '../../base/types.js';
 
 const here = path.dirname (fileURLToPath (import.meta.url));
 //  The fixture lives in the TypeScript tree and is read from there by all six
