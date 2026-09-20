@@ -1867,12 +1867,13 @@ class testMainClass {
     public function inject_ws_messages($exchange, $url, $messages, $sequential = false) {
         // before every frame, wait until the watch flow is actually awaiting
         // something — a fixed head-start sleep is not enough on slow ci
-        // runners and the frame's resolution would be dropped
+        // runners and the frame's resolution would be dropped. polling
+        // finely keeps the head start short without dropping frames
         for ($i = 0; $i < count($messages); $i++) {
             $waited = 0;
             while (!ws_client_has_pending_futures($exchange, $url) && ($waited < 5000)) {
-                $exchange->sleep(50);
-                $waited = $waited + 50;
+                $exchange->sleep(5);
+                $waited = $waited + 5;
             }
             inject_ws_message($exchange, $url, $messages[$i]);
             // threaded runtimes resolve futures on another thread — wait for

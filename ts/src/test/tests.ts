@@ -2010,22 +2010,14 @@ class testMainClass {
     async injectWsMessages (exchange: any, url: string, messages: List, sequential = false) {
         // before every frame, wait until the watch flow is actually awaiting
         // something — a fixed head-start sleep is not enough on slow ci
-        // runners and the frame's resolution would be dropped. the wait is
-        // bounded: a sequence stops waiting once its watch side reported
-        // completion, a single watch once one frame has already resolved it
-        // (later frames are applied to the live structure, nothing awaits them)
-        let resolvedOnce = false;
+        // runners and the frame's resolution would be dropped. polling
+        // finely keeps the head start short without dropping frames
         for (let i = 0; i < messages.length; i++) {
             let waited = 0;
-            let waitLimit = 5000;
-            if (!sequential && resolvedOnce) {
-                waitLimit = 100;
-            }
-            while (!wsClientHasPendingFutures (exchange, url) && (waited < waitLimit) && !isWsTestCompleted (exchange, url)) {
+            while (!wsClientHasPendingFutures (exchange, url) && (waited < 5000)) {
                 await exchange.sleep (5);
                 waited = waited + 5;
             }
-            const wasPending = wsClientHasPendingFutures (exchange, url);
             injectWsMessage (exchange, url, messages[i]);
             // threaded runtimes resolve futures on another thread — wait for
             // the consumed frame to settle so the pending check above does not
@@ -2034,14 +2026,11 @@ class testMainClass {
             // timeout
             let settled = 0;
             while (wsClientHasPendingFutures (exchange, url) && (settled < 500)) {
-                await exchange.sleep (5);
-                settled = settled + 5;
-            }
-            if (wasPending && !wsClientHasPendingFutures (exchange, url)) {
-                resolvedOnce = true;
+                await exchange.sleep (20);
+                settled = settled + 20;
             }
         }
-        await exchange.sleep (5);
+        await exchange.sleep (50);
         if (sequential) {
             // a watch call of a sequence can register its future after every
             // frame was already consumed — keep rejecting until the watch side

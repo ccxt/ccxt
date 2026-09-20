@@ -1959,12 +1959,13 @@ class testMainClass {
     async injectWsMessages(exchange, url, messages, sequential = false) {
         // before every frame, wait until the watch flow is actually awaiting
         // something — a fixed head-start sleep is not enough on slow ci
-        // runners and the frame's resolution would be dropped
+        // runners and the frame's resolution would be dropped. polling
+        // finely keeps the head start short without dropping frames
         for (let i = 0; i < messages.length; i++) {
             let waited = 0;
             while (!wsClientHasPendingFutures(exchange, url) && (waited < 5000)) {
-                await exchange.sleep(50);
-                waited = waited + 50;
+                await exchange.sleep(5);
+                waited = waited + 5;
             }
             injectWsMessage(exchange, url, messages[i]);
             // threaded runtimes resolve futures on another thread — wait for
