@@ -263,12 +263,12 @@ export default class independentreserve extends independentreserveRest {
         return result;
     }
 
-    override handleDelta (bookside: any, delta: Dict) {
+    override handleDelta (bookside: any, delta: any) {
         const bidAsk = this.parseOrderBookBidAsk (delta, 'Price', 'Volume');
         bookside.storeArray (bidAsk);
     }
 
-    override handleDeltas (bookside: any, deltas: any[]) {
+    override handleDeltas (bookside: any, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }

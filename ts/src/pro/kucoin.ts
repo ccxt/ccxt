@@ -1780,7 +1780,7 @@ export default class kucoin extends kucoinRest {
         return cache.length;
     }
 
-    override handleDelta (orderbook: any, delta: NullableDict) {
+    override handleDelta (orderbook: any, delta: any) {
         let timestamp = this.safeIntegerProduct (delta, 'M', 0.000001);
         if (timestamp === undefined) {
             timestamp = this.safeInteger2 (delta, 'time', 'timestamp');

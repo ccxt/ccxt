@@ -845,7 +845,7 @@ export default class bitstamp extends bitstampRest {
      * @param {string[]} symbols the symbols to remove from the cache
      * @returns {object} the new cache holding the remaining entries
      */
-    pruneCachedBySymbols (newCache: ArrayCache, cache: ArrayCache, symbols: string[]): ArrayCache {
+    pruneCachedBySymbols (newCache: any, cache: any, symbols: string[]) {
         const entries = this.toArray (cache);
         for (let i = 0; i < entries.length; i++) {
             const entry = entries[i];

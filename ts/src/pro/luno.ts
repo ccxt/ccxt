@@ -259,7 +259,7 @@ export default class luno extends lunoRest {
         return result;
     }
 
-    override handleDelta (orderbook: any, message: Dict) {
+    override handleDelta (orderbook: any, message: any) {
         //
         //  create
         //     {

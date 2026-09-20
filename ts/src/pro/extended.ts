@@ -129,13 +129,13 @@ export default class extended extends extendedRest {
         client.resolve (orderbook, messageHash);
     }
 
-    override handleDelta (bookside: any, delta: Dict) {
+    override handleDelta (bookside: any, delta: any) {
         const price = this.safeFloat (delta, 'p');
         const amount = this.safeFloat2 (delta, 'c', 'q');
         bookside.store (price, amount);
     }
 
-    override handleDeltas (bookside: any, deltas: any[]) {
+    override handleDeltas (bookside: any, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
