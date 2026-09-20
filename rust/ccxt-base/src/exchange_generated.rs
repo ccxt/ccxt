@@ -5020,8 +5020,8 @@ pub trait ExchangeBase:
         let mut currentNonce: Value = <Self as crate::exchange_generated::ExchangeBase>::nonce(self, );
         self.lock_last_nonce(&[]);
         let mut lastNonce: Value = self.safe_integer_k(self.options.clone(), "lastNonce", &[Value::Int(0)]);
-        let mut result: Value = ternary(is_true(&(is_greater_than(&currentNonce, &lastNonce))), currentNonce.clone(), add(&lastNonce, &Value::Int(1)));
-        add_element_to_object(&mut self.options, &Value::Str("lastNonce".to_string()), result.clone());
+        let mut result: Value = (if (currentNonce.as_f64().unwrap_or(f64::NAN) > lastNonce.as_f64().unwrap_or(f64::NAN)) { currentNonce } else { (match (&(lastNonce), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }) });
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("lastNonce".into(), result.clone()); }
         self.unlock_last_nonce(&[]);
         return result;
 
