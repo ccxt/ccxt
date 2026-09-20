@@ -2143,7 +2143,7 @@ public class Bingx extends BingxApi
         final Object finalPrice = price;
         final Object finalAmount = amount;
         return this.safeTrade(new HashMap<String, Object>() {{
-            put( "id", Bingx.this.safeString2(trade, "id", "t") );
+            put( "id", Bingx.this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("id", "t", "fillId"))) );
             put( "info", trade );
             put( "timestamp", finalTime );
             put( "datetime", Bingx.this.iso8601(finalTime) );

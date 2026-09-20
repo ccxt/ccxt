@@ -2396,7 +2396,6 @@ public class Zebpay extends ZebpayApi
         //    }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Long timestamp = this.milliseconds();
         return new HashMap<String, Object>() {{
             put( "info", info );
             put( "symbol", Zebpay.this.safeString(market, "id") );
@@ -2406,8 +2405,8 @@ public class Zebpay extends ZebpayApi
             put( "total", null );
             put( "code", Zebpay.this.safeString(info, "code") );
             put( "status", Zebpay.this.safeString(info, "status") );
-            put( "timestamp", timestamp );
-            put( "datetime", Zebpay.this.iso8601(timestamp) );
+            put( "timestamp", null );
+            put( "datetime", null );
         }};
     }
 
