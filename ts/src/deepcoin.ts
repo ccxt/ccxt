@@ -587,7 +587,7 @@ export default class deepcoin extends Exchange {
         });
     }
 
-    override setMarkets (markets: any, currencies: any = undefined) {
+    override setMarkets (markets: any, currencies = undefined) {
         const result = super.setMarkets (markets, currencies);
         const symbols = Object.keys (result);
         for (let i = 0; i < symbols.length; i++) {
