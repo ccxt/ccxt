@@ -4,6 +4,191 @@
         "uta": false
     },
     "methods": {
+        "fetchWithdrawal": [
+            {
+                "description": "uta fetchWithdrawal with an id the venue does not know returns an empty structure",
+                "method": "fetchWithdrawal",
+                "input": [
+                    "1477183242218870001",
+                    null,
+                    {
+                        "uta": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": 1789919314141,
+                    "data": []
+                },
+                "parsedResponse": {}
+            },
+            {
+                "description": "uta fetchWithdrawal by id",
+                "method": "fetchWithdrawal",
+                "input": [
+                    "1477203433330230002",
+                    null,
+                    {
+                        "uta": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": 1789919312794,
+                    "data": [
+                        {
+                            "orderId": "1477203433330230002",
+                            "recordId": "855182adcdbf968e6c0854de1d9ef04f9542ae27337f87ccbe2f6d1e995ec01b",
+                            "coin": "USDT",
+                            "type": "withdraw",
+                            "size": "30",
+                            "status": "success",
+                            "toAddress": "TFcWfiw5p5DDZ6vi6Bktf7yK1asRYLpN33",
+                            "dest": "on_chain",
+                            "chain": "TRC20",
+                            "createdTime": "1787918664295",
+                            "updatedTime": "1787918826202",
+                            "fromAddress": "TU8P3KLsV7YhkUvF9nWxjigMqv2c2mqNC9",
+                            "fee": "-1.5",
+                            "confirm": "5",
+                            "clientOid": null
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "id": "1477203433330230002",
+                    "info": {
+                        "orderId": "1477203433330230002",
+                        "recordId": "855182adcdbf968e6c0854de1d9ef04f9542ae27337f87ccbe2f6d1e995ec01b",
+                        "coin": "USDT",
+                        "type": "withdraw",
+                        "size": "30",
+                        "status": "success",
+                        "toAddress": "TFcWfiw5p5DDZ6vi6Bktf7yK1asRYLpN33",
+                        "dest": "on_chain",
+                        "chain": "TRC20",
+                        "createdTime": "1787918664295",
+                        "updatedTime": "1787918826202",
+                        "fromAddress": "TU8P3KLsV7YhkUvF9nWxjigMqv2c2mqNC9",
+                        "fee": "-1.5",
+                        "confirm": "5",
+                        "clientOid": null
+                    },
+                    "txid": "855182adcdbf968e6c0854de1d9ef04f9542ae27337f87ccbe2f6d1e995ec01b",
+                    "timestamp": 1787918664295,
+                    "datetime": "2026-08-28T12:04:24.295Z",
+                    "network": "TRC20",
+                    "addressFrom": "TU8P3KLsV7YhkUvF9nWxjigMqv2c2mqNC9",
+                    "address": "TFcWfiw5p5DDZ6vi6Bktf7yK1asRYLpN33",
+                    "addressTo": "TFcWfiw5p5DDZ6vi6Bktf7yK1asRYLpN33",
+                    "amount": 28.5,
+                    "type": "withdrawal",
+                    "currency": "USDT",
+                    "status": "ok",
+                    "updated": 1787918826202,
+                    "tagFrom": null,
+                    "tag": null,
+                    "tagTo": null,
+                    "comment": null,
+                    "internal": null,
+                    "fee": {
+                        "currency": "USDT",
+                        "cost": 1.5
+                    }
+                }
+            }
+        ],
+        "fetchDeposit": [
+            {
+                "description": "uta fetchDeposit with an id the venue does not know returns an empty structure",
+                "method": "fetchDeposit",
+                "input": [
+                    "1477203433330230002",
+                    null,
+                    {
+                        "uta": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": 1789919309771,
+                    "data": []
+                },
+                "parsedResponse": {}
+            },
+            {
+                "description": "uta fetchDeposit by id",
+                "method": "fetchDeposit",
+                "input": [
+                    "1477183242218870001",
+                    null,
+                    {
+                        "uta": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": 1789919308044,
+                    "data": [
+                        {
+                            "orderId": "1477183242218870001",
+                            "recordId": "0999e9fc8dfa7d65e5a9e3d7b9c9c9cf7c283621442dd0be6feb502b89545e95",
+                            "coin": "USDT",
+                            "type": "deposit",
+                            "size": "30",
+                            "status": "success",
+                            "toAddress": "TKtjsywjRu4HechtABGJBVhkDJtwYcMVfc",
+                            "dest": "on_chain",
+                            "chain": "TRC20",
+                            "createdTime": "1787913850359",
+                            "updatedTime": "1787913880178",
+                            "fromAddress": "TFcWfiw5p5DDZ6vi6Bktf7yK1asRYLpN33",
+                            "clientOid": null
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "id": "1477183242218870001",
+                    "info": {
+                        "orderId": "1477183242218870001",
+                        "recordId": "0999e9fc8dfa7d65e5a9e3d7b9c9c9cf7c283621442dd0be6feb502b89545e95",
+                        "coin": "USDT",
+                        "type": "deposit",
+                        "size": "30",
+                        "status": "success",
+                        "toAddress": "TKtjsywjRu4HechtABGJBVhkDJtwYcMVfc",
+                        "dest": "on_chain",
+                        "chain": "TRC20",
+                        "createdTime": "1787913850359",
+                        "updatedTime": "1787913880178",
+                        "fromAddress": "TFcWfiw5p5DDZ6vi6Bktf7yK1asRYLpN33",
+                        "clientOid": null
+                    },
+                    "txid": "0999e9fc8dfa7d65e5a9e3d7b9c9c9cf7c283621442dd0be6feb502b89545e95",
+                    "timestamp": 1787913850359,
+                    "datetime": "2026-08-28T10:44:10.359Z",
+                    "network": "TRC20",
+                    "addressFrom": "TFcWfiw5p5DDZ6vi6Bktf7yK1asRYLpN33",
+                    "address": "TKtjsywjRu4HechtABGJBVhkDJtwYcMVfc",
+                    "addressTo": "TKtjsywjRu4HechtABGJBVhkDJtwYcMVfc",
+                    "amount": 30,
+                    "type": "deposit",
+                    "currency": "USDT",
+                    "status": "ok",
+                    "updated": 1787913880178,
+                    "tagFrom": null,
+                    "tag": null,
+                    "tagTo": null,
+                    "comment": null,
+                    "internal": null,
+                    "fee": null
+                }
+            }
+        ],
         "fetchLedger": [
             {
                 "description": "uta spot ledger empty window returns an empty list",
