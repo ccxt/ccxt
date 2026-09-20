@@ -6,7 +6,7 @@
     "methods": {
         "fetchWithdrawal": [
             {
-                "description": "uta fetchWithdrawal with an id the venue does not know returns an empty structure",
+                "description": "uta fetchWithdrawal with an id the venue does not know returns a structure with empty fields",
                 "method": "fetchWithdrawal",
                 "input": [
                     "1477183242218870001",
@@ -18,10 +18,31 @@
                 "httpResponse": {
                     "code": "00000",
                     "msg": "success",
-                    "requestTime": 1789919314141,
+                    "requestTime": 1789921096266,
                     "data": []
                 },
-                "parsedResponse": {}
+                "parsedResponse": {
+                    "id": null,
+                    "info": {},
+                    "txid": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "network": null,
+                    "addressFrom": null,
+                    "address": null,
+                    "addressTo": null,
+                    "amount": null,
+                    "type": null,
+                    "currency": null,
+                    "status": null,
+                    "updated": null,
+                    "tagFrom": null,
+                    "tag": null,
+                    "tagTo": null,
+                    "comment": null,
+                    "internal": null,
+                    "fee": null
+                }
             },
             {
                 "description": "uta fetchWithdrawal by id",
@@ -36,7 +57,7 @@
                 "httpResponse": {
                     "code": "00000",
                     "msg": "success",
-                    "requestTime": 1789919312794,
+                    "requestTime": 1789921094619,
                     "data": [
                         {
                             "orderId": "1477203433330230002",
@@ -102,7 +123,7 @@
         ],
         "fetchDeposit": [
             {
-                "description": "uta fetchDeposit with an id the venue does not know returns an empty structure",
+                "description": "uta fetchDeposit with an id the venue does not know returns a structure with empty fields",
                 "method": "fetchDeposit",
                 "input": [
                     "1477203433330230002",
@@ -114,10 +135,31 @@
                 "httpResponse": {
                     "code": "00000",
                     "msg": "success",
-                    "requestTime": 1789919309771,
+                    "requestTime": 1789921091481,
                     "data": []
                 },
-                "parsedResponse": {}
+                "parsedResponse": {
+                    "id": null,
+                    "info": {},
+                    "txid": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "network": null,
+                    "addressFrom": null,
+                    "address": null,
+                    "addressTo": null,
+                    "amount": null,
+                    "type": null,
+                    "currency": null,
+                    "status": null,
+                    "updated": null,
+                    "tagFrom": null,
+                    "tag": null,
+                    "tagTo": null,
+                    "comment": null,
+                    "internal": null,
+                    "fee": null
+                }
             },
             {
                 "description": "uta fetchDeposit by id",
@@ -132,7 +174,7 @@
                 "httpResponse": {
                     "code": "00000",
                     "msg": "success",
-                    "requestTime": 1789919308044,
+                    "requestTime": 1789921089848,
                     "data": [
                         {
                             "orderId": "1477183242218870001",

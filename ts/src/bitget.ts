@@ -3143,6 +3143,7 @@ export default class bitget extends Exchange {
             'orderId': id,
             'startTime': since,
             'endTime': this.milliseconds (),
+            'limit': 100, // the largest page, the row is selected by id below
         };
         let currency: Currency = undefined;
         if (code !== undefined) {
@@ -3180,9 +3181,9 @@ export default class bitget extends Exchange {
         //     }
         //
         const rawTransactions = this.safeList (response, 'data', []);
-        const deposits = this.parseTransactions (rawTransactions, currency);
-        const depositsById = this.indexBy (deposits, 'id');
-        return this.safeDict (depositsById, id, {}) as Transaction;
+        const rawTransactionsById = this.indexBy (rawTransactions, 'orderId');
+        const deposit = this.safeDict (rawTransactionsById, id, {});
+        return this.parseTransaction (deposit, currency);
     }
 
     /**
@@ -3400,6 +3401,7 @@ export default class bitget extends Exchange {
             'orderId': id,
             'startTime': since,
             'endTime': this.milliseconds (),
+            'limit': 100, // the largest page, the row is selected by id below
         };
         let currency: Currency = undefined;
         if (code !== undefined) {
@@ -3439,9 +3441,9 @@ export default class bitget extends Exchange {
         //     }
         //
         const rawTransactions = this.safeList (response, 'data', []);
-        const withdrawals = this.parseTransactions (rawTransactions, currency);
-        const withdrawalsById = this.indexBy (withdrawals, 'id');
-        return this.safeDict (withdrawalsById, id, {}) as Transaction;
+        const rawTransactionsById = this.indexBy (rawTransactions, 'orderId');
+        const withdrawal = this.safeDict (rawTransactionsById, id, {});
+        return this.parseTransaction (withdrawal, currency);
     }
 
     override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
