@@ -852,6 +852,385 @@ export function collapseRedundantNilChecks (content: string): string {
         .replace (new RegExp ('\\(' + id + ' == nil\\) \\|\\| \\(\\1 == nil\\)', 'g'), '($1 == nil)');
 }
 
+// ------------------------------------------------------------------
+// gofmt parity for the text that is spliced outside go/printer's layout
+// ------------------------------------------------------------------
+// go/printer lays out the Go AST it is handed, but three families of text keep
+// the spacing of the TS expression (or of the hand-written splice) they came
+// from, and `--check-gofmt` rejects every one of them:
+//
+//   1. control clauses — the condition of an IIFE-converted ternary is printed
+//      from the TS expression tree, so a parenthesised TS condition prints as
+//      `if (x != nil) {`. go/printer prints a control clause's condition through
+//      stripParens() (nodes.go controlClause) and drops those parens.
+//   2. slice subscripts — the printer's goSliceSubscript() hardcodes the bound
+//      text of `str[0:len(str) - 4]`, while go/printer pads a two-index slice
+//      whose bounds are binary expressions with blanks around ':' at depth <= 1
+//      (`str[0 : len(str)-4]`) and prints every bound one level deeper, where the
+//      level-4/5 operators lose their blanks.
+//   3. helper-call arguments — go/printer prints the argument list of a call with
+//      more than one argument one level deeper, so a natively printed operand
+//      comes out compact (`AddElementToObject(m, "k"+v, x)`); operands printed
+//      off the statement's depth keep the blanks.
+//
+// All three are text normalisations of go/printer's own rules and run over every
+// emitted file, like normalizeGoFileHeader().
+//
+// The rules come from go/printer/nodes.go: cutoff()/walkBinary() decide the blanks
+// of a level-4/5 operator from the depth it is printed at, SliceExpr decides the
+// blanks around ':' and controlClause decides the parens.
+
+// index of the last byte of the Go literal that starts at `index`; an unterminated
+// literal stops at the line end (same contract as the printer's own scanners)
+function goScanSkipLiteral (content: string, index: number): number {
+    const quote = content[index];
+    for (let i = index + 1; i < content.length; i++) {
+        const char = content[i];
+        if (char === '\\' && quote !== '`') {
+            i += 1;
+        } else if (char === quote) {
+            return i;
+        } else if (char === '\n' && quote !== '`') {
+            return i - 1;
+        }
+    }
+    return content.length - 1;
+}
+
+// index of the last byte of the comment that starts at `index`
+function goScanSkipComment (content: string, index: number): number {
+    if (content[index + 1] === '/') {
+        const end = content.indexOf ('\n', index);
+        return end < 0 ? content.length - 1 : end;
+    }
+    const end = content.indexOf ('*/', index + 2);
+    return end < 0 ? content.length - 1 : end + 1;
+}
+
+// index of the bracket that matches the opener at `open`; -1 when unbalanced
+function goScanMatchingBracket (content: string, open: number): number {
+    const opener = content[open];
+    const closer = opener === '(' ? ')' : (opener === '[' ? ']' : '}');
+    let level = 0;
+    for (let i = open; i < content.length; i++) {
+        const char = content[i];
+        if (char === '"' || char === '\'' || char === '`') {
+            i = goScanSkipLiteral (content, i);
+        } else if (char === '/' && (content[i + 1] === '/' || content[i + 1] === '*')) {
+            i = goScanSkipComment (content, i);
+        } else if (char === opener) {
+            level += 1;
+        } else if (char === closer) {
+            level -= 1;
+            if (level === 0) {
+                return i;
+            }
+        }
+    }
+    return -1;
+}
+
+// the paren at `index` opens a call's argument list when it directly follows the
+// callee — an identifier, a `)` of a callee, a `]` of a type or a literal; a paren
+// after an operator, a separator or a blank groups an expression instead (go/printer
+// prints those one level shallower: expr1's ParenExpr case -> reduceDepth)
+function goParenIsCall (content: string, index: number): boolean {
+    const previous = content[index - 1];
+    if (previous === undefined) {
+        return false;
+    }
+    return (previous === ')') || (previous === ']') || (previous === '"') || (previous === '`') || /[A-Za-z0-9_]/.test (previous);
+}
+
+// number of comma separated entries between the opener at `opener` and its matching
+// closer; 0 when the list is empty or unbalanced
+function goScanFrameArgs (content: string, opener: number): number {
+    let level = 0;
+    let entries = 0;
+    let seen = false;
+    for (let i = opener + 1; i < content.length; i++) {
+        const char = content[i];
+        if (char === '"' || char === '\'' || char === '`') {
+            i = goScanSkipLiteral (content, i);
+            seen = true;
+        } else if (char === '/' && (content[i + 1] === '/' || content[i + 1] === '*')) {
+            i = goScanSkipComment (content, i);
+        } else if (char === '(' || char === '[' || char === '{') {
+            level += 1;
+        } else if (char === ')' || char === ']' || char === '}') {
+            if (level === 0) {
+                return seen || entries > 0 ? entries + 1 : 0;
+            }
+            level -= 1;
+            seen = true;
+        } else if (char === ',' && level === 0) {
+            entries += 1;
+        } else if (char !== ' ' && char !== '\t' && char !== '\n' && char !== '\r') {
+            seen = true;
+        }
+    }
+    return 0;
+}
+
+// the text between `from` and `to` split at every top-level `separator`; nested
+// brackets and literals are skipped, not inspected
+function goScanTopLevelParts (content: string, from: number, to: number, separator: string): string[] {
+    const parts = [];
+    let level = 0;
+    let start = from;
+    for (let i = from; i < to; i++) {
+        const char = content[i];
+        if (char === '"' || char === '\'' || char === '`') {
+            i = goScanSkipLiteral (content, i);
+        } else if (char === '(' || char === '[' || char === '{') {
+            level += 1;
+        } else if (char === ')' || char === ']' || char === '}') {
+            level -= 1;
+        } else if (char === separator && level === 0) {
+            parts.push (content.slice (start, i));
+            start = i + 1;
+        }
+    }
+    parts.push (content.slice (start, to));
+    return parts;
+}
+
+// the level-4/5 operator token that starts at `index` (`+ - * / % & | ^ << >> &^`),
+// or undefined; `&&` and `||` are level 2 and always keep their blanks
+function goLevel45Operator (content: string, index: number): string | undefined {
+    const char = content[index];
+    const next = content[index + 1];
+    if ((char === '<' || char === '>') && next === char) {
+        return char + char;
+    }
+    if (char === '&') {
+        if (next === '^') {
+            return '&^';
+        }
+        return next === '&' ? undefined : char;
+    }
+    if (char === '|' && next === '|') {
+        return undefined;
+    }
+    if (char === '+' || char === '-' || char === '*' || char === '/' || char === '%' || char === '|' || char === '^') {
+        return char;
+    }
+    return undefined;
+}
+
+// an operator whose right operand starts with a unary operator that would clash
+// without a blank (nodes.go walkBinary): maxProblem > 0 keeps the blanks of the
+// whole operator tree, so such an occurrence must not be compacted
+function goOperatorProblemPair (content: string, index: number, operator: string): boolean {
+    let i = index + operator.length;
+    while (content[i] === ' ' || content[i] === '\t') {
+        i += 1;
+    }
+    const next = content[i];
+    if (operator === '+' && next === '+') {
+        return true;
+    }
+    if (operator === '-' && next === '-') {
+        return true;
+    }
+    if (operator === '/' && next === '*') {
+        return true;
+    }
+    if (operator === '&' && (next === '&' || next === '^')) {
+        return true;
+    }
+    return false;
+}
+
+// true when `text` is a binary expression at its own level (the printer's isBinary()
+// for a slice bound): an operator behind an operand, nested brackets not counted
+function goTextHasBinaryOperator (text: string): boolean {
+    let i = 0;
+    while (i < text.length) {
+        const char = text[i];
+        if (char === '"' || char === '\'' || char === '`') {
+            i = goScanSkipLiteral (text, i) + 1;
+            continue;
+        }
+        if (char === '(' || char === '[' || char === '{') {
+            const close = goScanMatchingBracket (text, i);
+            if (close < 0) {
+                return false;
+            }
+            i = close + 1;
+            continue;
+        }
+        if (i > 0 && '+-*/%&|^<>=!'.indexOf (char) >= 0) {
+            return true;
+        }
+        i += 1;
+    }
+    return false;
+}
+
+// whether the brackets opened at `open` hold a slice go/printer pads with blanks:
+// two non-empty bounds, at least one of them a binary expression (SliceExpr's
+// `needsBlanks`, which is only consulted at depth <= 1 by the caller)
+function goSliceBlanked (content: string, open: number): boolean {
+    const close = goScanMatchingBracket (content, open);
+    if (close < 0) {
+        return false;
+    }
+    const parts = goScanTopLevelParts (content, open + 1, close, ':');
+    if (parts.length < 2) {
+        return false;
+    }
+    const filled = parts.filter ((part: string) => part.trim () !== '');
+    return filled.length > 1 && filled.some ((part: string) => goTextHasBinaryOperator (part.trim ()));
+}
+
+// go/printer strips the parens around the condition of every if/for/switch clause
+// (nodes.go controlClause -> stripParens()), except when the condition holds an
+// unparenthesised composite literal — those parens protect the literal, so the
+// same exception is honoured here
+function stripGoControlClauseParens (content: string): string {
+    const clause = /^[ \t]*(?:\} else )?(?:if|for|switch) \(/gm;
+    let result = content;
+    for (let pass = 0; pass < 4; pass++) {
+        let out = '';
+        let copyFrom = 0;
+        let edited = false;
+        let match;
+        while ((match = clause.exec (result)) !== null) {
+            const open = match.index + match[0].length - 1;
+            const close = goScanMatchingBracket (result, open);
+            if ((close < 0) || (result.indexOf ('\n', open) < close)) {
+                continue;                       // a condition spanning lines keeps its layout
+            }
+            const inner = result.slice (open + 1, close);
+            if (inner.indexOf ('{') >= 0) {
+                continue;                       // stripParens keeps parens around a composite literal
+            }
+            let after = close + 1;
+            while ((result[after] === ' ') || (result[after] === '\t')) {
+                after += 1;
+            }
+            if (result[after] !== '{') {
+                continue;                       // the parens do not wrap the whole condition
+            }
+            out += result.slice (copyFrom, open) + inner;
+            copyFrom = close + 1;
+            edited = true;
+        }
+        if (!edited) {
+            break;
+        }
+        result = out + result.slice (copyFrom);
+    }
+    return result;
+}
+
+// go/printer prints a level-4/5 operator with a blank around it only when the
+// expression's depth is 1 (cutoff() = 6) or the tree mixes level 4 and level 5 at
+// depth 1 (cutoff() = 5, so the level-5 operators of the mix stay compact); below
+// that every level-4/5 operator is compact. The depth is the one go/printer tracks:
+// 1 at the start of a statement, +1 for an index and for the argument list of a
+// call with more than one argument, back to 1 inside a block or composite literal,
+// and the previous value again after the closing bracket.
+function compactGoSplicedSpacing (content: string): string {
+    const frames: { 'kind': string; 'open': number; 'args': number; 'depthBefore': number; 'lastColon': number; 'sliceBlanked': boolean | undefined }[] = [];
+    let depth = 1;
+    let copyFrom = 0;
+    let out = '';
+    let i = 0;
+    while (i < content.length) {
+        const char = content[i];
+        if (char === '"' || char === '\'' || char === '`') {
+            i = goScanSkipLiteral (content, i) + 1;
+            continue;
+        }
+        if (char === '/' && (content[i + 1] === '/' || content[i + 1] === '*')) {
+            i = goScanSkipComment (content, i) + 1;
+            continue;
+        }
+        if (char === '(' || char === '[' || char === '{') {
+            const frame = { 'kind': char, 'open': i, 'args': 0, 'depthBefore': depth, 'lastColon': i, 'sliceBlanked': undefined };
+            frames.push (frame);
+            if (char === '{') {
+                depth = 1;                      // block statements and literal elements start over
+            } else if (char === '[') {
+                depth += 1;
+            } else if (goParenIsCall (content, i)) {
+                frame.args = goScanFrameArgs (content, i);
+                if (frame.args > 1) {
+                    depth += 1;
+                }
+            } else {
+                depth = Math.max (1, depth - 1);    // a grouping paren undoes one level
+            }
+            i += 1;
+            continue;
+        }
+        if (char === ')' || char === ']' || char === '}') {
+            const frame = frames.pop ();
+            if (frame !== undefined) {
+                depth = frame.depthBefore;
+            }
+            i += 1;
+            continue;
+        }
+        const frame = frames.length ? frames[frames.length - 1] : undefined;
+        if ((char === ':') && (frame !== undefined) && (frame.kind === '[')) {
+            if (frame.sliceBlanked === undefined) {
+                // needsBlanks is only consulted at depth <= 1 (nodes.go SliceExpr)
+                frame.sliceBlanked = (frame.depthBefore <= 1) && goSliceBlanked (content, frame.open);
+            }
+            let blankBefore = false;
+            let blankAfter = false;
+            if (frame.sliceBlanked) {
+                blankBefore = content.slice (frame.lastColon + 1, i).trim () !== '';
+                let after = i + 1;
+                while (content[after] === ' ' || content[after] === '\t') {
+                    after += 1;
+                }
+                blankAfter = (content[after] !== ':') && (content[after] !== ']');
+            }
+            let start = i;
+            while ((start > 0) && ((content[start - 1] === ' ') || (content[start - 1] === '\t'))) {
+                start -= 1;
+            }
+            let end = i + 1;
+            while ((content[end] === ' ') || (content[end] === '\t')) {
+                end += 1;
+            }
+            const desired = (blankBefore ? ' ' : '') + ':' + (blankAfter ? ' ' : '');
+            if (content.slice (start, end) !== desired) {
+                out += content.slice (copyFrom, start) + desired;
+                copyFrom = end;
+            }
+            frame.lastColon = i;
+            i += 1;
+            continue;
+        }
+        const operator = goLevel45Operator (content, i);
+        if (operator !== undefined) {
+            const blankBefore = (content[i - 1] === ' ') || (content[i - 1] === '\t');
+            const blankAfter = (content[i + operator.length] === ' ') || (content[i + operator.length] === '\t');
+            if (blankBefore && blankAfter && (depth > 1) && !goOperatorProblemPair (content, i, operator)) {
+                out += content.slice (copyFrom, i - 1) + operator;
+                copyFrom = i + operator.length + 1;
+            }
+            i += operator.length;
+            continue;
+        }
+        i += 1;
+    }
+    if (copyFrom === 0) {
+        return content;
+    }
+    return out + content.slice (copyFrom);
+}
+
+// the gofmt gate's text half: every emitted file gets the same normalisation
+export function gofmtSpacingParity (content: string): string {
+    return stripGoControlClauseParens (compactGoSplicedSpacing (content));
+}
+
 function overwriteFileAndFolder (path: string, content: string) {
     if (!(fs.existsSync(path))) {
         checkCreateFolder (path);
@@ -861,7 +1240,7 @@ function overwriteFileAndFolder (path: string, content: string) {
     // pass covers the text assembled here (hand-written emitters and sections concatenated after
     // the transpiled ones). It is a no-op on text that is already aligned. The nil-check collapse
     // runs last so its match sees the canonical spacing.
-    content = collapseRedundantNilChecks (formatGoSource (path, normalizeGoFileHeader (alignGoTrailingComments (content))));
+    content = gofmtSpacingParity (collapseRedundantNilChecks (formatGoSource (path, normalizeGoFileHeader (alignGoTrailingComments (content)))));
     // overwriteFile() already opens+truncates+writes the file; the extra
     // fs.writeFileSync below wrote every generated file a second time
     overwriteFile (path, content);
@@ -3064,7 +3443,7 @@ ${constStatements.join('\n')}
             // this is the one generated .go write that does not go through
             // overwriteFileAndFolder()/formatGoSource(), so guard its async cores here
             // (and add the element-access assertions formatGoSource would have added)
-            fs.writeFileSync (goPredictionBase, assertTypedElementAccess (guardMultiSendCores (normalizeGoFileHeader (file))));
+            fs.writeFileSync (goPredictionBase, gofmtSpacingParity (assertTypedElementAccess (guardMultiSendCores (normalizeGoFileHeader (file)))));
             log.green ('Transpiled prediction base methods to', (goPredictionBase as any).yellow)
         }
     }
@@ -3109,7 +3488,7 @@ ${caseStatements.join('\n')}
             functionDecl,
         ].join('\n') + '\n';
 
-        fs.writeFileSync (dynamicInstanceFile, formatGoSource (dynamicInstanceFile, normalizeGoFileHeader (alignGoTrailingComments (file))));
+        fs.writeFileSync (dynamicInstanceFile, gofmtSpacingParity (formatGoSource (dynamicInstanceFile, normalizeGoFileHeader (alignGoTrailingComments (file)))));
     }
 
 
@@ -3176,7 +3555,7 @@ type IExchange interface {
             functionDecl,
         ].join('\n') + '\n';
 
-        fs.writeFileSync (TYPED_INTERFACE_FILE, formatGoSource (TYPED_INTERFACE_FILE, normalizeGoFileHeader (alignGoTrailingComments (file))));
+        fs.writeFileSync (TYPED_INTERFACE_FILE, gofmtSpacingParity (formatGoSource (TYPED_INTERFACE_FILE, normalizeGoFileHeader (alignGoTrailingComments (file)))));
     }
 
     // ----- WS specific ----- //
@@ -3227,7 +3606,7 @@ ${caseStatements.join('\n')}
             functionDecl,
         ].join('\n') + '\n';
 
-        fs.writeFileSync (TYPED_WS_INTERFACE_FILE, formatGoSource (TYPED_WS_INTERFACE_FILE, normalizeGoFileHeader (alignGoTrailingComments (file))));
+        fs.writeFileSync (TYPED_WS_INTERFACE_FILE, gofmtSpacingParity (formatGoSource (TYPED_WS_INTERFACE_FILE, normalizeGoFileHeader (alignGoTrailingComments (file)))));
     }
 
 
@@ -3491,7 +3870,7 @@ ${caseStatements.join('\n')}
                 file.push('');
             }
             const folder = ws ? EXCHANGES_PREDICTION_WS_FOLDER : EXCHANGES_PREDICTION_FOLDER;
-            fs.writeFileSync (`${folder}/exchange_wrapper_structs.go`, normalizeGoFileHeader (file.join('\n')));
+            fs.writeFileSync (`${folder}/exchange_wrapper_structs.go`, gofmtSpacingParity (normalizeGoFileHeader (file.join('\n'))));
             return;
         }
         const EXCHANGE_OPTIONS_FILE = ws
@@ -3521,7 +3900,7 @@ ${caseStatements.join('\n')}
             file.push('');
         }
 
-        fs.writeFileSync (EXCHANGE_OPTIONS_FILE, formatGoSource (EXCHANGE_OPTIONS_FILE, normalizeGoFileHeader (alignGoTrailingComments (file.join('\n')))));
+        fs.writeFileSync (EXCHANGE_OPTIONS_FILE, gofmtSpacingParity (formatGoSource (EXCHANGE_OPTIONS_FILE, normalizeGoFileHeader (alignGoTrailingComments (file.join('\n'))))));
     }
 
     async transpileDerivedExchangeFiles (jsFolder: string, options: any, pattern = '.ts', force = false, child = false, ws: boolean | 'prediction' = false) {
@@ -4871,7 +5250,7 @@ func (this *${className}) Init(userConfig map[string]any) {
             }
         }
 
-        fs.writeFileSync(GO_TYPES_FILE_PRO, formatGoSource(GO_TYPES_FILE_PRO, normalizeGoFileHeader (alignGoTrailingComments(output.join("\n")) + "\n")), "utf8");
+        fs.writeFileSync(GO_TYPES_FILE_PRO, gofmtSpacingParity (formatGoSource(GO_TYPES_FILE_PRO, normalizeGoFileHeader (alignGoTrailingComments(output.join("\n")) + "\n"))), "utf8");
     }
     
 }
