@@ -87,7 +87,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             String subscriptionsKey = "upbitPublicSubscriptions";
             if (!Helpers.isTrue((Helpers.inOp(client.subscriptions, subscriptionsKey))))
             {
-                Helpers.addElementToObject(client.subscriptions, subscriptionsKey, this.createSafeDictionary(true));
+                Helpers.addElementToObject(client.subscriptions, subscriptionsKey, new HashMap<String, Object>() {{}});
             }
             Object subscriptions = Helpers.GetValue(client.subscriptions, subscriptionsKey);
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
@@ -506,7 +506,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             String subscriptionsKey = "upbitPrivateSubscriptions";
             if (!Helpers.isTrue((Helpers.inOp(client.subscriptions, subscriptionsKey))))
             {
-                Helpers.addElementToObject(client.subscriptions, subscriptionsKey, this.createSafeDictionary(true));
+                Helpers.addElementToObject(client.subscriptions, subscriptionsKey, new HashMap<String, Object>() {{}});
             }
             Object channelKey = channel;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))

@@ -54,7 +54,7 @@ export default class upbit extends upbitRest {
         const client = this.client(url);
         const subscriptionsKey = 'upbitPublicSubscriptions';
         if (!(subscriptionsKey in client.subscriptions)) {
-            client.subscriptions[subscriptionsKey] = this.createSafeDictionary(true);
+            client.subscriptions[subscriptionsKey] = {};
         }
         const subscriptions = client.subscriptions[subscriptionsKey];
         const messageHashes = [];
@@ -374,7 +374,7 @@ export default class upbit extends upbitRest {
         // Track private channel subscriptions to support multiple concurrent watches
         const subscriptionsKey = 'upbitPrivateSubscriptions';
         if (!(subscriptionsKey in client.subscriptions)) {
-            client.subscriptions[subscriptionsKey] = this.createSafeDictionary(true);
+            client.subscriptions[subscriptionsKey] = {};
         }
         let channelKey = channel;
         if (symbol !== undefined) {
