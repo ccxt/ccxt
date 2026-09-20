@@ -4313,8 +4313,8 @@ func (this *Hitbtc) modifyMarginHelperBody(ch chan any, symbol any, amount any, 
 	_ = params
 	if this.Markets == nil {
 
-		retRes346212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes346212)
+		retRes346112 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes346112)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var leverage *string = this.SafeString(params, "leverage")
@@ -4449,9 +4449,9 @@ func (this *Hitbtc) reduceMarginBody(ch chan any, symbol any, amount any, option
 		panic(BadRequest(this.Id + " reduceMargin() on hitbtc requires the amount to be 0 and that will remove the entire margin amount"))
 	}
 
-	retRes357815 := (<-this.ModifyMarginHelperAsync(symbol, amount, "reduce", params))
-	PanicOnError(retRes357815)
-	ch <- retRes357815
+	retRes357715 := (<-this.ModifyMarginHelperAsync(symbol, amount, "reduce", params))
+	PanicOnError(retRes357715)
+	ch <- retRes357715
 	return nil
 }
 
@@ -4479,9 +4479,9 @@ func (this *Hitbtc) addMarginBody(ch chan any, symbol any, amount any, optionalA
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes359515 := (<-this.ModifyMarginHelperAsync(symbol, amount, "add", params))
-	PanicOnError(retRes359515)
-	ch <- retRes359515
+	retRes359415 := (<-this.ModifyMarginHelperAsync(symbol, amount, "add", params))
+	PanicOnError(retRes359415)
+	ch <- retRes359415
 	return nil
 }
 
@@ -4509,8 +4509,8 @@ func (this *Hitbtc) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...a
 	_ = params
 	if this.Markets == nil {
 
-		retRes361212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes361212)
+		retRes361112 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes361112)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -4618,8 +4618,8 @@ func (this *Hitbtc) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
 	}
 	if this.Markets == nil {
 
-		retRes369512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes369512)
+		retRes369412 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes369412)
 	}
 	if IsEqual(GetValue(params, "margin_balance"), nil) {
 		panic(ArgumentsRequired(this.Id + " setLeverage() requires a margin_balance parameter that will transfer margin to the specified trading pair"))
@@ -4639,9 +4639,9 @@ func (this *Hitbtc) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
 		"margin_balance": this.AmountToPrecision(symbol, amount),
 	}
 
-	retRes371515 := (<-this.PrivatePutFuturesAccountIsolatedSymbol(this.Extend(request, params)))
-	PanicOnError(retRes371515)
-	ch <- retRes371515
+	retRes371415 := (<-this.PrivatePutFuturesAccountIsolatedSymbol(this.Extend(request, params)))
+	PanicOnError(retRes371415)
+	ch <- retRes371415
 	return nil
 }
 
@@ -4668,8 +4668,8 @@ func (this *Hitbtc) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...an
 	_ = params
 	if this.Markets == nil {
 
-		retRes372912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes372912)
+		retRes372812 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes372812)
 	}
 
 	response := (<-this.PublicGetPublicCurrency(params))
@@ -4800,8 +4800,8 @@ func (this *Hitbtc) closePositionBody(ch chan any, symbol any, optionalArgs ...a
 	_ = params
 	if this.Markets == nil {
 
-		retRes382812 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes382812)
+		retRes382712 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes382712)
 	}
 	var marginMode any = nil
 	marginModeparamsVariable := this.HandleMarginModeAndParams("closePosition", params, "cross")

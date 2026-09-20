@@ -800,8 +800,8 @@ func (this *Hashkey) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes63412 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes63412)
+		retRes63312 := (<-this.LoadMarketsAsync())
+		ccxt.PanicOnError(retRes63312)
 	}
 
 	listenKey := (<-this.AuthenticateAsync())
@@ -925,8 +925,8 @@ func (this *Hashkey) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	ccxt.PanicOnError(listenKey)
 	if this.Markets == nil {
 
-		retRes73812 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes73812)
+		retRes73712 := (<-this.LoadMarketsAsync())
+		ccxt.PanicOnError(retRes73712)
 	}
 	var typeVar any = "spot"
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchBalance", nil, params, typeVar)
@@ -946,13 +946,13 @@ func (this *Hashkey) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	params = ccxt.GetValue(awaitBalanceSnapshotparamsVariable, 1)
 	if (fetchBalanceSnapshot == true) && (awaitBalanceSnapshot == true) {
 
-		retRes75112 := (<-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchBalanceSnapshot")))
-		ccxt.PanicOnError(retRes75112)
+		retRes75012 := (<-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchBalanceSnapshot")))
+		ccxt.PanicOnError(retRes75012)
 	}
 
-	retRes75315 := (<-this.Watch(url, messageHash, nil, messageHash))
-	ccxt.PanicOnError(retRes75315)
-	ch <- retRes75315
+	retRes75215 := (<-this.Watch(url, messageHash, nil, messageHash))
+	ccxt.PanicOnError(retRes75215)
+	ch <- retRes75215
 	return nil
 }
 func (this *Hashkey) SetBalanceCache(client any, typeVar any, subscribeHash any) {
@@ -1068,8 +1068,8 @@ func (this *Hashkey) authenticateBody(ch chan any, optionalArgs ...any) any {
 		// a flight is already in progress - wake when the leader
 		// settles it: the listenKey is then in the bucket
 
-		retRes84412 := (<-client.(ccxt.ClientInterface).Future(messageHash))
-		ccxt.PanicOnError(retRes84412)
+		retRes84312 := (<-client.(ccxt.ClientInterface).Future(messageHash))
+		ccxt.PanicOnError(retRes84312)
 
 		ch <- this.SafeString(this.Options, "listenKey")
 		return nil
@@ -1120,8 +1120,8 @@ func (this *Hashkey) authenticateBody(ch chan any, optionalArgs ...any) any {
 	// rethrows the failure to the leader and attaches the handler that
 	// keeps an alone-leader rejection from crashing the process
 
-	retRes8768 := <-future.(*ccxt.Future).Await()
-	ccxt.PanicOnError(retRes8768)
+	retRes8758 := <-future.(*ccxt.Future).Await()
+	ccxt.PanicOnError(retRes8758)
 
 	ch <- listenKey
 	return nil
@@ -1164,8 +1164,8 @@ func (this *Hashkey) keepAliveListenKeyBody(ch chan any, listenKey any, optional
 			}()
 			// try block:
 
-			retRes88812 := (<-this.PrivatePutApiV1UserDataStream(this.Extend(request, params)))
-			ccxt.PanicOnError(retRes88812)
+			retRes88712 := (<-this.PrivatePutApiV1UserDataStream(this.Extend(request, params)))
+			ccxt.PanicOnError(retRes88712)
 			var listenKeyRefreshRate *int64 = this.SafeInteger(this.Options, "listenKeyRefreshRate", 1200000)
 			this.Delay(listenKeyRefreshRate, this.KeepAliveListenKeyAsync, listenKey, params)
 			return nil

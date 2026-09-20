@@ -4433,8 +4433,8 @@ func (this *Deribit) fetchLiquidationsBody(ch chan any, symbol any, optionalArgs
 	_ = params
 	if this.Markets == nil {
 
-		retRes344212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes344212)
+		retRes344112 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes344112)
 	}
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchLiquidations", "paginate")
@@ -4442,9 +4442,9 @@ func (this *Deribit) fetchLiquidationsBody(ch chan any, symbol any, optionalArgs
 	params = GetValue(paginateparamsVariable, 1)
 	if paginate == true {
 
-		retRes344719 := (<-this.FetchPaginatedCallCursorAsync("fetchLiquidations", symbol, since, limit, params, "continuation", "continuation", nil))
-		PanicOnError(retRes344719)
-		ch <- retRes344719
+		retRes344619 := (<-this.FetchPaginatedCallCursorAsync("fetchLiquidations", symbol, since, limit, params, "continuation", "continuation", nil))
+		PanicOnError(retRes344619)
+		ch <- retRes344619
 		return nil
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
@@ -4543,8 +4543,8 @@ func (this *Deribit) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) a
 	}
 	if this.Markets == nil {
 
-		retRes352612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes352612)
+		retRes352512 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes352512)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "spot") == true {
@@ -4643,8 +4643,8 @@ func (this *Deribit) fetchGreeksBody(ch chan any, symbol any, optionalArgs ...an
 	_ = params
 	if this.Markets == nil {
 
-		retRes361012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes361012)
+		retRes360912 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes360912)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -4794,8 +4794,8 @@ func (this *Deribit) fetchOptionBody(ch chan any, symbol any, optionalArgs ...an
 	_ = params
 	if this.Markets == nil {
 
-		retRes374512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes374512)
+		retRes374412 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes374412)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -4864,8 +4864,8 @@ func (this *Deribit) fetchOptionChainBody(ch chan any, code any, optionalArgs ..
 	_ = params
 	if this.Markets == nil {
 
-		retRes380012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes380012)
+		retRes379912 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes379912)
 	}
 	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
@@ -4987,8 +4987,8 @@ func (this *Deribit) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs
 	_ = params
 	if this.Markets == nil {
 
-		retRes390512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes390512)
+		retRes390412 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes390412)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "contract") != true {

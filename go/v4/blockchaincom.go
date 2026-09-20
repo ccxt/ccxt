@@ -1825,7 +1825,7 @@ func (this *Blockchaincom) FetchL3OrderBook(symbol string, options ...FetchL3Ord
 	}
 	return NewOrderBook(res), nil
 }
-func (this *Blockchaincom) FetchL2OrderBook(symbol string, options ...FetchL2OrderBookOptions) (map[string]any, error) {
+func (this *Blockchaincom) FetchL2OrderBook(symbol string, options ...FetchL2OrderBookOptions) (OrderBook, error) {
 
 	opts := FetchL2OrderBookOptionsStruct{}
 
@@ -1834,9 +1834,9 @@ func (this *Blockchaincom) FetchL2OrderBook(symbol string, options ...FetchL2Ord
 	}
 	res := <-this.FetchL2OrderBookAsync(symbol, opts.Limit, opts.Params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return OrderBook{}, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewOrderBook(res), nil
 }
 
 /**

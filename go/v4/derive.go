@@ -1725,8 +1725,8 @@ func (this *Derive) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	_ = params
 	if this.Markets == nil {
 
-		retRes126812 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes126812)
+		retRes126712 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes126712)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	if price == nil {
@@ -1934,8 +1934,8 @@ func (this *Derive) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 	_ = params
 	if this.Markets == nil {
 
-		retRes146412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes146412)
+		retRes146312 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes146312)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var subaccountId any = nil
@@ -2112,8 +2112,8 @@ func (this *Derive) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	}
 	if this.Markets == nil {
 
-		retRes163512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes163512)
+		retRes163412 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes163412)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop", false)
@@ -2228,8 +2228,8 @@ func (this *Derive) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes172612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes172612)
+		retRes172512 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes172512)
 	}
 	var market any = nil
 	if symbol != nil {
@@ -2305,8 +2305,8 @@ func (this *Derive) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes177612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes177612)
+		retRes177512 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes177512)
 	}
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrders", "paginate")
@@ -2314,9 +2314,9 @@ func (this *Derive) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	params = GetValue(paginateparamsVariable, 1)
 	if paginate == true {
 
-		retRes178119 := (<-this.FetchPaginatedCallIncrementalAsync("fetchOrders", symbol, since, limit, params, "page", 500))
-		PanicOnError(retRes178119)
-		ch <- retRes178119
+		retRes178019 := (<-this.FetchPaginatedCallIncrementalAsync("fetchOrders", symbol, since, limit, params, "page", 500))
+		PanicOnError(retRes178019)
+		ch <- retRes178019
 		return nil
 	}
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop", false)
@@ -2436,16 +2436,16 @@ func (this *Derive) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes187612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes187612)
+		retRes187512 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes187512)
 	}
 	var extendedParams map[string]any = this.Extend(params, map[string]any{
 		"status": "open",
 	})
 
-	retRes187915 := (<-this.FetchOrdersAsync(symbol, since, limit, extendedParams))
-	PanicOnError(retRes187915)
-	ch <- retRes187915
+	retRes187815 := (<-this.FetchOrdersAsync(symbol, since, limit, extendedParams))
+	PanicOnError(retRes187815)
+	ch <- retRes187815
 	return nil
 }
 
@@ -2479,16 +2479,16 @@ func (this *Derive) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	if this.Markets == nil {
 
-		retRes189612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes189612)
+		retRes189512 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes189512)
 	}
 	var extendedParams map[string]any = this.Extend(params, map[string]any{
 		"status": "filled",
 	})
 
-	retRes189915 := (<-this.FetchOrdersAsync(symbol, since, limit, extendedParams))
-	PanicOnError(retRes189915)
-	ch <- retRes189915
+	retRes189815 := (<-this.FetchOrdersAsync(symbol, since, limit, extendedParams))
+	PanicOnError(retRes189815)
+	ch <- retRes189815
 	return nil
 }
 
@@ -2522,16 +2522,16 @@ func (this *Derive) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) an
 	_ = params
 	if this.Markets == nil {
 
-		retRes191612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes191612)
+		retRes191512 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes191512)
 	}
 	var extendedParams map[string]any = this.Extend(params, map[string]any{
 		"status": "cancelled",
 	})
 
-	retRes191915 := (<-this.FetchOrdersAsync(symbol, since, limit, extendedParams))
-	PanicOnError(retRes191915)
-	ch <- retRes191915
+	retRes191815 := (<-this.FetchOrdersAsync(symbol, since, limit, extendedParams))
+	PanicOnError(retRes191815)
+	ch <- retRes191815
 	return nil
 }
 func (this *Derive) ParseTimeInForce(timeInForce *string) *string {
@@ -2714,8 +2714,8 @@ func (this *Derive) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...an
 	_ = params
 	if this.Markets == nil {
 
-		retRes208612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes208612)
+		retRes208512 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes208512)
 	}
 	var subaccountId any = nil
 	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchOrderTrades", params)
@@ -2813,8 +2813,8 @@ func (this *Derive) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes216212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes216212)
+		retRes216112 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes216112)
 	}
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
@@ -2822,9 +2822,9 @@ func (this *Derive) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	params = GetValue(paginateparamsVariable, 1)
 	if paginate == true {
 
-		retRes216719 := (<-this.FetchPaginatedCallIncrementalAsync("fetchMyTrades", symbol, since, limit, params, "page", 500))
-		PanicOnError(retRes216719)
-		ch <- retRes216719
+		retRes216619 := (<-this.FetchPaginatedCallIncrementalAsync("fetchMyTrades", symbol, since, limit, params, "page", 500))
+		PanicOnError(retRes216619)
+		ch <- retRes216619
 		return nil
 	}
 	var subaccountId any = nil
@@ -2925,8 +2925,8 @@ func (this *Derive) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes224712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes224712)
+		retRes224612 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes224612)
 	}
 	var subaccountId any = nil
 	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchPositions", params)
@@ -3092,8 +3092,8 @@ func (this *Derive) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 	_ = params
 	if this.Markets == nil {
 
-		retRes239012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes239012)
+		retRes238912 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes238912)
 	}
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate")
@@ -3101,9 +3101,9 @@ func (this *Derive) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 	params = GetValue(paginateparamsVariable, 1)
 	if paginate == true {
 
-		retRes239519 := (<-this.FetchPaginatedCallIncrementalAsync("fetchFundingHistory", symbol, since, limit, params, "page", 500))
-		PanicOnError(retRes239519)
-		ch <- retRes239519
+		retRes239419 := (<-this.FetchPaginatedCallIncrementalAsync("fetchFundingHistory", symbol, since, limit, params, "page", 500))
+		PanicOnError(retRes239419)
+		ch <- retRes239419
 		return nil
 	}
 	var subaccountId any = nil
@@ -3222,8 +3222,8 @@ func (this *Derive) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes249412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes249412)
+		retRes249312 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes249312)
 	}
 	var deriveWalletAddress any = nil
 	deriveWalletAddressparamsVariable := this.HandleDeriveWalletAddress("fetchBalance", params)
@@ -3349,8 +3349,8 @@ func (this *Derive) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes259412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes259412)
+		retRes259312 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes259312)
 	}
 	var subaccountId any = nil
 	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchDeposits", params)
@@ -3421,8 +3421,8 @@ func (this *Derive) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes264312 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes264312)
+		retRes264212 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes264212)
 	}
 	var subaccountId any = nil
 	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchWithdrawals", params)

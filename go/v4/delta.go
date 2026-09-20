@@ -793,11 +793,11 @@ func (this *Delta) loadMarketsBody(ch chan any, optionalArgs ...any) any {
 	markets := (<-this.Exchange.LoadMarketsAsync(reload, params))
 	PanicOnError(markets)
 	var currenciesByNumericId any = this.SafeDict(this.Options, "currenciesByNumericId")
-	if (IsEqual(currenciesByNumericId, nil)) || EvalTruthy(reload) {
+	if (IsEqual(currenciesByNumericId, nil)) || (reload == true) {
 		this.Options.Store("currenciesByNumericId", this.IndexByStringifiedNumericId(this.Currencies))
 	}
 	var marketsByNumericId any = this.SafeDict(this.Options, "marketsByNumericId")
-	if (IsEqual(marketsByNumericId, nil)) || EvalTruthy(reload) {
+	if (IsEqual(marketsByNumericId, nil)) || (reload == true) {
 		this.Options.Store("marketsByNumericId", this.IndexByStringifiedNumericId(this.Markets))
 	}
 
@@ -3470,9 +3470,9 @@ func (this *Delta) addMarginBody(ch chan any, symbol any, amount any, optionalAr
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes288915 := (<-this.ModifyMarginHelperAsync(symbol, amount, "add", params))
-	PanicOnError(retRes288915)
-	ch <- retRes288915
+	retRes288815 := (<-this.ModifyMarginHelperAsync(symbol, amount, "add", params))
+	PanicOnError(retRes288815)
+	ch <- retRes288815
 	return nil
 }
 
@@ -3497,9 +3497,9 @@ func (this *Delta) reduceMarginBody(ch chan any, symbol any, amount any, optiona
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes290315 := (<-this.ModifyMarginHelperAsync(symbol, amount, "reduce", params))
-	PanicOnError(retRes290315)
-	ch <- retRes290315
+	retRes290215 := (<-this.ModifyMarginHelperAsync(symbol, amount, "reduce", params))
+	PanicOnError(retRes290215)
+	ch <- retRes290215
 	return nil
 }
 func (this *Delta) ModifyMarginHelperAsync(symbol any, amount any, typeVar any, optionalArgs ...any) <-chan any {
@@ -3513,8 +3513,8 @@ func (this *Delta) modifyMarginHelperBody(ch chan any, symbol any, amount any, t
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes29078 := (<-this.LoadMarketsAsync())
-	PanicOnError(retRes29078)
+	retRes29068 := (<-this.LoadMarketsAsync())
+	PanicOnError(retRes29068)
 	var market map[string]any = MapTyped(this.Market(symbol))
 	amount = ToString(amount)
 	if IsEqual(typeVar, "reduce") {
@@ -3614,8 +3614,8 @@ func (this *Delta) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs .
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes29928 := (<-this.LoadMarketsAsync())
-	PanicOnError(retRes29928)
+	retRes29918 := (<-this.LoadMarketsAsync())
+	PanicOnError(retRes29918)
 	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "contract") != true {
 		panic(BadRequest(this.Id + " fetchOpenInterest() supports contract markets only"))
@@ -3769,8 +3769,8 @@ func (this *Delta) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...an
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes31318 := (<-this.LoadMarketsAsync())
-	PanicOnError(retRes31318)
+	retRes31308 := (<-this.LoadMarketsAsync())
+	PanicOnError(retRes31308)
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"product_id": market["numericId"],
@@ -3836,16 +3836,16 @@ func (this *Delta) setLeverageBody(ch chan any, leverage any, optionalArgs ...an
 		panic(ArgumentsRequired(this.Id + " setLeverage() requires a symbol argument"))
 	}
 
-	retRes31808 := (<-this.LoadMarketsAsync())
-	PanicOnError(retRes31808)
+	retRes31798 := (<-this.LoadMarketsAsync())
+	PanicOnError(retRes31798)
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"product_id": market["numericId"],
 		"leverage":   leverage,
 	}
 
-	retRes319715 := (<-this.PrivatePostProductsProductIdOrdersLeverage(this.Extend(request, params)))
-	PanicOnError(retRes319715)
+	retRes319615 := (<-this.PrivatePostProductsProductIdOrdersLeverage(this.Extend(request, params)))
+	PanicOnError(retRes319615)
 	//
 	//     {
 	//         "result": {
@@ -3857,7 +3857,7 @@ func (this *Delta) setLeverageBody(ch chan any, leverage any, optionalArgs ...an
 	//         "success": true
 	//     }
 	//
-	ch <- retRes319715
+	ch <- retRes319615
 	return nil
 }
 
@@ -3889,8 +3889,8 @@ func (this *Delta) fetchSettlementHistoryBody(ch chan any, optionalArgs ...any) 
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	retRes32128 := (<-this.LoadMarketsAsync())
-	PanicOnError(retRes32128)
+	retRes32118 := (<-this.LoadMarketsAsync())
+	PanicOnError(retRes32118)
 	var market any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -4061,8 +4061,8 @@ func (this *Delta) fetchGreeksBody(ch chan any, symbol any, optionalArgs ...any)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes33718 := (<-this.LoadMarketsAsync())
-	PanicOnError(retRes33718)
+	retRes33708 := (<-this.LoadMarketsAsync())
+	PanicOnError(retRes33708)
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
@@ -4227,8 +4227,8 @@ func (this *Delta) closeAllPositionsBody(ch chan any, optionalArgs ...any) any {
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes35218 := (<-this.LoadMarketsAsync())
-	PanicOnError(retRes35218)
+	retRes35208 := (<-this.LoadMarketsAsync())
+	PanicOnError(retRes35208)
 	var request map[string]any = map[string]any{
 		"close_all_portfolio": true,
 		"close_all_isolated":  true,
@@ -4265,8 +4265,8 @@ func (this *Delta) fetchMarginModeBody(ch chan any, symbol any, optionalArgs ...
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes35458 := (<-this.LoadMarketsAsync())
-	PanicOnError(retRes35458)
+	retRes35448 := (<-this.LoadMarketsAsync())
+	PanicOnError(retRes35448)
 	var market any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -4386,9 +4386,9 @@ func (this *Delta) setMarginModeBody(ch chan any, marginMode any, optionalArgs .
 		"margin_mode": marginMode,
 	}
 
-	retRes364815 := (<-this.PrivatePutUsersMarginMode(this.Extend(request, params)))
-	PanicOnError(retRes364815)
-	ch <- retRes364815
+	retRes364715 := (<-this.PrivatePutUsersMarginMode(this.Extend(request, params)))
+	PanicOnError(retRes364715)
+	ch <- retRes364715
 	return nil
 }
 
@@ -4412,8 +4412,8 @@ func (this *Delta) fetchOptionBody(ch chan any, symbol any, optionalArgs ...any)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes36618 := (<-this.LoadMarketsAsync())
-	PanicOnError(retRes36618)
+	retRes36608 := (<-this.LoadMarketsAsync())
+	PanicOnError(retRes36608)
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
@@ -4579,8 +4579,8 @@ func (this *Delta) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) a
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	retRes38088 := (<-this.LoadMarketsAsync())
-	PanicOnError(retRes38088)
+	retRes38078 := (<-this.LoadMarketsAsync())
+	PanicOnError(retRes38078)
 	symbols = this.MarketSymbols(symbols, nil, true, true, true)
 
 	response := (<-this.PrivateGetPositionsMargined(params))

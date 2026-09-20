@@ -3602,8 +3602,8 @@ func (this *Bitstamp) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 	var market any = nil
 	if this.Markets == nil {
 
-		retRes256312 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes256312)
+		retRes256212 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes256212)
 	}
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -3718,8 +3718,8 @@ func (this *Bitstamp) withdrawBody(ch chan any, code any, amount any, address an
 	params = GetValue(tagparamsVariable, 1)
 	if this.Markets == nil {
 
-		retRes264912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes264912)
+		retRes264812 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes264812)
 	}
 	this.CheckAddress(address)
 	var request map[string]any = map[string]any{
@@ -3782,8 +3782,8 @@ func (this *Bitstamp) transferBody(ch chan any, code any, amount any, fromAccoun
 	_ = params
 	if this.Markets == nil {
 
-		retRes269612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes269612)
+		retRes269512 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes269512)
 	}
 	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{

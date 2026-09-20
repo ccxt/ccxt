@@ -4404,8 +4404,8 @@ func (this *Hashkey) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 	_ = params
 	if this.Markets == nil {
 
-		retRes396412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes396412)
+		retRes396312 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes396312)
 	}
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchFundingRateHistory() requires a symbol argument"))
@@ -4489,15 +4489,15 @@ func (this *Hashkey) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	if this.Markets == nil {
 
-		retRes402712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes402712)
+		retRes402612 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes402612)
 	}
 
-	retRes402915 := (<-this.FetchPositionsForSymbolAsync(GetValue(symbols, 0), this.Extend(map[string]any{
+	retRes402815 := (<-this.FetchPositionsForSymbolAsync(GetValue(symbols, 0), this.Extend(map[string]any{
 		"methodName": "fetchPositions",
 	}, params)))
-	PanicOnError(retRes402915)
-	ch <- retRes402915
+	PanicOnError(retRes402815)
+	ch <- retRes402815
 	return nil
 }
 
@@ -4524,8 +4524,8 @@ func (this *Hashkey) fetchPositionsForSymbolBody(ch chan any, symbol any, option
 	_ = params
 	if this.Markets == nil {
 
-		retRes404512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes404512)
+		retRes404412 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes404412)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var methodName any = "fetchPosition"
@@ -4625,8 +4625,8 @@ func (this *Hashkey) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...
 	_ = params
 	if this.Markets == nil {
 
-		retRes412812 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes412812)
+		retRes412712 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes412712)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -4690,8 +4690,8 @@ func (this *Hashkey) setLeverageBody(ch chan any, leverage any, optionalArgs ...
 	}
 	if this.Markets == nil {
 
-		retRes417512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes417512)
+		retRes417412 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes417412)
 	}
 	var request map[string]any = map[string]any{
 		"leverage": leverage,
@@ -4740,8 +4740,8 @@ func (this *Hashkey) setMarginModeBody(ch chan any, marginMode any, optionalArgs
 	}
 	if this.Markets == nil {
 
-		retRes420812 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes420812)
+		retRes420712 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes420712)
 	}
 	marginMode = ToUpper(marginMode)
 	if IsEqual(marginMode, "CROSSED") {
@@ -4759,9 +4759,9 @@ func (this *Hashkey) setMarginModeBody(ch chan any, marginMode any, optionalArgs
 		"marginType": marginMode,
 	}
 
-	retRes422515 := (<-this.PrivatePostApiV1FuturesMarginType(this.Extend(request, params)))
-	PanicOnError(retRes422515)
-	ch <- retRes422515
+	retRes422415 := (<-this.PrivatePostApiV1FuturesMarginType(this.Extend(request, params)))
+	PanicOnError(retRes422415)
+	ch <- retRes422415
 	return nil
 }
 
@@ -4787,9 +4787,9 @@ func (this *Hashkey) addMarginBody(ch chan any, symbol any, amount any, optional
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes424015 := (<-this.ModifyMarginHelperAsync(symbol, amount, "add", params))
-	PanicOnError(retRes424015)
-	ch <- retRes424015
+	retRes423915 := (<-this.ModifyMarginHelperAsync(symbol, amount, "add", params))
+	PanicOnError(retRes423915)
+	ch <- retRes423915
 	return nil
 }
 
@@ -4815,9 +4815,9 @@ func (this *Hashkey) reduceMarginBody(ch chan any, symbol any, amount any, optio
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes425515 := (<-this.ModifyMarginHelperAsync(symbol, amount, "reduce", params))
-	PanicOnError(retRes425515)
-	ch <- retRes425515
+	retRes425415 := (<-this.ModifyMarginHelperAsync(symbol, amount, "reduce", params))
+	PanicOnError(retRes425415)
+	ch <- retRes425415
 	return nil
 }
 func (this *Hashkey) ModifyMarginHelperAsync(symbol any, amount any, typeVar any, optionalArgs ...any) <-chan any {
@@ -4832,8 +4832,8 @@ func (this *Hashkey) modifyMarginHelperBody(ch chan any, symbol any, amount any,
 	_ = params
 	if this.Markets == nil {
 
-		retRes426012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes426012)
+		retRes425912 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes425912)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "swap") != true {
@@ -4927,8 +4927,8 @@ func (this *Hashkey) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) an
 	_ = params
 	if this.Markets == nil {
 
-		retRes433012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes433012)
+		retRes432912 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes432912)
 	}
 
 	response := (<-this.PublicGetApiV1ExchangeInfo(params))
@@ -5063,8 +5063,8 @@ func (this *Hashkey) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs .
 	_ = params
 	if this.Markets == nil {
 
-		retRes445012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes445012)
+		retRes444912 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes444912)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var methodName string = "fetchTradingFee"
@@ -5110,8 +5110,8 @@ func (this *Hashkey) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	if this.Markets == nil {
 
-		retRes448412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes448412)
+		retRes448312 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes448312)
 	}
 
 	response := (<-this.PrivateGetApiV1AccountVipInfo(params))

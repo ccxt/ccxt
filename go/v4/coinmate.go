@@ -868,8 +868,8 @@ func (this *Coinmate) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...
 	_ = params
 	if this.Markets == nil {
 
-		retRes65012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes65012)
+		retRes64512 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes64512)
 	}
 	var request map[string]any = map[string]any{
 		"limit": 1000,
@@ -1013,8 +1013,8 @@ func (this *Coinmate) withdrawBody(ch chan any, code any, amount any, address an
 	this.CheckAddress(address)
 	if this.Markets == nil {
 
-		retRes77612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes77612)
+		retRes77112 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes77112)
 	}
 	var currency map[string]any = MapTyped(this.Currency(code))
 	var withdrawOptions map[string]any = SafeMapTyped(this.Options, "withdraw")
@@ -1126,8 +1126,8 @@ func (this *Coinmate) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes85212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes85212)
+		retRes84712 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes84712)
 	}
 	if limit == nil {
 		limit = 1000
@@ -1248,8 +1248,8 @@ func (this *Coinmate) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	_ = params
 	if this.Markets == nil {
 
-		retRes94912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes94912)
+		retRes94412 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes94412)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -1302,8 +1302,8 @@ func (this *Coinmate) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs 
 	_ = params
 	if this.Markets == nil {
 
-		retRes98812 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes98812)
+		retRes98312 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes98312)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -1407,8 +1407,8 @@ func (this *Coinmate) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	if this.Markets == nil {
 
-		retRes105112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes105112)
+		retRes104612 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes104612)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -1561,8 +1561,8 @@ func (this *Coinmate) createOrderBody(ch chan any, symbol any, typeVar any, side
 	_ = params
 	if this.Markets == nil {
 
-		retRes118912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes118912)
+		retRes118412 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes118412)
 	}
 	var method any = "privatePost" + this.Capitalize(side)
 	var market map[string]any = MapTyped(this.Market(symbol))
@@ -1636,8 +1636,8 @@ func (this *Coinmate) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 	_ = params
 	if this.Markets == nil {
 
-		retRes124112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes124112)
+		retRes123612 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes123612)
 	}
 	var request map[string]any = map[string]any{
 		"orderId": id,

@@ -1384,9 +1384,9 @@ func (this *Woofipro) fetchFundingIntervalBody(ch chan any, symbol any, optional
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes100115 := (<-this.FetchFundingRateAsync(symbol, params))
-	PanicOnError(retRes100115)
-	ch <- retRes100115
+	retRes100015 := (<-this.FetchFundingRateAsync(symbol, params))
+	PanicOnError(retRes100015)
+	ch <- retRes100015
 	return nil
 }
 
@@ -1411,8 +1411,8 @@ func (this *Woofipro) fetchFundingRateBody(ch chan any, symbol any, optionalArgs
 	_ = params
 	if this.Markets == nil {
 
-		retRes101512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes101512)
+		retRes101412 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes101412)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -1465,8 +1465,8 @@ func (this *Woofipro) fetchFundingRatesBody(ch chan any, optionalArgs ...any) an
 	_ = params
 	if this.Markets == nil {
 
-		retRes105212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes105212)
+		retRes105112 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes105112)
 	}
 	symbols = this.MarketSymbols(symbols)
 
@@ -1566,8 +1566,8 @@ func (this *Woofipro) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
 	_ = params
 	if this.Markets == nil {
 
-		retRes113712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes113712)
+		retRes113612 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes113612)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -1628,8 +1628,8 @@ func (this *Woofipro) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes118212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes118212)
+		retRes118112 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes118112)
 	}
 	symbols = this.MarketSymbols(symbols)
 
@@ -1735,8 +1735,8 @@ func (this *Woofipro) fetchOpenInterestBody(ch chan any, symbol any, optionalArg
 	_ = params
 	if this.Markets == nil {
 
-		retRes126612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes126612)
+		retRes126512 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes126512)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -1789,8 +1789,8 @@ func (this *Woofipro) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) a
 	_ = params
 	if this.Markets == nil {
 
-		retRes130312 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes130312)
+		retRes130212 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes130212)
 	}
 	symbols = this.MarketSymbols(symbols)
 
@@ -1868,8 +1868,8 @@ func (this *Woofipro) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	_ = params
 	if this.Markets == nil {
 
-		retRes135412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes135412)
+		retRes135312 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes135312)
 	}
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
@@ -1877,9 +1877,9 @@ func (this *Woofipro) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	params = GetValue(paginateparamsVariable, 1)
 	if paginate == true {
 
-		retRes135919 := (<-this.FetchPaginatedCallIncrementalAsync("fetchFundingRateHistory", symbol, since, limit, params, "page", 25))
-		PanicOnError(retRes135919)
-		ch <- retRes135919
+		retRes135819 := (<-this.FetchPaginatedCallIncrementalAsync("fetchFundingRateHistory", symbol, since, limit, params, "page", 25))
+		PanicOnError(retRes135819)
+		ch <- retRes135819
 		return nil
 	}
 	var request any = map[string]any{}
@@ -2011,8 +2011,8 @@ func (this *Woofipro) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 	_ = params
 	if this.Markets == nil {
 
-		retRes145712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes145712)
+		retRes145612 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes145612)
 	}
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate")
@@ -2020,9 +2020,9 @@ func (this *Woofipro) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 	params = GetValue(paginateparamsVariable, 1)
 	if paginate == true {
 
-		retRes146219 := (<-this.FetchPaginatedCallIncrementalAsync("fetchFundingHistory", symbol, since, limit, params, "page", 500))
-		PanicOnError(retRes146219)
-		ch <- retRes146219
+		retRes146119 := (<-this.FetchPaginatedCallIncrementalAsync("fetchFundingHistory", symbol, since, limit, params, "page", 500))
+		PanicOnError(retRes146119)
+		ch <- retRes146119
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -2095,8 +2095,8 @@ func (this *Woofipro) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any
 	_ = params
 	if this.Markets == nil {
 
-		retRes152012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes152012)
+		retRes151912 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes151912)
 	}
 
 	response := (<-this.V1PrivateGetClientInfo(params))
@@ -2173,8 +2173,8 @@ func (this *Woofipro) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	_ = params
 	if this.Markets == nil {
 
-		retRes158112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes158112)
+		retRes158012 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes158012)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -2246,8 +2246,8 @@ func (this *Woofipro) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	_ = params
 	if this.Markets == nil {
 
-		retRes163912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes163912)
+		retRes163812 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes163812)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -2611,8 +2611,8 @@ func (this *Woofipro) createOrderBody(ch chan any, symbol any, typeVar any, side
 	_ = params
 	if this.Markets == nil {
 
-		retRes196112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes196112)
+		retRes196012 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes196012)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
@@ -2660,8 +2660,8 @@ func (this *Woofipro) createOrdersBody(ch chan any, orders any, optionalArgs ...
 	_ = params
 	if this.Markets == nil {
 
-		retRes202012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes202012)
+		retRes201912 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes201912)
 	}
 	var ordersRequests []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
@@ -2746,8 +2746,8 @@ func (this *Woofipro) editOrderBody(ch chan any, id any, symbol any, typeVar any
 	_ = params
 	if this.Markets == nil {
 
-		retRes208712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes208712)
+		retRes208612 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes208612)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -2862,8 +2862,8 @@ func (this *Woofipro) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 	}
 	if this.Markets == nil {
 
-		retRes217412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes217412)
+		retRes217312 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes217312)
 	}
 	var market any = nil
 	if symbol != nil {
@@ -2969,8 +2969,8 @@ func (this *Woofipro) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any
 	_ = params
 	if this.Markets == nil {
 
-		retRes224912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes224912)
+		retRes224812 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes224812)
 	}
 	var clientOrderIds any = this.SafeListN(params, []any{"clOrdIDs", "clientOrderIds", "client_order_ids"})
 	params = this.Omit(params, []any{"clOrdIDs", "clientOrderIds", "client_order_ids"})
@@ -3028,8 +3028,8 @@ func (this *Woofipro) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	if this.Markets == nil {
 
-		retRes228912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes228912)
+		retRes228812 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes228812)
 	}
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
 	params = this.Omit(params, []any{"stop", "trigger"})
@@ -3099,8 +3099,8 @@ func (this *Woofipro) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 	_ = params
 	if this.Markets == nil {
 
-		retRes234312 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes234312)
+		retRes234212 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes234212)
 	}
 	var market any = nil
 	if symbol != nil {
@@ -3210,8 +3210,8 @@ func (this *Woofipro) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes242212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes242212)
+		retRes242112 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes242112)
 	}
 	var paginate any = false
 	var isTrigger *bool = this.SafeBool2(params, "stop", "trigger", false)
@@ -3226,9 +3226,9 @@ func (this *Woofipro) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	params = GetValue(paginateparamsVariable, 1)
 	if paginate == true {
 
-		retRes242919 := (<-this.FetchPaginatedCallIncrementalAsync("fetchOrders", symbol, since, limit, params, "page", maxLimit))
-		PanicOnError(retRes242919)
-		ch <- retRes242919
+		retRes242819 := (<-this.FetchPaginatedCallIncrementalAsync("fetchOrders", symbol, since, limit, params, "page", maxLimit))
+		PanicOnError(retRes242819)
+		ch <- retRes242819
 		return nil
 	}
 	var request any = map[string]any{}
@@ -3338,16 +3338,16 @@ func (this *Woofipro) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	if this.Markets == nil {
 
-		retRes251412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes251412)
+		retRes251312 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes251312)
 	}
 	var extendedParams map[string]any = this.Extend(params, map[string]any{
 		"status": "INCOMPLETE",
 	})
 
-	retRes251715 := (<-this.FetchOrdersAsync(symbol, since, limit, extendedParams))
-	PanicOnError(retRes251715)
-	ch <- retRes251715
+	retRes251615 := (<-this.FetchOrdersAsync(symbol, since, limit, extendedParams))
+	PanicOnError(retRes251615)
+	ch <- retRes251615
 	return nil
 }
 
@@ -3386,16 +3386,16 @@ func (this *Woofipro) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 	_ = params
 	if this.Markets == nil {
 
-		retRes253912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes253912)
+		retRes253812 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes253812)
 	}
 	var extendedParams map[string]any = this.Extend(params, map[string]any{
 		"status": "COMPLETED",
 	})
 
-	retRes254215 := (<-this.FetchOrdersAsync(symbol, since, limit, extendedParams))
-	PanicOnError(retRes254215)
-	ch <- retRes254215
+	retRes254115 := (<-this.FetchOrdersAsync(symbol, since, limit, extendedParams))
+	PanicOnError(retRes254115)
+	ch <- retRes254115
 	return nil
 }
 
@@ -3429,8 +3429,8 @@ func (this *Woofipro) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...
 	_ = params
 	if this.Markets == nil {
 
-		retRes255912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes255912)
+		retRes255812 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes255812)
 	}
 	var market any = nil
 	if symbol != nil {
@@ -3501,8 +3501,8 @@ func (this *Woofipro) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes261012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes261012)
+		retRes260912 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes260912)
 	}
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
@@ -3510,9 +3510,9 @@ func (this *Woofipro) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	params = GetValue(paginateparamsVariable, 1)
 	if paginate == true {
 
-		retRes261519 := (<-this.FetchPaginatedCallIncrementalAsync("fetchMyTrades", symbol, since, limit, params, "page", 500))
-		PanicOnError(retRes261519)
-		ch <- retRes261519
+		retRes261419 := (<-this.FetchPaginatedCallIncrementalAsync("fetchMyTrades", symbol, since, limit, params, "page", 500))
+		PanicOnError(retRes261419)
+		ch <- retRes261419
 		return nil
 	}
 	var request any = map[string]any{}
@@ -3610,8 +3610,8 @@ func (this *Woofipro) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes269212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes269212)
+		retRes269112 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes269112)
 	}
 
 	response := (<-this.V1PrivateGetClientHolding(params))
@@ -3654,8 +3654,8 @@ func (this *Woofipro) getAssetHistoryRowsBody(ch chan any, optionalArgs ...any) 
 	_ = params
 	if this.Markets == nil {
 
-		retRes271612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes271612)
+		retRes271512 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes271512)
 	}
 	var request map[string]any = map[string]any{}
 	var currency any = nil
@@ -3863,9 +3863,9 @@ func (this *Woofipro) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		"side": "DEPOSIT",
 	}
 
-	retRes288015 := (<-this.FetchDepositsWithdrawalsAsync(code, since, limit, this.Extend(request, params)))
-	PanicOnError(retRes288015)
-	ch <- retRes288015
+	retRes287915 := (<-this.FetchDepositsWithdrawalsAsync(code, since, limit, this.Extend(request, params)))
+	PanicOnError(retRes287915)
+	ch <- retRes287915
 	return nil
 }
 
@@ -3900,9 +3900,9 @@ func (this *Woofipro) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 		"side": "WITHDRAW",
 	}
 
-	retRes289815 := (<-this.FetchDepositsWithdrawalsAsync(code, since, limit, this.Extend(request, params)))
-	PanicOnError(retRes289815)
-	ch <- retRes289815
+	retRes289715 := (<-this.FetchDepositsWithdrawalsAsync(code, since, limit, this.Extend(request, params)))
+	PanicOnError(retRes289715)
+	ch <- retRes289715
 	return nil
 }
 
@@ -4025,8 +4025,8 @@ func (this *Woofipro) withdrawBody(ch chan any, code any, amount any, address an
 	_ = params
 	if this.Markets == nil {
 
-		retRes298012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes298012)
+		retRes297912 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes297912)
 	}
 	this.CheckAddress(address)
 	if code != nil {
@@ -4154,8 +4154,8 @@ func (this *Woofipro) fetchMarginModesBody(ch chan any, optionalArgs ...any) any
 	_ = params
 	if this.Markets == nil {
 
-		retRes307612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes307612)
+		retRes307512 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes307512)
 	}
 	symbols = this.MarketSymbols(symbols)
 
@@ -4201,8 +4201,8 @@ func (this *Woofipro) fetchMarginModeBody(ch chan any, symbol any, optionalArgs 
 	_ = params
 	if this.Markets == nil {
 
-		retRes310812 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes310812)
+		retRes310712 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes310712)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 
@@ -4244,8 +4244,8 @@ func (this *Woofipro) setMarginModeBody(ch chan any, marginMode any, optionalArg
 	}
 	if this.Markets == nil {
 
-		retRes313412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes313412)
+		retRes313312 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes313312)
 	}
 	marginMode = ToLower(marginMode)
 	if (!IsEqual(marginMode, "cross")) && (!IsEqual(marginMode, "isolated")) {
@@ -4257,15 +4257,15 @@ func (this *Woofipro) setMarginModeBody(ch chan any, marginMode any, optionalArg
 		"default_margin_mode": ToUpper(marginMode),
 	}
 
-	retRes315115 := (<-this.V1PrivatePostClientMarginMode(this.Extend(request, params)))
-	PanicOnError(retRes315115)
+	retRes315015 := (<-this.V1PrivatePostClientMarginMode(this.Extend(request, params)))
+	PanicOnError(retRes315015)
 	//
 	// {
 	//     "success": true,
 	//     "timestamp": 1702989203989
 	// }
 	//
-	ch <- retRes315115
+	ch <- retRes315015
 	return nil
 }
 func (this *Woofipro) ParseMarginModification(data any, optionalArgs ...any) any {
@@ -4322,8 +4322,8 @@ func (this *Woofipro) modifyMarginHelperBody(ch chan any, symbol any, amount any
 	_ = params
 	if this.Markets == nil {
 
-		retRes319112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes319112)
+		retRes319012 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes319012)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -4374,9 +4374,9 @@ func (this *Woofipro) addMarginBody(ch chan any, symbol any, amount any, optiona
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes322315 := (<-this.ModifyMarginHelperAsync(symbol, amount, "ADD", params))
-	PanicOnError(retRes322315)
-	ch <- retRes322315
+	retRes322215 := (<-this.ModifyMarginHelperAsync(symbol, amount, "ADD", params))
+	PanicOnError(retRes322215)
+	ch <- retRes322215
 	return nil
 }
 
@@ -4401,9 +4401,9 @@ func (this *Woofipro) reduceMarginBody(ch chan any, symbol any, amount any, opti
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes323715 := (<-this.ModifyMarginHelperAsync(symbol, amount, "REDUCE", params))
-	PanicOnError(retRes323715)
-	ch <- retRes323715
+	retRes323615 := (<-this.ModifyMarginHelperAsync(symbol, amount, "REDUCE", params))
+	PanicOnError(retRes323615)
+	ch <- retRes323615
 	return nil
 }
 func (this *Woofipro) ParseLeverage(leverage any, optionalArgs ...any) any {
@@ -4440,8 +4440,8 @@ func (this *Woofipro) fetchLeverageBody(ch chan any, symbol any, optionalArgs ..
 	_ = params
 	if this.Markets == nil {
 
-		retRes326212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes326212)
+		retRes326112 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes326112)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 
@@ -4504,8 +4504,8 @@ func (this *Woofipro) setLeverageBody(ch chan any, leverage any, optionalArgs ..
 	_ = params
 	if this.Markets == nil {
 
-		retRes330912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes330912)
+		retRes330812 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes330812)
 	}
 	if (IsLessThan(leverage, 1)) || (IsGreaterThan(leverage, 50)) {
 		panic(BadRequest(this.Id + " leverage should be between 1 and 50"))
@@ -4514,9 +4514,9 @@ func (this *Woofipro) setLeverageBody(ch chan any, leverage any, optionalArgs ..
 		"leverage": leverage,
 	}
 
-	retRes331715 := (<-this.V1PrivatePostClientLeverage(this.Extend(request, params)))
-	PanicOnError(retRes331715)
-	ch <- retRes331715
+	retRes331615 := (<-this.V1PrivatePostClientLeverage(this.Extend(request, params)))
+	PanicOnError(retRes331615)
+	ch <- retRes331615
 	return nil
 }
 func (this *Woofipro) ParsePosition(position any, optionalArgs ...any) any {
@@ -4613,8 +4613,8 @@ func (this *Woofipro) fetchPositionBody(ch chan any, symbol any, optionalArgs ..
 	_ = params
 	if this.Markets == nil {
 
-		retRes340212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes340212)
+		retRes340112 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes340112)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -4678,8 +4678,8 @@ func (this *Woofipro) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes345012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes345012)
+		retRes344912 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes344912)
 	}
 
 	response := (<-this.V1PrivateGetPositions(params))

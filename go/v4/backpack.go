@@ -1376,8 +1376,8 @@ func (this *Backpack) fetchOpenInterestBody(ch chan any, symbol any, optionalArg
 	_ = params
 	if this.Markets == nil {
 
-		retRes111612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes111612)
+		retRes111512 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes111512)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "spot") == true {
@@ -1450,8 +1450,8 @@ func (this *Backpack) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	}
 	if this.Markets == nil {
 
-		retRes116812 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes116812)
+		retRes116712 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes116712)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -1526,8 +1526,8 @@ func (this *Backpack) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	_ = params
 	if this.Markets == nil {
 
-		retRes122012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes122012)
+		retRes121912 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes121912)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -1584,8 +1584,8 @@ func (this *Backpack) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes125512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes125512)
+		retRes125412 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes125412)
 	}
 	var request map[string]any = map[string]any{}
 	var market any = nil
@@ -1796,8 +1796,8 @@ func (this *Backpack) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes141512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes141512)
+		retRes141412 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes141412)
 	}
 
 	response := (<-this.PrivateGetApiV1Capital(params))
@@ -1865,8 +1865,8 @@ func (this *Backpack) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes146412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes146412)
+		retRes146312 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes146312)
 	}
 	var request map[string]any = map[string]any{}
 	var currency any = nil
@@ -1924,8 +1924,8 @@ func (this *Backpack) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 	_ = params
 	if this.Markets == nil {
 
-		retRes150112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes150112)
+		retRes150012 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes150012)
 	}
 	var request map[string]any = map[string]any{}
 	var currency any = nil
@@ -1980,8 +1980,8 @@ func (this *Backpack) withdrawBody(ch chan any, code any, amount any, address an
 	_ = params
 	if this.Markets == nil {
 
-		retRes153812 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes153812)
+		retRes153712 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes153712)
 	}
 	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
@@ -2162,8 +2162,8 @@ func (this *Backpack) fetchDepositAddressBody(ch chan any, code any, optionalArg
 	_ = params
 	if this.Markets == nil {
 
-		retRes170312 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes170312)
+		retRes170212 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes170212)
 	}
 	var networkCode any = nil
 	networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
@@ -2247,8 +2247,8 @@ func (this *Backpack) createOrderBody(ch chan any, symbol any, typeVar any, side
 	_ = params
 	if this.Markets == nil {
 
-		retRes176812 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes176812)
+		retRes176712 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes176712)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var orderRequest any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
@@ -2281,8 +2281,8 @@ func (this *Backpack) createOrdersBody(ch chan any, orders any, optionalArgs ...
 	_ = params
 	if this.Markets == nil {
 
-		retRes178712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes178712)
+		retRes178612 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes178612)
 	}
 	var ordersRequests []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
@@ -2435,8 +2435,8 @@ func (this *Backpack) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	if this.Markets == nil {
 
-		retRes190912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes190912)
+		retRes190812 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes190812)
 	}
 	var request map[string]any = map[string]any{}
 	var market any = nil
@@ -2476,8 +2476,8 @@ func (this *Backpack) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...an
 	_ = params
 	if this.Markets == nil {
 
-		retRes193312 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes193312)
+		retRes193212 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes193212)
 	}
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchOpenOrder() requires a symbol argument"))
@@ -2519,8 +2519,8 @@ func (this *Backpack) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 	_ = params
 	if this.Markets == nil {
 
-		retRes195912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes195912)
+		retRes195812 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes195812)
 	}
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " cancelOrder() requires a symbol argument"))
@@ -2561,8 +2561,8 @@ func (this *Backpack) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	if this.Markets == nil {
 
-		retRes198412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes198412)
+		retRes198312 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes198312)
 	}
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " cancelOrder() requires a symbol argument"))
@@ -2608,8 +2608,8 @@ func (this *Backpack) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes201012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes201012)
+		retRes200912 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes200912)
 	}
 	var request map[string]any = map[string]any{}
 	var market any = nil
@@ -2813,8 +2813,8 @@ func (this *Backpack) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes219912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes219912)
+		retRes219812 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes219812)
 	}
 
 	response := (<-this.PrivateGetApiV1Position(params))
@@ -2948,8 +2948,8 @@ func (this *Backpack) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 	_ = params
 	if this.Markets == nil {
 
-		retRes231012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes231012)
+		retRes230912 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes230912)
 	}
 	var request map[string]any = map[string]any{}
 	var market any = nil

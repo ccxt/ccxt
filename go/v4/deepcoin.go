@@ -3727,8 +3727,8 @@ func (this *Deepcoin) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	}
 	if this.Markets == nil {
 
-		retRes289212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes289212)
+		retRes289112 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes289112)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -3823,8 +3823,8 @@ func (this *Deepcoin) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes296612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes296612)
+		retRes296512 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes296512)
 	}
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
@@ -3832,9 +3832,9 @@ func (this *Deepcoin) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	params = GetValue(paginateparamsVariable, 1)
 	if paginate == true {
 
-		retRes297119 := (<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, params))
-		PanicOnError(retRes297119)
-		ch <- retRes297119
+		retRes297019 := (<-this.FetchPaginatedCallDynamicAsync("fetchMyTrades", symbol, since, limit, params))
+		PanicOnError(retRes297019)
+		ch <- retRes297019
 		return nil
 	}
 	var market any = nil
@@ -3927,8 +3927,8 @@ func (this *Deepcoin) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...
 	_ = params
 	if this.Markets == nil {
 
-		retRes304112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes304112)
+		retRes304012 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes304012)
 	}
 	var marketType *string = this.SafeString(params, "type")
 	if (symbol == nil) && (marketType == nil) {
@@ -3938,9 +3938,9 @@ func (this *Deepcoin) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...
 		"ordId": id,
 	}, params)
 
-	retRes304815 := (<-this.FetchMyTradesAsync(symbol, since, limit, params))
-	PanicOnError(retRes304815)
-	ch <- retRes304815
+	retRes304715 := (<-this.FetchMyTradesAsync(symbol, since, limit, params))
+	PanicOnError(retRes304715)
+	ch <- retRes304715
 	return nil
 }
 
@@ -3971,8 +3971,8 @@ func (this *Deepcoin) closePositionBody(ch chan any, symbol any, optionalArgs ..
 	_ = params
 	if this.Markets == nil {
 
-		retRes306612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes306612)
+		retRes306512 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes306512)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var productGroup any = this.GetProductGroupFromMarket(market)

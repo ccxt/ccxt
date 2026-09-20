@@ -994,8 +994,8 @@ func (this *Ndax) ParseOrderBook(orderbook any, symbol any, optionalArgs ...any)
 			}
 			return bidsKey
 		}()
-		retRes71412 := GetValue(result, side)
-		AppendToArray(&retRes71412, bidask)
+		retRes71312 := GetValue(result, side)
+		AppendToArray(&retRes71312, bidask)
 	}
 	result["bids"] = this.SortBy(result["bids"], 0, true)
 	result["asks"] = this.SortBy(result["asks"], 0)
@@ -1030,8 +1030,8 @@ func (this *Ndax) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	var omsId *int64 = this.SafeInteger(this.Options, "omsId", 1)
 	if this.Markets == nil {
 
-		retRes73712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes73712)
+		retRes73612 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes73612)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	limit = func() any {
@@ -1183,8 +1183,8 @@ func (this *Ndax) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes86712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes86712)
+		retRes86612 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes86612)
 	}
 	symbols = this.MarketSymbols(symbols)
 
@@ -1233,8 +1233,8 @@ func (this *Ndax) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 	var omsId *int64 = this.SafeInteger(this.Options, "omsId", 1)
 	if this.Markets == nil {
 
-		retRes90212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes90212)
+		retRes90112 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes90112)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -1328,8 +1328,8 @@ func (this *Ndax) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 	var omsId *int64 = this.SafeInteger(this.Options, "omsId", 1)
 	if this.Markets == nil {
 
-		retRes98212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes98212)
+		retRes98112 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes98112)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -1571,8 +1571,8 @@ func (this *Ndax) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	var omsId *int64 = this.SafeInteger(this.Options, "omsId", 1)
 	if this.Markets == nil {
 
-		retRes120512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes120512)
+		retRes120412 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes120412)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -1688,12 +1688,12 @@ func (this *Ndax) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var omsId *int64 = this.SafeInteger(this.Options, "omsId", 1)
 	if this.Markets == nil {
 
-		retRes129512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes129512)
+		retRes129412 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes129412)
 	}
 
-	retRes12978 := (<-this.LoadAccountsAsync())
-	PanicOnError(retRes12978)
+	retRes12968 := (<-this.LoadAccountsAsync())
+	PanicOnError(retRes12968)
 	var defaultAccountId *int64 = this.SafeInteger2(this.Options, "accountId", "AccountId")
 	var accountId any = DerefScalar(this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId))
 	if IsEqual(accountId, nil) {
@@ -1849,12 +1849,12 @@ func (this *Ndax) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var omsId *int64 = this.SafeInteger(this.Options, "omsId", 1)
 	if this.Markets == nil {
 
-		retRes143312 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes143312)
+		retRes143212 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes143212)
 	}
 
-	retRes14358 := (<-this.LoadAccountsAsync())
-	PanicOnError(retRes14358)
+	retRes14348 := (<-this.LoadAccountsAsync())
+	PanicOnError(retRes14348)
 	var defaultAccountId *int64 = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
 	var accountId *int64 = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
 	params = this.Omit(params, []any{"accountId", "AccountId"})
@@ -2035,12 +2035,12 @@ func (this *Ndax) createOrderBody(ch chan any, symbol any, typeVar any, side any
 	var omsId *int64 = this.SafeInteger(this.Options, "omsId", 1)
 	if this.Markets == nil {
 
-		retRes160012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes160012)
+		retRes159912 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes159912)
 	}
 
-	retRes16028 := (<-this.LoadAccountsAsync())
-	PanicOnError(retRes16028)
+	retRes16018 := (<-this.LoadAccountsAsync())
+	PanicOnError(retRes16018)
 	var defaultAccountId *int64 = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
 	var accountId *int64 = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
 	var clientOrderId *int64 = this.SafeInteger2(params, "ClientOrderId", "clientOrderId")
@@ -2136,12 +2136,12 @@ func (this *Ndax) editOrderBody(ch chan any, id any, symbol any, typeVar any, si
 	var omsId *int64 = this.SafeInteger(this.Options, "omsId", 1)
 	if this.Markets == nil {
 
-		retRes167912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes167912)
+		retRes167812 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes167812)
 	}
 
-	retRes16818 := (<-this.LoadAccountsAsync())
-	PanicOnError(retRes16818)
+	retRes16808 := (<-this.LoadAccountsAsync())
+	PanicOnError(retRes16808)
 	var defaultAccountId *int64 = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
 	var accountId *int64 = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
 	var clientOrderId *int64 = this.SafeInteger2(params, "ClientOrderId", "clientOrderId")
@@ -2226,12 +2226,12 @@ func (this *Ndax) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var omsId *int64 = this.SafeInteger(this.Options, "omsId", 1)
 	if this.Markets == nil {
 
-		retRes174512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes174512)
+		retRes174412 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes174412)
 	}
 
-	retRes17478 := (<-this.LoadAccountsAsync())
-	PanicOnError(retRes17478)
+	retRes17468 := (<-this.LoadAccountsAsync())
+	PanicOnError(retRes17468)
 	var defaultAccountId *int64 = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
 	var accountId *int64 = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
 	params = this.Omit(params, []any{"accountId", "AccountId"})
@@ -2325,12 +2325,12 @@ func (this *Ndax) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	var omsId *int64 = this.SafeInteger(this.Options, "omsId", 1)
 	if this.Markets == nil {
 
-		retRes183412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes183412)
+		retRes183312 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes183312)
 	}
 
-	retRes18368 := (<-this.LoadAccountsAsync())
-	PanicOnError(retRes18368)
+	retRes18358 := (<-this.LoadAccountsAsync())
+	PanicOnError(retRes18358)
 	var defaultAccountId *int64 = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
 	var accountId *int64 = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
 	params = this.Omit(params, []any{"accountId", "AccountId"})
@@ -2386,12 +2386,12 @@ func (this *Ndax) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	var omsId *int64 = this.SafeInteger(this.Options, "omsId", 1)
 	if this.Markets == nil {
 
-		retRes187812 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes187812)
+		retRes187712 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes187712)
 	}
 
-	retRes18808 := (<-this.LoadAccountsAsync())
-	PanicOnError(retRes18808)
+	retRes18798 := (<-this.LoadAccountsAsync())
+	PanicOnError(retRes18798)
 	// const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', this.parseToInt (this.accounts[0]['id']));
 	// const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
 	// params = this.omit (params, [ 'accountId', 'AccountId' ]);
@@ -2451,12 +2451,12 @@ func (this *Ndax) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var omsId *int64 = this.SafeInteger(this.Options, "omsId", 1)
 	if this.Markets == nil {
 
-		retRes192112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes192112)
+		retRes192012 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes192012)
 	}
 
-	retRes19238 := (<-this.LoadAccountsAsync())
-	PanicOnError(retRes19238)
+	retRes19228 := (<-this.LoadAccountsAsync())
+	PanicOnError(retRes19228)
 	var defaultAccountId *int64 = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
 	var accountId *int64 = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
 	params = this.Omit(params, []any{"accountId", "AccountId"})
@@ -2556,12 +2556,12 @@ func (this *Ndax) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var omsId *int64 = this.SafeInteger(this.Options, "omsId", 1)
 	if this.Markets == nil {
 
-		retRes200312 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes200312)
+		retRes200212 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes200212)
 	}
 
-	retRes20058 := (<-this.LoadAccountsAsync())
-	PanicOnError(retRes20058)
+	retRes20048 := (<-this.LoadAccountsAsync())
+	PanicOnError(retRes20048)
 	var defaultAccountId *int64 = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
 	var accountId *int64 = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
 	params = this.Omit(params, []any{"accountId", "AccountId"})
@@ -2663,12 +2663,12 @@ func (this *Ndax) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	var omsId *int64 = this.SafeInteger(this.Options, "omsId", 1)
 	if this.Markets == nil {
 
-		retRes210012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes210012)
+		retRes209912 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes209912)
 	}
 
-	retRes21028 := (<-this.LoadAccountsAsync())
-	PanicOnError(retRes21028)
+	retRes21018 := (<-this.LoadAccountsAsync())
+	PanicOnError(retRes21018)
 	var defaultAccountId *int64 = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
 	var accountId *int64 = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
 	params = this.Omit(params, []any{"accountId", "AccountId"})
@@ -2768,12 +2768,12 @@ func (this *Ndax) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any)
 	var omsId *int64 = this.SafeInteger(this.Options, "omsId", 1)
 	if this.Markets == nil {
 
-		retRes218212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes218212)
+		retRes218112 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes218112)
 	}
 
-	retRes21848 := (<-this.LoadAccountsAsync())
-	PanicOnError(retRes21848)
+	retRes21838 := (<-this.LoadAccountsAsync())
+	PanicOnError(retRes21838)
 	// const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', this.parseToInt (this.accounts[0]['id']));
 	// const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
 	// params = this.omit (params, [ 'accountId', 'AccountId' ]);
@@ -2866,12 +2866,12 @@ func (this *Ndax) fetchDepositAddressBody(ch chan any, code any, optionalArgs ..
 	var omsId *int64 = this.SafeInteger(this.Options, "omsId", 1)
 	if this.Markets == nil {
 
-		retRes226412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes226412)
+		retRes226312 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes226312)
 	}
 
-	retRes22668 := (<-this.LoadAccountsAsync())
-	PanicOnError(retRes22668)
+	retRes22658 := (<-this.LoadAccountsAsync())
+	PanicOnError(retRes22658)
 	var defaultAccountId *int64 = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
 	var accountId *int64 = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
 	params = this.Omit(params, []any{"accountId", "AccountId"})
@@ -2961,9 +2961,9 @@ func (this *Ndax) createDepositAddressBody(ch chan any, code any, optionalArgs .
 		"GenerateNewKey": true,
 	}
 
-	retRes234115 := (<-this.FetchDepositAddressAsync(code, this.Extend(request, params)))
-	PanicOnError(retRes234115)
-	ch <- retRes234115
+	retRes234015 := (<-this.FetchDepositAddressAsync(code, this.Extend(request, params)))
+	PanicOnError(retRes234015)
+	ch <- retRes234015
 	return nil
 }
 
@@ -2997,12 +2997,12 @@ func (this *Ndax) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	var omsId *int64 = this.SafeInteger(this.Options, "omsId", 1)
 	if this.Markets == nil {
 
-		retRes235812 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes235812)
+		retRes235712 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes235712)
 	}
 
-	retRes23608 := (<-this.LoadAccountsAsync())
-	PanicOnError(retRes23608)
+	retRes23598 := (<-this.LoadAccountsAsync())
+	PanicOnError(retRes23598)
 	var defaultAccountId *int64 = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
 	var accountId *int64 = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
 	params = this.Omit(params, []any{"accountId", "AccountId"})
@@ -3085,12 +3085,12 @@ func (this *Ndax) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	var omsId *int64 = this.SafeInteger(this.Options, "omsId", 1)
 	if this.Markets == nil {
 
-		retRes242112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes242112)
+		retRes242012 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes242012)
 	}
 
-	retRes24238 := (<-this.LoadAccountsAsync())
-	PanicOnError(retRes24238)
+	retRes24228 := (<-this.LoadAccountsAsync())
+	PanicOnError(retRes24228)
 	var defaultAccountId *int64 = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
 	var accountId *int64 = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
 	params = this.Omit(params, []any{"accountId", "AccountId"})
@@ -3335,12 +3335,12 @@ func (this *Ndax) withdrawBody(ch chan any, code any, amount any, address any, o
 	var omsId *int64 = this.SafeInteger(this.Options, "omsId", 1)
 	if this.Markets == nil {
 
-		retRes263812 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes263812)
+		retRes263712 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes263712)
 	}
 
-	retRes26408 := (<-this.LoadAccountsAsync())
-	PanicOnError(retRes26408)
+	retRes26398 := (<-this.LoadAccountsAsync())
+	PanicOnError(retRes26398)
 	var defaultAccountId *int64 = this.SafeInteger2(this.Options, "accountId", "AccountId", this.ParseToInt(GetValue(GetValue(this.Accounts, 0), "id")))
 	var accountId *int64 = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
 	params = this.Omit(params, []any{"accountId", "AccountId"})

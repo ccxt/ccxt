@@ -4210,9 +4210,9 @@ func (this *Krakenfutures) transferOutBody(ch chan any, code any, amount any, op
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes348715 := (<-this.TransferAsync(code, amount, "future", "spot", params))
-	PanicOnError(retRes348715)
-	ch <- retRes348715
+	retRes348615 := (<-this.TransferAsync(code, amount, "future", "spot", params))
+	PanicOnError(retRes348615)
+	ch <- retRes348615
 	return nil
 }
 
@@ -4241,8 +4241,8 @@ func (this *Krakenfutures) transferBody(ch chan any, code any, amount any, fromA
 	_ = params
 	if this.Markets == nil {
 
-		retRes350512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes350512)
+		retRes350412 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes350412)
 	}
 	var currency map[string]any = MapTyped(this.Currency(code))
 	if IsEqual(fromAccount, "spot") {
@@ -4311,8 +4311,8 @@ func (this *Krakenfutures) setLeverageBody(ch chan any, leverage any, optionalAr
 	}
 	if this.Markets == nil {
 
-		retRes355612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes355612)
+		retRes355512 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes355512)
 	}
 	var marketIdUpper any = this.MarketId(symbol)
 	if marketIdUpper == nil {
@@ -4323,12 +4323,12 @@ func (this *Krakenfutures) setLeverageBody(ch chan any, leverage any, optionalAr
 		"symbol":      ToUpper(marketIdUpper),
 	}
 
-	retRes356915 := (<-this.PrivatePutLeveragepreferences(this.Extend(request, params)))
-	PanicOnError(retRes356915)
+	retRes356815 := (<-this.PrivatePutLeveragepreferences(this.Extend(request, params)))
+	PanicOnError(retRes356815)
 	//
 	// { result: "success", serverTime: "2023-08-01T09:40:32.345Z" }
 	//
-	ch <- retRes356915
+	ch <- retRes356815
 	return nil
 }
 
@@ -4355,8 +4355,8 @@ func (this *Krakenfutures) fetchLeveragesBody(ch chan any, optionalArgs ...any) 
 	_ = params
 	if this.Markets == nil {
 
-		retRes358312 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes358312)
+		retRes358212 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes358212)
 	}
 
 	response := (<-this.PrivateGetLeveragepreferences(params))
@@ -4403,8 +4403,8 @@ func (this *Krakenfutures) fetchLeverageBody(ch chan any, symbol any, optionalAr
 	}
 	if this.Markets == nil {
 
-		retRes361612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes361612)
+		retRes361512 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes361512)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var marketIdUpper any = this.MarketId(symbol)
@@ -5208,7 +5208,7 @@ func (this *Krakenfutures) FetchLeverageTiers(options ...FetchLeverageTiersOptio
  * @param {dict} [params] Exchange specific parameters
  * @returns a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Krakenfutures) TransferOut(code string, amount float64, options ...TransferOutOptions) (map[string]any, error) {
+func (this *Krakenfutures) TransferOut(code string, amount float64, options ...TransferOutOptions) (TransferEntry, error) {
 
 	opts := TransferOutOptionsStruct{}
 
@@ -5217,9 +5217,9 @@ func (this *Krakenfutures) TransferOut(code string, amount float64, options ...T
 	}
 	res := <-this.TransferOutAsync(code, amount, opts.Params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return TransferEntry{}, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewTransferEntry(res), nil
 }
 
 /**

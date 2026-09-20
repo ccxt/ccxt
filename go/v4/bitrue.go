@@ -3773,8 +3773,8 @@ func (this *Bitrue) setMarginBody(ch chan any, symbol any, amount any, optionalA
 	_ = params
 	if this.Markets == nil {
 
-		retRes323512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes323512)
+		retRes323412 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes323412)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "swap") != true {

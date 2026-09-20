@@ -1113,16 +1113,16 @@ func (this *Bitfinex) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes82512 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes82512)
+		retRes82412 := (<-this.LoadMarketsAsync())
+		ccxt.PanicOnError(retRes82412)
 	}
 	var balanceType *string = this.SafeString(params, "wallet", "exchange") // exchange, margin
 	params = this.Omit(params, "wallet")
 	var messageHash any = "balance:" + *balanceType
 
-	retRes83015 := (<-this.SubscribePrivateAsync(messageHash))
-	ccxt.PanicOnError(retRes83015)
-	ch <- retRes83015
+	retRes82915 := (<-this.SubscribePrivateAsync(messageHash))
+	ccxt.PanicOnError(retRes82915)
+	ch <- retRes82915
 	return nil
 }
 func (this *Bitfinex) HandleBalance(client any, message []any, subscription map[string]any) {
@@ -1358,9 +1358,9 @@ func (this *Bitfinex) authenticateBody(ch chan any, optionalArgs ...any) any {
 		this.Watch(url, messageHash, message, messageHash)
 	}
 
-	retRes105115 := <-future.(*ccxt.Future).Await()
-	ccxt.PanicOnError(retRes105115)
-	ch <- retRes105115
+	retRes105015 := <-future.(*ccxt.Future).Await()
+	ccxt.PanicOnError(retRes105015)
+	ch <- retRes105015
 	return nil
 }
 func (this *Bitfinex) HandleAuthenticationMessage(client any, message map[string]any) {
@@ -1408,8 +1408,8 @@ func (this *Bitfinex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes108312 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes108312)
+		retRes108212 := (<-this.LoadMarketsAsync())
+		ccxt.PanicOnError(retRes108212)
 	}
 	var messageHash any = "orders"
 	if symbol != nil {
