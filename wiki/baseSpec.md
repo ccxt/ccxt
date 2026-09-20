@@ -5671,6 +5671,7 @@ fetches historical positions
 * [bydfi](/exchanges/bydfi.md#fetchpositionshistory)
 * [extended](/exchanges/extended.md#fetchpositionshistory)
 * [gate](/exchanges/gate.md#fetchpositionshistory)
+* [krakenfutures](/exchanges/krakenfutures.md#fetchpositionshistory)
 * [kucoin](/exchanges/kucoin.md#fetchpositionshistory)
 * [mexc](/exchanges/mexc.md#fetchpositionshistory)
 * [mudrex](/exchanges/mudrex.md#fetchpositionshistory)
