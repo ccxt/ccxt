@@ -16,9 +16,12 @@ import ccxt.async_support as ccxt  # noqa: F402
 from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
 async def test_fetch_history_base():
+    # the throttler is not under test here, the default 2000ms rateLimit
+    # would otherwise add 4 seconds of pure waiting between the three calls
     exchange = ccxt.Exchange({
         'id': 'sampleexchange',
         'fetchHistoryCacheSize': 2,
+        'enableRateLimit': False,
     })
     assert test_shared_methods.exchange_prop(exchange, 'fetchHistoryCacheSize') == 2, 'fetchHistoryCacheSize should be 2'
     true_assertion = exchange.parse_number(None) is None
