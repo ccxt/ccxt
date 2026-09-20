@@ -981,6 +981,67 @@ function order_router_test_execute_takes_a_route_directly($router) {
     order_router_assert($viaRoute->calls === $viaPlan->calls, 'the same orders reach the venue either way');
 }
 
+function order_router_test_balances_shapes($router) {
+    //  array('mexc' => array('USDT' => 100)) is the obvious thing to write, and it used to be
+    //  stringified and shipped for the server to reject with a message naming neither shape.
+    $nested = $router->routeQuery('USDT', 'BTC', array('balances' => array('mexc' => array('USDT' => 100, 'BTC' => 0.5))));
+    order_router_assert(strpos($nested, 'mexc.BTC%3A0.5') !== false, 'the nested wallet renders: ' . $nested);
+    order_router_assert(strpos($nested, 'mexc.USDT%3A100') !== false, 'both assets render: ' . $nested);
+    $flat = $router->routeQuery('USDT', 'BTC', array('balances' => array('USDT' => 100)));
+    order_router_assert(strpos($flat, 'USDT%3A100') !== false, 'a flat wallet renders: ' . $flat);
+    $already = $router->routeQuery('USDT', 'BTC', array('balances' => 'mexc.USDT:100'));
+    order_router_assert(strpos($already, 'mexc.USDT%3A100') !== false, 'a rendered string passes through');
+    //  the body renders balances FIRST, before the number shortcut every other param takes
+    $body = $router->routeBody('USDT', 'BTC', array('balances' => array('mexc' => array('USDT' => 100)), 'amountIn' => 20));
+    order_router_assert($body['balances'] === 'mexc.USDT:100', 'rendered in the body too');
+    order_router_assert($body['amountIn'] === 20, 'numbers still travel as numbers');
+    order_router_assert_throws(function () use ($router) {
+        $router->routeBody('USDT', 'BTC', array('balances' => 12345));
+    }, BadRequest::class, 'a number is not a wallet');
+    //  and no route param is silently stringified any more
+    order_router_assert_throws(function () use ($router) {
+        $router->routeQuery('USDT', 'BTC', array('bridges' => array('nope' => true)));
+    }, BadRequest::class, 'an unrenderable param is refused');
+}
+
+function order_router_test_execute_two_arg($router) {
+    $venue = new OrderRouterStubVenue('stub');
+    $held = new OrderRouter(array('venues' => array('stub' => $venue)));
+    $route = order_router_one_leg_route('buy', 'BTC', 'USDT', 0.2, 100);
+    $short = $held->execute($route, array('usdRates' => array('USDT' => 1), 'idempotencyKey' => 'two-arg'));
+    order_router_assert($short['steps'][0]['status'] === 'filled', 'the two-argument form executed');
+    order_router_assert($short['dryRun'] === false, 'and it placed');
+    $other = new OrderRouterStubVenue('stub');
+    $long = $held->execute($route, array('stub' => $other), array('usdRates' => array('USDT' => 1), 'idempotencyKey' => 'three-arg'));
+    order_router_assert($long['steps'][0]['status'] === 'filled', 'the three-argument form still works');
+    order_router_assert(count($other->calls) > 0, 'the venues argument won');
+}
+
+function order_router_test_plan_shaping_refused($router) {
+    $plan = $router->buildExecutionPlan(order_router_one_leg_route('buy', 'BTC', 'USDT', 0.2, 100), array());
+    order_router_assert_throws(function () use ($router, $plan) {
+        $router->execute($plan, array('stub' => new OrderRouterStubVenue('stub')), array('slippageBps' => 1000, 'usdRates' => array('USDT' => 1)));
+    }, BadRequest::class, 'shaping an already-built plan is refused');
+}
+
+function order_router_test_cap_names_missing_half($router) {
+    $plan = $router->buildExecutionPlan(order_router_one_leg_route('buy', 'BTC', 'USDT', 0.2, 100), array());
+    $named = false;
+    try {
+        $router->execute($plan, array('stub' => new OrderRouterStubVenue('stub')), array('maxNotionalUsd' => 25));
+    } catch (\Throwable $e) {
+        $named = strpos($e->getMessage(), 'usdRates') !== false;
+    }
+    order_router_assert($named, 'the refusal names the missing half');
+}
+
+function order_router_test_markets_of($router) {
+    $venue = new OrderRouterStubVenue('stub');
+    $markets = $router->marketsOf(array('stub' => $venue));
+    order_router_assert(isset($markets['stub']), 'keyed by exchange id');
+    order_router_assert(isset($markets['stub']['BTC/USDT']), 'and holds that venue markets');
+}
+
 function order_router_test_execute_places_by_default($router) {
     //  `execute` is an imperative verb and ccxt's own createOrder needs no permission flag
     //  beside it. A method that silently does nothing is the same failure this class guards
@@ -1872,6 +1933,11 @@ function test_order_router() {
         'buildUnwindPlan is never automatic and never nets across venues' => 'ccxt\order_router_test_unwind_is_never_automatic',
         'a buy-side unwind order never spends more quote than the residual actually holds' => 'ccxt\order_router_test_unwind_buy_is_fundable',
         'execute takes a route directly, so the simple path is fetchRoute then execute' => 'ccxt\order_router_test_execute_takes_a_route_directly',
+        'balances accept the shape a caller actually writes' => 'ccxt\order_router_test_balances_shapes',
+        'execute takes options as its second argument' => 'ccxt\order_router_test_execute_two_arg',
+        'plan-shaping options with a built plan are refused, not ignored' => 'ccxt\order_router_test_plan_shaping_refused',
+        'a cap with no way to value the trade says which half is missing' => 'ccxt\order_router_test_cap_names_missing_half',
+        'marketsOf builds the dict checkExecutionPlanSafety wants' => 'ccxt\order_router_test_markets_of',
         'execute places orders: calling it is the instruction, not a flag beside it' => 'ccxt\order_router_test_execute_places_by_default',
         'a rehearsal is asked for once, by dryRun, and places nothing' => 'ccxt\order_router_test_rehearsal_is_dry_run',
         'dry_run is no longer a strategy: how and whether are separate fields' => 'ccxt\order_router_test_dry_run_is_not_a_strategy',

@@ -1209,6 +1209,57 @@ func TestOrderRouterPlanAgeIsReportedAndRefusedOnlyWhenAsked(t *testing.T) {
 	}
 }
 
+func TestOrderRouterBalancesShapes(t *testing.T) {
+	// map[string]any{"mexc": map[string]any{"USDT": 100}} is the obvious thing to write, and
+	// it used to be rendered with Go's debug formatter and shipped for the server to reject.
+	router := routerTestRouter(t)
+	nested, err := router.RouteQuery("USDT", "BTC", map[string]any{"balances": map[string]any{"mexc": map[string]any{"USDT": 100.0, "BTC": 0.5}}})
+	if err != nil {
+		t.Fatalf("a nested wallet renders: %v", err)
+	}
+	if !strings.Contains(nested, "mexc.BTC%3A0.5") || !strings.Contains(nested, "mexc.USDT%3A100") {
+		t.Fatalf("both assets render, got %s", nested)
+	}
+	flat, err := router.RouteQuery("USDT", "BTC", map[string]any{"balances": map[string]any{"USDT": 100.0}})
+	if err != nil || !strings.Contains(flat, "USDT%3A100") {
+		t.Fatalf("a flat wallet renders, got %s %v", flat, err)
+	}
+	// the body renders balances FIRST, before the number shortcut every other param takes
+	body, err := router.RouteBody("USDT", "BTC", map[string]any{"balances": map[string]any{"mexc": map[string]any{"USDT": 100.0}}, "amountIn": 20.0})
+	if err != nil {
+		t.Fatalf("body: %v", err)
+	}
+	if body["balances"] != "mexc.USDT:100" {
+		t.Fatalf("rendered in the body too, got %v", body["balances"])
+	}
+	if _, err := router.RouteBody("USDT", "BTC", map[string]any{"balances": 12345.0}); routerErrorCode(err) != "BadRequest" {
+		t.Fatalf("a number is not a wallet, got %v", err)
+	}
+	// and no route param is silently stringified any more
+	if _, err := router.RouteQuery("USDT", "BTC", map[string]any{"bridges": map[string]any{"nope": true}}); routerErrorCode(err) != "BadRequest" {
+		t.Fatalf("an unrenderable param is refused, got %v", err)
+	}
+}
+
+func TestOrderRouterPlanShapingRefused(t *testing.T) {
+	router := routerTestRouter(t)
+	plan := routerMustPlan(router.BuildExecutionPlan(routerOneLegRoute("buy", "BTC", "USDT", 0.2, 100), nil))
+	venues := routerStubVenues(map[string]*orderRouterStubVenue{"stub": newOrderRouterStubVenue(1, false)})
+	if _, err := router.Execute(plan, venues, map[string]any{"slippageBps": 1000.0, "usdRates": map[string]any{"USDT": 1.0}}); routerErrorCode(err) != "BadRequest" {
+		t.Fatalf("shaping an already-built plan is refused, got %v", err)
+	}
+}
+
+func TestOrderRouterCapNamesMissingHalf(t *testing.T) {
+	router := routerTestRouter(t)
+	plan := routerMustPlan(router.BuildExecutionPlan(routerOneLegRoute("buy", "BTC", "USDT", 0.2, 100), nil))
+	venues := routerStubVenues(map[string]*orderRouterStubVenue{"stub": newOrderRouterStubVenue(1, false)})
+	_, err := router.Execute(plan, venues, map[string]any{"maxNotionalUsd": 25.0})
+	if err == nil || !strings.Contains(err.Error(), "usdRates") {
+		t.Fatalf("the refusal names the missing half, got %v", err)
+	}
+}
+
 func TestOrderRouterExecutePlacesByDefault(t *testing.T) {
 	// `Execute` is an imperative verb and ccxt's own CreateOrder needs no permission flag
 	// beside it. A method that silently does nothing is the same failure this class guards

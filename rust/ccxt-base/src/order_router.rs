@@ -3789,8 +3789,12 @@ impl OrderRouter {
             if i > 0 {
                 text.push(',');
             }
-            text.push_str(&self.string_at(entry, "exchangeId", ""));
-            text.push('.');
+            //  a bare ASSET:amount, with no venue, means "wherever you hold it"
+            let venue_prefix = self.string_at(entry, "exchangeId", "");
+            if !venue_prefix.is_empty() {
+                text.push_str(&venue_prefix);
+                text.push('.');
+            }
             text.push_str(&self.string_at(entry, "asset", ""));
             text.push(':');
             text.push_str(&self.format_number(self.number_at(entry, "amount", 0.0))?);

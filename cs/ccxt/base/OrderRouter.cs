@@ -1751,7 +1751,10 @@ public class OrderRouter
             {
                 text = text + ",";
             }
-            text = text + this.StringAt(entry, "exchangeId", "") + "." + this.StringAt(entry, "asset", "") + ":" + this.FormatNumber(this.NumberAt(entry, "amount", 0));
+            //  a bare ASSET:amount, with no venue, means "wherever you hold it"
+            var venuePrefix = this.StringAt(entry, "exchangeId", "");
+            var scope = (venuePrefix == "") ? "" : (venuePrefix + ".");
+            text = text + scope + this.StringAt(entry, "asset", "") + ":" + this.FormatNumber(this.NumberAt(entry, "amount", 0));
         }
         return text;
     }

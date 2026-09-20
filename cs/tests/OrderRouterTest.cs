@@ -95,6 +95,9 @@ public class OrderRouterTest
         Run("buildUnwindPlan is never automatic and never nets across venues", UnwindNeverNetsAcrossVenues);
         Run("a buy-side unwind order never spends more quote than the residual actually holds", UnwindBuyIsFundable);
         //  3. execute — stub venues only, and not one real order anywhere
+        Run("balances accept the shape a caller actually writes", BalancesShapes);
+        RunAsync("plan-shaping options with a built plan are refused, not ignored", PlanShapingRefused);
+        RunAsync("a cap with no way to value the trade says which half is missing", CapNamesMissingHalf);
         RunAsync("execute places orders: calling it is the instruction, not a flag beside it", ExecutePlacesByDefault);
         RunAsync("a rehearsal is asked for once, by dryRun, and places nothing", RehearsalIsDryRun);
         RunAsync("dry_run is no longer a strategy: how and whether are separate fields", DryRunIsNotAStrategy);
@@ -1638,6 +1641,47 @@ public class OrderRouterTest
         {
             EqualString(actual[i], expected[i], message + ": call " + i.ToString(CultureInfo.InvariantCulture));
         }
+    }
+
+    private static void BalancesShapes()
+    {
+        //  new dict() { { "mexc", new dict() { { "USDT", 100 } } } } is the obvious thing to
+        //  write, and it used to be stringified and shipped for the server to reject.
+        var router = NewRouter();
+        var nested = router.RouteQuery("USDT", "BTC", new dict() { { "balances", new dict() { { "mexc", new dict() { { "USDT", 100.0 }, { "BTC", 0.5 } } } } } });
+        Ok(nested.IndexOf("mexc.BTC%3A0.5", StringComparison.Ordinal) >= 0, "the nested wallet renders: " + nested);
+        Ok(nested.IndexOf("mexc.USDT%3A100", StringComparison.Ordinal) >= 0, "both assets render: " + nested);
+        var flat = router.RouteQuery("USDT", "BTC", new dict() { { "balances", new dict() { { "USDT", 100.0 } } } });
+        Ok(flat.IndexOf("USDT%3A100", StringComparison.Ordinal) >= 0, "a flat wallet renders: " + flat);
+        //  the body renders balances FIRST, before the number shortcut every other param takes
+        var body = router.RouteBody("USDT", "BTC", new dict() { { "balances", new dict() { { "mexc", new dict() { { "USDT", 100.0 } } } } }, { "amountIn", 20.0 } });
+        EqualString((string)body["balances"], "mexc.USDT:100", "rendered in the body too");
+        Throws<BadRequest>(() => router.RouteBody("USDT", "BTC", new dict() { { "balances", 12345.0 } }), "a number is not a wallet");
+        //  and no route param is silently stringified any more
+        Throws<BadRequest>(() => router.RouteQuery("USDT", "BTC", new dict() { { "bridges", new dict() { { "nope", true } } } }), "an unrenderable param is refused");
+    }
+
+    private static async Task PlanShapingRefused()
+    {
+        var router = NewRouter();
+        var plan = router.BuildExecutionPlan(OneLegRoute("buy", "BTC", "USDT", 0.2, 100), new dict());
+        await Rejects<BadRequest>(async () => await router.Execute(plan, Venues(new StubVenue("stub")), new dict() { { "slippageBps", 1000.0 }, { "usdRates", new dict() { { "USDT", 1.0 } } } }), "shaping an already-built plan is refused");
+    }
+
+    private static async Task CapNamesMissingHalf()
+    {
+        var router = NewRouter();
+        var plan = router.BuildExecutionPlan(OneLegRoute("buy", "BTC", "USDT", 0.2, 100), new dict());
+        var named = false;
+        try
+        {
+            await router.Execute(plan, Venues(new StubVenue("stub")), new dict() { { "maxNotionalUsd", 25.0 } });
+        }
+        catch (Exception e)
+        {
+            named = e.Message.IndexOf("usdRates", StringComparison.Ordinal) >= 0;
+        }
+        Ok(named, "the refusal names the missing half");
     }
 
     private static async Task ExecutePlacesByDefault()

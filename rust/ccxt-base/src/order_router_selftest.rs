@@ -1662,6 +1662,8 @@ pub fn run() -> Result<usize, String> {
         ("a fee the router already subtracted is not subtracted a second time", Box::new(|| fee_is_not_subtracted_twice(&router()?))),
         ("a router that ignored the balances is caught, including when the wallet is empty", Box::new(|| balances_echo_is_verified(&router()?))),
         ("streamUrl upgrades the scheme, and close codes keep the REST vocabulary", Box::new(|| stream_url_and_close_codes(&router()?))),
+        ("balances accept the shape a caller actually writes", Box::new(|| balances_shapes(&router()?))),
+        ("plan-shaping options with a built plan are refused, not ignored", Box::new(|| plan_shaping_refused(&router()?))),
         ("execute: a rehearsal is asked for by dryRun and places nothing", Box::new(|| dry_run_places_nothing(&router()?))),
         ("execute: an unknown strategy is refused even in dry run", Box::new(|| an_unknown_strategy_is_refused_even_in_dry_run(&router()?))),
         ("execute: sequential places IOC limit orders in plan order", Box::new(|| sequential_places_and_fills(&router()?))),
@@ -1958,6 +1960,56 @@ fn execute_options(live: bool, strategy: &str) -> Value {
     options.insert("usdRates".to_string(), Value::Map(usd_rates));
     options.insert("markets".to_string(), Value::Map(markets));
     Value::Map(options)
+}
+
+fn balances_shapes(r: &OrderRouter) -> Result<(), String> {
+    //  A wallet map is the obvious thing to write, and it used to be rendered with Rust's own
+    //  debug formatter and shipped for the server to reject.
+    let mut inner = HashMap::new();
+    inner.insert("USDT".to_string(), Value::Float(100.0));
+    inner.insert("BTC".to_string(), Value::Float(0.5));
+    let mut nested = HashMap::new();
+    nested.insert("mexc".to_string(), Value::Map(inner));
+    let rendered = r.render_balances(&Value::Map(nested)).map_err(|e| e.to_string())?;
+    if rendered != "mexc.BTC:0.5,mexc.USDT:100" {
+        return Err(format!("the nested wallet renders sorted, got {rendered}"));
+    }
+    let mut flat = HashMap::new();
+    flat.insert("USDT".to_string(), Value::Float(100.0));
+    let flat_text = r.render_balances(&Value::Map(flat)).map_err(|e| e.to_string())?;
+    if flat_text != "USDT:100" {
+        return Err(format!("a flat wallet renders without a venue, got {flat_text}"));
+    }
+    let passthrough = r
+        .render_balances(&Value::Str("mexc.USDT:100".to_string()))
+        .map_err(|e| e.to_string())?;
+    if passthrough != "mexc.USDT:100" {
+        return Err("a rendered string passes through untouched".to_string());
+    }
+    //  a value that is neither is refused HERE, not at the far end
+    if r.render_balances(&Value::Float(12345.0)).is_ok() {
+        return Err("a number is not a wallet".to_string());
+    }
+    Ok(())
+}
+
+fn plan_shaping_refused(r: &OrderRouter) -> Result<(), String> {
+    //  slippageBps shapes a plan; passing it WITH a plan cannot do anything, and silently
+    //  ignoring it means trading at a different limit than the caller asked for.
+    let plan = one_leg_plan(r)?;
+    let venue = StubVenue::new("stub");
+    let mut venues: BTreeMap<String, Box<dyn RouterVenue>> = BTreeMap::new();
+    venues.insert("stub".to_string(), Box::new(venue));
+    let mut options = match execute_options(true, "sequential").as_map() {
+        Some(map) => map.clone(),
+        None => HashMap::new(),
+    };
+    options.insert("slippageBps".to_string(), Value::Float(1000.0));
+    match block_on(r.execute(&plan, &venues, &Value::Map(options))) {
+        Err(e) if e.message.contains("slippageBps") => Ok(()),
+        Err(e) => Err(format!("wrong refusal: {e}")),
+        Ok(_) => Err("shaping an already-built plan is refused".to_string()),
+    }
 }
 
 fn dry_run_places_nothing(r: &OrderRouter) -> Result<(), String> {

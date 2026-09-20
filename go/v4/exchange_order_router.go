@@ -1488,8 +1488,11 @@ func (this *OrderRouter) joinBalances(entries []map[string]any) (string, error) 
 		if err != nil {
 			return "", err
 		}
-		builder.WriteString(routerStringAt(entry, "exchangeId", ""))
-		builder.WriteString(".")
+		// a bare ASSET:amount, with no venue, means "wherever you hold it"
+		if venuePrefix := routerStringAt(entry, "exchangeId", ""); venuePrefix != "" {
+			builder.WriteString(venuePrefix)
+			builder.WriteString(".")
+		}
 		builder.WriteString(routerStringAt(entry, "asset", ""))
 		builder.WriteString(":")
 		builder.WriteString(amount)
