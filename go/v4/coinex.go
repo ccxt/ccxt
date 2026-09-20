@@ -5163,8 +5163,8 @@ func (this *Coinex) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	if this.Markets == nil {
 
-		retRes492512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes492512)
+		retRes492612 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes492612)
 	}
 	symbols = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
@@ -5236,8 +5236,8 @@ func (this *Coinex) withdrawBody(ch chan any, code any, amount any, address any,
 	this.CheckAddress(address)
 	if this.Markets == nil {
 
-		retRes497912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes497912)
+		retRes498012 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes498012)
 	}
 	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
@@ -5339,8 +5339,8 @@ func (this *Coinex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	}
 	if this.Markets == nil {
 
-		retRes506012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes506012)
+		retRes506112 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes506112)
 	}
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
@@ -5348,9 +5348,9 @@ func (this *Coinex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	params = GetValue(paginateparamsVariable, 1)
 	if paginate == true {
 
-		retRes506519 := (<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params, 1000))
-		PanicOnError(retRes506519)
-		ch <- retRes506519
+		retRes506619 := (<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params, 1000))
+		PanicOnError(retRes506619)
+		ch <- retRes506619
 		return nil
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
@@ -5551,8 +5551,8 @@ func (this *Coinex) transferBody(ch chan any, code any, amount any, fromAccount 
 	_ = params
 	if this.Markets == nil {
 
-		retRes523812 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes523812)
+		retRes523912 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes523912)
 	}
 	var currency map[string]any = MapTyped(this.Currency(code))
 	var amountToPrecision any = this.CurrencyToPrecision(code, amount)
@@ -5654,8 +5654,8 @@ func (this *Coinex) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes532012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes532012)
+		retRes532112 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes532112)
 	}
 	if code == nil {
 		panic(ArgumentsRequired(this.Id + " fetchTransfers() requires a code argument"))
@@ -5740,8 +5740,8 @@ func (this *Coinex) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes538112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes538112)
+		retRes538212 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes538212)
 	}
 	var request map[string]any = map[string]any{}
 	var currency any = nil
@@ -5822,8 +5822,8 @@ func (this *Coinex) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes544212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes544212)
+		retRes544312 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes544312)
 	}
 	var request map[string]any = map[string]any{}
 	var currency any = nil
@@ -5930,8 +5930,8 @@ func (this *Coinex) fetchIsolatedBorrowRateBody(ch chan any, symbol any, optiona
 	_ = params
 	if this.Markets == nil {
 
-		retRes553412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes553412)
+		retRes553512 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes553512)
 	}
 	var code *string = this.SafeString(params, "code")
 	if code == nil {
@@ -5999,8 +5999,8 @@ func (this *Coinex) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) an
 	_ = params
 	if this.Markets == nil {
 
-		retRes558012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes558012)
+		retRes558112 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes558112)
 	}
 	var request map[string]any = map[string]any{}
 	var market any = nil
@@ -6101,8 +6101,8 @@ func (this *Coinex) borrowIsolatedMarginBody(ch chan any, symbol any, code any, 
 	_ = params
 	if this.Markets == nil {
 
-		retRes566612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes566612)
+		retRes566712 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes566712)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var currency map[string]any = MapTyped(this.Currency(code))
@@ -6167,8 +6167,8 @@ func (this *Coinex) repayIsolatedMarginBody(ch chan any, symbol any, code any, a
 	_ = params
 	if this.Markets == nil {
 
-		retRes571712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes571712)
+		retRes571812 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes571812)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var currency map[string]any = MapTyped(this.Currency(code))
@@ -6246,8 +6246,8 @@ func (this *Coinex) fetchDepositWithdrawFeeBody(ch chan any, code any, optionalA
 	_ = params
 	if this.Markets == nil {
 
-		retRes578012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes578012)
+		retRes578112 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes578112)
 	}
 	var currency map[string]any = MapTyped(this.Currency(code))
 	var request map[string]any = map[string]any{
@@ -6318,8 +6318,8 @@ func (this *Coinex) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...an
 	_ = params
 	if this.Markets == nil {
 
-		retRes583512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes583512)
+		retRes583612 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes583612)
 	}
 
 	response := (<-this.V2PublicGetAssetsAllDepositWithdrawConfig(params))
@@ -6486,8 +6486,8 @@ func (this *Coinex) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...a
 	_ = params
 	if this.Markets == nil {
 
-		retRes597712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes597712)
+		retRes597812 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes597812)
 	}
 	var code *string = this.SafeString(params, "code")
 	if code == nil {
@@ -6574,8 +6574,8 @@ func (this *Coinex) fetchPositionHistoryBody(ch chan any, symbol any, optionalAr
 	_ = params
 	if this.Markets == nil {
 
-		retRes604512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes604512)
+		retRes604612 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes604612)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request any = map[string]any{
@@ -6672,8 +6672,8 @@ func (this *Coinex) closePositionBody(ch chan any, symbol any, optionalArgs ...a
 	_ = params
 	if this.Markets == nil {
 
-		retRes612412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes612412)
+		retRes612512 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes612512)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var typeVar *string = this.SafeString(params, "type", "market")
@@ -6920,8 +6920,8 @@ func (this *Coinex) fetchMarginAdjustmentHistoryBody(ch chan any, optionalArgs .
 	_ = params
 	if this.Markets == nil {
 
-		retRes633212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes633212)
+		retRes633312 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes633312)
 	}
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchMarginAdjustmentHistory() requires a symbol argument"))

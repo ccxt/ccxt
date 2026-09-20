@@ -6366,8 +6366,8 @@ func (this *Xt) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs ...a
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes49358 := (<-this.LoadMarketsAsync())
-	PanicOnError(retRes49358)
+	retRes49368 := (<-this.LoadMarketsAsync())
+	PanicOnError(retRes49368)
 	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "swap") != true {
 		panic(NotSupported(this.Id + " fetchOpenInterest() supports swap contracts only"))
@@ -6451,8 +6451,8 @@ func (this *Xt) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ...any
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes50008 := (<-this.LoadMarketsAsync())
-	PanicOnError(retRes50008)
+	retRes50018 := (<-this.LoadMarketsAsync())
+	PanicOnError(retRes50018)
 	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "contract") != true {
 		panic(NotSupported(this.Id + " fetchTradingFee() supports contract markets only"))
@@ -6519,8 +6519,8 @@ func (this *Xt) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes50498 := (<-this.LoadMarketsAsync())
-	PanicOnError(retRes50498)
+	retRes50508 := (<-this.LoadMarketsAsync())
+	PanicOnError(retRes50508)
 	var subType any = nil
 	subTypeparamsVariable := this.HandleSubTypeAndParams("fetchTradingFees", nil, params)
 	subType = GetValue(subTypeparamsVariable, 0)
@@ -6607,8 +6607,8 @@ func (this *Xt) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes510112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes510112)
+		retRes510212 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes510212)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "swap") != true {
@@ -6764,8 +6764,8 @@ func (this *Xt) fetchPositionBody(ch chan any, symbol any, optionalArgs ...any) 
 	_ = params
 	if this.Markets == nil {
 
-		retRes523312 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes523312)
+		retRes523412 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes523412)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -6874,8 +6874,8 @@ func (this *Xt) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes531912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes531912)
+		retRes532012 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes532012)
 	}
 	var subType any = nil
 	subTypeparamsVariable := this.HandleSubTypeAndParams("fetchPositions", nil, params)
@@ -6983,8 +6983,8 @@ func (this *Xt) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) any 
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	retRes54008 := (<-this.LoadMarketsAsync())
-	PanicOnError(retRes54008)
+	retRes54018 := (<-this.LoadMarketsAsync())
+	PanicOnError(retRes54018)
 	symbols = this.MarketSymbols(symbols)
 	var request any = map[string]any{}
 	var market any = nil
@@ -7185,8 +7185,8 @@ func (this *Xt) transferBody(ch chan any, code any, amount any, fromAccount any,
 	_ = params
 	if this.Markets == nil {
 
-		retRes557512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes557512)
+		retRes557612 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes557612)
 	}
 	var currency map[string]any = MapTyped(this.Currency(code))
 	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsById")
@@ -7264,8 +7264,8 @@ func (this *Xt) setMarginModeBody(ch chan any, marginMode any, optionalArgs ...a
 	}
 	if this.Markets == nil {
 
-		retRes563612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes563612)
+		retRes563712 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes563712)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	if GetValue(market, "spot") == true {
@@ -7355,8 +7355,8 @@ func (this *Xt) editOrderBody(ch chan any, id any, symbol any, typeVar any, side
 	}
 	if this.Markets == nil {
 
-		retRes570412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes570412)
+		retRes570512 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes570512)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{}

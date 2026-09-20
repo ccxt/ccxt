@@ -790,7 +790,7 @@ func (this *Coinmate) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(keys); i++ {
 		var market map[string]any = MapTyped(this.Market(GetValue(keys, i)))
-		var ticker any = this.ParseTicker(this.SafeDict(data, GetValue(keys, i)), market)
+		var ticker any = this.ParseTicker(this.SafeValue(data, GetValue(keys, i)), market)
 		AddElementToObject(result, market["symbol"], ticker)
 	}
 
@@ -868,8 +868,8 @@ func (this *Coinmate) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...
 	_ = params
 	if this.Markets == nil {
 
-		retRes64512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes64512)
+		retRes65012 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes65012)
 	}
 	var request map[string]any = map[string]any{
 		"limit": 1000,
@@ -1013,8 +1013,8 @@ func (this *Coinmate) withdrawBody(ch chan any, code any, amount any, address an
 	this.CheckAddress(address)
 	if this.Markets == nil {
 
-		retRes77112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes77112)
+		retRes77612 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes77612)
 	}
 	var currency map[string]any = MapTyped(this.Currency(code))
 	var withdrawOptions map[string]any = SafeMapTyped(this.Options, "withdraw")
@@ -1081,7 +1081,7 @@ func (this *Coinmate) withdrawBody(ch chan any, code any, amount any, address an
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data")
+	var data any = this.SafeDict(response, "data", map[string]any{})
 	var transaction any = this.ParseTransaction(data, currency)
 	var fillResponseFromRequest *bool = this.SafeBool(withdrawOptions, "fillResponseFromRequest", true)
 	if fillResponseFromRequest != nil && *fillResponseFromRequest == true {
@@ -1126,8 +1126,8 @@ func (this *Coinmate) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes84712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes84712)
+		retRes85212 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes85212)
 	}
 	if limit == nil {
 		limit = 1000
@@ -1248,8 +1248,8 @@ func (this *Coinmate) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	_ = params
 	if this.Markets == nil {
 
-		retRes94412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes94412)
+		retRes94912 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes94912)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -1302,8 +1302,8 @@ func (this *Coinmate) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs 
 	_ = params
 	if this.Markets == nil {
 
-		retRes98312 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes98312)
+		retRes98812 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes98812)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -1407,8 +1407,8 @@ func (this *Coinmate) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	if this.Markets == nil {
 
-		retRes104612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes104612)
+		retRes105112 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes105112)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -1561,8 +1561,8 @@ func (this *Coinmate) createOrderBody(ch chan any, symbol any, typeVar any, side
 	_ = params
 	if this.Markets == nil {
 
-		retRes118412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes118412)
+		retRes118912 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes118912)
 	}
 	var method any = "privatePost" + this.Capitalize(side)
 	var market map[string]any = MapTyped(this.Market(symbol))
@@ -1636,8 +1636,8 @@ func (this *Coinmate) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 	_ = params
 	if this.Markets == nil {
 
-		retRes123612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes123612)
+		retRes124112 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes124112)
 	}
 	var request map[string]any = map[string]any{
 		"orderId": id,

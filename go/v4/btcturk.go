@@ -1000,8 +1000,8 @@ func (this *Btcturk) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	_ = params
 	if this.Markets == nil {
 
-		retRes81912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes81912)
+		retRes82012 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes82012)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -1098,8 +1098,8 @@ func (this *Btcturk) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes88112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes88112)
+		retRes88212 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes88212)
 	}
 	var request map[string]any = map[string]any{}
 	var market any = nil
@@ -1147,8 +1147,8 @@ func (this *Btcturk) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes90912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes90912)
+		retRes91012 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes91012)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -1296,8 +1296,8 @@ func (this *Btcturk) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if this.Markets == nil {
 
-		retRes103712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes103712)
+		retRes103812 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes103812)
 	}
 	var market any = nil
 	if symbol != nil {

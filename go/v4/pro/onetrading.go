@@ -1508,9 +1508,9 @@ func (this *Onetrading) watchManyBody(ch chan any, messageHash any, request any,
 	ccxt.AddElementToObject(request, "type", typeVar)
 	ccxt.AddElementToObject(ccxt.GetValue(ccxt.GetValue(request, "channels"), 0), "instrument_codes", ccxt.ObjectKeys(subscription))
 
-	retRes137615 := (<-this.Watch(url, messageHash, this.DeepExtend(request, params), subscriptionHash, subscription))
-	ccxt.PanicOnError(retRes137615)
-	ch <- retRes137615
+	retRes137715 := (<-this.Watch(url, messageHash, this.DeepExtend(request, params), subscriptionHash, subscription))
+	ccxt.PanicOnError(retRes137715)
+	ch <- retRes137715
 	return nil
 }
 func (this *Onetrading) AuthenticateAsync(optionalArgs ...any) <-chan any {
@@ -1537,9 +1537,9 @@ func (this *Onetrading) authenticateBody(ch chan any, optionalArgs ...any) any {
 		this.Watch(url, messageHash, this.Extend(request, params), messageHash)
 	}
 
-	retRes139315 := <-future.(*ccxt.Future).Await()
-	ccxt.PanicOnError(retRes139315)
-	ch <- retRes139315
+	retRes139415 := <-future.(*ccxt.Future).Await()
+	ccxt.PanicOnError(retRes139415)
+	ch <- retRes139415
 	return nil
 }
 

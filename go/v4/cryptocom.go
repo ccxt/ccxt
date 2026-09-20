@@ -4105,8 +4105,8 @@ func (this *Cryptocom) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...
 	}
 	if this.Markets == nil {
 
-		retRes319112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes319112)
+		retRes319212 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes319212)
 	}
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
@@ -4114,9 +4114,9 @@ func (this *Cryptocom) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...
 	params = GetValue(paginateparamsVariable, 1)
 	if paginate == true {
 
-		retRes319619 := (<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params))
-		PanicOnError(retRes319619)
-		ch <- retRes319619
+		retRes319719 := (<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params))
+		PanicOnError(retRes319719)
+		ch <- retRes319719
 		return nil
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
@@ -4204,8 +4204,8 @@ func (this *Cryptocom) fetchPositionBody(ch chan any, symbol any, optionalArgs .
 	_ = params
 	if this.Markets == nil {
 
-		retRes326412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes326412)
+		retRes326512 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes326512)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -4266,8 +4266,8 @@ func (this *Cryptocom) fetchPositionsBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	if this.Markets == nil {
 
-		retRes330912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes330912)
+		retRes331012 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes331012)
 	}
 	symbols = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
@@ -4447,8 +4447,8 @@ func (this *Cryptocom) closePositionBody(ch chan any, symbol any, optionalArgs .
 	_ = params
 	if this.Markets == nil {
 
-		retRes346412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes346412)
+		retRes346512 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes346512)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -4504,8 +4504,8 @@ func (this *Cryptocom) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs
 	_ = params
 	if this.Markets == nil {
 
-		retRes350612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes350612)
+		retRes350712 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes350712)
 	}
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var request map[string]any = map[string]any{
@@ -4555,8 +4555,8 @@ func (this *Cryptocom) fetchTradingFeesBody(ch chan any, optionalArgs ...any) an
 	_ = params
 	if this.Markets == nil {
 
-		retRes354212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes354212)
+		retRes354312 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes354312)
 	}
 
 	response := (<-this.V1PrivatePostPrivateGetFeeRate(params))

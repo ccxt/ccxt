@@ -2179,7 +2179,7 @@ func (this *Krakenfutures) WatchBidsAsks(options ...ccxt.WatchBidsAsksOptions) (
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Krakenfutures) WatchTrades(symbol any, options ...ccxt.WatchTradesOptions) ([]ccxt.Trade, error) {
+func (this *Krakenfutures) WatchTrades(symbol string, options ...ccxt.WatchTradesOptions) ([]ccxt.Trade, error) {
 
 	opts := ccxt.WatchTradesOptionsStruct{}
 
@@ -2204,7 +2204,7 @@ func (this *Krakenfutures) WatchTrades(symbol any, options ...ccxt.WatchTradesOp
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Krakenfutures) WatchTradesForSymbols(symbols any, options ...ccxt.WatchTradesForSymbolsOptions) ([]ccxt.Trade, error) {
+func (this *Krakenfutures) WatchTradesForSymbols(symbols []string, options ...ccxt.WatchTradesForSymbolsOptions) ([]ccxt.Trade, error) {
 
 	opts := ccxt.WatchTradesForSymbolsOptionsStruct{}
 

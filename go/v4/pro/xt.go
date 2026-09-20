@@ -1301,7 +1301,7 @@ func (this *Xt) HandleTicker(client any, message map[string]any) any {
 	//       }
 	//    }
 	//
-	var data any = this.SafeDict(message, "data")
+	var data any = this.SafeDict(message, "data", map[string]any{})
 	var marketId *string = this.SafeString(data, "s")
 	if marketId != nil {
 		var cv *string = this.SafeString(data, "cv")
@@ -1523,7 +1523,7 @@ func (this *Xt) HandleTrade(client any, message map[string]any) any {
 	//        }
 	//    }
 	//
-	var data any = this.SafeDict(message, "data")
+	var data any = this.SafeDict(message, "data", map[string]any{})
 	var marketId *string = this.SafeStringLower(data, "s")
 	if marketId != nil {
 		var trade any = this.ParseTrade(data)
