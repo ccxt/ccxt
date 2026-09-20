@@ -404,7 +404,7 @@ fn base_urls() -> Value {
 
 fn base_status() -> Value {
     vmap(&[
-        ("status",  Value::Str("ok".to_string())),
+        ("status",  Value::Str("ok".into())),
         ("updated", Value::Null),
         ("eta",     Value::Null),
         ("url",     Value::Null),
@@ -448,7 +448,7 @@ fn base_http_exceptions() -> Value {
         ("401", "AuthenticationError"),   ("407", "AuthenticationError"),
         ("511", "AuthenticationError"),
     ] {
-        m.insert(code.to_string(), Value::Str(class.to_string()));
+        m.insert(code.to_string(), Value::Str(class.to_string().into()));
     }
     Value::Map(m)
 }
@@ -458,7 +458,7 @@ impl Exchange {
         let mut ex = Exchange {
             // Base-class id (Exchange.ts describe()). A derived exchange's
             // describe() overrides this with its own id.
-            id:        Value::Str("Exchange".to_string()),
+            id:        Value::Str("Exchange".into()),
             name:      Value::Null,
             countries: Value::Null,
             version:   Value::Null,
@@ -498,7 +498,7 @@ impl Exchange {
             timeout:              Value::Int(10_000),
             rateLimit:            Value::Int(2_000),
             enableRateLimit:      Value::Bool(true),
-            rateLimiterAlgorithm: Value::Str("leakyBucket".to_string()),
+            rateLimiterAlgorithm: Value::Str("leakyBucket".into()),
             rollingWindowSize:    Value::Int(60_000),
             tokenBucket:          Value::Map(HashMap::new()),
             userConfig:           Value::Null,
@@ -535,8 +535,8 @@ impl Exchange {
             currencies_by_id:  Value::Null,
             commonCurrencies:  {
                 let mut m = HashMap::new();
-                m.insert("XBT".to_string(),   Value::Str("BTC".to_string()));
-                m.insert("BCHSV".to_string(), Value::Str("BSV".to_string()));
+                m.insert("XBT".to_string(),   Value::Str("BTC".into()));
+                m.insert("BCHSV".to_string(), Value::Str("BSV".into()));
                 Value::Map(m)
             },
             baseCurrencies:    Value::Null,
@@ -559,9 +559,9 @@ impl Exchange {
             options: {
                 let mk = |p: &str, s: &str, d: &str| {
                     let mut e = HashMap::new();
-                    e.insert("primary".to_string(),   Value::Str(p.to_string()));
-                    e.insert("secondary".to_string(), Value::Str(s.to_string()));
-                    e.insert("default".to_string(),   Value::Str(d.to_string()));
+                    e.insert("primary".to_string(),   Value::Str(p.to_string().into()));
+                    e.insert("secondary".to_string(), Value::Str(s.to_string().into()));
+                    e.insert("default".to_string(),   Value::Str(d.to_string().into()));
                     Value::Map(e)
                 };
                 let mut repl = HashMap::new();
@@ -622,9 +622,9 @@ impl Exchange {
             user_agent:  Value::Null,
             userAgents:  {
                 let mut m = HashMap::new();
-                m.insert("chrome".to_string(), Value::Str("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36".to_string()));
-                m.insert("chrome39".to_string(), Value::Str("Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36".to_string()));
-                m.insert("chrome100".to_string(), Value::Str("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36".to_string()));
+                m.insert("chrome".to_string(), Value::Str("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36".into()));
+                m.insert("chrome39".to_string(), Value::Str("Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36".into()));
+                m.insert("chrome100".to_string(), Value::Str("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36".into()));
                 Value::Map(m)
             },
 
@@ -670,7 +670,7 @@ impl Exchange {
         } else {
             crate::runtime::deep_merge_dict(&described, &self.userConfig.clone())
         };
-        let get = |k: &str| crate::get_value(&props, &Value::Str(k.to_string()));
+        let get = |k: &str| crate::get_value(&props, &Value::Str(k.to_string().into()));
         let assign = |field: &mut Value, v: Value| {
             if !matches!(v, Value::Null) {
                 *field = v;
@@ -728,45 +728,45 @@ impl Exchange {
 
     fn apply_config(&mut self, cfg: &Value) {
         use crate::value::safe_string;
-        if let Some(v) = safe_string(cfg, "id",       None) { self.id       = Value::Str(v); }
-        if let Some(v) = safe_string(cfg, "name",     None) { self.name     = Value::Str(v); }
-        if let Some(v) = safe_string(cfg, "hostname", None) { self.hostname = Value::Str(v); }
-        let rate_limit = crate::get_value(cfg, &Value::Str("rateLimit".to_string()));
+        if let Some(v) = safe_string(cfg, "id",       None) { self.id       = Value::Str(v.into()); }
+        if let Some(v) = safe_string(cfg, "name",     None) { self.name     = Value::Str(v.into()); }
+        if let Some(v) = safe_string(cfg, "hostname", None) { self.hostname = Value::Str(v.into()); }
+        let rate_limit = crate::get_value(cfg, &Value::Str("rateLimit".into()));
         if matches!(rate_limit, Value::Int(_) | Value::Float(_)) { self.rateLimit = rate_limit; }
-        let timeout = crate::get_value(cfg, &Value::Str("timeout".to_string()));
+        let timeout = crate::get_value(cfg, &Value::Str("timeout".into()));
         if matches!(timeout, Value::Int(_) | Value::Float(_)) { self.timeout = timeout; }
-        let fetch_history_cache_size = crate::get_value(cfg, &Value::Str("fetchHistoryCacheSize".to_string()));
+        let fetch_history_cache_size = crate::get_value(cfg, &Value::Str("fetchHistoryCacheSize".into()));
         if matches!(fetch_history_cache_size, Value::Int(_) | Value::Float(_)) { self.fetchHistoryCacheSize = fetch_history_cache_size; }
-        let urls = crate::get_value(cfg, &Value::Str("urls".to_string()));
+        let urls = crate::get_value(cfg, &Value::Str("urls".into()));
         if let Value::Dict(_) = urls { self.urls = deep_merge(&self.urls, &urls); }
-        if let Some(v) = safe_string(cfg, "apiKey",        None) { self.apiKey        = Value::Str(v); }
-        if let Some(v) = safe_string(cfg, "secret",        None) { self.secret        = Value::Str(v); }
-        if let Some(v) = safe_string(cfg, "password",      None) { self.password      = Value::Str(v); }
-        if let Some(v) = safe_string(cfg, "uid",           None) { self.uid           = Value::Str(v); }
-        if let Some(v) = safe_string(cfg, "walletAddress", None) { self.walletAddress = Value::Str(v); }
-        if let Some(v) = safe_string(cfg, "privateKey",    None) { self.privateKey    = Value::Str(v); }
-        if let Some(v) = safe_string(cfg, "token",         None) { self.token         = Value::Str(v); }
-        if let Some(v) = safe_string(cfg, "login",         None) { self.login         = Value::Str(v); }
-        if let Some(v) = safe_string(cfg, "accountId",     None) { self.accountId     = Value::Str(v); }
-        if let Some(v) = safe_string(cfg, "httpProxy",     None) { self.httpProxy     = Value::Str(v); }
-        if let Some(v) = safe_string(cfg, "httpsProxy",    None) { self.httpsProxy    = Value::Str(v); }
-        if let Some(v) = safe_string(cfg, "socksProxy",    None) { self.socksProxy    = Value::Str(v); }
+        if let Some(v) = safe_string(cfg, "apiKey",        None) { self.apiKey        = Value::Str(v.into()); }
+        if let Some(v) = safe_string(cfg, "secret",        None) { self.secret        = Value::Str(v.into()); }
+        if let Some(v) = safe_string(cfg, "password",      None) { self.password      = Value::Str(v.into()); }
+        if let Some(v) = safe_string(cfg, "uid",           None) { self.uid           = Value::Str(v.into()); }
+        if let Some(v) = safe_string(cfg, "walletAddress", None) { self.walletAddress = Value::Str(v.into()); }
+        if let Some(v) = safe_string(cfg, "privateKey",    None) { self.privateKey    = Value::Str(v.into()); }
+        if let Some(v) = safe_string(cfg, "token",         None) { self.token         = Value::Str(v.into()); }
+        if let Some(v) = safe_string(cfg, "login",         None) { self.login         = Value::Str(v.into()); }
+        if let Some(v) = safe_string(cfg, "accountId",     None) { self.accountId     = Value::Str(v.into()); }
+        if let Some(v) = safe_string(cfg, "httpProxy",     None) { self.httpProxy     = Value::Str(v.into()); }
+        if let Some(v) = safe_string(cfg, "httpsProxy",    None) { self.httpsProxy    = Value::Str(v.into()); }
+        if let Some(v) = safe_string(cfg, "socksProxy",    None) { self.socksProxy    = Value::Str(v.into()); }
         // WS proxies: the `watch*` transport dials these through an HTTP
         // CONNECT tunnel. Without them here a config-supplied `wsProxy` set
         // the field on nothing and the socket quietly went direct.
-        if let Some(v) = safe_string(cfg, "wsProxy",       None) { self.wsProxy       = Value::Str(v); }
-        if let Some(v) = safe_string(cfg, "wssProxy",      None) { self.wssProxy      = Value::Str(v); }
+        if let Some(v) = safe_string(cfg, "wsProxy",       None) { self.wsProxy       = Value::Str(v.into()); }
+        if let Some(v) = safe_string(cfg, "wssProxy",      None) { self.wssProxy      = Value::Str(v.into()); }
         if let Some(b) = crate::value::safe_bool(cfg, "verbose",         None) { self.verbose         = Value::Bool(b); }
         if let Some(b) = crate::value::safe_bool(cfg, "enableRateLimit", None) { self.enableRateLimit = Value::Bool(b); }
         // Pre-populated state (mirrors CCXT TS Exchange constructor):
         // markets/currencies/options arrive ready to use from offline
         // tests, the CLI, or library users seeding state. `setMarkets`
         // also derives markets_by_id and symbols.
-        let markets    = crate::get_value(cfg, &Value::Str("markets".to_string()));
-        let currencies = crate::get_value(cfg, &Value::Str("currencies".to_string()));
+        let markets    = crate::get_value(cfg, &Value::Str("markets".into()));
+        let currencies = crate::get_value(cfg, &Value::Str("currencies".into()));
         if !matches!(markets,    Value::Null) { self.set_markets_inline(markets); }
         if !matches!(currencies, Value::Null) { self.currencies = currencies; }
-        let opts = crate::get_value(cfg, &Value::Str("options".to_string()));
+        let opts = crate::get_value(cfg, &Value::Str("options".into()));
         if let Value::Dict(extra) = opts {
             let mut merged = match &self.options {
                 Value::Dict(m) => (**m).clone(),
@@ -776,7 +776,7 @@ impl Exchange {
             for (k, v) in extra { merged.insert(k, v); }
             self.options = Value::Map(merged);
         }
-        let accounts = crate::get_value(cfg, &Value::Str("accounts".to_string()));
+        let accounts = crate::get_value(cfg, &Value::Str("accounts".into()));
         if !matches!(accounts, Value::Null) { self.accounts = accounts; }
     }
 
@@ -797,7 +797,7 @@ impl Exchange {
         for m in &arr {
             if let Some(s) = crate::value::safe_string(m, "symbol", None) {
                 by_symbol.insert(s.clone(), m.clone());
-                symbols.push(Value::Str(s));
+                symbols.push(Value::Str(s.into()));
             }
             if let Some(i) = crate::value::safe_string(m, "id", None) {
                 by_id.entry(i).or_default().push(m.clone());
@@ -834,21 +834,21 @@ impl Exchange {
             for field in [&self.socksProxy, &self.socks_proxy] {
                 if let Value::Str(s) = field {
                     if !s.is_empty() {
-                        if let Ok(p) = reqwest::Proxy::all(s.as_str()) { proxies.push(p); }
+                        if let Ok(p) = reqwest::Proxy::all(s.as_ref()) { proxies.push(p); }
                     }
                 }
             }
             for field in [&self.httpsProxy, &self.https_proxy] {
                 if let Value::Str(s) = field {
                     if !s.is_empty() {
-                        if let Ok(p) = reqwest::Proxy::https(s.as_str()) { proxies.push(p); }
+                        if let Ok(p) = reqwest::Proxy::https(s.as_ref()) { proxies.push(p); }
                     }
                 }
             }
             for field in [&self.httpProxy, &self.http_proxy] {
                 if let Value::Str(s) = field {
                     if !s.is_empty() {
-                        if let Ok(p) = reqwest::Proxy::http(s.as_str()) { proxies.push(p); }
+                        if let Ok(p) = reqwest::Proxy::http(s.as_ref()) { proxies.push(p); }
                     }
                 }
             }
@@ -857,7 +857,7 @@ impl Exchange {
             if proxies.is_empty() {
                 if let Value::Str(s) = &self.proxy {
                     if !s.is_empty() {
-                        if let Ok(p) = reqwest::Proxy::all(s.as_str()) { proxies.push(p); }
+                        if let Ok(p) = reqwest::Proxy::all(s.as_ref()) { proxies.push(p); }
                     }
                 }
             }
@@ -876,8 +876,8 @@ impl Exchange {
     }
 
     fn user_agent_str(&self) -> Option<&str> {
-        match &self.userAgent { Value::Str(s) => Some(s.as_str()), _ => match &self.user_agent {
-            Value::Str(s) => Some(s.as_str()), _ => None
+        match &self.userAgent { Value::Str(s) => Some(s.as_ref()), _ => match &self.user_agent {
+            Value::Str(s) => Some(s.as_ref()), _ => None
         }}
     }
 
@@ -905,7 +905,7 @@ impl Exchange {
         for (k, v) in m.iter() {
             let needle = format!("{{{k}}}");
             if out.contains(&needle) {
-                out = out.replace(&needle, &crate::runtime::stringify_param(v));
+                out = out.replace(&needle, &crate::runtime::stringify_param(v)).into();
             }
         }
         Value::Str(out)
@@ -922,13 +922,13 @@ impl Exchange {
         // `encode()` (CCXT's `hmac` takes the encoded request/secret).
         let dbytes = value_to_bytes(&data);
         let sbytes = value_to_bytes(&secret);
-        let h = match &hash { Value::Str(s) => s.clone(), _ => "sha256".to_string() };
+        let h = match &hash { Value::Str(s) => s.clone(), _ => "sha256".to_string().into() };
         let digest = match optional_args.get(0) {
             Some(Value::Str(d)) => d.clone(),
-            _ => "hex".to_string(),
+            _ => "hex".to_string().into(),
         };
         match self.hmac_typed(&dbytes, &sbytes, &h, &digest) {
-            Ok(v) => Value::Str(v),
+            Ok(v) => Value::Str(v.into()),
             Err(_) => Value::Null,
         }
     }
@@ -952,17 +952,17 @@ impl Exchange {
     pub fn hash(&self, data: Value, algo: Value, optional_args: &[Value]) -> Value {
         // `data` may be a string OR the byte-array produced by `encode()`.
         let dbytes = value_to_bytes(&data);
-        let a = match &algo { Value::Str(s) => s.clone(), _ => "sha256".to_string() };
+        let a = match &algo { Value::Str(s) => s.clone(), _ => "sha256".to_string().into() };
         let digest = match optional_args.get(0) {
             Some(Value::Str(d)) => d.clone(),
-            _ => "hex".to_string(),
+            _ => "hex".to_string().into(),
         };
         let raw = hash_raw(&dbytes, &a);
-        match digest.as_str() {
+        match digest.as_ref() {
             // `binary` → a byte-array Value (consumed by another crypto step).
             "binary" => Value::Array(raw.iter().map(|b| Value::Int(*b as i64)).collect()),
-            "base64" => Value::Str(B64.encode(&raw)),
-            _        => Value::Str(hex::encode(&raw)),
+            "base64" => Value::Str(B64.encode(&raw).into()),
+            _        => Value::Str(hex::encode(&raw).into()),
         }
     }
 
@@ -976,22 +976,22 @@ impl Exchange {
 
     pub fn binary_to_base64(&self, data: Value, _optional_args: &[Value]) -> Value {
         let bytes = value_to_bytes(&data);
-        Value::Str(B64.encode(&bytes))
+        Value::Str(B64.encode(&bytes).into())
     }
     pub fn base64_to_binary(&self, s: Value, _optional_args: &[Value]) -> Value {
         let str_val = match &s { Value::Str(s) => s.clone(), _ => return Value::Null };
-        match B64.decode(&str_val) {
+        match B64.decode(&*str_val) {
             Ok(b) => Value::Array(b.into_iter().map(|n| Value::Int(n as i64)).collect()),
             Err(_) => Value::Null,
         }
     }
     pub fn binary_to_base16(&self, data: Value, _optional_args: &[Value]) -> Value {
         let bytes = value_to_bytes(&data);
-        Value::Str(hex::encode(&bytes))
+        Value::Str(hex::encode(&bytes).into())
     }
     pub fn base16_to_binary(&self, s: Value, _optional_args: &[Value]) -> Value {
         let str_val = match &s { Value::Str(s) => s.clone(), _ => return Value::Null };
-        match hex::decode(&str_val) {
+        match hex::decode(&*str_val) {
             Ok(b) => Value::Array(b.into_iter().map(|n| Value::Int(n as i64)).collect()),
             Err(_) => Value::Null,
         }
@@ -1023,7 +1023,7 @@ impl Exchange {
             return Value::Null;
         }
         chrono::DateTime::<chrono::Utc>::from_timestamp_millis(n)
-            .map(|t| Value::Str(t.to_rfc3339_opts(chrono::SecondsFormat::Millis, true)))
+            .map(|t| Value::Str(t.to_rfc3339_opts(chrono::SecondsFormat::Millis, true).into()))
             .unwrap_or(Value::Null)
     }
 
@@ -1113,11 +1113,11 @@ impl Exchange {
 /// message/subscribe hashes for the WS drive loop.
 fn ws_string_list(v: &Value) -> Vec<String> {
     match v {
-        Value::Str(s) => vec![s.clone()],
+        Value::Str(s) => vec![s.to_string()],
         Value::Arr(a) => a
             .iter()
             .filter_map(|x| match x {
-                Value::Str(s) => Some(s.clone()),
+                Value::Str(s) => Some(s.to_string()),
                 _ => None,
             })
             .collect(),
@@ -1127,15 +1127,15 @@ fn ws_string_list(v: &Value) -> Vec<String> {
 
 pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
     fn fetch(&mut self, url: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
-        let url_str = match &url { Value::Str(s) => s.clone(), _ => crate::runtime::stringify_param(&url) };
-        let method = optional_args.get(0).cloned().unwrap_or(Value::Str("GET".to_string()));
+        let url_str = match &url { Value::Str(s) => s.to_string(), _ => crate::runtime::stringify_param(&url).into() };
+        let method = optional_args.get(0).cloned().unwrap_or(Value::Str("GET".into()));
         let headers = optional_args.get(1).cloned().unwrap_or(Value::Null);
         let body = optional_args.get(2).cloned().unwrap_or(Value::Null);
-        let method_str = match &method { Value::Str(s) => s.clone(), _ => "GET".to_string() };
-        let body_str = match &body { Value::Str(s) => Some(s.clone()), _ => None };
+        let method_str = match &method { Value::Str(s) => s.to_string(), _ => "GET".to_string().into() };
+        let body_str = match &body { Value::Str(s) => Some(s.to_string()), _ => None };
         let headers_map: HashMap<String, String> = match &headers {
             Value::Dict(m) => m.iter().filter_map(|(k, v)| match v {
-                Value::Str(s) => Some((k.clone(), s.clone())),
+                Value::Str(s) => Some((k.clone(), s.to_string())),
                 _ => None,
             }).collect(),
             _ => HashMap::new(),
@@ -1189,7 +1189,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
     ) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let __ws_proxy = [&self.wsProxy, &self.ws_proxy, &self.wssProxy]
             .iter()
-            .find_map(|v| match v { Value::Str(s) if !s.is_empty() => Some(s.clone()), _ => None });
+            .find_map(|v| match v { Value::Str(s) if !s.is_empty() => Some(s.to_string()), _ => None });
         let client = match crate::pro::ws_client::ensure_client(&url, __ws_proxy).await {
             Ok(c) => c,
             Err(e) => panic!("{}", e),
@@ -1209,7 +1209,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         }
         if send_subscribe && !matches!(message, Value::Null) {
             let payload = match &message {
-                Value::Str(s) => s.clone(),
+                Value::Str(s) => s.to_string(),
                 v => v.to_json().to_string(),
             };
             client.send_text(payload);
@@ -1222,7 +1222,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         // subscriptions come and go.
         crate::runtime::add_element_to_object(
             &mut self.clients,
-            &Value::Str(url.clone()),
+            &Value::Str(url.clone().into()),
             crate::pro::ws_client::client_value(&url),
         );
         // If an ancestor ws_run on this task is already driving `url`, don't
@@ -1289,7 +1289,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
                         "{}",
                         match &e {
                             Value::Str(s) => s.clone(),
-                            v => crate::runtime::stringify_param(v),
+                            v => crate::runtime::stringify_param(v).into(),
                         }
                     ),
                 }
@@ -1339,7 +1339,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         let params = args.get(4).cloned().unwrap_or(Value::Map(indexmap::IndexMap::new()));
         let err = |id: &Value| Value::Str(format!(
             "[ExchangeError] {} loadOrderBook() failed to synchronize",
-            match id { Value::Str(s) => s.as_str(), _ => "" }));
+            match id { Value::Str(s) => s.as_ref(), _ => "" }).into());
         if !crate::runtime::in_op(&self.orderbooks, &symbol) {
             crate::pro::ws_client::value_reject(&client, &[err(&self.id), message_hash]);
             return;
@@ -1348,7 +1348,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         let mut tries = 0;
         while tries < max_retries {
             let mut stored = crate::get_value(&self.orderbooks, &symbol);
-            let cache = crate::get_value(&stored, &Value::Str("cache".to_string()));
+            let cache = crate::get_value(&stored, &Value::Str("cache".into()));
             let snapshot = self
                 .dispatch_to_derived("fetch_rest_order_book_safe",
                     vec![symbol.clone(), limit.clone(), params.clone()])
@@ -1365,7 +1365,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
                     .map(|i| crate::get_value(&cache, &Value::Int(i)))
                     .collect();
                 self.dispatch_to_derived("handle_deltas", vec![stored.clone(), Value::List(deltas)]).await;
-                crate::set_value(&mut stored, &Value::Str("cache".to_string()), Value::List(Vec::new()));
+                crate::set_value(&mut stored, &Value::Str("cache".into()), Value::List(Vec::new()));
                 crate::pro::ws_client::value_resolve(&client, &[stored.clone(), message_hash.clone()]);
                 return;
             }
@@ -1380,11 +1380,11 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         message_hash: Value,
         optional_args: &[Value],
     ) -> impl ::std::future::Future<Output = Value> + Send { async move {
-        let url_s = match &url { Value::Str(s) => s.clone(), v => crate::runtime::stringify_param(v) };
-        let hash_s = match &message_hash { Value::Str(s) => s.clone(), v => crate::runtime::stringify_param(v) };
+        let url_s = match &url { Value::Str(s) => s.to_string(), v => crate::runtime::stringify_param(v) };
+        let hash_s = match &message_hash { Value::Str(s) => s.to_string(), v => crate::runtime::stringify_param(v) };
         let message = optional_args.get(0).cloned().unwrap_or(Value::Null);
         let subscribe_hash = optional_args.get(1).cloned().unwrap_or(message_hash.clone());
-        let sub_hash_s = match &subscribe_hash { Value::Str(s) => s.clone(), v => crate::runtime::stringify_param(v) };
+        let sub_hash_s = match &subscribe_hash { Value::Str(s) => s.to_string(), v => crate::runtime::stringify_param(v) };
         let subscription = optional_args.get(2).cloned().unwrap_or(Value::Null);
         self.ws_run(url_s, vec![hash_s], message, vec![sub_hash_s], subscription).await
     } }
@@ -1395,7 +1395,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         message_hashes: Value,
         optional_args: &[Value],
     ) -> impl ::std::future::Future<Output = Value> + Send { async move {
-        let url_s = match &url { Value::Str(s) => s.clone(), v => crate::runtime::stringify_param(v) };
+        let url_s = match &url { Value::Str(s) => s.to_string(), v => crate::runtime::stringify_param(v) };
         let hashes = ws_string_list(&message_hashes);
         let message = optional_args.get(0).cloned().unwrap_or(Value::Null);
         let subscribe_hashes = ws_string_list(&optional_args.get(1).cloned().unwrap_or(Value::Null));
@@ -1411,12 +1411,12 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         body:    Option<String>,
     ) -> impl ::std::future::Future<Output = Result<Value>> + Send { async move {
         let _fetch_call_count = HTTP_CALLS.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-        self.last_request_url     = Value::Str(url.to_string());
+        self.last_request_url     = Value::Str(url.to_string().into());
         self.last_request_headers = Value::Map(headers.iter()
-            .map(|(k, v)| (k.clone(), Value::Str(v.clone())))
+            .map(|(k, v)| (k.clone(), Value::Str(v.clone().into())))
             .collect());
         self.last_request_body    = match &body {
-            Some(b) => Value::Str(b.clone()),
+            Some(b) => Value::Str(b.clone().into()),
             None    => Value::Null,
         };
         // map iteration is unordered, so sort the fragments for a deterministic pick
@@ -1445,7 +1445,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             return Err(ExchangeError::new(
                 "InvalidProxySettings",
                 format!("{} you have multiple conflicting proxy settings, please use only one from: httpProxy, httpsProxy, socksProxy",
-                    match &self.id { Value::Str(s) => s.as_str(), _ => "" }),
+                    match &self.id { Value::Str(s) => s.as_ref(), _ => "" }),
             ));
         }
         let client = self.http_client().clone();
@@ -1493,10 +1493,10 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
                 self,
                 Value::Int(status as i64),
                 Value::Null,
-                Value::Str(url.to_string()),
-                Value::Str(method.to_string()),
+                Value::Str(url.to_string().into()),
+                Value::Str(method.to_string().into()),
                 Value::Null,
-                Value::Str(text.clone()),
+                Value::Str(text.clone().into()),
                 json.clone(),
                 Value::Null,
                 Value::Null,
@@ -1509,7 +1509,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             ));
         }
         if matches!(json, Value::Null) {
-            return Ok(Value::Str(text));
+            return Ok(Value::Str(text.into()));
         }
         Ok(json)
     } }
@@ -1520,28 +1520,28 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             self.throttle(&[cost]).await;
         }
         let api_arg = if scope_segments.len() == 1 {
-            Value::Str(scope_segments[0].clone())
+            Value::Str(scope_segments[0].clone().into())
         } else {
-            Value::Array(scope_segments.iter().map(|s| Value::Str(s.clone())).collect())
+            Value::Array(scope_segments.iter().map(|s| Value::Str(s.clone().into())).collect())
         };
         let scope_lookup: String = scope_segments.first().cloned().unwrap_or_default();
         // Static dispatch to the derived exchange's sign override.
         let signed = crate::exchange::DerivedExchange::sign(
             self,
-            Value::Str(path.to_string()),
+            Value::Str(path.to_string().into()),
             api_arg,
-            Value::Str(verb.to_string()),
+            Value::Str(verb.to_string().into()),
             params.clone(),
             Value::Null,
             Value::Null,
         );
         if let Value::Dict(m) = &signed {
-            let url = match m.get("url") { Some(Value::Str(s)) => s.clone(), _ => String::new() };
-            let method = match m.get("method") { Some(Value::Str(s)) => s.clone(), _ => verb.to_string() };
-            let body = match m.get("body") { Some(Value::Str(s)) => Some(s.clone()), _ => None };
+            let url = match m.get("url") { Some(Value::Str(s)) => s.to_string(), _ => String::new().into() };
+            let method = match m.get("method") { Some(Value::Str(s)) => s.to_string(), _ => verb.to_string().into() };
+            let body = match m.get("body") { Some(Value::Str(s)) => Some(s.to_string()), _ => None };
             let headers = match m.get("headers") {
                 Some(Value::Dict(h)) => h.iter()
-                    .filter_map(|(k, v)| match v { Value::Str(s) => Some((k.clone(), s.clone())), _ => None })
+                    .filter_map(|(k, v)| match v { Value::Str(s) => Some((k.clone(), s.to_string())), _ => None })
                     .collect::<HashMap<_, _>>(),
                 _ => HashMap::new(),
             };
@@ -1553,8 +1553,8 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             "BadRequest",
             format!("no URL configured for api scope `{scope_lookup}`"),
         ))?;
-        let imploded = self.implode_params(Value::Str(path.to_string()), params.clone());
-        let path_str = match &imploded { Value::Str(s) => s.clone(), _ => path.to_string() };
+        let imploded = self.implode_params(Value::Str(path.to_string().into()), params.clone());
+        let path_str = match &imploded { Value::Str(s) => s.clone(), _ => path.to_string().into() };
         let consumed_keys = self.extract_path_params(path);
         let remaining_params = match params {
             Value::Dict(m) => {
@@ -1583,7 +1583,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         let mut headers = HashMap::new();
         if scope_lookup != "public" {
             if let Value::Str(k) = &self.apiKey {
-                headers.insert("X-MBX-APIKEY".to_string(), k.clone());
+                headers.insert("X-MBX-APIKEY".to_string(), k.to_string());
             }
         }
         self.fetch_typed(&url, verb, headers, body).await
@@ -1603,14 +1603,14 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             )),
         };
         let api = if scope_segments.len() == 1 {
-            Value::Str(scope_segments[0].clone())
+            Value::Str(scope_segments[0].clone().into())
         } else {
-            Value::Array(scope_segments.iter().map(|s| Value::Str(s.clone())).collect())
+            Value::Array(scope_segments.iter().map(|s| Value::Str(s.clone().into())).collect())
         };
         let cost = if matches!(self.enableRateLimit, Value::Bool(true)) {
             self.call_dynamic(
                 "calculate_rate_limiter_cost",
-                vec![api, Value::Str(verb.clone()), Value::Str(path.clone()), params.clone(), config],
+                vec![api, Value::Str(verb.clone().into()), Value::Str(path.clone().into()), params.clone(), config],
             ).await
         } else {
             Value::Null
@@ -1662,7 +1662,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             return self.markets.clone();
         }
         let has_fetch_currencies = matches!(
-            crate::get_value(&self.has, &Value::Str("fetchCurrencies".to_string())),
+            crate::get_value(&self.has, &Value::Str("fetchCurrencies".into())),
             Value::Bool(true),
         );
         let mut currencies = Value::Null;
@@ -1687,7 +1687,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             crate::exchange_stubs::synthesize_currencies_from_markets(&fetched, &self.precisionMode)
         };
         let is_prediction = matches!(
-            crate::get_value(&self.has, &Value::Str("prediction".to_string())),
+            crate::get_value(&self.has, &Value::Str("prediction".into())),
             Value::Bool(true),
         );
         if is_prediction {
@@ -1704,11 +1704,11 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             if let Value::Dict(by_id_arc) = &self.markets_by_id {
                 let mut by_id = (**by_id_arc).clone();
                 for market in markets.values() {
-                    let id  = crate::get_value(market, &Value::Str("id".to_string()));
-                    let id2 = crate::get_value(market, &Value::Str("id2".to_string()));
+                    let id  = crate::get_value(market, &Value::Str("id".into()));
+                    let id2 = crate::get_value(market, &Value::Str("id2".into()));
                     if let (Value::Str(id2s), Value::Str(ids)) = (&id2, &id) {
-                        if id2s != ids && !id2s.is_empty() && !by_id.contains_key(id2s) {
-                            by_id.insert(id2s.clone(), Value::List(vec![market.clone()]));
+                        if id2s != ids && !id2s.is_empty() && !by_id.contains_key(id2s.as_ref()) {
+                            by_id.insert(id2s.to_string(), Value::List(vec![market.clone()]));
                         }
                     }
                 }
@@ -2087,9 +2087,9 @@ impl Exchange {
     /// Resolves the base URL for a given api scope. Looks up
     /// `urls.api.<scope>`; if that's itself a map, prefers `rest`.
     fn url_for_scope(&self, scope: &str) -> Option<String> {
-        let api = crate::get_value(&self.urls, &Value::Str("api".to_string()));
+        let api = crate::get_value(&self.urls, &Value::Str("api".into()));
         // Try scoped first (binance-style: urls.api.public, urls.api.private).
-        let scoped = crate::get_value(&api, &Value::Str(scope.to_string()));
+        let scoped = crate::get_value(&api, &Value::Str(scope.to_string().into()));
         let raw = match scoped {
             Value::Str(s) => s,
             Value::Dict(m) => match m.get("rest").or_else(|| m.get("current")) {
@@ -2105,7 +2105,7 @@ impl Exchange {
     /// a single `urls.api.rest` URL for all scopes. Fall back to it
     /// when the per-scope lookup misses.
     fn fallback_rest_url(&self, api: &Value) -> Option<String> {
-        let rest = crate::get_value(api, &Value::Str("rest".to_string()));
+        let rest = crate::get_value(api, &Value::Str("rest".into()));
         if let Value::Str(s) = rest {
             return Some(self.implode_hostname_typed(&s));
         }
@@ -2447,7 +2447,7 @@ mod response_mock_tests {
             "https://api.binance.com/api/v3/order".to_string(),
         ));
         assert_eq!(get_value(&exchange.exchange.last_request_headers,
-            &Value::Str("X-MBX-APIKEY".to_string())), Value::Str("fixture-key".to_string()));
+            &Value::Str("X-MBX-APIKEY".into())), Value::Str("fixture-key".into()));
         let Value::Str(body) = &exchange.exchange.last_request_body else {
             panic!("signed POST must retain its encoded body");
         };
@@ -2605,7 +2605,7 @@ mod throttle_tests {
         exchange.build_implicit_api();
         let ticker_config = &exchange.internals.implicit_api["public_get_ticker"].3;
         assert_eq!(
-            crate::get_value(ticker_config, &Value::Str("cost".to_string())),
+            crate::get_value(ticker_config, &Value::Str("cost".into())),
             Value::Float(0.1),
             "numeric endpoint costs must be normalized to a config object"
         );
@@ -2680,7 +2680,7 @@ mod rate_limit_config_tests {
             .3
             .clone();
         assert_eq!(
-            crate::get_value(&config, &Value::Str("cost".to_string())),
+            crate::get_value(&config, &Value::Str("cost".into())),
             Value::Int(2),
             "the implicit API table dropped the endpoint's base cost"
         );
@@ -2708,11 +2708,11 @@ mod sandbox_mode_tests {
     #[test]
     fn binance_sandbox_swaps_api_url() {
         let mut b = crate::exchanges::binance::BinanceCore::new(None);
-        let test_url = crate::get_value(&b.exchange.urls, &Value::Str("test".to_string()));
+        let test_url = crate::get_value(&b.exchange.urls, &Value::Str("test".into()));
         assert!(!matches!(test_url, Value::Null), "binance describe() has no test url");
         b.set_sandbox_mode(Value::Bool(true));
         assert_eq!(b.exchange.isSandboxModeEnabled, Value::Bool(true));
-        let api_url = crate::get_value(&b.exchange.urls, &Value::Str("api".to_string()));
+        let api_url = crate::get_value(&b.exchange.urls, &Value::Str("api".into()));
         assert_eq!(api_url, test_url, "sandbox mode did not switch urls['api'] to urls['test']");
     }
 }
@@ -2739,7 +2739,7 @@ mod dynamic_dispatch_tests {
     async fn unified_method_reaches_a_dispatch_arm_not_the_null_fallthrough() {
         let mut b = crate::exchanges::binance::BinanceCore::new(None);
         let snake = crate::exchange::method_name_to_snake_case(
-            &Value::Str("fetchOHLCV".to_string()));
+            &Value::Str("fetchOHLCV".into()));
         assert_eq!(snake, "fetch_ohlcv");
         b.exchange.internals.dynamic_dispatch_miss = None;
         let _ = futures::FutureExt::catch_unwind(
@@ -2767,7 +2767,7 @@ mod dynamic_dispatch_tests {
         let mut b = crate::exchanges::binance::BinanceCore::new(None);
         b.exchange.build_implicit_api();
         let snake = crate::exchange::method_name_to_snake_case(
-            &Value::Str("publicGetTicker24hr".to_string()));
+            &Value::Str("publicGetTicker24hr".into()));
         assert!(
             b.exchange.internals.implicit_api.contains_key(&snake),
             "implicit api has no `{snake}` entry — the `_` arm would treat a real \
@@ -2784,7 +2784,7 @@ mod dynamic_dispatch_tests {
     async fn unknown_dynamic_name_is_loud_not_null() {
         let mut b = crate::exchanges::binance::BinanceCore::new(None);
         let _ = b.call_dynamic_checked(
-            Value::Str("fetchNoSuchThingAtAll".to_string()),
+            Value::Str("fetchNoSuchThingAtAll".into()),
             vec![],
         ).await;
     }
