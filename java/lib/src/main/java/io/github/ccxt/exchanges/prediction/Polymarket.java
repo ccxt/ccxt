@@ -1629,7 +1629,7 @@ final Object finalClobTokenId = clobTokenId;
             last = mid;
         }
         Object outcome = this.safeOutcomeSymbol(null, market);
-        Long timestamp = this.safeInteger(bookData, "timestamp", this.milliseconds());
+        Long timestamp = this.safeInteger(bookData, "timestamp");
         Object quoteVolume = null;
         if (Helpers.isTrue(!Helpers.isEqual(market, null)))
         {
@@ -1961,15 +1961,14 @@ final Object finalClobTokenId = clobTokenId;
         //     { "market": "0x7976b8...92", "value": 4925662.470476 }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Long timestamp = this.milliseconds();
         Object openInterest = this.safeOpenInterest(new HashMap<String, Object>() {{
             put( "symbol", Polymarket.this.safeOutcomeSymbol(null, market) );
             put( "openInterestAmount", null );
             put( "openInterestValue", Polymarket.this.safeNumber(interest, "value") );
             put( "baseVolume", null );
             put( "quoteVolume", null );
-            put( "timestamp", timestamp );
-            put( "datetime", Polymarket.this.iso8601(timestamp) );
+            put( "timestamp", null );
+            put( "datetime", null );
             put( "info", interest );
         }}, market);
         Helpers.addElementToObject(openInterest, "outcome", this.safeOutcomeSymbol(null, market));
@@ -4401,12 +4400,12 @@ final Object finalOutcome = outcome;
     {
         if (Helpers.isTrue(Helpers.isEqual(raw, null)))
         {
-            return this.milliseconds();
+            return null;
         }
         Long n = this.parseToInt(raw);
         if (Helpers.isTrue(Helpers.isEqual(n, null)))
         {
-            return this.milliseconds();
+            return null;
         }
         return n;
     }

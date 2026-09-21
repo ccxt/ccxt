@@ -2861,7 +2861,7 @@ public partial class modetrade : Exchange
         if (isTrue(!isEqual(code, null)))
         {
             currency = this.currency(((string)code));
-            ((IDictionary<string,object>)request)["balance_token"] = getValue(currency, "id");
+            ((IDictionary<string,object>)request)["token"] = getValue(currency, "id");
         }
         if (isTrue(!isEqual(since, null)))
         {
@@ -2869,7 +2869,7 @@ public partial class modetrade : Exchange
         }
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["pageSize"] = limit;
+            ((IDictionary<string,object>)request)["size"] = limit;
         }
         string? transactionType = this.safeString(parameters, "type");
         parameters = this.omit(parameters, "type");
@@ -2909,21 +2909,47 @@ public partial class modetrade : Exchange
 
     public override object parseLedgerEntry(object item, object currency = null)
     {
+        //
+        //     {
+        //         "id": "230707030600002",
+        //         "tx_id": "0x4b0714c63cc7abae72bf68e84e25860b88ca651b7d27dad1e32bf4c027fa5326",
+        //         "side": "WITHDRAW",
+        //         "token": "USDC",
+        //         "amount": 555,
+        //         "fee": 123,
+        //         "trans_status": "FAILED",
+        //         "created_time": 1688699193034,
+        //         "updated_time": 1688699193096,
+        //         "chain_id": "986532"
+        //     }
+        //
         string? currencyId = this.safeString(item, "token");
         string? code = this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
         double? amount = this.safeNumber(item, "amount");
-        string? side = this.safeString(item, "token_side");
-        string direction = ((bool) isTrue((isEqual(side, "DEPOSIT")))) ? "in" : "out";
+        string? side = this.safeString(item, "side");
+        string? direction = null;
+        if (isTrue(!isEqual(side, null)))
+        {
+            direction = ((bool) isTrue((isEqual(side, "DEPOSIT")))) ? "in" : "out";
+        }
         Int64? timestamp = this.safeInteger(item, "created_time");
-        object fee = this.parseTokenAndFeeTemp(item, "fee_token", "fee_amount");
+        double? feeCost = this.parseNumber(this.safeString(item, "fee"));
+        Dictionary<string, object> fee = null;
+        if (isTrue(!isEqual(feeCost, null)))
+        {
+            fee = new Dictionary<string, object>() {
+                { "currency", code },
+                { "cost", feeCost },
+            };
+        }
         return this.safeLedgerEntry(new Dictionary<string, object>() {
             { "id", this.safeString(item, "id") },
             { "currency", code },
-            { "account", this.safeString(item, "account") },
+            { "account", null },
             { "referenceAccount", null },
             { "referenceId", this.safeString(item, "tx_id") },
-            { "status", this.parseTransactionStatus(this.safeString(item, "status")) },
+            { "status", this.parseTransactionStatus(this.safeString(item, "trans_status")) },
             { "amount", amount },
             { "before", null },
             { "after", null },
@@ -2931,7 +2957,7 @@ public partial class modetrade : Exchange
             { "direction", direction },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "type", this.parseLedgerEntryType(this.safeString(item, "type")) },
+            { "type", this.parseLedgerEntryType(this.safeString2(item, "type", "side")) },
             { "info", item },
         }, currency);
     }
@@ -2941,6 +2967,8 @@ public partial class modetrade : Exchange
         Dictionary<string, object> types = new Dictionary<string, object>() {
             { "BALANCE", "transaction" },
             { "COLLATERAL", "transfer" },
+            { "DEPOSIT", "transaction" },
+            { "WITHDRAW", "transaction" },
         };
         return this.safeString(types, ((string)type), type);
     }
@@ -2967,16 +2995,36 @@ public partial class modetrade : Exchange
 
     public override object parseTransaction(object transaction, object currency = null)
     {
-        // example in fetchLedger
-        string? code = this.safeString(transaction, "token");
-        string? movementDirection = this.safeStringLower(transaction, "token_side");
+        //
+        //     {
+        //         "id": "230707030600002",
+        //         "tx_id": "0x4b0714c63cc7abae72bf68e84e25860b88ca651b7d27dad1e32bf4c027fa5326",
+        //         "side": "WITHDRAW",
+        //         "token": "USDC",
+        //         "amount": 555,
+        //         "fee": 123,
+        //         "trans_status": "FAILED",
+        //         "created_time": 1688699193034,
+        //         "updated_time": 1688699193096,
+        //         "chain_id": "986532"
+        //     }
+        //
+        string? currencyId = this.safeString(transaction, "token");
+        string? code = this.safeCurrencyCode(currencyId, currency);
+        string? movementDirection = this.safeStringLower(transaction, "side");
         if (isTrue(isEqual(movementDirection, "withdraw")))
         {
             movementDirection = "withdrawal";
         }
-        object fee = this.parseTokenAndFeeTemp(transaction, "fee_token", "fee_amount");
-        string? addressTo = this.safeString(transaction, "target_address");
-        string? addressFrom = this.safeString(transaction, "source_address");
+        double? feeCost = this.parseNumber(this.safeString(transaction, "fee"));
+        Dictionary<string, object> fee = null;
+        if (isTrue(!isEqual(feeCost, null)))
+        {
+            fee = new Dictionary<string, object>() {
+                { "currency", code },
+                { "cost", feeCost },
+            };
+        }
         Int64? timestamp = this.safeInteger(transaction, "created_time");
         return new Dictionary<string, object>() {
             { "info", transaction },
@@ -2985,15 +3033,15 @@ public partial class modetrade : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "address", null },
-            { "addressFrom", addressFrom },
-            { "addressTo", addressTo },
-            { "tag", this.safeString(transaction, "extra") },
+            { "addressFrom", null },
+            { "addressTo", null },
+            { "tag", null },
             { "tagFrom", null },
             { "tagTo", null },
             { "type", movementDirection },
             { "amount", this.safeNumber(transaction, "amount") },
             { "currency", code },
-            { "status", this.parseTransactionStatus(this.safeString(transaction, "status")) },
+            { "status", this.parseTransactionStatus(this.safeString(transaction, "trans_status")) },
             { "updated", this.safeInteger(transaction, "updated_time") },
             { "comment", null },
             { "internal", null },
@@ -3007,8 +3055,11 @@ public partial class modetrade : Exchange
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "NEW", "pending" },
             { "CONFIRMING", "pending" },
+            { "PENDING", "pending" },
+            { "PENDING_REBALANCE", "pending" },
             { "PROCESSING", "pending" },
             { "COMPLETED", "ok" },
+            { "FAILED", "failed" },
             { "CANCELED", "canceled" },
         };
         if (isTrue(isEqual(status, null)))
@@ -3087,6 +3138,7 @@ public partial class modetrade : Exchange
         //         "success":true
         //     }
         //
+        parameters = this.omit(parameters, "side"); // request-side filter, not a unified transaction field
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(rows, currency, since, limit, parameters));
     }
 

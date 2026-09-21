@@ -93,6 +93,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchPositions': True,
+                'fetchPositionsHistory': True,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -3035,11 +3036,6 @@ class krakenfutures(Exchange, ImplicitAPI):
         #        "serverTime": "2022-03-03T22:51:16.566Z"
         #    }
         #
-        result = self.parse_positions(response)
-        return self.filter_by_array_positions(result, 'symbol', symbols, False)
-
-    def parse_positions(self, response: object, symbols: Strings = None, params={}):
-        result = []
         # a degraded response missing openPositions must fail loudly - a flat
         # account and "could not read positions" are not interchangeable for
         # reconciliation logic, see https://github.com/ccxt/ccxt/issues/29710
@@ -3048,10 +3044,87 @@ class krakenfutures(Exchange, ImplicitAPI):
         positions = self.safe_list(response, 'openPositions')
         if positions is None:
             raise ExchangeNotAvailable(self.id + ' fetchPositions() returned a response without an "openPositions" list')
-        for i in range(0, len(positions)):
-            position = self.parse_position(positions[i])
-            result.append(position)
-        return result
+        return self.parse_positions(positions, symbols)
+
+    def fetch_positions_history(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> list[Position]:
+        """
+        fetches historical positions, by default the events that closed a position
+
+        https://docs.kraken.com/api-reference/account-history/get-position-update-events
+
+        :param str[] [symbols]: a list of unified market symbols, only a single symbol is filtered by the exchange
+        :param int [since]: timestamp in ms of the earliest position to fetch
+        :param int [limit]: the maximum number of positions to return
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest position to fetch
+
+ EXCHANGE SPECIFIC PARAMETERS
+        :param bool [params.opened]: set to True to also return the events that opened a position
+        :param bool [params.increased]: set to True to also return the events that increased a position
+        :param bool [params.decreased]: set to True to also return the events that decreased a position
+        :param bool [params.reversed]: set to True to also return the events that reversed a position
+        :param bool [params.no_change]: set to True to also return the events that left the position size untouched
+        :param bool [params.trades]: set to True to also return every event caused by a trade
+        :param bool [params.funding_realization]: set to True to also return the funding realization events
+        :param bool [params.settlement]: set to True to also return the settlement events
+        :param str [params.continuation_token]: the token of a previous response, to fetch the next page
+        :returns dict[]: a list of `position structures <https://docs.ccxt.com/?id=position-structure>`
+        """
+        self.load_markets()
+        market = None
+        if symbols is not None:
+            symbolsLength = len(symbols)
+            if symbolsLength == 1:
+                market = self.market(symbols[0])
+        request = {
+            'closed': True,  # the events that closed a position, the unified meaning of a historical position
+        }
+        if market is not None:
+            request['tradeable'] = market['id']
+        if since is not None:
+            request['since'] = since
+            request['sort'] = 'asc'
+        if limit is not None:
+            request['count'] = limit
+        until = self.safe_integer(params, 'until')
+        if until is not None:
+            params = self.omit(params, 'until')
+            request['before'] = until
+        response = self.historyGetPositions(self.extend(request, params))
+        #
+        #    {
+        #        "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
+        #        "elements": [
+        #            {
+        #                "uid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
+        #                "timestamp": 1789646492483,
+        #                "event": {
+        #                    "PositionUpdate": {
+        #                        "tradeable": "PF_DOGEUSD",
+        #                        "oldPosition": "250",
+        #                        "newPosition": "0",
+        #                        "positionChange": "close",
+        #                        "executionPrice": "0.08105",
+        #                        "executionSize": "250",
+        #                        "realizedPnL": "0.05",
+        #                        ...
+        #                    }
+        #                }
+        #            }
+        #        ],
+        #        "len": 2,
+        #        "serverTime": "2026-09-17T18:14:37.761Z"
+        #    }
+        #
+        elements = self.safe_list(response, 'elements', [])
+        updates = []
+        for i in range(0, len(elements)):
+            event = self.safe_dict(elements[i], 'event', {})
+            update = self.safe_dict(event, 'PositionUpdate')
+            if update is not None:
+                updates.append(update)
+        positions = self.parse_positions(updates, symbols)
+        return self.filter_by_since_limit(positions, since, limit)
 
     def parse_position(self, position: dict, market: Market = None):
         # cross
@@ -3078,34 +3151,92 @@ class krakenfutures(Exchange, ImplicitAPI):
         #        "maxFixedLeverage":"1.0"
         #    }
         #
+        # position update event (fetchPositionsHistory)
+        #
+        #    {
+        #        "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
+        #        "tradeable": "PF_DOGEUSD",
+        #        "oldPosition": "250",
+        #        "oldAverageEntryPrice": "0.08085",
+        #        "newPosition": "0",
+        #        "newAverageEntryPrice": "0.08085",
+        #        "fillTime": 1789643150594,
+        #        "fee": "0.01013125",
+        #        "feeCurrency": "USD",
+        #        "realizedPnL": "0.05",
+        #        "positionChange": "close",
+        #        "executionUid": "7bfe252a-ab7b-480b-8c52-0ce55e6cba75",
+        #        "executionPrice": "0.08105",
+        #        "executionSize": "250",
+        #        "tradeType": "userExecution",
+        #        "fundingRealizationTime": 1789646492483,
+        #        "realizedFunding": "-0.00000764284",
+        #        "timestamp": 1789646492483,
+        #        "updateReason": "trade"
+        #    }
+        #
+        # the history rows carry a positionChange, the open-position rows do not
+        positionChange = self.safe_string(position, 'positionChange')
+        isHistory = (positionChange is not None)
         leverage = self.safe_number(position, 'maxFixedLeverage')
         marginType = 'cross'
         if leverage is not None:
             marginType = 'isolated'
-        datetime = self.safe_string(position, 'fillTime')
-        marketId = self.safe_string(position, 'symbol')
+        timestamp = None
+        datetime = None
+        if isHistory:
+            timestamp = self.safe_integer(position, 'timestamp')
+            datetime = self.iso8601(timestamp)
+        else:
+            datetime = self.safe_string(position, 'fillTime')
+            timestamp = self.parse8601(datetime)
+        side = self.safe_string(position, 'side')
+        entryPrice = self.safe_string(position, 'price')
+        contracts = self.safe_string(position, 'size')
+        if isHistory:
+            # the event describes the position it acted on: an open or an increase
+            # describes the new position, a close, a decrease or a reversal the old
+            # one together with the size that was closed
+            describesNewPosition = (positionChange == 'open') or (positionChange == 'increase')
+            signedSize = self.safe_string(position, 'oldPosition')
+            entryPrice = self.safe_string(position, 'oldAverageEntryPrice')
+            contracts = self.safe_string(position, 'executionSize')
+            if describesNewPosition:
+                signedSize = self.safe_string(position, 'newPosition')
+                entryPrice = self.safe_string(position, 'newAverageEntryPrice')
+                contracts = Precise.string_abs(signedSize)
+            elif positionChange == 'reverse':
+                contracts = Precise.string_abs(signedSize)  # a reversal closes the whole old position
+            if Precise.string_gt(signedSize, '0'):
+                side = 'long'
+            elif Precise.string_lt(signedSize, '0'):
+                side = 'short'
+        marketId = self.safe_string_2(position, 'symbol', 'tradeable')
         market = self.safe_market(marketId, market)
         return {
             'info': position,
+            'id': self.safe_string(position, 'executionUid'),
             'symbol': market['symbol'],
-            'timestamp': self.parse8601(datetime),
+            'timestamp': timestamp,
             'datetime': datetime,
             'initialMargin': None,
             'initialMarginPercentage': None,
             'maintenanceMargin': None,
             'maintenanceMarginPercentage': None,
-            'entryPrice': self.safe_number(position, 'price'),
+            'entryPrice': self.parse_number(entryPrice),
             'notional': None,
             'leverage': leverage,
             'unrealizedPnl': self.safe_number(position, 'unrealizedPnl'),
-            'contracts': self.safe_number(position, 'size'),
+            'realizedPnl': self.safe_number(position, 'realizedPnL'),
+            'contracts': self.parse_number(contracts),
             'contractSize': self.safe_number(market, 'contractSize'),
             'marginRatio': None,
             'liquidationPrice': None,
             'markPrice': None,
+            'lastPrice': self.safe_number(position, 'executionPrice'),
             'collateral': None,
             'marginType': marginType,
-            'side': self.safe_string(position, 'side'),
+            'side': side,
             'percentage': None,
         }
 

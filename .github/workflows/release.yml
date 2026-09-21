@@ -71,218 +71,218 @@ jobs:
           java-version: '21'   # or '20' – but match what :lib is targeting
       - name: Install NPM dependencies
         run: npm ci
-      # - name: Composer install
-      #   run: composer install
-      # - name: Install python dependencies
-      #   run: pip install -r build/ci-requirements.txt
-      # - name: Install Python build tools
-      #   run: pip install build twine
-      # - name: export exchanges (remove later)
-      #   run: npm run export-exchanges
-      # - name: Pre-transpile
-      #   run: npm run pre-transpile
-      # - name: Transpile Go
-      #   run: npm run force-transpileGO
-      # - name: Build Go
-      #   run: npm run buildGO
-      # - name: Transpile Python and PHP
-      #   run: npm run force-transpile-fast
-      # - name: Transpile C#
-      #   run: npm run force-transpileCS
-      # - name: Build C#
-      #   run: npm run buildCS
-      # - name: Transpile Java
-      #   run: npm run force-transpileJava
+      - name: Composer install
+        run: composer install
+      - name: Install python dependencies
+        run: pip install -r build/ci-requirements.txt
+      - name: Install Python build tools
+        run: pip install build twine
+      - name: export exchanges (remove later)
+        run: npm run export-exchanges
+      - name: Pre-transpile
+        run: npm run pre-transpile
+      - name: Transpile Go
+        run: npm run force-transpileGO
+      - name: Build Go
+        run: npm run buildGO
+      - name: Transpile Python and PHP
+        run: npm run force-transpile-fast
+      - name: Transpile C#
+        run: npm run force-transpileCS
+      - name: Build C#
+        run: npm run buildCS
+      - name: Transpile Java
+        run: npm run force-transpileJava
       - name: Build Java
         run: npm run buildJava
-      # - name: Install Rust toolchain
-      #   run: |
-      #     if ! command -v cargo >/dev/null 2>&1 && [ ! -x "$HOME/.cargo/bin/cargo" ]; then
-      #       curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --profile minimal
-      #     fi
-      #     echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
-      # # - name: Transpile Rust
-      #   run: npm run transpileRust
-      # - name: Build Rust
-      #   run: npm run buildRust
-      # - name: Check Python syntax
-      #   run: npm run check-python-syntax
-      # - name: Check PHP syntax
-      #   run: npm run check-php-syntax
-      # - name: Update badges
-      #   run: npm run update-badges
-      # - name: Base tests Rest
-      #   run: npm run test-base-rest
-      # - name: Base tests Ws
-      #   run: npm run test-base-ws
-      # - name: Id tests
-      #   run: npm run id-tests
-      # - name: Request tests
-      #   run: npm run request-tests
-      # - name: Response tests
-      #   run: npm run response-tests
-      # - name: Ws tests
-      #   run: npm run ws-tests
-      # - name: CommonJs tests
-      #   run: npm run commonjs-test
-      # - name: Package Test
-      #   run: npm run package-test
-      # - name: Freshness Test
-        # run: npm run test-freshness
-      # - name: Set new Version
-      #   run: |
-      #     npm config set git-tag-version=false
-      #     NEW_VERSION=$(./build/smart-bump.sh)
-      #     NPM_VERSION=$(npm version "$NEW_VERSION")
-      #     echo "NPM_VERSION=$NPM_VERSION" >> $GITHUB_ENV
-      #     COMMIT_MESSAGE=${NPM_VERSION:1}
-      #     echo "COMMIT_MESSAGE=$COMMIT_MESSAGE" >> $GITHUB_ENV
-      # - name: vss
-      #   run: npm run vss
-      # - name: Commit files
-      #   run: |
-      #     git add . -A
-      #     git add -f exchanges.json
-      # - name: Git status
-      #   run: git status
-      # - name: cleanup old tags
-      #   run: npm run cleanup-old-tags --limit
-      # - name: Get App bot user ID
-      #   if: github.ref == 'refs/heads/master'
-      #   id: app-user
-      #   env:
-      #     GH_TOKEN: ${{ steps.app-token.outputs.token }}
-      #   run: |
-      #     id=$(curl -fsSL -H "Authorization: Bearer ${GH_TOKEN}" \
-      #       "https://api.github.com/users/${{ steps.app-token.outputs.app-slug }}%5Bbot%5D" \
-      #       | node -p "JSON.parse(require('fs').readFileSync(0, 'utf8')).id")
-      #     echo "id=${id}" >> "$GITHUB_OUTPUT"
-      # - name: Generate Release Notes
-      #   env:
-      #     COMMIT_MESSAGE: ${{ env.COMMIT_MESSAGE }}
-      #     GH_TOKEN: ${{ steps.app-token.outputs.token }}
-      #     VERSION: ${{ env.NPM_VERSION }}
-      #   run: |
-      #          echo "COMMIT_MESSAGE=$COMMIT_MESSAGE"
-      #          git config --global user.name "${{ steps.app-token.outputs.app-slug }}[bot]"
-      #          git config --global user.email "${{ steps.app-user.outputs.id }}+${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com"
-      #          git commit -m "[Automated changes] ${COMMIT_MESSAGE}"
+      - name: Install Rust toolchain
+        run: |
+          if ! command -v cargo >/dev/null 2>&1 && [ ! -x "$HOME/.cargo/bin/cargo" ]; then
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --profile minimal
+          fi
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+      - name: Transpile Rust
+        run: npm run transpileRust
+      - name: Build Rust
+        run: npm run buildRust
+      - name: Check Python syntax
+        run: npm run check-python-syntax
+      - name: Check PHP syntax
+        run: npm run check-php-syntax
+      - name: Update badges
+        run: npm run update-badges
+      - name: Base tests Rest
+        run: npm run test-base-rest
+      - name: Base tests Ws
+        run: npm run test-base-ws
+      - name: Id tests
+        run: npm run id-tests
+      - name: Request tests
+        run: npm run request-tests
+      - name: Response tests
+        run: npm run response-tests
+      - name: Ws tests
+        run: npm run ws-tests
+      - name: CommonJs tests
+        run: npm run commonjs-test
+      - name: Package Test
+        run: npm run package-test
+      - name: Freshness Test
+        run: npm run test-freshness
+      - name: Set new Version
+        run: |
+          npm config set git-tag-version=false
+          NEW_VERSION=$(./build/smart-bump.sh)
+          NPM_VERSION=$(npm version "$NEW_VERSION")
+          echo "NPM_VERSION=$NPM_VERSION" >> $GITHUB_ENV
+          COMMIT_MESSAGE=${NPM_VERSION:1}
+          echo "COMMIT_MESSAGE=$COMMIT_MESSAGE" >> $GITHUB_ENV
+      - name: vss
+        run: npm run vss
+      - name: Commit files
+        run: |
+          git add . -A
+          git add -f exchanges.json
+      - name: Git status
+        run: git status
+      - name: cleanup old tags
+        run: npm run cleanup-old-tags --limit
+      - name: Get App bot user ID
+        if: github.ref == 'refs/heads/master'
+        id: app-user
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          id=$(curl -fsSL -H "Authorization: Bearer ${GH_TOKEN}" \
+            "https://api.github.com/users/${{ steps.app-token.outputs.app-slug }}%5Bbot%5D" \
+            | node -p "JSON.parse(require('fs').readFileSync(0, 'utf8')).id")
+          echo "id=${id}" >> "$GITHUB_OUTPUT"
+      - name: Generate Release Notes
+        env:
+          COMMIT_MESSAGE: ${{ env.COMMIT_MESSAGE }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          VERSION: ${{ env.NPM_VERSION }}
+        run: |
+               echo "COMMIT_MESSAGE=$COMMIT_MESSAGE"
+               git config --global user.name "${{ steps.app-token.outputs.app-slug }}[bot]"
+               git config --global user.email "${{ steps.app-user.outputs.id }}+${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com"
+               git commit -m "[Automated changes] ${COMMIT_MESSAGE}"
 
-      #          # same retry pattern as the per-language workflows: master can move
-      #          # while the release builds, so rebase onto it before every attempt
-      #          pushed=""
-      #          for attempt in 1 2 3 4 5; do
-      #            git fetch origin master
-      #            git rebase --autostash origin/master
-      #            if git push origin HEAD:master; then
-      #              echo "pushed on attempt ${attempt}"
-      #              pushed="yes"
-      #              break
-      #            fi
-      #            echo "master moved, retrying (${attempt})..."
-      #            sleep $(( (RANDOM % 5) + 2 ))
-      #          done
-      #          if [ -z "$pushed" ]; then
-      #            echo "push failed after 5 attempts"
-      #            exit 1
-      #          fi
+               # same retry pattern as the per-language workflows: master can move
+               # while the release builds, so rebase onto it before every attempt
+               pushed=""
+               for attempt in 1 2 3 4 5; do
+                 git fetch origin master
+                 git rebase --autostash origin/master
+                 if git push origin HEAD:master; then
+                   echo "pushed on attempt ${attempt}"
+                   pushed="yes"
+                   break
+                 fi
+                 echo "master moved, retrying (${attempt})..."
+                 sleep $(( (RANDOM % 5) + 2 ))
+               done
+               if [ -z "$pushed" ]; then
+                 echo "push failed after 5 attempts"
+                 exit 1
+               fi
 
-      #          git fetch --tags --depth=1
-      #          # only ccxt version tags — the repo also carries `go/vX.Y.Z`, the per-release
-      #          # `ccxt-mcp-vX.Y.Z`, and the moving `ccxt-mcp-latest`, any of which can be the
-      #          # newest tag overall and would then be handed to --notes-start-tag, truncating
-      #          # the changelog to the commits after it (v4.5.78 shipped compared against
-      #          # ccxt-mcp-v0.1.3, losing every PR merged between it and v4.5.77)
-      #          PREVIOUS_TAG=$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-creatordate | head -n1)
-      #          echo "Previous tag: ${PREVIOUS_TAG}"
+               git fetch --tags --depth=1
+               # only ccxt version tags — the repo also carries `go/vX.Y.Z`, the per-release
+               # `ccxt-mcp-vX.Y.Z`, and the moving `ccxt-mcp-latest`, any of which can be the
+               # newest tag overall and would then be handed to --notes-start-tag, truncating
+               # the changelog to the commits after it (v4.5.78 shipped compared against
+               # ccxt-mcp-v0.1.3, losing every PR merged between it and v4.5.77)
+               PREVIOUS_TAG=$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-creatordate | head -n1)
+               echo "Previous tag: ${PREVIOUS_TAG}"
 
-      #          # tag names are unique per release so they cannot race with master —
-      #          # retry transient failures only, and treat an already-present remote
-      #          # tag (pushed but response lost) as success
-      #          push_tag () {
-      #            for attempt in 1 2 3 4 5; do
-      #              if git push origin "$1"; then
-      #                return 0
-      #              fi
-      #              if git ls-remote --exit-code --tags origin "refs/tags/$1" > /dev/null; then
-      #                echo "tag $1 already on the remote"
-      #                return 0
-      #              fi
-      #              echo "pushing tag $1 failed, retrying (${attempt})..."
-      #              sleep $(( (RANDOM % 5) + 2 ))
-      #            done
-      #            echo "pushing tag $1 failed after 5 attempts"
-      #            return 1
-      #          }
+               # tag names are unique per release so they cannot race with master —
+               # retry transient failures only, and treat an already-present remote
+               # tag (pushed but response lost) as success
+               push_tag () {
+                 for attempt in 1 2 3 4 5; do
+                   if git push origin "$1"; then
+                     return 0
+                   fi
+                   if git ls-remote --exit-code --tags origin "refs/tags/$1" > /dev/null; then
+                     echo "tag $1 already on the remote"
+                     return 0
+                   fi
+                   echo "pushing tag $1 failed, retrying (${attempt})..."
+                   sleep $(( (RANDOM % 5) + 2 ))
+                 done
+                 echo "pushing tag $1 failed after 5 attempts"
+                 return 1
+               }
 
-      #          git tag -a "go/${VERSION}" -m "${COMMIT_MESSAGE}"
-      #          push_tag "go/${VERSION}"
+               git tag -a "go/${VERSION}" -m "${COMMIT_MESSAGE}"
+               push_tag "go/${VERSION}"
 
-      #          git tag -a "${VERSION}" -m "${COMMIT_MESSAGE}"
-      #          push_tag "${VERSION}"
+               git tag -a "${VERSION}" -m "${COMMIT_MESSAGE}"
+               push_tag "${VERSION}"
 
-      #          echo "Creating GitHub release from ${VERSION}…"
-      #          gh release create "${VERSION}" --generate-notes --notes-start-tag "${PREVIOUS_TAG}" --verify-tag
-      # - name: Publish Rust crates
-      #   env:
-      #     CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-      #     CARGO_BUILD_JOBS: "1"
-      #   run: |
-      #     set -e
-      #     # The transpiled Rust output is committed by the release commit above,
-      #     # so cargo's git-based file listing already sees every exchange.
-      #     # `--allow-dirty` is kept as a safety net for a working tree left
-      #     # dirty after the rebase/push, which would otherwise abort the
-      #     # publish outright.
-      #     #
-      #     # ccxt-base first — the other three depend on it, and crates.io will
-      #     # reject them until its version is live in the index. `cargo publish`
-      #     # waits for the index by default; the retry loop covers the window
-      #     # where propagation is slower than that wait.
-      #     #
-      #     # NPM_VERSION comes from `npm version` and is prefixed with a "v"
-      #     # (v4.5.x); crates.io versions are bare, so strip it before matching
-      #     # against `cargo search` output.
-      #     CRATE_VERSION="${NPM_VERSION#v}"
-      #     publish () {
-      #       local crate="$1"
-      #       for attempt in 1 2 3 4 5; do
-      #         if cargo publish -p "$crate" --allow-dirty --manifest-path rust/Cargo.toml; then
-      #           echo "published $crate"
-      #           return 0
-      #         fi
-      #         if cargo search "$crate" | grep -q "^$crate = \"${CRATE_VERSION}\""; then
-      #           echo "$crate ${CRATE_VERSION} already on crates.io, continuing"
-      #           return 0
-      #         fi
-      #         echo "publish $crate failed (attempt $attempt), retrying in 30s…"
-      #         sleep 30
-      #       done
-      #       echo "could not publish $crate"
-      #       return 1
-      #     }
-      #     publish ccxt-base
-      #     publish ccxt
-      #     publish ccxt-pro
-      #     publish ccxt-prediction
-      # - name: Deploy Python Package
-      #   run: python -m build --outdir python/dist
-      # - name: Publish to PyPI
-      #   uses: pypa/gh-action-pypi-publish@release/v1
-      #   with:
-      #       packages-dir: 'python/dist'
-      #       print_hash: true
-      # - name: C# Release Build
-      #   run: npm run buildCSRelease
-      # - name: NuGet login (OIDC - temp API key)
-      #   id: login
-      #   uses: NuGet/login@v1
-      #   with:
-      #     user: carlosmiei
-      # - name: Deploy C# Package
-      #   run: ./cs/deploy.sh;
-      #   env:
-      #     NUGET_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
+               echo "Creating GitHub release from ${VERSION}…"
+               gh release create "${VERSION}" --generate-notes --notes-start-tag "${PREVIOUS_TAG}" --verify-tag
+      - name: Publish Rust crates
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          CARGO_BUILD_JOBS: "1"
+        run: |
+          set -e
+          # The transpiled Rust output is committed by the release commit above,
+          # so cargo's git-based file listing already sees every exchange.
+          # `--allow-dirty` is kept as a safety net for a working tree left
+          # dirty after the rebase/push, which would otherwise abort the
+          # publish outright.
+          #
+          # ccxt-base first — the other three depend on it, and crates.io will
+          # reject them until its version is live in the index. `cargo publish`
+          # waits for the index by default; the retry loop covers the window
+          # where propagation is slower than that wait.
+          #
+          # NPM_VERSION comes from `npm version` and is prefixed with a "v"
+          # (v4.5.x); crates.io versions are bare, so strip it before matching
+          # against `cargo search` output.
+          CRATE_VERSION="${NPM_VERSION#v}"
+          publish () {
+            local crate="$1"
+            for attempt in 1 2 3 4 5; do
+              if cargo publish -p "$crate" --allow-dirty --manifest-path rust/Cargo.toml; then
+                echo "published $crate"
+                return 0
+              fi
+              if cargo search "$crate" | grep -q "^$crate = \"${CRATE_VERSION}\""; then
+                echo "$crate ${CRATE_VERSION} already on crates.io, continuing"
+                return 0
+              fi
+              echo "publish $crate failed (attempt $attempt), retrying in 30s…"
+              sleep 30
+            done
+            echo "could not publish $crate"
+            return 1
+          }
+          publish ccxt-base
+          publish ccxt
+          publish ccxt-pro
+          publish ccxt-prediction
+      - name: Deploy Python Package
+        run: python -m build --outdir python/dist
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+            packages-dir: 'python/dist'
+            print_hash: true
+      - name: C# Release Build
+        run: npm run buildCSRelease
+      - name: NuGet login (OIDC - temp API key)
+        id: login
+        uses: NuGet/login@v1
+        with:
+          user: carlosmiei
+      - name: Deploy C# Package
+        run: ./cs/deploy.sh;
+        env:
+          NUGET_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
       - uses: actions/setup-node@v6
         with:
           node-version: '24'

@@ -2302,11 +2302,10 @@ public partial class bitteam : Exchange
         //         }
         //     }
         //
-        Int64 timestamp = this.milliseconds();
         Dictionary<string, object> balance = new Dictionary<string, object>() {
             { "info", response },
-            { "timestamp", timestamp },
-            { "datetime", this.iso8601(timestamp) },
+            { "timestamp", null },
+            { "datetime", null },
         };
         object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
         object balanceByCurrencies = this.omit(result, new List<object>() {"free", "used", "total"});

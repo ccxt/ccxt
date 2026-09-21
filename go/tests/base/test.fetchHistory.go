@@ -18,6 +18,7 @@ func testFetchHistoryBaseBody(ch chan any) any {
 	exchange.InitParent(map[string]any{
 		"id":                    "sampleexchange",
 		"fetchHistoryCacheSize": 2,
+		"enableRateLimit":       false,
 	}, map[string]any{}, exchange)
 	assert(ccxt.IsEqual(ExchangeProp(exchange, "fetchHistoryCacheSize"), 2), "fetchHistoryCacheSize should be 2")
 	var trueAssertion bool = ccxt.IsEqual(exchange.ParseNumber(nil), nil)
@@ -38,8 +39,8 @@ func testFetchHistoryBaseBody(ch chan any) any {
 			}()
 			// try block:
 
-			retRes168 := (<-exchange.Fetch2Async("sample1"))
-			ccxt.PanicOnError(retRes168)
+			retRes178 := (<-exchange.Fetch2Async("sample1"))
+			ccxt.PanicOnError(retRes178)
 			return nil
 		}()
 
@@ -62,8 +63,8 @@ func testFetchHistoryBaseBody(ch chan any) any {
 			}()
 			// try block:
 
-			retRes228 := (<-exchange.Fetch2Async("sample2"))
-			ccxt.PanicOnError(retRes228)
+			retRes238 := (<-exchange.Fetch2Async("sample2"))
+			ccxt.PanicOnError(retRes238)
 			return nil
 		}()
 
@@ -86,8 +87,8 @@ func testFetchHistoryBaseBody(ch chan any) any {
 			}()
 			// try block:
 
-			retRes288 := (<-exchange.Fetch2Async("sample3"))
-			ccxt.PanicOnError(retRes288)
+			retRes298 := (<-exchange.Fetch2Async("sample3"))
+			ccxt.PanicOnError(retRes298)
 			return nil
 		}()
 
@@ -127,7 +128,7 @@ func testFetchHistoryBody(ch chan any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 
-	retRes604 := (<-TestFetchHistoryBaseAsync())
-	ccxt.PanicOnError(retRes604)
+	retRes614 := (<-TestFetchHistoryBaseAsync())
+	ccxt.PanicOnError(retRes614)
 	return nil
 }

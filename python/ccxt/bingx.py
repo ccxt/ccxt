@@ -117,7 +117,7 @@ class bingx(Exchange, ImplicitAPI):
                 'fetchPositionHistory': True,
                 'fetchPositionMode': True,
                 'fetchPositions': True,
-                'fetchPositionsHistory': True,
+                'fetchPositionsHistory': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
@@ -726,7 +726,7 @@ class bingx(Exchange, ImplicitAPI):
                         'trailing': True,
                         'leverage': False,
                         'marketBuyRequiresPrice': False,
-                        'marketBuyByCost': True,
+                        'marketBuyByCost': False,
                         'selfTradePrevention': False,
                         'iceberg': False,
                     },
@@ -798,6 +798,7 @@ class bingx(Exchange, ImplicitAPI):
                         'private': True,
                     },
                     'createOrder': {
+                        'marketBuyByCost': True,
                         'triggerPriceType': None,
                         'attachedStopLossTakeProfit': None,
                         'trailing': False,
@@ -1546,7 +1547,7 @@ class bingx(Exchange, ImplicitAPI):
                 amount = lastAmount
                 price = lastPrice
         return self.safe_trade({
-            'id': self.safe_string_2(trade, 'id', 't'),
+            'id': self.safe_string_n(trade, ['id', 't', 'fillId']),
             'info': trade,
             'timestamp': time,
             'datetime': self.iso8601(time),

@@ -806,7 +806,7 @@ class cex(ccxt.async_support.cex):
         if base is not None and quote is not None:
             symbol = base + '/' + quote
         market = self.safe_market(symbol, market)
-        time = self.safe_integer(order, 'time', self.milliseconds())
+        time = self.safe_integer(order, 'time')
         timestamp = time
         if isTransaction:
             timestamp = self.parse8601(time)

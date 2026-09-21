@@ -99,6 +99,7 @@ from ccxt.async_support.btse import btse                                        
 from ccxt.async_support.bullish import bullish                                  # noqa: F401
 from ccxt.async_support.bybit import bybit                                      # noqa: F401
 from ccxt.async_support.bybiteu import bybiteu                                  # noqa: F401
+from ccxt.async_support.bybitid import bybitid                                  # noqa: F401
 from ccxt.async_support.bydfi import bydfi                                      # noqa: F401
 from ccxt.async_support.cex import cex                                          # noqa: F401
 from ccxt.async_support.coinbase import coinbase                                # noqa: F401
@@ -205,6 +206,7 @@ exchanges = [
     'bullish',
     'bybit',
     'bybiteu',
+    'bybitid',
     'bydfi',
     'cex',
     'coinbase',

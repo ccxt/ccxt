@@ -416,11 +416,10 @@ func (this *Apex) ParseBalance(response any) any {
 	// }
 	// }
 	//
-	var timestamp int64 = this.Milliseconds()
 	var result map[string]any = map[string]any{
 		"info":      response,
-		"timestamp": timestamp,
-		"datetime":  this.Iso8601(timestamp),
+		"timestamp": nil,
+		"datetime":  nil,
 	}
 	var code string = "USDT"
 	var account any = this.Account()
@@ -450,8 +449,8 @@ func (this *Apex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes37012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes37012)
+		retRes36912 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes36912)
 	}
 
 	response := (<-this.PrivateGetV3AccountBalance(params))
@@ -491,8 +490,8 @@ func (this *Apex) fetchAccountBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes39712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes39712)
+		retRes39612 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes39612)
 	}
 
 	response := (<-this.PrivateGetV3Account(params))
@@ -867,7 +866,6 @@ func (this *Apex) ParseTicker(ticker any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp int64 = this.Milliseconds()
 	var marketId *string = this.SafeString(ticker, "symbol")
 	market = this.SafeMarket(marketId, market)
 	var symbol *string = this.SafeSymbol(marketId, market)
@@ -879,8 +877,8 @@ func (this *Apex) ParseTicker(ticker any, optionalArgs ...any) any {
 	var low *string = this.SafeString(ticker, "lowPrice24h")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
-		"timestamp":     timestamp,
-		"datetime":      this.Iso8601(timestamp),
+		"timestamp":     nil,
+		"datetime":      nil,
 		"high":          high,
 		"low":           low,
 		"bid":           nil,
@@ -924,8 +922,8 @@ func (this *Apex) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes79012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes79012)
+		retRes78812 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes78812)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -964,8 +962,8 @@ func (this *Apex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes81312 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes81312)
+		retRes81112 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes81112)
 	}
 
 	response := (<-this.PublicGetV3DataAllTickerInfo(params))
@@ -1007,8 +1005,8 @@ func (this *Apex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes83512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes83512)
+		retRes83312 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes83312)
 	}
 	var market any = this.Market(symbol)
 	var request any = map[string]any{
@@ -1077,8 +1075,8 @@ func (this *Apex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes89212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes89212)
+		retRes89012 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes89012)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1155,8 +1153,8 @@ func (this *Apex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes95112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes95112)
+		retRes94912 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes94912)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1256,8 +1254,8 @@ func (this *Apex) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs ..
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes103612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes103612)
+		retRes103412 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes103412)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1293,7 +1291,6 @@ func (this *Apex) ParseOpenInterest(interest any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp int64 = this.Milliseconds()
 	var marketId *string = this.SafeString(interest, "symbol")
 	market = this.SafeMarket(marketId, market)
 	var symbol *string = this.SafeSymbol(marketId, market)
@@ -1301,8 +1298,8 @@ func (this *Apex) ParseOpenInterest(interest any, optionalArgs ...any) any {
 		"symbol":             symbol,
 		"openInterestAmount": this.SafeString(interest, "openInterest"),
 		"openInterestValue":  nil,
-		"timestamp":          timestamp,
-		"datetime":           this.Iso8601(timestamp),
+		"timestamp":          nil,
+		"datetime":           nil,
 		"info":               interest,
 	}, market)
 }
@@ -1341,8 +1338,8 @@ func (this *Apex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 	}
 	if IsEqual(this.Markets, nil) {
 
-		retRes109912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes109912)
+		retRes109612 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes109612)
 	}
 	var request map[string]any = map[string]any{}
 	var market any = this.Market(symbol)
@@ -1640,8 +1637,8 @@ func (this *Apex) createOrderBody(ch chan any, symbol any, typeVar any, side any
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes136912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes136912)
+		retRes136612 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes136612)
 	}
 	var market any = this.Market(symbol)
 	var orderType any = ToUpper(typeVar)
@@ -1763,8 +1760,8 @@ func (this *Apex) transferBody(ch chan any, code any, amount any, fromAccount an
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes147312 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes147312)
+		retRes147012 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes147012)
 	}
 
 	configResponse := (<-this.PublicGetV3Symbols(params))
@@ -1952,8 +1949,8 @@ func (this *Apex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes163212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes163212)
+		retRes162912 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes162912)
 	}
 	var market any = nil
 	var request map[string]any = map[string]any{}
@@ -2039,8 +2036,8 @@ func (this *Apex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes168512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes168512)
+		retRes168212 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes168212)
 	}
 	var request map[string]any = map[string]any{}
 	var clientOrderId *string = this.SafeStringN(params, []any{"clientId", "clientOrderId", "client_order_id"})
@@ -2092,8 +2089,8 @@ func (this *Apex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes171512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes171512)
+		retRes171212 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes171212)
 	}
 
 	response := (<-this.PrivateGetV3OpenOrders(params))
@@ -2139,8 +2136,8 @@ func (this *Apex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes174112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes174112)
+		retRes173812 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes173812)
 	}
 	var request map[string]any = map[string]any{}
 	var market any = nil
@@ -2199,8 +2196,8 @@ func (this *Apex) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any)
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes178012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes178012)
+		retRes177712 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes177712)
 	}
 	var request map[string]any = map[string]any{}
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "clientId")
@@ -2253,8 +2250,8 @@ func (this *Apex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes181312 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes181312)
+		retRes181012 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes181012)
 	}
 	var request map[string]any = map[string]any{}
 	var market any = nil
@@ -2315,8 +2312,8 @@ func (this *Apex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes185412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes185412)
+		retRes185112 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes185112)
 	}
 	var request map[string]any = map[string]any{}
 	var market any = nil
@@ -2404,8 +2401,8 @@ func (this *Apex) setLeverageBody(ch chan any, leverage any, optionalArgs ...any
 	}
 	if IsEqual(this.Markets, nil) {
 
-		retRes192512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes192512)
+		retRes192212 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes192212)
 	}
 	var market any = this.Market(symbol)
 	var leverageString *string = this.NumberToString(leverage)
@@ -2446,8 +2443,8 @@ func (this *Apex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes195012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes195012)
+		retRes194712 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes194712)
 	}
 
 	response := (<-this.PrivateGetV3Account(params))

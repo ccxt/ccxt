@@ -1448,9 +1448,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub fn parse_prediction_open_interest(&self, mut interest: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
-        //     { "ticker": "...", "open_interest_fp": "60802.01", ... }   // open interest in contracts
+        //     { "ticker": "...", "open_interest_fp": "60802.01", "updated_time": "2026-04-09T10:32:47.890506Z", ... }   // the market object of GET /markets/{ticker}, open interest in contracts
         //
-        let mut timestamp: Value = self.milliseconds();
+        let mut timestamp: Value = self.parse8601(self.safe_string_k(interest.clone(), "updated_time", &[]));
         let mut openInterest: Value = self.safe_open_interest(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), self.safe_symbol(Value::Null, &[market.clone()]));
@@ -1541,7 +1541,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut outcomeObj: Value = self.safe_outcome(self.safe_string_k(marketAny.clone(), "outcome", &[]), &[marketAny.clone()]);
         let mut outcomeLabel: Value = ternary(is_true(&(!is_equal(&market, &Value::Null) && !is_equal(&market, &Value::Null))), self.safe_string_k(market.clone(), "label", &[self.safe_string(get_value(&market, &Value::Str("info".to_string())), Value::Str("outcomeLabel".to_string()), &[Value::Str("YES".to_string())])]), Value::Str("YES".to_string()));
         let mut isNo: Value = Value::Bool(is_equal(&to_upper(&outcomeLabel), &Value::Str("NO".to_string())));
-        let mut now: Value = self.milliseconds();
+        let mut timestamp: Value = self.parse8601(self.safe_string_k(raw.clone(), "updated_time", &[]));
         let mut outcome: Value = self.safe_string_k(outcomeObj.clone(), "outcome", &[]);
         let mut yesAsk: Value = self.safe_number_k(raw.clone(), "yes_ask_dollars", &[]);
         let mut yesBid: Value = self.safe_number_k(raw.clone(), "yes_bid_dollars", &[]);
@@ -1583,8 +1583,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("outcomeId".to_string(), self.safe_string2(outcomeObj.clone(), Value::Str("outcomeId".to_string()), Value::Str("id".to_string()), &[]));
         m.insert("label".to_string(), self.safe_string_k(outcomeObj.clone(), "label", &[]));
         m.insert("market".to_string(), self.safe_string2(outcomeObj.clone(), Value::Str("market".to_string()), Value::Str("outcome".to_string()), &[]));
-        m.insert("timestamp".to_string(), now.clone());
-        m.insert("datetime".to_string(), self.iso8601(now.clone()));
+        m.insert("timestamp".to_string(), timestamp.clone());
+        m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("high".to_string(), Value::Null);
         m.insert("low".to_string(), Value::Null);
         m.insert("bid".to_string(), bid.clone());
@@ -1763,7 +1763,6 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //     }
         //
         let mut book: Value = self.safe_value_k(response.clone(), "orderbook_fp", &[response.clone()]);
-        let mut timestamp: Value = self.milliseconds();
         // Kalshi uses YES-side perspective: `yes` = bids, `no` = asks (inverted)
         let mut rawYes: Value = self.safe_list_k(book.clone(), "yes_dollars", &[Value::List(vec![])]);
         let mut rawNo: Value = self.safe_list_k(book.clone(), "no_dollars", &[Value::List(vec![])]);
@@ -1807,7 +1806,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             }
         }
-        return self.safe_prediction_order_book(self.sorted_orders(self.safe_string_k(outcomeObj.clone(), "outcome", &[outcome.clone()]), timestamp.clone(), bids.clone(), asks.clone()), &[outcomeObj.clone()]);
+        return self.safe_prediction_order_book(self.sorted_orders(self.safe_string_k(outcomeObj.clone(), "outcome", &[outcome.clone()]), Value::Null, bids.clone(), asks.clone()), &[outcomeObj.clone()]);
 
     Value::Null
 }

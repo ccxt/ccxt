@@ -336,25 +336,51 @@ export default class krakenfutures extends Exchange {
      * @returns Parsed exchange response for positions
      */
     fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
-    parsePositions(response: any, symbols?: Strings, params?: {}): Position[];
+    /**
+     * @method
+     * @name krakenfutures#fetchPositionsHistory
+     * @description fetches historical positions, by default the events that closed a position
+     * @see https://docs.kraken.com/api-reference/account-history/get-position-update-events
+     * @param {string[]} [symbols] a list of unified market symbols, only a single symbol is filtered by the exchange
+     * @param {int} [since] timestamp in ms of the earliest position to fetch
+     * @param {int} [limit] the maximum number of positions to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest position to fetch
+     *
+     * EXCHANGE SPECIFIC PARAMETERS
+     * @param {bool} [params.opened] set to true to also return the events that opened a position
+     * @param {bool} [params.increased] set to true to also return the events that increased a position
+     * @param {bool} [params.decreased] set to true to also return the events that decreased a position
+     * @param {bool} [params.reversed] set to true to also return the events that reversed a position
+     * @param {bool} [params.no_change] set to true to also return the events that left the position size untouched
+     * @param {bool} [params.trades] set to true to also return every event caused by a trade
+     * @param {bool} [params.funding_realization] set to true to also return the funding realization events
+     * @param {bool} [params.settlement] set to true to also return the settlement events
+     * @param {string} [params.continuation_token] the token of a previous response, to fetch the next page
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    fetchPositionsHistory(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
     parsePosition(position: Dict, market?: Market): {
         info: Dict;
+        id: Str;
         symbol: string;
-        timestamp: number | undefined;
+        timestamp: Int;
         datetime: Str;
         initialMargin: undefined;
         initialMarginPercentage: undefined;
         maintenanceMargin: undefined;
         maintenanceMarginPercentage: undefined;
-        entryPrice: Num;
+        entryPrice: number;
         notional: undefined;
         leverage: Num;
         unrealizedPnl: Num;
-        contracts: Num;
+        realizedPnl: Num;
+        contracts: number;
         contractSize: Num;
         marginRatio: undefined;
         liquidationPrice: undefined;
         markPrice: undefined;
+        lastPrice: Num;
         collateral: undefined;
         marginType: string;
         side: Str;

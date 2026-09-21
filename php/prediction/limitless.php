@@ -1108,15 +1108,14 @@ class limitless extends Exchange {
         if ($askSizeStr !== null) {
             $askSizeStr = Precise::string_div($askSizeStr, '1000000');
         }
-        $now = $this->milliseconds();
         $outcomeSymbol = $this->safe_outcome_symbol(null, $market);
         return $this->safe_prediction_ticker(array(
             'outcome' => $outcomeSymbol,
             'outcomeId' => $this->safe_string($market, 'outcomeId'),
             'label' => $this->safe_string($market, 'label'),
             'market' => $this->safe_string($market, 'market'),
-            'timestamp' => $now,
-            'datetime' => $this->iso8601($now),
+            'timestamp' => null,
+            'datetime' => null,
             'high' => null,
             'low' => null,
             'bid' => $this->parse_number($bidStr),
@@ -1309,7 +1308,6 @@ class limitless extends Exchange {
         //         "lastTradePrice": "0.161"
         //     }
         //
-        $timestamp = $this->milliseconds();
         $decimals = $this->safe_integer($this->options, 'usdcDecimals', 6);
         // sizes are scaled by 10^decimals, USDC uses 6 decimals
         $scaleStr = $this->parse_precision($this->number_to_string(-$decimals));
@@ -1348,8 +1346,8 @@ class limitless extends Exchange {
             'outcome' => $this->safe_outcome_symbol($outcome, $outcomeObj),
             'bids' => $this->sort_by($bids, 0, true),
             'asks' => $this->sort_by($asks, 0),
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
             'nonce' => null,
         );
         return $this->safe_prediction_order_book($orderbook, $outcomeObj);

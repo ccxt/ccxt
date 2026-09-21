@@ -404,7 +404,7 @@ func (this *Lighter) HandleTicker(client any, message any) {
  * @name lighter#watchTicker
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
  * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
- * @param {string} symbol unified symbol of the market to fetch the ticker for
+ * @param {string} symbol unified symbol of the market to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
@@ -425,14 +425,17 @@ func (this *Lighter) watchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	}
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
+	if !ccxt.IsEqual(ccxt.GetValue(market, "swap"), true) {
+		panic(ccxt.NotSupported(ccxt.Add(this.Id, " watchTicker() is only supported for swap markets")))
+	}
 	var request map[string]any = map[string]any{
 		"channel": ccxt.Add("market_stats/", ccxt.GetValue(market, "id")),
 	}
 	var messageHash any = this.GetMessageHash("ticker", symbol)
 
-	retRes33115 := (<-this.SubscribePublicAsync(messageHash, this.Extend(request, params)))
-	ccxt.PanicOnError(retRes33115)
-	ch <- retRes33115
+	retRes33415 := (<-this.SubscribePublicAsync(messageHash, this.Extend(request, params)))
+	ccxt.PanicOnError(retRes33415)
+	ch <- retRes33415
 	return nil
 }
 
@@ -441,7 +444,7 @@ func (this *Lighter) watchTickerBody(ch chan any, symbol any, optionalArgs ...an
  * @name lighter#unWatchTicker
  * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
  * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
- * @param {string} symbol unified symbol of the market to fetch the ticker for
+ * @param {string} symbol unified symbol of the market to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
@@ -457,20 +460,23 @@ func (this *Lighter) unWatchTickerBody(ch chan any, symbol any, optionalArgs ...
 	_ = params
 	if ccxt.IsEqual(this.Markets, nil) {
 
-		retRes34512 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes34512)
+		retRes34812 := (<-this.LoadMarketsAsync())
+		ccxt.PanicOnError(retRes34812)
 	}
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
+	if !ccxt.IsEqual(ccxt.GetValue(market, "swap"), true) {
+		panic(ccxt.NotSupported(ccxt.Add(this.Id, " unWatchTicker() is only supported for swap markets")))
+	}
 	var request map[string]any = map[string]any{
 		"channel": ccxt.Add("market_stats/", ccxt.GetValue(market, "id")),
 	}
 	var subMessageHash any = this.GetMessageHash("ticker", symbol)
 	var messageHash any = ccxt.Add("unsubscribe:", subMessageHash)
 
-	retRes35415 := (<-this.UnsubscribeAsync(messageHash, this.Extend(request, params)))
-	ccxt.PanicOnError(retRes35415)
-	ch <- retRes35415
+	retRes36015 := (<-this.UnsubscribeAsync(messageHash, this.Extend(request, params)))
+	ccxt.PanicOnError(retRes36015)
+	ch <- retRes36015
 	return nil
 }
 
@@ -479,9 +485,8 @@ func (this *Lighter) unWatchTickerBody(ch chan any, symbol any, optionalArgs ...
  * @name lighter#watchTickers
  * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
- * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+ * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Lighter) WatchTickersAsync(optionalArgs ...any) <-chan any {
@@ -498,10 +503,14 @@ func (this *Lighter) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if ccxt.IsEqual(this.Markets, nil) {
 
-		retRes36912 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes36912)
+		retRes37412 := (<-this.LoadMarketsAsync())
+		ccxt.PanicOnError(retRes37412)
 	}
-	symbols = this.MarketSymbols(symbols)
+	symbols = this.MarketSymbols(symbols, nil, true, true)
+	var firstMarket any = this.GetMarketFromSymbols(symbols)
+	if (!ccxt.IsEqual(firstMarket, nil)) && (!ccxt.IsEqual(ccxt.GetValue(firstMarket, "swap"), true)) {
+		panic(ccxt.NotSupported(ccxt.Add(this.Id, " watchTickers() is only supported for swap markets")))
+	}
 	var request map[string]any = map[string]any{
 		"channel": "market_stats/all",
 	}
@@ -538,7 +547,7 @@ func (this *Lighter) watchTickersBody(ch chan any, optionalArgs ...any) any {
  * @name lighter#unWatchTickers
  * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
  * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
- * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+ * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
@@ -556,8 +565,13 @@ func (this *Lighter) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if ccxt.IsEqual(this.Markets, nil) {
 
-		retRes40812 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes40812)
+		retRes41712 := (<-this.LoadMarketsAsync())
+		ccxt.PanicOnError(retRes41712)
+	}
+	symbols = this.MarketSymbols(symbols, nil, true, true)
+	var firstMarket any = this.GetMarketFromSymbols(symbols)
+	if (!ccxt.IsEqual(firstMarket, nil)) && (!ccxt.IsEqual(ccxt.GetValue(firstMarket, "swap"), true)) {
+		panic(ccxt.NotSupported(ccxt.Add(this.Id, " unWatchTickers() is only supported for swap markets")))
 	}
 	var request map[string]any = map[string]any{
 		"channel": "market_stats/all",
@@ -565,9 +579,9 @@ func (this *Lighter) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 	var subMessageHash any = this.GetMessageHash("ticker")
 	var messageHash any = ccxt.Add("unsubscribe:", subMessageHash)
 
-	retRes41515 := (<-this.UnsubscribeAsync(messageHash, this.Extend(request, params)))
-	ccxt.PanicOnError(retRes41515)
-	ch <- retRes41515
+	retRes42915 := (<-this.UnsubscribeAsync(messageHash, this.Extend(request, params)))
+	ccxt.PanicOnError(retRes42915)
+	ch <- retRes42915
 	return nil
 }
 
@@ -591,9 +605,9 @@ func (this *Lighter) watchMarkPriceBody(ch chan any, symbol any, optionalArgs ..
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes42815 := (<-this.WatchTickerAsync(symbol, params))
-	ccxt.PanicOnError(retRes42815)
-	ch <- retRes42815
+	retRes44215 := (<-this.WatchTickerAsync(symbol, params))
+	ccxt.PanicOnError(retRes44215)
+	ch <- retRes44215
 	return nil
 }
 
@@ -619,9 +633,9 @@ func (this *Lighter) watchMarkPricesBody(ch chan any, optionalArgs ...any) any {
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	retRes44115 := (<-this.WatchTickersAsync(symbols, params))
-	ccxt.PanicOnError(retRes44115)
-	ch <- retRes44115
+	retRes45515 := (<-this.WatchTickersAsync(symbols, params))
+	ccxt.PanicOnError(retRes45515)
+	ch <- retRes45515
 	return nil
 }
 
@@ -645,9 +659,9 @@ func (this *Lighter) unWatchMarkPriceBody(ch chan any, symbol any, optionalArgs 
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes45415 := (<-this.UnWatchTickerAsync(symbol, params))
-	ccxt.PanicOnError(retRes45415)
-	ch <- retRes45415
+	retRes46815 := (<-this.UnWatchTickerAsync(symbol, params))
+	ccxt.PanicOnError(retRes46815)
+	ch <- retRes46815
 	return nil
 }
 
@@ -673,9 +687,9 @@ func (this *Lighter) unWatchMarkPricesBody(ch chan any, optionalArgs ...any) any
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	retRes46715 := (<-this.UnWatchTickersAsync(symbols, params))
-	ccxt.PanicOnError(retRes46715)
-	ch <- retRes46715
+	retRes48115 := (<-this.UnWatchTickersAsync(symbols, params))
+	ccxt.PanicOnError(retRes48115)
+	ch <- retRes48115
 	return nil
 }
 func (this *Lighter) ParseWsTrade(trade any, optionalArgs ...any) any {
@@ -822,8 +836,8 @@ func (this *Lighter) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	_ = params
 	if ccxt.IsEqual(this.Markets, nil) {
 
-		retRes59912 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes59912)
+		retRes61312 := (<-this.LoadMarketsAsync())
+		ccxt.PanicOnError(retRes61312)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -859,8 +873,8 @@ func (this *Lighter) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...
 	_ = params
 	if ccxt.IsEqual(this.Markets, nil) {
 
-		retRes62112 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes62112)
+		retRes63512 := (<-this.LoadMarketsAsync())
+		ccxt.PanicOnError(retRes63512)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -869,9 +883,9 @@ func (this *Lighter) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...
 	var subMessageHash any = this.GetMessageHash("trade", ccxt.GetValue(market, "symbol"))
 	var messageHash any = ccxt.Add("unsubscribe:", subMessageHash)
 
-	retRes62915 := (<-this.UnsubscribeAsync(messageHash, this.Extend(request, params)))
-	ccxt.PanicOnError(retRes62915)
-	ch <- retRes62915
+	retRes64315 := (<-this.UnsubscribeAsync(messageHash, this.Extend(request, params)))
+	ccxt.PanicOnError(retRes64315)
+	ch <- retRes64315
 	return nil
 }
 func (this *Lighter) ParseWsOrderTrade(trade any, optionalArgs ...any) any {
@@ -1061,8 +1075,8 @@ func (this *Lighter) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if ccxt.IsEqual(this.Markets, nil) {
 
-		retRes80212 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes80212)
+		retRes81612 := (<-this.LoadMarketsAsync())
+		ccxt.PanicOnError(retRes81612)
 	}
 	var accountIndex any = nil
 	accountIndexparamsVariable := (<-this.HandleAccountIndexAsync(params, "watchMyTrades", "accountIndex", "account_index"))
@@ -1123,9 +1137,9 @@ func (this *Lighter) unWatchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		"channel": ccxt.Add("account_all_trades/", this.NumberToString(accountIndex)),
 	}
 
-	retRes84315 := (<-this.UnsubscribeAsync(messageHash, this.Extend(request, params)))
-	ccxt.PanicOnError(retRes84315)
-	ch <- retRes84315
+	retRes85715 := (<-this.UnsubscribeAsync(messageHash, this.Extend(request, params)))
+	ccxt.PanicOnError(retRes85715)
+	ch <- retRes85715
 	return nil
 }
 func (this *Lighter) ParseWsLiquidation(liquidation any, optionalArgs ...any) any {
@@ -1269,8 +1283,8 @@ func (this *Lighter) watchLiquidationsBody(ch chan any, symbol any, optionalArgs
 	_ = params
 	if ccxt.IsEqual(this.Markets, nil) {
 
-		retRes97212 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes97212)
+		retRes98612 := (<-this.LoadMarketsAsync())
+		ccxt.PanicOnError(retRes98612)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1278,9 +1292,9 @@ func (this *Lighter) watchLiquidationsBody(ch chan any, symbol any, optionalArgs
 	}
 	var messageHash any = this.GetMessageHash("liquidations", symbol)
 
-	retRes97915 := (<-this.SubscribePublicAsync(messageHash, this.Extend(request, params)))
-	ccxt.PanicOnError(retRes97915)
-	ch <- retRes97915
+	retRes99315 := (<-this.SubscribePublicAsync(messageHash, this.Extend(request, params)))
+	ccxt.PanicOnError(retRes99315)
+	ch <- retRes99315
 	return nil
 }
 
@@ -1305,8 +1319,8 @@ func (this *Lighter) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if ccxt.IsEqual(this.Markets, nil) {
 
-		retRes99312 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes99312)
+		retRes100712 := (<-this.LoadMarketsAsync())
+		ccxt.PanicOnError(retRes100712)
 	}
 	var defaultType *string = this.SafeString2(this.Options, "watchBalance", "defaultType", "spot")
 	var typeVar any = nil
@@ -1322,16 +1336,16 @@ func (this *Lighter) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	if ccxt.IsEqual(typeVar, "spot") {
 		ccxt.AddElementToObject(request, "channel", ccxt.Add("account_all_assets/", this.NumberToString(accountIndex)))
 
-		retRes100419 := (<-this.SubscribePrivateAsync(messageHash, this.Extend(request, params)))
-		ccxt.PanicOnError(retRes100419)
-		ch <- retRes100419
+		retRes101819 := (<-this.SubscribePrivateAsync(messageHash, this.Extend(request, params)))
+		ccxt.PanicOnError(retRes101819)
+		ch <- retRes101819
 		return nil
 	} else {
 		ccxt.AddElementToObject(request, "channel", ccxt.Add("user_stats/", this.NumberToString(accountIndex)))
 
-		retRes100719 := (<-this.SubscribePublicAsync(messageHash, this.Extend(request, params)))
-		ccxt.PanicOnError(retRes100719)
-		ch <- retRes100719
+		retRes102119 := (<-this.SubscribePublicAsync(messageHash, this.Extend(request, params)))
+		ccxt.PanicOnError(retRes102119)
+		ch <- retRes102119
 		return nil
 	}
 }
@@ -1456,8 +1470,8 @@ func (this *Lighter) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if ccxt.IsEqual(this.Markets, nil) {
 
-		retRes111612 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes111612)
+		retRes113012 := (<-this.LoadMarketsAsync())
+		ccxt.PanicOnError(retRes113012)
 	}
 	var accountIndex any = nil
 	accountIndexparamsVariable := (<-this.HandleAccountIndexAsync(params, "watchOrders", "accountIndex", "account_index"))
@@ -1507,8 +1521,8 @@ func (this *Lighter) unWatchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if ccxt.IsEqual(this.Markets, nil) {
 
-		retRes114812 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes114812)
+		retRes116212 := (<-this.LoadMarketsAsync())
+		ccxt.PanicOnError(retRes116212)
 	}
 	var accountIndex any = nil
 	accountIndexparamsVariable := (<-this.HandleAccountIndexAsync(params, "unWatchOrders", "accountIndex", "account_index"))
@@ -1526,9 +1540,9 @@ func (this *Lighter) unWatchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var messageHash any = ccxt.Add("unsubscribe:", subMessageHash)
 
-	retRes116315 := (<-this.UnsubscribeAsync(messageHash, this.Extend(request, params)))
-	ccxt.PanicOnError(retRes116315)
-	ch <- retRes116315
+	retRes117715 := (<-this.UnsubscribeAsync(messageHash, this.Extend(request, params)))
+	ccxt.PanicOnError(retRes117715)
+	ch <- retRes117715
 	return nil
 }
 func (this *Lighter) RequestId(url any) any {
@@ -2011,8 +2025,8 @@ func (this *Lighter) pongBody(ch chan any, client any, message any) any {
 		"type": "pong",
 	}
 
-	retRes15858 := (<-client.(ccxt.ClientInterface).SendAsync(request))
-	ccxt.PanicOnError(retRes15858)
+	retRes15998 := (<-client.(ccxt.ClientInterface).SendAsync(request))
+	ccxt.PanicOnError(retRes15998)
 	return nil
 }
 
@@ -2082,7 +2096,7 @@ func (this *Lighter) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrde
  * @name lighter#watchTicker
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
  * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
- * @param {string} symbol unified symbol of the market to fetch the ticker for
+ * @param {string} symbol unified symbol of the market to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
@@ -2105,7 +2119,7 @@ func (this *Lighter) WatchTicker(symbol string, options ...ccxt.WatchTickerOptio
  * @name lighter#unWatchTicker
  * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
  * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
- * @param {string} symbol unified symbol of the market to fetch the ticker for
+ * @param {string} symbol unified symbol of the market to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
@@ -2128,9 +2142,8 @@ func (this *Lighter) UnWatchTicker(symbol string, options ...ccxt.UnWatchTickerO
  * @name lighter#watchTickers
  * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
- * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+ * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Lighter) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt.Tickers, error) {
@@ -2152,7 +2165,7 @@ func (this *Lighter) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt.Tic
  * @name lighter#unWatchTickers
  * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
  * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
- * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+ * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */

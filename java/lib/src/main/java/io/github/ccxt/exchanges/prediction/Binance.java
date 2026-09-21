@@ -995,15 +995,14 @@ final Object finalMarketSymbol = marketSymbol;
                 last = this.parseNumber(lastString);
             }
         }
-        Long now = this.milliseconds();
         final Object finalLast = last;
         return this.safePredictionTicker(new HashMap<String, Object>() {{
             put( "outcome", Binance.this.safeString(outcomeObj, "outcome") );
             put( "outcomeId", Binance.this.safeString2(outcomeObj, "outcomeId", "id") );
             put( "label", Binance.this.safeString(outcomeObj, "label") );
             put( "market", Binance.this.safeString(outcomeObj, "market") );
-            put( "timestamp", now );
-            put( "datetime", Binance.this.iso8601(now) );
+            put( "timestamp", null );
+            put( "datetime", null );
             put( "high", null );
             put( "low", null );
             put( "bid", null );
@@ -2300,8 +2299,8 @@ final Object finalMarketSymbol = marketSymbol;
                     put( "outcomeId", Binance.this.safeString(finalOutcomeObj, "id") );
                     put( "label", Binance.this.safeString(finalOutcomeObj, "label") );
                     put( "market", Binance.this.safeString(finalOutcomeObj, "market") );
-                    put( "timestamp", Binance.this.milliseconds() );
-                    put( "datetime", Binance.this.iso8601(Binance.this.milliseconds()) );
+                    put( "timestamp", null );
+                    put( "datetime", null );
                 }};
                 ((List<Object>)orders).add(this.safePredictionOrder(order));
             }

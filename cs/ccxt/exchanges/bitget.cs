@@ -10205,13 +10205,17 @@ public partial class bitget : Exchange
      * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
      * @see https://www.bitget.com/api-doc/spot/account/Get-Account-Bills
      * @see https://www.bitget.com/api-doc/contract/account/Get-Account-Bill
+     * @see https://www.bitget.com/docs/catalog/account/assets-balance#get-financial-records
+     * @see https://www.bitget.com/docs/catalog/account/assets-balance#get-funding-financial-records
      * @param {string} [code] unified currency code, default is undefined
-     * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
+     * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined, the uta endpoints allow a window of at most 30 days between since and until
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] end time in ms
      * @param {string} [params.symbol] *contract only* unified market symbol
-     * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+     * @param {string} [params.productType] *contract and uta only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+     * @param {string} [params.type] set to 'funding' with uta to fetch the funding account ledger instead of the trading account ledger
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
@@ -10233,18 +10237,46 @@ public partial class bitget : Exchange
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchLedger", market, parameters);
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
+        object uta = null;
+        var utaparametersVariable = await this.handleUTAAndParams(parameters, "fetchLedger", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
         object paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchLedger", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
+            if (isTrue(isEqual(uta, true)))
+            {
+                // re-inject the resolved modes, the handle* helpers stripped them from params and the recursive paginated calls would silently fall back to the defaults
+                parameters = this.extend(parameters, new Dictionary<string, object>() {
+                    { "uta", true },
+                    { "type", marketType },
+                });
+                if (isTrue(!isEqual(symbol, null)))
+                {
+                    parameters = this.extend(parameters, new Dictionary<string, object>() {
+                        { "symbol", symbol },
+                    });
+                }
+                return ccxt.BaseExchange.ToLedgerEntryList(await this.fetchPaginatedCallCursor("fetchLedger", code, since, limit, parameters, "id", "cursor", null, 100));
+            }
             string? cursorReceived = null;
             if (isTrue(!isEqual(marketType, "spot")))
             {
                 cursorReceived = "endId";
             }
-            return ccxt.BaseExchange.ToLedgerEntryList(await this.fetchPaginatedCallCursor("fetchLedger", symbol, since, limit, parameters, cursorReceived, "idLessThan"));
+            parameters = this.extend(parameters, new Dictionary<string, object>() {
+                { "type", marketType },
+            });
+            if (isTrue(!isEqual(symbol, null)))
+            {
+                parameters = this.extend(parameters, new Dictionary<string, object>() {
+                    { "symbol", symbol },
+                });
+            }
+            return ccxt.BaseExchange.ToLedgerEntryList(await this.fetchPaginatedCallCursor("fetchLedger", code, since, limit, parameters, cursorReceived, "idLessThan"));
         }
         IDictionary<string, object> currency = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
@@ -10265,6 +10297,44 @@ public partial class bitget : Exchange
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
         Dictionary<string, object> response = null;
+        if (isTrue(isEqual(uta, true)))
+        {
+            if (isTrue(isEqual(marketType, "funding")))
+            {
+                response = await this.privateUtaGetV3AccountFundingFinancialRecords(this.extend(request, parameters));
+            } else
+            {
+                object marginMode = null;
+                IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("fetchLedger", parameters);
+                marginMode = ((IList<object>)marginModeparametersVariable)[0];
+                parameters = ((IList<object>)marginModeparametersVariable)[1];
+                if (isTrue(isEqual(marketType, "spot")))
+                {
+                    if (isTrue(!isEqual(marginMode, null)))
+                    {
+                        ((IDictionary<string,object>)request)["category"] = "MARGIN";
+                    } else
+                    {
+                        ((IDictionary<string,object>)request)["category"] = "SPOT";
+                    }
+                } else
+                {
+                    object productType = null;
+                    IList<object> productTypeparametersVariable = (IList<object>)this.handleProductTypeAndParams(market, parameters);
+                    productType = ((IList<object>)productTypeparametersVariable)[0];
+                    parameters = ((IList<object>)productTypeparametersVariable)[1];
+                    ((IDictionary<string,object>)request)["category"] = productType;
+                }
+                if (isTrue(!isEqual(symbol, null)))
+                {
+                    ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
+                }
+                response = await this.privateUtaGetV3AccountFinancialRecords(this.extend(request, parameters));
+            }
+            IDictionary<string, object> utaData = this.safeDict(response, "data", new Dictionary<string, object>() {});
+            List<object> list = this.safeList(utaData, "list", new List<object>() {});
+            return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(list, currency, since, limit));
+        }
         if (isTrue(isEqual(marketType, "spot")))
         {
             response = await this.privateSpotGetV2SpotAccountBills(this.extend(request, parameters));
@@ -10274,9 +10344,9 @@ public partial class bitget : Exchange
             {
                 ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
             }
-            string? productType = null;
+            object productType = null;
             IList<object> productTypeparametersVariable = (IList<object>)this.handleProductTypeAndParams(market, parameters);
-            productType = (string)((IList<object>)productTypeparametersVariable)[0];
+            productType = ((IList<object>)productTypeparametersVariable)[0];
             parameters = ((IList<object>)productTypeparametersVariable)[1];
             ((IDictionary<string,object>)request)["productType"] = productType;
             response = await this.privateMixGetV2MixAccountBill(this.extend(request, parameters));
@@ -10363,14 +10433,54 @@ public partial class bitget : Exchange
         //         "cTime": "1700728034996"
         //     }
         //
+        // uta financial records
+        //
+        //     {
+        //         "category": "Margin",
+        //         "id": "13111111111111111",
+        //         "symbol": "BTCUSDT",
+        //         "coin": "BTC",
+        //         "type": "ORDER_DEALT_IN",
+        //         "positionType": "crossed",
+        //         "fee": "-0.00000531",
+        //         "positionAmount": "0.001",
+        //         "positionBalance": "0.001",
+        //         "amount": "0.00531168",
+        //         "balance": "55.10017801",
+        //         "ts": "1745853486185"
+        //     }
+        //
+        // uta funding financial records
+        //
+        //     {
+        //         "id": "1477183363639320585",
+        //         "coin": "USDT",
+        //         "groupType": "transfer",
+        //         "type": "transfer_out",
+        //         "amount": "-30.00000000",
+        //         "balance": "0.00000000",
+        //         "ts": "1787913879280"
+        //     }
+        //
         string? currencyId = this.safeString(item, "coin");
         string? code = this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
-        Int64? timestamp = this.safeInteger(item, "cTime");
-        double? after = this.safeNumber(item, "balance");
-        double? fee = this.safeNumber2(item, "fees", "fee");
+        Int64? timestamp = this.safeInteger2(item, "cTime", "ts");
+        string? balanceString = this.safeString(item, "balance");
+        double? after = this.parseNumber(balanceString);
+        string? feeCostString = this.safeString2(item, "fees", "fee");
+        double? feeCost = null;
+        if (isTrue(!isEqual(feeCostString, null)))
+        {
+            feeCost = this.parseNumber(Precise.stringAbs(feeCostString)); // deliberate for both generations, uta reports charged fees as negative values and the v2 fields hold signed values too
+        }
         string? amountRaw = this.safeString2(item, "size", "amount", "");
         double? amount = this.parseNumber(Precise.stringAbs(amountRaw));
+        double? before = null;
+        if (isTrue(isTrue((!isEqual(balanceString, null))) && isTrue((!isEqual(amountRaw, "")))))
+        {
+            before = this.parseNumber(Precise.stringSub(balanceString, amountRaw)); // subtract the signed change from the after-balance, the base derivation assumes a signed amount and would produce a negative before on outflows
+        }
         string direction = "in";
         if (isTrue(isGreaterThanOrEqual(getIndexOf(amountRaw, "-"), 0)))
         {
@@ -10378,22 +10488,22 @@ public partial class bitget : Exchange
         }
         return this.safeLedgerEntry(new Dictionary<string, object>() {
             { "info", item },
-            { "id", this.safeString(item, "billId") },
+            { "id", this.safeString2(item, "billId", "id") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "direction", direction },
             { "account", null },
             { "referenceId", null },
             { "referenceAccount", null },
-            { "type", this.parseLedgerType(this.safeString(item, "businessType")) },
+            { "type", this.parseLedgerType(this.safeStringN(item, new List<object>() {"businessType", "groupType", "type"})) },
             { "currency", code },
             { "amount", amount },
-            { "before", null },
+            { "before", before },
             { "after", after },
             { "status", null },
             { "fee", new Dictionary<string, object>() {
                 { "currency", code },
-                { "cost", fee },
+                { "cost", feeCost },
             } },
         }, currency);
     }
@@ -10441,6 +10551,149 @@ public partial class bitget : Exchange
             { "withdraw", "withdrawal" },
             { "buy", "trade" },
             { "sell", "trade" },
+            { "transaction", "transaction" },
+            { "transfer", "transfer" },
+            { "financial", "transaction" },
+            { "strategy", "trade" },
+            { "trace", "trade" },
+            { "loan", "transaction" },
+            { "fait", "transaction" },
+            { "convert", "trade" },
+            { "ipo_prime", "transaction" },
+            { "pre_c2c", "trade" },
+            { "paptrading", "trade" },
+            { "on_chain", "transaction" },
+            { "debit", "transaction" },
+            { "cfd", "trade" },
+            { "pay", "transaction" },
+            { "compliance_wall", "transaction" },
+            { "live", "transaction" },
+            { "broker", "transaction" },
+            { "rwa", "transaction" },
+            { "stock", "trade" },
+            { "TRANSFER_IN", "transfer" },
+            { "TRANSFER_OUT", "transfer" },
+            { "RESERVE_TRANSFER_IN", "transfer" },
+            { "RESERVE_TRANSFER_OUT", "transfer" },
+            { "LIQ_TRANSFER_IN", "transfer" },
+            { "LIQ_TRANSFER_OUT", "transfer" },
+            { "ON_CHAIN_TRANSFER_REFUND", "transfer" },
+            { "ON_CHAIN_TRANSFER_OUT", "transfer" },
+            { "MT5_TRANSFER_IN", "transfer" },
+            { "MT5_REFUND_IN", "transfer" },
+            { "MT5_TRANSFER_OUT", "transfer" },
+            { "TRACE_TRANSFER_USER_OUT", "transfer" },
+            { "TRACE_TRANSFER_USER_IN", "transfer" },
+            { "TRACE_TRANSFER_REFUND_IN", "transfer" },
+            { "FINANCIAL_TRANSFER_OUT", "transfer" },
+            { "FINANCIAL_TRANSFER_IN", "transfer" },
+            { "CONVERT_TRANSFER_IN", "transfer" },
+            { "CONVERT_TRANSFER_OUT", "transfer" },
+            { "BGPAY_TRANSFER_OUT", "transfer" },
+            { "BGPAY_REFUND_IN", "transfer" },
+            { "ORDER_DEALT_FROZEN_OUT", "trade" },
+            { "ORDER_DEALT_IN", "trade" },
+            { "OPEN_LONG", "trade" },
+            { "OPEN_SHORT", "trade" },
+            { "BUY_DEAL", "trade" },
+            { "SELL_DEAL", "trade" },
+            { "CLOSE_LONG", "trade" },
+            { "CLOSE_SHORT", "trade" },
+            { "FORCE_CLOSE_LONG", "trade" },
+            { "FORCE_CLOSE_SHORT", "trade" },
+            { "BURST_CLOSE_LONG", "trade" },
+            { "BURST_CLOSE_SHORT", "trade" },
+            { "OFFSET_REDUCE_CLOSE_LONG", "trade" },
+            { "OFFSET_REDUCE_CLOSE_SHORT", "trade" },
+            { "FORCE_BUY_SSM", "trade" },
+            { "FORCE_SELL_SSM", "trade" },
+            { "BURST_BUY_SSM", "trade" },
+            { "BURST_SELL_SSM", "trade" },
+            { "RISK_LIQ_USER_IN", "trade" },
+            { "RISK_LIQ_USER_OUT", "trade" },
+            { "LIQ_FUND_OUT", "trade" },
+            { "LIQ_FUND_IN", "trade" },
+            { "LIQ_CONVERT_USER_OUT", "trade" },
+            { "LIQ_CONVERT_SYS_IN", "trade" },
+            { "LIQ_CONVERT_SYS_OUT", "trade" },
+            { "LIQ_CONVERT_USER_IN", "trade" },
+            { "MARGIN_OPEN_LONG", "trade" },
+            { "MARGIN_OPEN_SHORT", "trade" },
+            { "MARIN_BUY_DEAL", "trade" },
+            { "MARIN_SELL_DEAL", "trade" },
+            { "MARGIN_BACK", "trade" },
+            { "MARGIN_OFFSET_IN_SSM_LONG", "trade" },
+            { "MARGIN_OFFSET_IN_SSM_SHORT", "trade" },
+            { "FIXED_OFFSET_IN_SSM_LONG", "trade" },
+            { "FIXED_OFFSET_IN_SSM_SHORT", "trade" },
+            { "FIXED_CLOSE_LONG", "trade" },
+            { "FIXED_CLOSE_SHORT", "trade" },
+            { "FIXED_FORCE_CLOSE_LONG", "trade" },
+            { "FIXED_FORCE_CLOSE_SHORT", "trade" },
+            { "FIXED_BURST_CLOSE_LONG", "trade" },
+            { "FIXED_BURST_CLOSE_SHORT", "trade" },
+            { "FIXED_ADL_CLOSE_LONG", "trade" },
+            { "FIXED_ADL_CLOSE_SHORT", "trade" },
+            { "FIXED_RISK_LIQ_USER_IN", "trade" },
+            { "FIXED_RISK_LIQ_USER_OUT", "trade" },
+            { "FIXED_FORCE_BUY_SSM", "trade" },
+            { "FIXED_FORCE_SELL_SSM", "trade" },
+            { "FIXED_BURST_BUY_SSM", "trade" },
+            { "FIXED_BURST_SELL_SSM", "trade" },
+            { "RWA_CONTRACT_REBASE_USER_OPEN_LONG", "trade" },
+            { "RWA_CONTRACT_REBASE_USER_OPEN_SHORT", "trade" },
+            { "RWA_CONTRACT_REBASE_USER_CLOSE_LONG", "trade" },
+            { "RWA_CONTRACT_REBASE_USER_CLOSE_SHORT", "trade" },
+            { "RWA_CONTRACT_REBASE_USER_BUY_IN_SSM", "trade" },
+            { "RWA_CONTRACT_REBASE_USER_SELL_IN_SSM", "trade" },
+            { "ORDER_PLF_FEE_OUT", "fee" },
+            { "INTEREST_SETTLEMENT_OUT", "fee" },
+            { "INTEREST_REPAYMENT", "fee" },
+            { "CONTRACT_MAIN_SETTLE_FEE_USER_IN", "fee" },
+            { "CONTRACT_MAIN_SETTLE_FEE_USER_OUT", "fee" },
+            { "MARGIN_SETTLE_FEE_USER_IN", "fee" },
+            { "MARGIN_SETTLE_FEE_USER_OUT", "fee" },
+            { "LIQ_FEE", "fee" },
+            { "SMALL_ASSET_FEE_SYS_IN", "fee" },
+            { "RWA_FIXED_SETTLE_FEE_USER_IN", "fee" },
+            { "RWA_FIXED_SETTLE_FEE_USER_OUT", "fee" },
+            { "RWA_CONTRACT_MAIN_SETTLE_FEE_SYSTEM_IN", "fee" },
+            { "RWA_CONTRACT_MAIN_SETTLE_FEE_SYSTEM_OUT", "fee" },
+            { "RWA_CONTRACT_MAIN_SETTLE_FEE_SYSTEM_KEEP_IN", "fee" },
+            { "RWA_CONTRACT_MAIN_SETTLE_FEE_SYSTEM_KEEP_OUT", "fee" },
+            { "RWA_CONTRACT_MAIN_SETTLE_FEE_USER_IN", "fee" },
+            { "RWA_CONTRACT_MAIN_SETTLE_FEE_USER_OUT", "fee" },
+            { "INCREASE_MARGIN", "margin" },
+            { "REDUCE_MARGIN", "margin" },
+            { "MARGIN_LEVER_ORDER_REFROZEN", "margin" },
+            { "MARGIN_LEVER_ORDER_FROZEN", "margin" },
+            { "MARGIN_LEVER_POS_IN", "margin" },
+            { "CONVERSION_UPON_DELISTING", "transaction" },
+            { "EXCHANGE_SOURCE_TOKEN_USER_OUT", "transaction" },
+            { "EXCHANGE_TARGET_TOKEN_USER_IN", "transaction" },
+            { "BORROW", "transaction" },
+            { "REPAYMENT", "transaction" },
+            { "LIQ_REPAYMENT", "transaction" },
+            { "DELIST_MARGIN_TOKEN_SOURCE_USER_OUT", "transaction" },
+            { "DELIST_MARGIN_TOKEN_SOURCE_SYS_IN", "transaction" },
+            { "DELIST_MARGIN_TOKEN_TARGET_SYS_OUT", "transaction" },
+            { "DELIST_MARGIN_TOKEN_TARGET_USER_IN", "transaction" },
+            { "CONFISCATE_TOKEN_USER_OUT", "transaction" },
+            { "CONFISCATE_TOKEN_SYS_IN", "transaction" },
+            { "DELIST_SMALL_BALANCE_USER_OUT", "transaction" },
+            { "DELIST_SMALL_BALANCE_SYS_IN", "transaction" },
+            { "DELIST_SMALL_LIABILITY_SYS_OUT", "transaction" },
+            { "DELIST_SMALL_LIABILITY_USER_IN", "transaction" },
+            { "SMALL_ASSET_SOURCE_TOKEN_USER_OUT", "transaction" },
+            { "SMALL_ASSET_SOURCE_TOKEN_SYS_IN", "transaction" },
+            { "SMALL_ASSET_TARGET_TOKEN_SYS_OUT", "transaction" },
+            { "SMALL_ASSET_TARGET_TOKEN_USER_IN", "transaction" },
+            { "TRACE_LOCK_USER_OUT", "transaction" },
+            { "TRACE_LOCK_USER_IN", "transaction" },
+            { "TRACE_SHARE_BENEFIT_USER_OUT", "referral" },
+            { "TRACE_SHARE_BENEFIT_SYSTEM_IN", "referral" },
+            { "TRACE_SHARE_BENEFIT_SYSTEM_OUT", "referral" },
+            { "TRACE_SHARE_BENEFIT_USER_IN", "referral" },
         };
         return this.safeString(types, ((string)type), type);
     }

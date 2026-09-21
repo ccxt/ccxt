@@ -1152,12 +1152,6 @@ public class Myriad extends MyriadApi
             {
                 Helpers.addElementToObject(parsed, "amount", amount);
             }
-            if (Helpers.isTrue(Helpers.isEqual(this.safeInteger(parsed, "timestamp"), null)))
-            {
-                Long now = this.milliseconds();
-                Helpers.addElementToObject(parsed, "timestamp", now);
-                Helpers.addElementToObject(parsed, "datetime", this.iso8601(now));
-            }
             if (Helpers.isTrue(Helpers.isEqual(this.safeString(parsed, "status"), null)))
             {
                 Helpers.addElementToObject(parsed, "status", "open");
@@ -3066,7 +3060,6 @@ final Object finalNetworkId = networkId;
                 break;
             }
         }
-        Long now = this.milliseconds();
         // priceChange24h is an ABSOLUTE price delta; derive the previous close and the TRUE
         // percentage from it — setting percentage = the absolute change (as before) was wrong
         Object previousClose = null;
@@ -3093,8 +3086,8 @@ final Object finalNetworkId = networkId;
             put( "outcomeId", Myriad.this.safeString(finalMarket, "id") );
             put( "label", Myriad.this.safeString(finalMarket, "label") );
             put( "market", Myriad.this.safeString(finalMarket, "market") );
-            put( "timestamp", now );
-            put( "datetime", Myriad.this.iso8601(now) );
+            put( "timestamp", null );
+            put( "datetime", null );
             put( "high", null );
             put( "low", null );
             put( "bid", finalPrice );
@@ -3242,7 +3235,6 @@ final Object finalNetworkId = networkId;
                     break;
                 }
             }
-            Long timestamp = this.milliseconds();
             // AMM: synthesize a single bid/ask pair around the current implied price, clamped into the valid (0, 1) range
             Object bid = null;
             Object ask = null;
@@ -3273,8 +3265,8 @@ final Object finalNetworkId = networkId;
                 put( "outcome", Myriad.this.safeOutcomeSymbol(outcome, outcomeObj) );
                 put( "bids", bids );
                 put( "asks", asks );
-                put( "timestamp", timestamp );
-                put( "datetime", Myriad.this.iso8601(timestamp) );
+                put( "timestamp", null );
+                put( "datetime", null );
                 put( "nonce", null );
             }};
             return this.safePredictionOrderBook(orderbook, outcomeObj);
@@ -3311,13 +3303,12 @@ final Object finalNetworkId = networkId;
             Object rowAmount = Precise.stringDiv(this.safeString(row, 1), "1000000000000000000");
             ((List<Object>)asks).add(new ArrayList<Object>(Arrays.asList(this.parseNumber(rowPrice), this.parseNumber(rowAmount))));
         }
-        Long timestamp = this.milliseconds();
         return new HashMap<String, Object>() {{
             put( "outcome", outcome );
             put( "bids", Myriad.this.sortBy(bids, 0, true) );
             put( "asks", Myriad.this.sortBy(asks, 0) );
-            put( "timestamp", timestamp );
-            put( "datetime", Myriad.this.iso8601(timestamp) );
+            put( "timestamp", null );
+            put( "datetime", null );
             put( "nonce", null );
         }};
     }

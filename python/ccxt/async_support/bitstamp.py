@@ -1290,6 +1290,7 @@ class bitstamp(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest candle to fetch
         :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
@@ -1300,21 +1301,38 @@ class bitstamp(Exchange, ImplicitAPI):
             'step': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         duration = self.parse_timeframe(timeframe)
+        until = self.safe_integer(params, 'until')
+        untilIsDefined = (until is not None)
         if limit is None:
+            limit = 1000
             if since is None:
-                request['limit'] = 1000  # we need to specify an allowed amount of `limit` if no `since` is set and there is no default limit by exchange
+                request['limit'] = limit
+                if untilIsDefined:
+                    end = self.parse_to_int(until / 1000)
+                    request['start'] = end - (duration * limit) - 1
+                    request['end'] = end
             else:
-                limit = 1000
                 start = self.parse_to_int(since / 1000)
                 request['start'] = start
-                request['end'] = self.sum(start, duration * (limit - 1))
+                if untilIsDefined:
+                    request['end'] = self.parse_to_int(until / 1000)
+                else:
+                    request['end'] = self.sum(start, duration * limit - 1)
                 request['limit'] = limit
         else:
             if since is not None:
                 start = self.parse_to_int(since / 1000)
                 request['start'] = start
-                request['end'] = self.sum(start, duration * (limit - 1))
+                end = self.sum(start, duration * limit - 1)
+                if untilIsDefined:
+                    end = min(end, self.parse_to_int(until / 1000))
+                request['end'] = end
+            elif untilIsDefined:
+                end = self.parse_to_int(until / 1000)
+                request['end'] = end
+                request['start'] = end - (duration * limit) - 1
             request['limit'] = min(limit, 1000)  # min 1, max 1000
+        params = self.omit(params, 'until')
         response = await self.publicGetOhlcPair(self.extend(request, params))
         #
         #     {
