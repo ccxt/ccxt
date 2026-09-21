@@ -772,6 +772,20 @@
         ],
         "fetchOpenOrders": [
             {
+                "description": "fetch open orders with trigger false",
+                "method": "fetchOpenOrders",
+                "url": "https://www.okx.com/api/v5/trade/orders-pending",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "trigger": false
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "Fetch open orders with no arguments",
                 "method": "fetchOpenOrders",
                 "url": "https://www.okx.com/api/v5/trade/orders-pending",
@@ -1022,7 +1036,16 @@
                     ],
                     "LTC/USDT"
                 ],
-                "output": [ { "ordId": "639634940954492928", "instId": "LTC-USDT" }, { "ordId": "637051741938204684", "instId": "LTC-USDT" } ]
+                "output": [
+                    {
+                        "ordId": "639634940954492928",
+                        "instId": "LTC-USDT"
+                    },
+                    {
+                        "ordId": "637051741938204684",
+                        "instId": "LTC-USDT"
+                    }
+                ]
             },
             {
                 "description": "Cancel multiple swap orders",
@@ -1036,7 +1059,20 @@
                     ],
                     "LTC/USDT:USDT"
                 ],
-                "output": [ { "ordId": "600038002475229184", "instId": "LTC-USDT-SWAP" }, { "ordId": "600410267155169280", "instId": "LTC-USDT-SWAP" }, { "ordId": "622144973181374464", "instId": "LTC-USDT-SWAP" } ]
+                "output": [
+                    {
+                        "ordId": "600038002475229184",
+                        "instId": "LTC-USDT-SWAP"
+                    },
+                    {
+                        "ordId": "600410267155169280",
+                        "instId": "LTC-USDT-SWAP"
+                    },
+                    {
+                        "ordId": "622144973181374464",
+                        "instId": "LTC-USDT-SWAP"
+                    }
+                ]
             },
             {
                 "description": "Cancel multiple spot stop orders",
@@ -1053,7 +1089,16 @@
                         "ordType": "trigger"
                     }
                 ],
-                "output": [ { "algoId": "635561454703480832", "instId": "LTC-USDT" }, { "algoId": "637051086087655424", "instId": "LTC-USDT" } ]
+                "output": [
+                    {
+                        "algoId": "635561454703480832",
+                        "instId": "LTC-USDT"
+                    },
+                    {
+                        "algoId": "637051086087655424",
+                        "instId": "LTC-USDT"
+                    }
+                ]
             },
             {
                 "description": "Cancel multiple swap stop orders",
@@ -1070,7 +1115,16 @@
                         "ordType": "trigger"
                     }
                 ],
-                "output": [ { "algoId": "639637720528322560", "instId": "LTC-USDT-SWAP" }, { "algoId": "635260475386888192", "instId": "LTC-USDT-SWAP" } ]
+                "output": [
+                    {
+                        "algoId": "639637720528322560",
+                        "instId": "LTC-USDT-SWAP"
+                    },
+                    {
+                        "algoId": "635260475386888192",
+                        "instId": "LTC-USDT-SWAP"
+                    }
+                ]
             },
             {
                 "description": "Swap cancel multiple trailing orders",
@@ -1085,7 +1139,12 @@
                         "trailing": true
                     }
                 ],
-                "output": [ { "algoId": "663748219972878336", "instId": "BTC-USDT-SWAP" } ]
+                "output": [
+                    {
+                        "algoId": "663748219972878336",
+                        "instId": "BTC-USDT-SWAP"
+                    }
+                ]
             },
             {
                 "description": "cancel trigger orders by clientOrderId",
@@ -1101,7 +1160,53 @@
                         ]
                     }
                 ],
-                "output": [ { "instId": "BTC-USDT-SWAP", "algoClOrdId": "1234abcd" } ]
+                "output": [
+                    {
+                        "instId": "BTC-USDT-SWAP",
+                        "algoClOrdId": "1234abcd"
+                    }
+                ]
+            },
+            {
+                "description": "cancel orders with trigger false",
+                "method": "cancelOrders",
+                "url": "https://www.okx.com/api/v5/trade/cancel-batch-orders",
+                "input": [
+                    [
+                        "639634940954492928"
+                    ],
+                    "LTC/USDT",
+                    {
+                        "trigger": false
+                    }
+                ],
+                "output": [
+                    {
+                        "ordId": "639634940954492928",
+                        "instId": "LTC-USDT"
+                    }
+                ]
+            },
+            {
+                "description": "cancel orders by clientOrderId with trigger false",
+                "method": "cancelOrders",
+                "url": "https://www.okx.com/api/v5/trade/cancel-batch-orders",
+                "input": [
+                    [],
+                    "LTC/USDT",
+                    {
+                        "trigger": false,
+                        "clientOrderId": [
+                            "1234abcd"
+                        ]
+                    }
+                ],
+                "output": [
+                    {
+                        "instId": "LTC-USDT",
+                        "clOrdId": "1234abcd"
+                    }
+                ]
             }
         ],
         "cancelOrdersForSymbols": [
