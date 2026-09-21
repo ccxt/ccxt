@@ -449,7 +449,7 @@
             "watchTradesForSymbols":{
                 "side": "todo: https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3602",
                 "timestamp": "messed order coming from exchange",
-                "cost": "same as watchTrades"
+                "amountPriceCost": "same as watchTrades"
             },
             "ohlcv": {
                 "roundTimestamp": "are not rounded: https://app.travis-ci.com/github/ccxt/ccxt/builds/269583057#L4318"
@@ -1226,7 +1226,7 @@
             },
             "fetchTickers": "requires custom param",
             "fetchTrades": {
-                "cost": "precision needs rewrite for deribit, like it's for bitmex",
+                "amountPriceCost": "precision needs rewrite for deribit, like it's for bitmex",
                 "side": "todo fix"
             }
         }
