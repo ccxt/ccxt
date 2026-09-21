@@ -905,7 +905,7 @@ class cex extends \ccxt\async\cex {
             $symbol = $base . '/' . $quote;
         }
         $market = $this->safe_market($symbol, $market);
-        $time = $this->safe_integer($order, 'time', $this->milliseconds());
+        $time = $this->safe_integer($order, 'time');
         $timestamp = $time;
         if ($isTransaction) {
             $timestamp = $this->parse8601($time);

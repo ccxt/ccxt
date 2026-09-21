@@ -286,7 +286,7 @@ class bybit extends \ccxt\async\bybit {
             Async\await($this->load_markets());
         }
         $orderRequest = $this->create_order_request($symbol, $type, $side, $amount, $price, $params, true);
-        $url = $this->urls['api']['ws']['private']['trade'];
+        $url = $this->implode_hostname($this->urls['api']['ws']['private']['trade']);
         Async\await($this->authenticate($url));
         $requestId = (string) $this->request_id();
         $request = array(
@@ -337,7 +337,7 @@ class bybit extends \ccxt\async\bybit {
             Async\await($this->load_markets());
         }
         $orderRequest = $this->edit_order_request($id, $symbol, $type, $side, $amount, $price, $params);
-        $url = $this->urls['api']['ws']['private']['trade'];
+        $url = $this->implode_hostname($this->urls['api']['ws']['private']['trade']);
         Async\await($this->authenticate($url));
         $requestId = (string) $this->request_id();
         $request = array(
@@ -379,7 +379,7 @@ class bybit extends \ccxt\async\bybit {
             throw new ArgumentsRequired($this->id . ' cancelOrderWs() requires a $symbol argument');
         }
         $orderRequest = $this->cancel_order_request($id, $symbol, $params);
-        $url = $this->urls['api']['ws']['private']['trade'];
+        $url = $this->implode_hostname($this->urls['api']['ws']['private']['trade']);
         Async\await($this->authenticate($url));
         $requestId = (string) $this->request_id();
         if (is_array($orderRequest) && array_key_exists('orderFilter' ?? '', $orderRequest)) {

@@ -1621,6 +1621,28 @@ class bingx extends bingx$1["default"] {
         }
         const stored = this.orders;
         const parsedOrder = this.parseOrder(data);
+        if (!isSpot) {
+            // The envelope T is the order update time; o.T is the trade time.
+            const updateTimestamp = this.safeInteger(message, 'T');
+            if ((updateTimestamp !== undefined) && (updateTimestamp > 0)) {
+                const orderId = this.safeString(parsedOrder, 'id');
+                if (orderId !== undefined) {
+                    // Linear scan bounded by ordersLimit (default 1000), avoiding cache-specific maps.
+                    // Match both id and symbol: several cached orders can share a symbol.
+                    for (let i = 0; i < stored.length; i++) {
+                        const previousOrder = stored[i];
+                        if ((previousOrder['id'] === orderId) && (previousOrder['symbol'] === parsedOrder['symbol'])) {
+                            const previousTimestamp = this.safeInteger(previousOrder, 'lastUpdateTimestamp');
+                            if ((previousTimestamp !== undefined) && (updateTimestamp < previousTimestamp)) {
+                                return;
+                            }
+                            break;
+                        }
+                    }
+                }
+                parsedOrder['lastUpdateTimestamp'] = updateTimestamp;
+            }
+        }
         stored.append(parsedOrder);
         const symbol = parsedOrder['symbol'];
         const spotHash = 'spot:order';

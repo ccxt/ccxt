@@ -2159,11 +2159,10 @@ class bitteam extends bitteam$1["default"] {
         //         }
         //     }
         //
-        const timestamp = this.milliseconds();
         const balance = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
         };
         const result = this.safeValue(response, 'result', {});
         const balanceByCurrencies = this.omit(result, ['free', 'used', 'total']);

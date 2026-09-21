@@ -747,7 +747,11 @@ public partial class opinion : PredictionExchange
         IDictionary<string, object> bestBid = this.safeDict(bids, 0, new Dictionary<string, object>() {});
         IDictionary<string, object> bestAsk = this.safeDict(asks, 0, new Dictionary<string, object>() {});
         double? last = this.safeNumber(priceResult, "price");
-        Int64? timestamp = this.safeInteger(priceResult, "timestamp", this.milliseconds());
+        Int64? timestamp = this.safeInteger(priceResult, "timestamp");
+        if (isTrue(isEqual(timestamp, 0)))
+        {
+            timestamp = null; // the venue reports timestamp 0 for outcomes that have not traded yet
+        }
         return ((Dictionary<string, object>)((object)(this.safePredictionTicker(new Dictionary<string, object>() {
             { "outcome", this.safeString(marketAny, "outcome") },
             { "outcomeId", this.safeString2(marketAny, "outcomeId", "id") },
@@ -2048,9 +2052,8 @@ public partial class opinion : PredictionExchange
         double? price = this.safeNumber(message, "price");
         double? size = this.safeNumber(message, "size");
         (bookSide as IOrderBookSide).storeArray(new List<object>() {price, size});
-        Int64 now = this.milliseconds();
-        ((IDictionary<string,object>)orderbook)["timestamp"] = now;
-        ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(now);
+        ((IDictionary<string,object>)orderbook)["timestamp"] = null;
+        ((IDictionary<string,object>)orderbook)["datetime"] = null;
         callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, add("orderbook::", sym)});
     }
 
@@ -2092,15 +2095,14 @@ public partial class opinion : PredictionExchange
         {
             return;
         }
-        Int64 now = this.milliseconds();
         double? last = this.safeNumber(message, "price");
         Dictionary<string, object> ticker = this.safePredictionTicker(new Dictionary<string, object>() {
             { "outcome", sym },
             { "outcomeId", tokenId },
             { "label", this.safeString(outcomeObj, "label") },
             { "market", this.safeString(outcomeObj, "market") },
-            { "timestamp", now },
-            { "datetime", this.iso8601(now) },
+            { "timestamp", null },
+            { "datetime", null },
             { "close", last },
             { "last", last },
             { "info", message },
@@ -2153,12 +2155,11 @@ public partial class opinion : PredictionExchange
         {
             return;
         }
-        Int64 now = this.milliseconds();
         Dictionary<string, object> trade = this.safePredictionTrade(new Dictionary<string, object>() {
             { "id", null },
             { "info", message },
-            { "timestamp", now },
-            { "datetime", this.iso8601(now) },
+            { "timestamp", null },
+            { "datetime", null },
             { "outcome", sym },
             { "outcomeId", tokenId },
             { "label", this.safeString(outcomeObj, "label") },

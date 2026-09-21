@@ -2755,12 +2755,11 @@ impl BitteamCore {
         //         }
         //     }
         //
-        let mut timestamp: Value = self.milliseconds();
         let mut balance: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
-                m.insert("timestamp".to_string(), timestamp.clone());
-                m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
+                m.insert("timestamp".to_string(), Value::Null);
+                m.insert("datetime".to_string(), Value::Null);
             m
         });
         let mut result: Value = self.safe_value_k(response.clone(), "result", &[Value::Map({

@@ -13,6 +13,7 @@ pub async fn testFetchHistoryBase() -> Value {
         let mut m = indexmap::IndexMap::new();
             m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
             m.insert("fetchHistoryCacheSize".to_string(), Value::Int(2));
+            m.insert("enableRateLimit".to_string(), Value::Bool(false));
         m
     }));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("fetchHistoryCacheSize".to_string())), &Value::Int(2))))));

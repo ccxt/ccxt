@@ -663,12 +663,16 @@ class okx extends \ccxt\async\okx {
         //         ]
         //     }
         //
-        $this->handle_bid_ask($client, $message);
         $arg = $this->safe_value($message, 'arg', array());
         $marketId = $this->safe_string($arg, 'instId');
         $market = $this->safe_market($marketId, null, '-');
         $symbol = $market['symbol'];
         $channel = $this->safe_string($arg, 'channel');
+        if ($channel === 'tickers') {
+            // of the five feeds routed here, only the plain one carries bidPx/askPx —
+            // mark-price and index frames lack them and must not overwrite the bid-ask cache
+            $this->handle_bid_ask($client, $message);
+        }
         $data = $this->safe_list($message, 'data', array());
         $newTickers = array();
         for ($i = 0; $i < count($data); $i++) {

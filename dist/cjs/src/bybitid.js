@@ -1,0 +1,34 @@
+'use strict';
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
+var bybit = require('./bybit.js');
+
+// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
+class bybitid extends bybit["default"] {
+    describe() {
+        // Bybit Indonesia serves the same v5 API as the global exchange, with the
+        // same product categories (spot, linear, inverse, option) but its own
+        // listings and accounts, so only the identity and hostname differ here.
+        return this.deepExtend(super.describe(), {
+            'id': 'bybitid',
+            'name': 'Bybit Indonesia',
+            'countries': ['ID'], // Indonesia
+            'hostname': 'bybit.id',
+            'certified': false,
+            'urls': {
+                'logo': 'https://github.com/user-attachments/assets/97a5d0b3-de10-423d-90e1-6620960025ed',
+                'www': 'https://www.bybit.id',
+                'doc': [
+                    'https://bybit-exchange.github.io/docs/v5/intro',
+                    'https://github.com/bybit-exchange',
+                ],
+                'fees': 'https://help.bybit.com/hc/en-us/articles/360039261154',
+                'referral': undefined,
+            },
+        });
+    }
+}
+
+exports["default"] = bybitid;

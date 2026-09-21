@@ -1668,6 +1668,16 @@ public class BaseExchange {
 
     private final Object marketsLock = new Object();
 
+    private final java.util.concurrent.locks.ReentrantLock lastNonceReentrantLock = new java.util.concurrent.locks.ReentrantLock();
+
+    public void lockLastNonce() {
+        this.lastNonceReentrantLock.lock();
+    }
+
+    public void unlockLastNonce() {
+        this.lastNonceReentrantLock.unlock();
+    }
+
     public java.util.concurrent.CompletableFuture<Object> loadMarkets(Object... args) {
 
         var reload = (Boolean) Helpers.getArg(args, 0, false);
@@ -8558,6 +8568,24 @@ public Object describe()
         return this.seconds();
     }
 
+    /**
+     * @method
+     * @ignore
+     * @name Exchange#incrementingNonce
+     * @description returns a strictly-increasing nonce for venues that reject duplicate nonces per signer; the unit is whatever nonce () returns — the base default is seconds, so a venue that does not override nonce () gets a second-resolution counter that drifts ahead of wall clock under load, while venues needing milliseconds override nonce () as hyperliquid does. The counter is per exchange instance, so it narrows the duplicate-nonce race but does not remove it across instances or processes.
+     * @returns {int} a strictly-increasing nonce in the unit returned by nonce ()
+     */
+    public Object incrementingNonce()
+    {
+        Object currentNonce = this.nonce();
+        this.lockLastNonce();
+        Long lastNonce = this.safeInteger(this.options, "lastNonce", 0);
+        Object result = ((Helpers.isTrue((Helpers.isGreaterThan(currentNonce, lastNonce))))) ? currentNonce : Helpers.add(lastNonce, 1);
+        Helpers.addElementToObject(this.options, "lastNonce", result);
+        this.unlockLastNonce();
+        return result;
+    }
+
     public Object setHeaders(Object headers)
     {
         return headers;
@@ -9405,7 +9433,8 @@ public Object describe()
             return Helpers.GetValue(mapping, key);
         } else
         {
-            throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " "), key), " does not have a value in mapping")) ;
+            Object keys = Helpers.objectKeys(mapping);
+            throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), key), " does not have a value in mapping"), ", must be one of "), String.join(", ", (List<String>)keys))) ;
         }
     }
 

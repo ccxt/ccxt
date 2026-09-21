@@ -844,7 +844,7 @@ class cex extends cex$1["default"] {
             symbol = base + '/' + quote;
         }
         market = this.safeMarket(symbol, market);
-        const time = this.safeInteger(order, 'time', this.milliseconds());
+        const time = this.safeInteger(order, 'time');
         let timestamp = time;
         if (isTransaction) {
             timestamp = this.parse8601(time);

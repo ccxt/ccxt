@@ -1049,7 +1049,10 @@ impl OpinionCore {
     m
 })]);
         let mut last: Value = self.safe_number_k(priceResult.clone(), "price", &[]);
-        let mut timestamp: Value = self.safe_integer_k(priceResult.clone(), "timestamp", &[self.milliseconds()]);
+        let mut timestamp: Value = self.safe_integer_k(priceResult.clone(), "timestamp", &[]);
+        if is_equal(&timestamp, &Value::Int(0)) {
+            timestamp = Value::Null; // the venue reports timestamp 0 for outcomes that have not traded yet
+        }
         return self.safe_prediction_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("outcome".to_string(), self.safe_string_k(marketAny.clone(), "outcome", &[]));
@@ -2675,9 +2678,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut price: Value = self.safe_number_k(message.clone(), "price", &[]);
         let mut size: Value = self.safe_number_k(message.clone(), "size", &[]);
         bookSide.store_array(Value::List(vec![price.clone(), size.clone()]));
-        let mut now: Value = self.milliseconds();
-        add_element_to_object(&mut orderbook, &Value::Str("timestamp".to_string()), now.clone());
-        add_element_to_object(&mut orderbook, &Value::Str("datetime".to_string()), self.iso8601(now.clone()));
+        add_element_to_object(&mut orderbook, &Value::Str("timestamp".to_string()), Value::Null);
+        add_element_to_object(&mut orderbook, &Value::Str("datetime".to_string()), Value::Null);
         client.resolve(&[orderbook.clone(), add(&Value::Str("orderbook::".to_string()), &sym)]);
 }
 
@@ -2724,7 +2726,6 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if is_equal(&sym, &Value::Null) {
             return;
         }
-        let mut now: Value = self.milliseconds();
         let mut last: Value = self.safe_number_k(message.clone(), "price", &[]);
         let mut ticker: Value = self.safe_prediction_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2732,8 +2733,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("outcomeId".to_string(), tokenId.clone());
         m.insert("label".to_string(), self.safe_string_k(outcomeObj.clone(), "label", &[]));
         m.insert("market".to_string(), self.safe_string_k(outcomeObj.clone(), "market", &[]));
-        m.insert("timestamp".to_string(), now.clone());
-        m.insert("datetime".to_string(), self.iso8601(now.clone()));
+        m.insert("timestamp".to_string(), Value::Null);
+        m.insert("datetime".to_string(), Value::Null);
         m.insert("close".to_string(), last.clone());
         m.insert("last".to_string(), last.clone());
         m.insert("info".to_string(), message.clone());
@@ -2794,13 +2795,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if is_equal(&sym, &Value::Null) {
             return;
         }
-        let mut now: Value = self.milliseconds();
         let mut trade: Value = self.safe_prediction_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Null);
         m.insert("info".to_string(), message.clone());
-        m.insert("timestamp".to_string(), now.clone());
-        m.insert("datetime".to_string(), self.iso8601(now.clone()));
+        m.insert("timestamp".to_string(), Value::Null);
+        m.insert("datetime".to_string(), Value::Null);
         m.insert("outcome".to_string(), sym.clone());
         m.insert("outcomeId".to_string(), tokenId.clone());
         m.insert("label".to_string(), self.safe_string_k(outcomeObj.clone(), "label", &[]));

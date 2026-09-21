@@ -299,7 +299,7 @@ class lighter(ccxt.async_support.lighter):
 
         https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
 
-        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param str symbol: unified symbol of the market to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
@@ -307,6 +307,8 @@ class lighter(ccxt.async_support.lighter):
             await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
+        if market['swap'] is not True:
+            raise NotSupported(self.id + ' watchTicker() is only supported for swap markets')
         request = {
             'channel': 'market_stats/' + market['id'],
         }
@@ -319,7 +321,7 @@ class lighter(ccxt.async_support.lighter):
 
         https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
 
-        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param str symbol: unified symbol of the market to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
@@ -327,6 +329,8 @@ class lighter(ccxt.async_support.lighter):
             await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
+        if market['swap'] is not True:
+            raise NotSupported(self.id + ' unWatchTicker() is only supported for swap markets')
         request = {
             'channel': 'market_stats/' + market['id'],
         }
@@ -340,14 +344,16 @@ class lighter(ccxt.async_support.lighter):
         https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
 
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-        :param str[] [symbols]: unified symbol of the market to fetch the ticker for
+        :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.channel]: the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         if self.markets is None:
             await self.load_markets()
-        symbols = self.market_symbols(symbols)
+        symbols = self.market_symbols(symbols, None, True, True)
+        firstMarket = self.get_market_from_symbols(symbols)
+        if (firstMarket is not None) and (firstMarket['swap'] is not True):
+            raise NotSupported(self.id + ' watchTickers() is only supported for swap markets')
         request = {
             'channel': 'market_stats/all',
         }
@@ -374,12 +380,16 @@ class lighter(ccxt.async_support.lighter):
 
         https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
 
-        :param str[] [symbols]: unified symbol of the market to fetch the ticker for
+        :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, swap markets only, the market_stats channel does not serve spot markets
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         if self.markets is None:
             await self.load_markets()
+        symbols = self.market_symbols(symbols, None, True, True)
+        firstMarket = self.get_market_from_symbols(symbols)
+        if (firstMarket is not None) and (firstMarket['swap'] is not True):
+            raise NotSupported(self.id + ' unWatchTickers() is only supported for swap markets')
         request = {
             'channel': 'market_stats/all',
         }

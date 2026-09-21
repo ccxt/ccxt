@@ -1201,15 +1201,14 @@ impl BinanceCore {
                 last = self.parse_number(lastString.clone(), &[]);
             }
         }
-        let mut now: Value = self.milliseconds();
         return self.safe_prediction_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("outcome".to_string(), self.safe_string_k(outcomeObj.clone(), "outcome", &[]));
         m.insert("outcomeId".to_string(), self.safe_string2(outcomeObj.clone(), Value::Str("outcomeId".to_string()), Value::Str("id".to_string()), &[]));
         m.insert("label".to_string(), self.safe_string_k(outcomeObj.clone(), "label", &[]));
         m.insert("market".to_string(), self.safe_string_k(outcomeObj.clone(), "market", &[]));
-        m.insert("timestamp".to_string(), now.clone());
-        m.insert("datetime".to_string(), self.iso8601(now.clone()));
+        m.insert("timestamp".to_string(), Value::Null);
+        m.insert("datetime".to_string(), Value::Null);
         m.insert("high".to_string(), Value::Null);
         m.insert("low".to_string(), Value::Null);
         m.insert("bid".to_string(), Value::Null);
@@ -2493,8 +2492,8 @@ impl BinanceCore {
                     m.insert("outcomeId".to_string(), self.safe_string_k(outcomeObj.clone(), "id", &[]));
                     m.insert("label".to_string(), self.safe_string_k(outcomeObj.clone(), "label", &[]));
                     m.insert("market".to_string(), self.safe_string_k(outcomeObj.clone(), "market", &[]));
-                    m.insert("timestamp".to_string(), self.milliseconds());
-                    m.insert("datetime".to_string(), self.iso8601(self.milliseconds()));
+                    m.insert("timestamp".to_string(), Value::Null);
+                    m.insert("datetime".to_string(), Value::Null);
                 m
             });
             append_to_array(&mut orders, self.safe_prediction_order(order.clone(), &[]));

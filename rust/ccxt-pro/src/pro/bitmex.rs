@@ -367,8 +367,8 @@ impl BitmexCore {
         if !is_equal(&symbols, &Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_132: bool = true;
-                while { if !__for_first_132 { i = add(&i, &Value::Int(1)); } __for_first_132 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_133: bool = true;
+                while { if !__for_first_133 { i = add(&i, &Value::Int(1)); } __for_first_133 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut market: Value = self.market(symbol.clone());
@@ -637,8 +637,8 @@ impl BitmexCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_133: bool = true;
-            while { if !__for_first_133 { i = add(&i, &Value::Int(1)); } __for_first_133 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_134: bool = true;
+            while { if !__for_first_134 { i = add(&i, &Value::Int(1)); } __for_first_134 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut update: Value = get_value(&data, &i);
             let mut update: Value = get_value(&data, &i);
             let mut marketId: Value = self.safe_string_k(update.clone(), "symbol", &[]);
@@ -716,8 +716,8 @@ impl BitmexCore {
         }  else {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_134: bool = true;
-                while { if !__for_first_134 { i = add(&i, &Value::Int(1)); } __for_first_134 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_135: bool = true;
+                while { if !__for_first_135 { i = add(&i, &Value::Int(1)); } __for_first_135 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut market: Value = self.market(symbol.clone());
@@ -779,8 +779,8 @@ impl BitmexCore {
         let mut cache: Value = self.liquidations.clone();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_135: bool = true;
-            while { if !__for_first_135 { i = add(&i, &Value::Int(1)); } __for_first_135 = false; is_less_than(&i, &get_array_length(&rawLiquidations)) } {
+            let mut __for_first_136: bool = true;
+            while { if !__for_first_136 { i = add(&i, &Value::Int(1)); } __for_first_136 = false; is_less_than(&i, &get_array_length(&rawLiquidations)) } {
             let mut rawLiquidation: Value = get_value(&rawLiquidations, &i);
             let mut rawLiquidation: Value = get_value(&rawLiquidations, &i);
             let mut liquidation: Value = self.parse_liquidation(rawLiquidation.clone(), &[]);
@@ -793,8 +793,8 @@ impl BitmexCore {
         let mut symbols: Value = object_keys(&liquidationsBySymbol);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_136: bool = true;
-            while { if !__for_first_136 { i = add(&i, &Value::Int(1)); } __for_first_136 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_137: bool = true;
+            while { if !__for_first_137 { i = add(&i, &Value::Int(1)); } __for_first_137 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             client.resolve(&[get_value(&liquidationsBySymbol, &symbol), add(&Value::Str("liquidations::".to_string()), &symbol)]);
@@ -1005,8 +1005,8 @@ impl BitmexCore {
         let mut marketIds: Value = object_keys(&dataByMarketIds);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_138: bool = true;
-            while { if !__for_first_138 { i = add(&i, &Value::Int(1)); } __for_first_138 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+            let mut __for_first_139: bool = true;
+            while { if !__for_first_139 { i = add(&i, &Value::Int(1)); } __for_first_139 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
@@ -1021,8 +1021,8 @@ impl BitmexCore {
             }
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_137: bool = true;
-                while { if !__for_first_137 { j = add(&j, &Value::Int(1)); } __for_first_137 = false; is_less_than(&j, &get_array_length(&trades)) } {
+                let mut __for_first_138: bool = true;
+                while { if !__for_first_138 { j = add(&j, &Value::Int(1)); } __for_first_138 = false; is_less_than(&j, &get_array_length(&trades)) } {
                 stored.append(get_value(&trades, &j));
             }
             }
@@ -1301,8 +1301,8 @@ impl BitmexCore {
         let mut newPositions: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_139: bool = true;
-            while { if !__for_first_139 { i = add(&i, &Value::Int(1)); } __for_first_139 = false; is_less_than(&i, &get_array_length(&rawPositions)) } {
+            let mut __for_first_140: bool = true;
+            while { if !__for_first_140 { i = add(&i, &Value::Int(1)); } __for_first_140 = false; is_less_than(&i, &get_array_length(&rawPositions)) } {
             let mut rawPosition: Value = get_value(&rawPositions, &i);
             let mut rawPosition: Value = get_value(&rawPositions, &i);
             let mut position: Value = self.parse_position(rawPosition.clone(), &[]);
@@ -1334,8 +1334,8 @@ impl BitmexCore {
         let mut messageHashes: Value = self.find_message_hashes(client.clone(), Value::Str("positions::".to_string()));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_140: bool = true;
-            while { if !__for_first_140 { i = add(&i, &Value::Int(1)); } __for_first_140 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
+            let mut __for_first_141: bool = true;
+            while { if !__for_first_141 { i = add(&i, &Value::Int(1)); } __for_first_141 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut parts: Value = split(&messageHash, &Value::Str("::".to_string()));
@@ -1562,8 +1562,8 @@ impl BitmexCore {
             });
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_141: bool = true;
-                while { if !__for_first_141 { i = add(&i, &Value::Int(1)); } __for_first_141 = false; is_less_than(&i, &dataLength) } {
+                let mut __for_first_142: bool = true;
+                while { if !__for_first_142 { i = add(&i, &Value::Int(1)); } __for_first_142 = false; is_less_than(&i, &dataLength) } {
                 let mut currentOrder: Value = get_value(&data, &i);
                 let mut currentOrder: Value = get_value(&data, &i);
                 let mut orderId: Value = self.safe_string_k(currentOrder.clone(), "orderID", &[]);
@@ -1582,8 +1582,8 @@ impl BitmexCore {
             let mut keys: Value = object_keys(&symbols);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_142: bool = true;
-                while { if !__for_first_142 { i = add(&i, &Value::Int(1)); } __for_first_142 = false; is_less_than(&i, &get_array_length(&keys)) } {
+                let mut __for_first_143: bool = true;
+                while { if !__for_first_143 { i = add(&i, &Value::Int(1)); } __for_first_143 = false; is_less_than(&i, &get_array_length(&keys)) } {
                 let mut symbol: Value = get_value(&keys, &i);
                 let mut symbol: Value = get_value(&keys, &i);
                 client.resolve(&[self.orders.clone(), add(&add(&messageHash, &Value::Str(":".to_string())), &symbol)]);
@@ -1712,8 +1712,8 @@ impl BitmexCore {
         });
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_143: bool = true;
-            while { if !__for_first_143 { j = add(&j, &Value::Int(1)); } __for_first_143 = false; is_less_than(&j, &get_array_length(&trades)) } {
+            let mut __for_first_144: bool = true;
+            while { if !__for_first_144 { j = add(&j, &Value::Int(1)); } __for_first_144 = false; is_less_than(&j, &get_array_length(&trades)) } {
             let mut trade: Value = get_value(&trades, &j);
             let mut trade: Value = get_value(&trades, &j);
             let mut symbol: Value = get_value(&trade, &Value::Str("symbol".to_string()));
@@ -1728,8 +1728,8 @@ impl BitmexCore {
         let mut keys: Value = object_keys(&symbols);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_144: bool = true;
-            while { if !__for_first_144 { i = add(&i, &Value::Int(1)); } __for_first_144 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_145: bool = true;
+            while { if !__for_first_145 { i = add(&i, &Value::Int(1)); } __for_first_145 = false; is_less_than(&i, &get_array_length(&keys)) } {
             client.resolve(&[stored.clone(), add(&add(&messageHash, &Value::Str(":".to_string())), &get_value(&keys, &i))]);
         }
         }
@@ -1790,8 +1790,8 @@ impl BitmexCore {
         let mut messageHashes: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_145: bool = true;
-            while { if !__for_first_145 { i = add(&i, &Value::Int(1)); } __for_first_145 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_146: bool = true;
+            while { if !__for_first_146 { i = add(&i, &Value::Int(1)); } __for_first_146 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
@@ -1842,8 +1842,8 @@ impl BitmexCore {
         let mut messageHashes: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_146: bool = true;
-            while { if !__for_first_146 { i = add(&i, &Value::Int(1)); } __for_first_146 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_147: bool = true;
+            while { if !__for_first_147 { i = add(&i, &Value::Int(1)); } __for_first_147 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
@@ -1993,8 +1993,8 @@ impl BitmexCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_147: bool = true;
-            while { if !__for_first_147 { i = add(&i, &Value::Int(1)); } __for_first_147 = false; is_less_than(&i, &get_array_length(&candles)) } {
+            let mut __for_first_148: bool = true;
+            while { if !__for_first_148 { i = add(&i, &Value::Int(1)); } __for_first_148 = false; is_less_than(&i, &get_array_length(&candles)) } {
             let mut candle: Value = get_value(&candles, &i);
             let mut candle: Value = get_value(&candles, &i);
             let mut marketId: Value = self.safe_string_k(candle.clone(), "symbol", &[]);
@@ -2019,8 +2019,8 @@ impl BitmexCore {
         let mut messageHashes: Value = object_keys(&results);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_148: bool = true;
-            while { if !__for_first_148 { i = add(&i, &Value::Int(1)); } __for_first_148 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
+            let mut __for_first_149: bool = true;
+            while { if !__for_first_149 { i = add(&i, &Value::Int(1)); } __for_first_149 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut messageHash: Value = get_value(&messageHashes, &i);
             client.resolve(&[get_value(&results, &messageHash), messageHash.clone()]);
@@ -2128,8 +2128,8 @@ impl BitmexCore {
             add_element_to_object(&mut orderbook, &Value::Str("symbol".to_string()), symbol.clone());
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_149: bool = true;
-                while { if !__for_first_149 { i = add(&i, &Value::Int(1)); } __for_first_149 = false; is_less_than(&i, &get_array_length(&data)) } {
+                let mut __for_first_150: bool = true;
+                while { if !__for_first_150 { i = add(&i, &Value::Int(1)); } __for_first_150 = false; is_less_than(&i, &get_array_length(&data)) } {
                 let mut price: Value = self.safe_float_k(get_value(&data, &i), "price", &[]);
                 let mut size: Value = self.parent.convert_from_raw_quantity(symbol.clone(), self.safe_string_k(get_value(&data, &i), "size", &[]), &[]);
                 let mut id: Value = self.safe_string_k(get_value(&data, &i), "id", &[]);
@@ -2152,8 +2152,8 @@ impl BitmexCore {
             });
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_150: bool = true;
-                while { if !__for_first_150 { i = add(&i, &Value::Int(1)); } __for_first_150 = false; is_less_than(&i, &get_array_length(&data)) } {
+                let mut __for_first_151: bool = true;
+                while { if !__for_first_151 { i = add(&i, &Value::Int(1)); } __for_first_151 = false; is_less_than(&i, &get_array_length(&data)) } {
                 let mut marketId: Value = self.safe_value_k(get_value(&data, &i), "symbol", &[]);
                 if is_equal(&marketId, &Value::Null) {
                     return;
@@ -2181,8 +2181,8 @@ impl BitmexCore {
             let mut marketIds: Value = object_keys(&numUpdatesByMarketId);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_151: bool = true;
-                while { if !__for_first_151 { i = add(&i, &Value::Int(1)); } __for_first_151 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+                let mut __for_first_152: bool = true;
+                while { if !__for_first_152 { i = add(&i, &Value::Int(1)); } __for_first_152 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
                 let mut marketId: Value = get_value(&marketIds, &i);
                 let mut marketId: Value = get_value(&marketIds, &i);
                 let mut market: Value = self.safe_market(&[marketId.clone()]);

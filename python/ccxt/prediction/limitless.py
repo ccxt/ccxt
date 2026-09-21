@@ -1053,15 +1053,14 @@ class limitless(PredictionExchange, ImplicitAPI):
             bidSizeStr = Precise.string_div(bidSizeStr, '1000000')
         if askSizeStr is not None:
             askSizeStr = Precise.string_div(askSizeStr, '1000000')
-        now = self.milliseconds()
         outcomeSymbol = self.safe_outcome_symbol(None, market)
         return self.safe_prediction_ticker({
             'outcome': outcomeSymbol,
             'outcomeId': self.safe_string(market, 'outcomeId'),
             'label': self.safe_string(market, 'label'),
             'market': self.safe_string(market, 'market'),
-            'timestamp': now,
-            'datetime': self.iso8601(now),
+            'timestamp': None,
+            'datetime': None,
             'high': None,
             'low': None,
             'bid': self.parse_number(bidStr),
@@ -1226,7 +1225,6 @@ class limitless(PredictionExchange, ImplicitAPI):
         #         "lastTradePrice": "0.161"
         #     }
         #
-        timestamp = self.milliseconds()
         decimals = self.safe_integer(self.options, 'usdcDecimals', 6)
         # sizes are scaled by 10^decimals, USDC uses 6 decimals
         scaleStr = self.parse_precision(self.number_to_string(-decimals))
@@ -1259,8 +1257,8 @@ class limitless(PredictionExchange, ImplicitAPI):
             'outcome': self.safe_outcome_symbol(outcome, outcomeObj),
             'bids': self.sort_by(bids, 0, True),
             'asks': self.sort_by(asks, 0),
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
             'nonce': None,
         }
         return self.safe_prediction_order_book(orderbook, outcomeObj)

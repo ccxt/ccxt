@@ -435,11 +435,10 @@ public class Apex extends ApexApi
         // }
         // }
         //
-        Long timestamp = this.milliseconds();
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
-            put( "timestamp", timestamp );
-            put( "datetime", Apex.this.iso8601(timestamp) );
+            put( "timestamp", null );
+            put( "datetime", null );
         }};
         String code = "USDT";
         Object account = this.account();
@@ -874,7 +873,6 @@ public class Apex extends ApexApi
         // }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Long timestamp = this.milliseconds();
         String marketId = this.safeString(ticker, "symbol");
         market = this.safeMarket(marketId, market);
         String symbol = this.safeSymbol(marketId, market);
@@ -886,8 +884,8 @@ public class Apex extends ApexApi
         String low = this.safeString(ticker, "lowPrice24h");
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
-            put( "timestamp", timestamp );
-            put( "datetime", Apex.this.iso8601(timestamp) );
+            put( "timestamp", null );
+            put( "datetime", null );
             put( "high", high );
             put( "low", low );
             put( "bid", null );
@@ -1259,7 +1257,6 @@ public class Apex extends ApexApi
         // }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Long timestamp = this.milliseconds();
         String marketId = this.safeString(interest, "symbol");
         market = this.safeMarket(marketId, market);
         String symbol = this.safeSymbol(marketId, market);
@@ -1267,8 +1264,8 @@ public class Apex extends ApexApi
             put( "symbol", symbol );
             put( "openInterestAmount", Apex.this.safeString(interest, "openInterest") );
             put( "openInterestValue", null );
-            put( "timestamp", timestamp );
-            put( "datetime", Apex.this.iso8601(timestamp) );
+            put( "timestamp", null );
+            put( "datetime", null );
             put( "info", interest );
         }}, market);
     }
