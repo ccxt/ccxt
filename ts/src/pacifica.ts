@@ -2516,8 +2516,8 @@ export default class pacifica extends Exchange {
         // }
         //
         const data = this.safeList (response, 'data', []);
-        // return last state
-        const sorted = this.sortBy (data, 'created_at', true);
+        // return last state, history_id is the per-event sequence, created_at can tie within a millisecond
+        const sorted = this.sortBy (data, 'history_id', true);
         const lastIdx = sorted.length;
         let lastInfo: Dict = {};
         if (lastIdx > 0) {
