@@ -751,7 +751,7 @@ class modetrade extends Exchange {
         ));
     }
 
-    public function parse_token_and_fee_temp(mixed $item, mixed $feeTokenKey, mixed $feeAmountKey) {
+    public function parse_token_and_fee_temp(array $item, string $feeTokenKey, string $feeAmountKey) {
         $feeCost = $this->safe_string($item, $feeAmountKey);
         $fee = null;
         if ($feeCost !== null) {
@@ -917,7 +917,7 @@ class modetrade extends Exchange {
         );
     }
 
-    public function parse_funding_interval(mixed $interval) {
+    public function parse_funding_interval(?string $interval): ?string {
         $intervals = array(
             '3600000' => '1h',
             '14400000' => '4h',
@@ -1015,7 +1015,7 @@ class modetrade extends Exchange {
         return $this->parse_funding_rates($rows, $symbols);
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical funding rate prices
          *
@@ -1086,7 +1086,7 @@ class modetrade extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
-    public function parse_income(mixed $income, ?array $market = null) {
+    public function parse_income(mixed $income, ?array $market = null): array {
         //
         // {
         //         "symbol": "PERP_ETH_USDC",
@@ -1119,7 +1119,7 @@ class modetrade extends Exchange {
         );
     }
 
-    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch the history of funding payments paid and received on this account
          *
@@ -1409,29 +1409,29 @@ class modetrade extends Exchange {
         $amount = $this->safe_string_2($order, 'order_quantity', 'quantity'); // This is base amount
         $cost = $this->safe_string_2($order, 'order_amount', 'amount'); // This is quote amount
         $orderType = $this->safe_string_lower_2($order, 'order_type', 'type');
-        $status = $this->safe_value_2($order, 'status', 'algoStatus');
+        $status = $this->safe_string_2($order, 'status', 'algoStatus');
         $success = $this->safe_bool($order, 'success');
         if ($success !== null) {
             $status = ($success) ? 'NEW' : 'REJECTED';
         }
         $side = $this->safe_string_lower($order, 'side');
-        $filled = $this->omit_zero($this->safe_value_2($order, 'executed', 'totalExecutedQuantity'));
+        $filled = $this->omit_zero($this->safe_string_2($order, 'executed', 'totalExecutedQuantity'));
         $average = $this->omit_zero($this->safe_string_2($order, 'average_executed_price', 'averageExecutedPrice'));
         $remaining = Precise::string_sub($cost, $filled);
-        $fee = $this->safe_value_2($order, 'total_fee', 'totalFee');
+        $fee = $this->safe_number_2($order, 'total_fee', 'totalFee');
         $feeCurrency = $this->safe_string_2($order, 'fee_asset', 'feeAsset');
         $transactions = $this->safe_value($order, 'Transactions');
         $triggerPrice = $this->safe_number($order, 'triggerPrice');
         $takeProfitPrice = null;
         $stopLossPrice = null;
-        $childOrders = $this->safe_value($order, 'childOrders');
+        $childOrders = $this->safe_list($order, 'childOrders');
         if ($childOrders !== null) {
-            $first = $this->safe_value($childOrders, 0);
+            $first = $this->safe_dict($childOrders, 0);
             $innerChildOrders = $this->safe_list($first, 'childOrders', array());
             $innerChildOrdersLength = count($innerChildOrders);
             if ($innerChildOrdersLength > 0) {
-                $takeProfitOrder = $this->safe_value($innerChildOrders, 0);
-                $stopLossOrder = $this->safe_value($innerChildOrders, 1);
+                $takeProfitOrder = $this->safe_dict($innerChildOrders, 0);
+                $stopLossOrder = $this->safe_dict($innerChildOrders, 1);
                 $takeProfitPrice = $this->safe_number($takeProfitOrder, 'triggerPrice');
                 $stopLossPrice = $this->safe_number($stopLossOrder, 'triggerPrice');
             }
@@ -1514,7 +1514,7 @@ class modetrade extends Exchange {
         return $this->safe_string_lower($types, $type, $type);
     }
 
-    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($side === null) {
             throw new ArgumentsRequired($this->id . ' requires a $side argument');
         }
@@ -1622,7 +1622,7 @@ class modetrade extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * create a trade $order
          *
@@ -1697,7 +1697,7 @@ class modetrade extends Exchange {
         return $order;
     }
 
-    public function create_orders(array $orders, $params = array()) {
+    public function create_orders(array $orders, $params = array()): array {
         /**
          * *contract only* create a list of trade $orders
          *
@@ -1723,8 +1723,8 @@ class modetrade extends Exchange {
             $price = $this->safe_value($rawOrder, 'price');
             $orderParams = $this->safe_dict($rawOrder, 'params', array());
             $triggerPrice = $this->safe_string_2($orderParams, 'triggerPrice', 'stopPrice');
-            $stopLoss = $this->safe_value($orderParams, 'stopLoss');
-            $takeProfit = $this->safe_value($orderParams, 'takeProfit');
+            $stopLoss = $this->safe_dict($orderParams, 'stopLoss');
+            $takeProfit = $this->safe_dict($orderParams, 'takeProfit');
             $isConditional = $triggerPrice !== null || $stopLoss !== null || $takeProfit !== null || ($this->safe_value($orderParams, 'childOrders') !== null);
             if ($isConditional) {
                 throw new NotSupported($this->id . ' createOrders() only support non-stop order');
@@ -1758,7 +1758,7 @@ class modetrade extends Exchange {
         return $this->parse_orders($rows);
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): array {
         /**
          * edit a trade order
          *
@@ -1842,7 +1842,7 @@ class modetrade extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          *
          * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-order
@@ -1923,7 +1923,7 @@ class modetrade extends Exchange {
         return $this->extend($this->parse_order($data), $extendParams);
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()): array {
         /**
          * cancel multiple orders
          *
@@ -1964,7 +1964,7 @@ class modetrade extends Exchange {
         )) );
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): array {
         /**
          *
          * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-all-pending-algo-orders
@@ -2014,7 +2014,7 @@ class modetrade extends Exchange {
         );
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          *
          * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-order-by-order_id
@@ -2177,7 +2177,7 @@ class modetrade extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data', $response);
+        $data = $this->safe_dict($response, 'data', $response);
         $orders = $this->safe_list($data, 'rows', array());
         return $this->parse_orders($orders, $market, $since, $limit);
     }
@@ -2232,7 +2232,7 @@ class modetrade extends Exchange {
         return $this->fetch_orders($symbol, $since, $limit, $extendedParams);
     }
 
-    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all the $trades made from a single order
          *
@@ -2282,7 +2282,7 @@ class modetrade extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit, $params);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          *
          * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-$trades
@@ -2409,13 +2409,13 @@ class modetrade extends Exchange {
         $currency = null;
         if ($code !== null) {
             $currency = $this->currency($code);
-            $request['balance_token'] = $currency['id'];
+            $request['token'] = $currency['id'];
         }
         if ($since !== null) {
             $request['start_t'] = $since;
         }
         if ($limit !== null) {
-            $request['pageSize'] = $limit;
+            $request['size'] = $limit;
         }
         $transactionType = $this->safe_string($params, 'type');
         $params = $this->omit($params, 'type');
@@ -2453,21 +2453,45 @@ class modetrade extends Exchange {
     }
 
     public function parse_ledger_entry(array $item, ?array $currency = null): array {
+        //
+        //     {
+        //         "id": "230707030600002",
+        //         "tx_id": "0x4b0714c63cc7abae72bf68e84e25860b88ca651b7d27dad1e32bf4c027fa5326",
+        //         "side": "WITHDRAW",
+        //         "token": "USDC",
+        //         "amount": 555,
+        //         "fee": 123,
+        //         "trans_status": "FAILED",
+        //         "created_time": 1688699193034,
+        //         "updated_time": 1688699193096,
+        //         "chain_id": "986532"
+        //     }
+        //
         $currencyId = $this->safe_string($item, 'token');
         $code = $this->safe_currency_code($currencyId, $currency);
         $currency = $this->safe_currency($currencyId, $currency);
         $amount = $this->safe_number($item, 'amount');
-        $side = $this->safe_string($item, 'token_side');
-        $direction = ($side === 'DEPOSIT') ? 'in' : 'out';
+        $side = $this->safe_string($item, 'side');
+        $direction = null;
+        if ($side !== null) {
+            $direction = ($side === 'DEPOSIT') ? 'in' : 'out';
+        }
         $timestamp = $this->safe_integer($item, 'created_time');
-        $fee = $this->parse_token_and_fee_temp($item, 'fee_token', 'fee_amount');
+        $feeCost = $this->parse_number($this->safe_string($item, 'fee'));
+        $fee = null;
+        if ($feeCost !== null) {
+            $fee = array(
+                'currency' => $code,
+                'cost' => $feeCost,
+            );
+        }
         return $this->safe_ledger_entry(array(
             'id' => $this->safe_string($item, 'id'),
             'currency' => $code,
-            'account' => $this->safe_string($item, 'account'),
+            'account' => null,
             'referenceAccount' => null,
             'referenceId' => $this->safe_string($item, 'tx_id'),
-            'status' => $this->parse_transaction_status($this->safe_string($item, 'status')),
+            'status' => $this->parse_transaction_status($this->safe_string($item, 'trans_status')),
             'amount' => $amount,
             'before' => null,
             'after' => null,
@@ -2475,15 +2499,17 @@ class modetrade extends Exchange {
             'direction' => $direction,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'type' => $this->parse_ledger_entry_type($this->safe_string($item, 'type')),
+            'type' => $this->parse_ledger_entry_type($this->safe_string_2($item, 'type', 'side')),
             'info' => $item,
         ), $currency);
     }
 
-    public function parse_ledger_entry_type(mixed $type) {
+    public function parse_ledger_entry_type(?string $type): ?string {
         $types = array(
             'BALANCE' => 'transaction', // Funds moved in/out wallet
             'COLLATERAL' => 'transfer', // Funds moved between portfolios
+            'DEPOSIT' => 'transaction', // Funds deposited from the chain
+            'WITHDRAW' => 'transaction', // Funds withdrawn to the chain
         );
         return $this->safe_string($types, $type, $type);
     }
@@ -2507,15 +2533,34 @@ class modetrade extends Exchange {
     }
 
     public function parse_transaction(array $transaction, ?array $currency = null): array {
-        // example in fetchLedger
-        $code = $this->safe_string($transaction, 'token');
-        $movementDirection = $this->safe_string_lower($transaction, 'token_side');
+        //
+        //     {
+        //         "id": "230707030600002",
+        //         "tx_id": "0x4b0714c63cc7abae72bf68e84e25860b88ca651b7d27dad1e32bf4c027fa5326",
+        //         "side": "WITHDRAW",
+        //         "token": "USDC",
+        //         "amount": 555,
+        //         "fee": 123,
+        //         "trans_status": "FAILED",
+        //         "created_time": 1688699193034,
+        //         "updated_time": 1688699193096,
+        //         "chain_id": "986532"
+        //     }
+        //
+        $currencyId = $this->safe_string($transaction, 'token');
+        $code = $this->safe_currency_code($currencyId, $currency);
+        $movementDirection = $this->safe_string_lower($transaction, 'side');
         if ($movementDirection === 'withdraw') {
             $movementDirection = 'withdrawal';
         }
-        $fee = $this->parse_token_and_fee_temp($transaction, 'fee_token', 'fee_amount');
-        $addressTo = $this->safe_string($transaction, 'target_address');
-        $addressFrom = $this->safe_string($transaction, 'source_address');
+        $feeCost = $this->parse_number($this->safe_string($transaction, 'fee'));
+        $fee = null;
+        if ($feeCost !== null) {
+            $fee = array(
+                'currency' => $code,
+                'cost' => $feeCost,
+            );
+        }
         $timestamp = $this->safe_integer($transaction, 'created_time');
         return array(
             'info' => $transaction,
@@ -2524,20 +2569,20 @@ class modetrade extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'address' => null,
-            'addressFrom' => $addressFrom,
-            'addressTo' => $addressTo,
-            'tag' => $this->safe_string($transaction, 'extra'),
+            'addressFrom' => null,
+            'addressTo' => null,
+            'tag' => null,
             'tagFrom' => null,
             'tagTo' => null,
             'type' => $movementDirection,
             'amount' => $this->safe_number($transaction, 'amount'),
             'currency' => $code,
-            'status' => $this->parse_transaction_status($this->safe_string($transaction, 'status')),
+            'status' => $this->parse_transaction_status($this->safe_string($transaction, 'trans_status')),
             'updated' => $this->safe_integer($transaction, 'updated_time'),
             'comment' => null,
             'internal' => null,
             'fee' => $fee,
-            'network' => null,
+            'network' => null, // raw rows carry only a chain id, no mapping to unified network codes exists yet
         );
     }
 
@@ -2545,8 +2590,11 @@ class modetrade extends Exchange {
         $statuses = array(
             'NEW' => 'pending',
             'CONFIRMING' => 'pending',
+            'PENDING' => 'pending',
+            'PENDING_REBALANCE' => 'pending',
             'PROCESSING' => 'pending',
             'COMPLETED' => 'ok',
+            'FAILED' => 'failed',
             'CANCELED' => 'canceled',
         );
         if ($status === null) {
@@ -2618,10 +2666,11 @@ class modetrade extends Exchange {
         //         "success":true
         //     }
         //
+        $params = $this->omit($params, 'side'); // request-side filter, not a unified transaction field
         return $this->parse_transactions($rows, $currency, $since, $limit, $params);
     }
 
-    public function get_withdraw_nonce($params = array()) {
+    public function get_withdraw_nonce($params = array()): ?float {
         $response = $this->v1PrivateGetWithdrawNonce($params);
         //
         //     {
@@ -2640,7 +2689,7 @@ class modetrade extends Exchange {
         return '0x' . $this->hash($message, 'keccak', 'hex');
     }
 
-    public function sign_hash(mixed $hash, mixed $privateKey) {
+    public function sign_hash(string $hash, string $privateKey): string {
         $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
         $r = $signature['r'];
         $s = $signature['s'];
@@ -2648,7 +2697,7 @@ class modetrade extends Exchange {
         return '0x' . str_pad($r, 64, '0', STR_PAD_LEFT) . str_pad($s, 64, '0', STR_PAD_LEFT) . $v;
     }
 
-    public function sign_message(mixed $message, mixed $privateKey) {
+    public function sign_message(mixed $message, string $privateKey): string {
         return $this->sign_hash($this->hash_message($message), mb_substr($privateKey, -64));
     }
 
@@ -2817,7 +2866,7 @@ class modetrade extends Exchange {
         return $this->v1PrivatePostClientLeverage($this->extend($request, $params));
     }
 
-    public function parse_position(array $position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null): array {
         //
         // {
         //     "IMR_withdraw_orders": 0.1,
@@ -2888,7 +2937,7 @@ class modetrade extends Exchange {
         ));
     }
 
-    public function fetch_position(string $symbol, $params = array()) {
+    public function fetch_position(string $symbol, $params = array()): array {
         /**
          *
          * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-one-position-info
@@ -2996,11 +3045,11 @@ class modetrade extends Exchange {
         return $this->parse_positions($positions, $symbols);
     }
 
-    public function nonce() {
+    public function nonce(): float {
         return $this->milliseconds();
     }
 
-    public function sign(mixed $path, $section = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
+    public function sign(mixed $path, $section = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $version = $section[0];
         $access = $section[1];
         $pathWithParams = $this->implode_params($path, $params);

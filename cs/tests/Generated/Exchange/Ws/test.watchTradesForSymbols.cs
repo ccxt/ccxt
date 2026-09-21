@@ -13,7 +13,7 @@ public partial class testMainClass : BaseTest
         string method = "watchTradesForSymbols";
         object logText = add(add(add(add(add(exchange.id, " "), method), " [symbols: "), exchange.json(symbols)), "] ");
         Int64 now = exchange.milliseconds();
-        Int64 ends = add(now, 30000);
+        object ends = (now + 30000);
         int maxIdleTime = 5000;
         bool idle = false;
         List<object> returnedSymbols = new List<object>() {};
@@ -34,11 +34,11 @@ public partial class testMainClass : BaseTest
                 success = false;
             }
             now = exchange.milliseconds();
-            Int64 elapsedMs = subtract(now, startTime);
+            Int64 elapsedMs = (now - startTime);
             if (((success == true)) && ((response != null)))
             {
                 assert(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(logText, "must return an array. "), exchange.json(response)));
-                for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+                for (int i = 0; i < getArrayLength(response); i++)
                 {
                     object trade = getValue(response, i);
                     object symbol = getValue(trade, "symbol");
@@ -50,7 +50,7 @@ public partial class testMainClass : BaseTest
                         ((IList<object>)returnedSymbols).Add(symbol);
                     }
                 }
-                if (isGreaterThan(elapsedMs, maxIdleTime))
+                if (elapsedMs > maxIdleTime)
                 {
                     idle = true;
                 }

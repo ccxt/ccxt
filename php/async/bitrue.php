@@ -672,7 +672,7 @@ class bitrue extends Exchange {
         ));
     }
 
-    public function nonce() {
+    public function nonce(): float {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
@@ -879,7 +879,7 @@ class bitrue extends Exchange {
             }
         }
         $promises = Async\await(Promise\all($promisesRaw));
-        $spotMarkets = $this->safe_value($this->safe_value($promises, 0), 'symbols', array());
+        $spotMarkets = $this->safe_list($this->safe_dict($promises, 0), 'symbols', array());
         $futureMarkets = $this->safe_value($promises, 1);
         $deliveryMarkets = $this->safe_value($promises, 2);
         $markets = $spotMarkets;
@@ -1617,7 +1617,7 @@ class bitrue extends Exchange {
         );
     }
 
-    public function fetch_bids_asks(?array $symbols = null, $params = array()) {
+    public function fetch_bids_asks(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_bids_asks(...))($symbols, $params);
     }
 
@@ -2061,7 +2061,7 @@ class bitrue extends Exchange {
         ), $market);
     }
 
-    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array()) {
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array()): PromiseInterface {
         return Async\async(self::do_create_market_buy_order_with_cost(...))($symbol, $cost, $params);
     }
 
@@ -2088,7 +2088,7 @@ class bitrue extends Exchange {
         return Async\await($this->create_order($symbol, 'market', 'buy', $cost, null, $params));
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -2171,7 +2171,7 @@ class bitrue extends Exchange {
                 $request['volume'] = $this->parse_to_numeric($amount);
             }
             $request['positionType'] = 1;
-            $reduceOnly = $this->safe_value_2($params, 'reduceOnly', 'reduce_only');
+            $reduceOnly = $this->safe_bool_2($params, 'reduceOnly', 'reduce_only');
             $request['open'] = ($reduceOnly === true) ? 'CLOSE' : 'OPEN';
             $leverage = $this->safe_string($params, 'leverage', '1');
             $request['leverage'] = $this->parse_to_numeric($leverage);
@@ -2194,7 +2194,7 @@ class bitrue extends Exchange {
                 $params = $this->omit($params, array( 'newClientOrderId', 'clientOrderId' ));
                 $request['newClientOrderId'] = $clientOrderId;
             }
-            $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
+            $triggerPrice = $this->safe_number_2($params, 'triggerPrice', 'stopPrice');
             if ($triggerPrice !== null) {
                 $params = $this->omit($params, array( 'triggerPrice', 'stopPrice' ));
                 $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
@@ -2228,7 +2228,7 @@ class bitrue extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order(...))($id, $symbol, $params);
     }
 
@@ -2251,7 +2251,7 @@ class bitrue extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $origClientOrderId = $this->safe_value_2($params, 'origClientOrderId', 'clientOrderId');
+        $origClientOrderId = $this->safe_string_2($params, 'origClientOrderId', 'clientOrderId');
         $params = $this->omit($params, array( 'origClientOrderId', 'clientOrderId' ));
         $response = null;
         $data = array();
@@ -2483,7 +2483,7 @@ class bitrue extends Exchange {
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
     }
 
@@ -2507,7 +2507,7 @@ class bitrue extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $origClientOrderId = $this->safe_value_2($params, 'origClientOrderId', 'clientOrderId');
+        $origClientOrderId = $this->safe_string_2($params, 'origClientOrderId', 'clientOrderId');
         $params = $this->omit($params, array( 'origClientOrderId', 'clientOrderId' ));
         $response = null;
         $data = array();
@@ -2559,7 +2559,7 @@ class bitrue extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_all_orders(...))($symbol, $params);
     }
 
@@ -2606,7 +2606,7 @@ class bitrue extends Exchange {
         return $this->parse_orders($data, $market);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
     }
 
@@ -2850,7 +2850,7 @@ class bitrue extends Exchange {
         return $this->parse_transactions($data, $currency);
     }
 
-    public function parse_transaction_status_by_type(mixed $status, ?string $type = null) {
+    public function parse_transaction_status_by_type(?string $status, ?string $type = null): ?string {
         $statusesByType = array(
             'deposit' => array(
                 '0' => 'pending',
@@ -3053,7 +3053,7 @@ class bitrue extends Exchange {
         return $this->parse_transaction($data, $currency);
     }
 
-    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null) {
+    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null): mixed {
         //
         //   {
         //       "coin": "adx",
@@ -3119,7 +3119,7 @@ class bitrue extends Exchange {
         return $this->parse_deposit_withdraw_fees($coins, $codes, 'coin');
     }
 
-    public function parse_transfer(mixed $transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         //     fetchTransfers
         //
@@ -3371,7 +3371,7 @@ class bitrue extends Exchange {
         return $this->parse_margin_modification($response, $market);
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $type = $this->safe_string($api, 0);
         $version = $this->safe_string($api, 1);
         $access = $this->safe_string($api, 2);
@@ -3516,7 +3516,7 @@ class bitrue extends Exchange {
         return null;
     }
 
-    public function calculate_rate_limiter_cost(mixed $api, mixed $method, mixed $path, mixed $params, $config = array()) {
+    public function calculate_rate_limiter_cost(mixed $api, mixed $method, mixed $path, mixed $params, mixed $config = array()) {
         if ((is_array($config) && array_key_exists('noSymbol' ?? '', $config)) && !(is_array($params) && array_key_exists('symbol' ?? '', $params))) {
             return $config['noSymbol'];
         } elseif ((is_array($config) && array_key_exists('byLimit' ?? '', $config)) && (is_array($params) && array_key_exists('limit' ?? '', $params))) {
@@ -3529,6 +3529,6 @@ class bitrue extends Exchange {
                 }
             }
         }
-        return $this->safe_value($config, 'cost', 1);
+        return $this->safe_number($config, 'cost', 1);
     }
 }

@@ -225,37 +225,37 @@ public partial class mudrex : Exchange
         });
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> apiUrls = this.safeDict(this.urls, "api", new Dictionary<string, object>() {});
-        string? bs = this.safeString(apiUrls, api);
+        object bs = this.safeString(apiUrls, api);
         if ((bs == null))
         {
-            throw new ExchangeError (((this.id + " unknown API namespace: ") + api)) ;
+            throw new ExchangeError ((string)((this.id + " unknown API namespace: ") + (api))) ;
         }
-        string url = ((bs + "/") + this.implodeParams(path, parameters));
+        object url = add(add(bs, "/"), this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         Dictionary<string, object> requestHeaders = new Dictionary<string, object>() {};
-        if (!isEqual(headers, null))
+        if ((headers != null))
         {
             requestHeaders = this.extend(new Dictionary<string, object>() {}, headers);
         }
         string? brokerId = this.safeString(this.options, "broker");
         if ((brokerId != null))
         {
-            requestHeaders["Partner-Id"] = brokerId;
+            ((IDictionary<string,object>)requestHeaders)["Partner-Id"] = brokerId;
         }
         string methodUpper = ((string)method).ToUpper();
         if (isEqual(api, "private"))
         {
             this.checkRequiredCredentials();
-            requestHeaders["X-Authentication"] = this.secret;
-            if (methodUpper == "POST" || methodUpper == "PATCH" || methodUpper == "DELETE")
+            ((IDictionary<string,object>)requestHeaders)["X-Authentication"] = this.secret;
+            if ((methodUpper == "POST") || (methodUpper == "PATCH") || (methodUpper == "DELETE"))
             {
-                requestHeaders["Content-Type"] = "application/json";
+                ((IDictionary<string,object>)requestHeaders)["Content-Type"] = "application/json";
                 // is_symbol is a query-string flag even on write requests
                 string? isSymbol = this.safeString(query, "is_symbol");
                 if ((isSymbol != null))
@@ -265,7 +265,7 @@ public partial class mudrex : Exchange
     { "is_symbol", isSymbol },
 })));
                 }
-                if ((methodUpper == "DELETE") && isTrue(this.isEmpty(query)))
+                if (((methodUpper == "DELETE")) && this.isEmpty(query))
                 {
                     return new Dictionary<string, object>() {
                         { "url", url },
@@ -295,9 +295,9 @@ public partial class mudrex : Exchange
         };
     }
 
-    public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(object code, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
     {
-        if (isEqual(response, null) || !(response is IDictionary<string, object>))
+        if ((response == null) || !(response is IDictionary<string, object>))
         {
             return null;
         }
@@ -308,33 +308,33 @@ public partial class mudrex : Exchange
             IDictionary<string, object> first = this.safeDict(errors, 0, new Dictionary<string, object>() {});
             string? text = this.safeString(first, "text", this.json(response));
             string? errCode = this.safeString(first, "code");
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), text, ((this.id + " ") + text));
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errCode, ((this.id + " ") + text));
-            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), text, ((this.id + " ") + text));
+            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), text, ((this.id + " ") + text));
+            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errCode, ((this.id + " ") + text));
+            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), text, ((this.id + " ") + text));
             string msg = ((this.id + " ") + text);
             string low = text.ToLower();
-            if (isEqual(code, 401) || getIndexOf(low, "auth") >= 0)
+            if (isEqual(code, 401) || ((string)low).IndexOf("auth", StringComparison.Ordinal) >= 0)
             {
-                throw new AuthenticationError (msg) ;
+                throw new AuthenticationError ((string)msg) ;
             }
-            if (isEqual(code, 429) || getIndexOf(low, "rate") >= 0)
+            if (isEqual(code, 429) || ((string)low).IndexOf("rate", StringComparison.Ordinal) >= 0)
             {
-                throw new RateLimitExceeded (msg) ;
+                throw new RateLimitExceeded ((string)msg) ;
             }
-            if (getIndexOf(low, "insufficient") >= 0)
+            if (((string)low).IndexOf("insufficient", StringComparison.Ordinal) >= 0)
             {
-                throw new InsufficientFunds (msg) ;
+                throw new InsufficientFunds ((string)msg) ;
             }
             if (isEqual(code, 400))
             {
-                throw new BadRequest (msg) ;
+                throw new BadRequest ((string)msg) ;
             }
-            throw new ExchangeError (msg) ;
+            throw new ExchangeError ((string)msg) ;
         }
         return null;
     }
 
-    public override IList<object> parseOHLCV(object ohlcv, object market = null)
+    public override object parseOHLCV(object ohlcv, object market = null)
     {
         //
         //     [ 1782984660, 60681, 60797.6, 60671.8, 60693.3, 275.741 ]
@@ -362,7 +362,7 @@ public partial class mudrex : Exchange
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -370,45 +370,45 @@ public partial class mudrex : Exchange
         string? priceType = this.safeString(parameters, "price");
         parameters = this.omit(parameters, "price");
         // the endpoint expects the pair in "BASE/QUOTE" format (comma-separated for multiple)
-        string? assetPair = ((string)add(add(GetValue(market, "baseId"), "/"), GetValue(market, "quoteId")));
+        object assetPair = add(add((market.ContainsKey("baseId") ? market["baseId"] : null), "/"), (market.ContainsKey("quoteId") ? market["quoteId"] : null));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "assets", assetPair },
             { "aggregation", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
         // the endpoint requires an explicit time window (in seconds)
         int duration = this.parseTimeframe(timeframeVar);
-        Int64? requestLimit = limit;
+        object requestLimit = limit;
         if (isEqual(requestLimit, null))
         {
-            requestLimit = ((Int64?)500);
+            requestLimit = 500;
         }
         Int64 now = this.seconds();
         object startTime = null;
-        if (!isEqual(since, null))
+        if ((since != null))
         {
-            startTime = this.parseToInt(divide(since, 1000));
+            startTime = this.parseToInt((since / 1000));
         } else
         {
             startTime = subtract(now, multiply(duration, requestLimit));
         }
         if (isEqual(startTime, null))
         {
-            throw new ExchangeError ((this.id + " fetchOHLCV() missing startTime")) ;
+            throw new ExchangeError ((string)(this.id + " fetchOHLCV() missing startTime")) ;
         }
         object endTime = add(startTime, multiply(duration, requestLimit));
         Int64? until = this.safeInteger(parameters, "until");
-        if ((until != null))
+        if (!isEqual(until, null))
         {
             parameters = this.omit(parameters, "until");
-            endTime = this.parseToInt(divide(until, 1000));
+            endTime = this.parseToInt((until / 1000));
         } else if (isGreaterThan(endTime, now))
         {
             endTime = now;
         }
-        request["start_time"] = startTime;
-        request["end_time"] = endTime;
+        ((IDictionary<string,object>)request)["start_time"] = startTime;
+        ((IDictionary<string,object>)request)["end_time"] = endTime;
         Dictionary<string, object> response = null;
-        if (priceType == "mark")
+        if ((priceType == "mark"))
         {
             response = await this.marketGetPriceMarkKline(this.extend(request, parameters));
         } else
@@ -427,8 +427,8 @@ public partial class mudrex : Exchange
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         IDictionary<string, object> assetTicks = this.safeDict(data, "asset_ticks", new Dictionary<string, object>() {});
-        List<object> ohlcvs = this.safeList(assetTicks, assetPair.ToLower(), new List<object>() {});
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(ohlcvs, market,timeframeVar, since, limit));
+        List<object> ohlcvs = this.safeList(assetTicks, ((string)assetPair).ToLower(), new List<object>() {});
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(ohlcvs, market,((string)timeframeVar), since, limit));
     }
 
     /**
@@ -448,7 +448,7 @@ public partial class mudrex : Exchange
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        return await this.FetchOHLCV(symbol,timeframeVar,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(parameters, new Dictionary<string, object>() {
+        return await this.FetchOHLCV(((string)symbol),((string)timeframeVar),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(parameters, new Dictionary<string, object>() {
             { "price", "mark" },
         }));
     }
@@ -465,13 +465,13 @@ public partial class mudrex : Exchange
     public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "asset_id", GetValue(market, "id") },
+            { "asset_id", (market.ContainsKey("id") ? market["id"] : null) },
             { "is_symbol", 1 },
         };
         Dictionary<string, object> response = await this.privateGetFuturesAssetId(this.extend(request, parameters));
@@ -488,10 +488,10 @@ public partial class mudrex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    public async override Task<ccxt.Tickers> FetchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -500,7 +500,7 @@ public partial class mudrex : Exchange
         object data = this.safeValue(response, "data", new List<object>() {});
         object rows = ((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) ? data : this.safeList(data, "items", new List<object>() {});
         Dictionary<string, object> resultTickers = new Dictionary<string, object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(rows); i++)
         {
             object t = getValue(rows, i);
             string? sym = this.safeString(t, "symbol");
@@ -509,12 +509,12 @@ public partial class mudrex : Exchange
                 continue;
             }
             Dictionary<string, object> m = this.safeMarket(sym);
-            string? symbol = ((string)GetValue(m, "symbol"));
-            if (!isEqual(symbols, null) && !this.inArray(symbol, symbols))
+            string? symbol = ((string)(m != null && ((IDictionary<string, object>)m).ContainsKey("symbol") ? ((IDictionary<string, object>)m)["symbol"] : null));
+            if ((symbols != null) && !this.inArray(symbol, symbols))
             {
                 continue;
             }
-            resultTickers[(string)symbol] = this.parseTicker(t, m);
+            ((IDictionary<string,object>)resultTickers)[(string)symbol] = this.parseTicker(t, m);
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(resultTickers, "symbol", symbols));
     }
@@ -523,7 +523,7 @@ public partial class mudrex : Exchange
     {
         string? ms = this.safeString(ticker, "symbol");
         market = this.safeMarket(ms, market);
-        string? symbol = ((string)getValue(market, "symbol"));
+        object symbol = getValue(market, "symbol");
         double? pct = this.safeNumber(ticker, "change_perc");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
@@ -577,11 +577,11 @@ public partial class mudrex : Exchange
             {
                 items = this.safeList(data, "items", new List<object>() {});
                 // hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
-                int itemsLength = items?.Count ?? 0;
+                int itemsLength = (items?.Count ?? 0);
                 if ((isEqual(itemsLength, null)) || ((itemsLength == 0)))
                 {
                     items = this.safeList(data, "results", new List<object>() {});
-                    itemsLength = items?.Count ?? 0;
+                    itemsLength = (items?.Count ?? 0);
                 }
                 if (((itemsLength == 0)) && (inOp(data, "symbol")))
                 {
@@ -591,17 +591,17 @@ public partial class mudrex : Exchange
             {
                 items = this.toArray(data);
             }
-            int numItems = items?.Count ?? 0;
+            int numItems = (items?.Count ?? 0);
             if ((isEqual(numItems, null)) || ((numItems == 0)))
             {
                 paging = false;
                 break;
             }
-            for (int i = 0; isLessThan(i, numItems); postFixIncrement(ref i))
+            for (int i = 0; i < numItems; i++)
             {
-                aggregated.Add(getValue(items, i));
+                ((IList<object>)aggregated).Add(getValue(items, i));
             }
-            if (isLessThan(numItems, pageLimit))
+            if (numItems < pageLimit)
             {
                 paging = false;
             } else
@@ -611,9 +611,9 @@ public partial class mudrex : Exchange
             }
         }
         List<object> result = new List<object>() {};
-        for (int i = 0; isLessThan(i, aggregated.Count); postFixIncrement(ref i))
+        for (int i = 0; i < (aggregated?.Count ?? 0); i++)
         {
-            result.Add(this.parseMarket(aggregated[i]));
+            ((IList<object>)result).Add(this.parseMarket(aggregated[i]));
         }
         return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
@@ -621,17 +621,17 @@ public partial class mudrex : Exchange
     public override Dictionary<string, object> parseMarket(object asset)
     {
         string? ms = this.safeString(asset, "symbol");
-        string? bs = ms;
-        if ((ms != null) && ms.EndsWith("USDT"))
+        object bs = ms;
+        if ((ms != null) && ((string)ms).EndsWith(((string)"USDT")))
         {
-            bs = slice(ms, 0, -4);
+            bs = ((ms == null) ? null : ((string)ms).Substring(0, Math.Max(((string)ms).Length - 4, 0)));
         }
         string quote = "USDT";
         string settle = "USDT";
-        string? symbol = null;
+        object symbol = null;
         if ((bs != null))
         {
-            symbol = ((((bs + "/") + quote) + ":") + settle);
+            symbol = add(add(add(add(bs, "/"), quote), ":"), settle);
         }
         string? priceStep = this.safeString(asset, "price_step", "0.01");
         string? qtyStep = this.safeString(asset, "quantity_step", "0.001");
@@ -698,30 +698,30 @@ public partial class mudrex : Exchange
     public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         string? type = null;
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchBalance", null, parameters, "swap");
-        type = (string)typeparametersVariable[0];
-        parameters = typeparametersVariable[1];
+        type = (string)((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
         string? requested = this.safeStringN(parameters, new List<object>() {"trade_currency", "tradeCurrency", "currency"});
         parameters = this.omit(parameters, new List<object>() {"trade_currency", "tradeCurrency", "currency"});
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Dictionary<string, object> response = null;
-        if (type == "spot")
+        if ((type == "spot"))
         {
             if ((requested != null))
             {
-                request["currency"] = requested;
+                ((IDictionary<string,object>)request)["currency"] = requested;
             }
             response = await this.privateGetWalletFunds(this.extend(request, parameters));
         } else
         {
             if ((requested != null))
             {
-                request["trade_currency"] = requested;
+                ((IDictionary<string,object>)request)["trade_currency"] = requested;
             }
             response = await this.privateGetFuturesFunds(this.extend(request, parameters));
         }
@@ -732,13 +732,13 @@ public partial class mudrex : Exchange
         }
         if ((response == null))
         {
-            throw new NullResponse ((this.id + " fetchBalance() returned empty response")) ;
+            throw new NullResponse ((string)(this.id + " fetchBalance() returned empty response")) ;
         }
-        response["currency"] = currency;
+        ((IDictionary<string,object>)response)["currency"] = currency;
         return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
     }
 
-    public override Dictionary<string, object> parseBalance(object response)
+    public override object parseBalance(object response)
     {
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         string? currency = this.safeString(response, "currency", "USDT");
@@ -750,15 +750,15 @@ public partial class mudrex : Exchange
         if ((futuresBalance != null))
         {
             // futures wallet: balance is the free/available margin, locked_amount is used, safeBalance derives total
-            account["free"] = futuresBalance;
-            account["used"] = this.safeString(data, "locked_amount");
+            ((IDictionary<string,object>)account)["free"] = futuresBalance;
+            ((IDictionary<string,object>)account)["used"] = this.safeString(data, "locked_amount");
         } else
         {
             // spot wallet: total is the total, withdrawable is free, safeBalance derives used
-            account["total"] = this.safeString(data, "total");
-            account["free"] = this.safeString(data, "withdrawable");
+            ((IDictionary<string,object>)account)["total"] = this.safeString(data, "total");
+            ((IDictionary<string,object>)account)["free"] = this.safeString(data, "withdrawable");
         }
-        result[(string)currency] = account;
+        ((IDictionary<string,object>)result)[(string)currency] = account;
         return this.safeBalance(result);
     }
 
@@ -774,13 +774,13 @@ public partial class mudrex : Exchange
     public async override Task<ccxt.Leverage> FetchLeverage(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "asset_id", GetValue(market, "id") },
+            { "asset_id", (market.ContainsKey("id") ? market["id"] : null) },
             { "is_symbol", 1 },
         };
         Dictionary<string, object> response = await this.privateGetFuturesAssetIdLeverage(this.extend(request, parameters));
@@ -802,18 +802,18 @@ public partial class mudrex : Exchange
     public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
-            throw new ArgumentsRequired ((this.id + " setLeverage() requires a symbol")) ;
+            throw new ArgumentsRequired ((string)(this.id + " setLeverage() requires a symbol")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
         string? marginType = this.safeString(parameters, "marginType", "ISOLATED");
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "asset_id", GetValue(market, "id") },
+            { "asset_id", (market.ContainsKey("id") ? market["id"] : null) },
             { "is_symbol", 1 },
             { "margin_type", marginType },
             { "leverage", leverage },
@@ -849,7 +849,7 @@ public partial class mudrex : Exchange
     public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -863,7 +863,7 @@ public partial class mudrex : Exchange
             string? positionId = this.safeString2(parameters, "positionId", "position_id");
             if ((positionId == null))
             {
-                throw new ArgumentsRequired ((this.id + " createOrder() requires a positionId parameter to place a stopLossPrice or takeProfitPrice order")) ;
+                throw new ArgumentsRequired ((string)(this.id + " createOrder() requires a positionId parameter to place a stopLossPrice or takeProfitPrice order")) ;
             }
             parameters = this.omit(parameters, new List<object>() {"stopLossPrice", "takeProfitPrice", "positionId", "position_id"});
             Dictionary<string, object> riskRequest = new Dictionary<string, object>() {
@@ -871,31 +871,31 @@ public partial class mudrex : Exchange
             };
             if ((takeProfitPrice != null))
             {
-                riskRequest["is_takeprofit"] = true;
-                riskRequest["takeprofit_price"] = this.priceToPrecision(symbol, takeProfitPrice);
+                ((IDictionary<string,object>)riskRequest)["is_takeprofit"] = true;
+                ((IDictionary<string,object>)riskRequest)["takeprofit_price"] = this.priceToPrecision(symbol, takeProfitPrice);
             }
             if ((stopLossPrice != null))
             {
-                riskRequest["is_stoploss"] = true;
-                riskRequest["stoploss_price"] = this.priceToPrecision(symbol, stopLossPrice);
+                ((IDictionary<string,object>)riskRequest)["is_stoploss"] = true;
+                ((IDictionary<string,object>)riskRequest)["stoploss_price"] = this.priceToPrecision(symbol, stopLossPrice);
             }
             Dictionary<string, object> riskResponse = await this.privatePostFuturesPositionsPositionIdRiskorder(this.extend(riskRequest, parameters));
             IDictionary<string, object> riskData = this.safeDict(riskResponse, "data", riskResponse);
             return ccxt.BaseExchange.ToOrder(this.parseOrder(riskData, market));
         }
         Int64? lev = this.safeInteger(parameters, "leverage", 1);
-        if ((isEqual(type, "market")) && (isEqual(price, null)))
+        if (((type == "market")) && ((price == null)))
         {
-            throw new ArgumentsRequired ((this.id + " createOrder() requires a price argument for market orders")) ;
+            throw new ArgumentsRequired ((string)(this.id + " createOrder() requires a price argument for market orders")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "asset_id", GetValue(market, "id") },
+            { "asset_id", (market.ContainsKey("id") ? market["id"] : null) },
             { "is_symbol", 1 },
             { "leverage", this.numberToString(lev) },
             { "quantity", this.amountToPrecision(symbol, amount) },
             { "order_price", this.priceToPrecision(symbol, price) },
-            { "order_type", (isEqual(side, "buy")) ? "LONG" : "SHORT" },
-            { "trigger_type", (isEqual(type, "market")) ? "MARKET" : "LIMIT" },
+            { "order_type", ((side == "buy")) ? "LONG" : "SHORT" },
+            { "trigger_type", ((type == "market")) ? "MARKET" : "LIMIT" },
             { "reduce_only", this.safeBool(parameters, "reduceOnly", false) },
         };
         // mudrex only supports take-profit / stop-loss orders attached to the position-opening order
@@ -903,24 +903,24 @@ public partial class mudrex : Exchange
         IDictionary<string, object> stopLoss = this.safeDict(parameters, "stopLoss");
         if ((takeProfit != null))
         {
-            request["is_takeprofit"] = true;
-            request["takeprofit_price"] = this.priceToPrecision(symbol, this.safeStringN(takeProfit, new List<object>() {"triggerPrice", "stopPrice", "price"}));
+            ((IDictionary<string,object>)request)["is_takeprofit"] = true;
+            ((IDictionary<string,object>)request)["takeprofit_price"] = this.priceToPrecision(symbol, this.safeStringN(takeProfit, new List<object>() {"triggerPrice", "stopPrice", "price"}));
         }
         if ((stopLoss != null))
         {
-            request["is_stoploss"] = true;
-            request["stoploss_price"] = this.priceToPrecision(symbol, this.safeStringN(stopLoss, new List<object>() {"triggerPrice", "stopPrice", "price"}));
+            ((IDictionary<string,object>)request)["is_stoploss"] = true;
+            ((IDictionary<string,object>)request)["stoploss_price"] = this.priceToPrecision(symbol, this.safeStringN(stopLoss, new List<object>() {"triggerPrice", "stopPrice", "price"}));
         }
         parameters = this.omit(parameters, new List<object>() {"leverage", "reduceOnly", "takeProfit", "stopLoss"});
         Dictionary<string, object> response = await this.privatePostFuturesAssetIdOrder(this.extend(request, parameters));
         IDictionary<string, object> data = this.safeDict(response, "data", response);
         // the create response omits the order/trigger type, so parse a merged copy - the base derivations, like timeInForce, need to see them - then keep the untouched raw payload under info
         Dictionary<string, object> merged = this.extend(data, new Dictionary<string, object>() {
-            { "order_type", request["order_type"] },
-            { "trigger_type", request["trigger_type"] },
+            { "order_type", ((IDictionary<string,object>)request)["order_type"] },
+            { "trigger_type", ((IDictionary<string,object>)request)["trigger_type"] },
         });
         Dictionary<string, object> order = this.parseOrder(merged, market);
-        order["info"] = data;
+        ((IDictionary<string,object>)order)["info"] = data;
         return ccxt.BaseExchange.ToOrder(order);
     }
 
@@ -941,32 +941,32 @@ public partial class mudrex : Exchange
     public async override Task<ccxt.Order> EditOrder(string id, string symbol, string type, string side, double? amount = null, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "order_id", id },
         };
-        if (!isEqual(amount, null))
+        if ((amount != null))
         {
-            request["quantity"] = this.amountToPrecision(symbol, amount);
+            ((IDictionary<string,object>)request)["quantity"] = this.amountToPrecision(symbol, amount);
         }
-        if (!isEqual(price, null))
+        if ((price != null))
         {
-            request["order_price"] = this.priceToPrecision(symbol, price);
+            ((IDictionary<string,object>)request)["order_price"] = this.priceToPrecision(symbol, price);
         }
         Dictionary<string, object> response = await this.privatePatchFuturesOrdersOrderId(this.extend(request, parameters));
         IDictionary<string, object> data = this.safeDict(response, "data", response);
         return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
     }
 
-    public virtual string? parseOrderStatus(string? status)
+    public virtual string? parseOrderStatus(object status)
     {
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "open", "open" },
@@ -991,15 +991,15 @@ public partial class mudrex : Exchange
         string? oid = this.safeString2(order, "order_id", "id");
         string? rawSide = this.safeStringUpper(order, "order_type");
         string? side = null;
-        if (rawSide == "LONG")
+        if ((rawSide == "LONG"))
         {
             side = "buy";
-        } else if (rawSide == "SHORT")
+        } else if ((rawSide == "SHORT"))
         {
             side = "sell";
         }
         // stop-loss / take-profit rows attached to a position carry the trigger value under the "price" key
-        bool isRiskOrder = (rawSide == "STOPLOSS") || (rawSide == "TAKEPROFIT");
+        bool isRiskOrder = ((rawSide == "STOPLOSS")) || ((rawSide == "TAKEPROFIT"));
         string? priceString = this.safeString2(order, "price", "order_price");
         string? orderPrice = priceString;
         string? triggerPrice = null;
@@ -1009,7 +1009,7 @@ public partial class mudrex : Exchange
         {
             triggerPrice = priceString;
             orderPrice = null;
-            if (rawSide == "STOPLOSS")
+            if ((rawSide == "STOPLOSS"))
             {
                 stopLossPrice = priceString;
             } else
@@ -1019,16 +1019,16 @@ public partial class mudrex : Exchange
         }
         string? trig = this.safeStringUpper(order, "trigger_type");
         string? typ = null;
-        if (trig == "MARKET")
+        if ((trig == "MARKET"))
         {
             typ = "market";
-        } else if (trig == "LIMIT")
+        } else if ((trig == "LIMIT"))
         {
             typ = "limit";
         }
         Int64? ts = this.parse8601(this.safeString(order, "created_at"));
         string? status = this.parseOrderStatus(this.safeStringLower(order, "status"));
-        string? sym = ((string)getValue(market, "symbol"));
+        object sym = getValue(market, "symbol");
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", oid },
@@ -1072,12 +1072,12 @@ public partial class mudrex : Exchange
     public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
         }
@@ -1102,12 +1102,12 @@ public partial class mudrex : Exchange
     public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
         }
@@ -1131,17 +1131,17 @@ public partial class mudrex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async virtual Task<List<ccxt.Order>> FetchOrdersByState(object state, string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.Order>> FetchOrdersByState(object state, object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> q = new Dictionary<string, object>() {};
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
-            q["limit"] = limit;
+            ((IDictionary<string,object>)q)["limit"] = limit;
         }
         Dictionary<string, object> request = this.extend(q, parameters);
         Dictionary<string, object> response = null;
@@ -1155,14 +1155,14 @@ public partial class mudrex : Exchange
         object data = this.safeValue(response, "data", new List<object>() {});
         IList<object> rows = this.toArray(data);
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
         }
         List<object> orders = new List<object>() {};
-        for (int i = 0; isLessThan(i, rows?.Count ?? 0); postFixIncrement(ref i))
+        for (int i = 0; i < (rows?.Count ?? 0); i++)
         {
-            orders.Add(this.parseOrder(rows[i], market));
+            ((IList<object>)orders).Add(this.parseOrder(rows[i], market));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbol, since, limit));
     }
@@ -1231,7 +1231,7 @@ public partial class mudrex : Exchange
     public async override Task<List<ccxt.Position>> FetchPositions(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1244,13 +1244,13 @@ public partial class mudrex : Exchange
         }
         IList<object> rows = this.toArray(data);
         List<object> outPos = new List<object>() {};
-        for (int i = 0; isLessThan(i, rows?.Count ?? 0); postFixIncrement(ref i))
+        for (int i = 0; i < (rows?.Count ?? 0); i++)
         {
             object p = rows[i];
             string? symRaw = this.safeString(p, "symbol");
             Dictionary<string, object> m = this.safeMarket(symRaw);
             Dictionary<string, object> pos = this.parsePosition(p, m);
-            outPos.Add(pos);
+            ((IList<object>)outPos).Add(pos);
         }
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(outPos, "symbol", symbols, false));
     }
@@ -1267,18 +1267,18 @@ public partial class mudrex : Exchange
      * @param {string} [params.trade_currency] the settlement currency to filter positions by
      * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
-    public async override Task<List<ccxt.Position>> FetchPositionsHistory(IList<object> symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> FetchPositionsHistory(object symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
-            request["limit"] = limit;
+            ((IDictionary<string,object>)request)["limit"] = limit;
         }
         Dictionary<string, object> response = await this.privateGetFuturesPositionsHistory(this.extend(request, parameters));
         //
@@ -1303,11 +1303,11 @@ public partial class mudrex : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        IList<object> positions = this.parsePositions(data, symbols);
+        object positions = this.parsePositions(data, symbols);
         return ccxt.BaseExchange.ToPositionList(this.filterBySinceLimit(positions, since, limit));
     }
 
-    public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parsePosition(object position, object market = null)
     {
         market = this.safeMarket(null, market);
         string? ms = this.safeString(position, "symbol");
@@ -1315,15 +1315,15 @@ public partial class mudrex : Exchange
         // open positions use "order_type", closed positions (history) use "position_type"
         string? rawSide = this.safeStringUpper2(position, "order_type", "position_type");
         string? side = null;
-        if (rawSide == "LONG")
+        if ((rawSide == "LONG"))
         {
             side = "long";
-        } else if (rawSide == "SHORT")
+        } else if ((rawSide == "SHORT"))
         {
             side = "short";
         }
         Int64? ts = this.parse8601(this.safeString(position, "updated_at"));
-        if ((ts == null))
+        if (isEqual(ts, null))
         {
             ts = this.parse8601(this.safeString(position, "created_at"));
         }
@@ -1377,10 +1377,10 @@ public partial class mudrex : Exchange
      * @param {float} [params.amount] the amount to close for a partial close, closes the whole position if not provided
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async override Task<IDictionary<string, object>> closePosition(string symbol, string side = null, object parameters = null)
+    public async override Task<object> closePosition(string symbol, string side = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1389,15 +1389,15 @@ public partial class mudrex : Exchange
         if ((positionId == null))
         {
             Dictionary<string, object> market = this.market(symbol);
-            List<object> positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(new List<object>() {symbol}, parameters));
-            for (int i = 0; isLessThan(i, positions?.Count ?? 0); postFixIncrement(ref i))
+            object positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(new List<object>() {symbol}, parameters));
+            for (int i = 0; i < getArrayLength(positions); i++)
             {
-                object p = positions[i];
-                if (!isEqual(side, null) && !isEqual(getValue(p, "side"), side))
+                object p = getValue(positions, i);
+                if ((side != null) && !isEqual(getValue(p, "side"), side))
                 {
                     continue;
                 }
-                if (isEqual(getValue(p, "symbol"), GetValue(market, "symbol")))
+                if (isEqual(getValue(p, "symbol"), (market.ContainsKey("symbol") ? market["symbol"] : null)))
                 {
                     positionId = this.safeString(p, "id");
                     break;
@@ -1406,7 +1406,7 @@ public partial class mudrex : Exchange
         }
         if ((positionId == null))
         {
-            throw new OrderNotFound ((this.id + " closePosition() could not resolve position_id")) ;
+            throw new OrderNotFound ((string)(this.id + " closePosition() could not resolve position_id")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "position_id", positionId },
@@ -1414,20 +1414,20 @@ public partial class mudrex : Exchange
         if ((amount != null))
         {
             string? orderType = this.safeStringUpper(parameters, "order_type", "LIMIT");
-            request["order_type"] = orderType;
-            request["quantity"] = this.amountToPrecision(symbol, amount);
+            ((IDictionary<string,object>)request)["order_type"] = orderType;
+            ((IDictionary<string,object>)request)["quantity"] = this.amountToPrecision(symbol, amount);
             string? lp = this.safeString(parameters, "limit_price");
-            if (orderType == "LIMIT" && (lp != null))
+            if ((orderType == "LIMIT") && (lp != null))
             {
-                request["limit_price"] = lp;
+                ((IDictionary<string,object>)request)["limit_price"] = lp;
             }
             parameters = this.omit(parameters, new List<object>() {"order_type", "limit_price", "amount", "position_id"});
             Dictionary<string, object> partialResponse = await this.privatePostFuturesPositionsPositionIdClosePartial(this.extend(request, parameters));
-            return ((IDictionary<string, object>)((object)(partialResponse)));
+            return partialResponse;
         }
         parameters = this.omit(parameters, new List<object>() {"position_id"});
         Dictionary<string, object> response = await this.privatePostFuturesPositionsPositionIdClose(this.extend(request, parameters));
-        return ((IDictionary<string, object>)((object)(response)));
+        return response;
     }
 
     /**
@@ -1441,20 +1441,20 @@ public partial class mudrex : Exchange
      * @param {string} [params.position_id] the id of the position to add margin to, resolved from the symbol if not provided
      * @returns {object} a [margin structure](https://docs.ccxt.com/#/?id=add-margin-structure)
      */
-    public async override Task<Dictionary<string, object>> addMargin(string symbol, double amount, object parameters = null)
+    public async override Task<object> addMargin(string symbol, object amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         string? positionId = this.safeString(parameters, "position_id");
         if ((positionId == null))
         {
-            List<object> positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(new List<object>() {symbol}, parameters));
-            for (int i = 0; isLessThan(i, positions?.Count ?? 0); postFixIncrement(ref i))
+            object positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(new List<object>() {symbol}, parameters));
+            for (int i = 0; i < getArrayLength(positions); i++)
             {
-                object p = positions[i];
+                object p = getValue(positions, i);
                 if (isEqual(getValue(p, "symbol"), symbol))
                 {
                     positionId = this.safeString(p, "id");
@@ -1464,7 +1464,7 @@ public partial class mudrex : Exchange
         }
         if ((positionId == null))
         {
-            throw new OrderNotFound ((this.id + " addMargin() could not resolve position_id")) ;
+            throw new OrderNotFound ((string)(this.id + " addMargin() could not resolve position_id")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "position_id", positionId },
@@ -1472,7 +1472,7 @@ public partial class mudrex : Exchange
         };
         parameters = this.omit(parameters, new List<object>() {"position_id"});
         Dictionary<string, object> response = await this.privatePostFuturesPositionsPositionIdAddMargin(this.extend(request, parameters));
-        return ((Dictionary<string, object>)((object)(response)));
+        return response;
     }
 
     /**
@@ -1485,11 +1485,10 @@ public partial class mudrex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure](https://docs.ccxt.com/#/?id=reduce-margin-structure)
      */
-    public async override Task<Dictionary<string, object>> reduceMargin(string symbol, double amount, object parameters = null)
+    public async override Task<object> reduceMargin(string symbol, object amount, object parameters = null)
     {
-        object amountVar = amount;
         parameters ??= new Dictionary<string, object>();
-        return await this.addMargin(symbol,ccxt.BaseExchange.ToDoubleArgRequired(prefixUnaryNeg(ref amountVar)), parameters);
+        return await this.addMargin(((string)symbol), prefixUnaryNeg(ref amount), parameters);
     }
 
     /**
@@ -1508,24 +1507,24 @@ public partial class mudrex : Exchange
     public async override Task<List<ccxt.Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
         }
         object maxCalls = null;
         IList<object> maxCallsparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMyTrades", "paginationCalls", 10);
-        maxCalls = maxCallsparametersVariable[0];
-        parameters = maxCallsparametersVariable[1];
+        maxCalls = ((IList<object>)maxCallsparametersVariable)[0];
+        parameters = ((IList<object>)maxCallsparametersVariable)[1];
         object pageSize = 0;
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             // every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
-            pageSize = multiply(limit, 2);
+            pageSize = (limit * 2);
         }
         List<object> allRows = new List<object>() {};
         object transactionsCount = 0;
@@ -1537,20 +1536,20 @@ public partial class mudrex : Exchange
             Dictionary<string, object> request = new Dictionary<string, object>() {};
             if (isGreaterThan(pageSize, 0))
             {
-                request["limit"] = pageSize;
-                request["offset"] = offset;
+                ((IDictionary<string,object>)request)["limit"] = pageSize;
+                ((IDictionary<string,object>)request)["offset"] = offset;
             }
             Dictionary<string, object> response = await this.privateGetFuturesFeeHistory(this.extend(request, parameters));
             List<object> data = this.safeList(response, "data", new List<object>() {});
             int dataLength = data.Count;
-            for (int i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
+            for (int i = 0; i < dataLength; i++)
             {
                 object entry = getValue(data, i);
-                allRows.Add(entry);
+                ((IList<object>)allRows).Add(entry);
                 if ((this.safeString(entry, "fee_type") == "TRANSACTION"))
                 {
                     // count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns
-                    if (((market == null)) || (isEqual(this.safeString(entry, "symbol"), GetValue(market, "id"))))
+                    if (((market == null)) || (isEqual(this.safeString(entry, "symbol"), (market.ContainsKey("id") ? market["id"] : null))))
                     {
                         transactionsCount = this.sum(transactionsCount, 1);
                     }
@@ -1559,7 +1558,7 @@ public partial class mudrex : Exchange
             calls = this.sum(calls, 1);
             paging = false;
             // the page cap bounds the walk when the requested symbol has few or no rows anywhere near the top of the history
-            if ((!isEqual(limit, null)) && (isEqual(dataLength, pageSize)) && (isLessThan(transactionsCount, limit)) && (isLessThan(calls, maxCalls)))
+            if (((limit != null)) && (isEqual(dataLength, pageSize)) && (isLessThan(transactionsCount, limit)) && (isLessThan(calls, maxCalls)))
             {
                 // this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
                 offset = this.sum(offset, pageSize);
@@ -1571,28 +1570,28 @@ public partial class mudrex : Exchange
         List<object> rebateAmounts = new List<object>() {};
         List<object> transactions = new List<object>() {};
         List<object> transactionKeys = new List<object>() {};
-        for (int i = 0; isLessThan(i, allRows.Count); postFixIncrement(ref i))
+        for (int i = 0; i < (allRows?.Count ?? 0); i++)
         {
             object entry = allRows[i];
             string? feeType = this.safeString(entry, "fee_type");
             string pairKey = ((((this.safeString(entry, "symbol", "") + ":") + this.safeString(entry, "created_at", "")) + ":") + this.safeString(entry, "transaction_amount", ""));
-            if (feeType == "TRANSACTION")
+            if ((feeType == "TRANSACTION"))
             {
-                transactions.Add(entry);
-                transactionKeys.Add(pairKey);
-            } else if (feeType == "REBATE")
+                ((IList<object>)transactions).Add(entry);
+                ((IList<object>)transactionKeys).Add(pairKey);
+            } else if ((feeType == "REBATE"))
             {
-                rebateKeys.Add(pairKey);
-                rebateAmounts.Add(this.safeString(entry, "fee_amount", "0"));
+                ((IList<object>)rebateKeys).Add(pairKey);
+                ((IList<object>)rebateAmounts).Add(this.safeString(entry, "fee_amount", "0"));
             }
         }
         List<object> rows = new List<object>() {};
-        for (int i = 0; isLessThan(i, transactions.Count); postFixIncrement(ref i))
+        for (int i = 0; i < (transactions?.Count ?? 0); i++)
         {
             object rebate = null;
-            for (int j = 0; isLessThan(j, rebateKeys.Count); postFixIncrement(ref j))
+            for (int j = 0; j < (rebateKeys?.Count ?? 0); j++)
             {
-                if (isEqual(rebateKeys[j], getValue(transactionKeys, i)))
+                if (isEqual(getValue(rebateKeys, j), getValue(transactionKeys, i)))
                 {
                     rebate = getValue(rebateAmounts, j);
                     // blank the consumed key so the next equal fill matches the next rebate, never the same one twice
@@ -1602,10 +1601,10 @@ public partial class mudrex : Exchange
             }
             if ((rebate == null))
             {
-                rows.Add(transactions[i]);
+                ((IList<object>)rows).Add(transactions[i]);
             } else
             {
-                rows.Add(this.extend(transactions[i], new Dictionary<string, object>() {
+                ((IList<object>)rows).Add(this.extend(transactions[i], new Dictionary<string, object>() {
                     { "rebate_amount", rebate },
                 }));
             }
@@ -1632,21 +1631,21 @@ public partial class mudrex : Exchange
         //
         string? ms = this.safeString(trade, "symbol");
         market = this.safeMarket(ms, market);
-        string? symbol = ((string)getValue(market, "symbol"));
+        object symbol = getValue(market, "symbol");
         Int64? ts = this.parse8601(this.safeString(trade, "created_at"));
         // exit fills carry STOPLOSS / TAKEPROFIT markers without the closing direction, so their unified direction stays undefined
         string? side = this.safeStringLower(trade, "order_type");
         string? tradeSide = null;
-        if (side == "long")
+        if ((side == "long"))
         {
             tradeSide = "buy";
-        } else if (side == "short")
+        } else if ((side == "short"))
         {
             tradeSide = "sell";
         }
         string? trig = this.safeStringUpper(trade, "trigger_type");
         string? takerOrMaker = null;
-        if (trig == "MARKET")
+        if ((trig == "MARKET"))
         {
             // a market execution always takes liquidity, a limit execution can be either
             takerOrMaker = "taker";
@@ -1705,22 +1704,22 @@ public partial class mudrex : Exchange
             { "future", "FUTURES" },
             { "FUTURES", "FUTURES" },
         };
-        string? fw = this.safeString(mp, fromAccount, fromAccount.ToUpper());
-        string? tw = this.safeString(mp, toAccount, toAccount.ToUpper());
+        string? fw = this.safeString(mp, fromAccount, ((string)fromAccount).ToUpper());
+        string? tw = this.safeString(mp, toAccount, ((string)toAccount).ToUpper());
         Dictionary<string, object> body = new Dictionary<string, object>() {
             { "from_wallet_type", fw },
             { "to_wallet_type", tw },
             { "amount", this.numberToString(amount) },
         };
         bool useInr = false;
-        if (isEqual(code, "INR"))
+        if ((code == "INR"))
         {
             useInr = true;
         } else
         {
             // default USDT does not use the inr path
             string? tradeCurrency = this.safeString2(parameters, "trade_currency", "tradeCurrency");
-            if (tradeCurrency == "INR")
+            if ((tradeCurrency == "INR"))
             {
                 useInr = true;
             }

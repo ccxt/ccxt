@@ -44,7 +44,7 @@ public partial class kucoinfutures : kucoin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> FetchBidsAsks(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -68,29 +68,29 @@ public partial class kucoinfutures : kucoin
     public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        Dictionary<string, object> currency = this.currency(code);
-        string? amountToPrecision = this.currencyToPrecision(code, amount);
+        Dictionary<string, object> currency = this.currency(((string)code));
+        string? amountToPrecision = this.currencyToPrecision(((string)code), amount);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", this.safeString(currency, "id") },
             { "amount", amountToPrecision },
         };
         string? toAccountString = this.parseTransferType(toAccount);
         Dictionary<string, object> response = null;
-        if (toAccountString == "TRADE" || toAccountString == "MAIN")
+        if ((toAccountString == "TRADE") || (toAccountString == "MAIN"))
         {
-            request["recAccountType"] = toAccountString;
+            ((IDictionary<string,object>)request)["recAccountType"] = toAccountString;
             response = await this.futuresPrivatePostTransferOut(this.extend(request, parameters));
-        } else if (isEqual(toAccount, "future") || isEqual(toAccount, "swap") || isEqual(toAccount, "contract"))
+        } else if ((toAccount == "future") || (toAccount == "swap") || (toAccount == "contract"))
         {
-            request["payAccountType"] = this.parseTransferType(fromAccount);
+            ((IDictionary<string,object>)request)["payAccountType"] = this.parseTransferType(fromAccount);
             response = await this.futuresPrivatePostTransferIn(this.extend(request, parameters));
         } else
         {
-            throw new BadRequest ((this.id + " transfer() only supports transfers between future/swap, spot and funding accounts")) ;
+            throw new BadRequest ((string)(this.id + " transfer() only supports transfers between future/swap, spot and funding accounts")) ;
         }
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToTransferEntry(this.extend(this.parseTransfer(data, currency), new Dictionary<string, object>() {             { "amount", this.parseNumber(amountToPrecision) },             { "fromAccount", fromAccount },             { "toAccount", toAccount },         }));

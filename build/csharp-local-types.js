@@ -546,6 +546,398 @@ import ts from 'typescript6';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+// ===== positional core-argument type tables (moved here from build/csharpTranspiler.ts) =====
+// The tables the ccxt-side typeCoreArgs text pass reads, kept in this module so the pooled
+// workers' parameter-type hook (installCsharpParameterTypes below) reads the very same proof:
+// typeCoreArgs narrows these positions to the type named here on EVERY generated declaration
+// of the method, and the hook answers the same (method, position) pair for the reads inside
+// the body, so an emitted helper call on such a parameter can go native.
+
+// Generated C# core parameters that can be narrowed from `object` to `string`.
+// Keyed by POSITION, never by name: the prediction tier renames `symbol` to
+// `outcome`, and C# overrides are invariant on parameter types, not names.
+// Produced by build/analyzeCoreArgs.py, which admits a position only when every
+// declaration of that method agrees on arity + defaults and no body assigns to it.
+// Generated C# core parameters that can be narrowed from `object` to a numeric type.
+// Same positional keying and same all-declarations-must-agree gate as CORE_STRING_ARGS,
+// plus the narrowed type must equal what the hand-written PascalCase wrapper already
+// declares for that position (the wrapper is derived from the TS signature).
+// Produced by build/analyzeNumericCoreArgs.py. Reflective dispatch is safe because
+// BaseExchange.coerceArgs converts every boxed arg to the parameter type before Invoke.
+export const CORE_NUMERIC_ARGS = {
+    'createAmmOrder': { 3: 'double', 4: 'double?' },
+    'createContractOrder': { 4: 'double?' },
+    'createConvertTrade': { 3: 'double?' },
+    'createExtendedOrderRequest': { 3: 'double', 4: 'double?' },
+    'createMarketBuyOrderWithCost': { 1: 'double' },
+    'createMarketOrderWithCost': { 2: 'double' },
+    'createMarketSellOrderWithCost': { 1: 'double' },
+    'createOrder': { 3: 'double', 4: 'double?' },
+    'createOrderbookOrder': { 3: 'double', 4: 'double?' },
+    'createTrailingAmountOrder': { 3: 'double', 4: 'double?' },
+    'createTrailingPercentOrder': { 3: 'double', 4: 'double?' },
+    'createTwapOrder': { 2: 'double' },
+    'createUtaOrder': { 3: 'double', 4: 'double?' },
+    'editContractOrder': { 4: 'double', 5: 'double?' },
+    'editOrder': { 4: 'double?', 5: 'double?' },
+    'editSpotOrder': { 4: 'double', 5: 'double?' },
+    'fetchAmmOrders': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchBorrowInterest': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchBorrowRateHistories': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchBorrowRateHistory': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchCanceledAndClosedOrders': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchCanceledOrders': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchClosedContractOrders': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchClosedOrders': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchClosedSpotOrders': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchContractDeposits': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchContractOHLCV': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchContractOrders': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchContractOrdersByStatus': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchContractWithdrawals': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchConvertQuote': { 2: 'double?' },
+    'fetchConvertTradeHistory': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchDeposits': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchDepositsWithdrawals': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchDerivativesOpenInterestHistory': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchEventsByQuery': { 1: 'Int64' },
+    'fetchFundingHistory': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchFundingRateHistory': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchL2OrderBook': { 1: 'Int64?' },
+    'fetchL3OrderBook': { 1: 'Int64?' },
+    'fetchLedger': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchLedgerByEntries': { 2: 'Int64?' },
+    'fetchLiquidations': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchLongShortRatioHistory': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchMarkOHLCV': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchMyBuys': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchMyContractTrades': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchMyDustTrades': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchMyLiquidations': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchMySells': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchMySettlementHistory': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchMySpotTrades': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchMyTrades': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchMyUtaTrades': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchOHLCV': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchOpenInterestHistory': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchOpenOrders': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchOpenOrdersV1': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchOpenOrdersV2': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchOpenSpotOrders': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchOpenSwapOrders': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchOptionOHLCV': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchOrderBook': { 1: 'Int64?' },
+    'fetchOrderBooks': { 1: 'Int64?' },
+    'fetchOrderTrades': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchOrders': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchOrdersByState': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchOrdersByStates': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchOrdersByStatus': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchOrdersByType': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchOrdersClassic': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchOrdersWithMethod': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchPositionHistory': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchPositionsHistory': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchSeriesEvents': { 2: 'Int64' },
+    'fetchSettlementHistory': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchSettlements': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchSpotOHLCV': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchSpotOrderTrades': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchSpotOrders': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchSpotOrdersByStates': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchSpotOrdersByStatus': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchTradeQuote': { 2: 'double' },
+    'fetchTrades': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchTransactions': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchTransactionsByType': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchTransactionsWithMethod': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchTransfers': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchUTAOHLCV': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchUtaCanceledAndClosedOrders': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchUtaOrdersByStatus': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchWithdrawals': { 1: 'Int64?', 2: 'Int64?' },
+    // cs-5: TS `amount: number` (required) -> double; the four call sites (bingx/lighter
+    // addMargin/reduceMargin) get the ToDoubleArgRequired wrap.
+    'setMargin': { 1: 'double' },
+    'transfer': { 1: 'double' },
+    'watchMyTrades': { 1: 'Int64?', 2: 'Int64?' },
+    // additional watch* numeric args, same evidence gate as above (build/tmp_watch_args.py)
+    'watchLiquidations': { 1: 'Int64?', 2: 'Int64?' },
+    'watchLiquidationsForSymbols': { 1: 'Int64?', 2: 'Int64?' },
+    'watchMyLiquidations': { 1: 'Int64?', 2: 'Int64?' },
+    'watchMyLiquidationsForSymbols': { 1: 'Int64?', 2: 'Int64?' },
+    'watchMyTradesForSymbols': { 1: 'Int64?', 2: 'Int64?' },
+    'watchOrderBookForSymbols': { 1: 'Int64?' },
+    'watchOrdersForSymbols': { 1: 'Int64?', 2: 'Int64?' },
+    'watchPositionForSymbols': { 1: 'Int64?', 2: 'Int64?' },
+    'watchTradesForSymbols': { 1: 'Int64?', 2: 'Int64?' },
+    'watchOHLCV': { 2: 'Int64?', 3: 'Int64?' },
+    'watchOrderBook': { 1: 'Int64?' },
+    'watchOrders': { 1: 'Int64?', 2: 'Int64?' },
+    'watchPositions': { 1: 'Int64?', 2: 'Int64?' },
+    'watchTrades': { 1: 'Int64?', 2: 'Int64?' },
+    'withdraw': { 1: 'double' },
+};
+
+export const CORE_STRING_ARGS = {
+    'addMargin': [ 0 ],
+    'borrowCrossMargin': [ 0 ],
+    'borrowIsolatedMargin': [ 1 ],
+    'borrowMargin': [ 0 ],
+    'buildOHLCVC': [ 1 ],
+    'cancelAllOrders': [ 0 ],
+    'cancelAllOrdersWs': [ 0 ],
+    'cancelContractOrder': [ 0, 1 ],
+    'cancelOrder': [ 0, 1 ],
+    'cancelOrderWithClientOrderId': [ 0, 1 ],
+    'cancelOrderWs': [ 0, 1 ],
+    'cancelOrders': [ 1 ],
+    'cancelOrdersWithClientOrderIds': [ 1 ],
+    'cancelOrdersWs': [ 1 ],
+    'cancelSpotOrder': [ 0, 1 ],
+    'cancelTwapOrder': [ 0, 1 ],
+    'cancelUtaOrder': [ 0, 1 ],
+    'cancelUtaOrders': [ 1 ],
+    'closePosition': [ 0, 1 ],
+    'commonCurrencyCode': [ 0 ],
+    'convertCurrencyNetwork': [ 0 ],
+    'convertToRealAmount': [ 0 ],
+    'createAmmOrder': [ 0, 1, 2 ],
+    'createConvertTrade': [ 0 ],
+    'createDepositAddress': [ 0 ],
+    'createGiftCode': [ 0 ],
+    'createLimitBuyOrder': [ 0 ],
+    'createLimitBuyOrderWs': [ 0 ],
+    'createLimitOrder': [ 0, 1 ],
+    'createLimitOrderWs': [ 0, 1 ],
+    'createLimitSellOrder': [ 0 ],
+    'createLimitSellOrderWs': [ 0 ],
+    'createMarketBuyOrder': [ 0 ],
+    'createMarketBuyOrderWithCost': [ 0 ],
+    'createMarketBuyOrderWs': [ 0 ],
+    'createMarketOrder': [ 0, 1 ],
+    'createMarketOrderWithCost': [ 0, 1 ],
+    'createMarketOrderWithCostWs': [ 0, 1 ],
+    'createMarketOrderWs': [ 0, 1 ],
+    'createMarketSellOrder': [ 0 ],
+    'createMarketSellOrderWithCost': [ 0 ],
+    'createMarketSellOrderWs': [ 0 ],
+    'createOHLCVObject': [ 1 ],
+    'createOrder': [ 0, 1, 2 ],
+    'createOrderWithTakeProfitAndStopLoss': [ 0, 1, 2 ],
+    'createOrderWithTakeProfitAndStopLossWs': [ 0, 1, 2 ],
+    'createOrderWs': [ 0, 1, 2 ],
+    'createOrderbookOrder': [ 0, 1, 2 ],
+    'createPostOnlyOrder': [ 0, 1, 2 ],
+    'createPostOnlyOrderWs': [ 0, 1, 2 ],
+    'createReduceOnlyOrder': [ 0, 1, 2 ],
+    'createReduceOnlyOrderWs': [ 0, 1, 2 ],
+    'createStopLimitOrder': [ 0, 1 ],
+    'createStopLimitOrderWs': [ 0, 1 ],
+    'createStopLossOrder': [ 0, 1, 2 ],
+    'createStopLossOrderWs': [ 0, 1, 2 ],
+    'createStopMarketOrder': [ 0, 1 ],
+    'createStopMarketOrderWs': [ 0, 1 ],
+    'createStopOrder': [ 0, 1, 2 ],
+    'createStopOrderWs': [ 0, 1, 2 ],
+    'createTakeProfitOrder': [ 0, 1, 2 ],
+    'createTakeProfitOrderWs': [ 0, 1, 2 ],
+    'createTrailingAmountOrder': [ 0, 1, 2 ],
+    'createTrailingAmountOrderWs': [ 0, 1, 2 ],
+    'createTrailingPercentOrder': [ 0, 1, 2 ],
+    'createTrailingPercentOrderWs': [ 0, 1, 2 ],
+    'createTriggerOrder': [ 0, 1, 2 ],
+    'createTriggerOrderWs': [ 0, 1, 2 ],
+    'createTwapOrder': [ 0, 1 ],
+    'currency': [ 0 ],
+    'currencyId': [ 0 ],
+    'currencyToPrecision': [ 0 ],
+    'deposit': [ 0 ],
+    'editContractOrder': [ 0, 1, 2, 3 ],
+    'editLimitBuyOrder': [ 0, 1 ],
+    'editLimitOrder': [ 0, 1, 2 ],
+    'editLimitSellOrder': [ 0, 1 ],
+    'editOrder': [ 0, 1, 2, 3 ],
+    'editOrderWithClientOrderId': [ 0, 1, 2, 3 ],
+    'editOrderWs': [ 0, 1, 2, 3 ],
+    'editSpotOrder': [ 0, 1, 2, 3 ],
+    'fetchADLRank': [ 0 ],
+    'fetchAmmOrders': [ 0 ],
+    'fetchBorrowInterest': [ 0 ],
+    'fetchBorrowRate': [ 0 ],
+    'fetchBorrowRateHistory': [ 0 ],
+    'fetchCanceledOrders': [ 0 ],
+    'fetchClosedOrder': [ 0, 1 ],
+    'fetchClosedOrders': [ 0 ],
+    'fetchClosedOrdersWs': [ 0 ],
+    'fetchContractDepositAddress': [ 0 ],
+    'fetchContractDeposits': [ 0 ],
+    'fetchContractOHLCV': [ 0, 1 ],
+    'fetchContractWithdrawals': [ 0 ],
+    'fetchConvertTrade': [ 0, 1 ],
+    'fetchConvertTradeHistory': [ 0 ],
+    'fetchCrossBorrowRate': [ 0 ],
+    'fetchCurrency': [ 0 ],
+    'fetchDeposit': [ 0, 1 ],
+    'fetchDepositAddress': [ 0 ],
+    'fetchDepositAddressDefault': [ 0 ],
+    'fetchDepositAddressSupplement': [ 0 ],
+    'fetchDepositAddressesByNetwork': [ 0 ],
+    'fetchDepositMethods': [ 0 ],
+    'fetchDepositWithdrawFee': [ 0 ],
+    'fetchDeposits': [ 0 ],
+    'fetchDepositsRequest': [ 0 ],
+    'fetchDepositsWithdrawals': [ 0 ],
+    'fetchDepositsWs': [ 0 ],
+    'fetchDerivativesMarketLeverageTiers': [ 0 ],
+    'fetchDerivativesOpenInterestHistory': [ 1 ],
+    'fetchEvent': [ 0 ],
+    'fetchFundingInterval': [ 0 ],
+    'fetchFundingRate': [ 0 ],
+    'fetchFundingRateHistory': [ 0 ],
+    'fetchGreeks': [ 0 ],
+    'fetchIndexOHLCV': [ 0, 1 ],
+    'fetchIsolatedBorrowRate': [ 0 ],
+    // cs-5: first-parameter symbol/id positions admitted by build/analyzeCoreArgs.py on the
+    // current tree (the table predates these methods). Every call site already passes a
+    // string-typed arg (blockchaincom fetchOrderBook -> fetchL3OrderBook, weex fetchPosition
+    // -> fetchPositionsForSymbol) or receives the standard ((string)…) wrap (bingx/lighter
+    // addMargin/reduceMargin -> setMargin).
+    'fetchL2OrderBook': [ 0 ],
+    'fetchL3OrderBook': [ 0 ],
+    'fetchLedger': [ 0 ],
+    'fetchLedgerByEntries': [ 0 ],
+    'fetchLedgerEntriesByIds': [ 1 ],
+    'fetchLedgerEntry': [ 0, 1 ],
+    'fetchLeverage': [ 0 ],
+    'fetchLiquidations': [ 0 ],
+    'fetchLongShortRatio': [ 0, 1 ],
+    'fetchLongShortRatioHistory': [ 0, 1 ],
+    'fetchMarginAdjustmentHistory': [ 0, 1 ],
+    'fetchMarginMode': [ 0 ],
+    'fetchMarkOHLCV': [ 0, 1 ],
+    'fetchMarkPrice': [ 0 ],
+    'fetchMarket': [ 0 ],
+    'fetchMarketById': [ 0 ],
+    'fetchMarketLeverageTiers': [ 0 ],
+    'fetchMyBuys': [ 0 ],
+    'fetchMySells': [ 0 ],
+    'fetchMyTrades': [ 0 ],
+    'fetchMyTradesWs': [ 0 ],
+    'fetchNetworkDepositAddress': [ 0 ],
+    'fetchOHLCV': [ 0, 1 ],
+    'fetchOHLCVRequest': [ 1 ],
+    'fetchOHLCVWs': [ 0, 1 ],
+    'fetchOpenInterest': [ 0 ],
+    'fetchOpenInterestHistory': [ 0, 1 ],
+    'fetchOpenOrder': [ 0, 1 ],
+    'fetchOpenOrders': [ 0 ],
+    'fetchOpenOrdersWs': [ 0 ],
+    'fetchOption': [ 0 ],
+    'fetchOptionChain': [ 0 ],
+    'fetchOptionOHLCV': [ 0, 1 ],
+    'fetchOrder': [ 0, 1 ],
+    'fetchOrderBook': [ 0 ],
+    'fetchOrderBookWs': [ 0 ],
+    'fetchOrderStatus': [ 0, 1 ],
+    'fetchOrderTrades': [ 0, 1 ],
+    'fetchOrderWithClientOrderId': [ 0, 1 ],
+    'fetchOrderWs': [ 0, 1 ],
+    'fetchOrders': [ 0 ],
+    'fetchOrdersByIds': [ 1 ],
+    'fetchOrdersByStatusWs': [ 0, 1 ],
+    'fetchOrdersWs': [ 0 ],
+    'fetchPaginatedCallDeterministic': [ 4 ],
+    'fetchPosition': [ 0 ],
+    'fetchPositionADLRank': [ 0 ],
+    'fetchPositionHistory': [ 0 ],
+    'fetchPositionMode': [ 0 ],
+    'fetchPositionWs': [ 0 ],
+    'fetchPositionsForSymbol': [ 0 ],
+    'fetchPositionsForSymbolWs': [ 0 ],
+    'fetchPremiumIndexOHLCV': [ 0, 1 ],
+    'fetchSettlements': [ 0 ],
+    'fetchSpotOHLCV': [ 0, 1 ],
+    'fetchSpotOrderTrades': [ 0, 1 ],
+    'fetchTicker': [ 0 ],
+    'fetchTicker2': [ 0 ],
+    'fetchTickerV1': [ 0 ],
+    'fetchTickerV1AndV2': [ 0 ],
+    'fetchTickerV2': [ 0 ],
+    'fetchTickerV3': [ 0 ],
+    'fetchTickerWs': [ 0 ],
+    'fetchTrades': [ 0 ],
+    'fetchTradesWs': [ 0 ],
+    'fetchTradingFee': [ 0 ],
+    'fetchTransactionFee': [ 0 ],
+    'fetchTransactions': [ 0 ],
+    'fetchTransactionsByType': [ 1 ],
+    'fetchTransactionsWithMethod': [ 1 ],
+    'fetchTransfer': [ 0, 1 ],
+    'fetchTransfers': [ 0 ],
+    'fetchUTAOHLCV': [ 0, 1 ],
+    'fetchVolatilityHistory': [ 0 ],
+    'fetchWithdrawAddresses': [ 0 ],
+    'fetchWithdrawal': [ 0, 1 ],
+    'fetchWithdrawals': [ 0 ],
+    'fetchWithdrawalsRequest': [ 0 ],
+    'fetchWithdrawalsWs': [ 0 ],
+    'filterByCurrencySinceLimit': [ 1 ],
+    'futuresTransfer': [ 0 ],
+    'getAssetHistoryRows': [ 0 ],
+    'mergeBalanceAccount': [ 1 ],
+    'parseBalanceForSingleCurrency': [ 1 ],
+    'parseBorrowRateHistory': [ 1 ],
+    'parseConversions': [ 1 ],
+    'parseOHLCVs': [ 2 ],
+    'parseTradingViewOHLCV': [ 2 ],
+    'parseTransactionsByType': [ 2 ],
+    'parseWsOHLCVs': [ 2 ],
+    'prepareAccountRequestWithCurrencyCode': [ 0 ],
+    'prepareRequestForDepositAddress': [ 0 ],
+    'queryTransactionsByEventType': [ 3 ],
+    'reduceMargin': [ 0 ],
+    'repayCrossMargin': [ 0 ],
+    'repayIsolatedMargin': [ 1 ],
+    'repayMargin': [ 0 ],
+    'requestWalletHistoryRows': [ 2 ],
+    'safeDeterministicCall': [ 4 ],
+    'setLeverage': [ 1 ],
+    'setMargin': [ 0 ],
+    'setMarginMode': [ 0, 1 ],
+    'setPositionMode': [ 1 ],
+    'transfer': [ 0, 2, 3 ],
+    'transferBetweenMainAndSubAccount': [ 0, 2, 3 ],
+    'transferBetweenSubAccounts': [ 0, 2, 3 ],
+    'transferClassic': [ 0, 2, 3 ],
+    'transferIn': [ 0 ],
+    'transferOut': [ 0 ],
+    'transferUta': [ 0, 2, 3 ],
+    'unWatchOHLCV': [ 1 ],
+    'updateSpotCurrencyCode': [ 0 ],
+    // watch* string args, gated by build/tmp_watch_args.py: admitted only when every
+    // generated wrapper declaration agrees on `string` at that position and every core
+    // declaration agrees on arity. The venue-internal helpers (watchPublic, watchTopics,
+    // watchMultiHelper, ...) disagree across venues and are absent.
+    'watchFundingRate': [ 0 ],
+    'watchLiquidations': [ 0 ],
+    'watchMarkPrice': [ 0 ],
+    'watchMyLiquidations': [ 0 ],
+    'watchMyTrades': [ 0 ],
+    'watchOHLCV': [ 0, 1 ],
+    'watchOrderBook': [ 0 ],
+    'watchOrders': [ 0 ],
+    'watchPosition': [ 0 ],
+    'watchTicker': [ 0 ],
+    'watchTrades': [ 0 ],
+    'withdraw': [ 0, 2, 3 ],
+    'withdrawRequest': [ 0 ],
+    'withdrawWs': [ 0, 2, 3 ],
+    // fetchRestOrderBookSafe omitted: TS declares `symbol: any`, so the wrapper and the
+    // hand-written WsBridge caller both pass `object` and cannot be narrowed here
+};
+
 // ===== string-returning method signatures =====
 //
 // Concrete C# return types for generated non-async string-returning methods.
@@ -2814,6 +3206,28 @@ export function csharpAwaitedThisCallType (csharp, node) {
 export const CSHARP_LOCAL_THIS_MEMBER_TYPES = {
     // Exchange.Options.cs: `public string id { get; set; } = "Exchange";`
     'id': 'string',
+    // the other `public string <name> { get; set; }` configuration properties of the
+    // hand-written base (cs/ccxt/base/Exchange.Options.cs) read as `this.<name>`: same
+    // static type as `id`, so a `+` whose LEFT operand is one of them binds the
+    // add(string, *) overloads, which ARE C# concatenation for every right operand.
+    // `url` is the REST endpoint property (the ws `client.url` read is the separate
+    // CSHARP_CLIENT_MEMBER_TYPES table).
+    'version': 'string',
+    'hostname': 'string',
+    'url': 'string',
+    'userAgent': 'string',
+    'rateLimiterAlgorithm': 'string',
+    'apiKey': 'string',
+    'secret': 'string',
+    'password': 'string',
+    'uid': 'string',
+    'accountId': 'string',
+    'login': 'string',
+    'privateKey': 'string',
+    'walletAddress': 'string',
+    'twofa': 'string',
+    'proxy': 'string',
+    'agent': 'string',
 };
 
 // `client.<member>` reads of the hand-written WebSocketClient (cs/ccxt/ws/Client.cs).
@@ -4577,7 +4991,391 @@ export const CSHARP_LOCAL_CAST_CALL_TYPES = {
     // via CSHARP_STRING_RETURN_METHODS instead, so the call site no longer carries a cast)
 };
 
-function callResultCastType (initializer) {
+// ===== B-23: `object x = this.parse<X>(...)` — the box the callee's TS return type names =====
+//
+// A parse helper is declared per venue (or once in the base) and its C# signature stays
+// `object`, while its TS return type IS the structure / Dict / List box the callers consume.
+// The local names that box behind the exact cast back when two proofs hold:
+//   1. the checker's return type of the declaration the call binds maps to a collection —
+//      array / tuple -> List<object>, structure / index-signature object -> IDictionary<string, object>;
+//   2. EVERY declaration of that name in the program proves the same box on every return path,
+//      so no virtual dispatch (a base declaration plus venue overrides) can hand back another box.
+// A return path proves an object/array literal, an identity `as` wrapper, a conditional of two
+// proving arms, `null`, a local this module already declares that box for, or a call the
+// collection tables already name.
+const parseReturnProgramTables = new WeakMap ();
+
+function parseReturnTables (csharp) {
+    let program;
+    try {
+        program = (typeof csharp.getProgram === 'function') ? csharp.getProgram () : undefined;
+    } catch (e) {
+        program = undefined; // no transpilation context (in-memory transpiles) — keep the printer's object
+    }
+    if (program === undefined) {
+        return undefined;
+    }
+    let tables = parseReturnProgramTables.get (program);
+    if (tables === undefined) {
+        tables = { 'program': program, 'declarations': new Map (), 'boxes': new Map () };
+        parseReturnProgramTables.set (program, tables);
+    }
+    return tables;
+}
+
+// every declaration of the name in the program (the base declaration and the venue overrides),
+// collected once per (program, name)
+function parseReturnDeclarations (tables, name) {
+    if (tables.declarations.has (name)) {
+        return tables.declarations.get (name);
+    }
+    const found = [];
+    for (const sourceFile of (tables.program.getSourceFiles () ?? [])) {
+        const visit = (node) => {
+            // a bodiless declaration (an interface method, a js/src/*.d.ts twin of a ts/src
+            // definition) is not a runtime implementation and proves nothing
+            if (node.kind === ts.SyntaxKind.MethodDeclaration && node.body !== undefined && node.name !== undefined && node.name.escapedText === name) {
+                found.push (node);
+            }
+            ts.forEachChild (node, visit);
+        };
+        visit (sourceFile);
+    }
+    tables.declarations.set (name, found);
+    return found;
+}
+
+// the C# collection box a TS type names, or undefined when the type is not one (any / a scalar /
+// a union the arms of which disagree)
+function parseCollectionBox (checker, type) {
+    if (type === undefined) {
+        return undefined;
+    }
+    const flags = type.flags;
+    if ((flags & (ts.TypeFlags.Any | ts.TypeFlags.Unknown | ts.TypeFlags.Never)) !== 0) {
+        return undefined;
+    }
+    if ((flags & ts.TypeFlags.Union) !== 0) {
+        const arms = (type.types ?? []).filter ((t) => (t.flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null)) === 0);
+        if (arms.length === 0) {
+            return undefined;
+        }
+        let box;
+        for (const arm of arms) {
+            const own = parseCollectionBox (checker, arm);
+            if (own === undefined || (box !== undefined && box !== own)) {
+                return undefined;
+            }
+            box = own;
+        }
+        return box;
+    }
+    if ((flags & ts.TypeFlags.Object) === 0) {
+        return undefined; // string / number / boolean / enum / ... — not this family
+    }
+    if ((typeof checker.isArrayType === 'function' && checker.isArrayType (type))
+        || (typeof checker.isTupleType === 'function' && checker.isTupleType (type))) {
+        return 'List<object>';
+    }
+    const numberIndex = (typeof type.getNumberIndexType === 'function') ? type.getNumberIndexType () : undefined;
+    if (numberIndex !== undefined) {
+        return 'List<object>'; // an array-like object (Array, a tuple alias, a numeric index signature)
+    }
+    return 'IDictionary<string, object>'; // a structure interface / Dict row — a dictionary at runtime
+}
+
+function parseBoxCompatible (mapped, other) {
+    if (other === undefined) {
+        return false;
+    }
+    const dict = (t) => t === 'Dictionary<string, object>' || t === 'IDictionary<string, object>';
+    const list = (t) => t === 'List<object>' || t === 'IList<object>';
+    if (dict (mapped)) {
+        return dict (other);
+    }
+    if (list (mapped)) {
+        return list (other);
+    }
+    return mapped === other;
+}
+
+function parseReturnExpressionProves (csharp, expression, mapped, depth) {
+    if (expression === undefined || depth > 4) {
+        return false;
+    }
+    let node = expression;
+    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        node = node.expression;
+    }
+    switch (node?.kind) {
+    case ts.SyntaxKind.AsExpression:
+    case ts.SyntaxKind.TypeAssertionExpression: {
+        // `x as any` prints `((object)x)` and `x as <interface>` prints the bare operand — both
+        // identity wrappers. Any other target prints a cast of its own type, not this box.
+        const target = node.type;
+        if (target?.kind !== ts.SyntaxKind.AnyKeyword && target?.kind !== ts.SyntaxKind.TypeReference) {
+            return false;
+        }
+        return parseReturnExpressionProves (csharp, node.expression, mapped, depth + 1);
+    }
+    case ts.SyntaxKind.NullKeyword:
+        return true; // a null box unboxes to null under the reference cast
+    case ts.SyntaxKind.ObjectLiteralExpression:
+        return parseBoxCompatible (mapped, 'Dictionary<string, object>');
+    case ts.SyntaxKind.ArrayLiteralExpression:
+        return parseBoxCompatible (mapped, 'List<object>');
+    case ts.SyntaxKind.ConditionalExpression:
+        return parseReturnExpressionProves (csharp, node.whenTrue, mapped, depth + 1)
+            && parseReturnExpressionProves (csharp, node.whenFalse, mapped, depth + 1);
+    case ts.SyntaxKind.Identifier:
+        return parseBoxCompatible (mapped, identifierType (csharp, node));
+    case ts.SyntaxKind.CallExpression:
+        return parseBoxCompatible (mapped, callReturnType (csharp, node))
+            || parseBoxCompatible (mapped, callCollectionReturnType (csharp, node));
+    default:
+        return false;
+    }
+}
+
+function parseReturnDeclarationProves (csharp, declaration, mapped) {
+    let proved = true;
+    const visit = (node) => {
+        if (!proved || (node !== declaration && typeof ts.isFunctionLike === 'function' && ts.isFunctionLike (node))) {
+            return; // a return inside a nested callback belongs to that callback
+        }
+        if (node.kind === ts.SyntaxKind.ReturnStatement) {
+            // a body with no return statement at all (a `throw new NotSupported (...)` stub, a
+            // fall-through) hands back null/undefined, which the reference cast passes through
+            if (!parseReturnExpressionProves (csharp, node.expression, mapped, 0)) {
+                proved = false;
+            }
+            return;
+        }
+        ts.forEachChild (node, visit);
+    };
+    ts.forEachChild (declaration, visit);
+    return proved;
+}
+
+// ===== D-23: scalar return annotations (`: Str` / `: string` / `: number` / `: Int` / `: Bool`) =====
+//
+// The same two proofs as the collection arm above, for the SCALAR box the batch-C annotation
+// names: the checker's return type of the declaration the call binds maps to string? / Int64? /
+// double? / bool?, and EVERY declaration of the name in the program proves that box on every
+// return path, so no virtual dispatch can hand back another box. `x = this.parseX (...)` then
+// names the callee's scalar box behind the exact cast back (string? -> `((string)x)`).
+// A return path only proves a box it really holds at runtime:
+//   string? — a string literal, null/undefined, a call or local this module already types
+//             string/string?, or a `+` whose printed LEFT operand is a proven string (the
+//             add(string, *) overload returns a string for every right operand)
+//   Int64?  — null/undefined, a call or local already typed Int64/Int64?; an int box or a
+//             numeric literal boxes an Int32 and would throw the caller's hard unbox
+//   double? — null/undefined, a call or local already typed double/double?
+//   bool?   — a bool literal, null/undefined, a call or local already typed bool/bool?
+// An async declaration is never part of the family: the call site reads a Task<...>, not the box
+// (the printer's own Task fallback for a valueless return path stays the printer's business).
+
+// the scalar box candidates a TS type permits, or undefined when the type is not a scalar
+// (any/unknown, a collection, a structure, a union the arms of which disagree)
+function parseScalarKindOf (type) {
+    const flags = type.flags;
+    if ((flags & ts.TypeFlags.StringLike) !== 0) {
+        return 'string';
+    }
+    if ((flags & ts.TypeFlags.NumberLike) !== 0) {
+        return 'number';
+    }
+    if ((flags & ts.TypeFlags.BooleanLike) !== 0) {
+        return 'boolean';
+    }
+    return undefined;
+}
+
+function parseScalarKinds (checker, type) {
+    if (type === undefined) {
+        return undefined;
+    }
+    const flags = type.flags;
+    if ((flags & (ts.TypeFlags.Any | ts.TypeFlags.Unknown | ts.TypeFlags.Never)) !== 0) {
+        return undefined;
+    }
+    let kind;
+    if ((flags & ts.TypeFlags.Union) !== 0) {
+        const arms = (type.types ?? []).filter ((t) => (t.flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null | ts.TypeFlags.Void)) === 0);
+        if (arms.length === 0) {
+            return undefined;
+        }
+        for (const arm of arms) {
+            const own = (arm.flags & ts.TypeFlags.Union) !== 0 ? undefined : parseScalarKindOf (arm);
+            if (own === undefined || (kind !== undefined && kind !== own)) {
+                return undefined;
+            }
+            kind = own;
+        }
+    } else {
+        kind = parseScalarKindOf (type);
+    }
+    if (kind === 'string') {
+        return [ 'string?' ]; // the nullable spelling never converts a value the value does not have
+    }
+    if (kind === 'boolean') {
+        return [ 'bool?' ];
+    }
+    if (kind === 'number') {
+        return [ 'Int64?', 'double?' ]; // the numeric box (Int64 vs double) is proved per return path
+    }
+    return undefined;
+}
+
+function parseScalarBoxCompatible (mapped, other) {
+    if (other === undefined) {
+        return false;
+    }
+    if (mapped === 'string?') {
+        return other === 'string' || other === 'string?';
+    }
+    if (mapped === 'bool?') {
+        return other === 'bool' || other === 'bool?';
+    }
+    if (mapped === 'Int64?') {
+        return other === 'Int64' || other === 'Int64?';
+    }
+    if (mapped === 'double?') {
+        return other === 'double' || other === 'double?';
+    }
+    return false;
+}
+
+function parseScalarExpressionProves (csharp, expression, mapped, depth) {
+    if (expression === undefined || depth > 4) {
+        return false;
+    }
+    let node = expression;
+    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        node = node.expression;
+    }
+    switch (node?.kind) {
+    case ts.SyntaxKind.NullKeyword:
+        return true; // a null box unboxes to null under the reference cast
+    case ts.SyntaxKind.Identifier:
+        return (node.escapedText === 'undefined') || parseScalarBoxCompatible (mapped, identifierType (csharp, node));
+    case ts.SyntaxKind.StringLiteral:
+    case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
+        return mapped === 'string?';
+    case ts.SyntaxKind.TrueKeyword:
+    case ts.SyntaxKind.FalseKeyword:
+        return mapped === 'bool?';
+    case ts.SyntaxKind.AsExpression:
+    case ts.SyntaxKind.TypeAssertionExpression: {
+        const target = node.type;
+        if (target?.kind !== ts.SyntaxKind.AnyKeyword && target?.kind !== ts.SyntaxKind.TypeReference) {
+            return false; // `x as string` prints `((string)x)`, a conversion — not an identity wrapper
+        }
+        return parseScalarExpressionProves (csharp, node.expression, mapped, depth + 1);
+    }
+    case ts.SyntaxKind.ConditionalExpression:
+        return parseScalarExpressionProves (csharp, node.whenTrue, mapped, depth + 1)
+            && parseScalarExpressionProves (csharp, node.whenFalse, mapped, depth + 1);
+    case ts.SyntaxKind.CallExpression:
+        return parseScalarBoxCompatible (mapped, callReturnType (csharp, node));
+    case ts.SyntaxKind.BinaryExpression:
+        // a `+` that prints through add(string, *): the overload returns a string for every
+        // right operand, so the box is the mapped string. A numeric `+` boxes an Int64 OR a
+        // double depending on the operands — never a nameable single box.
+        return node.operatorToken?.kind === ts.SyntaxKind.PlusToken && mapped === 'string?'
+            && isProvablyStringOperand (csharp, node.left);
+    default:
+        return false;
+    }
+}
+
+function parseScalarReturnPathsProve (csharp, declaration, mapped) {
+    let proved = true;
+    const visit = (node) => {
+        if (!proved || (node !== declaration && typeof ts.isFunctionLike === 'function' && ts.isFunctionLike (node))) {
+            return; // a return inside a nested callback belongs to that callback
+        }
+        if (node.kind === ts.SyntaxKind.ReturnStatement) {
+            // a body with no return statement at all (a `throw new NotSupported (...)` stub)
+            // hands back null/undefined, which the reference cast passes through
+            if (!parseScalarExpressionProves (csharp, node.expression, mapped, 0)) {
+                proved = false;
+            }
+            return;
+        }
+        ts.forEachChild (node, visit);
+    };
+    ts.forEachChild (declaration, visit);
+    return proved;
+}
+
+// one declaration of the name: non-async, every return path proves the box, and an explicit
+// annotation of its own names the same family (Int64? and double? are both `: number`), so a
+// same-named method in another class with a different annotation cannot be mis-read
+function parseScalarDeclarationProves (csharp, declaration, mapped, checker) {
+    if (typeof csharp.isAsyncFunction === 'function' && csharp.isAsyncFunction (declaration)) {
+        return false;
+    }
+    if (declaration.type !== undefined) {
+        const own = parseScalarKinds (checker, checker.getTypeFromTypeNode (declaration.type));
+        if (own === undefined || own.indexOf (mapped) < 0) {
+            return false;
+        }
+    }
+    return parseScalarReturnPathsProve (csharp, declaration, mapped);
+}
+
+// this.parse<X>(...) -> the box the callee's TS return type names, proven over every declaration
+// of the name in the program; undefined keeps the printer's `object`. Cached per (program, name).
+function parseReturnCastType (csharp, call, methodName) {
+    if (typeof methodName !== 'string' || methodName.length < 4) {
+        return undefined;
+    }
+    const isParse = methodName.startsWith ('parse') && methodName.length > 5;
+    const tables = parseReturnTables (csharp);
+    if (tables === undefined) {
+        return undefined;
+    }
+    if (tables.boxes.has (methodName)) {
+        return tables.boxes.get (methodName);
+    }
+    let box;
+    try {
+        const checker = csharp.getChecker ();
+        const declaration = (checker.getSymbolAtLocation (call.expression.name)?.declarations ?? [])
+            .find ((d) => d.kind === ts.SyntaxKind.MethodDeclaration);
+        if (declaration !== undefined) {
+            const signature = (typeof checker.getSignatureFromDeclaration === 'function') ? checker.getSignatureFromDeclaration (declaration) : undefined;
+            const type = (declaration.type !== undefined)
+                ? checker.getTypeFromTypeNode (declaration.type)
+                : (signature !== undefined ? checker.getReturnTypeOfSignature (signature) : undefined);
+            const declarations = parseReturnDeclarations (tables, methodName);
+            if (isParse) {
+                box = parseCollectionBox (checker, type);
+                if (box !== undefined && (declarations.length === 0 || !declarations.every ((d) => parseReturnDeclarationProves (csharp, d, box)))) {
+                    box = undefined;
+                }
+            }
+            if (box === undefined) {
+                const candidates = parseScalarKinds (checker, type);
+                if (candidates !== undefined && declarations.length > 0) {
+                    for (const candidate of candidates) {
+                        if (declarations.every ((d) => parseScalarDeclarationProves (csharp, d, candidate, checker))) {
+                            box = candidate;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    } catch (e) {
+        box = undefined; // an unresolved symbol / no context: keep the printer's object
+    }
+    tables.boxes.set (methodName, box);
+    return box;
+}
+
+function callResultCastType (csharp, initializer) {
     if (initializer?.kind !== ts.SyntaxKind.CallExpression) {
         return undefined;
     }
@@ -4590,7 +5388,14 @@ function callResultCastType (initializer) {
     if (Object.prototype.hasOwnProperty.call (CSHARP_LOCAL_CAST_CALL_TYPES, methodName)) {
         return CSHARP_LOCAL_CAST_CALL_TYPES[methodName];
     }
-    return sameFileCallCastType (initializer, methodName);
+    const sameFile = sameFileCallCastType (initializer, methodName);
+    if (sameFile !== undefined) {
+        return sameFile;
+    }
+    // `this.parse<X>(...)`: the checker's return type names the box when every declaration of
+    // the name proves it (B-23, see parseReturnCastType). Last, so a name-keyed family entry
+    // above keeps its own spelling.
+    return parseReturnCastType (csharp, initializer, methodName);
 }
 
 // Box of the hand-written filterByArray family, keyed on the `indexed` argument literal: false
@@ -4649,6 +5454,31 @@ function typedRequestIdCall (initializer) {
 // receiving local carries the exact cast back, the same shape as the getMessageHash family
 // above. this.parseOrderBook left this section for the genuine declaration retype
 // (CSHARP_COLLECTION_RETURN_METHODS, S19).
+
+// `this.safeOutcome (<one key>)` / `await this.loadOutcome (...)`: every path of the two
+// accessors boxes a row of this.outcomes / this.outcomes_by_id (IDictionary writers only)
+// or a fresh Dictionary literal — the 2-arg safeOutcome passthrough is the caller's box.
+const OUTCOME_ROW_TYPE = 'IDictionary<string, object>';
+
+function outcomeCacheCallCastType (initializer) {
+    // `await this.loadOutcome (...)` unwraps the same row
+    const call = (initializer?.kind === ts.SyntaxKind.AwaitExpression) ? initializer.expression : initializer;
+    if (call?.kind !== ts.SyntaxKind.CallExpression) {
+        return undefined;
+    }
+    const callee = call.expression;
+    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+        return undefined;
+    }
+    const methodName = callee.name?.escapedText;
+    if (methodName === 'safeOutcome') {
+        return (call.arguments?.length === 1) ? OUTCOME_ROW_TYPE : undefined;
+    }
+    if (methodName === 'loadOutcome') {
+        return OUTCOME_ROW_TYPE;
+    }
+    return undefined;
+}
 
 // this.requestId (...) -> Int64 or string, proven from the SAME-FILE definition.
 // requestId has one definition per venue file (32 in ts/src) and the box differs between
@@ -5402,8 +6232,9 @@ function isProvablyStringOperand (csharp, node) {
     case ts.SyntaxKind.Identifier:
         // `add(<local>, ...)`: the read's C# static type IS the declared type of the single
         // binding localIdentifierType() proves, so the enclosing add() resolves to
-        // add(string, *) exactly as it does for the arm of a `c ? local : ...`
-        return isStringLocalRead (csharp, node);
+        // add(string, *) exactly as it does for the arm of a `c ? local : ...`; a parameter
+        // the emitted signature narrows to `string` reads the same way
+        return isStringLocalRead (csharp, node) || (parameterArithmeticType (csharp, node) === 'string');
     case ts.SyntaxKind.CallExpression: {
         // `<receiver>.toString ()` prints `((object)<receiver>).ToString ()` whatever the
         // receiver is (ast-transpiler printToStringCall keys on the method name alone), and
@@ -6250,7 +7081,7 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
             // `[x, y] = f()` prints element reads into untyped slots; accepted when the
             // assignment is an audited request builder whose element is cast back (see below)
             if (parent.parent?.kind === ts.SyntaxKind.BinaryExpression && parent.parent.left === parent && parent.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
-                if (!destructuredWriteIsCastable (csharp, index, declaration, n, parent.parent, csharpType, context)
+                if (!destructuredWriteIsCastable (csharp, scope, index, declaration, n, parent.parent, csharpType, context)
                         && !destructuredIsUTAEnabledBoolProof (csharp, scope, declaration, n, parent.parent, csharpType)) {
                     return false;
                 }
@@ -6284,9 +7115,9 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
                     // RHS may be another already-typed local / a ternary over such locals (context)
                     const written = csharpTypeOfValue (csharp, parent.right, context) ?? u17WriteValueType (csharp, declaration, parent.right);
                     if (!assignable (csharpType, written)) {
-                        // `x = x + r` / `x = this.omit (x, keys)`: the value reads this very
-                        // local, so its type can only be proven against the declaration being
-                        // checked (see the self-concat / self-omit sections).
+                        // `x = x + r` / `x = this.omit (x, keys)` / `x = cond ? 'lit' : x`:
+                        // the value reads this very local, so its type can only be proven
+                        // against the declaration being checked (see the self-write sections).
                         const selfConcat = (csharpType === 'string') && (selfConcatWriteType (csharp, context, declaration, parent.right) === 'string');
                         // U21: the same self-read shape where a sibling leaf is unnameable
                         // but the left spine still selects add(string, …) (see
@@ -6301,7 +7132,13 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
                         // `x = c ? D : x`: the self arm's type IS this declaration, so only the
                         // other arm has to be storable in it (selfTernaryWriteType)
                         const selfTernaryType = selfTernaryWriteType (csharp, context, declaration, parent.right);
-                        const selfTernary = (selfTernaryType !== undefined) && assignable (csharpType, selfTernaryType);
+                        const selfTernaryString = (csharpType === 'string?') && safeStringFamilyLocal (declaration) && (selfTernaryStringWriteType (csharp, context, declaration, parent.right) === 'string');
+                        // `x = (x === undefined) ? <default> : x` — the self arm has no C# type
+                        // while this declaration is being classified; scoped to the
+                        // safeDict*/safeList* family (see safeCollectionFamilyLocal).
+                        const selfTernaryCollection = (written === undefined) && safeCollectionFamilyLocal (declaration.initializer)
+                            && assignable (csharpType, selfTernaryCollectionWriteType (csharp, context, declaration, parent.right));
+                        const selfTernary = ((selfTernaryType !== undefined) && assignable (csharpType, selfTernaryType)) || selfTernaryString || selfTernaryCollection;
                         if (!selfConcat && !selfStringWrite && !selfOmit && !selfTernary && !assignable (csharpType, selfRead)) {
                             return false;
                         }
@@ -6636,6 +7473,39 @@ function stringAccumulatorWriteType (csharp, context, declaration, value) {
         return undefined;
     }
     return 'string';
+}
+
+// `marginType = (marginType === 'crossed') ? 'cross' : marginType` — a conditional write
+// whose one arm reads the local being classified (safeString* family only). The self arm
+// has no C# type until this declaration decides one, but it can only hold what the
+// declaration already holds, and the other arm is proven a string here, so the write
+// stores a string or null — exactly the box the `string?` spelling already names. The
+// printed write is unchanged (the ternary prints the same text for both spellings), so
+// the join may keep the running type.
+function selfTernaryStringWriteType (csharp, context, declaration, value) {
+    let node = value;
+    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        node = node.expression;
+    }
+    if (node?.kind !== ts.SyntaxKind.ConditionalExpression) {
+        return undefined;
+    }
+    const armOf = (arm) => {
+        let current = arm;
+        while (current?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+            current = current.expression;
+        }
+        return current;
+    };
+    const whenTrue = armOf (node.whenTrue);
+    const whenFalse = armOf (node.whenFalse);
+    const selfTrue = isSelfRead (csharp, whenTrue, declaration);
+    const selfFalse = isSelfRead (csharp, whenFalse, declaration);
+    if (selfTrue === selfFalse) {
+        return undefined; // neither arm, or both arms, read this local
+    }
+    const other = selfTrue ? whenFalse : whenTrue;
+    return isProvablyStringOperand (csharp, other) ? 'string' : undefined;
 }
 
 // is `value` (already unwrapped of `(x)` parentheses) a non-nullable `string` local used
@@ -8370,6 +9240,68 @@ function typeIsStringOrNullish (type) {
     }
     return false;
 }
+// `recv['k']` on a receiver the declared-local table names a Dictionary: the checker proves
+// the element type, and the keys below are the ones whose every corpus write into the typed
+// row shapes is a string (census in the PR), so the local takes `string?` + `(string)`.
+// Everything else (numeric elements — JSON boxes Int64 OR double, literal writes Int32 —,
+// bool keys, other keys) keeps the local `object`.
+const DICT_ELEMENT_STRING_KEYS_Typed = [ 'symbol', 'id', 'base', 'quote', 'baseId', 'quoteId', 'settle', 'settleId', 'lowercaseId', 'type', 'code', 'r', 's', 'uppercaseId', 'referenceId' ];
+
+function checkerElementScalar (csharp, node) {
+    if (typeof csharp.getChecker !== 'function') {
+        return undefined;
+    }
+    let type;
+    try {
+        type = csharp.getChecker ().getTypeAtLocation (node);
+    } catch (e) {
+        return undefined;
+    }
+    const scalarOf = (member) => {
+        const flags = member?.flags ?? 0;
+        if (flags & (ts.TypeFlags.String | ts.TypeFlags.StringLiteral)) {
+            return 'string';
+        }
+        if (flags & (ts.TypeFlags.Boolean | ts.TypeFlags.BooleanLiteral)) {
+            return 'bool';
+        }
+        if (flags & (ts.TypeFlags.Number | ts.TypeFlags.NumberLiteral)) {
+            return 'number';
+        }
+        return undefined;
+    };
+    if ((type?.flags & ts.TypeFlags.Union) && Array.isArray (type.types)) {
+        const members = type.types.filter ((member) => !(member.flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null)));
+        if (members.length === 0) {
+            return undefined;
+        }
+        const scalars = new Set (members.map (scalarOf));
+        return (scalars.size === 1) ? [ ...scalars ][0] : undefined;
+    }
+    return scalarOf (type);
+}
+
+// the element type of `recv['literal key']`, proven a string by the checker AND a key whose
+// every write into the row shapes the checker types is a string (see the family comment)
+function elementAccessStringReadType (csharp, initializer) {
+    if (initializer?.kind !== ts.SyntaxKind.ElementAccessExpression) {
+        return undefined;
+    }
+    const key = elementAccessLiteralKey (initializer.argumentExpression);
+    if (key === undefined || !DICT_ELEMENT_STRING_KEYS_Typed.includes (key)) {
+        return undefined;
+    }
+    const receiver = initializer.expression;
+    if (receiver?.kind !== ts.SyntaxKind.Identifier) {
+        return undefined;
+    }
+    const receiverType = localIdentifierType (csharp, receiver);
+    if (receiverType !== 'Dictionary<string, object>' && receiverType !== 'IDictionary<string, object>') {
+        return undefined;
+    }
+    return (checkerElementScalar (csharp, initializer) === 'string') ? 'string' : undefined;
+}
+
 // ---- describe()-literal url reads ------------------------------------------------------
 // `const x = this.urls['api']['ws']` prints `object x = getValue(getValue(this.urls, "api"),
 // "ws")`. `this.urls` is filled by Exchange.Options.cs#initializeProperties from
@@ -9042,6 +9974,47 @@ function parseIntTernaryCastType (initializer) {
     return sawParseInt ? 'Int64?' : undefined;
 }
 
+// the safeDict*/safeList* typed-local family (their CSHARP_LOCAL_THIS_RETURN_TYPES entries): the
+// six names whose generated C# return is the collection interface. Kept as its own table so the
+// self-ternary write proof below is scoped to this family and moves no other family's verdict.
+const CSHARP_SAFE_COLLECTION_METHODS_TYPED = new Set ([ 'safeDict', 'safeDict2', 'safeDictN', 'safeList', 'safeList2', 'safeListN' ]);
+
+// `object x = this.safeDict*/safeList* (…)` — the family's declaration shape.
+function safeCollectionFamilyLocal (initializer) {
+    let node = initializer;
+    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        node = node.expression;
+    }
+    if (node?.kind !== ts.SyntaxKind.CallExpression) {
+        return false;
+    }
+    const callee = node.expression;
+    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+        return false;
+    }
+    return CSHARP_SAFE_COLLECTION_METHODS_TYPED.has (callee.name?.escapedText);
+}
+
+// `x = (x === undefined) ? <default> : x`: the C# conditional computes its own natural type
+// from the arms, so the self arm's candidate type IS the write's type whenever the other arm
+// converts to it (assignable()'s one-way edges: a `{}` literal, a declared Dictionary local, ...).
+function selfTernaryCollectionWriteType (csharp, context, declaration, value) {
+    let node = value;
+    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        node = node.expression;
+    }
+    if (node?.kind !== ts.SyntaxKind.ConditionalExpression) {
+        return undefined;
+    }
+    if (isSelfRead (csharp, node.whenTrue, declaration)) {
+        return csharpTypeOfValue (csharp, node.whenFalse, context);
+    }
+    if (isSelfRead (csharp, node.whenFalse, declaration)) {
+        return csharpTypeOfValue (csharp, node.whenTrue, context);
+    }
+    return undefined;
+}
+
 // `const x = this.omitZero (v)` — printed `this.omitZero (v)`. The hand-written C# helper
 // (cs/ccxt/base/Exchange.Generic.cs) returns null for a double / Int64 / numeric-string ZERO
 // and hands every other box straight back, so for an argument whose C# static type is string
@@ -9110,6 +10083,22 @@ const NON_NULL_DEFAULT_SAFE_STRING_ARITY = {
     'safeStringLower': 3, 'safeStringLower2': 4, 'safeStringLowerN': 3,
     'safeStringUpper': 3, 'safeStringUpper2': 4, 'safeStringUpperN': 3,
 };
+
+// the same nine names as a set: the safeString* family this module declares `string?`
+// (see CSHARP_LOCAL_THIS_RETURN_TYPES). Only a local whose OWN initializer is one of
+// these calls uses the self-ternary write proof below — the shape is family-scoped, so no
+// other typed-local family's decisions move with it.
+const CSHARP_SAFE_STRING_METHODS_TYPED = new Set (Object.keys (NON_NULL_DEFAULT_SAFE_STRING_ARITY));
+
+function safeStringFamilyLocal (declaration) {
+    const initializer = declaration?.initializer;
+    if (initializer?.kind !== ts.SyntaxKind.CallExpression) {
+        return false;
+    }
+    const callee = initializer.expression;
+    const isThisCall = callee?.kind === ts.SyntaxKind.PropertyAccessExpression && callee.expression?.kind === ts.SyntaxKind.ThisKeyword;
+    return isThisCall && CSHARP_SAFE_STRING_METHODS_TYPED.has (callee.name?.escapedText);
+}
 
 function nonNullStringDefaultCall (csharp, node, context) {
     let initializer = node;
@@ -9337,6 +10326,11 @@ function csharpLocalTypeOf (csharp, declaration, context) {
             // `const apiKey = this.apiKey`: the hand-written property is a `string`, so the box
             // is that string or null (no cast: the property's own C# type IS `string`)
             csharpType = 'string?';
+        } else if (elementAccessStringReadType (csharp, declaration.initializer) === 'string') {
+            // `const symbol = parsed['symbol']`: the receiver is a declared Dictionary and the
+            // checker proves the element a string at a proven key — same `(string)` cast
+            csharpType = 'string?';
+            cast = 'string';
         } else if (urlsDescribeStringProducer (declaration.initializer)) {
             // `const x = this.urls['api']['ws']`: the describe() literal spells that leaf as a
             // string, so the getValue chain's box is a string or null — same cast as above
@@ -9401,6 +10395,7 @@ function csharpLocalTypeOf (csharp, declaration, context) {
             // `const x = this.omitZero (<string box>)`: the base's string? overload returns the
             // box itself (a string or null — see omitZeroStringProducer), so no cast is needed
             csharpType = 'string?';
+            cast = 'string';
         } else if (safeValueTwin !== undefined) {
             // `const x = this.safeValue (response, 'data')`: the same file extracts that
             // (receiver, key) pair as a dict / a list somewhere else, so the box is the
@@ -9457,7 +10452,7 @@ function csharpLocalTypeOf (csharp, declaration, context) {
                 // non-null collection names for the ws row builders — the same spelling the
                 // CSHARP_COLLECTION_RETURN_METHODS declarations carry).
                 // Every later write is still checked by csharpLocalIsSafeToRetype.
-                const callCastType = callResultCastType (declaration.initializer);
+                const callCastType = callResultCastType (csharp, declaration.initializer);
                 if (callCastType !== undefined) {
                     csharpType = callCastType;
                     cast = callCastType.endsWith ('?') ? callCastType.slice (0, -1) : callCastType;
@@ -9471,17 +10466,13 @@ function csharpLocalTypeOf (csharp, declaration, context) {
                         cast = undefined;
                     }
                 } else {
-                    // `const x = this.getMessageHash (...)` / `const x = this.parseWsTrade (...)`: the
-                    // generated definition's every return path boxes the named type, so the
-                    // `(string)` / `(Dictionary<string, object>)` cast back is exact; the declared
-                    // spelling is the table's (nullable for the scalars whose box can be null, the
-                    // non-null collection names for the ws row builders — the same spelling the
-                    // CSHARP_COLLECTION_RETURN_METHODS declarations carry).
-                    // Every later write is still checked by csharpLocalIsSafeToRetype.
-                    const perDeclarationCastType = callResultCastType (declaration.initializer);
-                    if (perDeclarationCastType !== undefined) {
-                        csharpType = perDeclarationCastType;
-                        cast = perDeclarationCastType.endsWith ('?') ? perDeclarationCastType.slice (0, -1) : perDeclarationCastType;
+                    // `const x = this.safeOutcome (<key>)` / `await this.loadOutcome (...)`: the
+                    // box is an IDictionary row or null on every path the tier can produce
+                    // (see outcomeCacheCallCastType), so the declaration carries that exact cast.
+                    const outcomeType = outcomeCacheCallCastType (declaration.initializer);
+                    if (outcomeType !== undefined) {
+                        csharpType = outcomeType;
+                        cast = outcomeType;
                     }
                 }
             }
@@ -9883,7 +10874,12 @@ function boolOptionElementProof (declaration, idNode, assignment, name) {
 
 // element 0 of a bool helper: the per-call-site option proof above, or the flat
 // DESTRUCTURED_ELEMENT0_TYPES entry (a helper whose own body boxes a bool? local on every path)
-function destructuredBoolElementProof (declaration, idNode, assignment, name) {
+function destructuredBoolElementProof (csharp, scope, index, declaration, idNode, assignment, name) {
+    // the bool-coercion family (raw user box, isTrue-rewritten write) proves first; the
+    // cast-proven bool helpers fall through to the element-0 tables below
+    if (DESTRUCTURED_BOOL_COERCION_HELPERS.includes (name)) {
+        return idNode.parent?.elements?.[0] === idNode && destructuredBoolReadsAreTruthy (csharp, scope, index, declaration);
+    }
     const elementType = DESTRUCTURED_ELEMENT0_TYPES[name];
     if (elementType === 'bool?' && boolOptionLocalName (declaration) !== undefined
             && idNode.parent?.elements?.[0] === idNode) {
@@ -9924,6 +10920,76 @@ function literalInitElement0Type (csharp, declaration, idNode, assignment, name,
     return destructuredStringElementProof (csharp, declaration, idNode, assignment, name, context) ? 'string?' : undefined;
 }
 
+// Tuple-returning `handle*AndParams` helpers whose element 0 is the caller's RAW params value
+// (`safeValue2 (params, …)` / `safeValue2 (this.options, …)` / the call's own `defaultValue`):
+// the box can be any JSON value, so no cast names it. When such an element feeds a local whose
+// EVERY read is a truthiness position, the emitted element write is rewritten to the isTrue
+// COERCION instead (installDestructuredCasts) — isTrue computes exactly the truthiness those
+// reads already applied to the raw box — and the local is then declared `bool` / `bool?`.
+// A cast would throw InvalidCastException on a non-bool value where the object local answered
+// truthily; the coercion cannot.
+export const DESTRUCTURED_BOOL_COERCION_HELPERS = [
+    'handleOptionAndParams',
+    'handleOptionAndParams2',
+];
+
+// the parent shapes a bool-coerced target may be READ in: every one of them prints through
+// printCondition, so the C# test is the same truthiness the raw box had. `!x` prints
+// `!isTrue(x)`, `x ?: ` prints `((bool) isTrue(x)) ? …`, `x || y` / `x && y` print both
+// operands through printCondition and `if (x)` / `while (x)` / `for (…; x; …)` likewise.
+function destructuredBoolReadIsTruthy (node) {
+    let current = node;
+    while (current.parent?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        current = current.parent;
+    }
+    const parent = current.parent;
+    if (parent === undefined) {
+        return false;
+    }
+    switch (parent.kind) {
+    case ts.SyntaxKind.IfStatement:
+    case ts.SyntaxKind.WhileStatement:
+    case ts.SyntaxKind.DoStatement:
+    case ts.SyntaxKind.ForStatement:
+        return parent.expression === current;
+    case ts.SyntaxKind.ConditionalExpression:
+        return parent.condition === current;
+    case ts.SyntaxKind.PrefixUnaryExpression:
+        return (parent.operator === ts.SyntaxKind.ExclamationToken) && (parent.operand === current);
+    case ts.SyntaxKind.BinaryExpression: {
+        const op = parent.operatorToken.kind;
+        return ((op === ts.SyntaxKind.BarBarToken) || (op === ts.SyntaxKind.AmpersandAmpersandToken))
+            && ((parent.left === current) || (parent.right === current));
+    }
+    }
+    return false;
+}
+
+// every read of the target in its own function is a truthiness position (write positions are
+// vetted by the generic retype scan, which the caller runs around this proof)
+function destructuredBoolReadsAreTruthy (csharp, scope, index, declaration) {
+    const name = declaration.name.escapedText;
+    for (const n of (index.identifiers.get (name) ?? [])) {
+        if (n === declaration.name || isNotAUse (n)) {
+            continue;
+        }
+        if (useRefersToDeclaration (csharp, scope, declaration, n) === false) {
+            continue; // another same-name binding
+        }
+        const parent = n.parent;
+        if (parent?.kind === ts.SyntaxKind.BinaryExpression && parent.left === n && parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
+            continue; // a plain write — the generic scan proves its value is bool
+        }
+        if (parent?.kind === ts.SyntaxKind.ArrayLiteralExpression) {
+            continue; // the destructuring write target itself
+        }
+        if (!destructuredBoolReadIsTruthy (n)) {
+            return false;
+        }
+    }
+    return true;
+}
+
 // scope (enclosing function node) -> Map<printed local name, proven C# type>, filled while the
 // declaration is printed and read while a destructuring assignment in the same scope is printed
 const destructuredWriteTypes = new WeakMap ();
@@ -9952,7 +11018,7 @@ export function recordDestructuredWriteType (scope, printedName, csharpType, isU
 }
 
 // is `[ ..., x, ... ] = this.helper (...)` a write the cast makes type-correct?
-function destructuredWriteIsCastable (csharp, index, declaration, idNode, assignment, csharpType, context) {
+function destructuredWriteIsCastable (csharp, scope, index, declaration, idNode, assignment, csharpType, context) {
     // U16: `[ x, params ] = await this.helper (...)` prints the same element reads (`var tmp =
     // await ...; x = tmp[0];`), so the awaited pair is the same tuple the proof below names.
     // Every audited helper but handleAccountIndex / handleApiKeyIndex is sync, so no
@@ -9989,7 +11055,7 @@ function destructuredWriteIsCastable (csharp, index, declaration, idNode, assign
     } else if ((csharpType === 'string' || csharpType === 'string?') && destructuredStringElementProof (csharp, declaration, idNode, assignment, helper, context)) {
         // the null-initialised string family: element 0 of an audited helper (see
         // DESTRUCTURED_STRING_HELPERS) is a string or null, and the `(string)` cast names that box
-    } else if (csharpType === 'bool?' && destructuredBoolElementProof (declaration, idNode, assignment, helper)) {
+    } else if ((csharpType === 'bool' || csharpType === 'bool?') && destructuredBoolElementProof (csharp, scope, index, declaration, idNode, assignment, helper)) {
         // the bool shard: element 0 of an audited bool helper is a boxed bool or null on every
         // path, and the `(bool?)` unbox accepts both (null in, null out) — never a cross-widening.
         // A non-nullable `bool` target never reaches this shard: the element write always widens
@@ -10155,6 +11221,14 @@ function installDestructuredCasts (csharp) {
             return printed;
         }
         const temp = holder[1];
+        // the coercion is only the bool-coercion family's mechanism: element 0 of the
+        // cast-proven helpers (DESTRUCTURED_ELEMENT0_TYPES) really is the named box, so those
+        // keep their `(bool?)` / `(string?)` cast — only an audited bool-coercion helper takes
+        // the isTrue rewrite
+        const destructuredCallee = node.right?.expression;
+        const destructuredHelper = (destructuredCallee?.kind === ts.SyntaxKind.PropertyAccessExpression && destructuredCallee.expression?.kind === ts.SyntaxKind.ThisKeyword)
+            ? destructuredCallee.name?.escapedText : undefined;
+        const boolCoercionHelper = DESTRUCTURED_BOOL_COERCION_HELPERS.includes (destructuredHelper);
         return printed.split ('\n').map ((line) => {
             const match = DESTRUCTURED_READ_RE.exec (line);
             const targetType = ((match === null) || ((match[4] ?? match[5]) !== temp)) ? undefined : types.get (match[2]);
@@ -10176,6 +11250,12 @@ function installDestructuredCasts (csharp) {
                     return line;
                 }
                 return match[1] + match[2] + ' = (string)' + match[3] + match[7];
+            }
+            if ((targetType === 'bool' || targetType === 'bool?') && boolCoercionHelper) {
+                if (match[6] !== '0') {
+                    return line;
+                }
+                return match[1] + match[2] + ' = isTrue(' + match[3] + ')' + match[7];
             }
             return match[1] + match[2] + ' = (' + targetType + ')' + match[3] + match[7];
         }).join ('\n');
@@ -10625,6 +11705,18 @@ function typeFromValueOrWrites (csharp, scope, declaration, varName, initial, co
                 }
                 written = selfTernaryArm;
             }
+        }
+        if (written === undefined && type === 'string?' && !sawNull && safeStringFamilyLocal (declaration)) {
+            // `x = cond ? 'lit' : x` over a safeString* local: the value reads x, so it has
+            // no type until this declaration decides one (see selfTernaryStringWriteType).
+            written = selfTernaryStringWriteType (csharp, context, declaration, parent.right);
+        }
+        if (written === undefined && safeCollectionFamilyLocal (declaration.initializer) && !sawNull) {
+            // `x = (x === undefined) ? <default> : x` (the safeDict*/safeList* family): the
+            // self arm is the running type, so the write contributes it exactly when the
+            // default arm converts to it (see selfTernaryCollectionWriteType).
+            const defaultArm = selfTernaryCollectionWriteType (csharp, context, declaration, parent.right);
+            written = (type !== undefined && assignable (type, defaultArm)) ? type : undefined;
         }
         if (written === undefined) {
             return undefined;
@@ -11525,8 +12617,8 @@ export function installCsharpLocalTypes (transpiler) {
         }
         if (info.cast !== undefined) {
             // a call whose printed argument list spans lines (a dict-literal argument) would put
-            // the cast's closing paren on a second line; that family keeps `object` there, so
-            // every retyped declaration stays a single declaration-type-only line
+            // the cast's closing paren on a second line; the ws row-builder family keeps `object`
+            // there, so every retyped declaration stays a single declaration-type-only line
             // (the safeValue-twin family needs the same one-line shape for its cast)
             if (value.includes ('\n') && (info.cast === 'Dictionary<string, object>' || info.safeValueTwinShape !== undefined)) {
                 return printed;
@@ -12634,6 +13726,955 @@ export function installCsharpNumericReturns (transpiler) {
         return leadingComment + csharp.getIden (identation) + csharp.RETURN_TOKEN + ` ((${mapped})((object)(${value}))${forgiving})` + csharp.LINE_TERMINATOR + trailingComment;
     };
     csharp._methodReturnTypesPatched = true;
+}
+
+// ===== native arithmetic in place of the add / subtract / multiply / divide helpers =====
+//
+// `a + b` / `a - b` / `a * b` / `a / b` print add/subtract/multiply/divide(a, b) because the
+// C# static types of the operands are usually `object`. When this module can prove both
+// operands' C# static types AND the pair's helper branch IS the native C# operator (same
+// value, same box type, same null and exception behaviour), the call is replaced by that
+// operator. Every other pair keeps the helper call. `%` and `+=`-style targets stay for
+// the reasons spelled out in nativeArithmeticIsProven / nativeArithmeticAssignment.
+
+const NATIVE_ARITHMETIC_KIND_BY_TYPE = {
+    'string': 'string',
+    'string?': 'string',
+    'int': 'int',
+    'uint': 'uint',
+    'long': 'Int64',
+    'Int64': 'Int64',
+    'double': 'double',
+    // nullable spellings: only the `+` LEFT-operand rule below accepts them (see
+    // nativeArithmeticNullableLeftAdd); every other pair keeps the helper
+    'Int64?': 'Int64?',
+    'double?': 'double?',
+};
+
+const NATIVE_ARITHMETIC_SMALL_INT_KINDS = [ 'int', 'uint', 'Int64' ];
+
+// `+` pairs whose LEFT operand is a nullable numeric: the helper returns null for a null
+// left and otherwise unboxes the same sum, so the lifted operator is the identical result
+const NATIVE_ARITHMETIC_NULLABLE_LEFT_KINDS = [ 'Int64?', 'double?' ];
+
+const NATIVE_ARITHMETIC_SYMBOLS = {
+    [ts.SyntaxKind.PlusToken]: '+',
+    [ts.SyntaxKind.MinusToken]: '-',
+    [ts.SyntaxKind.AsteriskToken]: '*',
+    [ts.SyntaxKind.SlashToken]: '/',
+};
+
+function nativeArithmeticKindOfType (type) {
+    if (type === undefined) {
+        return undefined;
+    }
+    if (Object.prototype.hasOwnProperty.call (NATIVE_ARITHMETIC_KIND_BY_TYPE, type)) {
+        return NATIVE_ARITHMETIC_KIND_BY_TYPE[type];
+    }
+    // `Int64?` / `double?` / `int?` are the nullable spellings this module gives the locals and
+    // parameters it narrows from `object` (safeInteger / safeNumber / parseToInt); the width
+    // family is the non-nullable twin's, and the kind keeps the `?` so the pair rules can apply
+    // the null branch the helper itself takes for a nullable operand
+    if (type.endsWith ('?')) {
+        const base = NATIVE_ARITHMETIC_KIND_BY_TYPE[type.slice (0, -1)];
+        return (base === undefined || base === 'string') ? undefined : base + '?';
+    }
+    return undefined;
+}
+
+// the width family of an operand kind, with the nullable mark stripped: `Int64?` -> `Int64`
+function nativeArithmeticBaseKind (kind) {
+    return (kind !== undefined && kind.endsWith ('?')) ? kind.slice (0, -1) : kind;
+}
+
+// can this operand hold a null at runtime?
+function nativeArithmeticIsNullableKind (kind) {
+    return (kind !== undefined) && kind.endsWith ('?');
+}
+
+// the concrete C# type a PARAMETER read carries in the emitted file, or undefined when the
+// read prints `object`: the narrowed core arguments (coreArgParamType) and the parameter
+// declarations a typed-parameter family recorded in the build layer's resolver hook.
+// Parameters only — a local's declared type is localIdentifierType()'s decision.
+function parameterArithmeticType (csharp, node) {
+    const core = coreArgParamType (csharp, node);
+    if (core !== undefined) {
+        return parameterIsRefSunk (csharp, node) ? undefined : core;
+    }
+    if (typeof csharp.csharpDeclaredLocalResolverType !== 'function') {
+        return undefined;
+    }
+    let declaration;
+    try {
+        declaration = csharp.getChecker().getSymbolAtLocation (node)?.valueDeclaration;
+    } catch (e) {
+        return undefined;
+    }
+    return (declaration?.kind === ts.SyntaxKind.Parameter) ? csharp.csharpDeclaredLocalResolverType (node) : undefined;
+}
+
+// The typeCoreArgs text pass reads the PRINTED body: a parameter it finds as a `ref` sink —
+// `-x` / `+x` print `prefixUnaryNeg/Plus(ref x)`, `x++`/`x--` their postFix twins — is renamed
+// to an `object <name>Var` local, so the emitted read is NOT the narrowed type. The pass counts
+// `ref` as an assignment; the checker-level write scan (csharpParameterIsWritten) cannot see it.
+function parameterIsRefSunk (csharp, node) {
+    let declaration;
+    let checker;
+    try {
+        checker = csharp.getChecker();
+        declaration = checker.getSymbolAtLocation (node)?.valueDeclaration;
+    } catch (e) {
+        return false;
+    }
+    const body = declaration?.parent?.body;
+    if (body === undefined || declaration.kind !== ts.SyntaxKind.Parameter) {
+        return false;
+    }
+    let sunk = false;
+    const visit = (n) => {
+        if (sunk) {
+            return;
+        }
+        if ((n.kind === ts.SyntaxKind.PrefixUnaryExpression)
+            && ((n.operator === ts.SyntaxKind.MinusToken) || (n.operator === ts.SyntaxKind.PlusToken))) {
+            let operand = n.operand;
+            while (operand?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+                operand = operand.expression;
+            }
+            if (operand?.kind === ts.SyntaxKind.Identifier) {
+                try {
+                    if (checker.getSymbolAtLocation (operand)?.valueDeclaration === declaration) {
+                        sunk = true;
+                        return;
+                    }
+                } catch (e) {
+                    // keep scanning
+                }
+            }
+        }
+        ts.forEachChild (n, visit);
+    };
+    ts.forEachChild (body, visit);
+    return sunk;
+}
+
+// C# static kind of one operand: literals by their literal type, `this.id` / `.length`
+// member reads, identifiers and calls by the type their printed form carries, nested
+// arithmetic recursively. undefined = not provable (the helper call stays).
+function nativeArithmeticOperandKind (csharp, node) {
+    if (!node) {
+        return undefined;
+    }
+    switch (node.kind) {
+    case ts.SyntaxKind.StringLiteral:
+    case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
+        return 'string';
+    case ts.SyntaxKind.NumericLiteral:
+        // integer literals by their literal type (int / uint / long), decimals and
+        // exponents as double
+        return nativeArithmeticKindOfType (integerOperandKind (node.text, false) ?? numericLiteralType (node.text));
+    case ts.SyntaxKind.PrefixUnaryExpression:
+        // `-N` prints as a negative literal; any other prefix stays unproven
+        return (node.operator === ts.SyntaxKind.MinusToken && node.operand?.kind === ts.SyntaxKind.NumericLiteral)
+            ? nativeArithmeticKindOfType (integerOperandKind (node.operand.text, true) ?? numericLiteralType (node.operand.text))
+            : undefined;
+    case ts.SyntaxKind.ParenthesizedExpression:
+        return nativeArithmeticOperandKind (csharp, node.expression);
+    case ts.SyntaxKind.AsExpression:
+        // the printer casts only `as string` / `as any` / `as any[]`; every other assertion
+        // (`as number`, `as Int`, `as Num`, ...) prints the BARE operand (the rule
+        // csharpTypeOfValue documents), so the operand kind is the inner expression's.
+        // `x as string` prints `((string)x)`, whose static type IS string: the enclosing
+        // add() binds add(string, *), the same C# concatenation the operator prints, and a
+        // non-string box throws at the cast itself in both spellings.
+        if (node.type?.kind === ts.SyntaxKind.StringKeyword) {
+            return 'string';
+        }
+        if (node.type?.kind === ts.SyntaxKind.AnyKeyword) {
+            return undefined;
+        }
+        if (node.type?.kind === ts.SyntaxKind.ArrayType && node.type.elementType?.kind === ts.SyntaxKind.AnyKeyword) {
+            return undefined;
+        }
+        return nativeArithmeticOperandKind (csharp, node.expression);
+    case ts.SyntaxKind.PropertyAccessExpression:
+        // only the member reads the printer/module can name: `this.id` (string) and `.length` (int)
+        if (isProvablyStringOperand (csharp, node)) {
+            return 'string';
+        }
+        return (node.name?.escapedText === 'length') ? 'int' : undefined;
+    case ts.SyntaxKind.Identifier:
+        // the `<type> x = ` prefix the declaration prints (this module's decision first,
+        // then the printer's own getCSharpLocalType); a local with no proven type has none,
+        // and a parameter read is the type the emitted signature carries for it
+        return nativeArithmeticKindOfType (identifierType (csharp, node) ?? localIdentifierType (csharp, node) ?? parameterArithmeticType (csharp, node));
+    case ts.SyntaxKind.CallExpression:
+        if (isProvablyStringOperand (csharp, node)) {
+            return 'string'; // `<recv>.toString ()` prints `((object)recv).ToString ()`
+        }
+        return nativeArithmeticKindOfType (csharpTypeOfValue (csharp, node));
+    case ts.SyntaxKind.BinaryExpression:
+        return nativeArithmeticResultKind (csharp, node);
+    }
+    return undefined;
+}
+
+// the C# static kind of an already-printed arithmetic sub-expression: the native operator
+// this module emits, else the typed overload the remaining helper call binds to
+function nativeArithmeticResultKind (csharp, node) {
+    const op = node.operatorToken?.kind;
+    if (op === ts.SyntaxKind.PlusToken && isProvablyStringOperand (csharp, node)) {
+        return 'string'; // add(string, *) is declared string
+    }
+    if (op === ts.SyntaxKind.MinusToken || op === ts.SyntaxKind.AsteriskToken || op === ts.SyntaxKind.SlashToken) {
+        const printed = nativeArithmeticKindOfType (csharpArithmeticExpressionKind (csharp, node, undefined));
+        if (printed !== undefined) {
+            return printed;
+        }
+    }
+    const left = nativeArithmeticOperandKind (csharp, node.left);
+    const right = nativeArithmeticOperandKind (csharp, node.right);
+    return nativeArithmeticIsProven (op, left, right) ? nativeArithmeticPairResultKind (op, left, right) : undefined;
+}
+
+// the pairs whose helper result is the native operator result, value and box identical:
+//   +  string + ANY right      a provably-string LEFT operand makes the call site bind
+//                             add(string, object) / add(string, string), and both of those
+//                             overloads ARE C# concatenation (add(string, object) is
+//                             `add(a, b?.ToString())`, i.e. `a + b`), so `+` is the same
+//                             call for every right operand — proven, unproven or boxed
+//   +  int/uint/Int64 pairs   the Int64 branch / the small-int promotion to long
+//   +  double + (double|int)  add's double branch (Convert.ToDouble == the implicit conversion)
+//   +  Int64?/double? left    the lifted operator (see nativeArithmeticNullableLeftAdd)
+//   -  int - int              subtract(int, int) is `a - b`
+//   -  small-int pairs        (Int64, Int64) / the promotion
+//   -  double - <numeric>     the object overload's double branch
+//   *  small-int pairs        multiply(Int64, Int64) / the promotion
+//   /  small-int pairs        divide(Int64, Int64) — the same truncating Int64 division
+//   /  any double operand     divide(double, double) — both orders
+// Rejected: int+int / uint*uint (the helper normalizes to Int64, so the native Int32 /
+// UInt32 box and its Int32 overflow would differ), (small-int) op double for + / - / *
+// (add / subtract cast the RIGHT operand to Int64 and throw; multiply re-boxes a
+// whole-number double product as Int64), every other mixed kind and every unproven
+// LEFT operand (add(object, object) returns null for a null left where `object + string`
+// returns the right operand).
+//
+// A nullable operand (`Int64?`, `double?`, `int?`) is the same width family, and the pair is
+// emitted only where the helper's own null branch is the lifted operator's:
+//   *  and /  null-check first and return null, exactly what `T? * T` / `T? / T` answer, and
+//      the non-null path is the same overload (Int64 pair, or the Convert.ToDouble division)
+//   -  has no null branch at all — subtract() calls a.GetType() on the normalized operand and
+//      throws on a null one, where `T? - T` answers null — so a nullable operand keeps it
+//   `int?` with `int`/`uint` is int-typed arithmetic (the lifted (int?, int?) operator) whose
+//   Int32 box the helper's Int64 normalization does not reproduce, so the int32 pair rule
+//   above covers the nullable spelling too
+function nativeArithmeticIsProven (op, left, right) {
+    if (left === undefined) {
+        return false;
+    }
+    if (op === ts.SyntaxKind.PlusToken && left === 'string') {
+        return true;
+    }
+    if (right === undefined) {
+        return false;
+    }
+    const leftBase = nativeArithmeticBaseKind (left);
+    const rightBase = nativeArithmeticBaseKind (right);
+    const nullable = nativeArithmeticIsNullableKind (left) || nativeArithmeticIsNullableKind (right);
+    const bothSmall = NATIVE_ARITHMETIC_SMALL_INT_KINDS.includes (leftBase) && NATIVE_ARITHMETIC_SMALL_INT_KINDS.includes (rightBase);
+    const bothInt32 = (leftBase === 'int' && rightBase === 'int') || (leftBase === 'uint' && rightBase === 'uint');
+    const doubleLeft = (leftBase === 'double') && (rightBase === 'double' || NATIVE_ARITHMETIC_SMALL_INT_KINDS.includes (rightBase));
+    if (op === ts.SyntaxKind.PlusToken) {
+        // a nullable RIGHT operand keeps the helper: add(object, object) unboxes it and throws
+        // on null where the lifted `+` answers null; a nullable LEFT with a non-nullable right
+        // is the lifted operator exactly (null left -> null in both), see nativeArithmeticNullableLeftAdd
+        return (!nullable && ((leftBase === 'string' && rightBase === 'string') || doubleLeft || (bothSmall && !bothInt32)))
+            || nativeArithmeticNullableLeftAdd (left, right);
+    }
+    if (op === ts.SyntaxKind.MinusToken) {
+        return !nullable && (doubleLeft || (bothSmall && !(leftBase === 'uint' && rightBase === 'uint')));
+    }
+    if (op === ts.SyntaxKind.AsteriskToken) {
+        return bothSmall && !bothInt32;
+    }
+    if (op === ts.SyntaxKind.SlashToken) {
+        return (leftBase === 'double' || rightBase === 'double') || (bothSmall && !bothInt32);
+    }
+    return false;
+}
+
+// `Int64?` / `double?` LEFT operand of `+`: for every input the (object, object) helper
+// returns the same Int64 / double box the lifted operator computes and null exactly when the
+// left box is null (differential harness: null, int / uint / Int64 / double siblings,
+// Int64.MinValue / MaxValue and the overflow results). The RIGHT operand must be non-nullable
+// (a nullable right throws inside the helper where the operator yields null), and for
+// `Int64?` it must be a small int: the helper casts a double right to Int64 and throws, and a
+// nullable int / uint left is also out — the helper normalizes that box to Int64 (width).
+function nativeArithmeticNullableLeftAdd (left, right) {
+    if (NATIVE_ARITHMETIC_NULLABLE_LEFT_KINDS.indexOf (left) < 0) {
+        return false;
+    }
+    if (NATIVE_ARITHMETIC_SMALL_INT_KINDS.includes (right)) {
+        return true;
+    }
+    return (left === 'double?') && (right === 'double');
+}
+
+// the C# static type of an emitted native expression (the small-int pairs promote to long,
+// and the lifted operator of a nullable pair stays nullable)
+function nativeArithmeticPairResultKind (op, left, right) {
+    const mark = (kind) => (nativeArithmeticIsNullableKind (left) || nativeArithmeticIsNullableKind (right)) ? kind + '?' : kind;
+    if (left === 'string') {
+        return 'string';
+    }
+    if (op === ts.SyntaxKind.PlusToken && NATIVE_ARITHMETIC_NULLABLE_LEFT_KINDS.indexOf (left) >= 0) {
+        return left; // the lifted `+` keeps the nullable kind
+    }
+    if (nativeArithmeticBaseKind (left) === 'double' || nativeArithmeticBaseKind (right) === 'double') {
+        return mark ('double');
+    }
+    if (op === ts.SyntaxKind.MinusToken && left === 'int' && right === 'int') {
+        return 'int';
+    }
+    return mark ('Int64');
+}
+
+// the printed RIGHT operand of an emitted operator. A right operand whose C# type the
+// module cannot name may still print as a low-precedence expression — `x += c ? a : b`
+// prints the conditional with no parentheses of its own, where the helper call it
+// replaces held it as an argument — so it is wrapped: only the string-left rule reaches
+// this shape, and the parentheses cannot change which operator the two operands select.
+function nativeArithmeticRightText (csharp, node, kind) {
+    const text = csharp.printNode (node, 0);
+    return (kind === undefined) ? '(' + text + ')' : text;
+}
+
+// the printed native expression, parenthesised: it is one operand of its context (the
+// throw printer prefixes casts like `(string)` with no parens of its own), and a nested
+// arithmetic child arrives already parenthesised from this same wrapper
+function nativeArithmeticExpression (csharp, node) {
+    if (node?.kind !== ts.SyntaxKind.BinaryExpression) {
+        return undefined;
+    }
+    const op = node.operatorToken?.kind;
+    const symbol = NATIVE_ARITHMETIC_SYMBOLS[op];
+    if (symbol === undefined) {
+        return undefined;
+    }
+    const left = nativeArithmeticOperandKind (csharp, node.left);
+    const right = nativeArithmeticOperandKind (csharp, node.right);
+    if (!nativeArithmeticIsProven (op, left, right)) {
+        return undefined;
+    }
+    return '(' + csharp.printNode (node.left, 0) + ' ' + symbol + ' ' + nativeArithmeticRightText (csharp, node.right, right) + ')';
+}
+
+// `x += y` prints `x = add(x, y)` and `x -= y` prints `x = subtract(x, y)`: emitted
+// natively when the pair is proven, the target is a plain local and its proven type is a
+// numeric / string one (an `object` target could not take the result back)
+function nativeArithmeticAssignment (csharp, node) {
+    const op = node.operatorToken?.kind;
+    const baseOp = (op === ts.SyntaxKind.PlusEqualsToken) ? ts.SyntaxKind.PlusToken
+        : (op === ts.SyntaxKind.MinusEqualsToken) ? ts.SyntaxKind.MinusToken : undefined;
+    if (baseOp === undefined || node.left?.kind !== ts.SyntaxKind.Identifier) {
+        return undefined;
+    }
+    const left = nativeArithmeticOperandKind (csharp, node.left);
+    const right = nativeArithmeticOperandKind (csharp, node.right);
+    if (!nativeArithmeticIsProven (baseOp, left, right)) {
+        return undefined;
+    }
+    const target = csharp.printNode (node.left, 0);
+    return target + ' = ' + target + ' ' + NATIVE_ARITHMETIC_SYMBOLS[baseOp] + ' ' + nativeArithmeticRightText (csharp, node.right, right);
+}
+
+// wrap printCustomBinaryExpressionIfAny: the helper call is dropped for the pairs proven
+// by nativeArithmeticIsProven, everything else falls through to the previous printer
+export function installCsharpNativeArithmetic (transpiler) {
+    const csharp = transpiler?.csharpTranspiler;
+    if (!csharp || typeof csharp.printCustomBinaryExpressionIfAny !== 'function' || csharp._nativeArithmeticPatched) {
+        return;
+    }
+    const upstream = csharp.printCustomBinaryExpressionIfAny.bind (csharp);
+    csharp.printCustomBinaryExpressionIfAny = (node, identation) => {
+        if (node?.kind === ts.SyntaxKind.BinaryExpression) {
+            const native = nativeArithmeticAssignment (csharp, node) ?? nativeArithmeticExpression (csharp, node);
+            if (native !== undefined) {
+                return native;
+            }
+        }
+        return upstream (node, identation);
+    };
+    csharp._nativeArithmeticPatched = true;
+}
+
+// ===== native numeric comparisons =====
+//
+// The printer prints `<`/`>`/`<=`/`>=` through the runtime isLessThan family unless it can name
+// the concrete C# kind of both operands; the locals THIS module retypes (`for (int i = 0; ...)`,
+// `int length = getArrayLength (xs)`) are exactly the ones it cannot name by itself. Handing the
+// read type back lets it print the operator, which compares the same two boxes the helper does
+// (csharpNativeNumericComparison keeps `<`/`<=` on the helper for double, whose NaN the two
+// disagree on).
+export function installCsharpNumericComparisons (transpiler) {
+    const csharp = transpiler?.csharpTranspiler;
+    if (!csharp || csharp._numericComparisonsPatched) {
+        return;
+    }
+    csharp.csharpExpressionTypeResolver = (node) => {
+        if (node?.kind !== ts.SyntaxKind.Identifier) {
+            return undefined; // calls / accesses / literals are the printer's own tables
+        }
+        const declaration = resolveReference (csharp, node);
+        if (declaration?.kind !== ts.SyntaxKind.VariableDeclaration) {
+            return undefined; // a parameter prints `object` and is never comparable natively
+        }
+        return referenceDeclaredType (csharp, declaration);
+    };
+    csharp._numericComparisonsPatched = true;
+}
+
+// ===== parameter-type proof hook (the narrowed core arguments) =====
+//
+// The printer prints every parameter as `object`, so a read of one answers no C# type and the
+// emitted helper calls stay: `isEqual(limit, null)`, `isEqual(symbol, "lit")`, `divide(since, 1000)`.
+// The ccxt-side typeCoreArgs pass narrows the CORE_STRING_ARGS / CORE_NUMERIC_ARGS positions on
+// every generated declaration of the method, so the EMITTED parameter really is that type at those
+// positions -- validated tree-wide (every declaration of every table name carries the narrow type
+// at every listed position, 0 exceptions over 3220 declarations + the non-table ones).
+// Answering the same (method, position) pair here is therefore the declaration's own type, and the
+// existing operators / helpers can replace their runtime call with the native one.
+function coreArgParamType (csharp, node) {
+    if (node === undefined || node.kind !== ts.SyntaxKind.Identifier) {
+        return undefined;
+    }
+    let symbol;
+    try {
+        symbol = csharp.getChecker().getSymbolAtLocation(node);
+    } catch (e) {
+        return undefined; // in-memory program: the printer keeps its own answer
+    }
+    const declaration = symbol?.valueDeclaration;
+    if (declaration === undefined || declaration.kind !== ts.SyntaxKind.Parameter) {
+        return undefined;
+    }
+    const owner = declaration.parent;
+    // a generated core is a class method; the generated tests' `async public` helpers are plain
+    // functions whose parameters print `object` (typeCoreArgs' signature rule skips them too)
+    if (owner === undefined || owner.kind !== ts.SyntaxKind.MethodDeclaration) {
+        return undefined;
+    }
+    const name = owner.name?.escapedText;
+    const strings = CORE_STRING_ARGS[name];
+    const numerics = CORE_NUMERIC_ARGS[name];
+    if (strings === undefined && numerics === undefined) {
+        return undefined;
+    }
+    const position = owner.parameters.indexOf(declaration);
+    if (position < 0) {
+        return undefined; // destructured / rest parameter
+    }
+    // a parameter the body WRITES (assignment, compound assignment, ++/--, or a destructuring
+    // target) cannot be read as its narrowed type: the ccxt-side typeCoreArgs pass inserts an
+    // `object <name>Var = <name>;` shadow for it and renames every body use, so the emitted read
+    // is the shadow's (unproven) type -- answering the narrowed type here would print a
+    // comparison the shadow's `object` cannot take.
+    if (csharpParameterIsWritten (csharp, owner, declaration)) {
+        return undefined;
+    }
+    // a LITERAL default makes the printer emit a `<name> ??= <literal>;` prologue
+    // (printFunctionBody: array / object / numeric / string / boolean initializer), which the
+    // pass above reads as a reassignment and shadows just like a body write
+    const init = declaration.initializer;
+    if (init !== undefined && (ts.isArrayLiteralExpression (init) || ts.isObjectLiteralExpression (init)
+            || ts.isNumericLiteral (init) || ts.isStringLiteralLike (init)
+            || (init.kind === ts.SyntaxKind.TrueKeyword) || (init.kind === ts.SyntaxKind.FalseKeyword))) {
+        return undefined;
+    }
+    if (strings !== undefined && strings.indexOf(position) >= 0) {
+        return 'string';
+    }
+    return (numerics === undefined) ? undefined : numerics[position];
+}
+
+// the parameter is the target of a write anywhere in the method body: its own symbol, an
+// assignment (or compound assignment) left side -- through parens and array/object patterns, so
+// a `[ tag, params ] = this.handleWithdrawTagAndParams (…)` destructure counts -- or ++/--
+function csharpParameterIsWritten (csharp, owner, declaration) {
+    if (owner.body === undefined) {
+        return false;
+    }
+    let checker;
+    try {
+        checker = csharp.getChecker ();
+    } catch (e) {
+        return false;
+    }
+    let written = false;
+    const visit = (node) => {
+        if (written || node === undefined) {
+            return;
+        }
+        if ((node.kind === ts.SyntaxKind.Identifier) && (node !== declaration.name)) {
+            let symbol;
+            try {
+                symbol = checker.getSymbolAtLocation (node);
+            } catch (e) {
+                symbol = undefined;
+            }
+            if ((symbol !== undefined) && (symbol.valueDeclaration === declaration) && csharpWriteTarget (node)) {
+                written = true;
+                return;
+            }
+        }
+        ts.forEachChild (node, visit);
+    };
+    ts.forEachChild (owner.body, visit);
+    return written;
+}
+
+const CSHARP_WRITE_OPERATORS = [
+    ts.SyntaxKind.EqualsToken, ts.SyntaxKind.PlusEqualsToken, ts.SyntaxKind.MinusEqualsToken,
+    ts.SyntaxKind.AsteriskEqualsToken, ts.SyntaxKind.SlashEqualsToken, ts.SyntaxKind.PercentEqualsToken,
+    ts.SyntaxKind.AsteriskAsteriskEqualsToken, ts.SyntaxKind.QuestionQuestionEqualsToken,
+    ts.SyntaxKind.AmpersandEqualsToken, ts.SyntaxKind.BarEqualsToken, ts.SyntaxKind.CaretEqualsToken,
+    ts.SyntaxKind.LessThanLessThanEqualsToken, ts.SyntaxKind.GreaterThanGreaterThanEqualsToken,
+];
+
+function csharpWriteTarget (node) {
+    let current = node;
+    for (;;) {
+        const parent = current.parent;
+        if (parent === undefined) {
+            return false;
+        }
+        const kind = parent.kind;
+        if ((kind === ts.SyntaxKind.ParenthesizedExpression) || (kind === ts.SyntaxKind.ArrayLiteralExpression) || (kind === ts.SyntaxKind.ObjectLiteralExpression)) {
+            current = parent;
+            continue;
+        }
+        if ((kind === ts.SyntaxKind.BinaryExpression) && (parent.left === current)) {
+            return CSHARP_WRITE_OPERATORS.indexOf (parent.operatorToken?.kind) >= 0;
+        }
+        if ((kind === ts.SyntaxKind.PrefixUnaryExpression) || (kind === ts.SyntaxKind.PostfixUnaryExpression)) {
+            return (parent.operator === ts.SyntaxKind.PlusPlusToken) || (parent.operator === ts.SyntaxKind.MinusMinusToken);
+        }
+        return false;
+    }
+}
+
+// a non-nullable C# value type cannot be null-tested; a nullable spelling (`Int64?`) and a
+// reference type can, which is what the null branch of isEqual prints
+function coreArgParamIsValueTyped (type) {
+    return (type === 'double') || (type === 'Int64') || (type === 'long') || (type === 'int') || (type === 'bool');
+}
+
+export function installCsharpParameterTypes (transpiler) {
+    const csharp = transpiler?.csharpTranspiler;
+    if (!csharp || csharp._parameterTypesPatched) {
+        return;
+    }
+    const answer = (node) => coreArgParamType (csharp, node);
+
+    const upstreamParameterOperandType = csharp.csharpParameterOperandType.bind (csharp);
+    csharp.csharpParameterOperandType = (node) => answer (node) ?? upstreamParameterOperandType (node);
+
+    const upstreamValueTyped = csharp.csharpOperandIsValueTyped.bind (csharp);
+    csharp.csharpOperandIsValueTyped = (node) => {
+        const type = answer (node);
+        return (type !== undefined) ? coreArgParamIsValueTyped (type) : upstreamValueTyped (node);
+    };
+    csharp._parameterTypesPatched = true;
+}
+
+// ===== typed parameter declarations (D-17) =====
+//
+// The printer declares every method parameter `object`. A parameter whose ts/src annotation
+// names a native-carriable alias prints that type instead -- the same value in the same box
+// (a reference copy, or a Nullable<T> that boxes as T) -- and is published to the printer's
+// member rules through csharpDeclaredLocalTypeResolver, which is what makes the body's typed
+// reads of the parameter fire (getValue(k)/ContainsKey families). The proof, all of it:
+//   1. the owner is a non-async, non-static MethodDeclaration without `override` (D8: an
+//      override must match its base declaration -- another unit's family);
+//   2. the parameter's annotation names Dict/List/Str/Int/Num/Bool and the checker's own type
+//      for the parameter still spells that alias (never a name heuristic);
+//   3. the body never writes the parameter (D2, the shared write scan);
+//   4. the (method, position) is not one of B-17's narrowed core arguments (its tables own
+//      those positions and their call-site conversions);
+//   5. every call site proves: no `.name(` occurrence in any OTHER ts/src file (a call site in
+//      a file the current program does not hold -- the pro tier of a scoped run -- is still
+//      type-checked by the C# compiler, so only a name the corpus nowhere else calls is
+//      safe), and every call site the checker DOES resolve passes an argument the module's
+//      type oracle proves assignable to the target (a literal, null/undefined, a same-typed
+//      admitted parameter of the caller, a local the local-typing table declares with that
+//      type, or a call whose typed C# return the module's tables name).
+// Anything else keeps the `object` box (D1: no opt-ins, no casts).
+
+const CSHARP_PARAMETER_ALIAS_TYPES = {
+    'Dict': { 'type': 'IDictionary<string, object>', 'value': false },
+    'List': { 'type': 'IList<object>', 'value': false },
+    'Str': { 'type': 'string', 'value': false },
+    'Int': { 'type': 'Int64', 'value': true },
+    'Num': { 'type': 'double', 'value': true },
+    'Bool': { 'type': 'bool', 'value': true },
+};
+
+function csharpMethodHasModifier (node, kind) {
+    return (node?.modifiers ?? []).some ((modifier) => modifier.kind === kind);
+}
+
+// the type a candidate parameter prints with: a reference type plain (the printer appends its
+// own `?` when it prints the `= null` default), a value type nullable unless the printer is
+// already about to append the `?` itself
+function csharpParameterPrintedType (parameter, mapped) {
+    if (!mapped.value) {
+        return mapped.type;
+    }
+    const initializer = parameter.initializer;
+    if (initializer === undefined) {
+        return mapped.type + '?';
+    }
+    if (!csharpParameterDefaultPrintsNull (initializer)) {
+        return undefined; // a non-null default prints a value of a type this rule cannot name
+    }
+    return mapped.type;
+}
+
+// the default shapes printParameter/printFunctionBody turn into `= null` (plus, for the literal
+// shapes, a `name ??= <literal>;` prologue whose literal is assignable to the mapped type)
+function csharpParameterDefaultPrintsNull (initializer) {
+    if (initializer === undefined) {
+        return false;
+    }
+    return ts.isArrayLiteralExpression (initializer) || ts.isObjectLiteralExpression (initializer)
+        || ts.isStringLiteral (initializer) || ts.isNumericLiteral (initializer)
+        || (ts.isBooleanLiteral !== undefined && ts.isBooleanLiteral (initializer))
+        || (initializer.kind === ts.SyntaxKind.NullKeyword)
+        || ((initializer.kind === ts.SyntaxKind.Identifier) && (initializer.escapedText === 'undefined'));
+}
+
+// the corpus shell, built once per process -- the call-site proof below must see the files
+// this run's program does not hold:
+//   - `.name (` occurrence counts per ts/src file, and
+//   - the module basenames each file imports (`from '../bitget.js'` -> `bitget`): a file that
+//     never imports the declaring file's module cannot reference its class, so its same-named
+//     calls bind another class's method
+let csharpCorpusCache;
+
+function csharpCorpus () {
+    if (csharpCorpusCache !== undefined) {
+        return csharpCorpusCache;
+    }
+    const table = { 'occurrences': new Map (), 'imports': new Map () };
+    csharpCorpusCache = table;
+    try {
+        const root = process.cwd ();
+        const walk = (dir) => {
+            for (const entry of fs.readdirSync (dir, { 'withFileTypes': true })) {
+                const full = path.join (dir, entry.name);
+                if (entry.isDirectory ()) {
+                    if (entry.name !== 'node_modules') {
+                        walk (full);
+                    }
+                    continue;
+                }
+                if (!entry.name.endsWith ('.ts') || entry.name.endsWith ('.d.ts')) {
+                    continue;
+                }
+                const rel = path.relative (root, full);
+                const text = fs.readFileSync (full, 'utf8');
+                const re = /\.([A-Za-z_$][\w$]*)\s*\(/g;
+                let match;
+                while ((match = re.exec (text)) !== null) {
+                    let files = table.occurrences.get (match[1]);
+                    if (files === undefined) {
+                        files = new Map ();
+                        table.occurrences.set (match[1], files);
+                    }
+                    files.set (rel, (files.get (rel) ?? 0) + 1);
+                }
+                const imports = new Set ();
+                const importRe = /from\s*['"]([^'"]+)['"]/g;
+                while ((match = importRe.exec (text)) !== null) {
+                    const specifier = match[1].replace (/\\/g, '/');
+                    const base = specifier.split ('/').pop () ?? '';
+                    imports.add (base.replace (/\.js$/, '').replace (/\.ts$/, ''));
+                }
+                table.imports.set (rel, imports);
+            }
+        };
+        walk (path.join (root, 'ts/src'));
+    } catch (e) {
+        // no corpus on disk (in-memory transpiles): no name proves clean, so nothing is retyped
+    }
+    return table;
+}
+
+// every `.name (...)` call site of one source file, with the method declarations its callee
+// symbol resolves to -- walk once per file, keyed by name
+const csharpFileCallSitesCache = new WeakMap ();
+
+function csharpFileCallSitesByName (csharp, sourceFile, name) {
+    let table = csharpFileCallSitesCache.get (sourceFile);
+    if (table === undefined) {
+        table = new Map ();
+        const visit = (node) => {
+            if (ts.isCallExpression (node) && ts.isPropertyAccessExpression (node.expression)) {
+                const calleeName = node.expression.name?.escapedText;
+                if (calleeName !== undefined) {
+                    let declarations;
+                    try {
+                        declarations = (csharp.getChecker ().getSymbolAtLocation (node.expression.name)?.declarations ?? [])
+                            .filter ((declaration) => ts.isMethodDeclaration (declaration));
+                    } catch (e) {
+                        declarations = [];
+                    }
+                    if (declarations.length) {
+                        const list = table.get (calleeName) ?? [];
+                        list.push ({ 'call': node, 'declarations': declarations });
+                        table.set (calleeName, list);
+                    }
+                }
+            }
+            ts.forEachChild (node, visit);
+        };
+        ts.forEachChild (sourceFile, visit);
+        csharpFileCallSitesCache.set (sourceFile, table);
+    }
+    return table.get (name) ?? [];
+}
+
+// the declaration a bare identifier reads (the checker's own answer; a param read in a lambda
+// resolves to the same declaration)
+function csharpIdentifierDeclaration (csharp, node) {
+    try {
+        return csharp.getChecker ().getSymbolAtLocation (node)?.valueDeclaration;
+    } catch (e) {
+        return undefined;
+    }
+}
+
+// the C# static type of a call-site argument, or undefined when nothing proves it
+function csharpArgumentType (csharp, argument, expected) {
+    if (argument === undefined) {
+        return undefined;
+    }
+    if (argument.kind === ts.SyntaxKind.NullKeyword) {
+        return 'null';
+    }
+    if (ts.isIdentifier (argument)) {
+        if (argument.escapedText === 'undefined') {
+            return 'null';
+        }
+        const declaration = csharpIdentifierDeclaration (csharp, argument);
+        if (declaration !== undefined) {
+            if (declaration.kind === ts.SyntaxKind.Parameter) {
+                const own = csharpParameterDecision (csharp, declaration, expected);
+                return (own === undefined) ? 'object' : own;
+            }
+            const reference = referenceDeclaredType (csharp, declaration);
+            if (reference !== undefined) {
+                return reference;
+            }
+        }
+    }
+    try {
+        const context = { 'scope': csharp.csharpEnclosingFunction (argument), 'stack': new Set (), 'depth': 0 };
+        const own = csharpTypeOfValue (csharp, argument, context);
+        if (own !== undefined) {
+            return own;
+        }
+    } catch (e) {
+        return undefined; // no transpilation context: nothing is proven
+    }
+    return undefined;
+}
+
+// assignable() plus the C# constant conversions a literal argument takes for free
+function csharpArgumentAssignable (target, source, argument) {
+    if (assignable (target, source)) {
+        return true;
+    }
+    if (source === 'int') {
+        if ((target === 'Int64') || (target === 'Int64?')) {
+            return true; // an int constant converts to long implicitly
+        }
+        if ((target === 'double') || (target === 'double?')) {
+            return true; // int widens to double
+        }
+    }
+    return false;
+}
+
+// every call site of the parameter's method must prove: the name occurs in no other corpus
+// file, and each checker-resolved site passes a provable argument at this position
+function csharpParameterCallSitesProve (csharp, parameter, target) {
+    const owner = parameter.parent;
+    const name = owner.name.escapedText;
+    const position = owner.parameters.indexOf (parameter);
+    const declaringFile = parameter.getSourceFile ();
+    let declaringRel;
+    try {
+        declaringRel = path.relative (process.cwd (), declaringFile.fileName);
+    } catch (e) {
+        return false;
+    }
+    const corpus = csharpCorpus ();
+    const occurrences = corpus.occurrences.get (name);
+    // the declaring module's own basename: a file either imports it (and can bind the
+    // declaration through the class) or, for the base tier, inherits it from every venue
+    const moduleBase = path.basename (declaringFile.fileName).replace (/\.ts$/, '');
+    const baseTier = declaringRel.startsWith ('ts/src/base/');
+    if (occurrences !== undefined) {
+        for (const rel of occurrences.keys ()) {
+            if (rel === declaringRel) {
+                continue;
+            }
+            if (baseTier) {
+                return false; // every generated class extends the base: any call site can bind it
+            }
+            const imports = corpus.imports.get (rel);
+            if (imports !== undefined && imports.has (moduleBase)) {
+                return false; // a file that can bind this declaration calls the name too
+            }
+        }
+    }
+    let resolved = 0;
+    for (const site of csharpFileCallSitesByName (csharp, declaringFile, name)) {
+        if (site.declarations.indexOf (parameter) < 0) {
+            continue;
+        }
+        resolved++;
+        const argument = site.call.arguments[position];
+        if (argument === undefined) {
+            if (!csharpParameterDefaultPrintsNull (parameter.initializer)) {
+                return false; // a call omits the argument and the emitted parameter has no default
+            }
+            continue;
+        }
+        if (!csharpArgumentAssignable (target, csharpArgumentType (csharp, argument, target), argument)) {
+            return false;
+        }
+    }
+    // every textual occurrence in the declaring file must be one of the sites above: any other
+    // shape (`other.name (...)`) could bind another declaration and is not proven
+    return resolved >= (occurrences?.get (declaringRel) ?? 0);
+}
+
+const csharpParameterTypeDecisions = new WeakMap (); // ParameterDeclaration -> string | null
+const csharpParameterDecisionsInProgress = new Set ();
+
+// the printed type of a parameter, or undefined: the whole D-17 proof (see the section header)
+function csharpParameterDecision (csharp, parameter, expected) {
+    if (parameter?.kind !== ts.SyntaxKind.Parameter) {
+        return undefined;
+    }
+    const cached = csharpParameterTypeDecisions.get (parameter);
+    if (cached !== undefined) {
+        return (cached === null) ? undefined : cached;
+    }
+    const alias = (parameter.type?.getText !== undefined) ? parameter.type.getText () : undefined;
+    const mapped = (alias === undefined) ? undefined : CSHARP_PARAMETER_ALIAS_TYPES[alias];
+    if (mapped === undefined) {
+        csharpParameterTypeDecisions.set (parameter, null);
+        return undefined;
+    }
+    if (csharpParameterDecisionsInProgress.has (parameter)) {
+        // a call cycle: sound exactly while every member of the cycle carries the same target
+        const cycleTarget = csharpParameterPrintedType (parameter, mapped);
+        return (cycleTarget !== undefined && cycleTarget === expected) ? cycleTarget : undefined;
+    }
+    const owner = parameter.parent;
+    if (owner?.kind !== ts.SyntaxKind.MethodDeclaration || owner.body === undefined || owner.name === undefined) {
+        return undefined;
+    }
+    if (csharpMethodHasModifier (owner, ts.SyntaxKind.OverrideKeyword)
+        || csharpMethodHasModifier (owner, ts.SyntaxKind.AsyncKeyword)
+        || csharpMethodHasModifier (owner, ts.SyntaxKind.StaticKeyword)) {
+        return undefined;
+    }
+    const name = owner.name.escapedText;
+    const position = owner.parameters.indexOf (parameter);
+    if (position < 0) {
+        return undefined; // a destructured / rest parameter
+    }
+    if (coreArgParamPosition (name, position)) {
+        return undefined; // B-17's narrowed core arguments
+    }
+    if (csharpParameterIsWritten (csharp, owner, parameter)) {
+        return undefined; // D2
+    }
+    // the pro-tier `handleX (client, message)` family is D-19's (its signature + message reads)
+    const ownerFile = owner.getSourceFile ().fileName.replace (/\\/g, '/');
+    if (ownerFile.includes ('/pro/') && /^handle[A-Z]/.test (name)) {
+        return undefined;
+    }
+    // only a real ts/src file carries the corpus proof this rule needs: an in-memory program
+    // names every source `__dummy-file.ts` (the test/example stages transpile inline), where
+    // the cross-file call-site scan is vacuous and the declaring identity is unknown
+    if ((path.basename (ownerFile) === '__dummy-file.ts') || !/(^|\/)ts\/src\//.test (ownerFile)) {
+        return undefined;
+    }
+    // the generated test harness (ts/src/test, ts/src/pro/test) is its own compile unit with
+    // object-typed fixtures: only generated exchange classes are this family's surface
+    if (ownerFile.includes ('/test/')) {
+        return undefined;
+    }
+    const target = csharpParameterPrintedType (parameter, mapped);
+    if (target === undefined) {
+        return undefined;
+    }
+    // the checker's own reading of the parameter must still be the alias (the annotation alone
+    // is not the proof)
+    try {
+        const typeText = csharp.getChecker ().typeToString (csharp.getChecker ().getTypeAtLocation (parameter));
+        if (typeText !== alias) {
+            return undefined;
+        }
+    } catch (e) {
+        return undefined;
+    }
+    csharpParameterDecisionsInProgress.add (parameter);
+    try {
+        const proves = csharpParameterCallSitesProve (csharp, parameter, target);
+        csharpParameterTypeDecisions.set (parameter, proves ? target : null);
+        return proves ? target : undefined;
+    } finally {
+        csharpParameterDecisionsInProgress.delete (parameter);
+    }
+}
+
+function coreArgParamPosition (name, position) {
+    const strings = CORE_STRING_ARGS[name];
+    if ((strings !== undefined) && (strings.indexOf (position) >= 0)) {
+        return true;
+    }
+    const numerics = CORE_NUMERIC_ARGS[name];
+    return (numerics !== undefined) && (numerics[position] !== undefined);
+}
+
+export function installCsharpParameterDeclarations (transpiler) {
+    const csharp = transpiler?.csharpTranspiler;
+    if (!csharp || typeof csharp.printParameterType !== 'function' || csharp._parameterDeclarationsPatched) {
+        return;
+    }
+    const upstreamPrintParameterType = csharp.printParameterType.bind (csharp);
+    csharp.printParameterType = (node) => {
+        const native = csharpParameterDecision (csharp, node);
+        return (native !== undefined) ? native : upstreamPrintParameterType (node);
+    };
+    // the printer's own member-access rules ask this resolver for the C# type of a declaration
+    // it did not type itself: every parameter this hook retypes answers its printed type, so
+    // `getValue(param, "k")` / the market-row reads become native on the spot
+    const upstreamResolver = csharp.csharpDeclaredLocalTypeResolver;
+    csharp.csharpDeclaredLocalTypeResolver = (declaration) => {
+        const own = (declaration?.kind === ts.SyntaxKind.Parameter) ? csharpParameterDecision (csharp, declaration) : undefined;
+        if (own !== undefined) {
+            return own;
+        }
+        return (typeof upstreamResolver === 'function') ? upstreamResolver (declaration) : undefined;
+    };
+    csharp._parameterDeclarationsPatched = true;
 }
 
 export default installCsharpLocalTypes;

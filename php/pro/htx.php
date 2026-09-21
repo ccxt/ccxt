@@ -212,7 +212,7 @@ class htx extends \ccxt\async\htx {
         return Async\await($this->unsubscribe_public($market, $subMessageHash, $topic, $params));
     }
 
-    public function handle_ticker(Client $client, mixed $message) {
+    public function handle_ticker(Client $client, array $message): array {
         //
         // "market.btcusdt.detail"
         //     {
@@ -245,7 +245,7 @@ class htx extends \ccxt\async\htx {
         //         }
         //     }
         //
-        $tick = $this->safe_value($message, 'tick', array());
+        $tick = $this->safe_dict($message, 'tick', array());
         $ch = $this->safe_string($message, 'ch');
         if ($ch === null) {
             return $message;
@@ -254,7 +254,7 @@ class htx extends \ccxt\async\htx {
         $marketId = $this->safe_string($parts, 1);
         $market = $this->safe_market($marketId);
         $ticker = $this->parse_ticker($tick, $market);
-        $timestamp = $this->safe_value($message, 'ts');
+        $timestamp = $this->safe_integer($message, 'ts');
         $ticker['timestamp'] = $timestamp;
         $ticker['datetime'] = $this->iso8601($timestamp);
         $symbol = $ticker['symbol'];
@@ -324,7 +324,7 @@ class htx extends \ccxt\async\htx {
         return Async\await($this->unsubscribe_public($market, $subMessageHash, $topic, $params));
     }
 
-    public function handle_trades(Client $client, mixed $message) {
+    public function handle_trades(Client $client, array $message): array {
         //
         //     {
         //         "ch": "market.btcusdt.trade.detail",
@@ -345,8 +345,8 @@ class htx extends \ccxt\async\htx {
         //         }
         //     }
         //
-        $tick = $this->safe_value($message, 'tick', array());
-        $data = $this->safe_value($tick, 'data', array());
+        $tick = $this->safe_dict($message, 'tick', array());
+        $data = $this->safe_list($tick, 'data', array());
         $ch = $this->safe_string($message, 'ch');
         if ($ch === null) {
             return $message;
@@ -432,7 +432,7 @@ class htx extends \ccxt\async\htx {
         return Async\await($this->unsubscribe_public($market, $subMessageHash, $topic, $params));
     }
 
-    public function handle_ohlcv(Client $client, mixed $message) {
+    public function handle_ohlcv(Client $client, array $message) {
         //
         //     {
         //         "ch": "market.btcusdt.kline.1min",
@@ -459,7 +459,7 @@ class htx extends \ccxt\async\htx {
         $symbol = $market['symbol'];
         $interval = $this->safe_string($parts, 3);
         $timeframe = $this->find_timeframe($interval);
-        $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
+        $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
         $stored = $this->safe_value($this->safe_value($this->ohlcvs, $symbol), $timeframe);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
@@ -561,7 +561,7 @@ class htx extends \ccxt\async\htx {
         return Async\await($this->unsubscribe_public($market, $subMessageHash, $topic, $params));
     }
 
-    public function handle_order_book_snapshot(Client $client, mixed $message, mixed $subscription) {
+    public function handle_order_book_snapshot(Client $client, array $message, array $subscription) {
         //
         //     {
         //         "id": 1583473663565,
@@ -592,11 +592,11 @@ class htx extends \ccxt\async\htx {
         $lastTimestamp = $this->safe_integer($subscription, 'lastTimestamp');
         try {
             $orderbook = $this->safe_value($this->orderbooks, $symbol);
-            $data = $this->safe_value($message, 'data');
+            $data = $this->safe_dict($message, 'data');
             $messages = $orderbook->cache;
-            $firstMessage = $this->safe_value($messages, 0, array());
+            $firstMessage = $this->safe_dict($messages, 0, array());
             $snapshot = $this->parse_order_book($data, $symbol);
-            $tick = $this->safe_value($firstMessage, 'tick');
+            $tick = $this->safe_dict($firstMessage, 'tick');
             $sequence = $this->safe_integer($tick, 'prevSeqNum');
             $nonce = $this->safe_integer($data, 'seqNum');
             if ($nonce === null) {
@@ -651,11 +651,11 @@ class htx extends \ccxt\async\htx {
         }
     }
 
-    public function watch_order_book_snapshot(mixed $client, mixed $message, mixed $subscription) {
+    public function watch_order_book_snapshot(Client $client, array $message, array $subscription) {
         return Async\async(self::do_watch_order_book_snapshot(...))($client, $message, $subscription);
     }
 
-    private function do_watch_order_book_snapshot(mixed $client, mixed $message, mixed $subscription) {
+    private function do_watch_order_book_snapshot(Client $client, array $message, array $subscription) {
         $messageHash = $this->safe_string($subscription, 'messageHash');
         $symbol = $this->safe_string($subscription, 'symbol');
         $limit = $this->safe_integer($subscription, 'limit');
@@ -705,7 +705,7 @@ class htx extends \ccxt\async\htx {
         }
     }
 
-    public function handle_order_book_message(Client $client, mixed $message) {
+    public function handle_order_book_message(Client $client, array $message) {
         // spot markets
         //
         //     {
@@ -778,7 +778,7 @@ class htx extends \ccxt\async\htx {
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $orderbook = $this->orderbooks[$symbol];
-        $tick = $this->safe_value($message, 'tick', array());
+        $tick = $this->safe_dict($message, 'tick', array());
         $seqNum = $this->safe_integer($tick, 'seqNum');
         $prevSeqNum = $this->safe_integer($tick, 'prevSeqNum');
         $event = $this->safe_string($tick, 'event');
@@ -798,8 +798,8 @@ class htx extends \ccxt\async\htx {
         $spotConditon = ($market['spot'] === true) && ($prevSeqNum === $orderbook['nonce']);
         $nonSpotCondition = ($market['contract'] === true) && ($version !== null) && ($version - 1 === $orderbook['nonce']);
         if (($spotConditon === true) || ($nonSpotCondition === true)) {
-            $asks = $this->safe_value($tick, 'asks', array());
-            $bids = $this->safe_value($tick, 'bids', array());
+            $asks = $this->safe_list($tick, 'asks', array());
+            $bids = $this->safe_list($tick, 'bids', array());
             $this->handle_deltas($orderbook['asks'], $asks);
             $this->handle_deltas($orderbook['bids'], $bids);
             $orderbook['nonce'] = ($spotConditon === true) ? $seqNum : $version;
@@ -808,7 +808,7 @@ class htx extends \ccxt\async\htx {
         }
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         // deltas
         //
@@ -882,7 +882,7 @@ class htx extends \ccxt\async\htx {
         }
     }
 
-    public function handle_order_book_subscription(Client $client, mixed $message, mixed $subscription) {
+    public function handle_order_book_subscription(Client $client, array $message, array $subscription) {
         $symbol = $this->safe_string($subscription, 'symbol');
         $market = $this->market($symbol);
         $limit = $this->safe_integer($subscription, 'limit');
@@ -952,7 +952,7 @@ class htx extends \ccxt\async\htx {
             $channelAndMessageHashAndParams = $this->get_v5_linear_channel_and_message_hash('trade', $market, $params);
             $channel = $this->safe_string($channelAndMessageHashAndParams, 0);
             $messageHash = $this->safe_string($channelAndMessageHashAndParams, 1);
-            $params = $this->safe_value($channelAndMessageHashAndParams, 2, array());
+            $params = $this->safe_dict($channelAndMessageHashAndParams, 2, array());
         } else {
             $channelAndMessageHash = $this->get_order_channel_and_message_hash($type, $subType, $market, $params);
             $channel = $this->safe_string($channelAndMessageHash, 0);
@@ -974,7 +974,7 @@ class htx extends \ccxt\async\htx {
         return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
     }
 
-    public function get_order_channel_and_message_hash(mixed $type, mixed $subType, ?array $market = null, $params = array()) {
+    public function get_order_channel_and_message_hash(?string $type, ?string $subType, ?array $market = null, $params = array()): array {
         $messageHash = null;
         $channel = null;
         $orderType = $this->safe_string($this->options, 'orderType', 'orders'); // orders or matchOrders
@@ -1018,7 +1018,7 @@ class htx extends \ccxt\async\htx {
         return array( $channel, $messageHash );
     }
 
-    public function get_v5_linear_channel_and_message_hash(mixed $topic, ?array $market = null, $params = array()) {
+    public function get_v5_linear_channel_and_message_hash(?string $topic, ?array $market = null, $params = array()) {
         $contractCode = ($market !== null) ? $market['id'] : $this->safe_string($params, 'contract_code', '*');
         $channel = $topic;
         $messageHash = $topic;
@@ -1082,7 +1082,7 @@ class htx extends \ccxt\async\htx {
             $channelAndMessageHashAndParams = $this->get_v5_linear_channel_and_message_hash('orders', $market, $params);
             $channel = $this->safe_string($channelAndMessageHashAndParams, 0);
             $messageHash = $this->safe_string($channelAndMessageHashAndParams, 1);
-            $params = $this->safe_value($channelAndMessageHashAndParams, 2, array());
+            $params = $this->safe_dict($channelAndMessageHashAndParams, 2, array());
         } else {
             $channelAndMessageHash = $this->get_order_channel_and_message_hash($type, $subType, $market, $params);
             $channel = $this->safe_string($channelAndMessageHash, 0);
@@ -1098,7 +1098,7 @@ class htx extends \ccxt\async\htx {
         return $this->filter_by_since_limit($orders, $since, $limit, 'timestamp', true);
     }
 
-    public function handle_order(Client $client, mixed $message) {
+    public function handle_order(Client $client, array $message) {
         //
         // spot
         //
@@ -1269,7 +1269,7 @@ class htx extends \ccxt\async\htx {
         //     }
         //
         $messageHash = $this->safe_string_2($message, 'ch', 'topic');
-        $data = $this->safe_value($message, 'data');
+        $data = $this->safe_dict($message, 'data');
         $marketId = $this->safe_string($message, 'contract_code');
         if ($marketId === null) {
             $marketId = $this->safe_string_2($data, 'contract_code', 'symbol');
@@ -1350,7 +1350,7 @@ class htx extends \ccxt\async\htx {
         $client->resolve($this->orders, $genericMessageHash);
     }
 
-    public function parse_ws_order(mixed $order, ?array $market = null) {
+    public function parse_ws_order(array $order, ?array $market = null): array {
         //
         // spot
         //
@@ -1576,7 +1576,7 @@ class htx extends \ccxt\async\htx {
         ), $market);
     }
 
-    public function parse_order_trade(mixed $trade, ?array $market = null) {
+    public function parse_order_trade(array $trade, ?array $market = null): array {
         // spot private wrapped trade
         //
         //     {
@@ -1612,7 +1612,7 @@ class htx extends \ccxt\async\htx {
             $side = $typeParts[0];
             $type = $typeParts[1];
         }
-        $aggressor = $this->safe_value($trade, 'aggressor');
+        $aggressor = $this->safe_bool($trade, 'aggressor');
         $takerOrMaker = null;
         if ($aggressor !== null) {
             $takerOrMaker = ($aggressor === true) ? 'taker' : 'maker';
@@ -1691,7 +1691,7 @@ class htx extends \ccxt\async\htx {
             }
             $channelAndMessageHashAndParams = $this->get_v5_linear_channel_and_message_hash('positions', $v5Market, $params);
             $channel = $this->safe_string($channelAndMessageHashAndParams, 0);
-            $params = $this->safe_value($channelAndMessageHashAndParams, 2, array());
+            $params = $this->safe_dict($channelAndMessageHashAndParams, 2, array());
         }
         $subscriptionParams = array(
             'isV5' => $isV5Linear,
@@ -1704,7 +1704,7 @@ class htx extends \ccxt\async\htx {
         return $this->filter_by_symbols_since_limit($this->safe_value($this->safe_value($this->positions, $url), $marginMode), $symbols, $since, $limit, false);
     }
 
-    public function handle_positions(mixed $client, mixed $message) {
+    public function handle_positions(Client $client, array $message) {
         //
         //    {
         //        op: 'notify',
@@ -1790,7 +1790,7 @@ class htx extends \ccxt\async\htx {
         if ($this->positions === null) {
             $this->positions = array();
         }
-        $clientPositions = $this->safe_value($this->positions, $url);
+        $clientPositions = $this->safe_dict($this->positions, $url);
         if ($clientPositions === null) {
             $this->positions[$url] = array();
         }
@@ -1823,14 +1823,14 @@ class htx extends \ccxt\async\htx {
                 $this->positions[$url][$marginMode] = $cache;
             }
             $newPositions[] = $position;
-            $positionsByMarginMode[$marginMode] = $this->safe_value($positionsByMarginMode, $marginMode, array());
+            $positionsByMarginMode[$marginMode] = $this->safe_list($positionsByMarginMode, $marginMode, array());
             $positionsByMarginMode[$marginMode][] = $position;
             $cache->append($position);
         }
         $marginModes = is_array($positionsByMarginMode) ? array_keys($positionsByMarginMode) : array();
         for ($i = 0; $i < count($marginModes); $i++) {
             $marginMode = $marginModes[$i];
-            $marginModePositions = $this->safe_value($positionsByMarginMode, $marginMode, array());
+            $marginModePositions = $this->safe_list($positionsByMarginMode, $marginMode, array());
             $messageHashes = $this->find_message_hashes($client, $marginMode . ':$positions::');
             for ($j = 0; $j < count($messageHashes); $j++) {
                 $messageHash = $messageHashes[$j];
@@ -1865,7 +1865,7 @@ class htx extends \ccxt\async\htx {
         list($type, $params) = $this->handle_market_type_and_params('watchBalance', null, $params);
         $subType = null;
         list($subType, $params) = $this->handle_sub_type_and_params('watchBalance', null, $params, 'linear');
-        $isUnifiedAccount = $this->safe_value_2($params, 'isUnifiedAccount', 'unified', false);
+        $isUnifiedAccount = $this->safe_bool_2($params, 'isUnifiedAccount', 'unified', false);
         $params = $this->omit($params, array( 'isUnifiedAccount', 'unified' ));
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1959,7 +1959,7 @@ class htx extends \ccxt\async\htx {
         return Async\await($this->subscribe_private($channel, $messageHash, $type, $subType, $params, $subscriptionParams));
     }
 
-    public function handle_balance(Client $client, mixed $message) {
+    public function handle_balance(Client $client, array $message) {
         // spot
         //
         //     {
@@ -2122,10 +2122,10 @@ class htx extends \ccxt\async\htx {
             if ($dataLength === 0) {
                 return;
             }
-            $first = $this->safe_value($data, 0, array());
+            $first = $this->safe_dict($data, 0, array());
             $splitTopic = explode('.', $topic);
             $messageHash = $this->safe_string($splitTopic, 0);
-            $subscription = $this->safe_value_2($client->subscriptions, $messageHash, $messageHash . '.*');
+            $subscription = $this->safe_dict_2($client->subscriptions, $messageHash, $messageHash . '.*');
             if ($subscription === null) {
                 // if subscription not found means that we subscribed to a specific currency/symbol
                 // and we use the first data entry to find it
@@ -2137,7 +2137,7 @@ class htx extends \ccxt\async\htx {
                     return;
                 }
                 $messageHash .= '.' . strtolower($currencyId);
-                $subscription = $this->safe_value($client->subscriptions, $messageHash);
+                $subscription = $this->safe_dict($client->subscriptions, $messageHash);
             }
             $subType = $this->safe_string($subscription, 'subType');
             if ($topic === 'accounts_unify') {
@@ -2213,7 +2213,7 @@ class htx extends \ccxt\async\htx {
         }
     }
 
-    public function handle_subscription_status(Client $client, mixed $message) {
+    public function handle_subscription_status(Client $client, array $message) {
         //
         //     {
         //         "id": 1583414227,
@@ -2265,7 +2265,7 @@ class htx extends \ccxt\async\htx {
         $this->clean_cache($subscription);
     }
 
-    public function handle_system_status(Client $client, mixed $message) {
+    public function handle_system_status(Client $client, array $message): array {
         //
         // todo: answer the question whether handleSystemStatus should be renamed
         // and unified as handleStatus for any usage pattern that
@@ -2279,7 +2279,7 @@ class htx extends \ccxt\async\htx {
         return $message;
     }
 
-    public function handle_subject(Client $client, mixed $message) {
+    public function handle_subject(Client $client, array $message) {
         // spot
         //     {
         //         "ch": "market.btcusdt.mbp.150",
@@ -2358,7 +2358,7 @@ class htx extends \ccxt\async\htx {
         //         // ?
         //     }
         //
-        $ch = $this->safe_value($message, 'ch', '');
+        $ch = $this->safe_string($message, 'ch', '');
         $parts = explode('.', $ch);
         $type = $this->safe_string($parts, 0);
         if ($type === 'market') {
@@ -2412,11 +2412,11 @@ class htx extends \ccxt\async\htx {
         }
     }
 
-    public function pong(Client $client, mixed $message) {
+    public function pong(Client $client, array $message) {
         return Async\async(self::do_pong(...))($client, $message);
     }
 
-    private function do_pong(Client $client, mixed $message) {
+    private function do_pong(Client $client, array $message) {
         //
         //     { ping: 1583491673714 }
         //     { action: "ping", data: { ts: 1645108204665 } }
@@ -2430,7 +2430,7 @@ class htx extends \ccxt\async\htx {
             }
             $action = $this->safe_string($message, 'action');
             if ($action === 'ping') {
-                $data = $this->safe_value($message, 'data');
+                $data = $this->safe_dict($message, 'data');
                 $pingTs = $this->safe_integer($data, 'ts');
                 Async\await($client->send(array( 'action' => 'pong', 'data' => array( 'ts' => $pingTs ))));
                 return;
@@ -2446,11 +2446,11 @@ class htx extends \ccxt\async\htx {
         }
     }
 
-    public function handle_ping(Client $client, mixed $message) {
+    public function handle_ping(Client $client, array $message) {
         $this->spawn(array($this, 'pong'), $client, $message);
     }
 
-    public function handle_authenticate(Client $client, mixed $message) {
+    public function handle_authenticate(Client $client, array $message) {
         //
         // spot
         //
@@ -2475,7 +2475,7 @@ class htx extends \ccxt\async\htx {
         $promise->resolve($message);
     }
 
-    public function handle_error_message(Client $client, mixed $message): ?bool {
+    public function handle_error_message(Client $client, array $message): ?bool {
         //
         //     {
         //         "action": "sub",
@@ -2514,7 +2514,7 @@ class htx extends \ccxt\async\htx {
                 return false;
             }
             $subscriptionsById = $this->index_by($client->subscriptions, 'id');
-            $subscription = $this->safe_value($subscriptionsById, $id);
+            $subscription = $this->safe_dict($subscriptionsById, $id);
             if ($subscription !== null) {
                 $errorCode = $this->safe_string($message, 'err-code');
                 try {
@@ -2562,7 +2562,7 @@ class htx extends \ccxt\async\htx {
         return true;
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         if ($this->handle_error_message($client, $message) === true) {
             //
             //     {"id":1583414227,"status":"ok","subbed":"market.btcusdt.mbp.150","ts":1583414229143}
@@ -2658,7 +2658,7 @@ class htx extends \ccxt\async\htx {
         }
     }
 
-    public function handle_my_trade(Client $client, mixed $message, $extendParams = array()) {
+    public function handle_my_trade(Client $client, array $message, array $extendParams = array()) {
         //
         // spot
         //
@@ -2773,7 +2773,7 @@ class htx extends \ccxt\async\htx {
                 // this trades object is artificially created
                 // in handleOrder
                 $rawTrades = $this->safe_list($message, 'trades', array());
-                $marketId = $this->safe_value($message, 'symbol');
+                $marketId = $this->safe_string($message, 'symbol');
                 $market = $this->market($marketId);
                 for ($i = 0; $i < count($rawTrades); $i++) {
                     $trade = $rawTrades[$i];
@@ -2800,7 +2800,7 @@ class htx extends \ccxt\async\htx {
         }
     }
 
-    public function parse_ws_trade(mixed $trade, ?array $market = null) {
+    public function parse_ws_trade(array $trade, ?array $market = null): array {
         // spot private
         //
         //     {
@@ -2854,7 +2854,7 @@ class htx extends \ccxt\async\htx {
         $order = $this->safe_string_2($trade, 'orderId', 'order_id');
         $timestamp = $this->safe_integer_n($trade, array( 'tradeTime', 'updated_time', 'created_time' ));
         $orderType = $this->safe_string_2($trade, 'orderType', 'type');
-        $aggressor = $this->safe_value($trade, 'aggressor');
+        $aggressor = $this->safe_bool($trade, 'aggressor');
         $takerOrMaker = null;
         if ($aggressor !== null) {
             $takerOrMaker = ($aggressor === true) ? 'taker' : 'maker';
@@ -2892,7 +2892,7 @@ class htx extends \ccxt\async\htx {
         ), $market);
     }
 
-    public function get_url_by_market_type(mixed $type, $isLinear = true, $isPrivate = false, $isFeed = false, $isV5 = false) {
+    public function get_url_by_market_type(mixed $type, $isLinear = true, $isPrivate = false, $isFeed = false, $isV5 = false): ?string {
         $api = $this->safe_string($this->options, 'api', 'api');
         $hostname = array( 'hostname' => $this->hostname );
         $hostnameURL = null;
@@ -2924,11 +2924,11 @@ class htx extends \ccxt\async\htx {
         return $url;
     }
 
-    public function subscribe_public(mixed $url, mixed $symbol, mixed $messageHash, mixed $method = null, $params = array()) {
+    public function subscribe_public(?string $url, ?string $symbol, ?string $messageHash, mixed $method = null, $params = array()) {
         return Async\async(self::do_subscribe_public(...))($url, $symbol, $messageHash, $method, $params);
     }
 
-    private function do_subscribe_public(mixed $url, mixed $symbol, mixed $messageHash, mixed $method = null, $params = array()) {
+    private function do_subscribe_public(?string $url, ?string $symbol, ?string $messageHash, mixed $method = null, $params = array()) {
         $requestId = $this->request_id();
         $request = array(
             'sub' => $messageHash,
@@ -2978,11 +2978,11 @@ class htx extends \ccxt\async\htx {
         return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash, $subscription));
     }
 
-    public function subscribe_private(mixed $channel, mixed $messageHash, mixed $type, mixed $subtype, $params = array(), $subscriptionParams = array()) {
+    public function subscribe_private(?string $channel, ?string $messageHash, ?string $type, ?string $subtype, $params = array(), array $subscriptionParams = array()) {
         return Async\async(self::do_subscribe_private(...))($channel, $messageHash, $type, $subtype, $params, $subscriptionParams);
     }
 
-    private function do_subscribe_private(mixed $channel, mixed $messageHash, mixed $type, mixed $subtype, $params = array(), $subscriptionParams = array()) {
+    private function do_subscribe_private(?string $channel, ?string $messageHash, ?string $type, ?string $subtype, $params = array(), array $subscriptionParams = array()) {
         $requestId = $this->request_id();
         $subscription = array(
             'id' => $requestId,

@@ -4,7 +4,7 @@ name: Release workflow
 env:
   CARGO_PROFILE_DEV_DEBUG: "0"
   CARGO_PROFILE_TEST_DEBUG: "0"
-  CARGO_BUILD_JOBS: "2"
+  CARGO_BUILD_JOBS: "1"
 
 on:
   workflow_dispatch:
@@ -21,7 +21,7 @@ permissions:
 
 jobs:
   manual-job:
-    runs-on: [ self-hosted, linux, x64, php ]
+    runs-on: ubuntu-latest
     environment: Prod
     if: github.ref == 'refs/heads/master' && contains(fromJSON('["kroitor", "frosty00", "carlosmiei"]'), github.actor)
 
@@ -44,50 +44,31 @@ jobs:
           fetch-depth: 2
           clean: false
           fetch-tags: true
-      # - name: Setup PHP with PECL extension
-      #   uses: shivammathur/setup-php@v2
-      #   with:
-      #     php-version: '8.5'
-      #     # cache: true
-      #     ini-values: |
-      #       zend.assertions=1
-      #       display_errors=On
+      - name: Setup PHP with PECL extension
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          # cache: true
+          ini-values: |
+            zend.assertions=1
+            display_errors=On
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
           cache: 'pip'
+      - name: create usr/share/dotnet folder
+        run: |
+          sudo mkdir -p /usr/share/dotnet
       - uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: '10.0.302'
+          dotnet-version: '10.0.x'
+          run: |
+            sudo mkdir -p /usr/share/dotnet
       - name: Set up JDK
         uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '21'   # or '20' – but match what :lib is targeting
-      - name: Set up Go
-        uses: actions/setup-go@v6
-        with:
-          go-version: '1.25.x'
-          cache-dependency-path: go/go.sum
-      - name: Install Rust toolchain
-        run: |
-          if command -v cargo >/dev/null 2>&1; then
-            cargo --version
-            exit 0
-          fi
-          # self-hosted runners may export RUSTUP_HOME/CARGO_HOME pointing at a root-owned
-          # directory (e.g. /opt/rustup), which rustup-init cannot create without sudo
-          writable_dir() { mkdir -p "$1" 2>/dev/null && [ -w "$1" ]; }
-          writable_dir "${RUSTUP_HOME:-$HOME/.rustup}" || RUSTUP_HOME="$HOME/.rustup"
-          writable_dir "${CARGO_HOME:-$HOME/.cargo}" || CARGO_HOME="$HOME/.cargo"
-          export RUSTUP_HOME="${RUSTUP_HOME:-$HOME/.rustup}" CARGO_HOME="${CARGO_HOME:-$HOME/.cargo}"
-          if ! "$CARGO_HOME/bin/cargo" --version >/dev/null 2>&1; then
-            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path --default-toolchain stable --profile minimal
-          fi
-          echo "RUSTUP_HOME=$RUSTUP_HOME" >> "$GITHUB_ENV"
-          echo "CARGO_HOME=$CARGO_HOME" >> "$GITHUB_ENV"
-          echo "$CARGO_HOME/bin" >> "$GITHUB_PATH"
-          "$CARGO_HOME/bin/cargo" --version
       - name: Install NPM dependencies
         run: npm ci
       - name: Composer install
@@ -114,6 +95,12 @@ jobs:
         run: npm run force-transpileJava
       - name: Build Java
         run: npm run buildJava
+      - name: Install Rust toolchain
+        run: |
+          if ! command -v cargo >/dev/null 2>&1 && [ ! -x "$HOME/.cargo/bin/cargo" ]; then
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --profile minimal
+          fi
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
       - name: Transpile Rust
         run: npm run transpileRust
       - name: Build Rust
@@ -158,8 +145,8 @@ jobs:
           git add -f exchanges.json
       - name: Git status
         run: git status
-      # - name: cleanup old tags
-      #   run: npm run cleanup-old-tags --limit
+      - name: cleanup old tags
+        run: npm run cleanup-old-tags --limit
       - name: Get App bot user ID
         if: github.ref == 'refs/heads/master'
         id: app-user
@@ -239,7 +226,7 @@ jobs:
       - name: Publish Rust crates
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-          CARGO_BUILD_JOBS: "2"
+          CARGO_BUILD_JOBS: "1"
         run: |
           set -e
           # The transpiled Rust output is committed by the release commit above,

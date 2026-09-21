@@ -2052,7 +2052,7 @@ class woo extends woo$1["default"] {
             //     }
             //
         }
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const orders = this.safeList(data, 'rows', []);
         return this.parseOrders(orders, market, since, limit);
     }
@@ -2216,7 +2216,7 @@ class woo extends woo$1["default"] {
         const amount = this.safeString(order, 'quantity'); // This is base amount
         const cost = this.safeString(order, 'amount'); // This is quote amount
         const orderType = this.safeStringLower(order, 'type');
-        const status = this.safeValue2(order, 'status', 'algoStatus');
+        const status = this.safeString2(order, 'status', 'algoStatus');
         const side = this.safeStringLower(order, 'side');
         const filled = this.safeString2(order, 'executed', 'totalExecutedQuantity');
         const average = this.omitZero(this.safeString(order, 'averageExecutedPrice'));
@@ -4738,7 +4738,7 @@ class woo extends woo$1["default"] {
             }
         }
         // if it was not returned according to above options, then return the first network of currency
-        return this.safeValue(networkKeys, 0);
+        return this.safeString(networkKeys, 0);
     }
     setSandboxMode(enable) {
         super.setSandboxMode(enable);

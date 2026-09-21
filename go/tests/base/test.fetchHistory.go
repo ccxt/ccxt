@@ -18,6 +18,7 @@ func testFetchHistoryBaseBody(ch chan any) any {
 	exchange.InitParent(map[string]any{
 		"id":                    "sampleexchange",
 		"fetchHistoryCacheSize": 2,
+		"enableRateLimit":       false,
 	}, map[string]any{}, exchange)
 	assert(ccxt.IsEqual(ExchangeProp(exchange, "fetchHistoryCacheSize"), 2), "fetchHistoryCacheSize should be 2")
 	var trueAssertion bool = ccxt.IsEqual(exchange.ParseNumber(nil), nil)
@@ -93,7 +94,7 @@ func testFetchHistoryBaseBody(ch chan any) any {
 
 	}
 	assert((ccxt.GetArrayLength((exchange.GetFetchCache())) == 2), "fetchHistoryCache should be an array with 2 elements")
-	assert(ccxt.IsLessThan(ccxt.Add(1, 1), 3), "sample assertion")
+	assert(ccxt.IsLessThan(1+1, 3), "sample assertion")
 	return nil
 }
 
@@ -127,7 +128,7 @@ func testFetchHistoryBody(ch chan any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 
-	retRes604 := (<-TestFetchHistoryBaseAsync())
-	ccxt.PanicOnError(retRes604)
+	retRes584 := (<-TestFetchHistoryBaseAsync())
+	ccxt.PanicOnError(retRes584)
 	return nil
 }

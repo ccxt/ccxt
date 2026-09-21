@@ -12,7 +12,7 @@ public partial class testMainClass : BaseTest
     {
         string method = "watchPositions";
         Int64 now = exchange.milliseconds();
-        Int64 ends = add(now, 15000);
+        object ends = (now + 15000);
         while (isLessThan(now, ends))
         {
             object response = null;
@@ -22,7 +22,7 @@ public partial class testMainClass : BaseTest
                 response = detypeForComparison(await exchange.WatchPositions(new List<object>() {symbol}));
                 if ((response == null))
                 {
-                    throw new Exception (add(exchange.id, " watch returned undefined response")) ;
+                    throw new Exception ((string)add(exchange.id, " watch returned undefined response")) ;
                 }
             } catch(Exception e)
             {
@@ -38,11 +38,11 @@ public partial class testMainClass : BaseTest
             {
                 if ((response == null))
                 {
-                    throw new Exception (add(exchange.id, " watch returned undefined response")) ;
+                    throw new Exception ((string)add(exchange.id, " watch returned undefined response")) ;
                 }
                 testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, response, symbol);
                 now = exchange.milliseconds();
-                for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+                for (int i = 0; i < getArrayLength(response); i++)
                 {
                     testPosition(exchange, skippedProperties, method, getValue(response, i), null, now);
                 }
@@ -72,7 +72,7 @@ public partial class testMainClass : BaseTest
                 // max theoretical 4 positions: two for one-way-mode and two for two-way mode
                 assert(getArrayLength(positionsForSymbols) <= 4, add(add(add(add(exchange.id, " "), method), " positions length for particular symbol should be less than 4, returned "), exchange.json(positionsForSymbols)));
                 now = exchange.milliseconds();
-                for (int i = 0; isLessThan(i, getArrayLength(positionsForSymbols)); postFixIncrement(ref i))
+                for (int i = 0; i < getArrayLength(positionsForSymbols); i++)
                 {
                     testPosition(exchange, skippedProperties, method, getValue(positionsForSymbols, i), symbol, now);
                 }

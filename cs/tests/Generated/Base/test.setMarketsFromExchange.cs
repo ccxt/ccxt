@@ -64,7 +64,7 @@ public partial class BaseTest
             exchange2.setMarketsFromExchange(exchange1);
             // Verify shared markets work
             List<object> neededProps = new List<object>() {"symbols", "currencies", "codes", "markets", "ids", "markets_by_id", "currencies_by_id", "baseCurrencies", "quoteCurrencies"};
-            for (int i = 0; isLessThan(i, (neededProps?.Count ?? 0)); postFixIncrement(ref i))
+            for (int i = 0; i < (neededProps?.Count ?? 0); i++)
             {
                 AssertDeepEqual(emptyExchange, new Dictionary<string, object>() {}, methodName, emptyExchange.getProperty(exchange1, neededProps[i]), emptyExchange.getProperty(exchange2, neededProps[i]));
             }
@@ -76,8 +76,8 @@ public partial class BaseTest
             await exchange2.loadMarkets();
             Int64 endTime = emptyExchange.milliseconds();
             // Should be very fast since no API call is made
-            Int64 timeTaken = subtract(endTime, startTime);
-            Assert(isLessThan(timeTaken, 10), "loadMarkets on shared markets should be fast");
+            Int64 timeTaken = (endTime - startTime);
+            Assert(timeTaken < 10, "loadMarkets on shared markets should be fast");
             // @SKIP_END_GO
             emptyExchange.describe(); // avoid unused var
         }

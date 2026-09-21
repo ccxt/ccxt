@@ -59,7 +59,7 @@ class coinbase(ccxt.async_support.coinbase):
             },
         })
 
-    async def subscribe(self, name: str, isPrivate: bool, symbol: Str | Strings = None, params={}):
+    async def subscribe(self, name: str, isPrivate: bool, symbol: Str | Strings = None, params: dict = {}):
         """
  @ignore
         subscribes to a websocket channel
@@ -160,7 +160,7 @@ class coinbase(ccxt.async_support.coinbase):
         self.options['unSubscription'] = None
         return res
 
-    async def subscribe_multiple(self, name: str, isPrivate: bool, symbols: Strings = None, params={}):
+    async def subscribe_multiple(self, name: str, isPrivate: bool, symbols: Strings = None, params: dict = {}):
         """
  @ignore
         subscribes to a websocket channel
@@ -194,7 +194,7 @@ class coinbase(ccxt.async_support.coinbase):
             subscribe = self.extend(subscribe, self.create_ws_auth(name, productIds))
         return await self.watch_multiple(url, messageHashes, subscribe, messageHashes)
 
-    async def un_subscribe_multiple(self, topic: str, name: str, isPrivate: bool, symbols: Strings = None, params={}):
+    async def un_subscribe_multiple(self, topic: str, name: str, isPrivate: bool, symbols: Strings = None, params: dict = {}):
         """
  @ignore
         unsubscribes to a websocket channel
@@ -269,7 +269,7 @@ class coinbase(ccxt.async_support.coinbase):
             subscribe['jwt'] = self.safe_string(self.options, 'wsToken')
         return subscribe
 
-    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def watch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -284,7 +284,7 @@ class coinbase(ccxt.async_support.coinbase):
         name = 'ticker'
         return await self.subscribe(name, False, symbol, params)
 
-    async def un_watch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def un_watch_ticker(self, symbol: str, params: dict = {}):
         """
         stops watching a price ticker
 
@@ -299,7 +299,7 @@ class coinbase(ccxt.async_support.coinbase):
         name = 'ticker'
         return await self.un_subscribe('ticker', name, False, symbol)
 
-    async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    async def watch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -338,7 +338,7 @@ class coinbase(ccxt.async_support.coinbase):
             symbols = self.symbols
         return await self.un_subscribe_multiple('ticker', 'ticker_batch', False, symbols)
 
-    def handle_tickers(self, client: Client, message: object):
+    def handle_tickers(self, client: Client, message: dict):
         #
         #    {
         #        "channel": "ticker",
@@ -497,7 +497,7 @@ class coinbase(ccxt.async_support.coinbase):
             'quoteVolume': None,
         })
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -533,7 +533,7 @@ class coinbase(ccxt.async_support.coinbase):
         name = 'market_trades'
         return await self.un_subscribe('trades', name, False, symbol)
 
-    async def watch_trades_for_symbols(self, symbols: list[str], since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def watch_trades_for_symbols(self, symbols: list[str], since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -570,7 +570,7 @@ class coinbase(ccxt.async_support.coinbase):
         name = 'market_trades'
         return await self.un_subscribe_multiple('trades', name, False, symbols, params)
 
-    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         watches information on multiple orders made by the user
 
@@ -605,7 +605,7 @@ class coinbase(ccxt.async_support.coinbase):
         name = 'user'
         return await self.un_subscribe('orders', name, True, self.symbol(symbol))
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -640,7 +640,7 @@ class coinbase(ccxt.async_support.coinbase):
         name = 'level2'
         return await self.un_subscribe('orderbook', name, False, symbol)
 
-    async def watch_order_book_for_symbols(self, symbols: list[str], limit: Int = None, params={}) -> OrderBook:
+    async def watch_order_book_for_symbols(self, symbols: list[str], limit: Int = None, params: dict = {}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -657,7 +657,7 @@ class coinbase(ccxt.async_support.coinbase):
         orderbook = await self.subscribe_multiple(name, False, symbols, params)
         return orderbook.limit()
 
-    def handle_trade(self, client: object, message: object):
+    def handle_trade(self, client: object, message: dict):
         #
         #    {
         #        "channel": "market_trades",
@@ -684,7 +684,7 @@ class coinbase(ccxt.async_support.coinbase):
         events = self.safe_list(message, 'events')
         if events is None:
             return
-        event = self.safe_value(events, 0)
+        event = self.safe_dict(events, 0)
         trades = self.safe_list(event, 'trades')
         trade = self.safe_dict(trades, 0)
         marketId = self.safe_string(trade, 'product_id')
@@ -708,7 +708,7 @@ class coinbase(ccxt.async_support.coinbase):
         client.resolve(tradesArray, messageHash)
         self.try_resolve_usdc(client, messageHash, tradesArray)
 
-    def handle_order(self, client: object, message: object):
+    def handle_order(self, client: object, message: dict):
         #
         #    {
         #        "channel": "user",
@@ -766,7 +766,7 @@ class coinbase(ccxt.async_support.coinbase):
             self.try_resolve_usdc(client, messageHash, self.orders)
         client.resolve(self.orders, 'user')
 
-    def parse_ws_order(self, order: object, market: Market = None):
+    def parse_ws_order(self, order: dict, market: Market = None) -> Order:
         #
         #    {
         #        "order_id": "XXX",
@@ -826,7 +826,7 @@ class coinbase(ccxt.async_support.coinbase):
             orderbookSide = self.safe_value(orderbook, side)
             orderbookSide.store(price, amount)
 
-    def handle_order_book(self, client: object, message: object):
+    def handle_order_book(self, client: object, message: dict):
         #
         #    {
         #        "channel": "l2_data",
@@ -867,7 +867,7 @@ class coinbase(ccxt.async_support.coinbase):
             market = self.safe_market(marketId)
             symbol = market['symbol']
             messageHash = 'level2::' + symbol
-            subscription = self.safe_value(client.subscriptions, messageHash, {})
+            subscription = self.safe_dict(client.subscriptions, messageHash, {})
             limit = self.safe_integer(subscription, 'limit')
             type = self.safe_string(event, 'type')
             if type == 'snapshot':
@@ -887,7 +887,7 @@ class coinbase(ccxt.async_support.coinbase):
         if messageHash.endswith('/USD') or messageHash.endswith('-USD'):
             client.resolve(result, messageHash + 'C')  # when subscribing to BTC/USDC and coinbase returns BTC/USD, so resolve USDC too
 
-    def handle_subscription_status(self, client: Client, message: object):
+    def handle_subscription_status(self, client: Client, message: dict) -> dict:
         #
         #     {
         #         "type": "subscriptions",
@@ -924,7 +924,7 @@ class coinbase(ccxt.async_support.coinbase):
             self.clean_cache(unSubObject)
         return message
 
-    def handle_heartbeats(self, client: Client, message: object):
+    def handle_heartbeats(self, client: Client, message: dict) -> dict:
         # although the subscription takes a product_ids parameter (i.e. symbol),
         # there is no (clear) way of mapping the message back to the symbol.
         #
@@ -943,7 +943,7 @@ class coinbase(ccxt.async_support.coinbase):
         #
         return message
 
-    def handle_message(self, client: object, message: object):
+    def handle_message(self, client: Client, message: dict):
         channel = self.safe_string(message, 'channel')
         methods = {
             'subscriptions': self.handle_subscription_status,

@@ -480,7 +480,7 @@ class zebpay extends Exchange {
         }
         $market = $this->market($symbol);
         $response = null;
-        $data;
+        $data = null;
         $request = array(
             'symbol' => $market['id'],
         );
@@ -865,7 +865,7 @@ class zebpay extends Exchange {
         return $this->parse_trades($items, $market, $since, $limit);
     }
 
-    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all the $trades made from a single order
          *
@@ -1014,7 +1014,7 @@ class zebpay extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * Create an order on the exchange
          *
@@ -1091,7 +1091,7 @@ class zebpay extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function order_request(mixed $symbol, mixed $type, mixed $amount, mixed $request, ?float $price = null, $params = array()) {
+    public function order_request(string $symbol, string $type, ?float $amount, array $request, ?float $price = null, $params = array()) {
         $upperCaseType = strtoupper($type);
         $triggerPrice = $this->safe_string($params, 'stopLossPrice');
         $quoteOrderQty = $this->safe_string_2($params, 'quoteOrderQty', 'cost', null);
@@ -1116,7 +1116,7 @@ class zebpay extends Exchange {
         return array( $request, $params );
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * cancels an open order
          *
@@ -1158,7 +1158,7 @@ class zebpay extends Exchange {
         return $this->parse_order($this->safe_dict($response, 'data', array()));
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): array {
         /**
          * cancels all open orders
          *
@@ -1260,7 +1260,7 @@ class zebpay extends Exchange {
         return $this->parse_orders($orders, $market, null, $limit);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetches information on an order made by the user
          *
@@ -1485,7 +1485,7 @@ class zebpay extends Exchange {
         return $response;
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array()) {
+    public function fetch_positions(?array $symbols = null, $params = array()): array {
         /**
          *
          * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#--get-$positions
@@ -1900,7 +1900,7 @@ class zebpay extends Exchange {
         ), $market);
     }
 
-    public function parse_margin_modification(mixed $info, ?array $market = null): array {
+    public function parse_margin_modification(array $info, ?array $market = null): array {
         //
         //    {
         //         "symbol": "BTCINR",
@@ -1910,7 +1910,6 @@ class zebpay extends Exchange {
         //         "status": "ok"
         //    }
         //
-        $timestamp = $this->milliseconds();
         return array(
             'info' => $info,
             'symbol' => $this->safe_string($market, 'id'),
@@ -1920,12 +1919,12 @@ class zebpay extends Exchange {
             'total' => null,
             'code' => $this->safe_string($info, 'code'),
             'status' => $this->safe_string($info, 'status'),
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
         );
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $params = $this->omit($params, 'defaultType');
         $isV1 = mb_strpos($path, 'v1/') > -1;
         $marketType = $isV1 ? 'swap' : 'spot';

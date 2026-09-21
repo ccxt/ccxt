@@ -74,7 +74,7 @@ export default class alpaca extends alpacaRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         const url = this.urls['api']['ws']['crypto'];
         await this.authenticate (url);
         if (this.markets === undefined) {
@@ -89,7 +89,7 @@ export default class alpaca extends alpacaRest {
         return await this.watch (url, messageHash, this.extend (request, params), messageHash);
     }
 
-    handleTicker (client: Client, message: any) {
+    handleTicker (client: Client, message: Dict) {
         //
         //    {
         //         "T": "q",
@@ -110,7 +110,7 @@ export default class alpaca extends alpacaRest {
         client.resolve (ticker, messageHash);
     }
 
-    override parseTicker (ticker: any, market: Market = undefined): Ticker {
+    override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //    {
         //         "T": "q",
@@ -160,7 +160,7 @@ export default class alpaca extends alpacaRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         const url = this.urls['api']['ws']['crypto'];
         await this.authenticate (url);
         if (this.markets === undefined) {
@@ -180,7 +180,7 @@ export default class alpaca extends alpacaRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client: Client, message: any) {
+    handleOHLCV (client: Client, message: Dict) {
         //
         //    {
         //        "T": "b",
@@ -219,7 +219,7 @@ export default class alpaca extends alpacaRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         const url = this.urls['api']['ws']['crypto'];
         await this.authenticate (url);
         if (this.markets === undefined) {
@@ -236,7 +236,7 @@ export default class alpaca extends alpacaRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message: any) {
+    handleOrderBook (client: Client, message: Dict) {
         //
         // snapshot
         //    {
@@ -305,7 +305,7 @@ export default class alpaca extends alpacaRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         const url = this.urls['api']['ws']['crypto'];
         await this.authenticate (url);
         if (this.markets === undefined) {
@@ -325,7 +325,7 @@ export default class alpaca extends alpacaRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client: Client, message: any) {
+    handleTrades (client: Client, message: Dict) {
         //
         //     {
         //         "T": "t",
@@ -363,7 +363,7 @@ export default class alpaca extends alpacaRest {
      * @param {boolean} [params.unifiedMargin] use unified margin account
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         const url = this.urls['api']['ws']['trading'];
         await this.authenticate (url);
         let messageHash = 'myTrades';
@@ -397,7 +397,7 @@ export default class alpaca extends alpacaRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         const url = this.urls['api']['ws']['trading'];
         await this.authenticate (url);
         if (this.markets === undefined) {
@@ -422,12 +422,12 @@ export default class alpaca extends alpacaRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleTradeUpdate (client: Client, message: any) {
+    handleTradeUpdate (client: Client, message: Dict) {
         this.handleOrder (client, message);
         this.handleMyTrade (client, message);
     }
 
-    handleOrder (client: Client, message: any) {
+    handleOrder (client: Client, message: Dict) {
         //
         //    {
         //        "stream": "trade_updates",
@@ -474,7 +474,7 @@ export default class alpaca extends alpacaRest {
         //      }
         //
         const data = this.safeDict (message, 'data', {});
-        const rawOrder = this.safeValue (data, 'order', {});
+        const rawOrder = this.safeDict (data, 'order', {});
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById (limit);
@@ -488,7 +488,7 @@ export default class alpaca extends alpacaRest {
         client.resolve (orders, messageHash);
     }
 
-    handleMyTrade (client: Client, message: any) {
+    handleMyTrade (client: Client, message: Dict) {
         //
         //    {
         //        "stream": "trade_updates",
@@ -539,7 +539,7 @@ export default class alpaca extends alpacaRest {
         if (event !== 'fill' && event !== 'partial_fill') {
             return;
         }
-        const rawOrder = this.safeValue (data, 'order', {});
+        const rawOrder = this.safeDict (data, 'order', {});
         let myTrades = this.myTrades;
         if (myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -556,7 +556,7 @@ export default class alpaca extends alpacaRest {
         client.resolve (myTrades, messageHash);
     }
 
-    parseMyTrade (trade: any, market: Market = undefined) {
+    parseMyTrade (trade: Dict, market: Market = undefined) {
         //
         //    {
         //        "id": "c2470331-8993-4051-bf5d-428d5bdc9a48",
@@ -621,7 +621,7 @@ export default class alpaca extends alpacaRest {
         }, market);
     }
 
-    async authenticate (url: any, params = {}) {
+    async authenticate (url: string, params: Dict = {}) {
         this.checkRequiredCredentials ();
         const messageHash = 'authenticated';
         const client = this.client (url);
@@ -648,7 +648,7 @@ export default class alpaca extends alpacaRest {
         return await future;
     }
 
-    handleErrorMessage (client: Client, message: any): Bool {
+    handleErrorMessage (client: Client, message: Dict): Bool {
         //
         //    {
         //        "T": "error",
@@ -661,7 +661,7 @@ export default class alpaca extends alpacaRest {
         throw new ExchangeError (this.id + ' code: ' + code + ' message: ' + msg);
     }
 
-    handleConnected (client: Client, message: any) {
+    handleConnected (client: Client, message: Dict): Dict {
         //
         //    {
         //        "T": "success",
@@ -671,7 +671,7 @@ export default class alpaca extends alpacaRest {
         return message;
     }
 
-    handleCryptoMessage (client: Client, message: any) {
+    handleCryptoMessage (client: Client, message: any[]) {
         for (let i = 0; i < message.length; i++) {
             const data = message[i];
             const T = this.safeString (data, 'T');
@@ -702,7 +702,7 @@ export default class alpaca extends alpacaRest {
         }
     }
 
-    handleTradingMessage (client: Client, message: any) {
+    handleTradingMessage (client: Client, message: Dict) {
         const stream = this.safeString (message, 'stream');
         const methods: Dict = {
             'authorization': this.handleAuthenticate,
@@ -723,7 +723,7 @@ export default class alpaca extends alpacaRest {
         this.handleTradingMessage (client, message);
     }
 
-    handleAuthenticate (client: Client, message: any) {
+    handleAuthenticate (client: Client, message: Dict) {
         //
         // crypto
         //    {
@@ -760,7 +760,7 @@ export default class alpaca extends alpacaRest {
         throw new AuthenticationError (this.id + ' failed to authenticate.');
     }
 
-    handleSubscription (client: Client, message: any) {
+    handleSubscription (client: Client, message: Dict): Dict {
         //
         // crypto
         //    {

@@ -13,7 +13,7 @@ public partial class testMainClass : BaseTest
         List<object> subTypes = new List<object>() {"linear", "inverse"};
         object features = exchange.features;
         List<object> keys = new List<object>(((IDictionary<string,object>)features).Keys);
-        for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
+        for (int i = 0; i < keys.Count; i++)
         {
             testSharedMethods.assertInArray(exchange, skippedProperties, "features", keys, i, marketTypes);
             object marketType = getValue(keys, i);
@@ -29,7 +29,7 @@ public partial class testMainClass : BaseTest
             } else
             {
                 List<object> subKeys = new List<object>(((IDictionary<string,object>)value).Keys);
-                for (int j = 0; isLessThan(j, subKeys.Count); postFixIncrement(ref j))
+                for (int j = 0; j < subKeys.Count; j++)
                 {
                     object subKey = getValue(subKeys, j);
                     testSharedMethods.assertInArray(exchange, skippedProperties, "features", subKeys, j, subTypes);
@@ -124,7 +124,7 @@ public partial class testMainClass : BaseTest
         };
         List<object> featureKeys = new List<object>(((IDictionary<string,object>)featureObj).Keys);
         List<object> allMethods = new List<object>(((IDictionary<string,object>)exchange.has).Keys);
-        for (int i = 0; isLessThan(i, featureKeys.Count); postFixIncrement(ref i))
+        for (int i = 0; i < featureKeys.Count; i++)
         {
             testSharedMethods.assertInArray(exchange, skippedProperties, "features", featureKeys, i, allMethods);
             testSharedMethods.assertStructure(exchange, skippedProperties, "features", featureObj, format, null, true); // deep structure check

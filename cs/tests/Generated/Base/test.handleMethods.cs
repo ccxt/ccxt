@@ -22,7 +22,7 @@ public partial class BaseTest
                 { "defaultType", "valueFromParam" },
             };
             Dictionary<string, object> market = exchange.safeMarket("TEST1/TEST2");
-            market["type"] = "spot";
+            ((IDictionary<string,object>)market)["type"] = "spot";
             //
             // ########### test different variations ###########
             //
@@ -31,7 +31,7 @@ public partial class BaseTest
             var marketType1params1Variable = exchange.handleMarketTypeAndParams("fetchX", market, initialParams, "valueDefault");
             var marketType1 = ((IList<object>) marketType1params1Variable)[0];
             var params1 = ((IList<object>) marketType1params1Variable)[1];
-            Assert((initialParams?.ContainsKey("defaultType") == true));
+            Assert(initialParams.ContainsKey("defaultType"));
             Assert(!(inOp(params1, "defaultType")));
             Assert(isEqual(marketType1, "valueFromParam"));
             //

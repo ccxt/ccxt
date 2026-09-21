@@ -42,6 +42,7 @@ pub mod btse_typed;
 pub mod bullish_typed;
 pub mod bybit_typed;
 pub mod bybiteu_typed;
+pub mod bybitid_typed;
 pub mod bydfi_typed;
 pub mod cex_typed;
 pub mod coinbase_typed;

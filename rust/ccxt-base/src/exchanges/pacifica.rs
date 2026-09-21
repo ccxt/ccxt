@@ -945,13 +945,19 @@ impl PacificaCore {
         m.insert("420".to_string(), Value::Str("ExchangeError".to_string()).clone());
         m.insert("422".to_string(), Value::Str("ExchangeError".to_string()).clone());
         m.insert("429".to_string(), Value::Str("RateLimitExceeded".to_string()).clone());
-        m.insert("500".to_string(), Value::Str("ExchangeError".to_string()).clone());
+        m.insert("500".to_string(), Value::Str("ExchangeNotAvailable".to_string()).clone());
         m.insert("503".to_string(), Value::Str("ExchangeNotAvailable".to_string()).clone());
         m.insert("504".to_string(), Value::Str("RequestTimeout".to_string()).clone());
+        m.insert("signature_verification_failed".to_string(), Value::Str("AuthenticationError".to_string()).clone());
+        m.insert("invalid_amount".to_string(), Value::Str("InvalidOrder".to_string()).clone());
     m
 }));
         m.insert("broad".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
+        m.insert("Invalid signature".to_string(), Value::Str("AuthenticationError".to_string()).clone());
+        m.insert("Invalid public key".to_string(), Value::Str("AuthenticationError".to_string()).clone());
+        m.insert("Verification failed".to_string(), Value::Str("AuthenticationError".to_string()).clone());
+        m.insert("Invalid message".to_string(), Value::Str("BadRequest".to_string()).clone());
         m.insert("UNKNOWN".to_string(), Value::Str("ExchangeError".to_string()).clone());
         m.insert("ACCOUNT_NOT_FOUND".to_string(), Value::Str("ExchangeError".to_string()).clone());
         m.insert("BOOK_NOT_FOUND".to_string(), Value::Str("ExchangeError".to_string()).clone());
@@ -2290,6 +2296,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at (optional provide takeProfitCloid)
  * @param {string} [params.timeInForce] "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book)
  * @param {boolean} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
+ * @param {string} [params.slippage] the slippage for market orders in percent, defaults to options.defaultSlippage (0.5)
  * @param {string} [params.clientOrderId] client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
  * @param {int} [params.expiryWindow] time to live in milliseconds
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
@@ -2307,7 +2314,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut requestoperationTypeVariable = self.create_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]);
         let mut request: Value = get_value(&requestoperationTypeVariable, &Value::Int(0));
         let mut operationType: Value = get_value(&requestoperationTypeVariable, &Value::Int(1));
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("reduceOnly".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("stopLimitPrice".to_string()), Value::Str("timeInForce".to_string()), Value::Str("triggerPrice".to_string()), Value::Str("stopLossCloid".to_string()), Value::Str("stopLossPrice".to_string()), Value::Str("stopLossLimitPrice".to_string()), Value::Str("takeProfitCloid".to_string()), Value::Str("takeProfitPrice".to_string()), Value::Str("takeProfitLimitPrice".to_string()), Value::Str("expiryWindow".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::List(vec![Value::Str("reduceOnly".to_string()), Value::Str("reduce_only".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("stopLimitPrice".to_string()), Value::Str("timeInForce".to_string()), Value::Str("triggerPrice".to_string()), Value::Str("stopLossCloid".to_string()), Value::Str("stopLossPrice".to_string()), Value::Str("stopLossLimitPrice".to_string()), Value::Str("takeProfitCloid".to_string()), Value::Str("takeProfitPrice".to_string()), Value::Str("takeProfitLimitPrice".to_string()), Value::Str("expiryWindow".to_string()), Value::Str("slippage".to_string()), Value::Str("slippage_percent".to_string())]), &[]);
         let mut response: Value = Value::Null;
         if is_equal(&operationType, &Value::Str("create_market_order".to_string())) {
             let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
@@ -2386,6 +2393,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
          * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at (optional provide takeProfitCloid)
          * @param {string} [params.timeInForce] "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book)
          * @param {boolean} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
+         * @param {string} [params.slippage] the slippage for market orders in percent, defaults to options.defaultSlippage (0.5)
          * @param {string} [params.clientOrderId] client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
          * @param {int} [params.expiryWindow] time to live in milliseconds
          * @returns {object} an [order structure]
@@ -4774,11 +4782,17 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //     {"success":false,"data":null,"error":"Beta access required. Signer must redeem a valid beta code.","code":403}
         //     {"success":false,"data":null,"error":"Agent not authorized for account","code":400}
         //     {"success":false,"data":null,"error":"Internal server error","code":500}
+        //     {"success":false,"data":null,"error":"Verification failed: signature does not match signer and canonical payload.","code":400,"error_id":"signature_verification_failed"}
+        //     {"success":false,"data":null,"error":"Order amount too low for <account>: 7.81140 < 10","code":0,"error_id":"invalid_amount"}
+        //     {"success":false,"data":null,"error":"Invalid transfer relationship: <from> -> <to>","code":33,"error_id":"unspecified"}
         //
-        let mut inCode: Value = self.safe_integer_k(response.clone(), "code", &[]); // actually if all ok -> code = undefined or code = 200
+        // code carries a business code on 422 responses and an echo of the http status otherwise, it is undefined or 200 when all ok
+        // the string form is required for the exceptions lookup, an integer key never matches the string-keyed map on the python, go and c# ports
+        let mut errorCode: Value = self.safe_string_k(response.clone(), "code", &[]);
+        let mut errorId: Value = self.safe_string_k(response.clone(), "error_id", &[]); // undocumented, present on live errors and more specific than code
         let mut message: Value = self.safe_string_k(response.clone(), "error", &[]);
         let mut error: Value = Value::Null;
-        if is_equal(&inCode, &Value::Null) || is_equal(&inCode, &Value::Int(200)) {
+        if is_equal(&errorCode, &Value::Null) || is_equal(&errorCode, &Value::Str("200".to_string())) {
             error = Value::Bool(false);
         }  else {
             error = Value::Bool(true);
@@ -4786,10 +4800,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut nonEmptyMessage: bool = is_true(&(!is_equal(&message, &Value::Null))) && is_true(&(!is_equal(&message, &Value::Str("".to_string()))));
         if is_true(&error) || is_true(&nonEmptyMessage) {
             let mut feedback: Value = add(&add(&self.id, &Value::Str(" ".to_string())), &body);
-            self.throw_broadly_matched_exception(get_value(&self.exceptions, &Value::Str("broad".to_string())), message.clone(), feedback.clone()); // Try deeper catch first
-            self.throw_exactly_matched_exception(get_value(&self.exceptions, &Value::Str("exact".to_string())), inCode.clone(), feedback.clone());
-            self.throw_exactly_matched_exception(get_value(&self.exceptions, &Value::Str("exact".to_string())), message.clone(), feedback.clone());
-            panic!("{}", crate::exchange_errors::exchange_error(feedback));
+            self.throw_exactly_matched_exception(get_value(&self.exceptions, &Value::Str("exact".to_string())), errorId.clone(), feedback.clone());
+            self.throw_broadly_matched_exception(get_value(&self.exceptions, &Value::Str("broad".to_string())), message.clone(), feedback.clone()); // documented message prefixes are more specific than the http-status echo
+            self.throw_exactly_matched_exception(get_value(&self.exceptions, &Value::Str("exact".to_string())), errorCode.clone(), feedback.clone());
+            let mut codeAsString: Value = to_string_val(&code);
+            if is_true(&(is_less_than(&code, &Value::Int(400)))) || !is_true(&(Value::Bool(in_op(&self.httpExceptions, &codeAsString)))) {
+                panic!("{}", crate::exchange_errors::exchange_error(feedback));
+            }
         }
         return Value::Null;
 

@@ -111,7 +111,7 @@ class bingx extends Exchange {
                 'fetchPositionHistory' => true,
                 'fetchPositionMode' => true,
                 'fetchPositions' => true,
-                'fetchPositionsHistory' => true,
+                'fetchPositionsHistory' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
@@ -720,7 +720,7 @@ class bingx extends Exchange {
                         'trailing' => true,
                         'leverage' => false,
                         'marketBuyRequiresPrice' => false,
-                        'marketBuyByCost' => true,
+                        'marketBuyByCost' => false,
                         'selfTradePrevention' => false,
                         'iceberg' => false,
                     ),
@@ -792,6 +792,7 @@ class bingx extends Exchange {
                         'private' => true,
                     ),
                     'createOrder' => array(
+                        'marketBuyByCost' => true,
                         'triggerPriceType' => null,
                         'attachedStopLossTakeProfit' => null,
                         'trailing' => false,
@@ -1620,7 +1621,7 @@ class bingx extends Exchange {
             }
         }
         return $this->safe_trade(array(
-            'id' => $this->safe_string_2($trade, 'id', 't'),
+            'id' => $this->safe_string_n($trade, array( 'id', 't', 'fillId' )),
             'info' => $trade,
             'timestamp' => $time,
             'datetime' => $this->iso8601($time),
@@ -1889,7 +1890,7 @@ class bingx extends Exchange {
         );
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_funding_rate_history(...))($symbol, $since, $limit, $params);
     }
 
@@ -1951,7 +1952,7 @@ class bingx extends Exchange {
         return $this->parse_funding_rate_histories($data, $market, $since, $limit);
     }
 
-    public function parse_funding_rate_history(mixed $contract, ?array $market = null) {
+    public function parse_funding_rate_history(mixed $contract, ?array $market = null): array {
         //
         //     {
         //         "symbol": "BTC-USDT",
@@ -1969,7 +1970,7 @@ class bingx extends Exchange {
         );
     }
 
-    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_funding_history(...))($symbol, $since, $limit, $params);
     }
 
@@ -2043,7 +2044,7 @@ class bingx extends Exchange {
         return $this->parse_incomes($data, $market, $since, $limit);
     }
 
-    public function parse_income(mixed $income, ?array $market = null) {
+    public function parse_income(mixed $income, ?array $market = null): array {
         // {
         //     "symbol": "LDO-USDT",
         //     "incomeType": "FUNDING_FEE",
@@ -2069,7 +2070,7 @@ class bingx extends Exchange {
         );
     }
 
-    public function fetch_open_interest(string $symbol, $params = array()) {
+    public function fetch_open_interest(string $symbol, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_open_interest(...))($symbol, $params);
     }
 
@@ -2134,7 +2135,7 @@ class bingx extends Exchange {
         return $this->parse_open_interest($result, $market);
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null): array {
         //
         // linear swap
         //
@@ -2964,7 +2965,7 @@ class bingx extends Exchange {
         return $this->parse_positions($positions, $symbols);
     }
 
-    public function fetch_position(string $symbol, $params = array()) {
+    public function fetch_position(string $symbol, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_position(...))($symbol, $params);
     }
 
@@ -3056,7 +3057,7 @@ class bingx extends Exchange {
         return $this->parse_position($first, $market);
     }
 
-    public function parse_position(array $position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null): array {
         //
         // inverse swap
         //
@@ -3179,7 +3180,7 @@ class bingx extends Exchange {
         ));
     }
 
-    public function create_market_order_with_cost(string $symbol, string $side, float $cost, $params = array()) {
+    public function create_market_order_with_cost(string $symbol, string $side, float $cost, $params = array()): PromiseInterface {
         return Async\async(self::do_create_market_order_with_cost(...))($symbol, $side, $cost, $params);
     }
 
@@ -3196,7 +3197,7 @@ class bingx extends Exchange {
         return Async\await($this->create_order($symbol, 'market', $side, $cost, null, $params));
     }
 
-    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array()) {
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array()): PromiseInterface {
         return Async\async(self::do_create_market_buy_order_with_cost(...))($symbol, $cost, $params);
     }
 
@@ -3212,7 +3213,7 @@ class bingx extends Exchange {
         return Async\await($this->create_order($symbol, 'market', 'buy', $cost, null, $params));
     }
 
-    public function create_market_sell_order_with_cost(string $symbol, float $cost, $params = array()) {
+    public function create_market_sell_order_with_cost(string $symbol, float $cost, $params = array()): PromiseInterface {
         return Async\async(self::do_create_market_sell_order_with_cost(...))($symbol, $cost, $params);
     }
 
@@ -3228,7 +3229,7 @@ class bingx extends Exchange {
         return Async\await($this->create_order($symbol, 'market', 'sell', $cost, null, $params));
     }
 
-    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($type === null) {
             throw new ArgumentsRequired($this->id . ' requires a $type argument');
         }
@@ -3472,7 +3473,7 @@ class bingx extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -3633,7 +3634,7 @@ class bingx extends Exchange {
         return $this->parse_order($result, $market);
     }
 
-    public function create_orders(array $orders, $params = array()) {
+    public function create_orders(array $orders, $params = array()): PromiseInterface {
         return Async\async(self::do_create_orders(...))($orders, $params);
     }
 
@@ -3745,7 +3746,7 @@ class bingx extends Exchange {
         return $this->parse_orders($result, $market);
     }
 
-    public function parse_order_side(mixed $side) {
+    public function parse_order_side(?string $side): ?string {
         $sides = array(
             'BUY' => 'buy',
             'SELL' => 'sell',
@@ -4164,7 +4165,7 @@ class bingx extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
     }
 
@@ -4350,7 +4351,7 @@ class bingx extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_all_orders(...))($symbol, $params);
     }
 
@@ -4503,7 +4504,7 @@ class bingx extends Exchange {
         return $this->parse_orders($orders);
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_orders(...))($ids, $symbol, $params);
     }
 
@@ -4533,7 +4534,7 @@ class bingx extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $clientOrderIds = $this->safe_value($params, 'clientOrderIds');
+        $clientOrderIds = $this->safe_list($params, 'clientOrderIds');
         $params = $this->omit($params, 'clientOrderIds');
         $idsToParse = $ids;
         $areClientOrderIds = ($clientOrderIds !== null);
@@ -4671,7 +4672,7 @@ class bingx extends Exchange {
         return $response;
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order(...))($id, $symbol, $params);
     }
 
@@ -5170,7 +5171,7 @@ class bingx extends Exchange {
         return $this->filter_by($orders, 'status', 'closed');
     }
 
-    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_canceled_orders(...))($symbol, $since, $limit, $params);
     }
 
@@ -5198,7 +5199,7 @@ class bingx extends Exchange {
         return $this->filter_by($orders, 'status', 'canceled');
     }
 
-    public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_canceled_and_closed_orders(...))($symbol, $since, $limit, $params);
     }
 
@@ -5860,7 +5861,7 @@ class bingx extends Exchange {
         //
         // parse withdraw-type output first...
         //
-        $data = $this->safe_value($transaction, 'data');
+        $data = $this->safe_dict($transaction, 'data');
         $dataId = ($data === null) ? null : $this->safe_string($data, 'id');
         $id = $this->safe_string($transaction, 'id', $dataId);
         $address = $this->safe_string($transaction, 'address');
@@ -6239,7 +6240,7 @@ class bingx extends Exchange {
         }
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
     }
 
@@ -6383,7 +6384,7 @@ class bingx extends Exchange {
         return $this->parse_trades($fills, $market, $since, $limit, $params);
     }
 
-    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null) {
+    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null): mixed {
         //
         // currencie structure
         //
@@ -6510,7 +6511,7 @@ class bingx extends Exchange {
         return $this->parse_transaction($data);
     }
 
-    public function parse_params(mixed $params) {
+    public function parse_params(array $params): array {
         // const sortedParams = this.keysort (params);
         $copied = $this->clone($params);
         $rawKeys = is_array($params) ? array_keys($params) : array();
@@ -6534,7 +6535,7 @@ class bingx extends Exchange {
         return $copied;
     }
 
-    public function fetch_my_liquidations(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_liquidations(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_liquidations(...))($symbol, $since, $limit, $params);
     }
 
@@ -6640,7 +6641,7 @@ class bingx extends Exchange {
         return $this->parse_liquidations($liquidations, $market, $since, $limit);
     }
 
-    public function parse_liquidation(mixed $liquidation, ?array $market = null) {
+    public function parse_liquidation(mixed $liquidation, ?array $market = null): array {
         //
         //     {
         //         "time": "int64",
@@ -7222,7 +7223,7 @@ class bingx extends Exchange {
         );
     }
 
-    public function custom_encode(mixed $params) {
+    public function custom_encode(array $params): ?string {
         // const sortedParams = this.keysort (params);
         $rawKeys = is_array($params) ? array_keys($params) : array();
         $keys = $this->sort($rawKeys);
@@ -7345,7 +7346,7 @@ class bingx extends Exchange {
         return $tiers;
     }
 
-    public function sign(mixed $path, $section = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, $section = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $type = $section[0];
         $version = $section[1];
         $access = $section[2];
@@ -7411,7 +7412,7 @@ class bingx extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function nonce() {
+    public function nonce(): float {
         return $this->milliseconds();
     }
 

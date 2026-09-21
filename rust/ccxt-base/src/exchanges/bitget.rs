@@ -12127,13 +12127,17 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
  * @see https://www.bitget.com/api-doc/spot/account/Get-Account-Bills
  * @see https://www.bitget.com/api-doc/contract/account/Get-Account-Bill
+ * @see https://www.bitget.com/docs/catalog/account/assets-balance#get-financial-records
+ * @see https://www.bitget.com/docs/catalog/account/assets-balance#get-funding-financial-records
  * @param {string} [code] unified currency code, default is undefined
- * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
+ * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined, the uta endpoints allow a window of at most 30 days between since and until
  * @param {int} [limit] max number of ledger entries to return, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] end time in ms
  * @param {string} [params.symbol] *contract only* unified market symbol
- * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+ * @param {string} [params.productType] *contract and uta only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+ * @param {string} [params.type] set to 'funding' with uta to fetch the funding account ledger instead of the trading account ledger
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
@@ -12156,14 +12160,45 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut marketType: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchLedger".to_string()), &[market.clone(), params.clone()]); marketType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        let mut uta: Value = Value::Null;
+        { let __destr_tmp = self.handle_uta_and_params(params.clone(), Value::Str("fetchLedger".to_string()), &[Value::Bool(false)]).await; uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut paginate: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchLedger".to_string()), Value::Str("paginate".to_string()), &[]); paginate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&paginate) {
+            if is_equal(&uta, &Value::Bool(true)) {
+                // re-inject the resolved modes, the handle* helpers stripped them from params and the recursive paginated calls would silently fall back to the defaults
+                params = self.extend(params.clone(), &[Value::Map({
+                    let mut m = indexmap::IndexMap::new();
+                        m.insert("uta".to_string(), Value::Bool(true));
+                        m.insert("type".to_string(), marketType.clone());
+                    m
+                })]);
+                if !is_equal(&symbol, &Value::Null) {
+                    params = self.extend(params.clone(), &[Value::Map({
+                        let mut m = indexmap::IndexMap::new();
+                            m.insert("symbol".to_string(), symbol.clone());
+                        m
+                    })]);
+                }
+                return self.fetch_paginated_call_cursor(Value::Str("fetchLedger".to_string()), &[code.clone(), since.clone(), limit.clone(), params.clone(), Value::Str("id".to_string()), Value::Str("cursor".to_string()), Value::Null, Value::Int(100)]).await;
+            }
             let mut cursorReceived: Value = Value::Null;
             if !is_equal(&marketType, &Value::Str("spot".to_string())) {
                 cursorReceived = Value::Str("endId".to_string());
             }
-            return self.fetch_paginated_call_cursor(Value::Str("fetchLedger".to_string()), &[symbol.clone(), since.clone(), limit.clone(), params.clone(), cursorReceived.clone(), Value::Str("idLessThan".to_string())]).await;
+            params = self.extend(params.clone(), &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("type".to_string(), marketType.clone());
+                m
+            })]);
+            if !is_equal(&symbol, &Value::Null) {
+                params = self.extend(params.clone(), &[Value::Map({
+                    let mut m = indexmap::IndexMap::new();
+                        m.insert("symbol".to_string(), symbol.clone());
+                    m
+                })]);
+            }
+            return self.fetch_paginated_call_cursor(Value::Str("fetchLedger".to_string()), &[code.clone(), since.clone(), limit.clone(), params.clone(), cursorReceived.clone(), Value::Str("idLessThan".to_string())]).await;
         }
         let mut currency: Value = Value::Null;
         let mut request: Value = Value::Map({
@@ -12182,9 +12217,40 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
         let mut response: Value = Value::Null;
+        if is_equal(&uta, &Value::Bool(true)) {
+            if is_equal(&marketType, &Value::Str("funding".to_string())) {
+                let __ws_arg_90 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_uta_get_v3_account_funding_financial_records(&[__ws_arg_90]).await;
+            }  else {
+                let mut marginMode: Value = Value::Null;
+                { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("fetchLedger".to_string()), &[params.clone()]); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+                if is_equal(&marketType, &Value::Str("spot".to_string())) {
+                    if !is_equal(&marginMode, &Value::Null) {
+                        add_element_to_object(&mut request, &Value::Str("category".to_string()), Value::Str("MARGIN".to_string()));
+                    }  else {
+                        add_element_to_object(&mut request, &Value::Str("category".to_string()), Value::Str("SPOT".to_string()));
+                    }
+                }  else {
+                    let mut productType: Value = Value::Null;
+                    { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]); productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+                    add_element_to_object(&mut request, &Value::Str("category".to_string()), productType.clone());
+                }
+                if !is_equal(&symbol, &Value::Null) {
+                    add_element_to_object(&mut request, &Value::Str("symbol".to_string()), self.safe_string_k(market.clone(), "id", &[]));
+                }
+                let __ws_arg_91 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_uta_get_v3_account_financial_records(&[__ws_arg_91]).await;
+            }
+            let mut utaData: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+            let mut list: Value = self.safe_list_k(utaData.clone(), "list", &[Value::List(vec![])]);
+            return self.parse_ledger(list.clone(), &[currency.clone(), since.clone(), limit.clone()]);
+        }
         if is_equal(&marketType, &Value::Str("spot".to_string())) {
-            let __ws_arg_90 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_spot_get_v2_spot_account_bills(&[__ws_arg_90]).await;
+            let __ws_arg_92 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_spot_get_v2_spot_account_bills(&[__ws_arg_92]).await;
         }  else {
             if !is_equal(&symbol, &Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("symbol".to_string()), self.safe_string_k(market.clone(), "id", &[]));
@@ -12192,8 +12258,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut productType: Value = Value::Null;
             { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]); productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
-            let __ws_arg_91 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_mix_get_v2_mix_account_bill(&[__ws_arg_91]).await;
+            let __ws_arg_93 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_mix_get_v2_mix_account_bill(&[__ws_arg_93]).await;
         }
         //
         // spot
@@ -12278,14 +12344,52 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         "cTime": "1700728034996"
         //     }
         //
+        // uta financial records
+        //
+        //     {
+        //         "category": "Margin",
+        //         "id": "13111111111111111",
+        //         "symbol": "BTCUSDT",
+        //         "coin": "BTC",
+        //         "type": "ORDER_DEALT_IN",
+        //         "positionType": "crossed",
+        //         "fee": "-0.00000531",
+        //         "positionAmount": "0.001",
+        //         "positionBalance": "0.001",
+        //         "amount": "0.00531168",
+        //         "balance": "55.10017801",
+        //         "ts": "1745853486185"
+        //     }
+        //
+        // uta funding financial records
+        //
+        //     {
+        //         "id": "1477183363639320585",
+        //         "coin": "USDT",
+        //         "groupType": "transfer",
+        //         "type": "transfer_out",
+        //         "amount": "-30.00000000",
+        //         "balance": "0.00000000",
+        //         "ts": "1787913879280"
+        //     }
+        //
         let mut currencyId: Value = self.safe_string_k(item.clone(), "coin", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[currency.clone()]);
         currency = self.safe_currency(currencyId.clone(), &[currency.clone()]);
-        let mut timestamp: Value = self.safe_integer_k(item.clone(), "cTime", &[]);
-        let mut after: Value = self.safe_number_k(item.clone(), "balance", &[]);
-        let mut fee: Value = self.safe_number2(item.clone(), Value::Str("fees".to_string()), Value::Str("fee".to_string()), &[]);
+        let mut timestamp: Value = self.safe_integer2(item.clone(), Value::Str("cTime".to_string()), Value::Str("ts".to_string()), &[]);
+        let mut balanceString: Value = self.safe_string_k(item.clone(), "balance", &[]);
+        let mut after: Value = self.parse_number(balanceString.clone(), &[]);
+        let mut feeCostString: Value = self.safe_string2(item.clone(), Value::Str("fees".to_string()), Value::Str("fee".to_string()), &[]);
+        let mut feeCost: Value = Value::Null;
+        if !is_equal(&feeCostString, &Value::Null) {
+            feeCost = self.parse_number(crate::precise::Precise::stringAbs(&feeCostString), &[]); // deliberate for both generations, uta reports charged fees as negative values and the v2 fields hold signed values too
+        }
         let mut amountRaw: Value = self.safe_string2(item.clone(), Value::Str("size".to_string()), Value::Str("amount".to_string()), &[Value::Str("".to_string())]);
         let mut amount: Value = self.parse_number(crate::precise::Precise::stringAbs(&amountRaw), &[]);
+        let mut before: Value = Value::Null;
+        if is_true(&(!is_equal(&balanceString, &Value::Null))) && is_true(&(!is_equal(&amountRaw, &Value::Str("".to_string())))) {
+            before = self.parse_number(crate::precise::Precise::stringSub(&balanceString, &amountRaw), &[]); // subtract the signed change from the after-balance, the base derivation assumes a signed amount and would produce a negative before on outflows
+        }
         let mut direction: Value = Value::Str("in".to_string());
         if is_greater_than_or_equal(&get_index_of(&amountRaw, &Value::Str("-".to_string())), &Value::Int(0)) {
             direction = Value::Str("out".to_string());
@@ -12293,23 +12397,23 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         return self.safe_ledger_entry(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), item.clone());
-        m.insert("id".to_string(), self.safe_string_k(item.clone(), "billId", &[]));
+        m.insert("id".to_string(), self.safe_string2(item.clone(), Value::Str("billId".to_string()), Value::Str("id".to_string()), &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("direction".to_string(), direction.clone());
         m.insert("account".to_string(), Value::Null);
         m.insert("referenceId".to_string(), Value::Null);
         m.insert("referenceAccount".to_string(), Value::Null);
-        m.insert("type".to_string(), self.parse_ledger_type(self.safe_string_k(item.clone(), "businessType", &[])));
+        m.insert("type".to_string(), self.parse_ledger_type(self.safe_string_n(item.clone(), Value::List(vec![Value::Str("businessType".to_string()), Value::Str("groupType".to_string()), Value::Str("type".to_string())]), &[])));
         m.insert("currency".to_string(), code.clone());
         m.insert("amount".to_string(), amount.clone());
-        m.insert("before".to_string(), Value::Null);
+        m.insert("before".to_string(), before.clone());
         m.insert("after".to_string(), after.clone());
         m.insert("status".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("currency".to_string(), code.clone());
-        m.insert("cost".to_string(), fee.clone());
+        m.insert("cost".to_string(), feeCost.clone());
     m
 }));
     m
@@ -12361,6 +12465,149 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("withdraw".to_string(), Value::Str("withdrawal".to_string()));
                 m.insert("buy".to_string(), Value::Str("trade".to_string()));
                 m.insert("sell".to_string(), Value::Str("trade".to_string()));
+                m.insert("transaction".to_string(), Value::Str("transaction".to_string()));
+                m.insert("transfer".to_string(), Value::Str("transfer".to_string()));
+                m.insert("financial".to_string(), Value::Str("transaction".to_string()));
+                m.insert("strategy".to_string(), Value::Str("trade".to_string()));
+                m.insert("trace".to_string(), Value::Str("trade".to_string()));
+                m.insert("loan".to_string(), Value::Str("transaction".to_string()));
+                m.insert("fait".to_string(), Value::Str("transaction".to_string()));
+                m.insert("convert".to_string(), Value::Str("trade".to_string()));
+                m.insert("ipo_prime".to_string(), Value::Str("transaction".to_string()));
+                m.insert("pre_c2c".to_string(), Value::Str("trade".to_string()));
+                m.insert("paptrading".to_string(), Value::Str("trade".to_string()));
+                m.insert("on_chain".to_string(), Value::Str("transaction".to_string()));
+                m.insert("debit".to_string(), Value::Str("transaction".to_string()));
+                m.insert("cfd".to_string(), Value::Str("trade".to_string()));
+                m.insert("pay".to_string(), Value::Str("transaction".to_string()));
+                m.insert("compliance_wall".to_string(), Value::Str("transaction".to_string()));
+                m.insert("live".to_string(), Value::Str("transaction".to_string()));
+                m.insert("broker".to_string(), Value::Str("transaction".to_string()));
+                m.insert("rwa".to_string(), Value::Str("transaction".to_string()));
+                m.insert("stock".to_string(), Value::Str("trade".to_string()));
+                m.insert("TRANSFER_IN".to_string(), Value::Str("transfer".to_string()));
+                m.insert("TRANSFER_OUT".to_string(), Value::Str("transfer".to_string()));
+                m.insert("RESERVE_TRANSFER_IN".to_string(), Value::Str("transfer".to_string()));
+                m.insert("RESERVE_TRANSFER_OUT".to_string(), Value::Str("transfer".to_string()));
+                m.insert("LIQ_TRANSFER_IN".to_string(), Value::Str("transfer".to_string()));
+                m.insert("LIQ_TRANSFER_OUT".to_string(), Value::Str("transfer".to_string()));
+                m.insert("ON_CHAIN_TRANSFER_REFUND".to_string(), Value::Str("transfer".to_string()));
+                m.insert("ON_CHAIN_TRANSFER_OUT".to_string(), Value::Str("transfer".to_string()));
+                m.insert("MT5_TRANSFER_IN".to_string(), Value::Str("transfer".to_string()));
+                m.insert("MT5_REFUND_IN".to_string(), Value::Str("transfer".to_string()));
+                m.insert("MT5_TRANSFER_OUT".to_string(), Value::Str("transfer".to_string()));
+                m.insert("TRACE_TRANSFER_USER_OUT".to_string(), Value::Str("transfer".to_string()));
+                m.insert("TRACE_TRANSFER_USER_IN".to_string(), Value::Str("transfer".to_string()));
+                m.insert("TRACE_TRANSFER_REFUND_IN".to_string(), Value::Str("transfer".to_string()));
+                m.insert("FINANCIAL_TRANSFER_OUT".to_string(), Value::Str("transfer".to_string()));
+                m.insert("FINANCIAL_TRANSFER_IN".to_string(), Value::Str("transfer".to_string()));
+                m.insert("CONVERT_TRANSFER_IN".to_string(), Value::Str("transfer".to_string()));
+                m.insert("CONVERT_TRANSFER_OUT".to_string(), Value::Str("transfer".to_string()));
+                m.insert("BGPAY_TRANSFER_OUT".to_string(), Value::Str("transfer".to_string()));
+                m.insert("BGPAY_REFUND_IN".to_string(), Value::Str("transfer".to_string()));
+                m.insert("ORDER_DEALT_FROZEN_OUT".to_string(), Value::Str("trade".to_string()));
+                m.insert("ORDER_DEALT_IN".to_string(), Value::Str("trade".to_string()));
+                m.insert("OPEN_LONG".to_string(), Value::Str("trade".to_string()));
+                m.insert("OPEN_SHORT".to_string(), Value::Str("trade".to_string()));
+                m.insert("BUY_DEAL".to_string(), Value::Str("trade".to_string()));
+                m.insert("SELL_DEAL".to_string(), Value::Str("trade".to_string()));
+                m.insert("CLOSE_LONG".to_string(), Value::Str("trade".to_string()));
+                m.insert("CLOSE_SHORT".to_string(), Value::Str("trade".to_string()));
+                m.insert("FORCE_CLOSE_LONG".to_string(), Value::Str("trade".to_string()));
+                m.insert("FORCE_CLOSE_SHORT".to_string(), Value::Str("trade".to_string()));
+                m.insert("BURST_CLOSE_LONG".to_string(), Value::Str("trade".to_string()));
+                m.insert("BURST_CLOSE_SHORT".to_string(), Value::Str("trade".to_string()));
+                m.insert("OFFSET_REDUCE_CLOSE_LONG".to_string(), Value::Str("trade".to_string()));
+                m.insert("OFFSET_REDUCE_CLOSE_SHORT".to_string(), Value::Str("trade".to_string()));
+                m.insert("FORCE_BUY_SSM".to_string(), Value::Str("trade".to_string()));
+                m.insert("FORCE_SELL_SSM".to_string(), Value::Str("trade".to_string()));
+                m.insert("BURST_BUY_SSM".to_string(), Value::Str("trade".to_string()));
+                m.insert("BURST_SELL_SSM".to_string(), Value::Str("trade".to_string()));
+                m.insert("RISK_LIQ_USER_IN".to_string(), Value::Str("trade".to_string()));
+                m.insert("RISK_LIQ_USER_OUT".to_string(), Value::Str("trade".to_string()));
+                m.insert("LIQ_FUND_OUT".to_string(), Value::Str("trade".to_string()));
+                m.insert("LIQ_FUND_IN".to_string(), Value::Str("trade".to_string()));
+                m.insert("LIQ_CONVERT_USER_OUT".to_string(), Value::Str("trade".to_string()));
+                m.insert("LIQ_CONVERT_SYS_IN".to_string(), Value::Str("trade".to_string()));
+                m.insert("LIQ_CONVERT_SYS_OUT".to_string(), Value::Str("trade".to_string()));
+                m.insert("LIQ_CONVERT_USER_IN".to_string(), Value::Str("trade".to_string()));
+                m.insert("MARGIN_OPEN_LONG".to_string(), Value::Str("trade".to_string()));
+                m.insert("MARGIN_OPEN_SHORT".to_string(), Value::Str("trade".to_string()));
+                m.insert("MARIN_BUY_DEAL".to_string(), Value::Str("trade".to_string()));
+                m.insert("MARIN_SELL_DEAL".to_string(), Value::Str("trade".to_string()));
+                m.insert("MARGIN_BACK".to_string(), Value::Str("trade".to_string()));
+                m.insert("MARGIN_OFFSET_IN_SSM_LONG".to_string(), Value::Str("trade".to_string()));
+                m.insert("MARGIN_OFFSET_IN_SSM_SHORT".to_string(), Value::Str("trade".to_string()));
+                m.insert("FIXED_OFFSET_IN_SSM_LONG".to_string(), Value::Str("trade".to_string()));
+                m.insert("FIXED_OFFSET_IN_SSM_SHORT".to_string(), Value::Str("trade".to_string()));
+                m.insert("FIXED_CLOSE_LONG".to_string(), Value::Str("trade".to_string()));
+                m.insert("FIXED_CLOSE_SHORT".to_string(), Value::Str("trade".to_string()));
+                m.insert("FIXED_FORCE_CLOSE_LONG".to_string(), Value::Str("trade".to_string()));
+                m.insert("FIXED_FORCE_CLOSE_SHORT".to_string(), Value::Str("trade".to_string()));
+                m.insert("FIXED_BURST_CLOSE_LONG".to_string(), Value::Str("trade".to_string()));
+                m.insert("FIXED_BURST_CLOSE_SHORT".to_string(), Value::Str("trade".to_string()));
+                m.insert("FIXED_ADL_CLOSE_LONG".to_string(), Value::Str("trade".to_string()));
+                m.insert("FIXED_ADL_CLOSE_SHORT".to_string(), Value::Str("trade".to_string()));
+                m.insert("FIXED_RISK_LIQ_USER_IN".to_string(), Value::Str("trade".to_string()));
+                m.insert("FIXED_RISK_LIQ_USER_OUT".to_string(), Value::Str("trade".to_string()));
+                m.insert("FIXED_FORCE_BUY_SSM".to_string(), Value::Str("trade".to_string()));
+                m.insert("FIXED_FORCE_SELL_SSM".to_string(), Value::Str("trade".to_string()));
+                m.insert("FIXED_BURST_BUY_SSM".to_string(), Value::Str("trade".to_string()));
+                m.insert("FIXED_BURST_SELL_SSM".to_string(), Value::Str("trade".to_string()));
+                m.insert("RWA_CONTRACT_REBASE_USER_OPEN_LONG".to_string(), Value::Str("trade".to_string()));
+                m.insert("RWA_CONTRACT_REBASE_USER_OPEN_SHORT".to_string(), Value::Str("trade".to_string()));
+                m.insert("RWA_CONTRACT_REBASE_USER_CLOSE_LONG".to_string(), Value::Str("trade".to_string()));
+                m.insert("RWA_CONTRACT_REBASE_USER_CLOSE_SHORT".to_string(), Value::Str("trade".to_string()));
+                m.insert("RWA_CONTRACT_REBASE_USER_BUY_IN_SSM".to_string(), Value::Str("trade".to_string()));
+                m.insert("RWA_CONTRACT_REBASE_USER_SELL_IN_SSM".to_string(), Value::Str("trade".to_string()));
+                m.insert("ORDER_PLF_FEE_OUT".to_string(), Value::Str("fee".to_string()));
+                m.insert("INTEREST_SETTLEMENT_OUT".to_string(), Value::Str("fee".to_string()));
+                m.insert("INTEREST_REPAYMENT".to_string(), Value::Str("fee".to_string()));
+                m.insert("CONTRACT_MAIN_SETTLE_FEE_USER_IN".to_string(), Value::Str("fee".to_string()));
+                m.insert("CONTRACT_MAIN_SETTLE_FEE_USER_OUT".to_string(), Value::Str("fee".to_string()));
+                m.insert("MARGIN_SETTLE_FEE_USER_IN".to_string(), Value::Str("fee".to_string()));
+                m.insert("MARGIN_SETTLE_FEE_USER_OUT".to_string(), Value::Str("fee".to_string()));
+                m.insert("LIQ_FEE".to_string(), Value::Str("fee".to_string()));
+                m.insert("SMALL_ASSET_FEE_SYS_IN".to_string(), Value::Str("fee".to_string()));
+                m.insert("RWA_FIXED_SETTLE_FEE_USER_IN".to_string(), Value::Str("fee".to_string()));
+                m.insert("RWA_FIXED_SETTLE_FEE_USER_OUT".to_string(), Value::Str("fee".to_string()));
+                m.insert("RWA_CONTRACT_MAIN_SETTLE_FEE_SYSTEM_IN".to_string(), Value::Str("fee".to_string()));
+                m.insert("RWA_CONTRACT_MAIN_SETTLE_FEE_SYSTEM_OUT".to_string(), Value::Str("fee".to_string()));
+                m.insert("RWA_CONTRACT_MAIN_SETTLE_FEE_SYSTEM_KEEP_IN".to_string(), Value::Str("fee".to_string()));
+                m.insert("RWA_CONTRACT_MAIN_SETTLE_FEE_SYSTEM_KEEP_OUT".to_string(), Value::Str("fee".to_string()));
+                m.insert("RWA_CONTRACT_MAIN_SETTLE_FEE_USER_IN".to_string(), Value::Str("fee".to_string()));
+                m.insert("RWA_CONTRACT_MAIN_SETTLE_FEE_USER_OUT".to_string(), Value::Str("fee".to_string()));
+                m.insert("INCREASE_MARGIN".to_string(), Value::Str("margin".to_string()));
+                m.insert("REDUCE_MARGIN".to_string(), Value::Str("margin".to_string()));
+                m.insert("MARGIN_LEVER_ORDER_REFROZEN".to_string(), Value::Str("margin".to_string()));
+                m.insert("MARGIN_LEVER_ORDER_FROZEN".to_string(), Value::Str("margin".to_string()));
+                m.insert("MARGIN_LEVER_POS_IN".to_string(), Value::Str("margin".to_string()));
+                m.insert("CONVERSION_UPON_DELISTING".to_string(), Value::Str("transaction".to_string()));
+                m.insert("EXCHANGE_SOURCE_TOKEN_USER_OUT".to_string(), Value::Str("transaction".to_string()));
+                m.insert("EXCHANGE_TARGET_TOKEN_USER_IN".to_string(), Value::Str("transaction".to_string()));
+                m.insert("BORROW".to_string(), Value::Str("transaction".to_string()));
+                m.insert("REPAYMENT".to_string(), Value::Str("transaction".to_string()));
+                m.insert("LIQ_REPAYMENT".to_string(), Value::Str("transaction".to_string()));
+                m.insert("DELIST_MARGIN_TOKEN_SOURCE_USER_OUT".to_string(), Value::Str("transaction".to_string()));
+                m.insert("DELIST_MARGIN_TOKEN_SOURCE_SYS_IN".to_string(), Value::Str("transaction".to_string()));
+                m.insert("DELIST_MARGIN_TOKEN_TARGET_SYS_OUT".to_string(), Value::Str("transaction".to_string()));
+                m.insert("DELIST_MARGIN_TOKEN_TARGET_USER_IN".to_string(), Value::Str("transaction".to_string()));
+                m.insert("CONFISCATE_TOKEN_USER_OUT".to_string(), Value::Str("transaction".to_string()));
+                m.insert("CONFISCATE_TOKEN_SYS_IN".to_string(), Value::Str("transaction".to_string()));
+                m.insert("DELIST_SMALL_BALANCE_USER_OUT".to_string(), Value::Str("transaction".to_string()));
+                m.insert("DELIST_SMALL_BALANCE_SYS_IN".to_string(), Value::Str("transaction".to_string()));
+                m.insert("DELIST_SMALL_LIABILITY_SYS_OUT".to_string(), Value::Str("transaction".to_string()));
+                m.insert("DELIST_SMALL_LIABILITY_USER_IN".to_string(), Value::Str("transaction".to_string()));
+                m.insert("SMALL_ASSET_SOURCE_TOKEN_USER_OUT".to_string(), Value::Str("transaction".to_string()));
+                m.insert("SMALL_ASSET_SOURCE_TOKEN_SYS_IN".to_string(), Value::Str("transaction".to_string()));
+                m.insert("SMALL_ASSET_TARGET_TOKEN_SYS_OUT".to_string(), Value::Str("transaction".to_string()));
+                m.insert("SMALL_ASSET_TARGET_TOKEN_USER_IN".to_string(), Value::Str("transaction".to_string()));
+                m.insert("TRACE_LOCK_USER_OUT".to_string(), Value::Str("transaction".to_string()));
+                m.insert("TRACE_LOCK_USER_IN".to_string(), Value::Str("transaction".to_string()));
+                m.insert("TRACE_SHARE_BENEFIT_USER_OUT".to_string(), Value::Str("referral".to_string()));
+                m.insert("TRACE_SHARE_BENEFIT_SYSTEM_IN".to_string(), Value::Str("referral".to_string()));
+                m.insert("TRACE_SHARE_BENEFIT_SYSTEM_OUT".to_string(), Value::Str("referral".to_string()));
+                m.insert("TRACE_SHARE_BENEFIT_USER_IN".to_string(), Value::Str("referral".to_string()));
             m
         });
         return self.safe_string(types.clone(), type_var.clone(), &[type_var.clone()]);
@@ -12437,8 +12684,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut response: Value = Value::Null;
         if is_equal(&uta, &Value::Bool(true)) {
-            let __ws_arg_92 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_uta_get_v3_trade_fills(&[__ws_arg_92]).await;
+            let __ws_arg_94 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_uta_get_v3_trade_fills(&[__ws_arg_94]).await;
         }  else {
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
             if is_equal(&get_value(&market, &Value::Str("spot".to_string())), &Value::Bool(true)) {
@@ -12447,22 +12694,22 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         add_element_to_object(&mut request, &Value::Str("startTime".to_string()), subtract(&self.milliseconds(), &Value::Int(7776000000)));
                     }
                     if is_equal(&marginMode, &Value::Str("isolated".to_string())) {
-                        let __ws_arg_93 = self.extend(request.clone(), &[params.clone()]);
-                        response = self.private_margin_get_v2_margin_isolated_fills(&[__ws_arg_93]).await;
+                        let __ws_arg_95 = self.extend(request.clone(), &[params.clone()]);
+                        response = self.private_margin_get_v2_margin_isolated_fills(&[__ws_arg_95]).await;
                     }  else if is_equal(&marginMode, &Value::Str("cross".to_string())) {
-                        let __ws_arg_94 = self.extend(request.clone(), &[params.clone()]);
-                        response = self.private_margin_get_v2_margin_crossed_fills(&[__ws_arg_94]).await;
+                        let __ws_arg_96 = self.extend(request.clone(), &[params.clone()]);
+                        response = self.private_margin_get_v2_margin_crossed_fills(&[__ws_arg_96]).await;
                     }
                 }  else {
-                    let __ws_arg_95 = self.extend(request.clone(), &[params.clone()]);
-                    response = self.private_spot_get_v2_spot_trade_fills(&[__ws_arg_95]).await;
+                    let __ws_arg_97 = self.extend(request.clone(), &[params.clone()]);
+                    response = self.private_spot_get_v2_spot_trade_fills(&[__ws_arg_97]).await;
                 }
             }  else {
                 let mut productType: Value = Value::Null;
                 { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]); productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
                 add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
-                let __ws_arg_96 = self.extend(request.clone(), &[params.clone()]);
-                response = self.private_mix_get_v2_mix_order_fills(&[__ws_arg_96]).await;
+                let __ws_arg_98 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_mix_get_v2_mix_order_fills(&[__ws_arg_98]).await;
             }
         }
         //
@@ -12645,8 +12892,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         { let __destr_tmp = self.handle_uta_and_params(params.clone(), Value::Str("fetchPosition".to_string()), &[Value::Bool(false)]).await; uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_equal(&uta, &Value::Bool(true)) {
             add_element_to_object(&mut request, &Value::Str("category".to_string()), productType.clone());
-            let __ws_arg_97 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_uta_get_v3_position_current_position(&[__ws_arg_97]).await;
+            let __ws_arg_99 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_uta_get_v3_position_current_position(&[__ws_arg_99]).await;
             //
             //     {
             //         "code": "00000",
@@ -12693,8 +12940,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }  else {
             add_element_to_object(&mut request, &Value::Str("marginCoin".to_string()), get_value(&market, &Value::Str("settleId".to_string())));
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
-            let __ws_arg_98 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_mix_get_v2_mix_position_single_position(&[__ws_arg_98]).await;
+            let __ws_arg_100 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_mix_get_v2_mix_position_single_position(&[__ws_arg_100]).await;
             //
             //     {
             //         "code": "00000",
@@ -12794,8 +13041,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         { let __destr_tmp = self.handle_uta_and_params(params.clone(), Value::Str("fetchPositions".to_string()), &[Value::Bool(false)]).await; uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_equal(&uta, &Value::Bool(true)) {
             add_element_to_object(&mut request, &Value::Str("category".to_string()), productType.clone());
-            let __ws_arg_99 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_uta_get_v3_position_current_position(&[__ws_arg_99]).await;
+            let __ws_arg_101 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_uta_get_v3_position_current_position(&[__ws_arg_101]).await;
         }  else if is_equal(&method, &Value::Str("privateMixGetV2MixPositionAllPosition".to_string())) {
             let mut marginCoin: Value = self.safe_string_k(params.clone(), "marginCoin", &[Value::Str("USDT".to_string())]);
             if !is_equal(&market, &Value::Null) {
@@ -12815,16 +13062,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             add_element_to_object(&mut request, &Value::Str("marginCoin".to_string()), marginCoin.clone());
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
-            let __ws_arg_100 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_mix_get_v2_mix_position_all_position(&[__ws_arg_100]).await;
+            let __ws_arg_102 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_mix_get_v2_mix_position_all_position(&[__ws_arg_102]).await;
         }  else {
             isHistory = true;
             if !is_equal(&market, &Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
             }
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
-            let __ws_arg_101 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_mix_get_v2_mix_position_history_position(&[__ws_arg_101]).await;
+            let __ws_arg_103 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_mix_get_v2_mix_position_history_position(&[__ws_arg_103]).await;
         }
         //
         // privateMixGetV2MixPositionAllPosition
@@ -13225,8 +13472,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
             }
             add_element_to_object(&mut request, &Value::Str("category".to_string()), productType.clone());
-            let __ws_arg_102 = self.extend(request.clone(), &[params.clone()]);
-            response = self.public_uta_get_v3_market_history_fund_rate(&[__ws_arg_102]).await;
+            let __ws_arg_104 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_uta_get_v3_market_history_fund_rate(&[__ws_arg_104]).await;
             //
             //     {
             //         "code": "00000",
@@ -13258,8 +13505,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 add_element_to_object(&mut request, &Value::Str("pageSize".to_string()), limit.clone());
             }
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
-            let __ws_arg_103 = self.extend(request.clone(), &[params.clone()]);
-            response = self.public_mix_get_v2_mix_market_history_fund_rate(&[__ws_arg_103]).await;
+            let __ws_arg_105 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_mix_get_v2_mix_market_history_fund_rate(&[__ws_arg_105]).await;
             //
             //     {
             //         "code": "00000",
@@ -13339,18 +13586,18 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut response: Value = Value::Null;
         { let __destr_tmp = self.handle_uta_and_params(params.clone(), Value::Str("fetchFundingRate".to_string()), &[Value::Bool(false)]).await; uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_equal(&uta, &Value::Bool(true)) {
-            let __ws_arg_104 = self.extend(request.clone(), &[params.clone()]);
-            response = self.public_uta_get_v3_market_current_fund_rate(&[__ws_arg_104]).await;
+            let __ws_arg_106 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_uta_get_v3_market_current_fund_rate(&[__ws_arg_106]).await;
         }  else {
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
             let mut method: Value = Value::Null;
             { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchFundingRate".to_string()), Value::Str("method".to_string()), &[Value::Str("publicMixGetV2MixMarketCurrentFundRate".to_string())]); method = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
             if is_equal(&method, &Value::Str("publicMixGetV2MixMarketCurrentFundRate".to_string())) {
-                let __ws_arg_105 = self.extend(request.clone(), &[params.clone()]);
-                response = self.public_mix_get_v2_mix_market_current_fund_rate(&[__ws_arg_105]).await;
+                let __ws_arg_107 = self.extend(request.clone(), &[params.clone()]);
+                response = self.public_mix_get_v2_mix_market_current_fund_rate(&[__ws_arg_107]).await;
             }  else if is_equal(&method, &Value::Str("publicMixGetV2MixMarketFundingTime".to_string())) {
-                let __ws_arg_106 = self.extend(request.clone(), &[params.clone()]);
-                response = self.public_mix_get_v2_mix_market_funding_time(&[__ws_arg_106]).await;
+                let __ws_arg_108 = self.extend(request.clone(), &[params.clone()]);
+                response = self.public_mix_get_v2_mix_market_funding_time(&[__ws_arg_108]).await;
             }
         }
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
@@ -13428,8 +13675,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             //         },
             //     ]
             // }
-            let __ws_arg_107 = self.extend(request.clone(), &[params.clone()]);
-            response = self.public_mix_get_v2_mix_market_tickers(&[__ws_arg_107]).await;
+            let __ws_arg_109 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_mix_get_v2_mix_market_tickers(&[__ws_arg_109]).await;
         }  else if is_equal(&method, &Value::Str("publicMixGetV2MixMarketCurrentFundRate".to_string())) {
             //
             //     {
@@ -13448,8 +13695,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             //         ]
             //     }
             //
-            let __ws_arg_108 = self.extend(request.clone(), &[params.clone()]);
-            response = self.public_mix_get_v2_mix_market_current_fund_rate(&[__ws_arg_108]).await;
+            let __ws_arg_110 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_mix_get_v2_mix_market_current_fund_rate(&[__ws_arg_110]).await;
         }
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
@@ -13640,15 +13887,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if is_equal(&uta, &Value::Bool(true)) {
             add_element_to_object(&mut request, &Value::Str("coin".to_string()), get_value(&market, &Value::Str("settleId".to_string())));
             add_element_to_object(&mut request, &Value::Str("category".to_string()), productType.clone());
-            let __ws_arg_109 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_uta_get_v3_account_financial_records(&[__ws_arg_109]).await;
+            let __ws_arg_111 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_uta_get_v3_account_financial_records(&[__ws_arg_111]).await;
         }  else {
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
             add_element_to_object(&mut request, &Value::Str("marginCoin".to_string()), get_value(&market, &Value::Str("settleId".to_string())));
             add_element_to_object(&mut request, &Value::Str("businessType".to_string()), Value::Str("contract_settle_fee".to_string()));
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
-            let __ws_arg_110 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_mix_get_v2_mix_account_bill(&[__ws_arg_110]).await;
+            let __ws_arg_112 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_mix_get_v2_mix_account_bill(&[__ws_arg_112]).await;
         }
         let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -13758,13 +14005,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         params = self.omit(params.clone(), Value::Str("holdSide".to_string()), &[]);
-        let __ws_arg_111 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_mix_post_v2_mix_account_set_margin(&[__ws_arg_111]).await;
-        let __ws_arg_112 = self.parse_margin_modification(response.clone(), &[market.clone()]);
-        let __ws_arg_113 = self.parse_number(amount.clone(), &[]);
-        return self.extend(__ws_arg_112, &[Value::Map({
+        let __ws_arg_113 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_mix_post_v2_mix_account_set_margin(&[__ws_arg_113]).await;
+        let __ws_arg_114 = self.parse_margin_modification(response.clone(), &[market.clone()]);
+        let __ws_arg_115 = self.parse_number(amount.clone(), &[]);
+        return self.extend(__ws_arg_114, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("amount".to_string(), __ws_arg_113);
+        m.insert("amount".to_string(), __ws_arg_115);
         m.insert("type".to_string(), type_var.clone());
     m
 })]);
@@ -13882,8 +14129,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("productType".to_string(), productType.clone());
             m
         });
-        let __ws_arg_114 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_mix_get_v2_mix_account_account(&[__ws_arg_114]).await;
+        let __ws_arg_116 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_mix_get_v2_mix_account_account(&[__ws_arg_116]).await;
         //
         //     {
         //         "code": "00000",
@@ -13990,13 +14237,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             add_element_to_object(&mut request, &Value::Str("coin".to_string()), get_value(&market, &Value::Str("settleId".to_string())));
             add_element_to_object(&mut request, &Value::Str("category".to_string()), productType.clone());
-            let __ws_arg_115 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_uta_post_v3_account_set_leverage(&[__ws_arg_115]).await;
+            let __ws_arg_117 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_uta_post_v3_account_set_leverage(&[__ws_arg_117]).await;
         }  else {
             add_element_to_object(&mut request, &Value::Str("marginCoin".to_string()), get_value(&market, &Value::Str("settleId".to_string())));
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
-            let __ws_arg_116 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_mix_post_v2_mix_account_set_leverage(&[__ws_arg_116]).await;
+            let __ws_arg_118 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_mix_post_v2_mix_account_set_leverage(&[__ws_arg_118]).await;
         }
         return response;
 
@@ -14043,8 +14290,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("productType".to_string(), productType.clone());
             m
         });
-        let __ws_arg_117 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_mix_post_v2_mix_account_set_margin_mode(&[__ws_arg_117]).await;
+        let __ws_arg_119 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_mix_post_v2_mix_account_set_margin_mode(&[__ws_arg_119]).await;
         return response;
 
     Value::Null
@@ -14091,13 +14338,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         { let __destr_tmp = self.handle_uta_and_params(params.clone(), Value::Str("setPositionMode".to_string()), &[Value::Bool(false)]).await; uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_equal(&uta, &Value::Bool(true)) {
             add_element_to_object(&mut request, &Value::Str("holdMode".to_string()), posMode.clone());
-            let __ws_arg_118 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_uta_post_v3_account_set_hold_mode(&[__ws_arg_118]).await;
+            let __ws_arg_120 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_uta_post_v3_account_set_hold_mode(&[__ws_arg_120]).await;
         }  else {
             add_element_to_object(&mut request, &Value::Str("posMode".to_string()), posMode.clone());
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
-            let __ws_arg_119 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_mix_post_v2_mix_account_set_position_mode(&[__ws_arg_119]).await;
+            let __ws_arg_121 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_mix_post_v2_mix_account_set_position_mode(&[__ws_arg_121]).await;
         }
         return response;
 
@@ -14139,12 +14386,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         { let __destr_tmp = self.handle_uta_and_params(params.clone(), Value::Str("fetchOpenInterest".to_string()), &[Value::Bool(false)]).await; uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_equal(&uta, &Value::Bool(true)) {
             add_element_to_object(&mut request, &Value::Str("category".to_string()), productType.clone());
-            let __ws_arg_120 = self.extend(request.clone(), &[params.clone()]);
-            response = self.public_uta_get_v3_market_open_interest(&[__ws_arg_120]).await;
+            let __ws_arg_122 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_uta_get_v3_market_open_interest(&[__ws_arg_122]).await;
         }  else {
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
-            let __ws_arg_121 = self.extend(request.clone(), &[params.clone()]);
-            response = self.public_mix_get_v2_mix_market_open_interest(&[__ws_arg_121]).await;
+            let __ws_arg_123 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_mix_get_v2_mix_market_open_interest(&[__ws_arg_123]).await;
         }
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -14248,8 +14495,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("endTime".to_string()), request.clone(), params.clone(), &[]); request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let __ws_arg_122 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_spot_get_v2_spot_account_transfer_records(&[__ws_arg_122]).await;
+        let __ws_arg_124 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_spot_get_v2_spot_account_transfer_records(&[__ws_arg_124]).await;
         //
         //     {
         //         "code": "00000",
@@ -14327,11 +14574,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut response: Value = Value::Null;
         if is_equal(&uta, &Value::Bool(true)) {
-            let __ws_arg_123 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_uta_post_v3_account_transfer(&[__ws_arg_123]).await;
+            let __ws_arg_125 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_uta_post_v3_account_transfer(&[__ws_arg_125]).await;
         }  else {
-            let __ws_arg_124 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_spot_post_v2_spot_wallet_transfer(&[__ws_arg_124]).await;
+            let __ws_arg_126 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_spot_post_v2_spot_wallet_transfer(&[__ws_arg_126]).await;
         }
         //
         //     {
@@ -14583,8 +14830,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("borrowAmount".to_string(), self.currency_to_precision(code.clone(), amount.clone(), &[]));
             m
         });
-        let __ws_arg_125 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_margin_post_v2_margin_crossed_account_borrow(&[__ws_arg_125]).await;
+        let __ws_arg_127 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_margin_post_v2_margin_crossed_account_borrow(&[__ws_arg_127]).await;
         //
         //     {
         //         "code": "00000",
@@ -14634,8 +14881,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let __ws_arg_126 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_margin_post_v2_margin_isolated_account_borrow(&[__ws_arg_126]).await;
+        let __ws_arg_128 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_margin_post_v2_margin_isolated_account_borrow(&[__ws_arg_128]).await;
         //
         //     {
         //         "code": "00000",
@@ -14686,8 +14933,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let __ws_arg_127 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_margin_post_v2_margin_isolated_account_repay(&[__ws_arg_127]).await;
+        let __ws_arg_129 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_margin_post_v2_margin_isolated_account_repay(&[__ws_arg_129]).await;
         //
         //     {
         //         "code": "00000",
@@ -14736,8 +14983,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("repayAmount".to_string(), self.currency_to_precision(code.clone(), amount.clone(), &[]));
             m
         });
-        let __ws_arg_128 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_margin_post_v2_margin_crossed_account_repay(&[__ws_arg_128]).await;
+        let __ws_arg_130 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_margin_post_v2_margin_crossed_account_repay(&[__ws_arg_130]).await;
         //
         //     {
         //         "code": "00000",
@@ -14882,11 +15129,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchMyLiquidations() requires a symbol argument".to_string()))));
             }
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), self.safe_string_k(market.clone(), "id", &[]));
-            let __ws_arg_129 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_margin_get_v2_margin_isolated_liquidation_history(&[__ws_arg_129]).await;
+            let __ws_arg_131 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_margin_get_v2_margin_isolated_liquidation_history(&[__ws_arg_131]).await;
         }  else if is_equal(&marginMode, &Value::Str("cross".to_string())) {
-            let __ws_arg_130 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_margin_get_v2_margin_crossed_liquidation_history(&[__ws_arg_130]).await;
+            let __ws_arg_132 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_margin_get_v2_margin_crossed_liquidation_history(&[__ws_arg_132]).await;
         }
         //
         // isolated
@@ -15027,8 +15274,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let __ws_arg_131 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_margin_get_v2_margin_isolated_interest_rate_and_limit(&[__ws_arg_131]).await;
+        let __ws_arg_133 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_margin_get_v2_margin_isolated_interest_rate_and_limit(&[__ws_arg_133]).await;
         //
         //     {
         //         "code": "00000",
@@ -15173,8 +15420,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         { let __destr_tmp = self.handle_uta_and_params(params.clone(), Value::Str("fetchCrossBorrowRate".to_string()), &[Value::Bool(false)]).await; uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_equal(&uta, &Value::Bool(true)) {
-            let __ws_arg_132 = self.extend(request.clone(), &[params.clone()]);
-            response = self.public_uta_get_v3_market_margin_loans(&[__ws_arg_132]).await;
+            let __ws_arg_134 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_uta_get_v3_market_margin_loans(&[__ws_arg_134]).await;
             //
             //     {
             //         "code": "00000",
@@ -15192,8 +15439,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })]);
         }  else {
-            let __ws_arg_133 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_margin_get_v2_margin_crossed_interest_rate_and_limit(&[__ws_arg_133]).await;
+            let __ws_arg_135 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_margin_get_v2_margin_crossed_interest_rate_and_limit(&[__ws_arg_135]).await;
             //
             //     {
             //         "code": "00000",
@@ -15340,11 +15587,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchBorrowInterest() requires a symbol argument".to_string()))));
             }
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), self.safe_string_k(market.clone(), "id", &[]));
-            let __ws_arg_134 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_margin_get_v2_margin_isolated_interest_history(&[__ws_arg_134]).await;
+            let __ws_arg_136 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_margin_get_v2_margin_isolated_interest_history(&[__ws_arg_136]).await;
         }  else if is_equal(&marginMode, &Value::Str("cross".to_string())) {
-            let __ws_arg_135 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_margin_get_v2_margin_crossed_interest_history(&[__ws_arg_135]).await;
+            let __ws_arg_137 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_margin_get_v2_margin_crossed_interest_history(&[__ws_arg_137]).await;
         }
         //
         // isolated
@@ -15495,15 +15742,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 add_element_to_object(&mut request, &Value::Str("posSide".to_string()), side.clone());
             }
             add_element_to_object(&mut request, &Value::Str("category".to_string()), productType.clone());
-            let __ws_arg_136 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_uta_post_v3_trade_close_positions(&[__ws_arg_136]).await;
+            let __ws_arg_138 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_uta_post_v3_trade_close_positions(&[__ws_arg_138]).await;
         }  else {
             if !is_equal(&side, &Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("holdSide".to_string()), side.clone());
             }
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
-            let __ws_arg_137 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_mix_post_v2_mix_order_close_positions(&[__ws_arg_137]).await;
+            let __ws_arg_139 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_mix_post_v2_mix_order_close_positions(&[__ws_arg_139]).await;
         }
         let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -15545,12 +15792,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         { let __destr_tmp = self.handle_uta_and_params(params.clone(), Value::Str("closeAllPositions".to_string()), &[Value::Bool(false)]).await; uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_equal(&uta, &Value::Bool(true)) {
             add_element_to_object(&mut request, &Value::Str("category".to_string()), productType.clone());
-            let __ws_arg_138 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_uta_post_v3_trade_close_positions(&[__ws_arg_138]).await;
+            let __ws_arg_140 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_uta_post_v3_trade_close_positions(&[__ws_arg_140]).await;
         }  else {
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
-            let __ws_arg_139 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_mix_post_v2_mix_order_close_positions(&[__ws_arg_139]).await;
+            let __ws_arg_141 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_mix_post_v2_mix_order_close_positions(&[__ws_arg_141]).await;
         }
         let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -15589,8 +15836,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("productType".to_string(), productType.clone());
             m
         });
-        let __ws_arg_140 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_mix_get_v2_mix_account_account(&[__ws_arg_140]).await;
+        let __ws_arg_142 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_mix_get_v2_mix_account_account(&[__ws_arg_142]).await;
         //
         //     {
         //         "code": "00000",
@@ -15695,11 +15942,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         { let __destr_tmp = self.handle_uta_and_params(params.clone(), Value::Str("fetchPositionsHistory".to_string()), &[Value::Bool(false)]).await; uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_equal(&uta, &Value::Bool(true)) {
             add_element_to_object(&mut request, &Value::Str("category".to_string()), productType.clone());
-            let __ws_arg_141 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_uta_get_v3_position_history_position(&[__ws_arg_141]).await;
+            let __ws_arg_143 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_uta_get_v3_position_history_position(&[__ws_arg_143]).await;
         }  else {
-            let __ws_arg_142 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_mix_get_v2_mix_position_history_position(&[__ws_arg_142]).await;
+            let __ws_arg_144 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_mix_get_v2_mix_position_history_position(&[__ws_arg_144]).await;
         }
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -15739,8 +15986,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("fromCoinSize".to_string(), self.number_to_string(amount.clone()));
             m
         });
-        let __ws_arg_143 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_convert_get_v2_convert_quoted_price(&[__ws_arg_143]).await;
+        let __ws_arg_145 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_convert_get_v2_convert_quoted_price(&[__ws_arg_145]).await;
         //
         //     {
         //         "code": "00000",
@@ -15812,8 +16059,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("cnvtPrice".to_string(), price.clone());
             m
         });
-        let __ws_arg_144 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_convert_post_v2_convert_trade(&[__ws_arg_144]).await;
+        let __ws_arg_146 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_convert_post_v2_convert_trade(&[__ws_arg_146]).await;
         //
         //     {
         //         "code": "00000",
@@ -15881,8 +16128,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
         params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
-        let __ws_arg_145 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_convert_get_v2_convert_convert_record(&[__ws_arg_145]).await;
+        let __ws_arg_147 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_convert_get_v2_convert_convert_record(&[__ws_arg_147]).await;
         //
         //     {
         //         "code": "00000",
@@ -16099,12 +16346,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut uta: Value = Value::Null;
         { let __destr_tmp = self.handle_uta_and_params(params.clone(), Value::Str("fetchFundingInterval".to_string()), &[Value::Bool(false)]).await; uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_equal(&uta, &Value::Bool(true)) {
-            let __ws_arg_146 = self.extend(request.clone(), &[params.clone()]);
-            response = self.public_uta_get_v3_market_current_fund_rate(&[__ws_arg_146]).await;
+            let __ws_arg_148 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_uta_get_v3_market_current_fund_rate(&[__ws_arg_148]).await;
         }  else {
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
-            let __ws_arg_147 = self.extend(request.clone(), &[params.clone()]);
-            response = self.public_mix_get_v2_mix_market_funding_time(&[__ws_arg_147]).await;
+            let __ws_arg_149 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_mix_get_v2_mix_market_funding_time(&[__ws_arg_149]).await;
         }
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut first: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
@@ -16152,11 +16399,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut response: Value = Value::Null;
         if is_true(&(is_equal(&get_value(&market, &Value::Str("swap".to_string())), &Value::Bool(true)))) || is_true(&(is_equal(&get_value(&market, &Value::Str("future".to_string())), &Value::Bool(true)))) {
-            let __ws_arg_148 = self.extend(request.clone(), &[params.clone()]);
-            response = self.public_mix_get_v2_mix_market_account_long_short(&[__ws_arg_148]).await;
+            let __ws_arg_150 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_mix_get_v2_mix_market_account_long_short(&[__ws_arg_150]).await;
         }  else {
-            let __ws_arg_149 = self.extend(request.clone(), &[params.clone()]);
-            response = self.public_margin_get_v2_margin_market_long_short_ratio(&[__ws_arg_149]).await;
+            let __ws_arg_151 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_margin_get_v2_margin_market_long_short_ratio(&[__ws_arg_151]).await;
         }
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_long_short_ratio_history(data.clone(), &[market.clone()]);

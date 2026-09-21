@@ -484,7 +484,7 @@ export default class zebpay extends Exchange {
         }
         const market = this.market(symbol);
         let response = undefined;
-        let data;
+        let data = undefined;
         const request = {
             'symbol': market['id'],
         };
@@ -1898,7 +1898,6 @@ export default class zebpay extends Exchange {
         //         "status": "ok"
         //    }
         //
-        const timestamp = this.milliseconds();
         return {
             'info': info,
             'symbol': this.safeString(market, 'id'),
@@ -1908,8 +1907,8 @@ export default class zebpay extends Exchange {
             'total': undefined,
             'code': this.safeString(info, 'code'),
             'status': this.safeString(info, 'status'),
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
         };
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

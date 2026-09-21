@@ -1688,7 +1688,6 @@ impl LimitlessCore {
         if !is_equal(&askSizeStr, &Value::Null) {
             askSizeStr = crate::precise::Precise::stringDiv(&askSizeStr, &Value::Str("1000000".to_string()));
         }
-        let mut now: Value = self.milliseconds();
         let mut outcomeSymbol: Value = self.safe_outcome_symbol(Value::Null, &[market.clone()]);
         return self.safe_prediction_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1696,8 +1695,8 @@ impl LimitlessCore {
         m.insert("outcomeId".to_string(), self.safe_string_k(market.clone(), "outcomeId", &[]));
         m.insert("label".to_string(), self.safe_string_k(market.clone(), "label", &[]));
         m.insert("market".to_string(), self.safe_string_k(market.clone(), "market", &[]));
-        m.insert("timestamp".to_string(), now.clone());
-        m.insert("datetime".to_string(), self.iso8601(now.clone()));
+        m.insert("timestamp".to_string(), Value::Null);
+        m.insert("datetime".to_string(), Value::Null);
         m.insert("high".to_string(), Value::Null);
         m.insert("low".to_string(), Value::Null);
         m.insert("bid".to_string(), self.parse_number(bidStr.clone(), &[]));
@@ -1952,7 +1951,6 @@ impl LimitlessCore {
         //         "lastTradePrice": "0.161"
         //     }
         //
-        let mut timestamp: Value = self.milliseconds();
         let mut decimals: Value = self.safe_integer_k(self.options.clone(), "usdcDecimals", &[Value::Int(6)]);
         // sizes are scaled by 10^decimals, USDC uses 6 decimals
         let mut scaleStr: Value = self.parse_precision(&[self.number_to_string(negate(&decimals))]);
@@ -2000,8 +1998,8 @@ impl LimitlessCore {
                 m.insert("outcome".to_string(), self.safe_outcome_symbol(outcome.clone(), &[outcomeObj.clone()]));
                 m.insert("bids".to_string(), self.sort_by(bids.clone(), Value::Int(0), &[Value::Bool(true)]));
                 m.insert("asks".to_string(), self.sort_by(asks.clone(), Value::Int(0), &[]));
-                m.insert("timestamp".to_string(), timestamp.clone());
-                m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
+                m.insert("timestamp".to_string(), Value::Null);
+                m.insert("datetime".to_string(), Value::Null);
                 m.insert("nonce".to_string(), Value::Null);
             m
         });

@@ -60,7 +60,7 @@ export default class coinone extends coinoneRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -80,7 +80,7 @@ export default class coinone extends coinoneRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: any, message: any) {
+    handleOrderBook (client: Client, message: Dict) {
         //
         //     {
         //         "response_type": "DATA",
@@ -105,7 +105,7 @@ export default class coinone extends coinoneRest {
         //         }
         //     }
         //
-        const data = this.safeValue (message, 'data', {});
+        const data = this.safeDict (message, 'data', {});
         const baseId = this.safeStringUpper (data, 'target_currency');
         const quoteId = this.safeStringUpper (data, 'quote_currency');
         const base = this.safeCurrencyCode (baseId);
@@ -144,7 +144,7 @@ export default class coinone extends coinoneRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -163,7 +163,7 @@ export default class coinone extends coinoneRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    handleTicker (client: Client, message: any) {
+    handleTicker (client: Client, message: Dict) {
         //
         //     {
         //         "response_type": "DATA",
@@ -193,7 +193,7 @@ export default class coinone extends coinoneRest {
         //         }
         //     }
         //
-        const data = this.safeValue (message, 'data', {});
+        const data = this.safeDict (message, 'data', {});
         const ticker = this.parseWsTicker (data);
         const symbol = ticker['symbol'];
         this.tickers[(symbol as string)] = ticker;
@@ -269,7 +269,7 @@ export default class coinone extends coinoneRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -292,7 +292,7 @@ export default class coinone extends coinoneRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client: Client, message: any) {
+    handleTrades (client: Client, message: Dict) {
         //
         //     {
         //         "response_type": "DATA",
@@ -308,7 +308,7 @@ export default class coinone extends coinoneRest {
         //         }
         //     }
         //
-        const data = this.safeValue (message, 'data', {});
+        const data = this.safeDict (message, 'data', {});
         const trade = this.parseWsTrade (data);
         const symbol = trade['symbol'];
         let stored = this.safeValue (this.trades, symbol);
@@ -341,7 +341,7 @@ export default class coinone extends coinoneRest {
         const symbol = base + '/' + quote;
         const timestamp = this.safeInteger (trade, 'timestamp');
         market = this.safeMarket (symbol, market);
-        const isSellerMaker = this.safeValue (trade, 'is_seller_maker');
+        const isSellerMaker = this.safeBool (trade, 'is_seller_maker');
         let side: Str = undefined;
         if (isSellerMaker !== undefined) {
             side = (isSellerMaker === true) ? 'sell' : 'buy';
@@ -380,7 +380,7 @@ export default class coinone extends coinoneRest {
         return false;
     }
 
-    override handleMessage (client: Client, message: any) {
+    override handleMessage (client: Client, message: Dict) {
         if (this.handleErrorMessage (client, message) === true) {
             return;
         }
@@ -413,13 +413,13 @@ export default class coinone extends coinoneRest {
         }
     }
 
-    override ping (client: Client) {
+    override ping (client: Client): Dict {
         return {
             'request_type': 'PING',
         };
     }
 
-    handlePong (client: Client, message: any) {
+    handlePong (client: Client, message: Dict): Dict {
         //
         //     {
         //         "response_type":"PONG"

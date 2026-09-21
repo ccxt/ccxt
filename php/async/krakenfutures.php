@@ -84,6 +84,7 @@ class krakenfutures extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchPositions' => true,
+                'fetchPositionsHistory' => true,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
@@ -1224,8 +1225,8 @@ class krakenfutures extends Exchange {
         $marketId = $this->safe_string($trade, 'symbol');
         $side = $this->safe_string($trade, 'side');
         $type = null;
-        $priorEdit = $this->safe_value($trade, 'orderPriorEdit');
-        $priorExecution = $this->safe_value($trade, 'orderPriorExecution');
+        $priorEdit = $this->safe_dict($trade, 'orderPriorEdit');
+        $priorExecution = $this->safe_dict($trade, 'orderPriorExecution');
         if ($priorExecution !== null) {
             $order = $this->safe_string($priorExecution, 'orderId');
             $marketId = $this->safe_string($priorExecution, 'symbol');
@@ -1302,7 +1303,7 @@ class krakenfutures extends Exchange {
         ));
     }
 
-    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($type === null) {
             throw new ArgumentsRequired($this->id . ' requires a $type argument');
         }
@@ -1376,7 +1377,7 @@ class krakenfutures extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -1478,7 +1479,7 @@ class krakenfutures extends Exchange {
         return $this->parse_order($sendStatus, $market);
     }
 
-    public function create_orders(array $orders, $params = array()) {
+    public function create_orders(array $orders, $params = array()): PromiseInterface {
         return Async\async(self::do_create_orders(...))($orders, $params);
     }
 
@@ -1503,7 +1504,7 @@ class krakenfutures extends Exchange {
             $side = $this->safe_string($rawOrder, 'side');
             $amount = $this->safe_value($rawOrder, 'amount');
             $price = $this->safe_value($rawOrder, 'price');
-            $orderParams = $this->safe_value($rawOrder, 'params', array());
+            $orderParams = $this->safe_dict($rawOrder, 'params', array());
             $extendedParams = $this->extend($orderParams, $params); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             if (!(is_array($extendedParams) && array_key_exists('order_tag' ?? '', $extendedParams))) {
                 // order tag is mandatory so we will generate one if not provided
@@ -1537,7 +1538,7 @@ class krakenfutures extends Exchange {
         return $this->parse_orders($data);
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_edit_order(...))($id, $symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -1577,7 +1578,7 @@ class krakenfutures extends Exchange {
         return $order;
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
     }
 
@@ -1596,7 +1597,7 @@ class krakenfutures extends Exchange {
             Async\await($this->load_markets());
         }
         $response = Async\await($this->privatePostCancelorder($this->extend(array( 'order_id' => $id ), $params)));
-        $status = $this->safe_string($this->safe_value($response, 'cancelStatus', array()), 'status');
+        $status = $this->safe_string($this->safe_dict($response, 'cancelStatus', array()), 'status');
         $this->verify_order_action_success($status, 'cancelOrder');
         $order = array();
         if (is_array($response) && array_key_exists('cancelStatus' ?? '', $response)) {
@@ -1605,7 +1606,7 @@ class krakenfutures extends Exchange {
         return $this->extend(array( 'info' => $response ), $order);
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_orders(...))($ids, $symbol, $params);
     }
 
@@ -1675,7 +1676,7 @@ class krakenfutures extends Exchange {
         return $this->parse_orders($batchStatus);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_all_orders(...))($symbol, $params);
     }
 
@@ -1826,7 +1827,7 @@ class krakenfutures extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order(...))($id, $symbol, $params);
     }
 
@@ -1989,7 +1990,7 @@ class krakenfutures extends Exchange {
         return $this->parse_orders($canceledAndRejected, $market, $since, $limit);
     }
 
-    public function parse_order_type(mixed $orderType) {
+    public function parse_order_type(?string $orderType): ?string {
         $typesMap = array(
             'lmt' => 'limit',
             'mkt' => 'market',
@@ -2430,7 +2431,7 @@ class krakenfutures extends Exchange {
                         $fixed = true;
                     } elseif (!$fixed) {
                         $executedPrice = $this->safe_string($item, 'price');
-                        $orderPriorExecution = $this->safe_value($item, 'orderPriorExecution');
+                        $orderPriorExecution = $this->safe_dict($item, 'orderPriorExecution');
                         $details = $this->safe_value_2($item, 'orderPriorExecution', 'orderPriorEdit');
                         if ($executedPrice === null) {
                             $price = $this->safe_string($orderPriorExecution, 'limitPrice');
@@ -2556,7 +2557,7 @@ class krakenfutures extends Exchange {
         ));
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
     }
 
@@ -2798,7 +2799,7 @@ class krakenfutures extends Exchange {
         );
     }
 
-    public function parse_ledger_entry_type(mixed $type) {
+    public function parse_ledger_entry_type(?string $type): ?string {
         $types = array(
             'futures trade' => 'trade',
             'futures liquidation' => 'trade',
@@ -3009,8 +3010,8 @@ class krakenfutures extends Exchange {
             $type = ($symbol === null) ? 'flex' : $symbol;
         }
         $accountName = $this->parse_account($type);
-        $accounts = $this->safe_value($response, 'accounts');
-        $account = $this->safe_value($accounts, $accountName);
+        $accounts = $this->safe_dict($response, 'accounts');
+        $account = $this->safe_dict($accounts, $accountName);
         if ($account === null) {
             $type = ($type === null) ? '' : $type;
             $symbol = ($symbol === null) ? '' : $symbol;
@@ -3112,7 +3113,7 @@ class krakenfutures extends Exchange {
                 $account['used'] = '0.0';
                 $account['total'] = $balance;
             } else {
-                $auxiliary = $this->safe_value($response, 'auxiliary');
+                $auxiliary = $this->safe_dict($response, 'auxiliary');
                 $account['free'] = $this->safe_string($auxiliary, 'af');
                 $account['total'] = $this->safe_string($auxiliary, 'pv');
             }
@@ -3146,7 +3147,7 @@ class krakenfutures extends Exchange {
         $fundingRates = array();
         for ($i = 0; $i < count($tickers); $i++) {
             $entry = $tickers[$i];
-            $entry_symbol = $this->safe_value($entry, 'symbol');
+            $entry_symbol = $this->safe_string($entry, 'symbol');
             if ($marketIds !== null) {
                 if (!$this->in_array($entry_symbol, $marketIds)) {
                     continue;
@@ -3227,7 +3228,7 @@ class krakenfutures extends Exchange {
         );
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_funding_rate_history(...))($symbol, $since, $limit, $params);
     }
 
@@ -3293,12 +3294,12 @@ class krakenfutures extends Exchange {
     private function do_fetch_positions(?array $symbols = null, $params = array()) {
         /**
          *
-         * @see https://docs.kraken.com/api/docs/futures-api/trading/get-open-positions
+         * @see https://docs.kraken.com/api/docs/futures-api/trading/get-open-$positions
          *
-         * Fetches current contract trading positions
+         * Fetches current contract trading $positions
          * @param {string[]} $symbols List of unified $symbols
          * @param {array} [$params] Not used by krakenfutures
-         * @return Parsed exchange $response for positions
+         * @return Parsed exchange $response for $positions
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -3321,12 +3322,6 @@ class krakenfutures extends Exchange {
         //        "serverTime": "2022-03-03T22:51:16.566Z"
         //    }
         //
-        $result = $this->parse_positions($response);
-        return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
-    }
-
-    public function parse_positions(mixed $response, ?array $symbols = null, $params = array()) {
-        $result = array();
         // a degraded response missing openPositions must fail loudly - a flat
         // account and "could not read positions" are not interchangeable for
         // reconciliation logic, see https://github.com/ccxt/ccxt/issues/29710
@@ -3336,11 +3331,100 @@ class krakenfutures extends Exchange {
         if ($positions === null) {
             throw new ExchangeNotAvailable($this->id . ' fetchPositions() returned a $response without an "openPositions" list');
         }
-        for ($i = 0; $i < count($positions); $i++) {
-            $position = $this->parse_position($positions[$i]);
-            $result[] = $position;
+        return $this->parse_positions($positions, $symbols);
+    }
+
+    public function fetch_positions_history(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_positions_history(...))($symbols, $since, $limit, $params);
+    }
+
+    private function do_fetch_positions_history(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches historical $positions, by default the events that closed a position
+         *
+         * @see https://docs.kraken.com/api-reference/account-history/get-position-$update-events
+         *
+         * @param {string[]} [$symbols] a list of unified $market $symbols, only a single symbol is filtered by the exchange
+         * @param {int} [$since] timestamp in ms of the earliest position to fetch
+         * @param {int} [$limit] the maximum number of $positions to return
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest position to fetch
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {bool} [$params->opened] set to true to also return the events that opened a position
+         * @param {bool} [$params->increased] set to true to also return the events that increased a position
+         * @param {bool} [$params->decreased] set to true to also return the events that decreased a position
+         * @param {bool} [$params->reversed] set to true to also return the events that reversed a position
+         * @param {bool} [$params->no_change] set to true to also return the events that left the position size untouched
+         * @param {bool} [$params->trades] set to true to also return every $event caused by a trade
+         * @param {bool} [$params->funding_realization] set to true to also return the funding realization events
+         * @param {bool} [$params->settlement] set to true to also return the settlement events
+         * @param {string} [$params->continuation_token] the token of a previous $response, to fetch the next page
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structures~
+         */
+        Async\await($this->load_markets());
+        $market = null;
+        if ($symbols !== null) {
+            $symbolsLength = count($symbols);
+            if ($symbolsLength === 1) {
+                $market = $this->market($symbols[0]);
+            }
         }
-        return $result;
+        $request = array(
+            'closed' => true, // the events that closed a position, the unified meaning of a historical position
+        );
+        if ($market !== null) {
+            $request['tradeable'] = $market['id'];
+        }
+        if ($since !== null) {
+            $request['since'] = $since;
+            $request['sort'] = 'asc';
+        }
+        if ($limit !== null) {
+            $request['count'] = $limit;
+        }
+        $until = $this->safe_integer($params, 'until');
+        if ($until !== null) {
+            $params = $this->omit($params, 'until');
+            $request['before'] = $until;
+        }
+        $response = Async\await($this->historyGetPositions($this->extend($request, $params)));
+        //
+        //    {
+        //        "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
+        //        "elements": [
+        //            {
+        //                "uid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
+        //                "timestamp": 1789646492483,
+        //                "event": {
+        //                    "PositionUpdate": {
+        //                        "tradeable": "PF_DOGEUSD",
+        //                        "oldPosition": "250",
+        //                        "newPosition": "0",
+        //                        "positionChange": "close",
+        //                        "executionPrice": "0.08105",
+        //                        "executionSize": "250",
+        //                        "realizedPnL": "0.05",
+        //                        ...
+        //                    }
+        //                }
+        //            }
+        //        ],
+        //        "len": 2,
+        //        "serverTime": "2026-09-17T18:14:37.761Z"
+        //    }
+        //
+        $elements = $this->safe_list($response, 'elements', array());
+        $updates = array();
+        for ($i = 0; $i < count($elements); $i++) {
+            $event = $this->safe_dict($elements[$i], 'event', array());
+            $update = $this->safe_dict($event, 'PositionUpdate');
+            if ($update !== null) {
+                $updates[] = $update;
+            }
+        }
+        $positions = $this->parse_positions($updates, $symbols);
+        return $this->filter_by_since_limit($positions, $since, $limit);
     }
 
     public function parse_position(array $position, ?array $market = null) {
@@ -3368,35 +3452,97 @@ class krakenfutures extends Exchange {
         //        "maxFixedLeverage":"1.0"
         //    }
         //
+        // position update event (fetchPositionsHistory)
+        //
+        //    {
+        //        "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
+        //        "tradeable": "PF_DOGEUSD",
+        //        "oldPosition": "250",
+        //        "oldAverageEntryPrice": "0.08085",
+        //        "newPosition": "0",
+        //        "newAverageEntryPrice": "0.08085",
+        //        "fillTime": 1789643150594,
+        //        "fee": "0.01013125",
+        //        "feeCurrency": "USD",
+        //        "realizedPnL": "0.05",
+        //        "positionChange": "close",
+        //        "executionUid": "7bfe252a-ab7b-480b-8c52-0ce55e6cba75",
+        //        "executionPrice": "0.08105",
+        //        "executionSize": "250",
+        //        "tradeType": "userExecution",
+        //        "fundingRealizationTime": 1789646492483,
+        //        "realizedFunding": "-0.00000764284",
+        //        "timestamp": 1789646492483,
+        //        "updateReason": "trade"
+        //    }
+        //
+        // the history rows carry a positionChange, the open-position rows do not
+        $positionChange = $this->safe_string($position, 'positionChange');
+        $isHistory = ($positionChange !== null);
         $leverage = $this->safe_number($position, 'maxFixedLeverage');
         $marginType = 'cross';
         if ($leverage !== null) {
             $marginType = 'isolated';
         }
-        $datetime = $this->safe_string($position, 'fillTime');
-        $marketId = $this->safe_string($position, 'symbol');
+        $timestamp = null;
+        $datetime = null;
+        if ($isHistory) {
+            $timestamp = $this->safe_integer($position, 'timestamp');
+            $datetime = $this->iso8601($timestamp);
+        } else {
+            $datetime = $this->safe_string($position, 'fillTime');
+            $timestamp = $this->parse8601($datetime);
+        }
+        $side = $this->safe_string($position, 'side');
+        $entryPrice = $this->safe_string($position, 'price');
+        $contracts = $this->safe_string($position, 'size');
+        if ($isHistory) {
+            // the event describes the position it acted on: an open or an increase
+            // describes the new position, a close, a decrease or a reversal the old
+            // one together with the size that was closed
+            $describesNewPosition = ($positionChange === 'open') || ($positionChange === 'increase');
+            $signedSize = $this->safe_string($position, 'oldPosition');
+            $entryPrice = $this->safe_string($position, 'oldAverageEntryPrice');
+            $contracts = $this->safe_string($position, 'executionSize');
+            if ($describesNewPosition) {
+                $signedSize = $this->safe_string($position, 'newPosition');
+                $entryPrice = $this->safe_string($position, 'newAverageEntryPrice');
+                $contracts = Precise::string_abs($signedSize);
+            } elseif ($positionChange === 'reverse') {
+                $contracts = Precise::string_abs($signedSize); // a reversal closes the whole old position
+            }
+            if (Precise::string_gt($signedSize, '0')) {
+                $side = 'long';
+            } elseif (Precise::string_lt($signedSize, '0')) {
+                $side = 'short';
+            }
+        }
+        $marketId = $this->safe_string_2($position, 'symbol', 'tradeable');
         $market = $this->safe_market($marketId, $market);
         return array(
             'info' => $position,
+            'id' => $this->safe_string($position, 'executionUid'),
             'symbol' => $market['symbol'],
-            'timestamp' => $this->parse8601($datetime),
+            'timestamp' => $timestamp,
             'datetime' => $datetime,
             'initialMargin' => null,
             'initialMarginPercentage' => null,
             'maintenanceMargin' => null,
             'maintenanceMarginPercentage' => null,
-            'entryPrice' => $this->safe_number($position, 'price'),
+            'entryPrice' => $this->parse_number($entryPrice),
             'notional' => null,
             'leverage' => $leverage,
             'unrealizedPnl' => $this->safe_number($position, 'unrealizedPnl'),
-            'contracts' => $this->safe_number($position, 'size'),
+            'realizedPnl' => $this->safe_number($position, 'realizedPnL'),
+            'contracts' => $this->parse_number($contracts),
             'contractSize' => $this->safe_number($market, 'contractSize'),
             'marginRatio' => null,
             'liquidationPrice' => null,
             'markPrice' => null,
+            'lastPrice' => $this->safe_number($position, 'executionPrice'),
             'collateral' => null,
             'marginType' => $marginType,
-            'side' => $this->safe_string($position, 'side'),
+            'side' => $side,
             'percentage' => null,
         );
     }
@@ -3506,7 +3652,7 @@ class krakenfutures extends Exchange {
         //        "tags": [],
         //    }
         //
-        $marginLevels = $this->safe_value($info, 'marginLevels');
+        $marginLevels = $this->safe_list($info, 'marginLevels');
         $marketId = $this->safe_string($info, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $tiers = array();
@@ -3586,11 +3732,11 @@ class krakenfutures extends Exchange {
         }
     }
 
-    public function transfer_out(string $code, mixed $amount, $params = array()) {
+    public function transfer_out(string $code, float $amount, $params = array()) {
         return Async\async(self::do_transfer_out(...))($code, $amount, $params);
     }
 
-    private function do_transfer_out(string $code, mixed $amount, $params = array()) {
+    private function do_transfer_out(string $code, float $amount, $params = array()) {
         /**
          * transfer from futures wallet to spot wallet
          * @param {str} $code Unified currency $code
@@ -3784,8 +3930,8 @@ class krakenfutures extends Exchange {
         if ($code === 429) {
             throw new DDoSProtection($this->id . ' ' . $body);
         }
-        $errors = $this->safe_value($response, 'errors');
-        $firstError = $this->safe_value($errors, 0);
+        $errors = $this->safe_list($response, 'errors');
+        $firstError = $this->safe_dict($errors, 0);
         $firtErrorMessage = $this->safe_string($firstError, 'message');
         $message = $this->safe_string($response, 'error', $firtErrorMessage);
         if ($message === null) {
@@ -3800,14 +3946,14 @@ class krakenfutures extends Exchange {
         throw new ExchangeError($feedback); // unknown message
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
-        $apiVersions = $this->safe_value($this->options['versions'], $api, array());
-        $methodVersions = $this->safe_value($apiVersions, $method, array());
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+        $apiVersions = $this->safe_dict($this->options['versions'], $api, array());
+        $methodVersions = $this->safe_dict($apiVersions, $method, array());
         $defaultVersion = $this->safe_string($methodVersions, $path, $this->version);
         $version = $this->safe_string($params, 'version', $defaultVersion);
         $params = $this->omit($params, 'version');
-        $apiAccess = $this->safe_value($this->options['access'], $api, array());
-        $methodAccess = $this->safe_value($apiAccess, $method, array());
+        $apiAccess = $this->safe_dict($this->options['access'], $api, array());
+        $methodAccess = $this->safe_dict($apiAccess, $method, array());
         $access = $this->safe_string($methodAccess, $path, 'public');
         $endpoint = $version . '/' . $this->implode_params($path, $params);
         $params = $this->omit($params, $this->extract_params($path));

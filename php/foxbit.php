@@ -1003,7 +1003,7 @@ class foxbit extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function create_orders(array $orders, $params = array()) {
+    public function create_orders(array $orders, $params = array()): array {
         /**
          * create a list of trade $orders
          *
@@ -1086,7 +1086,7 @@ class foxbit extends Exchange {
         return $this->parse_orders($data);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * Cancel open orders.
          *
@@ -1118,7 +1118,7 @@ class foxbit extends Exchange {
         return $this->parse_order($result);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): array {
         /**
          * Cancel all open orders or all open orders for a specific $market->
          *
@@ -1624,7 +1624,7 @@ class foxbit extends Exchange {
         return $this->parse_transaction($response);
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch the history of changes, actions done by the user or operations that altered balance of the user
          *
@@ -1780,7 +1780,7 @@ class foxbit extends Exchange {
         );
     }
 
-    public function parse_trade(mixed $trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         $timestamp = $this->parse_date($this->safe_string($trade, 'created_at'));
         $price = $this->safe_string($trade, 'price');
         $amount = $this->safe_string($trade, 'volume', $this->safe_string($trade, 'quantity'));
@@ -1880,7 +1880,7 @@ class foxbit extends Exchange {
         ));
     }
 
-    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null) {
+    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
         $network = $this->safe_dict($depositAddress, 'network');
         $networkId = $this->safe_string($network, 'code');
         $currencyCode = $this->safe_currency_code(null, $currency);
@@ -1966,7 +1966,7 @@ class foxbit extends Exchange {
         );
     }
 
-    public function parse_ledger_entry_type(mixed $type) {
+    public function parse_ledger_entry_type(?string $type): ?string {
         $types = array(
             'DEPOSITING' => 'transaction',
             'WITHDRAWING' => 'transaction',
@@ -1977,7 +1977,7 @@ class foxbit extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ledger_entry(array $item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null): array {
         // {
         //     "uuid": "f8e9f2d6-3c1e-4f2d-8f8e-9f2d6c1e4f2d",
         //     "amount": "0.0001",
@@ -2039,7 +2039,7 @@ class foxbit extends Exchange {
         );
     }
 
-    public function sign(mixed $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $version = $api[0];
         $urlPath = $api[1];
         $fullPath = '/rest/' . $version . '/' . $this->implode_params($path, $params);

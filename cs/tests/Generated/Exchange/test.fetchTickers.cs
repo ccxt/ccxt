@@ -31,12 +31,12 @@ public partial class testMainClass : BaseTest
         testSharedMethods.assertDictionaryResponse(exchange, method, response, exchange.json(argSymbols));
         List<object> values = new List<object>(((IDictionary<string,object>)response).Values);
         object checkedSymbol = null;
-        if (!isEqual(argSymbols, null) && (getArrayLength(argSymbols) == 1))
+        if ((argSymbols != null) && (getArrayLength(argSymbols) == 1))
         {
             checkedSymbol = getValue(argSymbols, 0);
         }
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol);
-        for (int i = 0; isLessThan(i, values.Count); postFixIncrement(ref i))
+        for (int i = 0; i < values.Count; i++)
         {
             // todo: symbol check here
             object ticker = values[i];
@@ -78,7 +78,7 @@ public partial class testMainClass : BaseTest
                 return;
             }
             int allMarketsLength = (new List<object>(((IDictionary<string,object>)allMarkets).Keys)).Count;
-            assert(isLessThanOrEqual(obtainedTickersLength, allMarketsLength), add(add(add(add(add(add(add(exchange.id, " "), "fetchTickers"), " must return <= than all markets, but returned: "), ((object)obtainedTickersLength).ToString()), " tickers, "), ((object)allMarketsLength).ToString()), " markets"));
+            assert(obtainedTickersLength <= allMarketsLength, add(add(add(add(add(add(add(exchange.id, " "), "fetchTickers"), " must return <= than all markets, but returned: "), ((object)obtainedTickersLength).ToString()), " tickers, "), ((object)allMarketsLength).ToString()), " markets"));
         }
     }
 

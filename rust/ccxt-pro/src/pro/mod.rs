@@ -31,6 +31,7 @@ pub mod blofin;
 pub mod bullish;
 pub mod bybit;
 pub mod bybiteu;
+pub mod bybitid;
 pub mod bydfi;
 pub mod cex;
 pub mod coinbase;

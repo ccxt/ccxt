@@ -61,7 +61,7 @@ public partial class testMainClass : BaseTest
         IDictionary<string, object> market = null;
         bool isUnrecognizedSymbol = false;
         bool isFetchTickerCalled = isEqual(method, "fetchTicker");
-        object symbolForMarket = (!isEqual(symbol, null)) ? symbol : exchange.safeString(entry, "symbol");
+        object symbolForMarket = ((symbol != null)) ? symbol : exchange.safeString(entry, "symbol");
         if ((symbolForMarket != null))
         {
             if ((!isEqual(exchange.markets, null)) && (inOp(exchange.markets, symbolForMarket)))
@@ -75,20 +75,20 @@ public partial class testMainClass : BaseTest
         // temp todo: skip inactive markets for now, as they sometimes have weird values and causing issues:
         if (!(inOp(skippedProperties, "checkInactiveMarkets")))
         {
-            if ((market != null) && isEqual(getValue(market, "active"), false))
+            if ((market != null) && (((market.ContainsKey("active") ? market["active"] : null) as bool?) == false))
             {
                 return;
             }
         }
         if (inOp(skippedProperties, "skipNonActiveMarkets"))
         {
-            if ((market == null) || (!isEqual(getValue(market, "active"), true)))
+            if ((market == null) || ((((market.ContainsKey("active") ? market["active"] : null) as bool?) != true)))
             {
                 return;
             }
         }
         // only check "above zero" values if exchange is not supposed to have exotic index markets
-        bool isStandardMarket = ((market != null) && isTrue(exchange.inArray(getValue(market, "type"), new List<object>() {"spot", "swap", "future", "option"})));
+        bool isStandardMarket = ((market != null) && isTrue(exchange.inArray((market.ContainsKey("type") ? market["type"] : null), new List<object>() {"spot", "swap", "future", "option"})));
         bool valuesShouldBePositive = isStandardMarket; // || (market === undefined) atm, no check for index markets
         if (valuesShouldBePositive && !(inOp(skippedProperties, "positiveValues")))
         {
@@ -111,7 +111,7 @@ public partial class testMainClass : BaseTest
         //
         string? lastString = exchange.safeString(entry, "last");
         string? closeString = exchange.safeString(entry, "close");
-        assert((((closeString == null)) && ((lastString == null))) || isTrue(Precise.stringEq(lastString, closeString)), ("`last` != `close`" + logText));
+        assert((((closeString == null)) && ((lastString == null))) || Precise.stringEq(lastString, closeString), ("`last` != `close`" + (logText)));
         string? openPrice = exchange.safeString(entry, "open");
         //
         // base & quote volumes
@@ -130,7 +130,7 @@ public partial class testMainClass : BaseTest
             // far above baseVolume * high), so the spot-derived invariant does not hold there,
             // see https://github.com/ccxt/ccxt/pull/29563
             bool? isInverse = exchange.safeBool(market, "inverse", false);
-            if (((baseVolume != null)) && ((quoteVolume != null)) && ((high != null)) && ((low != null)) && (!isEqual(isInverse, true)))
+            if (((baseVolume != null)) && ((quoteVolume != null)) && ((high != null)) && ((low != null)) && ((isInverse != true)))
             {
                 string? baseLow = Precise.stringMul(baseVolume, low);
                 string? baseHigh = Precise.stringMul(baseVolume, high);
@@ -164,8 +164,8 @@ public partial class testMainClass : BaseTest
                 string? quoteQuantum = exchange.parsePrecision(exchange.numberToString(quoteVolumeDecimals));
                 baseLow = Precise.stringSub(baseLow, quoteQuantum);
                 baseHigh = Precise.stringAdd(baseHigh, quoteQuantum);
-                assert(Precise.stringGe(quoteVolume, baseLow), ("quoteVolume should be => baseVolume * low" + logText));
-                assert(Precise.stringLe(quoteVolume, baseHigh), ("quoteVolume should be <= baseVolume * high" + logText));
+                assert(Precise.stringGe(quoteVolume, baseLow), ("quoteVolume should be => baseVolume * low" + (logText)));
+                assert(Precise.stringLe(quoteVolume, baseHigh), ("quoteVolume should be <= baseVolume * high" + (logText)));
             }
         }
         //
@@ -187,7 +187,7 @@ public partial class testMainClass : BaseTest
             // like that reveals no rounding at all, so fall back to the price part
             // instead of letting it widen the window
             string? changeWindow = pricePart;
-            if (isGreaterThanOrEqual(changeDecimals, 0))
+            if (changeDecimals >= 0)
             {
                 string? changeQuantum = exchange.parsePrecision(exchange.numberToString(changeDecimals));
                 // a change of "0" prints no decimals, so its apparent step is a whole unit
@@ -198,7 +198,7 @@ public partial class testMainClass : BaseTest
                 changeWindow = Precise.stringMax(pricePart, changeQuantum);
             }
             string? difference = Precise.stringAbs(Precise.stringSub(changeString, Precise.stringSub(close, open)));
-            assert(Precise.stringLe(difference, changeWindow), ("`change` should be `last - open`" + logText));
+            assert(Precise.stringLe(difference, changeWindow), ("`change` should be `last - open`" + (logText)));
         }
         if (((changeString != null)) && ((percentageString != null)) && ((open != null)) && !(inOp(skippedProperties, "comparePercentage")))
         {
@@ -209,20 +209,20 @@ public partial class testMainClass : BaseTest
             string? relative = Precise.stringDiv(Precise.stringAbs(derived), "50");
             string? allowed = Precise.stringMax(relative, "0.01");
             string? gap = Precise.stringAbs(Precise.stringSub(percentageString, derived));
-            assert(Precise.stringLe(gap, allowed), ("`percentage` should be `(change/open) * 100`" + logText));
+            assert(Precise.stringLe(gap, allowed), ("`percentage` should be `(change/open) * 100`" + (logText)));
         }
         // open and close should be between High & Low
         if ((high != null) && (low != null) && !(inOp(skippedProperties, "compareOHLC")))
         {
             if ((open != null))
             {
-                assert(Precise.stringGe(open, low), ("open should be >= low" + logText));
-                assert(Precise.stringLe(open, high), ("open should be <= high" + logText));
+                assert(Precise.stringGe(open, low), ("open should be >= low" + (logText)));
+                assert(Precise.stringLe(open, high), ("open should be <= high" + (logText)));
             }
             if ((close != null))
             {
-                assert(Precise.stringGe(close, low), ("close should be >= low" + logText));
-                assert(Precise.stringLe(close, high), ("close should be <= high" + logText));
+                assert(Precise.stringGe(close, low), ("close should be >= low" + (logText)));
+                assert(Precise.stringLe(close, high), ("close should be <= high" + (logText)));
             }
         }
         //
@@ -236,14 +236,14 @@ public partial class testMainClass : BaseTest
             // assert (low !== undefined, 'vwap is defined, but low is not' + logText);
             // assert (vwap >= low && vwap <= high)
             // todo: calc compare
-            assert(!valuesShouldBePositive || isTrue(Precise.stringGe(vwap, "0")), ("vwap is not greater than zero" + logText));
+            assert(!valuesShouldBePositive || Precise.stringGe(vwap, "0"), ("vwap is not greater than zero" + (logText)));
             if ((baseVolume != null))
             {
-                assert((quoteVolume != null), ("baseVolume & vwap is defined, but quoteVolume is not" + logText));
+                assert((quoteVolume != null), ("baseVolume & vwap is defined, but quoteVolume is not" + (logText)));
             }
             if ((quoteVolume != null))
             {
-                assert((baseVolume != null), ("quoteVolume & vwap is defined, but baseVolume is not" + logText));
+                assert((baseVolume != null), ("quoteVolume & vwap is defined, but baseVolume is not" + (logText)));
             }
         }
         string? askString = exchange.safeString(entry, "ask");
@@ -260,7 +260,7 @@ public partial class testMainClass : BaseTest
             string? medianPrice = Precise.stringDiv(Precise.stringAdd(bidString, askString), "2");
             string? medianLow = Precise.stringMul(medianPrice, Precise.stringSub("1", allowedPercentageVariation));
             string? medianHigh = Precise.stringMul(medianPrice, Precise.stringAdd("1", allowedPercentageVariation));
-            assert(isTrue(Precise.stringGe(lastString, medianLow)) && isTrue(Precise.stringLe(lastString, medianHigh)), ("last price should be within 1% of the bid/ask median price" + logText));
+            assert(Precise.stringGe(lastString, medianLow) && Precise.stringLe(lastString, medianHigh), ("last price should be within 1% of the bid/ask median price" + (logText)));
         }
         string? percentage = exchange.safeString(entry, "percentage");
         string? change = exchange.safeString(entry, "change");
@@ -280,10 +280,10 @@ public partial class testMainClass : BaseTest
             if ((percentage != null))
             {
                 // - should be above -100 and (for non-options) below MAX
-                assert(Precise.stringGe(percentage, "-100"), ("percentage should be above -100% " + logText));
-                if (!isEqual(isOptionMarket, true))
+                assert(Precise.stringGe(percentage, "-100"), ("percentage should be above -100% " + (logText)));
+                if ((isOptionMarket != true))
                 {
-                    assert(Precise.stringLe(percentage, Precise.stringMul("+100", maxIncrease)), ((("percentage should be below " + maxIncrease) + "00% ") + logText));
+                    assert(Precise.stringLe(percentage, Precise.stringMul("+100", maxIncrease)), ((("percentage should be below " + maxIncrease) + "00% ") + (logText)));
                 }
             }
             //
@@ -293,10 +293,10 @@ public partial class testMainClass : BaseTest
             if ((change != null))
             {
                 // - should be above -price and (for non-options) below +price*maxIncrease
-                assert(Precise.stringGe(change, Precise.stringNeg(approxValue)), ("change should be above -price " + logText));
-                if (!isEqual(isOptionMarket, true))
+                assert(Precise.stringGe(change, Precise.stringNeg(approxValue)), ("change should be above -price " + (logText)));
+                if ((isOptionMarket != true))
                 {
-                    assert(Precise.stringLe(change, Precise.stringMul(approxValue, maxIncrease)), ((("change should be below " + maxIncrease) + "x price ") + logText));
+                    assert(Precise.stringLe(change, Precise.stringMul(approxValue, maxIncrease)), ((("change should be below " + maxIncrease) + "x price ") + (logText)));
                 }
             }
         }
@@ -308,22 +308,22 @@ public partial class testMainClass : BaseTest
             if ((percentage != null))
             {
                 // if one knows 'last' and 'percentage' values, then 'change', 'open' and 'average' values should be determinable.
-                assert((openPrice != null) && (change != null), ("open & change should be defined if last & percentage are defined" + logText)); // todo : add average price too
+                assert((openPrice != null) && (change != null), ("open & change should be defined if last & percentage are defined" + (logText))); // todo : add average price too
             } else if ((change != null))
             {
                 // if one knows 'last' and 'change' values, then 'percentage', 'open' and 'average' values should be determinable.
-                assert((openPrice != null) && (percentage != null), ("open & percentage should be defined if last & change are defined" + logText)); // todo : add average price too
+                assert((openPrice != null) && (percentage != null), ("open & percentage should be defined if last & change are defined" + (logText))); // todo : add average price too
             }
         } else if ((openPrice != null))
         {
             if ((percentage != null))
             {
                 // if one knows 'open' and 'percentage' values, then 'last', 'change' and 'average' values should be determinable.
-                assert((lastString != null) && (change != null), ("last & change should be defined if open & percentage are defined" + logText)); // todo : add average price too
+                assert((lastString != null) && (change != null), ("last & change should be defined if open & percentage are defined" + (logText))); // todo : add average price too
             } else if ((change != null))
             {
                 // if one knows 'open' and 'change' values, then 'last', 'percentage' and 'average' values should be determinable.
-                assert((lastString != null) && (percentage != null), ("last & percentage should be defined if open & change are defined" + logText)); // todo : add average price too
+                assert((lastString != null) && (percentage != null), ("last & percentage should be defined if open & change are defined" + (logText))); // todo : add average price too
             }
         }
         //

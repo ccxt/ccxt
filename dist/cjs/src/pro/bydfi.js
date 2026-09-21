@@ -588,7 +588,7 @@ class bydfi extends bydfi$1["default"] {
         }
         const orders = await this.watchPrivate(messageHashes, params);
         if (this.newUpdates) {
-            const first = this.safeValue(orders, 0);
+            const first = this.safeDict(orders, 0);
             const tradeSymbol = this.safeString(first, 'symbol');
             limit = orders.getLimit(tradeSymbol, limit);
         }
@@ -885,7 +885,7 @@ class bydfi extends bydfi$1["default"] {
         return await this.watchPrivate([messageHash], params);
     }
     fetchBalanceSnapshot(client) {
-        const options = this.safeValue(this.options, 'watchBalance');
+        const options = this.safeDict(this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeBool(options, 'fetchBalanceSnapshot', false);
         if (fetchBalanceSnapshot === true) {
             const messageHash = 'fetchBalanceSnapshot';

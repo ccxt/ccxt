@@ -802,6 +802,9 @@ class gate extends gate$1["default"] {
                 'createOrder': {
                     'expiration': 86400, // for conditional orders
                 },
+                'fetchOrderBook': {
+                    'maxSpotLimit': 1000, // the spot depth cap accepted by the venue, overriden in gateeu
+                },
                 'createMarketBuyOrderRequiresPrice': true,
                 'networks': {
                     'BTC': 'BTC',
@@ -1451,7 +1454,7 @@ class gate extends gate$1["default"] {
         for (let i = 0; i < spotMarketsResponse.length; i++) {
             const spotMarket = this.safeDict(spotMarketsResponse, i, {});
             const id = this.safeString(spotMarket, 'id');
-            const marginMarket = this.safeValue(marginMarkets, id);
+            const marginMarket = this.safeDict(marginMarkets, id);
             const market = this.deepExtend(marginMarket, spotMarket);
             const [baseId, quoteId] = id.split('_');
             const base = this.safeCurrencyCode(baseId);
@@ -1805,7 +1808,7 @@ class gate extends gate$1["default"] {
                 let symbol = base + '/' + quote;
                 const expiry = this.safeTimestamp(market, 'expiration_time');
                 const strike = this.safeString(market, 'strike_price');
-                const isCall = this.safeValue(market, 'is_call');
+                const isCall = this.safeBool(market, 'is_call');
                 const optionLetter = (isCall === true) ? 'C' : 'P';
                 const optionType = (isCall === true) ? 'call' : 'put';
                 symbol = symbol + ':' + quote + '-' + this.yymmdd(expiry) + '-' + strike + '-' + optionLetter;
@@ -2018,10 +2021,10 @@ class gate extends gate$1["default"] {
         return [marginMode, params];
     }
     getSettlementCurrencies(type, method) {
-        const options = this.safeValue(this.options, type, {}); // [ 'BTC', 'USDT' ] unified codes
-        const fetchMarketsContractOptions = this.safeValue(options, method, {});
+        const options = this.safeDict(this.options, type, {}); // [ 'BTC', 'USDT' ] unified codes
+        const fetchMarketsContractOptions = this.safeDict(options, method, {});
         const defaultSettle = (type === 'swap') ? ['usdt'] : ['btc'];
-        return this.safeValue(fetchMarketsContractOptions, 'settlementCurrencies', defaultSettle);
+        return this.safeList(fetchMarketsContractOptions, 'settlementCurrencies', defaultSettle);
     }
     /**
      * @method
@@ -2033,7 +2036,7 @@ class gate extends gate$1["default"] {
      */
     async fetchCurrencies(params = {}) {
         // sandbox/testnet only supports future markets
-        const apiBackup = this.safeValue(this.urls, 'apiBackup');
+        const apiBackup = this.safeDict(this.urls, 'apiBackup');
         if (apiBackup !== undefined) {
             return {};
         }
@@ -2400,7 +2403,7 @@ class gate extends gate$1["default"] {
             'currency': currency['id'],
         };
         const response = await this.privateWalletGetDepositAddress(this.extend(request, params));
-        const chains = this.safeValue(response, 'multichain_addresses', []);
+        const chains = this.safeList(response, 'multichain_addresses', []);
         const currencyId = this.safeString(response, 'currency');
         currency = this.safeCurrency(currencyId, currency);
         const parsed = this.parseDepositAddresses(chains, undefined, false);
@@ -2536,10 +2539,10 @@ class gate extends gate$1["default"] {
         //        "futures_maker_fee": "0"
         //    }
         //
-        const gtDiscount = this.safeValue(info, 'gt_discount');
+        const gtDiscount = this.safeBool(info, 'gt_discount');
         const taker = (gtDiscount === true) ? 'gt_taker_fee' : 'taker_fee';
         const maker = (gtDiscount === true) ? 'gt_maker_fee' : 'maker_fee';
-        const contract = this.safeValue(market, 'contract');
+        const contract = this.safeBool(market, 'contract');
         const takerKey = (contract === true) ? 'futures_taker_fee' : taker;
         const makerKey = (contract === true) ? 'futures_maker_fee' : maker;
         return {
@@ -2593,7 +2596,7 @@ class gate extends gate$1["default"] {
             if ((codes !== undefined) && !this.inArray(code, codes)) {
                 continue;
             }
-            const withdrawFixOnChains = this.safeValue(entry, 'withdraw_fix_on_chains');
+            const withdrawFixOnChains = this.safeDict(entry, 'withdraw_fix_on_chains');
             if (withdrawFixOnChains === undefined) {
                 withdrawFees = this.safeNumber(entry, 'withdraw_fix');
             }
@@ -2668,7 +2671,7 @@ class gate extends gate$1["default"] {
         //        }
         //    }
         //
-        const withdrawFixOnChains = this.safeValue(fee, 'withdraw_fix_on_chains');
+        const withdrawFixOnChains = this.safeDict(fee, 'withdraw_fix_on_chains');
         const result = {
             'info': fee,
             'withdraw': {
@@ -2822,7 +2825,9 @@ class gate extends gate$1["default"] {
         const [request, query] = this.prepareRequest(market, market['type'], params);
         if (limit !== undefined) {
             if (market['spot'] === true) {
-                limit = Math.min(limit, 1000);
+                // gateeu returns an empty book for a spot limit above 100
+                const maxSpotLimit = this.handleOption('fetchOrderBook', 'maxSpotLimit', 1000);
+                limit = Math.min(limit, maxSpotLimit);
             }
             else {
                 limit = Math.min(limit, 300);
@@ -2972,7 +2977,7 @@ class gate extends gate$1["default"] {
             }
         }
         else {
-            ticker = this.safeValue(response, 0);
+            ticker = this.safeDict(response, 0);
         }
         if (ticker === undefined) {
             throw new errors.NullResponse(this.id + ' fetchTicker() returned empty response');
@@ -3435,8 +3440,8 @@ class gate extends gate$1["default"] {
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             if (isolated) {
-                const base = this.safeValue(entry, 'base', {});
-                const quote = this.safeValue(entry, 'quote', {});
+                const base = this.safeDict(entry, 'base', {});
+                const quote = this.safeDict(entry, 'quote', {});
                 const baseCode = this.safeCurrencyCode(this.safeString(base, 'currency'));
                 const quoteCode = this.safeCurrencyCode(this.safeString(quote, 'currency'));
                 result = this.mergeBalanceAccount(result, baseCode, this.parseBalanceHelper(base));
@@ -4554,7 +4559,7 @@ class gate extends gate$1["default"] {
             const side = this.safeString(rawOrder, 'side');
             const amount = this.safeValue(rawOrder, 'amount');
             const price = this.safeValue(rawOrder, 'price');
-            const orderParams = this.safeValue(rawOrder, 'params', {});
+            const orderParams = this.safeDict(rawOrder, 'params', {});
             const extendedParams = this.extend(orderParams, params); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             const triggerValue = this.safeValueN(orderParams, ['triggerPrice', 'stopPrice', 'takeProfitPrice', 'stopLossPrice']);
             if (triggerValue !== undefined) {
@@ -4825,7 +4830,7 @@ class gate extends gate$1["default"] {
             }
             else {
                 // spot conditional order
-                const options = this.safeValue(this.options, 'createOrder', {});
+                const options = this.safeDict(this.options, 'createOrder', {});
                 let marginMode = undefined;
                 [marginMode, params] = this.getMarginMode(true, params);
                 if (timeInForce === undefined) {
@@ -5223,8 +5228,8 @@ class gate extends gate$1["default"] {
                 'id': this.safeString(order, 'id'),
             });
         }
-        const put = this.safeValue2(order, 'put', 'initial', {});
-        const trigger = this.safeValue(order, 'trigger', {});
+        const put = this.safeDict2(order, 'put', 'initial', {});
+        const trigger = this.safeDict(order, 'trigger', {});
         let contract = this.safeString(put, 'contract');
         let type = this.safeString(put, 'type');
         let timeInForce = this.safeStringUpper2(put, 'time_in_force', 'tif');
@@ -5367,7 +5372,7 @@ class gate extends gate$1["default"] {
             'cost': Precise["default"].stringAbs(cost),
             'filled': undefined,
             'remaining': remaining,
-            'fee': multipleFeeCurrencies ? undefined : this.safeValue(fees, 0),
+            'fee': multipleFeeCurrencies ? undefined : this.safeDict(fees, 0),
             'fees': multipleFeeCurrencies ? fees : [],
             'trades': undefined,
             'info': order,
@@ -7195,7 +7200,7 @@ class gate extends gate$1["default"] {
             // endpoints like createOrders use an array instead of an object
             // so we infer the settle from one of the elements
             // they have to be all the same so relying on the first one is fine
-            const first = this.safeValue(params, 0, {});
+            const first = this.safeDict(params, 0, {});
             path = this.implodeParams(path, first);
         }
         else {
@@ -7229,8 +7234,10 @@ class gate extends gate$1["default"] {
             if ((method === 'GET') || (method === 'DELETE') || requiresURLEncoding || (method === 'PATCH')) {
                 if (Object.keys(query).length > 0) {
                     // https://github.com/ccxt/ccxt/issues/27663
-                    rawQueryString = this.rawencode(query);
-                    queryString = this.urlencode(query);
+                    // sort explicitly (true) so the signed order matches the url order in Go,
+                    // where map iteration is not ordered (keysort's order is otherwise lost)
+                    rawQueryString = this.rawencode(query, true);
+                    queryString = this.urlencode(query, true);
                     // https://github.com/ccxt/ccxt/issues/25570
                     if (queryString.indexOf('currencies=') >= 0 && queryString.indexOf('%2C') >= 0) {
                         queryString = queryString.replaceAll('%2C', ',');
@@ -7326,7 +7333,7 @@ class gate extends gate$1["default"] {
             'marginMode': 'isolated',
             'amount': undefined,
             'total': total,
-            'code': this.safeValue(market, 'quote'),
+            'code': this.safeString(market, 'quote'),
             'status': 'ok',
             'timestamp': undefined,
             'datetime': undefined,
@@ -7585,13 +7592,13 @@ class gate extends gate$1["default"] {
             //
             response = await this.privateOptionsGetMySettlements(this.extend(request, params));
         }
-        const result = this.safeValue(response, 'result', {});
-        const data = this.safeValue(result, 'list', []);
+        const result = this.safeDict(response, 'result', {});
+        const data = this.safeList(result, 'list', []);
         const settlements = this.parseSettlements(data, market);
         const sorted = this.sortBy(settlements, 'timestamp');
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
-    parseSettlement(settlement, market) {
+    parseSettlement(settlement, market = undefined) {
         //
         // fetchSettlementHistory
         //
@@ -7641,7 +7648,7 @@ class gate extends gate$1["default"] {
             'datetime': this.iso8601(timestamp),
         };
     }
-    parseSettlements(settlements, market) {
+    parseSettlements(settlements, market = undefined) {
         //
         // fetchSettlementHistory
         //

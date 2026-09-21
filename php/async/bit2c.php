@@ -575,7 +575,7 @@ class bit2c extends Exchange {
         for ($i = 0; $i < count($keys); $i++) {
             $marketId = $keys[$i];
             $symbol = $this->safe_symbol($marketId);
-            $fee = $this->safe_value($fees, $marketId);
+            $fee = $this->safe_dict($fees, $marketId);
             $makerString = $this->safe_string($fee, 'FeeMaker');
             $takerString = $this->safe_string($fee, 'FeeTaker');
             $maker = $this->parse_number(Precise::string_div($makerString, '100'));
@@ -592,7 +592,7 @@ class bit2c extends Exchange {
         return $result;
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -636,7 +636,7 @@ class bit2c extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
     }
 
@@ -685,13 +685,13 @@ class bit2c extends Exchange {
             'pair' => $market['id'],
         );
         $response = Async\await($this->privateGetOrderMyOrders($this->extend($request, $params)));
-        $orders = $this->safe_value($response, $market['id'], array());
-        $asks = $this->safe_value($orders, 'ask', array());
+        $orders = $this->safe_dict($response, $market['id'], array());
+        $asks = $this->safe_list($orders, 'ask', array());
         $bids = $this->safe_list($orders, 'bid', array());
         return $this->parse_orders($this->array_concat($asks, $bids), $market, $since, $limit);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order(...))($id, $symbol, $params);
     }
 
@@ -845,7 +845,7 @@ class bit2c extends Exchange {
         ), $market);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
     }
 
@@ -982,7 +982,7 @@ class bit2c extends Exchange {
             $marketId = $this->safe_string($trade, 'pair');
             $market = $this->safe_market($marketId, $market);
             $market = $this->safe_market($reference_parts[0], $market);
-            $isMaker = $this->safe_value($trade, 'isMaker');
+            $isMaker = $this->safe_bool($trade, 'isMaker');
             $makerOrTaker = ($isMaker === true) ? 'maker' : 'taker';
             $orderId = ($isMaker === true) ? $reference_parts[2] : $reference_parts[1];
             $action = $this->safe_integer($trade, 'action');
@@ -1030,7 +1030,7 @@ class bit2c extends Exchange {
         ), $market);
     }
 
-    public function is_fiat(mixed $code): bool {
+    public function is_fiat(?string $code): bool {
         return $code === 'NIS';
     }
 
@@ -1087,11 +1087,11 @@ class bit2c extends Exchange {
         );
     }
 
-    public function nonce() {
+    public function nonce(): float {
         return $this->milliseconds();
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $url = $this->urls['api']['rest'] . '/' . $this->implode_params($path, $params);
         if ($api === 'public') {
             $url .= '.json';

@@ -313,7 +313,7 @@ class apex extends Exchange {
         ));
     }
 
-    public function fetch_time($params = array()) {
+    public function fetch_time($params = array()): PromiseInterface {
         return Async\async(self::do_fetch_time(...))($params);
     }
 
@@ -352,11 +352,10 @@ class apex extends Exchange {
         // }
         // }
         //
-        $timestamp = $this->milliseconds();
         $result = array(
             'info' => $response,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
         );
         $code = 'USDT';
         $account = $this->account();
@@ -765,7 +764,6 @@ class apex extends Exchange {
         //     "tradeCount": 100
         // }
         //
-        $timestamp = $this->milliseconds();
         $marketId = $this->safe_string($ticker, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $symbol = $this->safe_symbol($marketId, $market);
@@ -777,8 +775,8 @@ class apex extends Exchange {
         $low = $this->safe_string($ticker, 'lowPrice24h');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
             'high' => $high,
             'low' => $low,
             'bid' => null,
@@ -1067,7 +1065,7 @@ class apex extends Exchange {
         ), $market);
     }
 
-    public function fetch_open_interest(string $symbol, $params = array()) {
+    public function fetch_open_interest(string $symbol, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_open_interest(...))($symbol, $params);
     }
 
@@ -1094,7 +1092,7 @@ class apex extends Exchange {
         return $this->parse_open_interest($rawTicker, $market);
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null): array {
         //
         // {
         //     "symbol": "BTCUSDT",
@@ -1113,7 +1111,6 @@ class apex extends Exchange {
         //     "tradeCount": 100
         // }
         //
-        $timestamp = $this->milliseconds();
         $marketId = $this->safe_string($interest, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $symbol = $this->safe_symbol($marketId, $market);
@@ -1121,8 +1118,8 @@ class apex extends Exchange {
             'symbol' => $symbol,
             'openInterestAmount' => $this->safe_string($interest, 'openInterest'),
             'openInterestValue' => null,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
             'info' => $interest,
         ), $market);
     }
@@ -1401,7 +1398,7 @@ class apex extends Exchange {
         return $this->options['accountId'];
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -1709,7 +1706,7 @@ class apex extends Exchange {
         return array( $this->parse_order($data, $market) );
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
     }
 
@@ -1739,7 +1736,7 @@ class apex extends Exchange {
         return $this->safe_order($data);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order(...))($id, $symbol, $params);
     }
 
@@ -1846,7 +1843,7 @@ class apex extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order_trades(...))($id, $symbol, $since, $limit, $params);
     }
 
@@ -1880,7 +1877,7 @@ class apex extends Exchange {
         return $this->parse_trades($orders, null, $since, $limit);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
     }
 
@@ -1926,7 +1923,7 @@ class apex extends Exchange {
         return $this->parse_trades($orders, $market, $since, $limit);
     }
 
-    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_funding_history(...))($symbol, $since, $limit, $params);
     }
 
@@ -1971,7 +1968,7 @@ class apex extends Exchange {
         return $this->parse_incomes($fundingValues, $market, $since, $limit);
     }
 
-    public function parse_income(mixed $income, ?array $market = null) {
+    public function parse_income(mixed $income, ?array $market = null): array {
         //
         // {
         //     "id": "1234",
@@ -2058,7 +2055,7 @@ class apex extends Exchange {
         return $this->parse_positions($positions, $symbols);
     }
 
-    public function parse_position(array $position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null): array {
         //
         // {
         //     "symbol": "BTC-USDT",
@@ -2112,7 +2109,7 @@ class apex extends Exchange {
         ));
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $url = $this->implode_hostname($this->urls['api'][$api]) . '/' . $path;
         $headers = array(
             'User-Agent' => 'apex-CCXT',

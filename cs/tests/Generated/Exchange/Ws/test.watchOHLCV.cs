@@ -12,14 +12,14 @@ public partial class testMainClass : BaseTest
     {
         string method = "watchOHLCV";
         Int64 now = exchange.milliseconds();
-        Int64 ends = add(now, 15000);
+        object ends = (now + 15000);
         List<object> timeframeKeys = new List<object>(((IDictionary<string,object>)exchange.timeframes).Keys);
         assert(timeframeKeys.Count > 0, add(add(add(exchange.id, " "), method), " - no timeframes found"));
         // prefer 1m timeframe if available, otherwise return the first one
         object chosenTimeframeKey = "1m";
         if (!isTrue(exchange.inArray(chosenTimeframeKey, timeframeKeys)))
         {
-            chosenTimeframeKey = getValue(timeframeKeys, 0);
+            chosenTimeframeKey = (timeframeKeys != null && 0 < timeframeKeys.Count ? timeframeKeys[0] : null);
         }
         int limit = 10;
         int duration = exchange.parseTimeframe(chosenTimeframeKey);
@@ -36,7 +36,7 @@ public partial class testMainClass : BaseTest
                 response = detypeForComparison(await exchange.WatchOHLCV(((string)symbol),((string)chosenTimeframeKey),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit)));
                 if ((response == null))
                 {
-                    throw new Exception (add(exchange.id, " watch returned undefined response")) ;
+                    throw new Exception ((string)add(exchange.id, " watch returned undefined response")) ;
                 }
             } catch(Exception e)
             {
@@ -50,11 +50,11 @@ public partial class testMainClass : BaseTest
             if (((success == true)) && ((response != null)))
             {
                 testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, response, symbol);
-                for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+                for (int i = 0; i < getArrayLength(response); i++)
                 {
                     testOHLCV(exchange, skippedProperties, method, getValue(response, i), symbol, now);
                 }
-                if (isGreaterThan((subtract(now, startTime)), maxIdleTime))
+                if (isGreaterThan(((now - startTime)), maxIdleTime))
                 {
                     idle = true;
                 }

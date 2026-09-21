@@ -13,7 +13,7 @@ public partial class testMainClass : BaseTest
         object items = await invokeExchangeDynamically(exchange, "fetchLedger", code);
         int length = getArrayLength(items);
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, items, code);
-        if (isGreaterThan(length, 0))
+        if (length > 0)
         {
             object firstItem = getValue(items, 0);
             object id = getValue(firstItem, "id");

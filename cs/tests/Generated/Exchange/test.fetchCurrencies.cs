@@ -26,18 +26,18 @@ public partial class testMainClass : BaseTest
             int currenciesLength = values.Count;
             // ensure exchange returns enough length of currencies
             bool skipAmount = (inOp(skippedProperties, "amountOfCurrencies"));
-            assert(skipAmount || isGreaterThan(currenciesLength, 5), add(add(add(add(exchange.id, " "), method), " must return at least several currencies, but it returned "), ((object)currenciesLength).ToString()));
+            assert(skipAmount || currenciesLength > 5, add(add(add(add(exchange.id, " "), method), " must return at least several currencies, but it returned "), ((object)currenciesLength).ToString()));
             // allow skipped exchanges
             bool skipActive = (inOp(skippedProperties, "activeCurrenciesQuota"));
             bool skipMajorCurrencyCheck = (inOp(skippedProperties, "activeMajorCurrencies"));
             // loop
-            for (int i = 0; isLessThan(i, currenciesLength); postFixIncrement(ref i))
+            for (int i = 0; i < currenciesLength; i++)
             {
                 object currency = getValue(values, i);
                 testCurrency(exchange, skippedProperties, method, currency);
                 // detailed check for deposit/withdraw
                 bool? active = exchange.safeBool(currency, "active");
-                if (isEqual(active, false))
+                if ((active == false))
                 {
                     numInactiveCurrencies = add(numInactiveCurrencies, 1);
                 }
@@ -46,10 +46,10 @@ public partial class testMainClass : BaseTest
                 bool? withdraw = exchange.safeBool(currency, "withdraw");
                 bool? deposit = exchange.safeBool(currency, "deposit");
                 bool? isMicaCompliant = exchange.safeBool(exchange.options, "mica", false);
-                bool skipUsdtForMica = (isEqual(isMicaCompliant, true)) && (code == "USDT");
+                bool skipUsdtForMica = ((isMicaCompliant == true)) && ((code == "USDT"));
                 if (isTrue(exchange.inArray(code, requiredActiveCurrencies)) && !skipMajorCurrencyCheck && ((skipUsdtForMica != true)))
                 {
-                    assert((isEqual(withdraw, true)) && (isEqual(deposit, true)), ((("Major currency " + code) + " should have withdraw and deposit flags enabled ::: ") + exchange.json(currency)));
+                    assert(((withdraw == true)) && ((deposit == true)), ((("Major currency " + code) + " should have withdraw and deposit flags enabled ::: ") + exchange.json(currency)));
                 }
             }
             // check at least X% of currencies are active
@@ -64,14 +64,14 @@ public partial class testMainClass : BaseTest
         // detect if there are currencies with different ids for the same code
         Dictionary<string, object> ids = new Dictionary<string, object>() {};
         List<object> keys = new List<object>(((IDictionary<string,object>)currencyValues).Keys);
-        for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
+        for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
             object currency = getValue(currencyValues, key);
             object code = getValue(currency, "code");
             if (!(inOp(ids, code)))
             {
-                ids[(string)code] = getValue(currency, "id");
+                ((IDictionary<string,object>)ids)[(string)code] = getValue(currency, "id");
             } else
             {
                 bool isDifferent = !isEqual(getValue(ids, code), getValue(currency, "id"));

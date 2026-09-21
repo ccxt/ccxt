@@ -19,7 +19,7 @@ public partial class testMainClass : BaseTest
         argParams ??= new Dictionary<string, object>();
         string method = "watchTickers";
         Int64 now = exchange.milliseconds();
-        Int64 ends = add(now, 15000);
+        object ends = (now + 15000);
         int maxIdleTime = 5000;
         bool idle = false;
         while ((isLessThan(now, ends)) && !idle)
@@ -37,7 +37,7 @@ public partial class testMainClass : BaseTest
                 // to "all tickers" itself, and it requires symbols to be set
                 // so, in such case, if it's arguments-required exception, we don't
                 // mark tests as failed, but just skip them
-                if (isTrue((e is ArgumentsRequired)) && (isEqual(argSymbols, null) || (getArrayLength(argSymbols) == 0)))
+                if ((e is ArgumentsRequired) && ((argSymbols == null) || (getArrayLength(argSymbols) == 0)))
                 {
                     // todo: provide random symbols to try
                     // return;
@@ -59,12 +59,12 @@ public partial class testMainClass : BaseTest
                 assert(exchange.isDictionary(response), add(add(add(add(add(add(exchange.id, " "), method), " "), exchange.json(argSymbols)), " must return a dictionary. "), exchange.json(response)));
                 List<object> values = new List<object>(((IDictionary<string,object>)response).Values);
                 object checkedSymbol = null;
-                if (!isEqual(argSymbols, null) && (getArrayLength(argSymbols) == 1))
+                if ((argSymbols != null) && (getArrayLength(argSymbols) == 1))
                 {
                     checkedSymbol = getValue(argSymbols, 0);
                 }
                 testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol);
-                for (int i = 0; isLessThan(i, values.Count); postFixIncrement(ref i))
+                for (int i = 0; i < values.Count; i++)
                 {
                     object ticker = values[i];
                     try
@@ -81,7 +81,7 @@ public partial class testMainClass : BaseTest
                         testSharedMethods.validateTickerExceptionForPercentage(ex, exchange, ticker, ohlcv);
                     }
                 }
-                if (isGreaterThan((subtract(now, startTime)), maxIdleTime))
+                if (isGreaterThan(((now - startTime)), maxIdleTime))
                 {
                     idle = true;
                 }

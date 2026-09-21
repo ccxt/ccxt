@@ -23,30 +23,30 @@ func testFetchTradesBody(ch chan any, exchange ccxt.ICoreExchange, skippedProper
 	//
 	var now int64 = exchange.Milliseconds()
 	var isPublicTrade bool = true
-	for i := 0; IsLessThan(i, GetArrayLength(trades)); i++ {
+	for i := 0; i < GetArrayLength(trades); i++ {
 		TestTrade(exchange, skippedProperties, method, GetValue(trades, i), symbol, now, isPublicTrade)
 	}
 	//
 	// test if both sides are being returned
 	//
 	var minTradesForBothSidesCheck int = 99
-	if !(InOp(skippedProperties, "requireBothSides")) && IsGreaterThan(GetArrayLength(trades), minTradesForBothSidesCheck) {
+	if !(InOp(skippedProperties, "requireBothSides")) && (GetArrayLength(trades) > minTradesForBothSidesCheck) {
 		//
 		//  Check whether both "buy" and "sell" are returned from trades, when there are enough trades
 		//  for a one-sided result to be an implausible coincidence (see minTradesForBothSidesCheck)
 		//
 		var grouped map[string]any = exchange.GroupBy(trades, "side")
 		var msg any = Add("Both sides of trades are not being returned, instead only one side is being returned. If this error happens consistently, then it might be an implementation issue", LogTemplate(exchange, method, trades))
-		Assert((InOp(grouped, "buy")), msg)
-		Assert((InOp(grouped, "sell")), msg)
+		Assert((func() bool { _, ok := grouped["buy"]; return ok }()), msg)
+		Assert((func() bool { _, ok := grouped["sell"]; return ok }()), msg)
 	}
 	if !(InOp(skippedProperties, "timestampSort")) {
 		AssertTimestampOrder(exchange, method, symbol, trades)
 	}
 	if !(InOp(skippedProperties, "side")) && !(InOp(skippedProperties, "sideSequence")) {
 
-		retRes378 := (<-HelperTestFetchTradesSideSequenceAsync(exchange, skippedProperties, symbol, method, trades))
-		PanicOnError(retRes378)
+		retRes368 := (<-HelperTestFetchTradesSideSequenceAsync(exchange, skippedProperties, symbol, method, trades))
+		PanicOnError(retRes368)
 	}
 
 	ch <- true
@@ -77,7 +77,7 @@ func helperTestFetchTradesSideSequenceBody(ch chan any, exchange ccxt.ICoreExcha
 	var lastPrice any = nil
 	var lastSide any = nil
 	var lastTrade any = nil
-	for i := 0; IsLessThan(i, GetArrayLength(trades)); i++ {
+	for i := 0; i < GetArrayLength(trades); i++ {
 		var trade any = GetValue(trades, i)
 		var ts any = GetValue(trade, "timestamp")
 		var price any = exchange.SafeString(trade, "price")
@@ -95,9 +95,9 @@ func helperTestFetchTradesSideSequenceBody(ch chan any, exchange ccxt.ICoreExcha
 			var priceIncreasing bool = ccxt.Precise.StringGt(price, lastPrice)
 			var priceDecreasing bool = ccxt.Precise.StringLt(price, lastPrice)
 			if priceIncreasing {
-				Assert(IsEqual(side, "buy"), Add("Price is increasing, but side is not `buy`, either implementation needs fix or exchange returns unsorted trades, so add \"sideSequence\" skip", LogTemplate(exchange, method, pair)))
+				Assert((side == "buy"), Add("Price is increasing, but side is not `buy`, either implementation needs fix or exchange returns unsorted trades, so add \"sideSequence\" skip", LogTemplate(exchange, method, pair)))
 			} else if priceDecreasing {
-				Assert(IsEqual(side, "sell"), Add("Price is decreasing, but side is not `sell`, either implementation needs fix or exchange returns unsorted trades, so add \"sideSequence\" skip", LogTemplate(exchange, method, pair)))
+				Assert((side == "sell"), Add("Price is decreasing, but side is not `sell`, either implementation needs fix or exchange returns unsorted trades, so add \"sideSequence\" skip", LogTemplate(exchange, method, pair)))
 			}
 		}
 		lastPrice = price

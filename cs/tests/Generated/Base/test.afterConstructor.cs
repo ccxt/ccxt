@@ -106,7 +106,7 @@ public partial class BaseTest
             //
             List<object> keys = new List<object>() {"chrome", "chrome39", "chrome100"};
             Assert(!isEqual(exchangeProp(exchange, "userAgents"), null));
-            for (int i = 0; isLessThan(i, (keys?.Count ?? 0)); postFixIncrement(ref i))
+            for (int i = 0; i < (keys?.Count ?? 0); i++)
             {
                 string? key = ((string)keys[i]);
                 object userAgent = getValue(exchangeProp(exchange, "userAgents"), key);

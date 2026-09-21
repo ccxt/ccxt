@@ -62,7 +62,7 @@ class bitmex(ccxt.async_support.bitmex):
             },
         })
 
-    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def watch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -78,7 +78,7 @@ class bitmex(ccxt.async_support.bitmex):
         tickers = await self.watch_tickers([symbol], params)
         return tickers[symbol]
 
-    async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    async def watch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
@@ -117,7 +117,7 @@ class bitmex(ccxt.async_support.bitmex):
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
-    def handle_ticker(self, client: Client, message: object):
+    def handle_ticker(self, client: Client, message: dict) -> dict:
         #
         #     {
         #         "table": "instrument",
@@ -361,7 +361,7 @@ class bitmex(ccxt.async_support.bitmex):
             client.resolve(fullParsedTicker, 'alltickers')
         return message
 
-    def watch_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Liquidation]:
+    def watch_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Liquidation]:
         """
         watch the public liquidations of a trading pair
 
@@ -375,7 +375,7 @@ class bitmex(ccxt.async_support.bitmex):
         """
         return self.watch_liquidations_for_symbols([symbol], since, limit, params)
 
-    async def watch_liquidations_for_symbols(self, symbols: list[str], since: Int = None, limit: Int = None, params={}) -> list[Liquidation]:
+    async def watch_liquidations_for_symbols(self, symbols: list[str], since: Int = None, limit: Int = None, params: dict = {}) -> list[Liquidation]:
         """
         watch the public liquidations of a trading pair
 
@@ -411,7 +411,7 @@ class bitmex(ccxt.async_support.bitmex):
             return newLiquidations
         return self.filter_by_symbols_since_limit(self.liquidations, symbols, since, limit, True)
 
-    def handle_liquidation(self, client: Client, message: object):
+    def handle_liquidation(self, client: Client, message: dict):
         #
         #    {
         #        "table":"liquidation",
@@ -456,7 +456,7 @@ class bitmex(ccxt.async_support.bitmex):
             symbol = symbols[i]
             client.resolve(liquidationsBySymbol[symbol], 'liquidations::' + symbol)
 
-    async def watch_balance(self, params={}) -> Balances:
+    async def watch_balance(self, params: dict = {}) -> Balances:
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
 
@@ -478,7 +478,7 @@ class bitmex(ccxt.async_support.bitmex):
         }
         return await self.watch(url, messageHash, self.extend(request, params), messageHash)
 
-    def handle_balance(self, client: Client, message: object):
+    def handle_balance(self, client: Client, message: dict):
         #
         #     {
         #         "table": "margin",
@@ -577,13 +577,13 @@ class bitmex(ccxt.async_support.bitmex):
         #         ]
         #     }
         #
-        data = self.safe_value(message, 'data')
+        data = self.safe_list(message, 'data')
         balance = self.parse_balance(data)
         self.balance = self.extend(self.balance, balance)
         messageHash = self.safe_string(message, 'table')
         client.resolve(self.balance, messageHash)
 
-    def handle_trades(self, client: Client, message: object):
+    def handle_trades(self, client: Client, message: dict):
         #
         # initial snapshot
         #
@@ -644,7 +644,7 @@ class bitmex(ccxt.async_support.bitmex):
         #     }
         #
         table = 'trade'
-        data = self.safe_value(message, 'data', [])
+        data = self.safe_list(message, 'data', [])
         dataByMarketIds = self.group_by(data, 'symbol')
         marketIds = list(dataByMarketIds.keys())
         for i in range(0, len(marketIds)):
@@ -662,7 +662,7 @@ class bitmex(ccxt.async_support.bitmex):
                 stored.append(trades[j])
             client.resolve(stored, messageHash)
 
-    def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -676,7 +676,7 @@ class bitmex(ccxt.async_support.bitmex):
         """
         return self.watch_trades_for_symbols([symbol], since, limit, params)
 
-    async def authenticate(self, params={}):
+    async def authenticate(self, params: dict = {}):
         url = self.urls['api']['ws']
         client = self.client(url)
         messageHash = 'authenticated'
@@ -699,7 +699,7 @@ class bitmex(ccxt.async_support.bitmex):
             self.watch(url, messageHash, message, messageHash)
         return await future
 
-    def handle_authentication_message(self, client: Client, message: object):
+    def handle_authentication_message(self, client: Client, message: dict):
         authenticated = self.safe_bool(message, 'success', False)
         messageHash = 'authenticated'
         if authenticated is True:
@@ -712,7 +712,7 @@ class bitmex(ccxt.async_support.bitmex):
             if messageHash in client.subscriptions:
                 del client.subscriptions[messageHash]
 
-    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> list[Position]:
+    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Position]:
         """
         watch all open positions
 
@@ -744,7 +744,7 @@ class bitmex(ccxt.async_support.bitmex):
             return newPositions
         return self.filter_by_symbols_since_limit(self.positions, symbols, since, limit, True)
 
-    def handle_positions(self, client: object, message: object):
+    def handle_positions(self, client: Client, message: dict):
         #
         # partial
         #    {
@@ -931,7 +931,7 @@ class bitmex(ccxt.async_support.bitmex):
                 client.resolve(positions, messageHash)
         client.resolve(newPositions, 'positions')
 
-    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         watches information on multiple orders made by the user
 
@@ -964,7 +964,7 @@ class bitmex(ccxt.async_support.bitmex):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_orders(self, client: Client, message: object):
+    def handle_orders(self, client: Client, message: dict):
         #
         #     {
         #         "table": "order",
@@ -1127,7 +1127,7 @@ class bitmex(ccxt.async_support.bitmex):
             for i in range(0, dataLength):
                 currentOrder = data[i]
                 orderId = self.safe_string(currentOrder, 'orderID')
-                previousOrder = self.safe_value(stored.hashmap, orderId)
+                previousOrder = self.safe_dict(stored.hashmap, orderId)
                 rawOrder = currentOrder
                 if previousOrder is not None:
                     rawOrder = self.extend(previousOrder['info'], currentOrder)
@@ -1141,7 +1141,7 @@ class bitmex(ccxt.async_support.bitmex):
                 symbol = keys[i]
                 client.resolve(self.orders, messageHash + ':' + symbol)
 
-    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         watches information on multiple trades made by the user
 
@@ -1174,7 +1174,7 @@ class bitmex(ccxt.async_support.bitmex):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    def handle_my_trades(self, client: Client, message: object):
+    def handle_my_trades(self, client: Client, message: dict):
         #
         #     {
         #         "table":"execution",
@@ -1233,9 +1233,9 @@ class bitmex(ccxt.async_support.bitmex):
         #     }
         #
         messageHash = self.safe_string(message, 'table')
-        data = self.safe_value(message, 'data', [])
+        data = self.safe_list(message, 'data', [])
         dataByExecType = self.group_by(data, 'execType')
-        rawTrades = self.safe_value(dataByExecType, 'Trade', [])
+        rawTrades = self.safe_list(dataByExecType, 'Trade', [])
         trades = self.parse_trades(rawTrades)
         if self.myTrades is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
@@ -1254,7 +1254,7 @@ class bitmex(ccxt.async_support.bitmex):
         for i in range(0, len(keys)):
             client.resolve(stored, messageHash + ':' + keys[i])
 
-    def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -1267,7 +1267,7 @@ class bitmex(ccxt.async_support.bitmex):
         """
         return self.watch_order_book_for_symbols([symbol], limit, params)
 
-    async def watch_order_book_for_symbols(self, symbols: list[str], limit: Int = None, params={}) -> OrderBook:
+    async def watch_order_book_for_symbols(self, symbols: list[str], limit: Int = None, params: dict = {}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -1307,7 +1307,7 @@ class bitmex(ccxt.async_support.bitmex):
         orderbook = await self.watch_multiple(url, messageHashes, self.deep_extend(request, params), topics)
         return orderbook.limit()
 
-    async def watch_trades_for_symbols(self, symbols: list[str], since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def watch_trades_for_symbols(self, symbols: list[str], since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a list of symbols
 
@@ -1339,12 +1339,12 @@ class bitmex(ccxt.async_support.bitmex):
         }
         trades = await self.watch_multiple(url, messageHashes, self.deep_extend(request, params), topics)
         if self.newUpdates:
-            first = self.safe_value(trades, 0)
+            first = self.safe_dict(trades, 0)
             tradeSymbol = self.safe_string(first, 'symbol')
             limit = trades.getLimit(tradeSymbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1375,7 +1375,7 @@ class bitmex(ccxt.async_support.bitmex):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    def handle_ohlcv(self, client: Client, message: object):
+    def handle_ohlcv(self, client: Client, message: dict):
         #
         #     {
         #         "table": "tradeBin1m",
@@ -1461,7 +1461,7 @@ class bitmex(ccxt.async_support.bitmex):
                 self.safe_float(candle, 'close'),
                 self.safe_float(candle, 'volume'),
             ]
-            self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
+            self.ohlcvs[symbol] = self.safe_dict(self.ohlcvs, symbol, {})
             stored = self.safe_value(self.ohlcvs[symbol], timeframe)
             if stored is None:
                 limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
@@ -1474,14 +1474,14 @@ class bitmex(ccxt.async_support.bitmex):
             messageHash = messageHashes[i]
             client.resolve(results[messageHash], messageHash)
 
-    async def watch_heartbeat(self, params={}):
+    async def watch_heartbeat(self, params: dict = {}):
         if self.markets is None:
             await self.load_markets()
         event = 'heartbeat'
         url = self.urls['api']['ws']
         return await self.watch(url, event)
 
-    def handle_order_book(self, client: Client, message: object):
+    def handle_order_book(self, client: Client, message: dict):
         #
         # first snapshot
         #
@@ -1539,7 +1539,7 @@ class bitmex(ccxt.async_support.bitmex):
         # if it's an initial snapshot
         if action == 'partial':
             filter = self.safe_dict(message, 'filter', {})
-            marketId = self.safe_value(filter, 'symbol')
+            marketId = self.safe_string(filter, 'symbol')
             if marketId is None:
                 return  # protecting from weird update
             market = self.safe_market(marketId)
@@ -1568,7 +1568,7 @@ class bitmex(ccxt.async_support.bitmex):
         else:
             numUpdatesByMarketId = {}
             for i in range(0, len(data)):
-                marketId = self.safe_value(data[i], 'symbol')
+                marketId = self.safe_string(data[i], 'symbol')
                 if marketId is None:
                     return  # protecting from weird update
                 if not (marketId in numUpdatesByMarketId):
@@ -1596,7 +1596,7 @@ class bitmex(ccxt.async_support.bitmex):
                 orderbook = self.orderbooks[symbol]
                 client.resolve(orderbook, messageHash)
 
-    def handle_system_status(self, client: Client, message: object):
+    def handle_system_status(self, client: Client, message: dict) -> dict:
         #
         # todo answer the question whether handleSystemStatus should be renamed
         # and unified as handleStatus for any usage pattern that
@@ -1612,7 +1612,7 @@ class bitmex(ccxt.async_support.bitmex):
         #
         return message
 
-    def handle_subscription_status(self, client: Client, message: object):
+    def handle_subscription_status(self, client: Client, message: dict) -> dict:
         #
         #     {
         #         "success": true,
@@ -1641,7 +1641,7 @@ class bitmex(ccxt.async_support.bitmex):
         #
         error = self.safe_string(message, 'error')
         if error is not None:
-            request = self.safe_value(message, 'request', {})
+            request = self.safe_dict(message, 'request', {})
             args = self.safe_list(request, 'args', [])
             numArgs = len(args)
             if numArgs > 0:
@@ -1657,7 +1657,7 @@ class bitmex(ccxt.async_support.bitmex):
                 return False
         return True
 
-    def handle_message(self, client: Client, message: object):
+    def handle_message(self, client: Client, message: dict):
         #
         #     {
         #         "info": "Welcome to the BitMEX Realtime API.",
@@ -1712,8 +1712,8 @@ class bitmex(ccxt.async_support.bitmex):
             }
             method = self.safe_value(methods, table)
             if method is None:
-                request = self.safe_value(message, 'request', {})
-                op = self.safe_value(request, 'op')
+                request = self.safe_dict(message, 'request', {})
+                op = self.safe_string(request, 'op')
                 if op == 'authKeyExpires':
                     self.handle_authentication_message(client, message)
             else:

@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import ts from 'typescript6';
 
 // CCXT-side extension of the Go printer's local-variable typing.
@@ -1018,6 +1020,153 @@ function installCcxtGoArithmeticUnbox (goTranspiler) {
 }
 
 
+// ---------------------------------------------------------------------------------------------
+// `var currency map[string]any = this.Currency (code)` / `this.SafeCurrency (id)`
+//
+// The two currency accessors of exchange_generated.go hand back the currency dict a
+// fetchCurrencies / safeCurrencyStructure builds, so their box holds a Go map[string]any on
+// EVERY path: currency() panics when the code is unknown, safeCurrency() falls back to the
+// structure dict, and both dict sources (Currencies / Currencies_by_id) are only ever written
+// through mapToSafeMap(deepExtend(..)), indexBy(.., 'code') and indexBySafe(.., 'id') — the
+// indexer stores an element only when it IS a map, so a currency entry is never a *sync.Map, a
+// slice or a scalar. Unlike SafeDict*/SafeList* there is no absent value to carry (neither
+// accessor returns undefined), so the declaration can name the map — and the emitted call,
+// whose Go signature is still `any`, is unboxed at the declaration (see
+// ccxtGoUnboxCurrencyDeclaration) exactly like the arithmetic family.
+const CCXT_GO_CURRENCY_LOCAL_TYPE = 'map[string]any';
+
+const CCXT_GO_CURRENCY_CALLEES = [ 'this.Currency', 'this.SafeCurrency' ];
+
+// the callee of one whole printed call, or undefined
+function ccxtGoWholePrintedCallee (goTranspiler, printedValue) {
+    let value = (printedValue ?? '').trim ();
+    while (value.startsWith ('(') && goTranspiler.isWholePrintedCall (value, 0)) {
+        value = value.substring (1, value.length - 1).trim ();
+    }
+    const open = value.indexOf ('(');
+    if (open <= 0 || !goTranspiler.isWholePrintedCall (value, open)) {
+        return undefined;
+    }
+    const callee = value.substring (0, open);
+    return /^[A-Za-z_][\w.]*$/.test (callee) ? callee : undefined;
+}
+
+// the map type of a DECLARATION initialised by one of the currency accessors. Declarations
+// only: a later `currency = this.Currency (..)` write reaches this hook as a BinaryExpression
+// operand, and typing THAT would need the unbox at every write. The printer's own later-writes
+// scan runs this hook too, so a declaration whose local is re-assigned stays `any` — fail
+// closed, because that write would then have to carry the unbox as well.
+function ccxtGoTypeOfCurrencyInitializer (goTranspiler, initializer, printedValue) {
+    if (initializer?.kind !== ts.SyntaxKind.CallExpression) {
+        return undefined;
+    }
+    if (initializer.parent?.kind !== ts.SyntaxKind.VariableDeclaration) {
+        return undefined;
+    }
+    const callee = ccxtGoWholePrintedCallee (goTranspiler, printedValue);
+    if ((callee === undefined) || (CCXT_GO_CURRENCY_CALLEES.indexOf (callee) < 0)) {
+        return undefined;
+    }
+    if (!typeNameIsUsable (goTranspiler, initializer, CCXT_GO_CURRENCY_LOCAL_TYPE)) {
+        return undefined;
+    }
+    return CCXT_GO_CURRENCY_LOCAL_TYPE;
+}
+
+// The declaration names a map while the accessor's emitted Go signature is `any`, so the call
+// has to be unboxed for the declaration to compile. Fires only on the exact shape the
+// classifier above typed (a whole `this.Currency (..)` / `this.SafeCurrency (..)` call), and
+// never twice: an already-unboxed tail fails the trailing-text check.
+export function ccxtGoUnboxCurrencyDeclaration (goTranspiler, printed) {
+    if (typeof printed !== 'string') {
+        return printed;
+    }
+    const match = /^([\s\S]*?\bvar [A-Za-z0-9_]+ map\[string\]any = )((?:ccxt\.)?(?:this\.)?(?:Currency|SafeCurrency)\([^\n]*)$/.exec (printed);
+    if (match === null) {
+        return printed;
+    }
+    const tail = match[2];
+    const open = tail.indexOf ('(');
+    const close = ccxtGoPrintedCallEnd (tail, open);
+    if (close < 0) {
+        return printed;
+    }
+    const rest = tail.substring (close);
+    if (!/^\s*(;?\s*(\/\/[^\n]*)?)$/.test (rest)) {
+        return printed;
+    }
+    return match[1] + tail.substring (0, close) + '.(' + CCXT_GO_CURRENCY_LOCAL_TYPE + ')' + rest;
+}
+
+function installCcxtGoCurrencyUnbox (goTranspiler) {
+    if (typeof goTranspiler.printVariableDeclarationList !== 'function' || goTranspiler.__ccxtGoCurrencyUnboxInstalled) {
+        return;
+    }
+    const upstream = goTranspiler.printVariableDeclarationList;
+    goTranspiler.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream.call (this, node, identation);
+        return ccxtGoUnboxCurrencyDeclaration (this, printed);
+    };
+    goTranspiler.__ccxtGoCurrencyUnboxInstalled = true;
+}
+
+
+// Fields of the hand-written `BaseExchange` (go/v4/exchange.go) whose Go type is a
+// native string-keyed map of `any`. `this.<field>["k"]` is then the same read as
+// `GetValue(this.<field>, "k")`: a missing key gives the `any` nil in both cases,
+// and a nil map reads as nil rather than panicking. Fields typed `*sync.Map`
+// (Options, Markets, Currencies, MarketsById, ...), `any` (Urls) or a slice
+// (Symbols, Codes, Ids) are deliberately absent — they are not indexable in Go.
+export const CCXT_GO_EXCHANGE_MAP_FIELDS = {
+    'Has': 'map[string]any',
+    'Api': 'map[string]any',
+    'TransformedApi': 'map[string]any',
+    'RequiredCredentials': 'map[string]any',
+    'HttpExceptions': 'map[string]any',
+    'Timeframes': 'map[string]any',
+    'Features': 'map[string]any',
+    'Exceptions': 'map[string]any',
+    'Precision': 'map[string]any',
+    'UserAgents': 'map[string]any',
+    'TokenBucket': 'map[string]any',
+    'CommonCurrencies': 'map[string]any',
+    'Limits': 'map[string]any',
+    'Fees': 'map[string]any',
+    'Status': 'map[string]any',
+};
+
+// the Go map type of `this.<field>`, or undefined for every other expression shape
+export function ccxtGoIndexableThisField (goTranspiler, node) {
+    if (typeof goTranspiler.isGoThisPropertyAccessExpression !== 'function') {
+        return undefined;
+    }
+    if (!goTranspiler.isGoThisPropertyAccessExpression (node)) {
+        return undefined;
+    }
+    const field = goTranspiler.transformPropertyAccessExpressionName (node.name.text, node.name);
+    return CCXT_GO_EXCHANGE_MAP_FIELDS[field];
+}
+
+// teach the Go printer's `goIndexableTypeOf` the exchange fields above, so an
+// element access on one of them prints as a native map index instead of GetValue
+export function installCcxtGoIndexableTypes (goTranspiler) {
+    if (goTranspiler === undefined || goTranspiler.__ccxtGoIndexableTypesInstalled) {
+        return;
+    }
+    if (typeof goTranspiler.goIndexableTypeOf !== 'function') {
+        return; // older printer without the element-access typing: nothing to extend
+    }
+    const upstream = goTranspiler.goIndexableTypeOf;
+    goTranspiler.goIndexableTypeOf = function (node, printed) {
+        const known = upstream.call (this, node, printed);
+        if (known !== undefined) {
+            return known;
+        }
+        return ccxtGoIndexableThisField (this, node);
+    };
+    goTranspiler.__ccxtGoIndexableTypesInstalled = true;
+}
+
 function scopeMentionsIdentifier (scope, name) {
     if (scope === undefined || typeof scope.forEachChild !== 'function') {
         return true; // cannot prove it is safe → treat as shadowed
@@ -1479,6 +1628,10 @@ function collectReturnStatements (block) {
 // shapes leaves the emitted signature at `any`. An annotated TS return type is
 // deliberately NOT consulted: the emitted Go body is what has to compile.
 export function ccxtGoFamilyMethodReturnType (goTranspiler, node) {
+    const annotated = ccxtGoAnnotatedMethodReturnType (goTranspiler, node);
+    if (annotated !== undefined) {
+        return annotated;
+    }
     if (node?.kind !== ts.SyntaxKind.MethodDeclaration) {
         return undefined;
     }
@@ -1569,8 +1722,8 @@ export function ccxtGoFamilyCallType (goTranspiler, initializer, printedValue) {
         return undefined;
     }
     const name = callee.name?.escapedText;
-    if ((typeof name !== 'string') || !CCXT_GO_FAMILY_METHOD.test (name)) {
-        return undefined;
+    if ((typeof name !== 'string') || !CCXT_GO_PARSE_METHOD.test (name)) {
+        return undefined; // D-02: the internal parse* family is the one with native returns
     }
     let value = (printedValue ?? '').trim ();
     while (value.startsWith ('(') && goTranspiler.isWholePrintedCall (value, 0)) {
@@ -1586,6 +1739,217 @@ export function ccxtGoFamilyCallType (goTranspiler, initializer, printedValue) {
     }
     const methodNode = findClassMethod (enclosingClassDeclaration (initializer), name);
     return ccxtGoFamilyMethodReturnType (goTranspiler, methodNode);
+}
+
+// ---------------------------------------------------------------------------
+// D-02 — native return types for internal parse* methods (annotation-driven)
+//
+// Batch C annotated the internal `parseX (..): Str/Dict/List/Bool/number`
+// methods in ts/src. Their emitted Go body already builds one concrete value on
+// every return path — a *string from the Safe* layer, a map[string]any literal,
+// another generated parse* method's result — but the signature stays `any`, so
+// every caller's `var x any = this.ParseX (..)` keeps its box and none of the
+// printer's typed-local readers can fire. This rule reads the DECLARED
+// annotation off the checker and prints the native Go signature (and, through
+// the same predicate, the callers' locals) only when every return statement of
+// the emitted body provably produces that same type.
+//
+// Fail-closed conditions, each keeping the emitted `any` signature:
+//   * not a non-async method with a block body, or not named parse*;
+//   * an override / abstract-base member (goMethodKeepsBaseSignature): the
+//     generated base classes and derived exchanges compile against it (D8);
+//   * the name is listed on one of the go/v4 interface files: every generated
+//     constructor assigns `this.Exchange.DerivedExchange = this`, so the
+//     IDerivedExchange / IBaseExchange member signatures must match exactly;
+//   * a bare `return;`, a return path whose printed value the printer cannot
+//     name (Ternary / GetValue / SafeDict / an `any` local / ...), or a mix of
+//     a literal path and a pointer path — one signature cannot hold both.
+const CCXT_GO_ANNOTATED_RETURN_NATIVE = {
+    'Str': [ '*string', 'string' ],
+    'Dict': [ 'map[string]any' ],
+    'List': [ '[]any' ],
+    'Bool': [ 'bool' ],
+    'number': [ 'float64' ],
+};
+const CCXT_GO_PARSE_METHOD = /^parse[A-Za-z0-9]*$/;
+const CCXT_GO_RESERVED_METHOD_CACHE = new Map ();
+const CCXT_GO_RETURN_TYPE_IN_PROGRESS = new Set ();
+const CCXT_GO_RETURN_TYPE_CACHE = new Map ();
+
+// every method name declared on the interface files of this repo root. A
+// `*BaseExchange`-receiver method is not enough: the generated constructor's
+// `this.Exchange.DerivedExchange = this` assertion compares the whole method
+// set, so ANY listed name has to keep the emitted signature byte-identical.
+// In-memory sources (unit tests) have no tree: the set is empty there.
+function ccxtGoReservedMethodNames (node) {
+    const fileName = node?.getSourceFile?. ()?.fileName;
+    if (typeof fileName !== 'string') {
+        return undefined;
+    }
+    const marker = '/ts/src/';
+    const at = fileName.lastIndexOf (marker);
+    if (at < 0) {
+        return undefined;
+    }
+    const root = fileName.substring (0, at);
+    if (CCXT_GO_RESERVED_METHOD_CACHE.has (root)) {
+        return CCXT_GO_RESERVED_METHOD_CACHE.get (root);
+    }
+    const names = new Set ();
+    const files = [
+        'go/v4/exchange_interface.go',
+        'go/v4/exchange_typed_interface.go',
+        'go/v4/pro/exchange_interface.go',
+        'go/v4/pro/exchange_typed_interface.go',
+    ];
+    for (const relative of files) {
+        let text;
+        try {
+            text = fs.readFileSync (path.join (root, relative), 'utf8');
+        } catch (e) {
+            continue;
+        }
+        for (const line of text.split ('\n')) {
+            const match = /^\t([A-Za-z_]\w*)\s*\(/.exec (line);
+            if (match !== null) {
+                names.add (match[1]);
+            }
+        }
+    }
+    CCXT_GO_RESERVED_METHOD_CACHE.set (root, names);
+    return names;
+}
+
+// the native Go type(s) a declared return annotation may print, or undefined.
+// The alias is read off the checker — never from the method name — so `Str`
+// (string | undefined) and `Bool` (boolean | undefined) are told apart from a
+// same-shaped local union, and `Dict`/`List` keep their container mapping.
+function ccxtGoAnnotatedReturnTypes (goTranspiler, node) {
+    if (node?.kind !== ts.SyntaxKind.MethodDeclaration) {
+        return undefined;
+    }
+    let type;
+    try {
+        const checker = goTranspiler.getChecker ();
+        type = checker.getReturnTypeOfSignature (checker.getSignatureFromDeclaration (node));
+    } catch (e) {
+        return undefined;
+    }
+    const alias = type?.aliasSymbol?.escapedName;
+    const annotation = (node.type !== undefined) ? node.type.getText () : undefined;
+    const key = (typeof alias === 'string') ? alias : annotation;
+    if ((key === 'Str') || (key === 'Dict') || (key === 'List') || (key === 'Bool')) {
+        return CCXT_GO_ANNOTATED_RETURN_NATIVE[key];
+    }
+    // `number` is a builtin: no alias to read, so the annotation text and the
+    // checker's own Number flag have to agree
+    if ((key === 'number') && (type !== undefined) && ((type.flags & ts.TypeFlags.Number) !== 0)) {
+        return CCXT_GO_ANNOTATED_RETURN_NATIVE['number'];
+    }
+    return undefined;
+}
+
+// the concrete Go type one printed return expression produces, or undefined
+// when the printer cannot name it (Ternary / GetValue / SafeDict / Add / ...)
+function ccxtGoReturnExpressionType (goTranspiler, expression) {
+    if (expression.kind === ts.SyntaxKind.Identifier) {
+        // a local the printer typed itself, or a parameter B-02 proved
+        return goTranspiler.goDeclaredTypeOfIdentifier (expression);
+    }
+    if (ts.isNumericLiteral (expression)) {
+        return 'float64'; // an untyped Go constant, assignable to float64
+    }
+    if (isSafeStringCall (expression)) {
+        return CCXT_GO_FAMILY_RETURN_TYPE;
+    }
+    let printed;
+    try {
+        printed = goTranspiler.printNode (expression, 0);
+    } catch (e) {
+        return undefined;
+    }
+    return goTranspiler.goTypeOfInitializer (expression, printed);
+}
+
+function ccxtGoProveReturnPaths (goTranspiler, node, allowed) {
+    const goTypeIsNilable = (goType) => (goType.charAt (0) === '*') || (goType === 'map[string]any') || (goType === '[]any');
+    const returns = collectReturnStatements (node.body);
+    if (returns.length === 0) {
+        return undefined; // no return path to prove → leave the signature alone
+    }
+    let valueType;
+    let sawAbsent = false;
+    for (const statement of returns) {
+        const expression = statement.expression;
+        if (expression === undefined) {
+            return undefined; // bare `return;` prints a bare `return`, not a typed value
+        }
+        if (isAbsentExpression (expression)) {
+            if (!allowed.some (goTypeIsNilable)) {
+                return undefined; // TS `undefined` → Go nil, only a nilable type holds it
+            }
+            sawAbsent = true;
+            continue;
+        }
+        const goType = ccxtGoReturnExpressionType (goTranspiler, expression);
+        if ((typeof goType !== 'string') || (allowed.indexOf (goType) < 0)) {
+            return undefined;
+        }
+        if (valueType === undefined) {
+            valueType = goType;
+        } else if (valueType !== goType) {
+            return undefined; // one signature cannot hold two printed types
+        }
+    }
+    if (valueType === undefined) {
+        return allowed.find (goTypeIsNilable); // every path absent → the nil value type
+    }
+    if (sawAbsent && !goTypeIsNilable (valueType)) {
+        return undefined; // a nil path and a literal path cannot share a plain value type
+    }
+    return valueType;
+}
+
+function ccxtGoAnnotatedMethodReturnType (goTranspiler, node) {
+    if (node?.kind !== ts.SyntaxKind.MethodDeclaration) {
+        return undefined;
+    }
+    const name = node.name?.escapedText;
+    if ((typeof name !== 'string') || !CCXT_GO_PARSE_METHOD.test (name)) {
+        return undefined;
+    }
+    if (node.body?.kind !== ts.SyntaxKind.Block) {
+        return undefined;
+    }
+    if ((typeof goTranspiler.isAsyncFunction === 'function') && goTranspiler.isAsyncFunction (node)) {
+        return undefined; // channel-returning: the printer owns that signature
+    }
+    if ((typeof goTranspiler.goMethodKeepsBaseSignature === 'function') && goTranspiler.goMethodKeepsBaseSignature (node)) {
+        return undefined;
+    }
+    if (CCXT_GO_RETURN_TYPE_IN_PROGRESS.has (node)) {
+        return undefined; // a recursive parse* chain: fail closed, never cache
+    }
+    const reserved = ccxtGoReservedMethodNames (node);
+    if ((reserved !== undefined) && (reserved.has (name) || reserved.has (name.charAt (0).toUpperCase () + name.slice (1)))) {
+        return undefined; // the interface files list the emitted (capitalised) Go name
+    }
+    const allowed = ccxtGoAnnotatedReturnTypes (goTranspiler, node);
+    if (allowed === undefined) {
+        return undefined;
+    }
+    if (CCXT_GO_RETURN_TYPE_CACHE.has (node)) {
+        return CCXT_GO_RETURN_TYPE_CACHE.get (node);
+    }
+    CCXT_GO_RETURN_TYPE_IN_PROGRESS.add (node);
+    let result;
+    try {
+        result = ccxtGoProveReturnPaths (goTranspiler, node, allowed);
+    } finally {
+        CCXT_GO_RETURN_TYPE_IN_PROGRESS.delete (node);
+    }
+    CCXT_GO_RETURN_TYPE_CACHE.set (node, result);
+    return result;
 }
 
 // ---------------------------------------------------------------------------
@@ -2171,6 +2535,10 @@ export function installCcxtGoLocalTypes (goTranspiler) {
         const wsTree = goSourceIsWsTree (initializer);
         const goType = ccxtGoTypeOfPrintedCall (this, printedValue, wsTree, initializer);
         if (goType === undefined) {
+            const currencyType = ccxtGoTypeOfCurrencyInitializer (this, initializer, printedValue);
+            if (currencyType !== undefined) {
+                return currencyType;
+            }
             return ccxtGoTypeOfCopiedLocal (this, initializer, printedValue);
         }
         if (!typeNameIsUsable (this, initializer, goType)) {
@@ -2206,6 +2574,8 @@ export function installCcxtGoLocalTypes (goTranspiler) {
     // the arithmetic type names a type Go will not unbox implicitly: the emitted
     // declaration needs the `.(int64)` the new declared type forces
     installCcxtGoArithmeticUnbox (goTranspiler);
+    // same for the currency dict the accessors box in `any`
+    installCcxtGoCurrencyUnbox (goTranspiler);
 }
 
 // ------------------------- U01: nil-declared later-write join (string) -------------------------

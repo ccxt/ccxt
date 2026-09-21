@@ -25,10 +25,10 @@ func testFetchLeverageTiersBody(ch chan any, exchange ccxt.ICoreExchange, skippe
 	AssertDictionaryResponse(exchange, method, tiers, symbol)
 	var tierKeys []string = ObjectKeys(tiers)
 	AssertNonEmtpyArray(exchange, skippedProperties, method, tierKeys, symbol)
-	for i := 0; IsLessThan(i, GetArrayLength(tierKeys)); i++ {
+	for i := 0; i < len(tierKeys); i++ {
 		var tiersForSymbol any = GetValue(tiers, GetValue(tierKeys, i))
 		AssertNonEmtpyArray(exchange, skippedProperties, method, tiersForSymbol, symbol)
-		for j := 0; IsLessThan(j, GetArrayLength(tiersForSymbol)); j++ {
+		for j := 0; j < GetArrayLength(tiersForSymbol); j++ {
 			TestLeverageTier(exchange, skippedProperties, method, GetValue(tiersForSymbol, j))
 		}
 	}

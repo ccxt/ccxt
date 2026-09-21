@@ -51,11 +51,11 @@ class bitopro extends \ccxt\async\bitopro {
         ));
     }
 
-    public function watch_public(mixed $path, mixed $messageHash, mixed $marketId) {
+    public function watch_public(string $path, string $messageHash, ?string $marketId) {
         return Async\async(self::do_watch_public(...))($path, $messageHash, $marketId);
     }
 
-    private function do_watch_public(mixed $path, mixed $messageHash, mixed $marketId) {
+    private function do_watch_public(string $path, string $messageHash, ?string $marketId) {
         $url = $this->urls['ws']['public'] . '/' . $path . '/' . $marketId;
         return Async\await($this->watch($url, $messageHash, null, $messageHash));
     }
@@ -96,7 +96,7 @@ class bitopro extends \ccxt\async\bitopro {
         return $orderbook->limit();
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         //     {
         //         "event": "ORDER_BOOK",
@@ -162,7 +162,7 @@ class bitopro extends \ccxt\async\bitopro {
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
-    public function handle_trade(Client $client, mixed $message) {
+    public function handle_trade(Client $client, array $message) {
         //
         //     {
         //         "event": "TRADE",
@@ -187,7 +187,7 @@ class bitopro extends \ccxt\async\bitopro {
         $symbol = $market['symbol'];
         $event = $this->safe_string($message, 'event');
         $messageHash = $event . ':' . $symbol;
-        $rawData = $this->safe_value($message, 'data', array());
+        $rawData = $this->safe_list($message, 'data', array());
         $trades = $this->parse_trades($rawData, $market);
         $tradesCache = $this->safe_value($this->trades, $symbol);
         if ($tradesCache === null) {
@@ -235,7 +235,7 @@ class bitopro extends \ccxt\async\bitopro {
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
-    public function handle_my_trade(Client $client, mixed $message) {
+    public function handle_my_trade(Client $client, array $message) {
         //
         //     {
         //         "event": "USER_TRADE",
@@ -259,7 +259,7 @@ class bitopro extends \ccxt\async\bitopro {
         //         }
         //     }
         //
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_dict($message, 'data', array());
         $baseId = $this->safe_string($data, 'base');
         $quoteId = $this->safe_string($data, 'quote');
         $base = $this->safe_currency_code($baseId);
@@ -326,7 +326,7 @@ class bitopro extends \ccxt\async\bitopro {
                 'rate' => null,
             );
         }
-        $isMaker = $this->safe_value($trade, 'isMaker');
+        $isMaker = $this->safe_bool($trade, 'isMaker');
         $takerOrMaker = null;
         if ($isMaker !== null) {
             if ($isMaker === true) {
@@ -375,7 +375,7 @@ class bitopro extends \ccxt\async\bitopro {
         return Async\await($this->watch_public('tickers', $messageHash, $market['id']));
     }
 
-    public function handle_ticker(Client $client, mixed $message) {
+    public function handle_ticker(Client $client, array $message) {
         //
         //     {
         //         "event": "TICKER",
@@ -412,7 +412,7 @@ class bitopro extends \ccxt\async\bitopro {
         $client->resolve($result, $messageHash);
     }
 
-    public function authenticate(mixed $url) {
+    public function authenticate(string $url) {
         if (($this->clients !== null) && (is_array($this->clients) && array_key_exists($url ?? '', $this->clients))) {
             return;
         }
@@ -469,7 +469,7 @@ class bitopro extends \ccxt\async\bitopro {
         return Async\await($this->watch($url, $messageHash, null, $messageHash));
     }
 
-    public function handle_balance(Client $client, mixed $message) {
+    public function handle_balance(Client $client, array $message) {
         //
         //     {
         //         "event": "ACCOUNT_BALANCE",
@@ -487,7 +487,7 @@ class bitopro extends \ccxt\async\bitopro {
         //     }
         //
         $event = $this->safe_string($message, 'event');
-        $data = $this->safe_value($message, 'data');
+        $data = $this->safe_dict($message, 'data', array());
         $timestamp = $this->safe_integer($message, 'timestamp');
         $datetime = $this->safe_string($message, 'datetime');
         $currencies = is_array($data) ? array_keys($data) : array();
@@ -498,7 +498,7 @@ class bitopro extends \ccxt\async\bitopro {
         );
         for ($i = 0; $i < count($currencies); $i++) {
             $currency = $this->safe_string($currencies, $i);
-            $balance = $this->safe_value($data, $currency);
+            $balance = $this->safe_dict($data, $currency, array());
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -512,7 +512,7 @@ class bitopro extends \ccxt\async\bitopro {
         $client->resolve($this->balance, $event);
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         $methods = array(
             'TRADE' => array($this, 'handle_trade'),
             'TICKER' => array($this, 'handle_ticker'),

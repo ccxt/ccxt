@@ -51,7 +51,7 @@ class coinone(ccxt.async_support.coinone):
             },
         })
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -79,7 +79,7 @@ class coinone(ccxt.async_support.coinone):
         orderbook = await self.watch(url, messageHash, message, messageHash)
         return orderbook.limit()
 
-    def handle_order_book(self, client: object, message: object):
+    def handle_order_book(self, client: Client, message: dict):
         #
         #     {
         #         "response_type": "DATA",
@@ -104,7 +104,7 @@ class coinone(ccxt.async_support.coinone):
         #         }
         #     }
         #
-        data = self.safe_value(message, 'data', {})
+        data = self.safe_dict(message, 'data', {})
         baseId = self.safe_string_upper(data, 'target_currency')
         quoteId = self.safe_string_upper(data, 'quote_currency')
         base = self.safe_currency_code(baseId)
@@ -117,8 +117,8 @@ class coinone(ccxt.async_support.coinone):
         else:
             orderbook.reset()
         orderbook['symbol'] = symbol
-        asks = self.safe_value(data, 'asks', [])
-        bids = self.safe_value(data, 'bids', [])
+        asks = self.safe_list(data, 'asks', [])
+        bids = self.safe_list(data, 'bids', [])
         self.handle_deltas(orderbook['asks'], asks)
         self.handle_deltas(orderbook['bids'], bids)
         orderbook['timestamp'] = timestamp
@@ -131,7 +131,7 @@ class coinone(ccxt.async_support.coinone):
         bidAsk = self.parse_order_book_bid_ask(delta, 'price', 'qty')
         bookside.storeArray(bidAsk)
 
-    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def watch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -157,7 +157,7 @@ class coinone(ccxt.async_support.coinone):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    def handle_ticker(self, client: Client, message: object):
+    def handle_ticker(self, client: Client, message: dict):
         #
         #     {
         #         "response_type": "DATA",
@@ -187,7 +187,7 @@ class coinone(ccxt.async_support.coinone):
         #         }
         #     }
         #
-        data = self.safe_value(message, 'data', {})
+        data = self.safe_dict(message, 'data', {})
         ticker = self.parse_ws_ticker(data)
         symbol = ticker['symbol']
         self.tickers[symbol] = ticker
@@ -250,7 +250,7 @@ class coinone(ccxt.async_support.coinone):
             'info': ticker,
         }, market)
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         watches information on multiple trades made in a market
 
@@ -281,7 +281,7 @@ class coinone(ccxt.async_support.coinone):
             limit = trades.getLimit(market['symbol'], limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client: Client, message: object):
+    def handle_trades(self, client: Client, message: dict):
         #
         #     {
         #         "response_type": "DATA",
@@ -297,7 +297,7 @@ class coinone(ccxt.async_support.coinone):
         #         }
         #     }
         #
-        data = self.safe_value(message, 'data', {})
+        data = self.safe_dict(message, 'data', {})
         trade = self.parse_ws_trade(data)
         symbol = trade['symbol']
         stored = self.safe_value(self.trades, symbol)
@@ -328,7 +328,7 @@ class coinone(ccxt.async_support.coinone):
         symbol = base + '/' + quote
         timestamp = self.safe_integer(trade, 'timestamp')
         market = self.safe_market(symbol, market)
-        isSellerMaker = self.safe_value(trade, 'is_seller_maker')
+        isSellerMaker = self.safe_bool(trade, 'is_seller_maker')
         side = None
         if isSellerMaker is not None:
             side = 'sell' if (isSellerMaker is True) else 'buy'
@@ -363,7 +363,7 @@ class coinone(ccxt.async_support.coinone):
             return True
         return False
 
-    def handle_message(self, client: Client, message: object):
+    def handle_message(self, client: Client, message: dict):
         if self.handle_error_message(client, message) is True:
             return
         type = self.safe_string(message, 'response_type')
@@ -389,12 +389,12 @@ class coinone(ccxt.async_support.coinone):
                     method(client, message)
                     return
 
-    def ping(self, client: Client):
+    def ping(self, client: Client) -> dict:
         return {
             'request_type': 'PING',
         }
 
-    def handle_pong(self, client: Client, message: object):
+    def handle_pong(self, client: Client, message: dict) -> dict:
         #
         #     {
         #         "response_type":"PONG"

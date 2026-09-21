@@ -91,7 +91,7 @@ class cex extends \ccxt\async\cex {
         return Async\await($this->watch($url, $messageHash, $request, $messageHash, $request));
     }
 
-    public function handle_balance(Client $client, mixed $message) {
+    public function handle_balance(Client $client, array $message) {
         //
         //     {
         //         "e": "get-balance",
@@ -112,9 +112,9 @@ class cex extends \ccxt\async\cex {
         //         "ok": "ok"
         //     }
         //
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_dict($message, 'data', array());
         $freeBalance = $this->safe_dict($data, 'balance', array());
-        $usedBalance = $this->safe_value($data, 'obalance', array());
+        $usedBalance = $this->safe_dict($data, 'obalance', array());
         $result = array(
             'info' => $data,
         );
@@ -186,7 +186,7 @@ class cex extends \ccxt\async\cex {
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
-    public function handle_trades_snapshot(Client $client, mixed $message) {
+    public function handle_trades_snapshot(Client $client, array $message) {
         //
         //     {
         //         "e": "history",
@@ -234,7 +234,7 @@ class cex extends \ccxt\async\cex {
         ), $market);
     }
 
-    public function handle_trade(Client $client, mixed $message) {
+    public function handle_trade(Client $client, array $message) {
         //
         //     {
         //         "e": "history-update",
@@ -246,7 +246,7 @@ class cex extends \ccxt\async\cex {
         $this->handle_trades_inner($client, $message);
     }
 
-    public function handle_trades_inner(Client $client, mixed $message) {
+    public function handle_trades_inner(Client $client, array $message) {
         $data = $this->safe_list($message, 'data', array());
         $symbol = $this->safe_string($this->options['watchTrades'], 'symbol');
         if ($symbol === null) {
@@ -383,7 +383,7 @@ class cex extends \ccxt\async\cex {
         return Async\await($this->watch($url, $messageHash, $request, $messageHash));
     }
 
-    public function handle_ticker(Client $client, mixed $message) {
+    public function handle_ticker(Client $client, array $message) {
         //
         //     {
         //         "e": "tick",
@@ -396,7 +396,7 @@ class cex extends \ccxt\async\cex {
         //         }
         //     }
         //
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_dict($message, 'data', array());
         $ticker = $this->parse_ws_ticker($data);
         $symbol = $ticker['symbol'];
         if ($symbol === null) {
@@ -436,7 +436,7 @@ class cex extends \ccxt\async\cex {
         //        "priceChangePercentage": "0.23",
         //        "pair": ["BTC", "USDT"]
         //    }
-        $pair = $this->safe_value($ticker, 'pair', array());
+        $pair = $this->safe_list($ticker, 'pair', array());
         $baseId = $this->safe_string($ticker, 'symbol1');
         if ($baseId === null) {
             $baseId = $this->safe_string($pair, 0);
@@ -589,8 +589,8 @@ class cex extends \ccxt\async\cex {
         return $this->filter_by_symbol_since_limit($orders, $market['symbol'], $since, $limit);
     }
 
-    public function handle_transaction(Client $client, mixed $message) {
-        $data = $this->safe_value($message, 'data');
+    public function handle_transaction(Client $client, array $message) {
+        $data = $this->safe_dict($message, 'data');
         $symbol2 = $this->safe_string($data, 'symbol2');
         if ($symbol2 === null) {
             return;
@@ -599,7 +599,7 @@ class cex extends \ccxt\async\cex {
         $this->handle_my_trades($client, $message);
     }
 
-    public function handle_my_trades(Client $client, mixed $message) {
+    public function handle_my_trades(Client $client, array $message) {
         //
         //     {
         //         "e": "tx",
@@ -642,7 +642,7 @@ class cex extends \ccxt\async\cex {
         //             "id": "59091012962"
         //         }
         //     }
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_dict($message, 'data', array());
         $stored = $this->myTrades;
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
@@ -655,7 +655,7 @@ class cex extends \ccxt\async\cex {
         $client->resolve($stored, $messageHash);
     }
 
-    public function parse_ws_trade(mixed $trade, ?array $market = null) {
+    public function parse_ws_trade(array $trade, ?array $market = null): array {
         //
         //     {
         //         "d": "order:59091012956:a:BTC",
@@ -718,7 +718,7 @@ class cex extends \ccxt\async\cex {
         return $this->safe_trade($parsedTrade, $market);
     }
 
-    public function handle_order_update(Client $client, mixed $message) {
+    public function handle_order_update(Client $client, array $message) {
         //
         //  partialExecution
         //     {
@@ -787,13 +787,13 @@ class cex extends \ccxt\async\cex {
         //         }
         //     }
         //
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_dict($message, 'data', array());
         $isTransaction = $this->safe_string($message, 'e') === 'tx';
         $orderId = $this->safe_string_2($data, 'id', 'order');
         $remains = $this->safe_string($data, 'remains');
         $baseId = $this->safe_string($data, 'symbol');
         $quoteId = $this->safe_string($data, 'symbol2');
-        $pair = $this->safe_value($data, 'pair');
+        $pair = $this->safe_dict($data, 'pair');
         if ($pair !== null) {
             $baseId = $this->safe_string($pair, 'symbol1');
             $quoteId = $this->safe_string($pair, 'symbol2');
@@ -808,7 +808,7 @@ class cex extends \ccxt\async\cex {
             $this->orders = new ArrayCacheBySymbolById($limit);
         }
         $storedOrders = $this->orders;
-        $ordersBySymbol = $this->safe_value($storedOrders->hashmap, $symbol, array());
+        $ordersBySymbol = $this->safe_dict($storedOrders->hashmap, $symbol, array());
         $order = $this->safe_value($ordersBySymbol, $orderId);
         if ($order === null) {
             $order = $this->parse_ws_order_update($data, $market);
@@ -875,7 +875,7 @@ class cex extends \ccxt\async\cex {
         //           "id": "59425993020"
         //       }
         //
-        $isTransaction = $this->safe_value($order, 'd') !== null;
+        $isTransaction = $this->safe_string($order, 'd') !== null;
         $remainsPrecision = $this->safe_string($order, 'remains');
         $remaining = null;
         if ($remainsPrecision !== null) {
@@ -893,7 +893,7 @@ class cex extends \ccxt\async\cex {
         }
         $baseId = $this->safe_string($order, 'symbol');
         $quoteId = $this->safe_string($order, 'symbol2');
-        $pair = $this->safe_value($order, 'pair');
+        $pair = $this->safe_dict($order, 'pair');
         if ($pair !== null) {
             $baseId = $this->safe_string($order, 'symbol1');
             $quoteId = $this->safe_string($order, 'symbol2');
@@ -905,7 +905,7 @@ class cex extends \ccxt\async\cex {
             $symbol = $base . '/' . $quote;
         }
         $market = $this->safe_market($symbol, $market);
-        $time = $this->safe_integer($order, 'time', $this->milliseconds());
+        $time = $this->safe_integer($order, 'time');
         $timestamp = $time;
         if ($isTransaction) {
             $timestamp = $this->parse8601($time);
@@ -966,7 +966,7 @@ class cex extends \ccxt\async\cex {
         return $this->from_precision($amount, $scale);
     }
 
-    public function handle_orders_snapshot(Client $client, mixed $message) {
+    public function handle_orders_snapshot(Client $client, array $message) {
         //
         //     {
         //         "e": "open-orders",
@@ -1045,7 +1045,7 @@ class cex extends \ccxt\async\cex {
         return $orderbook->limit();
     }
 
-    public function handle_order_book_snapshot(Client $client, mixed $message) {
+    public function handle_order_book_snapshot(Client $client, array $message) {
         //
         //     {
         //         "e": "order-book-subscribe",
@@ -1068,7 +1068,7 @@ class cex extends \ccxt\async\cex {
         //         "ok": "ok"
         //     }
         //
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_dict($message, 'data', array());
         $pair = $this->safe_string($data, 'pair');
         $symbol = $this->pair_to_symbol($pair);
         $messageHash = 'orderbook:' . $symbol;
@@ -1095,7 +1095,7 @@ class cex extends \ccxt\async\cex {
         return $symbol;
     }
 
-    public function handle_order_book_update(Client $client, mixed $message) {
+    public function handle_order_book_update(Client $client, array $message) {
         //
         //     {
         //         "e": "md_update",
@@ -1110,7 +1110,7 @@ class cex extends \ccxt\async\cex {
         //         }
         //     }
         //
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_dict($message, 'data', array());
         $incrementalId = $this->safe_integer($data, 'id');
         $pair = $this->safe_string($data, 'pair', '');
         $symbol = $this->pair_to_symbol($pair);
@@ -1122,8 +1122,8 @@ class cex extends \ccxt\async\cex {
             return;
         }
         $timestamp = $this->safe_integer($data, 'time');
-        $asks = $this->safe_value($data, 'asks', array());
-        $bids = $this->safe_value($data, 'bids', array());
+        $asks = $this->safe_list($data, 'asks', array());
+        $bids = $this->safe_list($data, 'bids', array());
         $this->handle_deltas($storedOrderBook['asks'], $asks);
         $this->handle_deltas($storedOrderBook['bids'], $bids);
         $storedOrderBook['timestamp'] = $timestamp;
@@ -1181,7 +1181,7 @@ class cex extends \ccxt\async\cex {
         return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
     }
 
-    public function handle_init_ohlcv(Client $client, mixed $message) {
+    public function handle_init_ohlcv(Client $client, array $message) {
         //
         //     {
         //         "e": "init-ohlcv-data",
@@ -1211,7 +1211,7 @@ class cex extends \ccxt\async\cex {
         $symbol = $base . '/' . $quote;
         $market = $this->safe_market($symbol);
         $messageHash = 'ohlcv:' . $symbol;
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_list($message, 'data', array());
         $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
         $stored = new ArrayCacheByTimestamp($limit);
         $sorted = $this->sort_by($data, 0);
@@ -1225,7 +1225,7 @@ class cex extends \ccxt\async\cex {
         $client->resolve($stored, $messageHash);
     }
 
-    public function handle_ohlcv24(Client $client, mixed $message) {
+    public function handle_ohlcv24(Client $client, array $message): array {
         //
         //     {
         //         "e": "ohlcv24",
@@ -1236,7 +1236,7 @@ class cex extends \ccxt\async\cex {
         return $message;
     }
 
-    public function handle_ohlcv1m(Client $client, mixed $message) {
+    public function handle_ohlcv1m(Client $client, array $message) {
         //
         //     {
         //         "e": "ohlcv1m",
@@ -1252,7 +1252,7 @@ class cex extends \ccxt\async\cex {
         //         }
         //     }
         //
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_dict($message, 'data', array());
         $pair = $this->safe_string($data, 'pair');
         $symbol = $this->pair_to_symbol($pair);
         $messageHash = 'ohlcv:' . $symbol;
@@ -1269,7 +1269,7 @@ class cex extends \ccxt\async\cex {
         $client->resolve($stored, $messageHash);
     }
 
-    public function handle_ohlcv(Client $client, mixed $message) {
+    public function handle_ohlcv(Client $client, array $message) {
         //
         //     {
         //         "e": "ohlcv",
@@ -1302,7 +1302,7 @@ class cex extends \ccxt\async\cex {
         }
     }
 
-    public function fetch_order_ws(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order_ws(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order_ws(...))($id, $symbol, $params);
     }
 
@@ -1339,7 +1339,7 @@ class cex extends \ccxt\async\cex {
         return $this->parse_order($response, $market);
     }
 
-    public function fetch_open_orders_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_open_orders_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_open_orders_ws(...))($symbol, $since, $limit, $params);
     }
 
@@ -1469,7 +1469,7 @@ class cex extends \ccxt\async\cex {
         return $this->parse_order($response, $market);
     }
 
-    public function cancel_order_ws(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order_ws(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order_ws(...))($id, $symbol, $params);
     }
 
@@ -1506,7 +1506,7 @@ class cex extends \ccxt\async\cex {
         return $this->parse_order($response, $market);
     }
 
-    public function cancel_orders_ws(array $ids, ?string $symbol = null, $params = array()) {
+    public function cancel_orders_ws(array $ids, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_orders_ws(...))($ids, $symbol, $params);
     }
 
@@ -1549,11 +1549,11 @@ class cex extends \ccxt\async\cex {
         //        "placed-cancelled": []
         //    }
         //
-        $canceledOrders = $this->safe_value($response, 'cancel-orders');
+        $canceledOrders = $this->safe_list($response, 'cancel-orders');
         return $this->parse_orders($canceledOrders, null, null, null, $params);
     }
 
-    public function resolve_data(Client $client, mixed $message) {
+    public function resolve_data(Client $client, array $message) {
         //
         //    "e": "open-orders",
         //    "data": [
@@ -1576,7 +1576,7 @@ class cex extends \ccxt\async\cex {
         $client->resolve($data, $messageHash);
     }
 
-    public function handle_connected(Client $client, mixed $message) {
+    public function handle_connected(Client $client, array $message): array {
         //
         //     {
         //         "e": "connected"
@@ -1595,7 +1595,7 @@ class cex extends \ccxt\async\cex {
         //     }
         //
         try {
-            $data = $this->safe_value($message, 'data', array());
+            $data = $this->safe_dict($message, 'data', array());
             $error = $this->safe_string($data, 'error');
             $event = $this->safe_string($message, 'e', '');
             $feedback = $this->id . ' ' . $event . ' ' . $error;
@@ -1614,7 +1614,7 @@ class cex extends \ccxt\async\cex {
         }
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         $ok = $this->safe_string($message, 'ok');
         if ($ok === 'error') {
             $this->handle_error_message($client, $message);
@@ -1650,7 +1650,7 @@ class cex extends \ccxt\async\cex {
         }
     }
 
-    public function handle_authentication_message(Client $client, mixed $message) {
+    public function handle_authentication_message(Client $client, array $message) {
         //
         //     {
         //         "e": "auth",

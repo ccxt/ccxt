@@ -62,7 +62,7 @@ use function abs, array_change_key_case, array_filter, array_is_list, array_key_
     stripos, strlen, strpos, strtolower, strtotime, strtoupper, strtr, strval, substr, sys_get_temp_dir,
     time, trim, unpack, urldecode, urlencode, usleep, usort, var_export;
 
-$version = '4.5.78';
+$version = '4.5.82';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -81,10 +81,10 @@ const PAD_WITH_ZERO = 6;
 
 class BaseExchange {
 
-    const VERSION = '4.5.78';
+    const VERSION = '4.5.82';
 
     // this is updated by build/vss.js
-    public static $ccxt_version = '4.5.78';
+    public static $ccxt_version = '4.5.82';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -393,6 +393,7 @@ class BaseExchange {
         'bullish',
         'bybit',
         'bybiteu',
+        'bybitid',
         'bydfi',
         'cex',
         'coinbase',
@@ -1606,7 +1607,6 @@ class BaseExchange {
     }
 
     public static function eddsa($request, $secret, $algorithm = 'ed25519') {
-        $curve = new EdDSA($algorithm);
         if (preg_match('/^-----BEGIN PRIVATE KEY-----\s(\S{64})\s-----END PRIVATE KEY-----$/', $secret, $match) >= 1) {
             // trim pem header from 48 bytes -> 32 bytes
             // in hex so 96 chars -> 64 chars
@@ -1614,7 +1614,15 @@ class BaseExchange {
         } else {
             $hex_secret = bin2hex($secret);
         }
-        $signature = $curve->sign(bin2hex(static::encode($request)), $hex_secret);
+        $message = static::encode($request);
+        $seed = hex2bin($hex_secret);
+        // libsodium produces the same RFC 8032 signature as the pure-PHP curve and is far faster
+        if (($algorithm === 'ed25519') && function_exists('sodium_crypto_sign_detached') && (strlen($seed) === SODIUM_CRYPTO_SIGN_SEEDBYTES)) {
+            $keypair = sodium_crypto_sign_seed_keypair($seed);
+            return static::binary_to_base64(sodium_crypto_sign_detached($message, sodium_crypto_sign_secretkey($keypair)));
+        }
+        $curve = new EdDSA($algorithm);
+        $signature = $curve->sign(bin2hex($message), $hex_secret);
         return static::binary_to_base64(static::base16_to_binary($signature->toHex()));
     }
 
@@ -3047,6 +3055,14 @@ class BaseExchange {
         return true;
     }
 
+    public function lock_last_nonce() {
+        return true;
+    }
+
+    public function unlock_last_nonce() {
+        return true;
+    }
+
     public function set_last_rest_request_timestamp() {
         $this->lastRestRequestTimestamp = $this->milliseconds();
     }
@@ -3764,7 +3780,7 @@ class BaseExchange {
         return array( $httpProxy, $httpsProxy, $socksProxy );
     }
 
-    public function check_ws_proxy_settings() {
+    public function check_ws_proxy_settings(): array {
         $usedProxies = array();
         $wsProxy = null;
         $wssProxy = null;
@@ -4430,7 +4446,7 @@ class BaseExchange {
         }
     }
 
-    public function features_mapper(mixed $initialFeatures, ?string $marketType, ?string $subType = null) {
+    public function features_mapper(array $initialFeatures, ?string $marketType, ?string $subType = null) {
         $featuresObj = ($subType !== null) ? $initialFeatures[$marketType][$subType] : $initialFeatures[$marketType];
         // if exchange does not have that market-type (eg. future>inverse)
         if ($featuresObj === null) {
@@ -6509,8 +6525,23 @@ class BaseExchange {
         return $this->filter_by_currency_since_limit($result, $code, $since, $limit);
     }
 
-    public function nonce() {
+    public function nonce(): float {
         return $this->seconds();
+    }
+
+    public function incrementing_nonce() {
+        /**
+         * @ignore
+         * returns a strictly-increasing nonce for venues that reject duplicate nonces per signer; the unit is whatever nonce () returns — the base default is seconds, so a venue that does not override nonce () gets a second-resolution counter that drifts ahead of wall clock under load, while venues needing milliseconds override nonce () as hyperliquid does. The counter is per exchange instance, so it narrows the duplicate-nonce race but does not remove it across instances or processes.
+         * @return {int} a strictly-increasing nonce in the unit returned by nonce ()
+         */
+        $currentNonce = $this->nonce();
+        $this->lock_last_nonce();
+        $lastNonce = $this->safe_integer($this->options, 'lastNonce', 0);
+        $result = ($currentNonce > $lastNonce) ? $currentNonce : $lastNonce + 1;
+        $this->options['lastNonce'] = $result;
+        $this->unlock_last_nonce();
+        return $result;
     }
 
     public function set_headers(mixed $headers) {
@@ -6978,7 +7009,7 @@ class BaseExchange {
         return true;
     }
 
-    public function oath() {
+    public function oath(): string {
         if ($this->twofa !== null) {
             return $this->totp($this->twofa);
         } else {
@@ -7050,7 +7081,11 @@ class BaseExchange {
         if (is_array($mapping) && array_key_exists($key ?? '', $mapping)) {
             return $mapping[$key];
         } else {
-            throw new NotSupported($this->id . ' ' . $key . ' does not have a value in mapping');
+            $keys = is_array($mapping) ? array_keys($mapping) : array();
+            // "mapping" must stay literal-final and the list must not be introduced with ": ":
+            // the php transpiler rewrites a param name inside string literals ("$mapping",
+            // "mapping->") and turns ": " after a non-space into " => ".
+            throw new NotSupported($this->id . ' ' . $key . ' does not have a value in mapping' . ', must be one of ' . implode(', ', $keys));
         }
     }
 

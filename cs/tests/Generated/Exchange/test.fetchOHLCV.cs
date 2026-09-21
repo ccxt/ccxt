@@ -16,7 +16,7 @@ public partial class testMainClass : BaseTest
         object chosenTimeframeKey = "1m";
         if (!isTrue(exchange.inArray(chosenTimeframeKey, timeframeKeys)))
         {
-            chosenTimeframeKey = getValue(timeframeKeys, 0);
+            chosenTimeframeKey = (timeframeKeys != null && 0 < timeframeKeys.Count ? timeframeKeys[0] : null);
         }
         int limit = 10;
         int duration = exchange.parseTimeframe(chosenTimeframeKey);
@@ -24,7 +24,7 @@ public partial class testMainClass : BaseTest
         object ohlcvs = await invokeExchangeDynamically(exchange, "fetchOHLCV", symbol, chosenTimeframeKey, since, limit);
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, ohlcvs, symbol);
         Int64 now = exchange.milliseconds();
-        for (int i = 0; isLessThan(i, getArrayLength(ohlcvs)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(ohlcvs); i++)
         {
             testOHLCV(exchange, skippedProperties, method, getValue(ohlcvs, i), symbol, now);
         }

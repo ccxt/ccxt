@@ -12,6 +12,7 @@ public partial class BaseTest
             var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
                 { "id", "sampleexchange" },
                 { "fetchHistoryCacheSize", 2 },
+                { "enableRateLimit", false },
             });
             Assert(isEqual(exchangeProp(exchange, "fetchHistoryCacheSize"), 2), "fetchHistoryCacheSize should be 2");
             bool trueAssertion = isEqual(exchange.parseNumber(null), null);

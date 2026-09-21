@@ -17,11 +17,11 @@ public partial class testMainClass : BaseTest
         assert(!isEqual(exchange.markets, null), ".markets is undefined");
         List<object> marketKeys = new List<object>(((IDictionary<string,object>)exchange.markets).Keys);
         int marketKeysLength = marketKeys.Count;
-        assert(isGreaterThan(symbolsLength, 0), ".symbols count <= 0 (less than or equal to zero)");
-        assert(isGreaterThan(marketKeysLength, 0), ".markets objects keys length <= 0 (less than or equal to zero)");
+        assert(symbolsLength > 0, ".symbols count <= 0 (less than or equal to zero)");
+        assert(marketKeysLength > 0, ".markets objects keys length <= 0 (less than or equal to zero)");
         assert((symbolsLength == marketKeysLength), "number of .symbols is not equal to the number of .markets");
         List<object> marketValues = new List<object>(((IDictionary<string,object>)markets).Values);
-        for (int i = 0; isLessThan(i, marketValues.Count); postFixIncrement(ref i))
+        for (int i = 0; i < marketValues.Count; i++)
         {
             testMarket(exchange, skippedProperties, method, marketValues[i]);
         }
@@ -29,7 +29,7 @@ public partial class testMainClass : BaseTest
         List<object> marketTypes = new List<object>() {"spot", "swap", "future", "option", "index"};
         List<object> collectedTypes = new List<object>() {};
         List<object> allMarkets = new List<object>(((IDictionary<string,object>)exchange.markets).Values);
-        for (int i = 0; isLessThan(i, allMarkets.Count); postFixIncrement(ref i))
+        for (int i = 0; i < allMarkets.Count; i++)
         {
             object market = allMarkets[i];
             if (!isTrue(exchange.inArray(getValue(market, "type"), collectedTypes)))
@@ -37,12 +37,12 @@ public partial class testMainClass : BaseTest
                 ((IList<object>)collectedTypes).Add(getValue(market, "type"));
             }
         }
-        for (int i = 0; isLessThan(i, (marketTypes?.Count ?? 0)); postFixIncrement(ref i))
+        for (int i = 0; i < (marketTypes?.Count ?? 0); i++)
         {
             string? mType = ((string)marketTypes[i]);
             if (!isEqual(getValue(exchange.has, mType), null) && !isEqual(getValue(exchange.has, mType), false))
             {
-                bool skipMarketTypes = (inOp(skippedProperties, "optionsNotLoadedByDefault")) && mType == "option";
+                bool skipMarketTypes = (inOp(skippedProperties, "optionsNotLoadedByDefault")) && (mType == "option");
                 assert(isTrue(exchange.inArray(mType, collectedTypes)) || skipMarketTypes, (((("exchange.has[" + mType) + "] is true, but no markets of type ") + mType) + " were found in exchange.markets"));
             } else if (isEqual(getValue(exchange.has, mType), false))
             {

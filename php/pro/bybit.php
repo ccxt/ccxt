@@ -191,11 +191,11 @@ class bybit extends \ccxt\async\bybit {
         return $requestId;
     }
 
-    public function get_url_by_market_type(?string $symbol = null, $isPrivate = false, ?string $method = null, $params = array()) {
+    public function get_url_by_market_type(?string $symbol = null, ?bool $isPrivate = false, ?string $method = null, $params = array()): PromiseInterface {
         return Async\async(self::do_get_url_by_market_type(...))($symbol, $isPrivate, $method, $params);
     }
 
-    private function do_get_url_by_market_type(?string $symbol = null, $isPrivate = false, ?string $method = null, $params = array()) {
+    private function do_get_url_by_market_type(?string $symbol = null, ?bool $isPrivate = false, ?string $method = null, $params = array()) {
         $accessibility = $isPrivate ? 'private' : 'public';
         if ($method === null) {
             $method = '';
@@ -241,12 +241,12 @@ class bybit extends \ccxt\async\bybit {
         return $url;
     }
 
-    public function clean_params(mixed $params) {
+    public function clean_params(array $params): array {
         $params = $this->omit($params, array( 'type', 'subType', 'settle', 'defaultSettle', 'unifiedMargin' ));
         return $params;
     }
 
-    public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_order_ws(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -286,7 +286,7 @@ class bybit extends \ccxt\async\bybit {
             Async\await($this->load_markets());
         }
         $orderRequest = $this->create_order_request($symbol, $type, $side, $amount, $price, $params, true);
-        $url = $this->urls['api']['ws']['private']['trade'];
+        $url = $this->implode_hostname($this->urls['api']['ws']['private']['trade']);
         Async\await($this->authenticate($url));
         $requestId = (string) $this->request_id();
         $request = array(
@@ -303,7 +303,7 @@ class bybit extends \ccxt\async\bybit {
         return Async\await($this->watch($url, $requestId, $request, $requestId, true));
     }
 
-    public function edit_order_ws(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    public function edit_order_ws(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_edit_order_ws(...))($id, $symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -337,7 +337,7 @@ class bybit extends \ccxt\async\bybit {
             Async\await($this->load_markets());
         }
         $orderRequest = $this->edit_order_request($id, $symbol, $type, $side, $amount, $price, $params);
-        $url = $this->urls['api']['ws']['private']['trade'];
+        $url = $this->implode_hostname($this->urls['api']['ws']['private']['trade']);
         Async\await($this->authenticate($url));
         $requestId = (string) $this->request_id();
         $request = array(
@@ -354,7 +354,7 @@ class bybit extends \ccxt\async\bybit {
         return Async\await($this->watch($url, $requestId, $request, $requestId, true));
     }
 
-    public function cancel_order_ws(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order_ws(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order_ws(...))($id, $symbol, $params);
     }
 
@@ -379,7 +379,7 @@ class bybit extends \ccxt\async\bybit {
             throw new ArgumentsRequired($this->id . ' cancelOrderWs() requires a $symbol argument');
         }
         $orderRequest = $this->cancel_order_request($id, $symbol, $params);
-        $url = $this->urls['api']['ws']['private']['trade'];
+        $url = $this->implode_hostname($this->urls['api']['ws']['private']['trade']);
         Async\await($this->authenticate($url));
         $requestId = (string) $this->request_id();
         if (is_array($orderRequest) && array_key_exists('orderFilter' ?? '', $orderRequest)) {
@@ -422,7 +422,7 @@ class bybit extends \ccxt\async\bybit {
         $messageHash = 'ticker:' . $symbol;
         $url = Async\await($this->get_url_by_market_type($symbol, false, 'watchTicker', $params));
         $params = $this->clean_params($params);
-        $options = $this->safe_value($this->options, 'watchTicker', array());
+        $options = $this->safe_dict($this->options, 'watchTicker', array());
         $topic = $this->safe_string($options, 'name', 'tickers');
         if (($market['spot'] !== true) && $topic !== 'tickers') {
             throw new BadRequest($this->id . ' watchTicker() only supports name tickers for contract markets');
@@ -454,7 +454,7 @@ class bybit extends \ccxt\async\bybit {
         $messageHashes = array();
         $url = Async\await($this->get_url_by_market_type($symbols[0], false, 'watchTickers', $params));
         $params = $this->clean_params($params);
-        $options = $this->safe_value($this->options, 'watchTickers', array());
+        $options = $this->safe_dict($this->options, 'watchTickers', array());
         $topic = $this->safe_string($options, 'name', 'tickers');
         $marketIds = $this->market_ids($symbols);
         $topics = array();
@@ -491,7 +491,7 @@ class bybit extends \ccxt\async\bybit {
             Async\await($this->load_markets());
         }
         $symbols = $this->market_symbols($symbols, null, false);
-        $options = $this->safe_value($this->options, 'watchTickers', array());
+        $options = $this->safe_dict($this->options, 'watchTickers', array());
         $topic = $this->safe_string($options, 'name', 'tickers');
         $messageHashes = array();
         $subMessageHashes = array();
@@ -522,7 +522,7 @@ class bybit extends \ccxt\async\bybit {
         return $this->un_watch_tickers(array( $symbol ), $params);
     }
 
-    public function handle_ticker(Client $client, mixed $message) {
+    public function handle_ticker(Client $client, array $message) {
         //
         // linear
         //     {
@@ -851,7 +851,7 @@ class bybit extends \ccxt\async\bybit {
         return Async\await($this->un_watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $params));
     }
 
-    public function handle_ohlcv(Client $client, mixed $message) {
+    public function handle_ohlcv(Client $client, array $message) {
         //
         //     {
         //         "topic": "kline.5.BTCUSDT",
@@ -888,7 +888,7 @@ class bybit extends \ccxt\async\bybit {
         $marketType = $isSpot ? 'spot' : 'contract';
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
-        $ohlcvsByTimeframe = $this->safe_value($this->ohlcvs, $symbol);
+        $ohlcvsByTimeframe = $this->safe_dict($this->ohlcvs, $symbol);
         if ($ohlcvsByTimeframe === null) {
             $this->ohlcvs[$symbol] = array();
         }
@@ -1062,7 +1062,7 @@ class bybit extends \ccxt\async\bybit {
         return $this->un_watch_order_book_for_symbols(array( $symbol ), $params);
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         //     {
         //         "topic": "orderbook.50.BTCUSDT",
@@ -1199,7 +1199,7 @@ class bybit extends \ccxt\async\bybit {
         }
         $trades = Async\await($this->watch_topics($url, $messageHashes, $topics, $params));
         if ($this->newUpdates) {
-            $first = $this->safe_value($trades, 0);
+            $first = $this->safe_dict($trades, 0);
             $tradeSymbol = $this->safe_string($first, 'symbol');
             $limit = $trades->getLimit($tradeSymbol, $limit);
         }
@@ -1253,7 +1253,7 @@ class bybit extends \ccxt\async\bybit {
         return $this->un_watch_trades_for_symbols(array( $symbol ), $params);
     }
 
-    public function handle_trades(Client $client, mixed $message) {
+    public function handle_trades(Client $client, array $message) {
         //
         //     {
         //         "topic": "publicTrade.BTCUSDT",
@@ -1296,7 +1296,7 @@ class bybit extends \ccxt\async\bybit {
         $client->resolve($stored, $messageHash);
     }
 
-    public function parse_ws_trade(mixed $trade, ?array $market = null) {
+    public function parse_ws_trade(array $trade, ?array $market = null): array {
         //
         // public
         //    {
@@ -1367,7 +1367,7 @@ class bybit extends \ccxt\async\bybit {
         ), $market);
     }
 
-    public function get_private_type(mixed $url) {
+    public function get_private_type(string $url): string {
         if (mb_strpos($url, 'spot') !== false) {
             return 'spot';
         } elseif (mb_strpos($url, 'v5/private') !== false) {
@@ -1412,7 +1412,7 @@ class bybit extends \ccxt\async\bybit {
             'unified' => 'execution',
             'usdc' => 'user.openapi.perp.trade',
         );
-        $topic = $this->safe_value($topicByMarket, $this->get_private_type($url));
+        $topic = $this->safe_string($topicByMarket, $this->get_private_type($url));
         $executionFast = false;
         list($executionFast, $params) = $this->handle_option_and_params($params, 'watchMyTrades', 'executionFast', false);
         if ($executionFast) {
@@ -1458,7 +1458,7 @@ class bybit extends \ccxt\async\bybit {
             'unified' => 'execution',
             'usdc' => 'user.openapi.perp.trade',
         );
-        $topic = $this->safe_value($topicByMarket, $this->get_private_type($url));
+        $topic = $this->safe_string($topicByMarket, $this->get_private_type($url));
         $executionFast = false;
         list($executionFast, $params) = $this->handle_option_and_params($params, 'watchMyTrades', 'executionFast', false);
         if ($executionFast) {
@@ -1467,7 +1467,7 @@ class bybit extends \ccxt\async\bybit {
         return Async\await($this->un_watch_topics($url, 'myTrades', array(), array( $messageHash ), array( $subHash ), array( $topic ), $params));
     }
 
-    public function handle_my_trades(Client $client, mixed $message) {
+    public function handle_my_trades(Client $client, array $message) {
         //
         // spot
         //    {
@@ -1555,7 +1555,7 @@ class bybit extends \ccxt\async\bybit {
         $topic = $this->safe_string($message, 'topic', '');
         $spot = $topic === 'ticketInfo';
         $executionFast = $topic === 'execution.fast';
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_list($message, 'data', array());
         if ((gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data)))) {
             $data = $this->safe_list($data, 'result', array());
         }
@@ -1676,11 +1676,11 @@ class bybit extends \ccxt\async\bybit {
         }
     }
 
-    public function load_positions_snapshot(Client $client, mixed $messageHash) {
+    public function load_positions_snapshot(Client $client, string $messageHash) {
         return Async\async(self::do_load_positions_snapshot(...))($client, $messageHash);
     }
 
-    private function do_load_positions_snapshot(Client $client, mixed $messageHash) {
+    private function do_load_positions_snapshot(Client $client, string $messageHash) {
         // as only one ws channel gives positions for all types, for snapshot must load all positions
         $fetchFunctions = array(
             $this->fetch_positions(null, array( 'type' => 'swap', 'subType' => 'linear' )),
@@ -1704,7 +1704,7 @@ class bybit extends \ccxt\async\bybit {
         }
     }
 
-    public function handle_positions(mixed $client, mixed $message) {
+    public function handle_positions(Client $client, array $message) {
         //
         //    {
         //        topic: 'position',
@@ -1848,7 +1848,7 @@ class bybit extends \ccxt\async\bybit {
         return $this->filter_by_symbols_since_limit($this->liquidations, array( $symbol ), $since, $limit, true);
     }
 
-    public function handle_liquidation(Client $client, mixed $message) {
+    public function handle_liquidation(Client $client, array $message) {
         //
         //     {
         //         "data": {
@@ -1979,7 +1979,7 @@ class bybit extends \ccxt\async\bybit {
             'unified' => array( 'order' ),
             'usdc' => array( 'user.openapi.perp.order' ),
         );
-        $topics = $this->safe_value($topicsByMarket, $this->get_private_type($url));
+        $topics = $this->safe_list($topicsByMarket, $this->get_private_type($url));
         $orders = Async\await($this->watch_topics($url, array( $messageHash ), $topics, $params));
         if ($this->newUpdates) {
             $limit = $orders->getLimit($symbol, $limit);
@@ -2018,11 +2018,11 @@ class bybit extends \ccxt\async\bybit {
             'unified' => array( 'order' ),
             'usdc' => array( 'user.openapi.perp.order' ),
         );
-        $topics = $this->safe_value($topicsByMarket, $this->get_private_type($url));
+        $topics = $this->safe_list($topicsByMarket, $this->get_private_type($url));
         return Async\await($this->un_watch_topics($url, 'orders', array(), array( $messageHash ), array( $subHash ), $topics, $params));
     }
 
-    public function handle_order_ws(Client $client, mixed $message) {
+    public function handle_order_ws(Client $client, array $message) {
         //
         //    {
         //        "reqId":"1",
@@ -2049,7 +2049,7 @@ class bybit extends \ccxt\async\bybit {
         $client->resolve($order, $messageHash);
     }
 
-    public function handle_order(Client $client, mixed $message) {
+    public function handle_order(Client $client, array $message) {
         //
         //     spot
         //     {
@@ -2139,7 +2139,7 @@ class bybit extends \ccxt\async\bybit {
         }
         $orders = $this->orders;
         $rawOrders = $this->safe_list($message, 'data', array());
-        $first = $this->safe_value($rawOrders, 0, array());
+        $first = $this->safe_dict($rawOrders, 0, array());
         $category = $this->safe_string($first, 'category');
         $isSpot = $category === 'spot';
         if (!$isSpot) {
@@ -2228,11 +2228,11 @@ class bybit extends \ccxt\async\bybit {
                 }
             }
         }
-        $topics = array( $this->safe_value($topicByMarket, $this->get_private_type($url)) );
+        $topics = array( $this->safe_string($topicByMarket, $this->get_private_type($url)) );
         return Async\await($this->watch_topics($url, array( $messageHash ), $topics, $params));
     }
 
-    public function handle_balance(Client $client, mixed $message) {
+    public function handle_balance(Client $client, array $message) {
         //
         // spot
         //    {
@@ -2379,7 +2379,7 @@ class bybit extends \ccxt\async\bybit {
             $this->balance = array();
         }
         $messageHash = 'balance';
-        $topic = $this->safe_value($message, 'topic');
+        $topic = $this->safe_string($message, 'topic');
         $info = null;
         $rawBalances = array();
         $account = null;
@@ -2387,7 +2387,7 @@ class bybit extends \ccxt\async\bybit {
             $account = 'spot';
             $data = $this->safe_list($message, 'data', array());
             for ($i = 0; $i < count($data); $i++) {
-                $B = $this->safe_value($data[$i], 'B', array());
+                $B = $this->safe_list($data[$i], 'B', array());
                 $rawBalances = $this->array_concat($rawBalances, $B);
             }
             $info = $rawBalances;
@@ -2395,9 +2395,9 @@ class bybit extends \ccxt\async\bybit {
         if ($topic === 'wallet') {
             $data = $this->safe_value($message, 'data', array());
             for ($i = 0; $i < count($data); $i++) {
-                $result = $this->safe_value($data, 0, array());
+                $result = $this->safe_dict($data, 0, array());
                 $account = $this->safe_string_lower($result, 'accountType');
-                $rawBalances = $this->array_concat($rawBalances, $this->safe_value($result, 'coin', array()));
+                $rawBalances = $this->array_concat($rawBalances, $this->safe_list($result, 'coin', array()));
             }
             $info = $data;
         }
@@ -2405,7 +2405,7 @@ class bybit extends \ccxt\async\bybit {
             $this->parse_ws_balance($rawBalances[$i], $account);
         }
         if ($account !== null) {
-            if ($this->safe_value($this->balance, $account) === null) {
+            if ($this->safe_dict($this->balance, $account) === null) {
                 $this->balance[$account] = array();
             }
             $this->balance[$account]['info'] = $info;
@@ -2426,7 +2426,7 @@ class bybit extends \ccxt\async\bybit {
         }
     }
 
-    public function parse_ws_balance(mixed $balance, ?string $accountType = null) {
+    public function parse_ws_balance(array $balance, ?string $accountType = null) {
         //
         // spot
         //    {
@@ -2472,7 +2472,7 @@ class bybit extends \ccxt\async\bybit {
         // is the consistent total, the spot rows fall back to the wallet balance
         $account['total'] = $this->safe_string_2($balance, 'equity', 'walletBalance');
         if ($accountType !== null) {
-            if ($this->safe_value($this->balance, $accountType) === null) {
+            if ($this->safe_dict($this->balance, $accountType) === null) {
                 $this->balance[$accountType] = array();
             }
             if (($accountType !== null) && ($code !== null)) {
@@ -2485,11 +2485,11 @@ class bybit extends \ccxt\async\bybit {
         }
     }
 
-    public function watch_topics(mixed $url, mixed $messageHashes, mixed $topics, $params = array()) {
+    public function watch_topics(string $url, array $messageHashes, mixed $topics, $params = array()) {
         return Async\async(self::do_watch_topics(...))($url, $messageHashes, $topics, $params);
     }
 
-    private function do_watch_topics(mixed $url, mixed $messageHashes, mixed $topics, $params = array()) {
+    private function do_watch_topics(string $url, array $messageHashes, mixed $topics, $params = array()) {
         $client = $this->client($url);
         $newTopics = array();
         $topicsLength = count($topics);
@@ -2541,11 +2541,11 @@ class bybit extends \ccxt\async\bybit {
         return Async\await($this->watch_multiple($url, $messageHashes, $message, $messageHashes, $subscription));
     }
 
-    public function un_watch_topics(string $url, string $topic, ?array $symbols, array $messageHashes, array $subMessageHashes, mixed $topics, $params = array(), $subExtension = array()) {
+    public function un_watch_topics(string $url, string $topic, ?array $symbols, array $messageHashes, array $subMessageHashes, mixed $topics, $params = array(), array $subExtension = array()) {
         return Async\async(self::do_un_watch_topics(...))($url, $topic, $symbols, $messageHashes, $subMessageHashes, $topics, $params, $subExtension);
     }
 
-    private function do_un_watch_topics(string $url, string $topic, ?array $symbols, array $messageHashes, array $subMessageHashes, mixed $topics, $params = array(), $subExtension = array()) {
+    private function do_un_watch_topics(string $url, string $topic, ?array $symbols, array $messageHashes, array $subMessageHashes, mixed $topics, $params = array(), array $subExtension = array()) {
         $reqId = $this->request_id();
         $request = array(
             'op' => 'unsubscribe',
@@ -2563,11 +2563,11 @@ class bybit extends \ccxt\async\bybit {
         return Async\await($this->watch_multiple($url, $messageHashes, $message, $messageHashes, $this->extend($subscription, $subExtension)));
     }
 
-    public function authenticate(mixed $url, $params = array()) {
+    public function authenticate(string $url, $params = array()) {
         return Async\async(self::do_authenticate(...))($url, $params);
     }
 
-    private function do_authenticate(mixed $url, $params = array()) {
+    private function do_authenticate(string $url, $params = array()) {
         $this->check_required_credentials();
         $messageHash = 'authenticated';
         $client = $this->client($url);
@@ -2591,7 +2591,7 @@ class bybit extends \ccxt\async\bybit {
         return Async\await($future);
     }
 
-    public function handle_error_message(Client $client, mixed $message): ?bool {
+    public function handle_error_message(Client $client, array $message): ?bool {
         //
         //   {
         //       "success": false,
@@ -2644,10 +2644,10 @@ class bybit extends \ccxt\async\bybit {
                 $this->throw_broadly_matched_exception($this->exceptions['broad'], $msg, $feedback);
                 throw new ExchangeError($feedback);
             }
-            $success = $this->safe_value($message, 'success');
+            $success = $this->safe_bool($message, 'success');
             if (($success !== null) && ($success !== true)) {
                 $ret_msg = $this->safe_string($message, 'ret_msg');
-                $request = $this->safe_value($message, 'request', array());
+                $request = $this->safe_dict($message, 'request', array());
                 $op = $this->safe_string($request, 'op');
                 if ($op === 'auth') {
                     throw new AuthenticationError('Authentication failed => ' . $ret_msg);
@@ -2703,7 +2703,7 @@ class bybit extends \ccxt\async\bybit {
         }
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         $topic = $this->safe_string_2($message, 'topic', 'op', '');
         if ($this->handle_error_message($client, $message) === true) {
             return;
@@ -2780,14 +2780,14 @@ class bybit extends \ccxt\async\bybit {
         }
     }
 
-    public function ping(Client $client) {
+    public function ping(Client $client): array {
         return array(
             'req_id' => $this->request_id(),
             'op' => 'ping',
         );
     }
 
-    public function handle_pong(Client $client, mixed $message) {
+    public function handle_pong(Client $client, array $message): array {
         //
         //   {
         //       "success": true,
@@ -2810,7 +2810,7 @@ class bybit extends \ccxt\async\bybit {
         return $message;
     }
 
-    public function handle_authenticate(Client $client, mixed $message) {
+    public function handle_authenticate(Client $client, array $message): array {
         //
         //    {
         //        "success": true,
@@ -2833,7 +2833,7 @@ class bybit extends \ccxt\async\bybit {
         //        "conn_id": "d266o6hqo29sqmnq4vk0-1yus1"
         //    }
         //
-        $success = $this->safe_value($message, 'success');
+        $success = $this->safe_bool($message, 'success');
         $code = $this->safe_integer($message, 'retCode');
         $messageHash = 'authenticated';
         if (($success === true) || ($code === 0)) {
@@ -2849,7 +2849,7 @@ class bybit extends \ccxt\async\bybit {
         return $message;
     }
 
-    public function handle_subscription_status(Client $client, mixed $message) {
+    public function handle_subscription_status(Client $client, array $message): array {
         //
         //    {
         //        "topic": "kline",
@@ -2867,7 +2867,7 @@ class bybit extends \ccxt\async\bybit {
         return $message;
     }
 
-    public function handle_un_subscribe(Client $client, mixed $message) {
+    public function handle_un_subscribe(Client $client, array $message): array {
         //
         // {"success":true,"ret_msg":"","conn_id":"7188110e-6908-41e9-b863-6365127e92ad","req_id":"3","op":"unsubscribe"}
         //

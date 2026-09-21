@@ -32,16 +32,16 @@ public partial class testMainClass : BaseTest
         // todo: check non-emtpy arrays for bids/asks for toptier exchanges
         object bids = getValue(orderbook, "bids");
         int bidsLength = getArrayLength(bids);
-        for (int i = 0; isLessThan(i, bidsLength); postFixIncrement(ref i))
+        for (int i = 0; i < bidsLength; i++)
         {
             string? currentBidString = exchange.safeString(getValue(bids, i), 0);
             if (!(inOp(skippedProperties, "compareToNextItem")))
             {
-                Int64 nextI = add(i, 1);
+                object nextI = add(i, 1);
                 if (isGreaterThan(bidsLength, nextI))
                 {
                     string? nextBidString = exchange.safeString(getValue(bids, nextI), 0);
-                    assert(Precise.stringGt(currentBidString, nextBidString), (((("current bid should be > than the next one: " + currentBidString) + ">") + nextBidString) + logText));
+                    assert(Precise.stringGt(currentBidString, nextBidString), (((("current bid should be > than the next one: " + currentBidString) + ">") + nextBidString) + (logText)));
                 }
             }
             if (!(inOp(skippedProperties, "compareToZero")))
@@ -53,16 +53,16 @@ public partial class testMainClass : BaseTest
         }
         object asks = getValue(orderbook, "asks");
         int asksLength = getArrayLength(asks);
-        for (int i = 0; isLessThan(i, asksLength); postFixIncrement(ref i))
+        for (int i = 0; i < asksLength; i++)
         {
             string? currentAskString = exchange.safeString(getValue(asks, i), 0);
             if (!(inOp(skippedProperties, "compareToNextItem")))
             {
-                Int64 nextI = add(i, 1);
+                object nextI = add(i, 1);
                 if (isGreaterThan(asksLength, nextI))
                 {
                     string? nextAskString = exchange.safeString(getValue(asks, nextI), 0);
-                    assert(Precise.stringLt(currentAskString, nextAskString), (((("current ask should be < than the next one: " + currentAskString) + "<") + nextAskString) + logText));
+                    assert(Precise.stringLt(currentAskString, nextAskString), (((("current ask should be < than the next one: " + currentAskString) + "<") + nextAskString) + (logText)));
                 }
             }
             if (!(inOp(skippedProperties, "compareToZero")))
@@ -74,12 +74,12 @@ public partial class testMainClass : BaseTest
         }
         if (!(inOp(skippedProperties, "spread")))
         {
-            if ((isGreaterThan(bidsLength, 0)) && (isGreaterThan(asksLength, 0)))
+            if ((bidsLength > 0) && (asksLength > 0))
             {
                 string? firstBid = exchange.safeString(getValue(bids, 0), 0);
                 string? firstAsk = exchange.safeString(getValue(asks, 0), 0);
                 // check bid-ask spread
-                assert(Precise.stringLt(firstBid, firstAsk), ((((("bids[0][0] (" + firstBid) + ") should be < than asks[0][0] (") + firstAsk) + ")") + logText));
+                assert(Precise.stringLt(firstBid, firstAsk), ((((("bids[0][0] (" + firstBid) + ") should be < than asks[0][0] (") + firstAsk) + ")") + (logText)));
             }
         }
     }

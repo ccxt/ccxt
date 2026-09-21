@@ -9,7 +9,7 @@ public partial class testMainClass : BaseTest
 {
     public static void testMarket(BaseExchange exchange, object skippedProperties, object method, object market)
     {
-        if (isEqual(market, null))
+        if ((market == null))
         {
             return;
         }
@@ -70,17 +70,17 @@ public partial class testMainClass : BaseTest
             ((IDictionary<string,object>)format)["quanto"] = false; // whether the market is QUANTO or not
         }
         // define locals
-        bool? spot = ((bool?)getValue(market, "spot"));
-        bool? contract = ((bool?)getValue(market, "contract"));
-        bool? swap = ((bool?)getValue(market, "swap"));
-        bool? future = ((bool?)getValue(market, "future"));
-        bool? option = ((bool?)getValue(market, "option"));
+        object spot = getValue(market, "spot");
+        object contract = getValue(market, "contract");
+        object swap = getValue(market, "swap");
+        object future = getValue(market, "future");
+        object option = getValue(market, "option");
         bool? index = exchange.safeBool(market, "index"); // todo: unify
-        bool isIndex = ((index != null)) && index == true;
-        bool? linear = ((bool?)getValue(market, "linear"));
-        bool? inverse = ((bool?)getValue(market, "inverse"));
+        bool isIndex = (!isEqual(index, null)) && (index == true);
+        object linear = getValue(market, "linear");
+        object inverse = getValue(market, "inverse");
         bool? quanto = exchange.safeBool(market, "quanto"); // todo: unify
-        bool isQuanto = ((quanto != null)) && quanto == true;
+        bool isQuanto = (!isEqual(quanto, null)) && (quanto == true);
         bool isInactiveMarket = isEqual(getValue(market, "active"), false);
         //
         List<object> emptyAllowedFor = new List<object>() {"margin"};
@@ -140,24 +140,24 @@ public partial class testMainClass : BaseTest
         testSharedMethods.assertInArray(exchange, skippedProperties, method, market, "subType", validSubTypes);
         // check if 'type' is consistent
         List<object> checkedTypes = new List<object>() {"spot", "swap", "future", "option"};
-        for (int i = 0; isLessThan(i, (checkedTypes?.Count ?? 0)); postFixIncrement(ref i))
+        for (int i = 0; i < (checkedTypes?.Count ?? 0); i++)
         {
             string? type = ((string)checkedTypes[i]);
             if (isEqual(getValue(market, type), true))
             {
-                assert(isEqual(type, getValue(market, "type")), ((((("market.type (" + getValue(market, "type")) + ") not equal to \"") + type) + "\"") + logText));
+                assert(isEqual(type, getValue(market, "type")), ((((("market.type (" + (getValue(market, "type"))) + ") not equal to \"") + type) + "\"") + (logText)));
             }
         }
         // check if 'subType' is consistent
         if ((isEqual(swap, true)) || (isEqual(future, true)))
         {
             List<object> checkedSubTypes = new List<object>() {"linear", "inverse"};
-            for (int i = 0; isLessThan(i, (checkedSubTypes?.Count ?? 0)); postFixIncrement(ref i))
+            for (int i = 0; i < (checkedSubTypes?.Count ?? 0); i++)
             {
                 string? subType = ((string)checkedSubTypes[i]);
                 if (isEqual(getValue(market, subType), true))
                 {
-                    assert(isEqual(subType, getValue(market, "subType")), ((((("market.subType (" + getValue(market, "subType")) + ") not equal to \"") + subType) + "\"") + logText));
+                    assert(isEqual(subType, getValue(market, "subType")), ((((("market.subType (" + (getValue(market, "subType"))) + ") not equal to \"") + subType) + "\"") + (logText)));
                 }
             }
         }
@@ -176,14 +176,14 @@ public partial class testMainClass : BaseTest
         if (isPrediction)
         {
             // prediction markets trade outcome shares — neither spot nor a derivative contract
-            assert((!isEqual(spot, true)) && (!isEqual(contract, true)) && (!isEqual(future, true)) && (!isEqual(swap, true)) && (!isEqual(option, true)), ("for prediction market, none of spot/contract/future/swap/option should be set" + logText));
+            assert((!isEqual(spot, true)) && (!isEqual(contract, true)) && (!isEqual(future, true)) && (!isEqual(swap, true)) && (!isEqual(option, true)), ("for prediction market, none of spot/contract/future/swap/option should be set" + (logText)));
         } else if (isEqual(spot, true))
         {
-            assert((!isEqual(contract, true)) && ((linear == null)) && ((inverse == null)) && (!isEqual(option, true)) && (!isEqual(swap, true)) && (!isEqual(future, true)), ("for spot market, none of contract/linear/inverse/option/swap/future should be set" + logText));
+            assert((!isEqual(contract, true)) && (isEqual(linear, null)) && (isEqual(inverse, null)) && (!isEqual(option, true)) && (!isEqual(swap, true)) && (!isEqual(future, true)), ("for spot market, none of contract/linear/inverse/option/swap/future should be set" + (logText)));
         } else
         {
             // if not spot, any of the below should be true
-            assert((isEqual(contract, true)) && ((isEqual(future, true)) || (isEqual(swap, true)) || (isEqual(option, true)) || ((isIndex == true))), ("for non-spot markets, any of (future/swap/option/index) should be set" + logText));
+            assert((isEqual(contract, true)) && ((isEqual(future, true)) || (isEqual(swap, true)) || (isEqual(option, true)) || ((isIndex == true))), ("for non-spot markets, any of (future/swap/option/index) should be set" + (logText)));
         }
         string? contractSize = exchange.safeString(market, "contractSize");
         // contract fields
@@ -191,81 +191,81 @@ public partial class testMainClass : BaseTest
         {
             if (isQuanto)
             {
-                assert(isEqual(linear, false), ("linear must be false when \"quanto\" is true" + logText));
-                assert(isEqual(inverse, false), ("inverse must be false when \"quanto\" is true" + logText));
+                assert(isEqual(linear, false), ("linear must be false when \"quanto\" is true" + (logText)));
+                assert(isEqual(inverse, false), ("inverse must be false when \"quanto\" is true" + (logText)));
             } else
             {
                 // if false or undefined
-                assert((inverse != null), ("inverse must be defined when \"contract\" is true" + logText));
-                assert((linear != null), ("linear must be defined when \"contract\" is true" + logText));
-                assert(!isEqual(linear, inverse), ("linear and inverse must not be the same" + logText));
+                assert(!isEqual(inverse, null), ("inverse must be defined when \"contract\" is true" + (logText)));
+                assert(!isEqual(linear, null), ("linear must be defined when \"contract\" is true" + (logText)));
+                assert(!isEqual(linear, inverse), ("linear and inverse must not be the same" + (logText)));
             }
             // contract size should be defined
-            assert(((inOp(skippedProperties, "contractSize")) || (contractSize != null)), ("\"contractSize\" must be defined when \"contract\" is true" + logText));
+            assert(((inOp(skippedProperties, "contractSize")) || (contractSize != null)), ("\"contractSize\" must be defined when \"contract\" is true" + (logText)));
             // contract size should be above zero
-            assert((inOp(skippedProperties, "contractSize")) || isTrue(Precise.stringGt(contractSize, "0")), ("\"contractSize\" must be > 0 when \"contract\" is true" + logText));
+            assert((inOp(skippedProperties, "contractSize")) || Precise.stringGt(contractSize, "0"), ("\"contractSize\" must be > 0 when \"contract\" is true" + (logText)));
             // settle should be defined
-            assert((inOp(skippedProperties, "settle")) || (!isEqual(getValue(market, "settle"), null) && !isEqual(getValue(market, "settleId"), null)), ("\"settle\" & \"settleId\" must be defined when \"contract\" is true" + logText));
+            assert((inOp(skippedProperties, "settle")) || (!isEqual(getValue(market, "settle"), null) && !isEqual(getValue(market, "settleId"), null)), ("\"settle\" & \"settleId\" must be defined when \"contract\" is true" + (logText)));
         } else if (!isEqual(contract, true))
         {
             // linear & inverse needs to be undefined
-            assert((linear == null) && (inverse == null) && (quanto == null), ("market linear and inverse (and quanto) must be undefined when \"contract\" is false" + logText));
+            assert(isEqual(linear, null) && isEqual(inverse, null) && isEqual(quanto, null), ("market linear and inverse (and quanto) must be undefined when \"contract\" is false" + (logText)));
             // contract size should be undefined
-            assert((contractSize == null), ("\"contractSize\" must be undefined when \"contract\" is false" + logText));
+            assert((contractSize == null), ("\"contractSize\" must be undefined when \"contract\" is false" + (logText)));
             // settle should be undefined
-            assert((isEqual(getValue(market, "settle"), null)) && (isEqual(getValue(market, "settleId"), null)), ("\"settle\" must be undefined when \"contract\" is false" + logText));
+            assert((isEqual(getValue(market, "settle"), null)) && (isEqual(getValue(market, "settleId"), null)), ("\"settle\" must be undefined when \"contract\" is false" + (logText)));
         }
         // future, swap and option should be mutually exclusive
         if (isEqual(getValue(market, "future"), true))
         {
-            assert((!isEqual(getValue(market, "swap"), true)) && (!isEqual(getValue(market, "option"), true)) && ((isIndex != true)), ("market swap and option must be false when \"future\" is true" + logText));
+            assert((!isEqual(getValue(market, "swap"), true)) && (!isEqual(getValue(market, "option"), true)) && ((isIndex != true)), ("market swap and option must be false when \"future\" is true" + (logText)));
         } else if (isEqual(getValue(market, "swap"), true))
         {
-            assert((!isEqual(future, true)) && (!isEqual(option, true)), ("market future and option must be false when \"swap\" is true" + logText));
+            assert((!isEqual(future, true)) && (!isEqual(option, true)), ("market future and option must be false when \"swap\" is true" + (logText)));
         } else if (isEqual(getValue(market, "option"), true))
         {
-            assert((!isEqual(future, true)) && (!isEqual(swap, true)), ("market future and swap must be false when \"option\" is true" + logText));
+            assert((!isEqual(future, true)) && (!isEqual(swap, true)), ("market future and swap must be false when \"option\" is true" + (logText)));
         }
         // check specific fields for options & futures
         if ((isEqual(option, true)) || (isEqual(future, true)))
         {
             // future or option markets need 'expiry' and 'expiryDatetime'
-            assert(!isEqual(getValue(market, "expiry"), null), ("\"expiry\" must be defined when \"future\" is true" + logText));
-            assert(!isEqual(getValue(market, "expiryDatetime"), null), ("\"expiryDatetime\" must be defined when \"future\" is true" + logText));
+            assert(!isEqual(getValue(market, "expiry"), null), ("\"expiry\" must be defined when \"future\" is true" + (logText)));
+            assert(!isEqual(getValue(market, "expiryDatetime"), null), ("\"expiryDatetime\" must be defined when \"future\" is true" + (logText)));
             // expiry datetime should be correct
             string? isoString = exchange.iso8601(getValue(market, "expiry"));
-            assert(isEqual(getValue(market, "expiryDatetime"), isoString), ((((("expiryDatetime (\"" + getValue(market, "expiryDatetime")) + "\") must be equal to expiry in iso8601 format \"") + isoString) + "\"") + logText));
+            assert(isEqual(getValue(market, "expiryDatetime"), isoString), ((((("expiryDatetime (\"" + (getValue(market, "expiryDatetime"))) + "\") must be equal to expiry in iso8601 format \"") + isoString) + "\"") + (logText)));
             testSharedMethods.assertGreater(exchange, skippedProperties, method, market, "expiry", "0");
             if (isEqual(option, true))
             {
                 // strike should be defined
-                assert(((inOp(skippedProperties, "strike")) || !isEqual(getValue(market, "strike"), null)), ("\"strike\" must be defined when \"option\" is true" + logText));
+                assert(((inOp(skippedProperties, "strike")) || !isEqual(getValue(market, "strike"), null)), ("\"strike\" must be defined when \"option\" is true" + (logText)));
                 testSharedMethods.assertGreater(exchange, skippedProperties, method, market, "strike", "0");
                 // optionType should be defined
-                assert(((inOp(skippedProperties, "optionType")) || !isEqual(getValue(market, "optionType"), null)), ("\"optionType\" must be defined when \"option\" is true" + logText));
+                assert(((inOp(skippedProperties, "optionType")) || !isEqual(getValue(market, "optionType"), null)), ("\"optionType\" must be defined when \"option\" is true" + (logText)));
                 testSharedMethods.assertInArray(exchange, skippedProperties, method, market, "optionType", new List<object>() {"put", "call"});
             } else
             {
                 // if not option, then strike and optionType should be undefined
-                assert(isEqual(getValue(market, "strike"), null), ("\"strike\" must be undefined when \"option\" is false" + logText));
-                assert(isEqual(getValue(market, "optionType"), null), ("\"optionType\" must be undefined when \"option\" is false" + logText));
+                assert(isEqual(getValue(market, "strike"), null), ("\"strike\" must be undefined when \"option\" is false" + (logText)));
+                assert(isEqual(getValue(market, "optionType"), null), ("\"optionType\" must be undefined when \"option\" is false" + (logText)));
             }
         } else if (isEqual(spot, true))
         {
             // otherwise, expiry needs to be undefined
-            assert((isEqual(getValue(market, "expiry"), null)) && (isEqual(getValue(market, "expiryDatetime"), null)), ("\"expiry\" and \"expiryDatetime\" must be undefined when it is not future|option market" + logText));
+            assert((isEqual(getValue(market, "expiry"), null)) && (isEqual(getValue(market, "expiryDatetime"), null)), ("\"expiry\" and \"expiryDatetime\" must be undefined when it is not future|option market" + (logText)));
         }
         // check precisions
         List<object> precisionKeys = new List<object>(((IDictionary<string,object>)getValue(market, "precision")).Keys);
         int precisionKeysLen = precisionKeys.Count;
-        assert(isGreaterThanOrEqual(precisionKeysLen, 2), ("precision should have \"amount\" and \"price\" keys at least" + logText));
-        for (int i = 0; isLessThan(i, precisionKeys.Count); postFixIncrement(ref i))
+        assert(precisionKeysLen >= 2, ("precision should have \"amount\" and \"price\" keys at least" + (logText)));
+        for (int i = 0; i < precisionKeys.Count; i++)
         {
             string? priceOrAmountKey = ((string)precisionKeys[i]);
             // only allow very high priced markets (wher coin costs around 100k) to have a 5$ price tickSize
             bool isExclusivePair = isEqual(getValue(market, "baseId"), "BTC");
             bool isNonSpot = !isEqual(spot, true); // such high precision is only allowed in contract markets
-            bool isPrice = priceOrAmountKey == "price";
+            bool isPrice = (priceOrAmountKey == "price");
             bool isTickSize5 = Precise.stringEq("5", exchange.safeString(getValue(market, "precision"), priceOrAmountKey));
             if (isNonSpot && isPrice && isExclusivePair && isTickSize5)
             {
@@ -279,8 +279,8 @@ public partial class testMainClass : BaseTest
         // check limits
         List<object> limitsKeys = new List<object>(((IDictionary<string,object>)getValue(market, "limits")).Keys);
         int limitsKeysLength = limitsKeys.Count;
-        assert(isGreaterThanOrEqual(limitsKeysLength, 3), ("limits should have \"amount\", \"price\" and \"cost\" keys at least" + logText));
-        for (int i = 0; isLessThan(i, limitsKeys.Count); postFixIncrement(ref i))
+        assert(limitsKeysLength >= 3, ("limits should have \"amount\", \"price\" and \"cost\" keys at least" + (logText)));
+        for (int i = 0; i < limitsKeys.Count; i++)
         {
             string? key = ((string)limitsKeys[i]);
             object limitEntry = getValue(getValue(market, "limits"), key);
@@ -316,8 +316,8 @@ public partial class testMainClass : BaseTest
         if (!(inOp(skippedProperties, "marginModes")))
         {
             IDictionary<string, object> marginModes = exchange.safeDict(market, "marginModes", new Dictionary<string, object>() {}); // in future, remove safeDict
-            assert((marginModes?.ContainsKey("cross") == true), ("marginModes should have \"cross\" key" + logText));
-            assert((marginModes?.ContainsKey("isolated") == true), ("marginModes should have \"isolated\" key" + logText));
+            assert(marginModes.ContainsKey("cross"), ("marginModes should have \"cross\" key" + (logText)));
+            assert(marginModes.ContainsKey("isolated"), ("marginModes should have \"isolated\" key" + (logText)));
             testSharedMethods.assertInArray(exchange, skippedProperties, method, marginModes, "cross", new List<object>() {true, false, null});
             testSharedMethods.assertInArray(exchange, skippedProperties, method, marginModes, "isolated", new List<object>() {true, false, null});
         }

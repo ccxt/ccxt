@@ -27,7 +27,7 @@ public partial class testMainClass : BaseTest
         }
         object response = null;
         Int64 now = (new DateTimeOffset(DateTime.UtcNow)).ToUnixTimeMilliseconds();
-        Int64 ends = add(now, 10000);
+        object ends = (now + 10000);
         while (isLessThan(now, ends))
         {
             try
@@ -39,13 +39,13 @@ public partial class testMainClass : BaseTest
                 object m3 = (add(add(add(add(add(exchange.id, " "), method), "() returned "), getArrayLength(response)), " liquidations"));
                 Console.WriteLine(m3);
                 // log.noLocate (asTable (response))
-                for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+                for (int i = 0; i < getArrayLength(response); i++)
                 {
                     testLiquidation(exchange, skippedProperties, method, getValue(response, i), symbol);
                 }
             } catch(Exception e)
             {
-                if (!isTrue((e is NetworkError)))
+                if (!(e is NetworkError))
                 {
                     throw e;
                 }

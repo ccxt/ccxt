@@ -15,7 +15,7 @@ public partial class testMainClass : BaseTest
         if (debugCreateOrder)
         {
             // for c# fix, extra step to convert them to string
-            string msg = (((((" >>>>> testCreateOrder [" + ((object)(getValue(exchange, "id"))).ToString()) + " : ") + symbol) + "] ") + message);
+            string msg = (((((" >>>>> testCreateOrder [" + ((object)(getValue(exchange, "id"))).ToString()) + " : ") + (symbol)) + "] ") + (message));
             Console.WriteLine(msg);
         }
         return true;
@@ -38,7 +38,7 @@ public partial class testMainClass : BaseTest
         object initialBaseBalance = getValue(getValue(balance, getValue(market, "base")), "free");
         object initialQuoteBalance = getValue(getValue(balance, getValue(market, "quote")), "free");
         assert((initialQuoteBalance != null), add(add(add(logPrefix, " - testing account not have balance of"), getValue(market, "quote")), " in fetchBalance() which is required to test"));
-        tcoDebug(exchange, symbol, add(add(add(add(((((("fetched balance for " + symbol) + " : ") + ((object)initialBaseBalance).ToString()) + " ") + getValue(market, "base")), "/"), initialQuoteBalance), " "), getValue(market, "quote")));
+        tcoDebug(exchange, symbol, ((((((((("fetched balance for " + (symbol)) + " : ") + ((object)initialBaseBalance).ToString()) + " ") + (getValue(market, "base"))) + "/") + (initialQuoteBalance)) + " ") + (getValue(market, "quote"))));
         var bestBidbestAskVariable = await testSharedMethods.fetchBestBidAsk(exchange, "createOrder", symbol);
         var bestBid = ((IList<object>) bestBidbestAskVariable)[0];
         var bestAsk = ((IList<object>) bestBidbestAskVariable)[1];
@@ -143,7 +143,7 @@ public partial class testMainClass : BaseTest
             // as we want to close position, we should use 'reduceOnly' to ensure we don't open a margined position accidentally, because some exchanges might have automatically enabled margin-mode (on spot) or hedge-mode (on contracts)
             if (isSwapFuture)
             {
-                parameters["reduceOnly"] = true;
+                ((IDictionary<string,object>)parameters)["reduceOnly"] = true;
             }
             object exitorderPriceArg = (isEqual(getValue(market, "spot"), true)) ? null : exitorderPrice;
             object exitorderFilled = await tcoCreateOrderSafe(exchange, symbol, "market", exitSide, amountToClose, exitorderPriceArg, parameters, skippedProperties);
@@ -151,7 +151,7 @@ public partial class testMainClass : BaseTest
             tcoAssertFilledOrder(exchange, market, logPrefix, skippedProperties, exitorderFilled, exitorderFetched, exitSide, amountToClose);
         } catch(Exception e)
         {
-            throw new Exception (("failed for Scenario 2: " + ((object)e).ToString())) ;
+            throw new Exception ((string)("failed for Scenario 2: " + ((object)e).ToString())) ;
         }
         return true;
     }
@@ -182,7 +182,7 @@ public partial class testMainClass : BaseTest
         object logPrefix = testSharedMethods.logTemplate(exchange, "createOrder", new List<object>() {symbol});
         string usedMethod = "";
         object cancelResult = null;
-        if ((!isEqual(getValue(exchange.has, "cancelOrder"), null)) && (!isEqual(getValue(exchange.has, "cancelOrder"), false)) && (!isEqual(orderId, null)))
+        if ((!isEqual(getValue(exchange.has, "cancelOrder"), null)) && (!isEqual(getValue(exchange.has, "cancelOrder"), false)) && ((orderId != null)))
         {
             usedMethod = "cancelOrder";
             cancelResult = await invokeExchangeDynamically(exchange, "cancelOrder", orderId, symbol);
@@ -194,7 +194,7 @@ public partial class testMainClass : BaseTest
         {
             throw new Exception ((string)add(logPrefix, " cancelOrders method is not unified yet, coming soon...")) ;
         }
-        tcoDebug(exchange, symbol, ((("canceled order using " + usedMethod) + ":") + getValue(cancelResult, "id")));
+        tcoDebug(exchange, symbol, ((("canceled order using " + usedMethod) + ":") + (getValue(cancelResult, "id"))));
         // todo:
         // testSharedMethods.assertOrderState (exchange, skippedProperties, 'cancelOrder', cancelResult, 'canceled', false);
         // testSharedMethods.assertOrderState (exchange, skippedProperties, 'cancelOrder', cancelResult, 'closed', true);
@@ -206,7 +206,7 @@ public partial class testMainClass : BaseTest
     {
         parameters ??= new Dictionary<string, object>();
         skippedProperties ??= new Dictionary<string, object>();
-        tcoDebug(exchange, symbol, add(add(add(add(((((("Executing createOrder " + orderType) + " ") + side) + " ") + amount), " "), price), " "), exchange.json(parameters)));
+        tcoDebug(exchange, symbol, ((((((((("Executing createOrder " + (orderType)) + " ") + (side)) + " ") + (amount)) + " ") + (price)) + " ") + (exchange.json(parameters))));
         object order = await invokeExchangeDynamically(exchange, "createOrder", symbol, orderType, side, amount, price, parameters);
         try
         {
@@ -252,7 +252,7 @@ public partial class testMainClass : BaseTest
                 finalAmount = divide(minimumCost, price);
             }
         }
-        if (!isEqual(predefinedAmount, null))
+        if ((predefinedAmount != null))
         {
             finalAmount = mathMax(finalAmount, predefinedAmount);
         }
@@ -267,7 +267,7 @@ public partial class testMainClass : BaseTest
             // todo: remove after TICK_SIZE unification
             if (!isTickSizePrecision)
             {
-                amountPrecision = divide(1, Math.Pow(Convert.ToDouble(10), Convert.ToDouble(amountPrecision))); // this converts DECIMAL_PRECISION into TICK_SIZE
+                amountPrecision = (1 / Math.Pow(Convert.ToDouble(10), Convert.ToDouble(amountPrecision))); // this converts DECIMAL_PRECISION into TICK_SIZE
             }
         }
         finalAmount = add(finalAmount, amountPrecision);
