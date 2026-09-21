@@ -7763,10 +7763,15 @@ export function patchJavaParamTypes (transpiler) {
 // Only positions whose every call site is a raw row/response: parseCurrencies hands each element of
 // the raw map to parseCurrency, parseTickers hands the raw ticker element to parseTicker, and
 // whitebit's transfer hands the endpoint's empty-array response to parseTransfer.
+// WS frames are the same class: a `Dict`-annotated `message` reaches handleErrorMessage before
+// handleMessage dispatches on its shape (toobit private streams are a list frame), and
+// parseWsTicker takes the venue's raw ticker frame (bitfinex: a positional array).
 export const JAVA_OBJECT_PARAM_POSITIONS = {
     'parseCurrency': [ 0 ],
     'parseTicker': [ 0 ],
     'parseTransfer': [ 0 ],
+    'parseWsTicker': [ 0 ],
+    'handleErrorMessage': [ 1 ],
 };
 
 // the parameter node sits at an excluded position of the closed name table above
