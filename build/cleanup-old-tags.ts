@@ -8,7 +8,40 @@ import assert from 'assert';
 
 const { groupBy } = ccxt;
 log.noLocate();
-function cleanupOldTags () {
+
+// Deleting a tag that a GitHub release points at does not delete the release: GitHub demotes
+// it to an untagged draft. Drafts sort ahead of published releases in the releases API, which
+// is what changelog-from-release reads, so an orphaned release both disappears from the public
+// releases page and corrupts CHANGELOG.md. The 2023 4.0.3 release is already in that state.
+// Fetch the tags that back a release so we never prune one.
+export async function fetchReleasedTags (): Promise<Set<string>> {
+    const repository = process.env.GITHUB_REPOSITORY || 'ccxt/ccxt';
+    const token = process.env.GH_TOKEN || process.env.GITHUB_TOKEN;
+    const headers: Record<string, string> = { 'Accept': 'application/vnd.github+json' };
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+    }
+    const releasedTags = new Set<string> ();
+    for (let page = 1; page <= 50; page++) {
+        const url = `https://api.github.com/repos/${repository}/releases?per_page=100&page=${page}`;
+        const response = await fetch (url, { headers });
+        if (!response.ok) {
+            throw new Error (`GitHub releases API returned HTTP ${response.status} for ${url}`);
+        }
+        const releases = await response.json () as { tag_name?: string }[];
+        if (releases.length === 0) {
+            return releasedTags;
+        }
+        for (const release of releases) {
+            if (release.tag_name) {
+                releasedTags.add (release.tag_name);
+            }
+        }
+    }
+    return releasedTags;
+}
+
+async function cleanupOldTags () {
 
     const tags = execSync ('git tag').toString ().split ('\n').filter (s => s).filter (t => {
         // version tags only - plain releases (4.5.70) and go module tags (go/v4.5.70);
@@ -65,6 +98,24 @@ function cleanupOldTags () {
         }
     }
 
+    // Never orphan a GitHub release. If the API is unreachable we skip the whole cleanup rather
+    // than risk it: pruning tags is housekeeping, corrupting the changelog is not recoverable
+    // by a later run, because CHANGELOG.md is regenerated from the releases every time.
+    let releasedTags: Set<string>;
+    try {
+        releasedTags = await fetchReleasedTags ();
+        log.dim ('Found', releasedTags.size, 'tags backing a GitHub release')
+    } catch (e) {
+        log.bright.red ('Could not list GitHub releases, skipping tag cleanup:', (e as Error).message)
+        return;
+    }
+    const protectedTags = tagsToDelete.filter (tag => releasedTags.has (tag))
+    if (protectedTags.length) {
+        log.green ('Preserving', protectedTags.length, 'tags that back a GitHub release')
+        log.unlimited.green (protectedTags)
+    }
+    tagsToDelete = tagsToDelete.filter (tag => !releasedTags.has (tag))
+
     log.bright.red ('Deleting', tagsToDelete.length, 'tags...')
     log.unlimited.bright.red (tagsToDelete)
     log.bright.red ('Deleting', tagsToDelete.length, 'tags...')
@@ -93,7 +144,10 @@ if (isMainEntry(import.meta.url)) {
 
     // if called directly like `node module`
 
-    cleanupOldTags ()
+    cleanupOldTags ().catch ((e: Error) => {
+        log.bright.red (e.message)
+        process.exitCode = 1;
+    })
 
 } else {
 

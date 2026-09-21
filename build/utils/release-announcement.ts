@@ -1,7 +1,8 @@
 import { readFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 
-const releaseHeadingPattern = /^# \[([^\]]+)\]\((https:\/\/github\.com\/ccxt\/ccxt\/releases\/tag\/[^)]+)\) - (\d{4}-\d{2}-\d{2})/gm;
+const releaseHeadingPattern = /^# \[([^\]]+)\]\((https:\/\/github\.com\/ccxt\/ccxt\/releases\/tag\/[^)]+)\) - (.+)$/gm;
+const releaseDatePattern = /\d{4}-\d{2}-\d{2}/;
 const changePattern = /^[*-]\s+(.+?) by \[@([^\]]+)\]\([^)]+\) in \[#\d+\]\((https:\/\/github\.com\/ccxt\/ccxt\/pull\/\d+)\)$/;
 const relevantChangePattern = /^(feat|fix)(?:\(([^)]+)\)|\s+([^:]+))?!?:\s*(.+)$/i;
 // housekeeping commits are never announcement-worthy — excluded explicitly so they stay
@@ -52,7 +53,7 @@ function parseReleaseSections (changelog: string): ReleaseSection[] {
         sections.push({
             tag: heading[1],
             url: heading[2],
-            date: heading[3],
+            date: releaseDatePattern.exec(heading[3])?.[0] ?? '',
             body: changelog.slice(bodyStart, (nextReleaseIndex === -1) ? undefined : nextReleaseIndex),
             order: sections.length,
         });
@@ -82,6 +83,9 @@ function selectRelease (sections: ReleaseSection[], version?: string): ReleaseSe
         }
         return requested;
     }
+    // Dates are ISO, so a plain string compare orders them. A section whose date we could not
+    // read sorts last rather than winning by accident, and file order breaks ties: within one
+    // date changelog-from-release still emits the newest release first.
     return [ ...sections ].sort((first, second) => {
         if (first.date !== second.date) {
             return (first.date < second.date) ? 1 : -1;

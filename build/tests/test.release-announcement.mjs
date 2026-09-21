@@ -88,3 +88,20 @@ test('keeps the message inside the Telegram and Discord length limit', () => {
     assert.ok(message.length <= 1900, `message length ${message.length}`);
     assert.match(message, /and \d+ more updates: https:\/\/github\.com\/ccxt\/ccxt\/releases\/tag\/v4\.5\.82/);
 });
+
+test('an unfamiliar heading date format still selects by --version', () => {
+    // changelog-from-release owns this line; if its format ever changes, --version selection
+    // must keep working rather than every section becoming unparseable.
+    const odd = '<a id="v4.5.82"></a>\n# [v4.5.82](https://github.com/ccxt/ccxt/releases/tag/v4.5.82) - 21 Sep 2026\n\n'
+        + change('fix(bingx): preserve public swap trade fill IDs', 'AresArtemius', 30554) + '\n\n[Changes][v4.5.82]\n\n\n';
+    const message = createReleaseAnnouncement(staleDraft + odd, '4.5.82');
+    assert.match(message, /^📘 4\.5\.82 released!/);
+    assert.match(message, /bingx: preserve public swap trade fill IDs/);
+});
+
+test('a section with an unreadable date never outranks a dated one in the fallback', () => {
+    const undated = '<a id="v9.9.9"></a>\n# [v9.9.9](https://github.com/ccxt/ccxt/releases/tag/v9.9.9) - unknown\n\n'
+        + change('fix(core): something', 'someone', 1) + '\n\n[Changes][v9.9.9]\n\n\n';
+    const message = createReleaseAnnouncement(undated + newest);
+    assert.match(message, /^📘 4\.5\.82 released!/);
+});
