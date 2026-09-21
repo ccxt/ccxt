@@ -175,7 +175,7 @@ type ICoreExchange interface {
 	GetHostname() string
 	GetUrls() any
 	GetApi() map[string]any
-	GetPrecisionMode() any
+	GetPrecisionMode() int
 	GetOptions() *sync.Map
 	GetCurrencies() *sync.Map
 	GetMarkets() *sync.Map
