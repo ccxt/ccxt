@@ -73,7 +73,7 @@ export default class bitget extends Exchange {
                 'fetchCrossBorrowRate': true,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
-                'fetchDeposit': false,
+                'fetchDeposit': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
@@ -131,7 +131,7 @@ export default class bitget extends Exchange {
                 'fetchTransfer': false,
                 'fetchTransfers': true,
                 'fetchWithdrawAddresses': false,
-                'fetchWithdrawal': false,
+                'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
                 'repayCrossMargin': true,
@@ -3117,6 +3117,77 @@ export default class bitget extends Exchange {
 
     /**
      * @method
+     * @name bitget#fetchDeposit
+     * @description fetch data on a currency deposit via the deposit id, the venue requires a time window so the lookup covers the last 30 days for uta accounts and the last 90 days otherwise
+     * @see https://www.bitget.com/api-doc/spot/account/Get-Deposit-Record
+     * @see https://www.bitget.com/docs/catalog/account/deposit-withdrawal#get-deposit-records
+     * @param {string} id deposit id
+     * @param {string} [code] unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    async fetchDeposit (id: string, code: Str = undefined, params = {}): Promise<Transaction> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let uta: Bool = undefined;
+        [ uta, params ] = await this.handleUTAAndParams (params, 'fetchDeposit', false);
+        let since: Int = undefined;
+        if (uta === true) {
+            since = this.milliseconds () - 2592000000; // uta allows a window of 30 days at most
+        } else {
+            since = this.milliseconds () - 7776000000; // 90 days
+        }
+        const request: Dict = {
+            'orderId': id,
+            'startTime': since,
+            'endTime': this.milliseconds (),
+            'limit': 100, // the largest page, the row is selected by id below
+        };
+        let currency: Currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['coin'] = currency['id'];
+        }
+        let response = undefined;
+        if (uta === true) {
+            response = await this.privateUtaGetV3AccountDepositRecords (this.extend (request, params));
+        } else {
+            response = await this.privateSpotGetV2SpotWalletDepositRecords (this.extend (request, params));
+        }
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1789917084687,
+        //         "data": [
+        //             {
+        //                 "orderId": "1477183242218870001",
+        //                 "recordId": "0999e9fc8dfa7d65e5a9e3d7b9c9c9cf7c283621442dd0be6feb502b89545e95",
+        //                 "coin": "USDT",
+        //                 "type": "deposit",
+        //                 "size": "30",
+        //                 "status": "success",
+        //                 "toAddress": "TKtjsywjRu4HechtABGJBVhkDJtwYcMVfc",
+        //                 "dest": "on_chain",
+        //                 "chain": "TRC20",
+        //                 "createdTime": "1787913850359",
+        //                 "updatedTime": "1787913880178",
+        //                 "fromAddress": "TFcWfiw5p5DDZ6vi6Bktf7yK1asRYLpN33",
+        //                 "clientOid": null
+        //             }
+        //         ]
+        //     }
+        //
+        const rawTransactions = this.safeList (response, 'data', []);
+        const rawTransactionsById = this.indexBy (rawTransactions, 'orderId');
+        const deposit = this.safeDict (rawTransactionsById, id, {});
+        return this.parseTransaction (deposit, currency);
+    }
+
+    /**
+     * @method
      * @name bitget#withdraw
      * @description make a withdrawal
      * @see https://www.bitget.com/api-doc/spot/account/Wallet-Withdrawal
@@ -3302,6 +3373,79 @@ export default class bitget extends Exchange {
         return this.parseTransactions (rawTransactions, currency, since, limit);
     }
 
+    /**
+     * @method
+     * @name bitget#fetchWithdrawal
+     * @description fetch data on a currency withdrawal via the withdrawal id, the venue requires a time window so the lookup covers the last 30 days for uta accounts and the last 90 days otherwise
+     * @see https://www.bitget.com/api-doc/spot/account/Get-Withdraw-Record
+     * @see https://www.bitget.com/docs/catalog/account/deposit-withdrawal#get-withdrawal-records
+     * @param {string} id withdrawal id
+     * @param {string} [code] unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    async fetchWithdrawal (id: string, code: Str = undefined, params = {}): Promise<Transaction> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let uta: Bool = undefined;
+        [ uta, params ] = await this.handleUTAAndParams (params, 'fetchWithdrawal', false);
+        let since: Int = undefined;
+        if (uta === true) {
+            since = this.milliseconds () - 2592000000; // uta allows a window of 30 days at most
+        } else {
+            since = this.milliseconds () - 7776000000; // 90 days
+        }
+        const request: Dict = {
+            'orderId': id,
+            'startTime': since,
+            'endTime': this.milliseconds (),
+            'limit': 100, // the largest page, the row is selected by id below
+        };
+        let currency: Currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['coin'] = currency['id'];
+        }
+        let response = undefined;
+        if (uta === true) {
+            response = await this.privateUtaGetV3AccountWithdrawalRecords (this.extend (request, params));
+        } else {
+            response = await this.privateSpotGetV2SpotWalletWithdrawalRecords (this.extend (request, params));
+        }
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1789917090601,
+        //         "data": [
+        //             {
+        //                 "orderId": "1477203433330230002",
+        //                 "recordId": "855182adcdbf968e6c0854de1d9ef04f9542ae27337f87ccbe2f6d1e995ec01b",
+        //                 "coin": "USDT",
+        //                 "type": "withdraw",
+        //                 "size": "30",
+        //                 "status": "success",
+        //                 "toAddress": "TFcWfiw5p5DDZ6vi6Bktf7yK1asRYLpN33",
+        //                 "dest": "on_chain",
+        //                 "chain": "TRC20",
+        //                 "createdTime": "1787918664295",
+        //                 "updatedTime": "1787918826202",
+        //                 "fromAddress": "TU8P3KLsV7YhkUvF9nWxjigMqv2c2mqNC9",
+        //                 "fee": "-1.5",
+        //                 "confirm": "5",
+        //                 "clientOid": null
+        //             }
+        //         ]
+        //     }
+        //
+        const rawTransactions = this.safeList (response, 'data', []);
+        const rawTransactionsById = this.indexBy (rawTransactions, 'orderId');
+        const withdrawal = this.safeDict (rawTransactionsById, id, {});
+        return this.parseTransaction (withdrawal, currency);
+    }
+
     override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
@@ -3344,7 +3488,7 @@ export default class bitget extends Exchange {
         // fetchDeposits & fetchWithdrawals uta rows use the same fields, except
         //
         //     {
-        //         "recordId": "63dbe57f0f0a5f6d3e74ff1b07e4c4f5332b96fec74c14190a52e0cea1726364",
+        //         "recordId": "0999e9fc8dfa7d65e5a9e3d7b9c9c9cf7c283621442dd0be6feb502b89545e95",
         //         "createdTime": "1787913850359",
         //         "updatedTime": "1787913880178"
         //     }
