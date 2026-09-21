@@ -1360,7 +1360,45 @@ export default class lighter extends lighterRest {
         //         }
         //     }
         //
+        //
+        //     {
+        //         "error": {
+        //             "code": 30003,
+        //             "message": "Already Subscribed to : market_stats:all"
+        //         }
+        //     }
+        //
+        //     {
+        //         "error": {
+        //             "code": 30002,
+        //             "message": "Not Subscribed to : order_book:0"
+        //         }
+        //     }
+        //
         const error = this.safeDict (message, 'error');
+        const errorCode = this.safeString (error, 'code');
+        if (errorCode === '30003') {
+            // a duplicate subscribe is harmless - the server-side subscription is intact and
+            // data keeps flowing, while the generic reject below would hit every pending
+            // future on the connection because the venue echoes no request id,
+            // same handling for the same notice on hyperliquid, apex and krakenfutures
+            return true;
+        }
+        if (errorCode === '30002') {
+            // the requested state is already reached, so the unWatch call resolves and only
+            // its own channel gets cleaned up. The channel is available solely inside the
+            // message text, a changed text format falls through to the generic reject below
+            const notSubscribedMessage = this.safeString (error, 'message', '');
+            const messageParts = notSubscribedMessage.split (' : ');
+            const notSubscribedChannel = this.safeString (messageParts, 1);
+            if (notSubscribedChannel !== undefined) {
+                const unsubscribed: Dict = {
+                    'channel': notSubscribedChannel,
+                };
+                this.handleUnSubscription (client, unsubscribed);
+                return true;
+            }
+        }
         try {
             if (error !== undefined) {
                 const code = this.safeString (error, 'code');
