@@ -7,6 +7,7 @@ require('./_virtual/index.cjs.js');
 var Exchange = require('./src/base/Exchange.js');
 var PredictionExchange = require('./src/base/PredictionExchange.js');
 var Precise = require('./src/base/Precise.js');
+var OrderRouter = require('./src/base/OrderRouter.js');
 var functions = require('./src/base/functions.js');
 var errors = require('./src/base/errors.js');
 var alpaca = require('./src/alpaca.js');
@@ -407,13 +408,14 @@ prediction.exchanges = Object.keys(prediction);
 // prediction instances are `instanceof PredictionExchange`, NOT `instanceof Exchange` (siblings)
 prediction['Exchange'] = PredictionExchange["default"];
 //-----------------------------------------------------------------------------
-const ccxt = Object.assign({ version, Exchange: Exchange["default"], BaseExchange: Exchange.BaseExchange, PredictionExchange: PredictionExchange["default"], Precise: Precise["default"], 'exchanges': Object.keys(exchanges), 'pro': pro, 'prediction': prediction }, exchanges, functions, errors);
+const ccxt = Object.assign({ version, Exchange: Exchange["default"], BaseExchange: Exchange.BaseExchange, PredictionExchange: PredictionExchange["default"], Precise: Precise["default"], OrderRouter: OrderRouter["default"], 'exchanges': Object.keys(exchanges), 'pro': pro, 'prediction': prediction }, exchanges, functions, errors);
 //-----------------------------------------------------------------------------
 
 exports.BaseExchange = Exchange.BaseExchange;
 exports.Exchange = Exchange["default"];
 exports.PredictionExchange = PredictionExchange["default"];
 exports.Precise = Precise["default"];
+exports.OrderRouter = OrderRouter["default"];
 exports.functions = functions;
 exports.AccountNotEnabled = errors.AccountNotEnabled;
 exports.AccountSuspended = errors.AccountSuspended;
