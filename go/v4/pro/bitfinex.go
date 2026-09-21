@@ -1579,6 +1579,7 @@ func (this *Bitfinex) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name bitfinex#watchOHLCV

@@ -1873,7 +1873,16 @@ class testMainClass {
     public function test_response_statically($exchange, $method, $skip_keys, $data) {
         return Async\async(function () use ($exchange, $method, $skip_keys, $data) {
             $expected_result = $exchange->safe_value($data, 'parsedResponse');
-            $mocked_exchange = set_fetch_response($exchange, $data['httpResponse']);
+            // 'httpResponseByUrl' serves a body per url fragment for methods that call several
+            // endpoints; the typed ports narrow each body to the shape its api leaf declares,
+            // so one shared 'httpResponse' cannot cover two differently-shaped endpoints
+            $responses_by_url = $exchange->safe_dict($data, 'httpResponseByUrl');
+            $mocked_exchange = $exchange;
+            if ($responses_by_url !== null) {
+                $mocked_exchange = set_fetch_response_by_url($exchange, $responses_by_url);
+            } else {
+                $mocked_exchange = set_fetch_response($exchange, $data['httpResponse']);
+            }
             if ($this->info) {
                 dump('[INFO] STATIC RESPONSE TEST:', $method, ':', $data['description']);
             }

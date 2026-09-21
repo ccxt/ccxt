@@ -393,11 +393,18 @@ class pacifica extends Exchange {
                     '420' => '\\ccxt\\ExchangeError', // ENGINE_ERROR_CODE
                     '422' => '\\ccxt\\ExchangeError', // Business Logic Error - See below
                     '429' => '\\ccxt\\RateLimitExceeded', // Too Many Requests - Rate limit exceeded; RATE_LIMIT_EXCEEDED_CODE
-                    '500' => '\\ccxt\\ExchangeError', // Internal Server Error; UNKNOWN_ERROR_CODE
+                    '500' => '\\ccxt\\ExchangeNotAvailable', // Internal Server Error; UNKNOWN_ERROR_CODE
                     '503' => '\\ccxt\\ExchangeNotAvailable', // Service Unavailable
                     '504' => '\\ccxt\\RequestTimeout', // Gateway Timeout
+                    // error_id values, undocumented but present on live error responses
+                    'signature_verification_failed' => '\\ccxt\\AuthenticationError',
+                    'invalid_amount' => '\\ccxt\\InvalidOrder',
                 ),
                 'broad' => array(
+                    'Invalid signature' => '\\ccxt\\AuthenticationError',
+                    'Invalid public key' => '\\ccxt\\AuthenticationError',
+                    'Verification failed' => '\\ccxt\\AuthenticationError',
+                    'Invalid message' => '\\ccxt\\BadRequest', // expired or malformed signed message
                     'UNKNOWN' => '\\ccxt\\ExchangeError',
                     'ACCOUNT_NOT_FOUND' => '\\ccxt\\ExchangeError',
                     'BOOK_NOT_FOUND' => '\\ccxt\\ExchangeError',
@@ -1521,6 +1528,7 @@ class pacifica extends Exchange {
          * @param {float} [$params->takeProfitPrice] the $price that a take profit $order is triggered at (optional provide takeProfitCloid)
          * @param {string} [$params->timeInForce] "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book)
          * @param {boolean} [$params->reduceOnly] Ensures that the executed $order does not flip the opened position.
+         * @param {string} [$params->slippage] the slippage for market orders in percent, defaults to options.defaultSlippage (0.5)
          * @param {string} [$params->clientOrderId] client $order id, (optional uuid v4 e.g. => f47ac10b-58cc-4372-a567-0e02b2c3d479)
          * @param {int} [$params->expiryWindow] time to live in milliseconds
          * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
@@ -1531,8 +1539,9 @@ class pacifica extends Exchange {
         $this->initialize_client();
         list($request, $operationType) = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
         $params = $this->omit($params, array(
-            'reduceOnly', 'clientOrderId', 'stopLimitPrice', 'timeInForce', 'triggerPrice', 'stopLossCloid',
+            'reduceOnly', 'reduce_only', 'clientOrderId', 'stopLimitPrice', 'timeInForce', 'triggerPrice', 'stopLossCloid',
             'stopLossPrice', 'stopLossLimitPrice', 'takeProfitCloid', 'takeProfitPrice', 'takeProfitLimitPrice', 'expiryWindow',
+            'slippage', 'slippage_percent',
         ));
         $response = null;
         if ($operationType === 'create_market_order') {
@@ -1589,6 +1598,7 @@ class pacifica extends Exchange {
          * @param {float} [$params->takeProfitPrice] the $price that a take profit order is triggered at (optional provide takeProfitCloid)
          * @param {string} [$params->timeInForce] "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book)
          * @param {boolean} [$params->reduceOnly] Ensures that the executed order does not flip the opened position.
+         * @param {string} [$params->slippage] the $slippage for $market orders in percent, defaults to options.defaultSlippage (0.5)
          * @param {string} [$params->clientOrderId] client order id, (optional uuid v4 e.g. => f47ac10b-58cc-4372-a567-0e02b2c3d479)
          * @param {int} [$params->expiryWindow] time to live in milliseconds
          * @return {array} an [order structure]
@@ -2985,11 +2995,12 @@ class pacifica extends Exchange {
             $this->load_markets();
         }
         $symbols = $this->market_symbols($symbols);
-        $swapMarkets = $this->fetch_swap_markets();
-        return $this->parse_open_interests($swapMarkets, $symbols);
+        $response = $this->publicGetInfoPrices($params);
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_open_interests($data, $symbols);
     }
 
-    public function fetch_open_interest(string $symbol, $params = array()) {
+    public function fetch_open_interest(string $symbol, $params = array()): array {
         /**
          * retrieves the open interest of a contract trading pair
          *
@@ -2999,12 +3010,16 @@ class pacifica extends Exchange {
          * @param {array} [$params] exchange specific parameters
          * @return {array} an ~@link https://docs.ccxt.com/?id=open-interest-structure open interest structure~
          */
-        $symbol = $this->symbol($symbol);
         if ($this->markets === null) {
             $this->load_markets();
         }
+        $symbol = $this->symbol($symbol);
         $ois = $this->fetch_open_interests(array( $symbol ), $params);
-        return $ois[$symbol];
+        $oi = $this->safe_dict($ois, $symbol);
+        if ($oi === null) {
+            throw new BadSymbol($this->id . ' fetchOpenInterest() could not find open interest for ' . $symbol);
+        }
+        return $oi;
     }
 
     public function parse_open_interest(mixed $interest, ?array $market = null) {
@@ -3470,11 +3485,17 @@ class pacifica extends Exchange {
         //     {"success":false,"data":null,"error":"Beta access required. Signer must redeem a valid beta code.","code":403}
         //     {"success":false,"data":null,"error":"Agent not authorized for account","code":400}
         //     {"success":false,"data":null,"error":"Internal server error","code":500}
+        //     {"success":false,"data":null,"error":"Verification failed: signature does not match signer and canonical payload.","code":400,"error_id":"signature_verification_failed"}
+        //     {"success":false,"data":null,"error":"Order amount too low for <account>: 7.81140 < 10","code":0,"error_id":"invalid_amount"}
+        //     {"success":false,"data":null,"error":"Invalid transfer relationship: <from> -> <to>","code":33,"error_id":"unspecified"}
         //
-        $inCode = $this->safe_integer($response, 'code'); // actually if all ok -> code = undefined or code = 200
+        // code carries a business code on 422 responses and an echo of the http status otherwise, it is undefined or 200 when all ok
+        // the string form is required for the exceptions lookup, an integer key never matches the string-keyed map on the python, go and c# ports
+        $errorCode = $this->safe_string($response, 'code');
+        $errorId = $this->safe_string($response, 'error_id'); // undocumented, present on live errors and more specific than code
         $message = $this->safe_string($response, 'error');
         $error = null;
-        if ($inCode === null || $inCode === 200) {
+        if ($errorCode === null || $errorCode === '200') {
             $error = false;
         } else {
             $error = true;
@@ -3482,10 +3503,13 @@ class pacifica extends Exchange {
         $nonEmptyMessage = (($message !== null) && ($message !== ''));
         if ($error || $nonEmptyMessage) {
             $feedback = $this->id . ' ' . $body;
-            $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback); // Try deeper catch first
-            $this->throw_exactly_matched_exception($this->exceptions['exact'], $inCode, $feedback);
-            $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
-            throw new ExchangeError($feedback); // unknown message
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorId, $feedback);
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback); // documented message prefixes are more specific than the http-status echo
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
+            $codeAsString = (string) $code;
+            if (($code < 400) || !(is_array($this->httpExceptions) && array_key_exists($codeAsString ?? '', $this->httpExceptions))) {
+                throw new ExchangeError($feedback); // unknown message
+            }
         }
         return null;
     }

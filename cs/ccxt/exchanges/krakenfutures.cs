@@ -69,6 +69,7 @@ public partial class krakenfutures : Exchange
                 { "fetchOrderBook", true },
                 { "fetchOrders", true },
                 { "fetchPositions", true },
+                { "fetchPositionsHistory", true },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
@@ -3559,14 +3560,6 @@ public partial class krakenfutures : Exchange
         //        "serverTime": "2022-03-03T22:51:16.566Z"
         //    }
         //
-        object result = this.parsePositions(response);
-        return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbols, false));
-    }
-
-    public override object parsePositions(object response, object symbols = null, object parameters = null)
-    {
-        parameters ??= new Dictionary<string, object>();
-        List<object> result = new List<object>() {};
         // a degraded response missing openPositions must fail loudly - a flat
         // account and "could not read positions" are not interchangeable for
         // reconciliation logic, see https://github.com/ccxt/ccxt/issues/29710
@@ -3577,12 +3570,106 @@ public partial class krakenfutures : Exchange
         {
             throw new ExchangeNotAvailable ((string)add(this.id, " fetchPositions() returned a response without an \"openPositions\" list")) ;
         }
-        for (int i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
+        return ccxt.BaseExchange.ToPositionList(this.parsePositions(positions, symbols));
+    }
+
+    /**
+     * @method
+     * @name krakenfutures#fetchPositionsHistory
+     * @description fetches historical positions, by default the events that closed a position
+     * @see https://docs.kraken.com/api-reference/account-history/get-position-update-events
+     * @param {string[]} [symbols] a list of unified market symbols, only a single symbol is filtered by the exchange
+     * @param {int} [since] timestamp in ms of the earliest position to fetch
+     * @param {int} [limit] the maximum number of positions to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest position to fetch
+     *
+     * EXCHANGE SPECIFIC PARAMETERS
+     * @param {bool} [params.opened] set to true to also return the events that opened a position
+     * @param {bool} [params.increased] set to true to also return the events that increased a position
+     * @param {bool} [params.decreased] set to true to also return the events that decreased a position
+     * @param {bool} [params.reversed] set to true to also return the events that reversed a position
+     * @param {bool} [params.no_change] set to true to also return the events that left the position size untouched
+     * @param {bool} [params.trades] set to true to also return every event caused by a trade
+     * @param {bool} [params.funding_realization] set to true to also return the funding realization events
+     * @param {bool} [params.settlement] set to true to also return the settlement events
+     * @param {string} [params.continuation_token] the token of a previous response, to fetch the next page
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    public async override Task<List<ccxt.Position>> FetchPositionsHistory(object symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        IDictionary<string, object> market = null;
+        if (isTrue(!isEqual(symbols, null)))
         {
-            Dictionary<string, object> position = this.parsePosition(getValue(positions, i));
-            ((IList<object>)result).Add(position);
+            int symbolsLength = getArrayLength(symbols);
+            if (isTrue(isEqual(symbolsLength, 1)))
+            {
+                market = this.market(getValue(symbols, 0));
+            }
         }
-        return result;
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "closed", true },
+        };
+        if (isTrue(!isEqual(market, null)))
+        {
+            ((IDictionary<string,object>)request)["tradeable"] = getValue(market, "id");
+        }
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["since"] = since;
+            ((IDictionary<string,object>)request)["sort"] = "asc";
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["count"] = limit;
+        }
+        Int64? until = this.safeInteger(parameters, "until");
+        if (isTrue(!isEqual(until, null)))
+        {
+            parameters = this.omit(parameters, "until");
+            ((IDictionary<string,object>)request)["before"] = until;
+        }
+        Dictionary<string, object> response = await this.historyGetPositions(this.extend(request, parameters));
+        //
+        //    {
+        //        "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
+        //        "elements": [
+        //            {
+        //                "uid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
+        //                "timestamp": 1789646492483,
+        //                "event": {
+        //                    "PositionUpdate": {
+        //                        "tradeable": "PF_DOGEUSD",
+        //                        "oldPosition": "250",
+        //                        "newPosition": "0",
+        //                        "positionChange": "close",
+        //                        "executionPrice": "0.08105",
+        //                        "executionSize": "250",
+        //                        "realizedPnL": "0.05",
+        //                        ...
+        //                    }
+        //                }
+        //            }
+        //        ],
+        //        "len": 2,
+        //        "serverTime": "2026-09-17T18:14:37.761Z"
+        //    }
+        //
+        List<object> elements = this.safeList(response, "elements", new List<object>() {});
+        List<object> updates = new List<object>() {};
+        for (int i = 0; isLessThan(i, getArrayLength(elements)); postFixIncrement(ref i))
+        {
+            IDictionary<string, object> eventVar = this.safeDict(getValue(elements, i), "event", new Dictionary<string, object>() {});
+            IDictionary<string, object> update = this.safeDict(eventVar, "PositionUpdate");
+            if (isTrue(!isEqual(update, null)))
+            {
+                ((IList<object>)updates).Add(update);
+            }
+        }
+        object positions = this.parsePositions(updates, symbols);
+        return ccxt.BaseExchange.ToPositionList(this.filterBySinceLimit(positions, since, limit));
     }
 
     public override Dictionary<string, object> parsePosition(object position, object market = null)
@@ -3611,36 +3698,105 @@ public partial class krakenfutures : Exchange
         //        "maxFixedLeverage":"1.0"
         //    }
         //
+        // position update event (fetchPositionsHistory)
+        //
+        //    {
+        //        "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
+        //        "tradeable": "PF_DOGEUSD",
+        //        "oldPosition": "250",
+        //        "oldAverageEntryPrice": "0.08085",
+        //        "newPosition": "0",
+        //        "newAverageEntryPrice": "0.08085",
+        //        "fillTime": 1789643150594,
+        //        "fee": "0.01013125",
+        //        "feeCurrency": "USD",
+        //        "realizedPnL": "0.05",
+        //        "positionChange": "close",
+        //        "executionUid": "7bfe252a-ab7b-480b-8c52-0ce55e6cba75",
+        //        "executionPrice": "0.08105",
+        //        "executionSize": "250",
+        //        "tradeType": "userExecution",
+        //        "fundingRealizationTime": 1789646492483,
+        //        "realizedFunding": "-0.00000764284",
+        //        "timestamp": 1789646492483,
+        //        "updateReason": "trade"
+        //    }
+        //
+        // the history rows carry a positionChange, the open-position rows do not
+        string? positionChange = this.safeString(position, "positionChange");
+        bool isHistory = (!isEqual(positionChange, null));
         double? leverage = this.safeNumber(position, "maxFixedLeverage");
         string marginType = "cross";
         if (isTrue(!isEqual(leverage, null)))
         {
             marginType = "isolated";
         }
-        string? datetime = this.safeString(position, "fillTime");
-        string? marketId = this.safeString(position, "symbol");
+        Int64? timestamp = null;
+        string? datetime = null;
+        if (isTrue(isHistory))
+        {
+            timestamp = this.safeInteger(position, "timestamp");
+            datetime = this.iso8601(timestamp);
+        } else
+        {
+            datetime = this.safeString(position, "fillTime");
+            timestamp = this.parse8601(datetime);
+        }
+        string? side = this.safeString(position, "side");
+        string? entryPrice = this.safeString(position, "price");
+        string? contracts = this.safeString(position, "size");
+        if (isTrue(isHistory))
+        {
+            // the event describes the position it acted on: an open or an increase
+            // describes the new position, a close, a decrease or a reversal the old
+            // one together with the size that was closed
+            bool describesNewPosition = isTrue((isEqual(positionChange, "open"))) || isTrue((isEqual(positionChange, "increase")));
+            string? signedSize = this.safeString(position, "oldPosition");
+            entryPrice = this.safeString(position, "oldAverageEntryPrice");
+            contracts = this.safeString(position, "executionSize");
+            if (isTrue(describesNewPosition))
+            {
+                signedSize = this.safeString(position, "newPosition");
+                entryPrice = this.safeString(position, "newAverageEntryPrice");
+                contracts = Precise.stringAbs(signedSize);
+            } else if (isTrue(isEqual(positionChange, "reverse")))
+            {
+                contracts = Precise.stringAbs(signedSize); // a reversal closes the whole old position
+            }
+            if (isTrue(Precise.stringGt(signedSize, "0")))
+            {
+                side = "long";
+            } else if (isTrue(Precise.stringLt(signedSize, "0")))
+            {
+                side = "short";
+            }
+        }
+        string? marketId = this.safeString2(position, "symbol", "tradeable");
         market = this.safeMarket(marketId, market);
         return new Dictionary<string, object>() {
             { "info", position },
+            { "id", this.safeString(position, "executionUid") },
             { "symbol", getValue(market, "symbol") },
-            { "timestamp", this.parse8601(datetime) },
+            { "timestamp", timestamp },
             { "datetime", datetime },
             { "initialMargin", null },
             { "initialMarginPercentage", null },
             { "maintenanceMargin", null },
             { "maintenanceMarginPercentage", null },
-            { "entryPrice", this.safeNumber(position, "price") },
+            { "entryPrice", this.parseNumber(entryPrice) },
             { "notional", null },
             { "leverage", leverage },
             { "unrealizedPnl", this.safeNumber(position, "unrealizedPnl") },
-            { "contracts", this.safeNumber(position, "size") },
+            { "realizedPnl", this.safeNumber(position, "realizedPnL") },
+            { "contracts", this.parseNumber(contracts) },
             { "contractSize", this.safeNumber(market, "contractSize") },
             { "marginRatio", null },
             { "liquidationPrice", null },
             { "markPrice", null },
+            { "lastPrice", this.safeNumber(position, "executionPrice") },
             { "collateral", null },
             { "marginType", marginType },
-            { "side", this.safeString(position, "side") },
+            { "side", side },
             { "percentage", null },
         };
     }

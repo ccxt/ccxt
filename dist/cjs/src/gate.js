@@ -802,6 +802,9 @@ class gate extends gate$1["default"] {
                 'createOrder': {
                     'expiration': 86400, // for conditional orders
                 },
+                'fetchOrderBook': {
+                    'maxSpotLimit': 1000, // the spot depth cap accepted by the venue, overriden in gateeu
+                },
                 'createMarketBuyOrderRequiresPrice': true,
                 'networks': {
                     'BTC': 'BTC',
@@ -2822,7 +2825,9 @@ class gate extends gate$1["default"] {
         const [request, query] = this.prepareRequest(market, market['type'], params);
         if (limit !== undefined) {
             if (market['spot'] === true) {
-                limit = Math.min(limit, 1000);
+                // gateeu returns an empty book for a spot limit above 100
+                const maxSpotLimit = this.handleOption('fetchOrderBook', 'maxSpotLimit', 1000);
+                limit = Math.min(limit, maxSpotLimit);
             }
             else {
                 limit = Math.min(limit, 300);
@@ -7229,8 +7234,10 @@ class gate extends gate$1["default"] {
             if ((method === 'GET') || (method === 'DELETE') || requiresURLEncoding || (method === 'PATCH')) {
                 if (Object.keys(query).length > 0) {
                     // https://github.com/ccxt/ccxt/issues/27663
-                    rawQueryString = this.rawencode(query);
-                    queryString = this.urlencode(query);
+                    // sort explicitly (true) so the signed order matches the url order in Go,
+                    // where map iteration is not ordered (keysort's order is otherwise lost)
+                    rawQueryString = this.rawencode(query, true);
+                    queryString = this.urlencode(query, true);
                     // https://github.com/ccxt/ccxt/issues/25570
                     if (queryString.indexOf('currencies=') >= 0 && queryString.indexOf('%2C') >= 0) {
                         queryString = queryString.replaceAll('%2C', ',');

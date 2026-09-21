@@ -4145,14 +4145,13 @@ public class Digifinex extends DigifinexApi
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Long timestamp = this.milliseconds();
         String currencyId = this.safeString(info, "currency");
         return new HashMap<String, Object>() {{
             put( "currency", Digifinex.this.safeCurrencyCode(currencyId, currency) );
             put( "rate", 0.001 );
             put( "period", 86400000 );
-            put( "timestamp", timestamp );
-            put( "datetime", Digifinex.this.iso8601(timestamp) );
+            put( "timestamp", null );
+            put( "datetime", null );
             put( "info", info );
         }};
     }

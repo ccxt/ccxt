@@ -622,8 +622,7 @@ class bydfi(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_dict(response, 'data', {})
-        timestamp = self.milliseconds()
-        orderBook = self.parse_order_book(data, market['symbol'], timestamp, 'bids', 'asks', 'price', 'amount')
+        orderBook = self.parse_order_book(data, market['symbol'], None, 'bids', 'asks', 'price', 'amount')
         orderBook['nonce'] = self.safe_integer(data, 'lastUpdateId')
         return orderBook
 
@@ -2468,11 +2467,10 @@ class bydfi(Exchange, ImplicitAPI):
         return self.parse_balance(data)
 
     def parse_balance(self, response: object) -> Balances:
-        timestamp = self.milliseconds()
         result = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
         }
         for i in range(0, len(response)):
             balance = response[i]
@@ -2522,9 +2520,6 @@ class bydfi(Exchange, ImplicitAPI):
         transferOptions = self.safe_dict(self.options, 'transfer', {})
         fillResponseFromRequest = self.safe_bool(transferOptions, 'fillResponseFromRequest', True)
         if fillResponseFromRequest is True:
-            timestamp = self.milliseconds()
-            transfer['timestamp'] = timestamp
-            transfer['datetime'] = self.iso8601(timestamp)
             transfer['currency'] = code
             transfer['fromAccount'] = fromAccount
             transfer['toAccount'] = toAccount

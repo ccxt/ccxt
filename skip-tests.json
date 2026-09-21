@@ -1525,6 +1525,9 @@
         "skipMethods": {
             "fetchTrades": {
                 "sideSequence": "todo check"
+            },
+            "orderBook": {
+                "timestamp": "the orderbook endpoint carries no timestamp"
             }
         }
     },
@@ -1533,6 +1536,9 @@
         "skipMethods": {
             "fetchTrades": {
                 "sideSequence": "todo check"
+            },
+            "orderBook": {
+                "timestamp": "the venue reports no book time; the AMM book is synthesized from the current implied price"
             }
         }
     },
@@ -1697,6 +1703,9 @@
             "fetchPositions": "demo/test account holds no open positions and the fetchPositions test asserts a non-empty array; run with a funded position to re-enable",
             "fetchTrades": {
                 "sideSequence": "todo check"
+            },
+            "orderBook": {
+                "timestamp": "the orderbook_fp response carries no timestamp"
             }
         }
     },
@@ -2629,6 +2638,9 @@
             },
             "ticker": {
                 "compareOHLC": "open higher than high from API"
+            },
+            "orderBook": {
+                "timestamp": "the depth endpoint carries no timestamp"
             }
         }
     },
@@ -2663,7 +2675,11 @@
         }
     },
     "lighter": {
+        "httpsProxy": "http://188.245.226.105:8911",
+        "wsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
+            "watchTicker.go": "Go test harness repanics the NotSupported thrown for spot symbols (the market_stats channel is swap-only) instead of skipping it like the other languages, recheck 2026-12-17",
+            "watchTickers.go": "Go test harness repanics the NotSupported thrown for spot symbols (the market_stats channel is swap-only) instead of skipping it like the other languages, recheck 2026-12-17",
             "loadMarkets": {
                 "currencyIdAndCode": "messed",
                 "contractSize": "not provided",
@@ -2732,5 +2748,8 @@
                 "sideSequence": "todo check, eg https://api.btse.com/public-api/market/v1/trades?symbol=BTC-USDT&limit=500"
             }
         }
+    },
+    "predictfun": {
+        "skip": "requires apiKeys"
     }
 }

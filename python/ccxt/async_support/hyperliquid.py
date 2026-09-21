@@ -377,6 +377,11 @@ class hyperliquid(Exchange, ImplicitAPI):
         super(hyperliquid, self).set_sandbox_mode(enabled)
         self.options['sandboxMode'] = enabled
 
+    def nonce(self):
+        # the venue nonce is a millisecond timestamp and must be strictly increasing per signer
+        # incrementingNonce () reads this and bumps past the previous value when two signed actions share a millisecond
+        return self.milliseconds()
+
     def market(self, symbol: Str) -> MarketInterface:
         if symbol is None:
             raise ArgumentsRequired(self.id + ' market() requires a symbol argument')
@@ -1753,7 +1758,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             'type': 'setReferrer',
             'code': self.safe_string(self.options, 'ref', 'CCXT1'),
         }
-        nonce = self.milliseconds()
+        nonce = self.incrementing_nonce()
         signature = self.sign_l1_action(action, nonce)
         request = {
             'action': action,
@@ -1769,7 +1774,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         return response
 
     async def approve_builder_fee(self, builder: str, maxFeeRate: str):
-        nonce = self.milliseconds()
+        nonce = self.incrementing_nonce()
         isSandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         payload = {
             'hyperliquidChain': 'Testnet' if (isSandboxMode is True) else 'Mainnet',
@@ -1884,7 +1889,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         """
         userAddress = None
         userAddress, params = self.handle_public_address('setUserAbstraction', params)
-        nonce = self.milliseconds()
+        nonce = self.incrementing_nonce()
         isSandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         type = self.safe_string(params, 'type', 'userSetAbstraction')
         params = self.omit(params, 'type')
@@ -1929,7 +1934,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         """
         userAddress = None
         userAddress, params = self.handle_public_address('enableUserDexAbstraction', params)
-        nonce = self.milliseconds()
+        nonce = self.incrementing_nonce()
         isSandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         type = self.safe_string(params, 'type', 'userDexAbstraction')
         params = self.omit(params, 'type')
@@ -1971,7 +1976,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param dict [params]:
         :returns: dictionary response from the exchange
         """
-        nonce = self.milliseconds()
+        nonce = self.incrementing_nonce()
         request = {
             'nonce': nonce,
         }
@@ -2031,7 +2036,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             await self.load_markets()
         await self.initialize_client()
         market = self.market(symbol)
-        nonce = self.milliseconds()
+        nonce = self.incrementing_nonce()
         isBuy = (side == 'BUY')
         vaultAddress = None
         randomize = self.safe_bool(params, 'randomize', False)
@@ -2219,7 +2224,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                 if clientOrderId is None:
                     raise ArgumentsRequired(self.id + ' createOrders() all orders must have clientOrderId if at least one has a clientOrderId')
         params = self.omit(params, ['slippage', 'clientOrderId', 'client_id', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce'])
-        nonce = self.milliseconds()
+        nonce = self.incrementing_nonce()
         orderReq = []
         grouping = 'na'
         for i in range(0, len(orders)):
@@ -2286,7 +2291,8 @@ class hyperliquid(Exchange, ImplicitAPI):
             'grouping': grouping,
         }
         if self.safe_bool(self.options, 'approvedBuilderFee', False):
-            wallet = self.safe_string_lower(self.options, 'builder', '0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6')
+            builder = '0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6'
+            wallet = self.safe_string_lower(self.options, 'builder', builder.lower())
             # when builderFee is disabled the builder is still attached but with a 0% fee (f = 0), for statistics purposes only
             feeInt = self.safe_integer(self.options, 'feeInt', 10)
             if not self.safe_bool(self.options, 'builderFee', True):
@@ -2400,7 +2406,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             'a': self.parse_to_int(market['baseId']),
             't': self.parse_to_numeric(id),
         }
-        nonce = self.milliseconds()
+        nonce = self.incrementing_nonce()
         signature = self.sign_l1_action(action, nonce, vaultAddress)
         request = {
             'action': action,
@@ -2445,7 +2451,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         market = self.market(symbol)
         clientOrderId = self.safe_value_2(params, 'clientOrderId', 'client_id')
         params = self.omit(params, ['clientOrderId', 'client_id'])
-        nonce = self.milliseconds()
+        nonce = self.incrementing_nonce()
         request = {
             'nonce': nonce,
             # 'vaultAddress': vaultAddress,
@@ -2502,7 +2508,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         await self.initialize_client()
-        nonce = self.milliseconds()
+        nonce = self.incrementing_nonce()
         request = {
             'nonce': nonce,
             # 'vaultAddress': vaultAddress,
@@ -2572,7 +2578,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             await self.load_markets()
         await self.initialize_client()
         params = self.omit(params, ['clientOrderId', 'client_id'])
-        nonce = self.milliseconds()
+        nonce = self.incrementing_nonce()
         request = {
             'nonce': nonce,
             # 'vaultAddress': vaultAddress,
@@ -2688,7 +2694,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                 'order': orderReq,
             }
             modifies.append(modifyReq)
-        nonce = self.milliseconds()
+        nonce = self.incrementing_nonce()
         modifyAction = {
             'type': 'batchModify',
             'modifies': modifies,
@@ -2804,7 +2810,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         self.check_required_credentials()
         if self.markets is None:
             await self.load_markets()
-        nonce = self.milliseconds()
+        nonce = self.incrementing_nonce()
         request = {
             'nonce': nonce,
         }
@@ -3655,7 +3661,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' setMarginMode() requires a leverage parameter')
         asset = self.parse_to_int(market['baseId'])
         isCross = (marginMode == 'cross')
-        nonce = self.milliseconds()
+        nonce = self.incrementing_nonce()
         params = self.omit(params, ['leverage'])
         updateAction = {
             'type': 'updateLeverage',
@@ -3705,7 +3711,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         marginMode = self.safe_string(params, 'marginMode', 'cross')
         isCross = (marginMode == 'cross')
         asset = self.parse_to_int(market['baseId'])
-        nonce = self.milliseconds()
+        nonce = self.incrementing_nonce()
         params = self.omit(params, 'marginMode')
         updateAction = {
             'type': 'updateLeverage',
@@ -3775,7 +3781,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         sz = self.parse_to_int(Precise.string_mul(self.amount_to_precision(symbol, amount), '1000000'))
         if type == 'reduce':
             sz = -sz
-        nonce = self.milliseconds()
+        nonce = self.incrementing_nonce()
         updateAction = {
             'type': 'updateIsolatedMargin',
             'asset': asset,
@@ -3844,7 +3850,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         isSandboxMode = self.safe_bool(self.options, 'sandboxMode')
-        nonce = self.milliseconds()
+        nonce = self.incrementing_nonce()
         if self.in_array(fromAccount, ['spot', 'swap', 'perp']):
             # handle swap <> spot account transfer
             if not self.in_array(toAccount, ['spot', 'swap', 'perp']):
@@ -3989,7 +3995,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         vaultAddress, params = self.handle_option_and_params(params, 'withdraw', 'vaultAddress')
         vaultAddress = self.format_vault_address(vaultAddress)
         params = self.omit(params, 'vaultAddress')
-        nonce = self.milliseconds()
+        nonce = self.incrementing_nonce()
         action = {}
         sig: dict
         if vaultAddress is not None:
@@ -4540,7 +4546,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a response object
         """
-        nonce = self.milliseconds()
+        nonce = self.incrementing_nonce()
         request = {
             'nonce': nonce,
         }
@@ -4562,7 +4568,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param int [params.expiresAfter]: time in ms after which the sub-account will expire
         :returns dict: a response object
         """
-        nonce = self.milliseconds()
+        nonce = self.incrementing_nonce()
         request = {
             'nonce': nonce,
         }

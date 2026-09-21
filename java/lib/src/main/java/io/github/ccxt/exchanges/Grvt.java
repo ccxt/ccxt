@@ -3767,7 +3767,7 @@ public class Grvt extends GrvtApi
             put( "clientOrderId", Grvt.this.safeString(metadata, "client_order_id") );
             put( "timestamp", timestamp );
             put( "datetime", Grvt.this.iso8601(timestamp) );
-            put( "lastTradeTimeStamp", null );
+            put( "lastTradeTimestamp", null );
             put( "lastUpdateTimestamp", Grvt.this.safeIntegerProduct(stateObj, "update_time", 0.000001) );
             put( "status", Grvt.this.parseOrderStatus(Grvt.this.safeString(stateObj, "status")) );
             put( "symbol", Grvt.this.safeString(finalMarket, "symbol") );

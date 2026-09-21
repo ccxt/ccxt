@@ -818,6 +818,9 @@ class gate(Exchange, ImplicitAPI):
                 'createOrder': {
                     'expiration': 86400,  # for conditional orders
                 },
+                'fetchOrderBook': {
+                    'maxSpotLimit': 1000,  # the spot depth cap accepted by the venue, overriden in gateeu
+                },
                 'createMarketBuyOrderRequiresPrice': True,
                 'networks': {
                     'BTC': 'BTC',
@@ -2749,7 +2752,9 @@ class gate(Exchange, ImplicitAPI):
         request, query = self.prepare_request(market, market['type'], params)
         if limit is not None:
             if market['spot'] is True:
-                limit = min(limit, 1000)
+                # gateeu returns an empty book for a spot limit above 100
+                maxSpotLimit = self.handle_option('fetchOrderBook', 'maxSpotLimit', 1000)
+                limit = min(limit, maxSpotLimit)
             else:
                 limit = min(limit, 300)
             request['limit'] = limit
@@ -6762,8 +6767,10 @@ class gate(Exchange, ImplicitAPI):
             if (method == 'GET') or (method == 'DELETE') or requiresURLEncoding or (method == 'PATCH'):
                 if len(query) > 0:
                     # https://github.com/ccxt/ccxt/issues/27663
-                    rawQueryString = self.rawencode(query)
-                    queryString = self.urlencode(query)
+                    # sort explicitly (true) so the signed order matches the url order in Go,
+                    # where map iteration is not ordered (keysort's order is otherwise lost)
+                    rawQueryString = self.rawencode(query, True)
+                    queryString = self.urlencode(query, True)
                     # https://github.com/ccxt/ccxt/issues/25570
                     if queryString.find('currencies=') >= 0 and queryString.find('%2C') >= 0:
                         queryString = queryString.replace('%2C', ',')

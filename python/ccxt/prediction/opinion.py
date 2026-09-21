@@ -660,7 +660,9 @@ class opinion(PredictionExchange, ImplicitAPI):
         bestBid = self.safe_dict(bids, 0, {})
         bestAsk = self.safe_dict(asks, 0, {})
         last = self.safe_number(priceResult, 'price')
-        timestamp = self.safe_integer(priceResult, 'timestamp', self.milliseconds())
+        timestamp = self.safe_integer(priceResult, 'timestamp')
+        if timestamp == 0:
+            timestamp = None  # the venue reports timestamp 0 for outcomes that have not traded yet
         return self.safe_prediction_ticker({
             'outcome': self.safe_string(marketAny, 'outcome'),
             'outcomeId': self.safe_string_2(marketAny, 'outcomeId', 'id'),
@@ -1663,9 +1665,8 @@ class opinion(PredictionExchange, ImplicitAPI):
         price = self.safe_number(message, 'price')
         size = self.safe_number(message, 'size')
         bookSide.storeArray([price, size])
-        now = self.milliseconds()
-        orderbook['timestamp'] = now
-        orderbook['datetime'] = self.iso8601(now)
+        orderbook['timestamp'] = None
+        orderbook['datetime'] = None
         client.resolve(orderbook, 'orderbook::' + sym)
 
     async def watch_ticker(self, outcome: str, params={}) -> PredictionTicker:
@@ -1700,15 +1701,14 @@ class opinion(PredictionExchange, ImplicitAPI):
         sym = self.safe_string(outcomeObj, 'outcome')
         if sym is None:
             return
-        now = self.milliseconds()
         last = self.safe_number(message, 'price')
         ticker = self.safe_prediction_ticker({
             'outcome': sym,
             'outcomeId': tokenId,
             'label': self.safe_string(outcomeObj, 'label'),
             'market': self.safe_string(outcomeObj, 'market'),
-            'timestamp': now,
-            'datetime': self.iso8601(now),
+            'timestamp': None,
+            'datetime': None,
             'close': last,
             'last': last,
             'info': message,
@@ -1754,12 +1754,11 @@ class opinion(PredictionExchange, ImplicitAPI):
         sym = self.safe_string(outcomeObj, 'outcome')
         if sym is None:
             return
-        now = self.milliseconds()
         trade = self.safe_prediction_trade({
             'id': None,
             'info': message,
-            'timestamp': now,
-            'datetime': self.iso8601(now),
+            'timestamp': None,
+            'datetime': None,
             'outcome': sym,
             'outcomeId': tokenId,
             'label': self.safe_string(outcomeObj, 'label'),

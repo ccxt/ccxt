@@ -3430,6 +3430,7 @@ func (this *Bitvavo) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name bitvavo#fetchTime

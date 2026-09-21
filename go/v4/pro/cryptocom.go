@@ -1892,7 +1892,6 @@ func (this *Cryptocom) HandleErrorMessage(client any, message any) any {
 			return false
 
 		}(this)
-
 		if ret__ != nil {
 			return ret__
 		}
@@ -2067,6 +2066,7 @@ func (this *Cryptocom) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name cryptocom#watchOrderBook

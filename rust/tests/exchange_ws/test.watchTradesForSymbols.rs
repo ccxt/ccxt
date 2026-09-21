@@ -36,8 +36,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             assert!(ccxt::runtime::is_true(&(Value::Bool(is_array(&response)))));
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1491: bool = true;
-                while { if !__for_first_1491 { i = add(&i, &Value::Int(1)); } __for_first_1491 = false; is_less_than(&i, &get_array_length(&response)) } {
+                let mut __for_first_1527: bool = true;
+                while { if !__for_first_1527 { i = add(&i, &Value::Int(1)); } __for_first_1527 = false; is_less_than(&i, &get_array_length(&response)) } {
                 let mut trade: Value = get_value(&response, &i);
                 let mut symbol: Value = get_value(&trade, &Value::Str("symbol".to_string()));
                 assert!(ccxt::runtime::is_true(&(Value::Bool(!is_equal(&symbol, &Value::Null)))));

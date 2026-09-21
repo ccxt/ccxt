@@ -1038,12 +1038,6 @@ public partial class myriad : PredictionExchange
         {
             ((IDictionary<string,object>)parsed)["amount"] = amount;
         }
-        if (isTrue(isEqual(this.safeInteger(parsed, "timestamp"), null)))
-        {
-            Int64 now = this.milliseconds();
-            ((IDictionary<string,object>)parsed)["timestamp"] = now;
-            ((IDictionary<string,object>)parsed)["datetime"] = this.iso8601(now);
-        }
         if (isTrue(isEqual(this.safeString(parsed, "status"), null)))
         {
             ((IDictionary<string,object>)parsed)["status"] = "open";
@@ -2791,7 +2785,6 @@ public partial class myriad : PredictionExchange
                 break;
             }
         }
-        Int64 now = this.milliseconds();
         // priceChange24h is an ABSOLUTE price delta; derive the previous close and the TRUE
         // percentage from it — setting percentage = the absolute change (as before) was wrong
         object previousClose = null;
@@ -2813,8 +2806,8 @@ public partial class myriad : PredictionExchange
             { "outcomeId", this.safeString(market, "id") },
             { "label", this.safeString(market, "label") },
             { "market", this.safeString(market, "market") },
-            { "timestamp", now },
-            { "datetime", this.iso8601(now) },
+            { "timestamp", null },
+            { "datetime", null },
             { "high", null },
             { "low", null },
             { "bid", price },
@@ -2958,7 +2951,6 @@ public partial class myriad : PredictionExchange
                 break;
             }
         }
-        Int64 timestamp = this.milliseconds();
         // AMM: synthesize a single bid/ask pair around the current implied price, clamped into the valid (0, 1) range
         double? bid = null;
         double? ask = null;
@@ -2989,8 +2981,8 @@ public partial class myriad : PredictionExchange
             { "outcome", this.safeOutcomeSymbol(outcome, outcomeObj) },
             { "bids", bids },
             { "asks", asks },
-            { "timestamp", timestamp },
-            { "datetime", this.iso8601(timestamp) },
+            { "timestamp", null },
+            { "datetime", null },
             { "nonce", null },
         };
         return ccxt.BaseExchange.ToPredictionOrderBook(this.safePredictionOrderBook(orderbook, outcomeObj));
@@ -3025,13 +3017,12 @@ public partial class myriad : PredictionExchange
             string? rowAmount = Precise.stringDiv(this.safeString(row, 1), "1000000000000000000");
             ((IList<object>)asks).Add(new List<object> {this.parseNumber(rowPrice), this.parseNumber(rowAmount)});
         }
-        Int64 timestamp = this.milliseconds();
         return new Dictionary<string, object>() {
             { "outcome", outcome },
             { "bids", this.sortBy(bids, 0, true) },
             { "asks", this.sortBy(asks, 0) },
-            { "timestamp", timestamp },
-            { "datetime", this.iso8601(timestamp) },
+            { "timestamp", null },
+            { "datetime", null },
             { "nonce", null },
         };
     }

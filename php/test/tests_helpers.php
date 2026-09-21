@@ -266,7 +266,19 @@ function create_dynamic_class ($exchangeId, $originalClass, $args) {
             #[\\AllowDynamicProperties]
             class '. $newClassName . ' extends ' . $originalClass . ' {
                 public $fetch_result = null;
+                public $fetch_result_by_url = null;
+                protected function mock_body_for_url($url) {
+                    foreach ($this->fetch_result_by_url as $fragment => $mockBody) {
+                        if (strpos($url, $fragment) !== false) {
+                            return $mockBody;
+                        }
+                    }
+                    return reset($this->fetch_result_by_url);
+                }
                 public function fetch($url, $method = "GET", $headers = null, $body = null) {
+                    if ($this->fetch_result_by_url !== null) {
+                        return $this->mock_body_for_url($url);
+                    }
                     if ($this->fetch_result !== null) {
                         return $this->fetch_result;
                     }
@@ -281,6 +293,15 @@ function create_dynamic_class ($exchangeId, $originalClass, $args) {
             #[\\AllowDynamicProperties]
             class '. $newClassName . ' extends ' . $originalClass . ' {
                 public $fetch_result = null;
+                public $fetch_result_by_url = null;
+                protected function mock_body_for_url($url) {
+                    foreach ($this->fetch_result_by_url as $fragment => $mockBody) {
+                        if (strpos($url, $fragment) !== false) {
+                            return $mockBody;
+                        }
+                    }
+                    return reset($this->fetch_result_by_url);
+                }
                 public function fetch($url, $method = "GET", $headers = null, $body = null) {
                     return Async\async (function() use ($url, $method, $headers, $body){
                         return $this->do_fetch($url, $method, $headers, $body);
@@ -289,6 +310,9 @@ function create_dynamic_class ($exchangeId, $originalClass, $args) {
                 // the inner async layers call do_fetch directly (no extra fiber); overriding it
                 // here keeps the mock on that path too, and public fetch() above still routes here
                 protected function do_fetch($url, $method = "GET", $headers = null, $body = null) {
+                    if ($this->fetch_result_by_url !== null) {
+                        return $this->mock_body_for_url($url);
+                    }
                     if ($this->fetch_result !== null) {
                         return $this->fetch_result;
                     }
@@ -410,6 +434,14 @@ function is_amd64(): bool {
 
 function set_fetch_response($exchange, $data) {
     $exchange->fetch_result = $data;
+    $exchange->fetch_result_by_url = null; // a plain body (or the null reset) drops any url-keyed mock
+    return $exchange;
+}
+
+// serves a body per url fragment for methods that call several endpoints;
+// one shared body cannot cover two endpoints of different declared shapes
+function set_fetch_response_by_url($exchange, $responses_by_url) {
+    $exchange->fetch_result_by_url = $responses_by_url;
     return $exchange;
 }
 

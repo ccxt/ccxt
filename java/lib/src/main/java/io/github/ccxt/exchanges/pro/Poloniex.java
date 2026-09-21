@@ -1374,6 +1374,10 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                 {
                     Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
                 }
+                if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
+                {
+                    continue;
+                }
                 io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
                 if (Helpers.isTrue(!Helpers.isEqual(bids, null)))
                 {

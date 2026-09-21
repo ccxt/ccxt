@@ -6,12 +6,13 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.pacifica import ImplicitAPI
 import math
-from ccxt.base.types import Balances, Currency, Int, LedgerEntry, Leverage, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currency, Int, LedgerEntry, Leverage, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -409,11 +410,18 @@ class pacifica(Exchange, ImplicitAPI):
                     '420': ExchangeError,  # ENGINE_ERROR_CODE
                     '422': ExchangeError,  # Business Logic Error - See below
                     '429': RateLimitExceeded,  # Too Many Requests - Rate limit exceeded; RATE_LIMIT_EXCEEDED_CODE
-                    '500': ExchangeError,  # Internal Server Error; UNKNOWN_ERROR_CODE
+                    '500': ExchangeNotAvailable,  # Internal Server Error; UNKNOWN_ERROR_CODE
                     '503': ExchangeNotAvailable,  # Service Unavailable
                     '504': RequestTimeout,  # Gateway Timeout
+                    # error_id values, undocumented but present on live error responses
+                    'signature_verification_failed': AuthenticationError,
+                    'invalid_amount': InvalidOrder,
                 },
                 'broad': {
+                    'Invalid signature': AuthenticationError,
+                    'Invalid public key': AuthenticationError,
+                    'Verification failed': AuthenticationError,
+                    'Invalid message': BadRequest,  # expired or malformed signed message
                     'UNKNOWN': ExchangeError,
                     'ACCOUNT_NOT_FOUND': ExchangeError,
                     'BOOK_NOT_FOUND': ExchangeError,
@@ -1476,6 +1484,7 @@ class pacifica(Exchange, ImplicitAPI):
         :param float [params.takeProfitPrice]: the price that a take profit order is triggered at(optional provide takeProfitCloid)
         :param str [params.timeInForce]: "GTC", "IOC", or "PO" or "ALO" or "PO_TOB"(or "TOB" - PO by top of book)
         :param boolean [params.reduceOnly]: Ensures that the executed order does not flip the opened position.
+        :param str [params.slippage]: the slippage for market orders in percent, defaults to options.defaultSlippage(0.5)
         :param str [params.clientOrderId]: client order id,(optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
         :param int [params.expiryWindow]: time to live in milliseconds
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
@@ -1485,8 +1494,9 @@ class pacifica(Exchange, ImplicitAPI):
         self.initialize_client()
         request, operationType = self.create_order_request(symbol, type, side, amount, price, params)
         params = self.omit(params, [
-            'reduceOnly', 'clientOrderId', 'stopLimitPrice', 'timeInForce', 'triggerPrice', 'stopLossCloid',
+            'reduceOnly', 'reduce_only', 'clientOrderId', 'stopLimitPrice', 'timeInForce', 'triggerPrice', 'stopLossCloid',
             'stopLossPrice', 'stopLossLimitPrice', 'takeProfitCloid', 'takeProfitPrice', 'takeProfitLimitPrice', 'expiryWindow',
+            'slippage', 'slippage_percent',
         ])
         response = None
         if operationType == 'create_market_order':
@@ -1538,6 +1548,7 @@ class pacifica(Exchange, ImplicitAPI):
         :param float [params.takeProfitPrice]: the price that a take profit order is triggered at(optional provide takeProfitCloid)
         :param str [params.timeInForce]: "GTC", "IOC", or "PO" or "ALO" or "PO_TOB"(or "TOB" - PO by top of book)
         :param boolean [params.reduceOnly]: Ensures that the executed order does not flip the opened position.
+        :param str [params.slippage]: the slippage for market orders in percent, defaults to options.defaultSlippage(0.5)
         :param str [params.clientOrderId]: client order id,(optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
         :param int [params.expiryWindow]: time to live in milliseconds
         :returns dict: an [order structure]
@@ -2828,10 +2839,11 @@ class pacifica(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         symbols = self.market_symbols(symbols)
-        swapMarkets = self.fetch_swap_markets()
-        return self.parse_open_interests(swapMarkets, symbols)
+        response = self.publicGetInfoPrices(params)
+        data = self.safe_list(response, 'data', [])
+        return self.parse_open_interests(data, symbols)
 
-    def fetch_open_interest(self, symbol: str, params={}):
+    def fetch_open_interest(self, symbol: str, params={}) -> OpenInterest:
         """
         retrieves the open interest of a contract trading pair
 
@@ -2841,11 +2853,14 @@ class pacifica(Exchange, ImplicitAPI):
         :param dict [params]: exchange specific parameters
         :returns dict: an `open interest structure <https://docs.ccxt.com/?id=open-interest-structure>`
         """
-        symbol = self.symbol(symbol)
         if self.markets is None:
             self.load_markets()
+        symbol = self.symbol(symbol)
         ois = self.fetch_open_interests([symbol], params)
-        return ois[symbol]
+        oi = self.safe_dict(ois, symbol)
+        if oi is None:
+            raise BadSymbol(self.id + ' fetchOpenInterest() could not find open interest for ' + symbol)
+        return oi
 
     def parse_open_interest(self, interest: object, market: Market = None):
         #
@@ -3275,21 +3290,29 @@ class pacifica(Exchange, ImplicitAPI):
         #     {"success":false,"data":null,"error":"Beta access required. Signer must redeem a valid beta code.","code":403}
         #     {"success":false,"data":null,"error":"Agent not authorized for account","code":400}
         #     {"success":false,"data":null,"error":"Internal server error","code":500}
+        #     {"success":false,"data":null,"error":"Verification failed: signature does not match signer and canonical payload.","code":400,"error_id":"signature_verification_failed"}
+        #     {"success":false,"data":null,"error":"Order amount too low for <account>: 7.81140 < 10","code":0,"error_id":"invalid_amount"}
+        #     {"success":false,"data":null,"error":"Invalid transfer relationship: <from> -> <to>","code":33,"error_id":"unspecified"}
         #
-        inCode = self.safe_integer(response, 'code')  # actually if all ok -> code = undefined or code = 200
+        # code carries a business code on 422 responses and an echo of the http status otherwise, it is undefined or 200 when all ok
+        # the string form is required for the exceptions lookup, an integer key never matches the string-keyed map on the python, go and c# ports
+        errorCode = self.safe_string(response, 'code')
+        errorId = self.safe_string(response, 'error_id')  # undocumented, present on live errors and more specific than code
         message = self.safe_string(response, 'error')
         error = None
-        if inCode is None or inCode == 200:
+        if errorCode is None or errorCode == '200':
             error = False
         else:
             error = True
         nonEmptyMessage = ((message is not None) and (message != ''))
         if error or nonEmptyMessage:
             feedback = self.id + ' ' + body
-            self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)  # Try deeper catch first
-            self.throw_exactly_matched_exception(self.exceptions['exact'], inCode, feedback)
-            self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
-            raise ExchangeError(feedback)  # unknown message
+            self.throw_exactly_matched_exception(self.exceptions['exact'], errorId, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)  # documented message prefixes are more specific than the http-status echo
+            self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+            codeAsString = str(code)
+            if (code < 400) or not (codeAsString in self.httpExceptions):
+                raise ExchangeError(feedback)  # unknown message
         return None
 
     def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):

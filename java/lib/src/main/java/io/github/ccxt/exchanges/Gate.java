@@ -1630,6 +1630,9 @@ public class Gate extends GateApi
                 put( "createOrder", new HashMap<String, Object>() {{
                     put( "expiration", 86400 );
                 }} );
+                put( "fetchOrderBook", new HashMap<String, Object>() {{
+                    put( "maxSpotLimit", 1000 );
+                }} );
                 put( "createMarketBuyOrderRequiresPrice", true );
                 put( "networks", new HashMap<String, Object>() {{
                     put( "BTC", "BTC" );
@@ -3904,7 +3907,9 @@ public class Gate extends GateApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
                 {
-                    limit = Helpers.mathMin(limit, 1000);
+                    // gateeu returns an empty book for a spot limit above 100
+                    Object maxSpotLimit = this.handleOption("fetchOrderBook", "maxSpotLimit", 1000);
+                    limit = Helpers.mathMin(limit, maxSpotLimit);
                 } else
                 {
                     limit = Helpers.mathMin(limit, 300);
@@ -9109,8 +9114,10 @@ final Object finalI = i;
                 if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
                 {
                     // https://github.com/ccxt/ccxt/issues/27663
-                    rawQueryString = this.rawencode(query);
-                    queryString = this.urlencode(query);
+                    // sort explicitly (true) so the signed order matches the url order in Go,
+                    // where map iteration is not ordered (keysort's order is otherwise lost)
+                    rawQueryString = this.rawencode(query, true);
+                    queryString = this.urlencode(query, true);
                     // https://github.com/ccxt/ccxt/issues/25570
                     if (Helpers.isTrue(Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(queryString, "currencies="), 0)) && Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(queryString, "%2C"), 0))))
                     {

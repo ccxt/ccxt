@@ -587,11 +587,17 @@ public class Pacifica extends PacificaApi
                     put( "420", ExchangeError.class );
                     put( "422", ExchangeError.class );
                     put( "429", RateLimitExceeded.class );
-                    put( "500", ExchangeError.class );
+                    put( "500", ExchangeNotAvailable.class );
                     put( "503", ExchangeNotAvailable.class );
                     put( "504", RequestTimeout.class );
+                    put( "signature_verification_failed", AuthenticationError.class );
+                    put( "invalid_amount", InvalidOrder.class );
                 }} );
                 put( "broad", new HashMap<String, Object>() {{
+                    put( "Invalid signature", AuthenticationError.class );
+                    put( "Invalid public key", AuthenticationError.class );
+                    put( "Verification failed", AuthenticationError.class );
+                    put( "Invalid message", BadRequest.class );
                     put( "UNKNOWN", ExchangeError.class );
                     put( "ACCOUNT_NOT_FOUND", ExchangeError.class );
                     put( "BOOK_NOT_FOUND", ExchangeError.class );
@@ -1915,6 +1921,7 @@ public class Pacifica extends PacificaApi
      * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at (optional provide takeProfitCloid)
      * @param {string} [params.timeInForce] "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book)
      * @param {boolean} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
+     * @param {string} [params.slippage] the slippage for market orders in percent, defaults to options.defaultSlippage (0.5)
      * @param {string} [params.clientOrderId] client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
@@ -1934,7 +1941,7 @@ public class Pacifica extends PacificaApi
             var requestoperationTypeVariable = this.createOrderRequest(symbol, type, side, amount, price, parameters);
             var request = ((List<Object>) requestoperationTypeVariable).get(0);
             var operationType = ((List<Object>) requestoperationTypeVariable).get(1);
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("reduceOnly", "clientOrderId", "stopLimitPrice", "timeInForce", "triggerPrice", "stopLossCloid", "stopLossPrice", "stopLossLimitPrice", "takeProfitCloid", "takeProfitPrice", "takeProfitLimitPrice", "expiryWindow")));
+            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only", "clientOrderId", "stopLimitPrice", "timeInForce", "triggerPrice", "stopLossCloid", "stopLossPrice", "stopLossLimitPrice", "takeProfitCloid", "takeProfitPrice", "takeProfitLimitPrice", "expiryWindow", "slippage", "slippage_percent")));
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(operationType, "create_market_order")))
             {
@@ -2012,6 +2019,7 @@ public class Pacifica extends PacificaApi
          * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at (optional provide takeProfitCloid)
          * @param {string} [params.timeInForce] "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book)
          * @param {boolean} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
+         * @param {string} [params.slippage] the slippage for market orders in percent, defaults to options.defaultSlippage (0.5)
          * @param {string} [params.clientOrderId] client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
          * @param {int} [params.expiryWindow] time to live in milliseconds
          * @returns {object} an [order structure]
@@ -3731,8 +3739,9 @@ public class Pacifica extends PacificaApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object swapMarkets = (this.fetchSwapMarkets()).join();
-            return this.parseOpenInterests(swapMarkets, symbols);
+            Map<String, Object> response = (this.publicGetInfoPrices(parameters)).join();
+            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            return this.parseOpenInterests(data, symbols);
         }).thenApply(OpenInterests::new);
 
     }
@@ -3752,13 +3761,18 @@ public class Pacifica extends PacificaApi
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            symbol = this.symbol(symbol);
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
+            symbol = this.symbol(symbol);
             Object ois = (this.fetchOpenInterests((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
-            return Helpers.GetValue(ois, symbol);
+            Object oi = this.safeDict(ois, symbol);
+            if (Helpers.isTrue(Helpers.isEqual(oi, null)))
+            {
+                throw new BadSymbol(Helpers.add(Helpers.add(this.id, " fetchOpenInterest() could not find open interest for "), symbol)) ;
+            }
+            return oi;
         }).thenApply(OpenInterest::new);
 
     }
@@ -4368,11 +4382,17 @@ public class Pacifica extends PacificaApi
         //     {"success":false,"data":null,"error":"Beta access required. Signer must redeem a valid beta code.","code":403}
         //     {"success":false,"data":null,"error":"Agent not authorized for account","code":400}
         //     {"success":false,"data":null,"error":"Internal server error","code":500}
+        //     {"success":false,"data":null,"error":"Verification failed: signature does not match signer and canonical payload.","code":400,"error_id":"signature_verification_failed"}
+        //     {"success":false,"data":null,"error":"Order amount too low for <account>: 7.81140 < 10","code":0,"error_id":"invalid_amount"}
+        //     {"success":false,"data":null,"error":"Invalid transfer relationship: <from> -> <to>","code":33,"error_id":"unspecified"}
         //
-        Long inCode = this.safeInteger(response, "code"); // actually if all ok -> code = undefined or code = 200
+        // code carries a business code on 422 responses and an echo of the http status otherwise, it is undefined or 200 when all ok
+        // the string form is required for the exceptions lookup, an integer key never matches the string-keyed map on the python, go and c# ports
+        String errorCode = this.safeString(response, "code");
+        String errorId = this.safeString(response, "error_id"); // undocumented, present on live errors and more specific than code
         String message = this.safeString(response, "error");
         Object error = null;
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(inCode, null)) || Helpers.isTrue(Helpers.isEqual(inCode, 200))))
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(errorCode, null)) || Helpers.isTrue(Helpers.isEqual(errorCode, "200"))))
         {
             error = false;
         } else
@@ -4383,10 +4403,14 @@ public class Pacifica extends PacificaApi
         if (Helpers.isTrue(Helpers.isTrue(error) || Helpers.isTrue(nonEmptyMessage)))
         {
             Object feedback = Helpers.add(Helpers.add(this.id, " "), body);
-            this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), message, feedback); // Try deeper catch first
-            this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), inCode, feedback);
-            this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), message, feedback);
-            throw new ExchangeError((String)feedback) ;
+            this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), errorId, feedback);
+            this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), message, feedback); // documented message prefixes are more specific than the http-status echo
+            this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), errorCode, feedback);
+            Object codeAsString = String.valueOf(code);
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isLessThan(code, 400))) || !Helpers.isTrue((Helpers.inOp(this.httpExceptions, codeAsString)))))
+            {
+                throw new ExchangeError((String)feedback) ;
+            }
         }
         return null;
     }

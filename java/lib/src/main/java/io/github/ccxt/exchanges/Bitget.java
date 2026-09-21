@@ -10556,13 +10556,17 @@ final Object finalMinNotional = minNotional;
      * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
      * @see https://www.bitget.com/api-doc/spot/account/Get-Account-Bills
      * @see https://www.bitget.com/api-doc/contract/account/Get-Account-Bill
+     * @see https://www.bitget.com/docs/catalog/account/assets-balance#get-financial-records
+     * @see https://www.bitget.com/docs/catalog/account/assets-balance#get-funding-financial-records
      * @param {string} [code] unified currency code, default is undefined
-     * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
+     * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined, the uta endpoints allow a window of at most 30 days between since and until
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] end time in ms
      * @param {string} [params.symbol] *contract only* unified market symbol
-     * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+     * @param {string} [params.productType] *contract and uta only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+     * @param {string} [params.type] set to 'funding' with uta to fetch the funding account ledger instead of the trading account ledger
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
@@ -10590,18 +10594,50 @@ final Object finalMinNotional = minNotional;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchLedger", market, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((List<Object>) marketTypeparametersVariable).get(1);
+            Object uta = null;
+            List<Object> utaparametersVariable = (List<Object>) (this.handleUTAAndParams(parameters, "fetchLedger", false)).join();
+            uta = ((List<Object>) utaparametersVariable).get(0);
+            parameters = ((List<Object>) utaparametersVariable).get(1);
             Object paginate = false;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchLedger", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
             {
+                if (Helpers.isTrue(Helpers.isEqual(uta, true)))
+                {
+                    // re-inject the resolved modes, the handle* helpers stripped them from params and the recursive paginated calls would silently fall back to the defaults
+                    final Object finalMarketType = marketType;
+                    parameters = this.extend(parameters, new HashMap<String, Object>() {{
+                        put( "uta", true );
+                        put( "type", finalMarketType );
+                    }});
+                    if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+                    {
+                        final Object finalSymbol = symbol;
+                        parameters = this.extend(parameters, new HashMap<String, Object>() {{
+                            put( "symbol", finalSymbol );
+                        }});
+                    }
+                    return (this.fetchPaginatedCallCursor("fetchLedger", code, since, limit, parameters, "id", "cursor", null, 100)).join();
+                }
                 String cursorReceived = null;
                 if (Helpers.isTrue(!Helpers.isEqual(marketType, "spot")))
                 {
                     cursorReceived = "endId";
                 }
-                return (this.fetchPaginatedCallCursor("fetchLedger", symbol, since, limit, parameters, cursorReceived, "idLessThan")).join();
+                final Object finalMarketType_2 = marketType;
+                parameters = this.extend(parameters, new HashMap<String, Object>() {{
+                    put( "type", finalMarketType_2 );
+                }});
+                if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+                {
+                    final Object finalSymbol_2 = symbol;
+                    parameters = this.extend(parameters, new HashMap<String, Object>() {{
+                        put( "symbol", finalSymbol_2 );
+                    }});
+                }
+                return (this.fetchPaginatedCallCursor("fetchLedger", code, since, limit, parameters, cursorReceived, "idLessThan")).join();
             }
             Object currency = null;
             Object request = new HashMap<String, Object>() {{}};
@@ -10622,6 +10658,44 @@ final Object finalMinNotional = minNotional;
                 Helpers.addElementToObject(request, "limit", limit);
             }
             Object response = null;
+            if (Helpers.isTrue(Helpers.isEqual(uta, true)))
+            {
+                if (Helpers.isTrue(Helpers.isEqual(marketType, "funding")))
+                {
+                    response = (this.privateUtaGetV3AccountFundingFinancialRecords(this.extend(request, parameters))).join();
+                } else
+                {
+                    Object marginMode = null;
+                    List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("fetchLedger", parameters);
+                    marginMode = ((List<Object>) marginModeparametersVariable).get(0);
+                    parameters = ((List<Object>) marginModeparametersVariable).get(1);
+                    if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
+                    {
+                        if (Helpers.isTrue(!Helpers.isEqual(marginMode, null)))
+                        {
+                            Helpers.addElementToObject(request, "category", "MARGIN");
+                        } else
+                        {
+                            Helpers.addElementToObject(request, "category", "SPOT");
+                        }
+                    } else
+                    {
+                        Object productType = null;
+                        List<Object> productTypeparametersVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
+                        productType = ((List<Object>) productTypeparametersVariable).get(0);
+                        parameters = ((List<Object>) productTypeparametersVariable).get(1);
+                        Helpers.addElementToObject(request, "category", productType);
+                    }
+                    if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+                    {
+                        Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
+                    }
+                    response = (this.privateUtaGetV3AccountFinancialRecords(this.extend(request, parameters))).join();
+                }
+                Object utaData = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                Object list = this.safeList(utaData, "list", new ArrayList<Object>(Arrays.asList()));
+                return this.parseLedger(list, currency, since, limit);
+            }
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
             {
                 response = (this.privateSpotGetV2SpotAccountBills(this.extend(request, parameters))).join();
@@ -10722,39 +10796,81 @@ final Object finalMinNotional = minNotional;
         //         "cTime": "1700728034996"
         //     }
         //
+        // uta financial records
+        //
+        //     {
+        //         "category": "Margin",
+        //         "id": "13111111111111111",
+        //         "symbol": "BTCUSDT",
+        //         "coin": "BTC",
+        //         "type": "ORDER_DEALT_IN",
+        //         "positionType": "crossed",
+        //         "fee": "-0.00000531",
+        //         "positionAmount": "0.001",
+        //         "positionBalance": "0.001",
+        //         "amount": "0.00531168",
+        //         "balance": "55.10017801",
+        //         "ts": "1745853486185"
+        //     }
+        //
+        // uta funding financial records
+        //
+        //     {
+        //         "id": "1477183363639320585",
+        //         "coin": "USDT",
+        //         "groupType": "transfer",
+        //         "type": "transfer_out",
+        //         "amount": "-30.00000000",
+        //         "balance": "0.00000000",
+        //         "ts": "1787913879280"
+        //     }
+        //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString(item, "coin");
         String code = this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
-        Long timestamp = this.safeInteger(item, "cTime");
-        Double after = this.safeNumber(item, "balance");
-        Double fee = this.safeNumber2(item, "fees", "fee");
+        Long timestamp = (Long) this.safeInteger2(item, "cTime", "ts");
+        String balanceString = this.safeString(item, "balance");
+        Object after = this.parseNumber(balanceString);
+        String feeCostString = this.safeString2(item, "fees", "fee");
+        Object feeCost = null;
+        if (Helpers.isTrue(!Helpers.isEqual(feeCostString, null)))
+        {
+            feeCost = this.parseNumber(Precise.stringAbs(feeCostString)); // deliberate for both generations, uta reports charged fees as negative values and the v2 fields hold signed values too
+        }
         String amountRaw = this.safeString2(item, "size", "amount", "");
         Object amount = this.parseNumber(Precise.stringAbs(amountRaw));
+        Object before = null;
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(balanceString, null))) && Helpers.isTrue((!Helpers.isEqual(amountRaw, "")))))
+        {
+            before = this.parseNumber(Precise.stringSub(balanceString, amountRaw)); // subtract the signed change from the after-balance, the base derivation assumes a signed amount and would produce a negative before on outflows
+        }
         String direction = "in";
         if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(amountRaw, "-"), 0)))
         {
             direction = "out";
         }
         final Object finalDirection = direction;
+        final Object finalBefore = before;
+        final Object finalFeeCost = feeCost;
         return this.safeLedgerEntry(new HashMap<String, Object>() {{
             put( "info", item );
-            put( "id", Bitget.this.safeString(item, "billId") );
+            put( "id", Bitget.this.safeString2(item, "billId", "id") );
             put( "timestamp", timestamp );
             put( "datetime", Bitget.this.iso8601(timestamp) );
             put( "direction", finalDirection );
             put( "account", null );
             put( "referenceId", null );
             put( "referenceAccount", null );
-            put( "type", Bitget.this.parseLedgerType(Bitget.this.safeString(item, "businessType")) );
+            put( "type", Bitget.this.parseLedgerType(Bitget.this.safeStringN(item, new ArrayList<Object>(Arrays.asList("businessType", "groupType", "type")))) );
             put( "currency", code );
             put( "amount", amount );
-            put( "before", null );
+            put( "before", finalBefore );
             put( "after", after );
             put( "status", null );
             put( "fee", new HashMap<String, Object>() {{
                 put( "currency", code );
-                put( "cost", fee );
+                put( "cost", finalFeeCost );
             }} );
         }}, currency);
     }
@@ -10802,6 +10918,149 @@ final Object finalMinNotional = minNotional;
             put( "withdraw", "withdrawal" );
             put( "buy", "trade" );
             put( "sell", "trade" );
+            put( "transaction", "transaction" );
+            put( "transfer", "transfer" );
+            put( "financial", "transaction" );
+            put( "strategy", "trade" );
+            put( "trace", "trade" );
+            put( "loan", "transaction" );
+            put( "fait", "transaction" );
+            put( "convert", "trade" );
+            put( "ipo_prime", "transaction" );
+            put( "pre_c2c", "trade" );
+            put( "paptrading", "trade" );
+            put( "on_chain", "transaction" );
+            put( "debit", "transaction" );
+            put( "cfd", "trade" );
+            put( "pay", "transaction" );
+            put( "compliance_wall", "transaction" );
+            put( "live", "transaction" );
+            put( "broker", "transaction" );
+            put( "rwa", "transaction" );
+            put( "stock", "trade" );
+            put( "TRANSFER_IN", "transfer" );
+            put( "TRANSFER_OUT", "transfer" );
+            put( "RESERVE_TRANSFER_IN", "transfer" );
+            put( "RESERVE_TRANSFER_OUT", "transfer" );
+            put( "LIQ_TRANSFER_IN", "transfer" );
+            put( "LIQ_TRANSFER_OUT", "transfer" );
+            put( "ON_CHAIN_TRANSFER_REFUND", "transfer" );
+            put( "ON_CHAIN_TRANSFER_OUT", "transfer" );
+            put( "MT5_TRANSFER_IN", "transfer" );
+            put( "MT5_REFUND_IN", "transfer" );
+            put( "MT5_TRANSFER_OUT", "transfer" );
+            put( "TRACE_TRANSFER_USER_OUT", "transfer" );
+            put( "TRACE_TRANSFER_USER_IN", "transfer" );
+            put( "TRACE_TRANSFER_REFUND_IN", "transfer" );
+            put( "FINANCIAL_TRANSFER_OUT", "transfer" );
+            put( "FINANCIAL_TRANSFER_IN", "transfer" );
+            put( "CONVERT_TRANSFER_IN", "transfer" );
+            put( "CONVERT_TRANSFER_OUT", "transfer" );
+            put( "BGPAY_TRANSFER_OUT", "transfer" );
+            put( "BGPAY_REFUND_IN", "transfer" );
+            put( "ORDER_DEALT_FROZEN_OUT", "trade" );
+            put( "ORDER_DEALT_IN", "trade" );
+            put( "OPEN_LONG", "trade" );
+            put( "OPEN_SHORT", "trade" );
+            put( "BUY_DEAL", "trade" );
+            put( "SELL_DEAL", "trade" );
+            put( "CLOSE_LONG", "trade" );
+            put( "CLOSE_SHORT", "trade" );
+            put( "FORCE_CLOSE_LONG", "trade" );
+            put( "FORCE_CLOSE_SHORT", "trade" );
+            put( "BURST_CLOSE_LONG", "trade" );
+            put( "BURST_CLOSE_SHORT", "trade" );
+            put( "OFFSET_REDUCE_CLOSE_LONG", "trade" );
+            put( "OFFSET_REDUCE_CLOSE_SHORT", "trade" );
+            put( "FORCE_BUY_SSM", "trade" );
+            put( "FORCE_SELL_SSM", "trade" );
+            put( "BURST_BUY_SSM", "trade" );
+            put( "BURST_SELL_SSM", "trade" );
+            put( "RISK_LIQ_USER_IN", "trade" );
+            put( "RISK_LIQ_USER_OUT", "trade" );
+            put( "LIQ_FUND_OUT", "trade" );
+            put( "LIQ_FUND_IN", "trade" );
+            put( "LIQ_CONVERT_USER_OUT", "trade" );
+            put( "LIQ_CONVERT_SYS_IN", "trade" );
+            put( "LIQ_CONVERT_SYS_OUT", "trade" );
+            put( "LIQ_CONVERT_USER_IN", "trade" );
+            put( "MARGIN_OPEN_LONG", "trade" );
+            put( "MARGIN_OPEN_SHORT", "trade" );
+            put( "MARIN_BUY_DEAL", "trade" );
+            put( "MARIN_SELL_DEAL", "trade" );
+            put( "MARGIN_BACK", "trade" );
+            put( "MARGIN_OFFSET_IN_SSM_LONG", "trade" );
+            put( "MARGIN_OFFSET_IN_SSM_SHORT", "trade" );
+            put( "FIXED_OFFSET_IN_SSM_LONG", "trade" );
+            put( "FIXED_OFFSET_IN_SSM_SHORT", "trade" );
+            put( "FIXED_CLOSE_LONG", "trade" );
+            put( "FIXED_CLOSE_SHORT", "trade" );
+            put( "FIXED_FORCE_CLOSE_LONG", "trade" );
+            put( "FIXED_FORCE_CLOSE_SHORT", "trade" );
+            put( "FIXED_BURST_CLOSE_LONG", "trade" );
+            put( "FIXED_BURST_CLOSE_SHORT", "trade" );
+            put( "FIXED_ADL_CLOSE_LONG", "trade" );
+            put( "FIXED_ADL_CLOSE_SHORT", "trade" );
+            put( "FIXED_RISK_LIQ_USER_IN", "trade" );
+            put( "FIXED_RISK_LIQ_USER_OUT", "trade" );
+            put( "FIXED_FORCE_BUY_SSM", "trade" );
+            put( "FIXED_FORCE_SELL_SSM", "trade" );
+            put( "FIXED_BURST_BUY_SSM", "trade" );
+            put( "FIXED_BURST_SELL_SSM", "trade" );
+            put( "RWA_CONTRACT_REBASE_USER_OPEN_LONG", "trade" );
+            put( "RWA_CONTRACT_REBASE_USER_OPEN_SHORT", "trade" );
+            put( "RWA_CONTRACT_REBASE_USER_CLOSE_LONG", "trade" );
+            put( "RWA_CONTRACT_REBASE_USER_CLOSE_SHORT", "trade" );
+            put( "RWA_CONTRACT_REBASE_USER_BUY_IN_SSM", "trade" );
+            put( "RWA_CONTRACT_REBASE_USER_SELL_IN_SSM", "trade" );
+            put( "ORDER_PLF_FEE_OUT", "fee" );
+            put( "INTEREST_SETTLEMENT_OUT", "fee" );
+            put( "INTEREST_REPAYMENT", "fee" );
+            put( "CONTRACT_MAIN_SETTLE_FEE_USER_IN", "fee" );
+            put( "CONTRACT_MAIN_SETTLE_FEE_USER_OUT", "fee" );
+            put( "MARGIN_SETTLE_FEE_USER_IN", "fee" );
+            put( "MARGIN_SETTLE_FEE_USER_OUT", "fee" );
+            put( "LIQ_FEE", "fee" );
+            put( "SMALL_ASSET_FEE_SYS_IN", "fee" );
+            put( "RWA_FIXED_SETTLE_FEE_USER_IN", "fee" );
+            put( "RWA_FIXED_SETTLE_FEE_USER_OUT", "fee" );
+            put( "RWA_CONTRACT_MAIN_SETTLE_FEE_SYSTEM_IN", "fee" );
+            put( "RWA_CONTRACT_MAIN_SETTLE_FEE_SYSTEM_OUT", "fee" );
+            put( "RWA_CONTRACT_MAIN_SETTLE_FEE_SYSTEM_KEEP_IN", "fee" );
+            put( "RWA_CONTRACT_MAIN_SETTLE_FEE_SYSTEM_KEEP_OUT", "fee" );
+            put( "RWA_CONTRACT_MAIN_SETTLE_FEE_USER_IN", "fee" );
+            put( "RWA_CONTRACT_MAIN_SETTLE_FEE_USER_OUT", "fee" );
+            put( "INCREASE_MARGIN", "margin" );
+            put( "REDUCE_MARGIN", "margin" );
+            put( "MARGIN_LEVER_ORDER_REFROZEN", "margin" );
+            put( "MARGIN_LEVER_ORDER_FROZEN", "margin" );
+            put( "MARGIN_LEVER_POS_IN", "margin" );
+            put( "CONVERSION_UPON_DELISTING", "transaction" );
+            put( "EXCHANGE_SOURCE_TOKEN_USER_OUT", "transaction" );
+            put( "EXCHANGE_TARGET_TOKEN_USER_IN", "transaction" );
+            put( "BORROW", "transaction" );
+            put( "REPAYMENT", "transaction" );
+            put( "LIQ_REPAYMENT", "transaction" );
+            put( "DELIST_MARGIN_TOKEN_SOURCE_USER_OUT", "transaction" );
+            put( "DELIST_MARGIN_TOKEN_SOURCE_SYS_IN", "transaction" );
+            put( "DELIST_MARGIN_TOKEN_TARGET_SYS_OUT", "transaction" );
+            put( "DELIST_MARGIN_TOKEN_TARGET_USER_IN", "transaction" );
+            put( "CONFISCATE_TOKEN_USER_OUT", "transaction" );
+            put( "CONFISCATE_TOKEN_SYS_IN", "transaction" );
+            put( "DELIST_SMALL_BALANCE_USER_OUT", "transaction" );
+            put( "DELIST_SMALL_BALANCE_SYS_IN", "transaction" );
+            put( "DELIST_SMALL_LIABILITY_SYS_OUT", "transaction" );
+            put( "DELIST_SMALL_LIABILITY_USER_IN", "transaction" );
+            put( "SMALL_ASSET_SOURCE_TOKEN_USER_OUT", "transaction" );
+            put( "SMALL_ASSET_SOURCE_TOKEN_SYS_IN", "transaction" );
+            put( "SMALL_ASSET_TARGET_TOKEN_SYS_OUT", "transaction" );
+            put( "SMALL_ASSET_TARGET_TOKEN_USER_IN", "transaction" );
+            put( "TRACE_LOCK_USER_OUT", "transaction" );
+            put( "TRACE_LOCK_USER_IN", "transaction" );
+            put( "TRACE_SHARE_BENEFIT_USER_OUT", "referral" );
+            put( "TRACE_SHARE_BENEFIT_SYSTEM_IN", "referral" );
+            put( "TRACE_SHARE_BENEFIT_SYSTEM_OUT", "referral" );
+            put( "TRACE_SHARE_BENEFIT_USER_IN", "referral" );
         }};
         return this.safeString(types, ((String)type), type);
     }

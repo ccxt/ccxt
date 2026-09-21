@@ -477,6 +477,11 @@ class gate extends \ccxt\async\gate {
                 $limit = 50; // max 50 for options
             }
         }
+        if ($market['spot'] === true) {
+            // the subscription limit seeds the rest snapshot, gateeu returns an empty book above 100
+            $maxSpotLimit = $this->handle_option('fetchOrderBook', 'maxSpotLimit', 1000);
+            $limit = min($limit, $maxSpotLimit);
+        }
         $payload = array();
         $channel = '';
         if ($isEuUrl) {

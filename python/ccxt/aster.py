@@ -3808,7 +3808,9 @@ class aster(Exchange, ImplicitAPI):
         """
  @ignore
         fetch account positions
-         https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data
+
+        https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data
+
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: data on account positions

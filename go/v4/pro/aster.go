@@ -2624,6 +2624,7 @@ func (this *Aster) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name aster#watchTicker

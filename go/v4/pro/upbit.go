@@ -914,6 +914,7 @@ func (this *Upbit) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name upbit#watchTicker

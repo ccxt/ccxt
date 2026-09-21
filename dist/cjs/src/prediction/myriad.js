@@ -881,11 +881,6 @@ class myriad extends myriad$1["default"] {
         if ((this.safeNumber(parsed, 'amount') === undefined) && (amount !== undefined)) {
             parsed['amount'] = amount;
         }
-        if (this.safeInteger(parsed, 'timestamp') === undefined) {
-            const now = this.milliseconds();
-            parsed['timestamp'] = now;
-            parsed['datetime'] = this.iso8601(now);
-        }
         if (this.safeString(parsed, 'status') === undefined) {
             parsed['status'] = 'open';
         }
@@ -2407,7 +2402,6 @@ class myriad extends myriad$1["default"] {
                 break;
             }
         }
-        const now = this.milliseconds();
         // priceChange24h is an ABSOLUTE price delta; derive the previous close and the TRUE
         // percentage from it — setting percentage = the absolute change (as before) was wrong
         let previousClose = undefined;
@@ -2426,8 +2420,8 @@ class myriad extends myriad$1["default"] {
             'outcomeId': this.safeString(market, 'id'),
             'label': this.safeString(market, 'label'),
             'market': this.safeString(market, 'market'),
-            'timestamp': now,
-            'datetime': this.iso8601(now),
+            'timestamp': undefined,
+            'datetime': undefined,
             'high': undefined,
             'low': undefined,
             'bid': price,
@@ -2568,7 +2562,6 @@ class myriad extends myriad$1["default"] {
                 break;
             }
         }
-        const timestamp = this.milliseconds();
         // AMM: synthesize a single bid/ask pair around the current implied price, clamped into the valid (0, 1) range
         let bid = undefined;
         let ask = undefined;
@@ -2594,8 +2587,8 @@ class myriad extends myriad$1["default"] {
             'outcome': this.safeOutcomeSymbol(outcome, outcomeObj),
             'bids': bids,
             'asks': asks,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'nonce': undefined,
         };
         return this.safePredictionOrderBook(orderbook, outcomeObj);
@@ -2626,13 +2619,12 @@ class myriad extends myriad$1["default"] {
             const rowAmount = Precise["default"].stringDiv(this.safeString(row, 1), '1000000000000000000');
             asks.push([this.parseNumber(rowPrice), this.parseNumber(rowAmount)]);
         }
-        const timestamp = this.milliseconds();
         return {
             'outcome': outcome,
             'bids': this.sortBy(bids, 0, true),
             'asks': this.sortBy(asks, 0),
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'nonce': undefined,
         };
     }

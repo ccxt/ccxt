@@ -1189,7 +1189,7 @@ export default class kucoin extends Exchange {
         currency: Str;
         rate: Num;
         period: number;
-        timestamp: number;
+        timestamp: Int;
         datetime: string | undefined;
         info: any;
     };

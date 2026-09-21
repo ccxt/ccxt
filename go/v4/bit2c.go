@@ -1377,6 +1377,7 @@ func (this *Bit2c) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name bit2c#fetchBalance

@@ -7,7 +7,7 @@
 //  ---------------------------------------------------------------------------
 import { ed25519 } from '@noble/curves/ed25519.js';
 import Exchange from './abstract/pacifica.js';
-import { ExchangeError, ArgumentsRequired, InvalidOrder, OrderNotFound, BadRequest, InsufficientFunds, PermissionDenied, RateLimitExceeded, ExchangeNotAvailable, RequestTimeout, NotSupported, AuthenticationError } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, InvalidOrder, OrderNotFound, BadRequest, BadSymbol, InsufficientFunds, PermissionDenied, RateLimitExceeded, ExchangeNotAvailable, RequestTimeout, NotSupported, AuthenticationError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { eddsa } from './base/functions/crypto.js';
@@ -401,11 +401,18 @@ export default class pacifica extends Exchange {
                     '420': ExchangeError, // ENGINE_ERROR_CODE
                     '422': ExchangeError, // Business Logic Error - See below
                     '429': RateLimitExceeded, // Too Many Requests - Rate limit exceeded; RATE_LIMIT_EXCEEDED_CODE
-                    '500': ExchangeError, // Internal Server Error; UNKNOWN_ERROR_CODE
+                    '500': ExchangeNotAvailable, // Internal Server Error; UNKNOWN_ERROR_CODE
                     '503': ExchangeNotAvailable, // Service Unavailable
                     '504': RequestTimeout, // Gateway Timeout
+                    // error_id values, undocumented but present on live error responses
+                    'signature_verification_failed': AuthenticationError,
+                    'invalid_amount': InvalidOrder,
                 },
                 'broad': {
+                    'Invalid signature': AuthenticationError,
+                    'Invalid public key': AuthenticationError,
+                    'Verification failed': AuthenticationError,
+                    'Invalid message': BadRequest, // expired or malformed signed message
                     'UNKNOWN': ExchangeError,
                     'ACCOUNT_NOT_FOUND': ExchangeError,
                     'BOOK_NOT_FOUND': ExchangeError,
@@ -1514,6 +1521,7 @@ export default class pacifica extends Exchange {
      * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at (optional provide takeProfitCloid)
      * @param {string} [params.timeInForce] "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book)
      * @param {boolean} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
+     * @param {string} [params.slippage] the slippage for market orders in percent, defaults to options.defaultSlippage (0.5)
      * @param {string} [params.clientOrderId] client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
@@ -1525,8 +1533,9 @@ export default class pacifica extends Exchange {
         await this.initializeClient();
         const [request, operationType] = this.createOrderRequest(symbol, type, side, amount, price, params);
         params = this.omit(params, [
-            'reduceOnly', 'clientOrderId', 'stopLimitPrice', 'timeInForce', 'triggerPrice', 'stopLossCloid',
+            'reduceOnly', 'reduce_only', 'clientOrderId', 'stopLimitPrice', 'timeInForce', 'triggerPrice', 'stopLossCloid',
             'stopLossPrice', 'stopLossLimitPrice', 'takeProfitCloid', 'takeProfitPrice', 'takeProfitLimitPrice', 'expiryWindow',
+            'slippage', 'slippage_percent',
         ]);
         let response = undefined;
         if (operationType === 'create_market_order') {
@@ -1588,6 +1597,7 @@ export default class pacifica extends Exchange {
          * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at (optional provide takeProfitCloid)
          * @param {string} [params.timeInForce] "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book)
          * @param {boolean} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
+         * @param {string} [params.slippage] the slippage for market orders in percent, defaults to options.defaultSlippage (0.5)
          * @param {string} [params.clientOrderId] client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
          * @param {int} [params.expiryWindow] time to live in milliseconds
          * @returns {object} an [order structure]
@@ -2960,8 +2970,9 @@ export default class pacifica extends Exchange {
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
-        const swapMarkets = await this.fetchSwapMarkets();
-        return this.parseOpenInterests(swapMarkets, symbols);
+        const response = await this.publicGetInfoPrices(params);
+        const data = this.safeList(response, 'data', []);
+        return this.parseOpenInterests(data, symbols);
     }
     /**
      * @method
@@ -2973,12 +2984,16 @@ export default class pacifica extends Exchange {
      * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     async fetchOpenInterest(symbol, params = {}) {
-        symbol = this.symbol(symbol);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
+        symbol = this.symbol(symbol);
         const ois = await this.fetchOpenInterests([symbol], params);
-        return ois[symbol];
+        const oi = this.safeDict(ois, symbol);
+        if (oi === undefined) {
+            throw new BadSymbol(this.id + ' fetchOpenInterest() could not find open interest for ' + symbol);
+        }
+        return oi;
     }
     parseOpenInterest(interest, market = undefined) {
         //
@@ -3426,11 +3441,17 @@ export default class pacifica extends Exchange {
         //     {"success":false,"data":null,"error":"Beta access required. Signer must redeem a valid beta code.","code":403}
         //     {"success":false,"data":null,"error":"Agent not authorized for account","code":400}
         //     {"success":false,"data":null,"error":"Internal server error","code":500}
+        //     {"success":false,"data":null,"error":"Verification failed: signature does not match signer and canonical payload.","code":400,"error_id":"signature_verification_failed"}
+        //     {"success":false,"data":null,"error":"Order amount too low for <account>: 7.81140 < 10","code":0,"error_id":"invalid_amount"}
+        //     {"success":false,"data":null,"error":"Invalid transfer relationship: <from> -> <to>","code":33,"error_id":"unspecified"}
         //
-        const inCode = this.safeInteger(response, 'code'); // actually if all ok -> code = undefined or code = 200
+        // code carries a business code on 422 responses and an echo of the http status otherwise, it is undefined or 200 when all ok
+        // the string form is required for the exceptions lookup, an integer key never matches the string-keyed map on the python, go and c# ports
+        const errorCode = this.safeString(response, 'code');
+        const errorId = this.safeString(response, 'error_id'); // undocumented, present on live errors and more specific than code
         const message = this.safeString(response, 'error');
         let error = undefined;
-        if (inCode === undefined || inCode === 200) {
+        if (errorCode === undefined || errorCode === '200') {
             error = false;
         }
         else {
@@ -3439,10 +3460,13 @@ export default class pacifica extends Exchange {
         const nonEmptyMessage = ((message !== undefined) && (message !== ''));
         if (error || nonEmptyMessage) {
             const feedback = this.id + ' ' + body;
-            this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback); // Try deeper catch first
-            this.throwExactlyMatchedException(this.exceptions['exact'], inCode, feedback);
-            this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
-            throw new ExchangeError(feedback); // unknown message
+            this.throwExactlyMatchedException(this.exceptions['exact'], errorId, feedback);
+            this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback); // documented message prefixes are more specific than the http-status echo
+            this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
+            const codeAsString = code.toString();
+            if ((code < 400) || !(codeAsString in this.httpExceptions)) {
+                throw new ExchangeError(feedback); // unknown message
+            }
         }
         return undefined;
     }

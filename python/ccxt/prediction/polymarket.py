@@ -1090,7 +1090,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         if (last is None) or (last == 0):
             last = mid
         outcome = self.safe_outcome_symbol(None, market)
-        timestamp = self.safe_integer(bookData, 'timestamp', self.milliseconds())
+        timestamp = self.safe_integer(bookData, 'timestamp')
         quoteVolume = None
         if market is not None:
             quoteVolume = self.safe_number_2(market['info'], 'volume24hr', 'volume')
@@ -1334,15 +1334,14 @@ class polymarket(PredictionExchange, ImplicitAPI):
         #
         #     { "market": "0x7976b8...92", "value": 4925662.470476 }
         #
-        timestamp = self.milliseconds()
         openInterest = self.safe_open_interest({
             'symbol': self.safe_outcome_symbol(None, market),
             'openInterestAmount': None,
             'openInterestValue': self.safe_number(interest, 'value'),
             'baseVolume': None,
             'quoteVolume': None,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
             'info': interest,
         }, market)
         openInterest['outcome'] = self.safe_outcome_symbol(None, market)
@@ -3048,10 +3047,10 @@ class polymarket(PredictionExchange, ImplicitAPI):
         market = self.safe_dict(self.markets_by_id, tokenId)
         return self.safe_string_2(market, 'market', 'symbol')
 
-    def parse_poly_timestamp(self, raw: Str) -> float:
+    def parse_poly_timestamp(self, raw: Str) -> Int:
         if raw is None:
-            return self.milliseconds()
+            return None
         n = self.parse_to_int(raw)
         if n is None:
-            return self.milliseconds()
+            return None
         return n

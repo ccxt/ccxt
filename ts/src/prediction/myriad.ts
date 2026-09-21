@@ -9,8 +9,7 @@ import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from '../abstract/prediction/myriad.js';
 import { ecdsa } from '../base/functions/crypto.js';
 import { ArrayCache, ArrayCacheByOutcomeById } from '../base/ws/Cache.js';
-import type {
-    Int, Str, Num, Dict, int,
+import type { Int, Str, Num, Dict, int,
     Strings, PredictionOrderRequest,
     Market, PredictionOrderBook, OHLCV, PredictionTradingFee,
     PredictionEvent, Balances, fetchEventsParams,
@@ -902,11 +901,6 @@ export default class myriad extends Exchange {
         }
         if ((this.safeNumber (parsed, 'amount') === undefined) && (amount !== undefined)) {
             parsed['amount'] = amount;
-        }
-        if (this.safeInteger (parsed, 'timestamp') === undefined) {
-            const now = this.milliseconds ();
-            parsed['timestamp'] = now;
-            parsed['datetime'] = this.iso8601 (now);
         }
         if (this.safeString (parsed, 'status') === undefined) {
             parsed['status'] = 'open';
@@ -2459,7 +2453,6 @@ export default class myriad extends Exchange {
                 break;
             }
         }
-        const now = this.milliseconds ();
         // priceChange24h is an ABSOLUTE price delta; derive the previous close and the TRUE
         // percentage from it — setting percentage = the absolute change (as before) was wrong
         let previousClose: Num = undefined;
@@ -2478,8 +2471,8 @@ export default class myriad extends Exchange {
             'outcomeId': this.safeString (market, 'id'),
             'label': this.safeString (market, 'label'),
             'market': this.safeString (market, 'market'),
-            'timestamp': now,
-            'datetime': this.iso8601 (now),
+            'timestamp': undefined,
+            'datetime': undefined,
             'high': undefined,
             'low': undefined,
             'bid': price,
@@ -2621,7 +2614,6 @@ export default class myriad extends Exchange {
                 break;
             }
         }
-        const timestamp = this.milliseconds ();
         // AMM: synthesize a single bid/ask pair around the current implied price, clamped into the valid (0, 1) range
         let bid: Num = undefined;
         let ask: Num = undefined;
@@ -2647,8 +2639,8 @@ export default class myriad extends Exchange {
             'outcome': this.safeOutcomeSymbol (outcome, outcomeObj),
             'bids': bids,
             'asks': asks,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'nonce': undefined,
         };
         return this.safePredictionOrderBook (orderbook, outcomeObj);
@@ -2680,13 +2672,12 @@ export default class myriad extends Exchange {
             const rowAmount = Precise.stringDiv (this.safeString (row, 1), '1000000000000000000');
             asks.push ([ this.parseNumber (rowPrice), this.parseNumber (rowAmount) ]);
         }
-        const timestamp = this.milliseconds ();
         return {
             'outcome': outcome,
             'bids': this.sortBy (bids, 0, true),
             'asks': this.sortBy (asks, 0),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'nonce': undefined,
         } as unknown as PredictionOrderBook;
     }

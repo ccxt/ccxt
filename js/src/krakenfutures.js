@@ -79,6 +79,7 @@ export default class krakenfutures extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPositions': true,
+                'fetchPositionsHistory': true,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -3202,11 +3203,6 @@ export default class krakenfutures extends Exchange {
         //        "serverTime": "2022-03-03T22:51:16.566Z"
         //    }
         //
-        const result = this.parsePositions(response);
-        return this.filterByArrayPositions(result, 'symbol', symbols, false);
-    }
-    parsePositions(response, symbols = undefined, params = {}) {
-        const result = [];
         // a degraded response missing openPositions must fail loudly - a flat
         // account and "could not read positions" are not interchangeable for
         // reconciliation logic, see https://github.com/ccxt/ccxt/issues/29710
@@ -3216,11 +3212,95 @@ export default class krakenfutures extends Exchange {
         if (positions === undefined) {
             throw new ExchangeNotAvailable(this.id + ' fetchPositions() returned a response without an "openPositions" list');
         }
-        for (let i = 0; i < positions.length; i++) {
-            const position = this.parsePosition(positions[i]);
-            result.push(position);
+        return this.parsePositions(positions, symbols);
+    }
+    /**
+     * @method
+     * @name krakenfutures#fetchPositionsHistory
+     * @description fetches historical positions, by default the events that closed a position
+     * @see https://docs.kraken.com/api-reference/account-history/get-position-update-events
+     * @param {string[]} [symbols] a list of unified market symbols, only a single symbol is filtered by the exchange
+     * @param {int} [since] timestamp in ms of the earliest position to fetch
+     * @param {int} [limit] the maximum number of positions to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest position to fetch
+     *
+     * EXCHANGE SPECIFIC PARAMETERS
+     * @param {bool} [params.opened] set to true to also return the events that opened a position
+     * @param {bool} [params.increased] set to true to also return the events that increased a position
+     * @param {bool} [params.decreased] set to true to also return the events that decreased a position
+     * @param {bool} [params.reversed] set to true to also return the events that reversed a position
+     * @param {bool} [params.no_change] set to true to also return the events that left the position size untouched
+     * @param {bool} [params.trades] set to true to also return every event caused by a trade
+     * @param {bool} [params.funding_realization] set to true to also return the funding realization events
+     * @param {bool} [params.settlement] set to true to also return the settlement events
+     * @param {string} [params.continuation_token] the token of a previous response, to fetch the next page
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    async fetchPositionsHistory(symbols = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        let market = undefined;
+        if (symbols !== undefined) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength === 1) {
+                market = this.market(symbols[0]);
+            }
         }
-        return result;
+        const request = {
+            'closed': true, // the events that closed a position, the unified meaning of a historical position
+        };
+        if (market !== undefined) {
+            request['tradeable'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['since'] = since;
+            request['sort'] = 'asc';
+        }
+        if (limit !== undefined) {
+            request['count'] = limit;
+        }
+        const until = this.safeInteger(params, 'until');
+        if (until !== undefined) {
+            params = this.omit(params, 'until');
+            request['before'] = until;
+        }
+        const response = await this.historyGetPositions(this.extend(request, params));
+        //
+        //    {
+        //        "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
+        //        "elements": [
+        //            {
+        //                "uid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
+        //                "timestamp": 1789646492483,
+        //                "event": {
+        //                    "PositionUpdate": {
+        //                        "tradeable": "PF_DOGEUSD",
+        //                        "oldPosition": "250",
+        //                        "newPosition": "0",
+        //                        "positionChange": "close",
+        //                        "executionPrice": "0.08105",
+        //                        "executionSize": "250",
+        //                        "realizedPnL": "0.05",
+        //                        ...
+        //                    }
+        //                }
+        //            }
+        //        ],
+        //        "len": 2,
+        //        "serverTime": "2026-09-17T18:14:37.761Z"
+        //    }
+        //
+        const elements = this.safeList(response, 'elements', []);
+        const updates = [];
+        for (let i = 0; i < elements.length; i++) {
+            const event = this.safeDict(elements[i], 'event', {});
+            const update = this.safeDict(event, 'PositionUpdate');
+            if (update !== undefined) {
+                updates.push(update);
+            }
+        }
+        const positions = this.parsePositions(updates, symbols);
+        return this.filterBySinceLimit(positions, since, limit);
     }
     parsePosition(position, market = undefined) {
         // cross
@@ -3247,35 +3327,100 @@ export default class krakenfutures extends Exchange {
         //        "maxFixedLeverage":"1.0"
         //    }
         //
+        // position update event (fetchPositionsHistory)
+        //
+        //    {
+        //        "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
+        //        "tradeable": "PF_DOGEUSD",
+        //        "oldPosition": "250",
+        //        "oldAverageEntryPrice": "0.08085",
+        //        "newPosition": "0",
+        //        "newAverageEntryPrice": "0.08085",
+        //        "fillTime": 1789643150594,
+        //        "fee": "0.01013125",
+        //        "feeCurrency": "USD",
+        //        "realizedPnL": "0.05",
+        //        "positionChange": "close",
+        //        "executionUid": "7bfe252a-ab7b-480b-8c52-0ce55e6cba75",
+        //        "executionPrice": "0.08105",
+        //        "executionSize": "250",
+        //        "tradeType": "userExecution",
+        //        "fundingRealizationTime": 1789646492483,
+        //        "realizedFunding": "-0.00000764284",
+        //        "timestamp": 1789646492483,
+        //        "updateReason": "trade"
+        //    }
+        //
+        // the history rows carry a positionChange, the open-position rows do not
+        const positionChange = this.safeString(position, 'positionChange');
+        const isHistory = (positionChange !== undefined);
         const leverage = this.safeNumber(position, 'maxFixedLeverage');
         let marginType = 'cross';
         if (leverage !== undefined) {
             marginType = 'isolated';
         }
-        const datetime = this.safeString(position, 'fillTime');
-        const marketId = this.safeString(position, 'symbol');
+        let timestamp = undefined;
+        let datetime = undefined;
+        if (isHistory) {
+            timestamp = this.safeInteger(position, 'timestamp');
+            datetime = this.iso8601(timestamp);
+        }
+        else {
+            datetime = this.safeString(position, 'fillTime');
+            timestamp = this.parse8601(datetime);
+        }
+        let side = this.safeString(position, 'side');
+        let entryPrice = this.safeString(position, 'price');
+        let contracts = this.safeString(position, 'size');
+        if (isHistory) {
+            // the event describes the position it acted on: an open or an increase
+            // describes the new position, a close, a decrease or a reversal the old
+            // one together with the size that was closed
+            const describesNewPosition = (positionChange === 'open') || (positionChange === 'increase');
+            let signedSize = this.safeString(position, 'oldPosition');
+            entryPrice = this.safeString(position, 'oldAverageEntryPrice');
+            contracts = this.safeString(position, 'executionSize');
+            if (describesNewPosition) {
+                signedSize = this.safeString(position, 'newPosition');
+                entryPrice = this.safeString(position, 'newAverageEntryPrice');
+                contracts = Precise.stringAbs(signedSize);
+            }
+            else if (positionChange === 'reverse') {
+                contracts = Precise.stringAbs(signedSize); // a reversal closes the whole old position
+            }
+            if (Precise.stringGt(signedSize, '0')) {
+                side = 'long';
+            }
+            else if (Precise.stringLt(signedSize, '0')) {
+                side = 'short';
+            }
+        }
+        const marketId = this.safeString2(position, 'symbol', 'tradeable');
         market = this.safeMarket(marketId, market);
         return {
             'info': position,
+            'id': this.safeString(position, 'executionUid'),
             'symbol': market['symbol'],
-            'timestamp': this.parse8601(datetime),
+            'timestamp': timestamp,
             'datetime': datetime,
             'initialMargin': undefined,
             'initialMarginPercentage': undefined,
             'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
-            'entryPrice': this.safeNumber(position, 'price'),
+            'entryPrice': this.parseNumber(entryPrice),
             'notional': undefined,
             'leverage': leverage,
             'unrealizedPnl': this.safeNumber(position, 'unrealizedPnl'),
-            'contracts': this.safeNumber(position, 'size'),
+            'realizedPnl': this.safeNumber(position, 'realizedPnL'),
+            'contracts': this.parseNumber(contracts),
             'contractSize': this.safeNumber(market, 'contractSize'),
             'marginRatio': undefined,
             'liquidationPrice': undefined,
             'markPrice': undefined,
+            'lastPrice': this.safeNumber(position, 'executionPrice'),
             'collateral': undefined,
             'marginType': marginType,
-            'side': this.safeString(position, 'side'),
+            'side': side,
             'percentage': undefined,
         };
     }

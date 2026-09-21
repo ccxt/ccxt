@@ -1893,6 +1893,7 @@ public partial class bitstamp : Exchange
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
@@ -1911,17 +1912,31 @@ public partial class bitstamp : Exchange
             { "step", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
         int duration = this.parseTimeframe(timeframeVar);
+        Int64? until = this.safeInteger(parameters, "until");
+        bool untilIsDefined = (!isEqual(until, null));
         if (isTrue(isEqual(limitVar, null)))
         {
+            limitVar = 1000;
             if (isTrue(isEqual(since, null)))
             {
-                ((IDictionary<string,object>)request)["limit"] = 1000; // we need to specify an allowed amount of `limitVar` if no `since` is set and there is no default limitVar by exchange
+                ((IDictionary<string,object>)request)["limit"] = limitVar;
+                if (isTrue(untilIsDefined))
+                {
+                    Int64? end = this.parseToInt(divide(until, 1000));
+                    ((IDictionary<string,object>)request)["start"] = subtract(subtract(end, (multiply(duration, limitVar))), 1);
+                    ((IDictionary<string,object>)request)["end"] = end;
+                }
             } else
             {
-                limitVar = 1000;
                 Int64? start = this.parseToInt(divide(since, 1000));
                 ((IDictionary<string,object>)request)["start"] = start;
-                ((IDictionary<string,object>)request)["end"] = this.sum(start, multiply(duration, (subtract(limitVar, 1))));
+                if (isTrue(untilIsDefined))
+                {
+                    ((IDictionary<string,object>)request)["end"] = this.parseToInt(divide(until, 1000));
+                } else
+                {
+                    ((IDictionary<string,object>)request)["end"] = this.sum(start, subtract(multiply(duration, limitVar), 1));
+                }
                 ((IDictionary<string,object>)request)["limit"] = limitVar;
             }
         } else
@@ -1930,10 +1945,21 @@ public partial class bitstamp : Exchange
             {
                 Int64? start = this.parseToInt(divide(since, 1000));
                 ((IDictionary<string,object>)request)["start"] = start;
-                ((IDictionary<string,object>)request)["end"] = this.sum(start, multiply(duration, (subtract(limitVar, 1))));
+                object end = this.sum(start, subtract(multiply(duration, limitVar), 1));
+                if (isTrue(untilIsDefined))
+                {
+                    end = mathMin(end, this.parseToInt(divide(until, 1000)));
+                }
+                ((IDictionary<string,object>)request)["end"] = end;
+            } else if (isTrue(untilIsDefined))
+            {
+                Int64? end = this.parseToInt(divide(until, 1000));
+                ((IDictionary<string,object>)request)["end"] = end;
+                ((IDictionary<string,object>)request)["start"] = subtract(subtract(end, (multiply(duration, limitVar))), 1);
             }
             ((IDictionary<string,object>)request)["limit"] = mathMin(limitVar, 1000); // min 1, max 1000
         }
+        parameters = this.omit(parameters, "until");
         Dictionary<string, object> response = await this.publicGetOhlcPair(this.extend(request, parameters));
         //
         //     {

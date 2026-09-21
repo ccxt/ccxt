@@ -202,6 +202,7 @@ type ICoreExchange interface {
 	FeatureValue(symbol any, optionalArgs ...any) any
 	Market(symbol any) any
 	Nonce() any
+	IncrementingNonce() any
 	Unique(obj any) []any
 	FetchTimeAsync(optionalArgs ...any) <-chan any
 	FetchCurrenciesAsync(optionalArgs ...any) <-chan any
@@ -227,6 +228,7 @@ type ICoreExchange interface {
 	FetchConvertTradeAsync(id any, optionalArgs ...any) <-chan any
 	FetchConvertTradeHistoryAsync(optionalArgs ...any) <-chan any
 	SetFetchResponse(fetchResponse any)
+	SetFetchResponseByUrl(responsesByUrl any)
 	Init(params map[string]any)
 	FetchDepositsAsync(optionalArgs ...any) <-chan any
 	Milliseconds() int64
@@ -372,6 +374,8 @@ type ICoreExchange interface {
 }
 
 type IDerivedExchange interface {
+	Nonce() any
+	SignInAsync(optionalArgs ...any) <-chan any
 	HandleDelta(bookside any, delta any)
 	GetCacheIndex(orderbook any, deltas any) any
 	Ping(client any) any

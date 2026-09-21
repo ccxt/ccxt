@@ -3998,7 +3998,7 @@ func (this *Deepcoin) HandleErrors(code any, reason any, url any, method any, he
 	var sCode *string = this.SafeString(data, "sCode")
 	var sMsg *string = this.SafeString(data, "sMsg")
 	var errorCode *string = this.SafeString(data, "errorCode")
-	if (msg != nil) && (*msg == "") && (sMsg != nil) {
+	if (msg != nil && *msg == "") && (sMsg != nil) {
 		msg = sMsg
 	}
 	var errorList any = this.SafeList(data, "errorList")
@@ -4045,6 +4045,7 @@ func (this *Deepcoin) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name deepcoin#fetchMarkets

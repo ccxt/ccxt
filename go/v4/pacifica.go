@@ -431,138 +431,144 @@ func (this *Pacifica) Describe() any {
 		},
 		"exceptions": map[string]any{
 			"exact": map[string]any{
-				"0":   ExchangeError,
-				"1":   ExchangeError,
-				"2":   ExchangeError,
-				"3":   ExchangeError,
-				"4":   InvalidOrder,
-				"5":   InsufficientFunds,
-				"6":   OrderNotFound,
-				"7":   InvalidOrder,
-				"8":   InvalidOrder,
-				"9":   InsufficientFunds,
-				"10":  InvalidOrder,
-				"11":  ExchangeError,
-				"12":  ExchangeError,
-				"13":  ExchangeError,
-				"14":  ExchangeError,
-				"15":  BadRequest,
-				"16":  InvalidOrder,
-				"17":  InvalidOrder,
-				"18":  InvalidOrder,
-				"19":  InvalidOrder,
-				"20":  InvalidOrder,
-				"21":  InvalidOrder,
-				"22":  InvalidOrder,
-				"23":  InvalidOrder,
-				"24":  ExchangeError,
-				"25":  InvalidOrder,
-				"26":  ExchangeError,
-				"27":  ExchangeError,
-				"28":  InvalidOrder,
-				"29":  InvalidOrder,
-				"30":  InvalidOrder,
-				"31":  PermissionDenied,
-				"32":  PermissionDenied,
-				"33":  BadRequest,
-				"34":  PermissionDenied,
-				"35":  PermissionDenied,
-				"36":  InvalidOrder,
-				"37":  InvalidOrder,
-				"38":  PermissionDenied,
-				"39":  BadRequest,
-				"40":  PermissionDenied,
-				"41":  InvalidOrder,
-				"42":  ExchangeError,
-				"43":  InvalidOrder,
-				"44":  InvalidOrder,
-				"45":  InvalidOrder,
-				"46":  InvalidOrder,
-				"47":  OrderNotFound,
-				"48":  InvalidOrder,
-				"49":  InvalidOrder,
-				"50":  BadRequest,
-				"51":  NotSupported,
-				"52":  InvalidOrder,
-				"53":  InvalidOrder,
-				"54":  ExchangeError,
-				"55":  ExchangeError,
-				"56":  ExchangeError,
-				"59":  InvalidOrder,
-				"61":  InsufficientFunds,
-				"62":  InsufficientFunds,
-				"63":  ExchangeError,
-				"64":  BadRequest,
-				"65":  InsufficientFunds,
-				"66":  ExchangeError,
-				"67":  ExchangeError,
-				"68":  InvalidOrder,
-				"69":  InvalidOrder,
-				"70":  InsufficientFunds,
-				"71":  ExchangeError,
-				"72":  PermissionDenied,
-				"73":  PermissionDenied,
-				"74":  PermissionDenied,
-				"75":  InvalidOrder,
-				"76":  PermissionDenied,
-				"77":  BadRequest,
-				"78":  InsufficientFunds,
-				"79":  ExchangeError,
-				"80":  InvalidOrder,
-				"81":  BadRequest,
-				"82":  InvalidOrder,
-				"83":  ExchangeNotAvailable,
-				"84":  BadRequest,
-				"85":  BadRequest,
-				"86":  BadRequest,
-				"87":  PermissionDenied,
-				"88":  BadRequest,
-				"89":  BadRequest,
-				"90":  BadRequest,
-				"91":  ExchangeError,
-				"92":  ExchangeNotAvailable,
-				"93":  BadRequest,
-				"94":  InvalidOrder,
-				"95":  ExchangeError,
-				"96":  ExchangeError,
-				"97":  ExchangeError,
-				"99":  InvalidOrder,
-				"100": PermissionDenied,
-				"101": ExchangeNotAvailable,
-				"102": BadRequest,
-				"103": PermissionDenied,
-				"104": InvalidOrder,
-				"105": InvalidOrder,
-				"106": NotSupported,
-				"107": NotSupported,
-				"108": NotSupported,
-				"109": NotSupported,
-				"110": BadRequest,
-				"111": ExchangeNotAvailable,
-				"112": InvalidOrder,
-				"113": ExchangeError,
-				"114": ExchangeError,
-				"115": ExchangeError,
-				"116": ExchangeError,
-				"117": ExchangeError,
-				"118": ExchangeError,
-				"119": ExchangeNotAvailable,
-				"120": PermissionDenied,
-				"121": InvalidOrder,
-				"400": BadRequest,
-				"401": AuthenticationError,
-				"402": AuthenticationError,
-				"403": PermissionDenied,
-				"404": BadRequest,
-				"409": ExchangeError,
-				"420": ExchangeError,
-				"422": ExchangeError,
-				"429": RateLimitExceeded,
-				"500": ExchangeError,
-				"503": ExchangeNotAvailable,
-				"504": RequestTimeout,
+				"0":                             ExchangeError,
+				"1":                             ExchangeError,
+				"2":                             ExchangeError,
+				"3":                             ExchangeError,
+				"4":                             InvalidOrder,
+				"5":                             InsufficientFunds,
+				"6":                             OrderNotFound,
+				"7":                             InvalidOrder,
+				"8":                             InvalidOrder,
+				"9":                             InsufficientFunds,
+				"10":                            InvalidOrder,
+				"11":                            ExchangeError,
+				"12":                            ExchangeError,
+				"13":                            ExchangeError,
+				"14":                            ExchangeError,
+				"15":                            BadRequest,
+				"16":                            InvalidOrder,
+				"17":                            InvalidOrder,
+				"18":                            InvalidOrder,
+				"19":                            InvalidOrder,
+				"20":                            InvalidOrder,
+				"21":                            InvalidOrder,
+				"22":                            InvalidOrder,
+				"23":                            InvalidOrder,
+				"24":                            ExchangeError,
+				"25":                            InvalidOrder,
+				"26":                            ExchangeError,
+				"27":                            ExchangeError,
+				"28":                            InvalidOrder,
+				"29":                            InvalidOrder,
+				"30":                            InvalidOrder,
+				"31":                            PermissionDenied,
+				"32":                            PermissionDenied,
+				"33":                            BadRequest,
+				"34":                            PermissionDenied,
+				"35":                            PermissionDenied,
+				"36":                            InvalidOrder,
+				"37":                            InvalidOrder,
+				"38":                            PermissionDenied,
+				"39":                            BadRequest,
+				"40":                            PermissionDenied,
+				"41":                            InvalidOrder,
+				"42":                            ExchangeError,
+				"43":                            InvalidOrder,
+				"44":                            InvalidOrder,
+				"45":                            InvalidOrder,
+				"46":                            InvalidOrder,
+				"47":                            OrderNotFound,
+				"48":                            InvalidOrder,
+				"49":                            InvalidOrder,
+				"50":                            BadRequest,
+				"51":                            NotSupported,
+				"52":                            InvalidOrder,
+				"53":                            InvalidOrder,
+				"54":                            ExchangeError,
+				"55":                            ExchangeError,
+				"56":                            ExchangeError,
+				"59":                            InvalidOrder,
+				"61":                            InsufficientFunds,
+				"62":                            InsufficientFunds,
+				"63":                            ExchangeError,
+				"64":                            BadRequest,
+				"65":                            InsufficientFunds,
+				"66":                            ExchangeError,
+				"67":                            ExchangeError,
+				"68":                            InvalidOrder,
+				"69":                            InvalidOrder,
+				"70":                            InsufficientFunds,
+				"71":                            ExchangeError,
+				"72":                            PermissionDenied,
+				"73":                            PermissionDenied,
+				"74":                            PermissionDenied,
+				"75":                            InvalidOrder,
+				"76":                            PermissionDenied,
+				"77":                            BadRequest,
+				"78":                            InsufficientFunds,
+				"79":                            ExchangeError,
+				"80":                            InvalidOrder,
+				"81":                            BadRequest,
+				"82":                            InvalidOrder,
+				"83":                            ExchangeNotAvailable,
+				"84":                            BadRequest,
+				"85":                            BadRequest,
+				"86":                            BadRequest,
+				"87":                            PermissionDenied,
+				"88":                            BadRequest,
+				"89":                            BadRequest,
+				"90":                            BadRequest,
+				"91":                            ExchangeError,
+				"92":                            ExchangeNotAvailable,
+				"93":                            BadRequest,
+				"94":                            InvalidOrder,
+				"95":                            ExchangeError,
+				"96":                            ExchangeError,
+				"97":                            ExchangeError,
+				"99":                            InvalidOrder,
+				"100":                           PermissionDenied,
+				"101":                           ExchangeNotAvailable,
+				"102":                           BadRequest,
+				"103":                           PermissionDenied,
+				"104":                           InvalidOrder,
+				"105":                           InvalidOrder,
+				"106":                           NotSupported,
+				"107":                           NotSupported,
+				"108":                           NotSupported,
+				"109":                           NotSupported,
+				"110":                           BadRequest,
+				"111":                           ExchangeNotAvailable,
+				"112":                           InvalidOrder,
+				"113":                           ExchangeError,
+				"114":                           ExchangeError,
+				"115":                           ExchangeError,
+				"116":                           ExchangeError,
+				"117":                           ExchangeError,
+				"118":                           ExchangeError,
+				"119":                           ExchangeNotAvailable,
+				"120":                           PermissionDenied,
+				"121":                           InvalidOrder,
+				"400":                           BadRequest,
+				"401":                           AuthenticationError,
+				"402":                           AuthenticationError,
+				"403":                           PermissionDenied,
+				"404":                           BadRequest,
+				"409":                           ExchangeError,
+				"420":                           ExchangeError,
+				"422":                           ExchangeError,
+				"429":                           RateLimitExceeded,
+				"500":                           ExchangeNotAvailable,
+				"503":                           ExchangeNotAvailable,
+				"504":                           RequestTimeout,
+				"signature_verification_failed": AuthenticationError,
+				"invalid_amount":                InvalidOrder,
 			},
 			"broad": map[string]any{
+				"Invalid signature":            AuthenticationError,
+				"Invalid public key":           AuthenticationError,
+				"Verification failed":          AuthenticationError,
+				"Invalid message":              BadRequest,
 				"UNKNOWN":                      ExchangeError,
 				"ACCOUNT_NOT_FOUND":            ExchangeError,
 				"BOOK_NOT_FOUND":               ExchangeError,
@@ -743,8 +749,8 @@ func (this *Pacifica) initializeClientBody(ch chan any) any {
 			}()
 			// try block:
 
-			retRes55912 := (<-this.HandleBuilderFeeApprovalAsync())
-			PanicOnError(retRes55912)
+			retRes56612 := (<-this.HandleBuilderFeeApprovalAsync())
+			PanicOnError(retRes56612)
 			return nil
 		}(this)
 		if chSent {
@@ -800,8 +806,8 @@ func (this *Pacifica) handleBuilderFeeApprovalBody(ch chan any) any {
 			var builder *string = this.SafeString(this.Options, "builderCode", "CCXT") // case sensitive
 			var maxFeeRate *string = this.SafeString(this.Options, "feeRate", "0.01")
 
-			retRes58112 := (<-this.ApproveBuilderCodeAsync(builder, maxFeeRate))
-			PanicOnError(retRes58112)
+			retRes58812 := (<-this.ApproveBuilderCodeAsync(builder, maxFeeRate))
+			PanicOnError(retRes58812)
 			AddElementToObject(this.Options, "approvedBuilderFee", true)
 			return nil
 		}(this)
@@ -1155,12 +1161,12 @@ func (this *Pacifica) fetchLeverageBody(ch chan any, symbol any, optionalArgs ..
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes8828 := (<-this.LoadAccountSettingsAsync())
-	PanicOnError(retRes8828)
+	retRes8898 := (<-this.LoadAccountSettingsAsync())
+	PanicOnError(retRes8898)
 	if IsEqual(this.Markets, nil) {
 
-		retRes88412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes88412)
+		retRes89112 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes89112)
 	}
 	var market any = this.Market(symbol)
 	var userAccount any = nil
@@ -1330,8 +1336,8 @@ func (this *Pacifica) fetchMarginModeBody(ch chan any, symbol any, optionalArgs 
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes10118 := (<-this.LoadAccountSettingsAsync())
-	PanicOnError(retRes10118)
+	retRes10188 := (<-this.LoadAccountSettingsAsync())
+	PanicOnError(retRes10188)
 	var userAccount any = nil
 	userAccountparamsVariable := this.HandleOriginAndSingleAddress("fetchMarginMode", params)
 	userAccount = GetValue(userAccountparamsVariable, 0)
@@ -1416,8 +1422,8 @@ func (this *Pacifica) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes107712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes107712)
+		retRes108412 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes108412)
 	}
 	var market any = this.Market(symbol)
 	var aggLevel any = nil
@@ -1615,8 +1621,8 @@ func (this *Pacifica) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	var defaultMaxLimit int = 3950 // 4000 by docs, but in fact >~3960 returns error
 	if IsEqual(this.Markets, nil) {
 
-		retRes123712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes123712)
+		retRes124412 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes124412)
 	}
 	var market any = this.Market(symbol)
 	var paginate any = false
@@ -1625,9 +1631,9 @@ func (this *Pacifica) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
 
-		retRes124319 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, defaultMaxLimit))
-		PanicOnError(retRes124319)
-		ch <- retRes124319
+		retRes125019 := (<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, defaultMaxLimit))
+		PanicOnError(retRes125019)
+		ch <- retRes125019
 		return nil
 	}
 	var tf *string = this.SafeString(this.Timeframes, timeframe, timeframe)
@@ -1729,8 +1735,8 @@ func (this *Pacifica) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes133012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes133012)
+		retRes133712 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes133712)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1796,8 +1802,8 @@ func (this *Pacifica) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes137612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes137612)
+		retRes138312 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes138312)
 	}
 	var market any = nil
 	if !IsEqual(symbol, nil) {
@@ -1814,9 +1820,9 @@ func (this *Pacifica) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var defaultLimit int = 100 // Default max limit
 	if EvalTruthy(paginate) {
 
-		retRes138819 := (<-this.FetchPaginatedCallCursorAsync("fetchMyTrades", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
-		PanicOnError(retRes138819)
-		ch <- retRes138819
+		retRes139519 := (<-this.FetchPaginatedCallCursorAsync("fetchMyTrades", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
+		PanicOnError(retRes139519)
+		ch <- retRes139519
 		return nil
 	}
 	var request any = map[string]any{}
@@ -1964,6 +1970,7 @@ func (this *Pacifica) ParseTrade(trade any, optionalArgs ...any) any {
  * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at (optional provide takeProfitCloid)
  * @param {string} [params.timeInForce] "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book)
  * @param {boolean} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
+ * @param {string} [params.slippage] the slippage for market orders in percent, defaults to options.defaultSlippage (0.5)
  * @param {string} [params.clientOrderId] client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
  * @param {int} [params.expiryWindow] time to live in milliseconds
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
@@ -1982,16 +1989,16 @@ func (this *Pacifica) createOrderBody(ch chan any, symbol any, typeVar any, side
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes153412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes153412)
+		retRes154212 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes154212)
 	}
 
-	retRes15368 := (<-this.InitializeClientAsync())
-	PanicOnError(retRes15368)
+	retRes15448 := (<-this.InitializeClientAsync())
+	PanicOnError(retRes15448)
 	requestoperationTypeVariable := this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 	request := GetValue(requestoperationTypeVariable, 0)
 	operationType := GetValue(requestoperationTypeVariable, 1)
-	params = this.Omit(params, []any{"reduceOnly", "clientOrderId", "stopLimitPrice", "timeInForce", "triggerPrice", "stopLossCloid", "stopLossPrice", "stopLossLimitPrice", "takeProfitCloid", "takeProfitPrice", "takeProfitLimitPrice", "expiryWindow"})
+	params = this.Omit(params, []any{"reduceOnly", "reduce_only", "clientOrderId", "stopLimitPrice", "timeInForce", "triggerPrice", "stopLossCloid", "stopLossPrice", "stopLossLimitPrice", "takeProfitCloid", "takeProfitPrice", "takeProfitLimitPrice", "expiryWindow", "slippage", "slippage_percent"})
 	var response any = nil
 	if IsEqual(operationType, "create_market_order") {
 
@@ -2067,6 +2074,7 @@ func (this *Pacifica) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	 * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at (optional provide takeProfitCloid)
 	 * @param {string} [params.timeInForce] "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book)
 	 * @param {boolean} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
+	 * @param {string} [params.slippage] the slippage for market orders in percent, defaults to options.defaultSlippage (0.5)
 	 * @param {string} [params.clientOrderId] client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
 	 * @param {int} [params.expiryWindow] time to live in milliseconds
 	 * @returns {object} an [order structure]
@@ -2248,12 +2256,12 @@ func (this *Pacifica) createOrdersBody(ch chan any, orders any, optionalArgs ...
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes177012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes177012)
+		retRes178012 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes178012)
 	}
 
-	retRes17728 := (<-this.InitializeClientAsync())
-	PanicOnError(retRes17728)
+	retRes17828 := (<-this.InitializeClientAsync())
+	PanicOnError(retRes17828)
 	var request any = this.CreateOrdersRequest(orders)
 
 	response := (<-this.PrivatePostOrdersBatch(this.Extend(request, params)))
@@ -2327,12 +2335,12 @@ func (this *Pacifica) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes182612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes182612)
+		retRes183612 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes183612)
 	}
 
-	retRes18288 := (<-this.InitializeClientAsync())
-	PanicOnError(retRes18288)
+	retRes18388 := (<-this.InitializeClientAsync())
+	PanicOnError(retRes18388)
 	if IsEqual(symbol, nil) {
 		panic(ArgumentsRequired(Add(this.Id, " cancelOrders() requires a \"symbol\" argument!")))
 	}
@@ -2440,12 +2448,12 @@ func (this *Pacifica) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes191312 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes191312)
+		retRes192312 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes192312)
 	}
 
-	retRes19158 := (<-this.InitializeClientAsync())
-	PanicOnError(retRes19158)
+	retRes19258 := (<-this.InitializeClientAsync())
+	PanicOnError(retRes19258)
 	var request any = this.CancelAllOrdersRequest(symbol, params)
 	params = this.Omit(params, []any{"excludeReduceOnly", "expiryWindow"})
 
@@ -2513,12 +2521,12 @@ func (this *Pacifica) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes196812 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes196812)
+		retRes197812 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes197812)
 	}
 
-	retRes19708 := (<-this.InitializeClientAsync())
-	PanicOnError(retRes19708)
+	retRes19808 := (<-this.InitializeClientAsync())
+	PanicOnError(retRes19808)
 	if IsEqual(symbol, nil) {
 		panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
 	}
@@ -2611,12 +2619,12 @@ func (this *Pacifica) editOrderBody(ch chan any, id any, symbol any, typeVar any
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes203512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes203512)
+		retRes204512 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes204512)
 	}
 
-	retRes20378 := (<-this.InitializeClientAsync())
-	PanicOnError(retRes20378)
+	retRes20478 := (<-this.InitializeClientAsync())
+	PanicOnError(retRes20478)
 	var market any = this.Market(symbol)
 	var request any = this.EditOrderRequest(id, symbol, typeVar, side, amount, price, market, params)
 	params = this.Omit(params, []any{"expiryWindow", "clientOrderId"})
@@ -2704,8 +2712,8 @@ func (this *Pacifica) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes210012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes210012)
+		retRes211012 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes211012)
 	}
 	if IsEqual(symbol, nil) {
 		panic(ArgumentsRequired(Add(this.Id, " fetchFundingRateHistory() requires a symbol argument")))
@@ -2718,9 +2726,9 @@ func (this *Pacifica) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	var defaultLimit int = 100 // Default max limit
 	if EvalTruthy(paginate) {
 
-		retRes211019 := (<-this.FetchPaginatedCallCursorAsync("fetchFundingRateHistory", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
-		PanicOnError(retRes211019)
-		ch <- retRes211019
+		retRes212019 := (<-this.FetchPaginatedCallCursorAsync("fetchFundingRateHistory", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
+		PanicOnError(retRes212019)
+		ch <- retRes212019
 		return nil
 	}
 	var request map[string]any = map[string]any{
@@ -2792,8 +2800,8 @@ func (this *Pacifica) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes216512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes216512)
+		retRes217512 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes217512)
 	}
 	symbols = this.MarketSymbols(symbols)
 
@@ -2898,8 +2906,8 @@ func (this *Pacifica) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes224912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes224912)
+		retRes225912 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes225912)
 	}
 
 	orders := (<-this.FetchOrdersAsync(symbol, nil, nil, params))
@@ -2940,8 +2948,8 @@ func (this *Pacifica) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) 
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes227012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes227012)
+		retRes228012 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes228012)
 	}
 
 	orders := (<-this.FetchOrdersAsync(symbol, nil, nil, params))
@@ -2982,8 +2990,8 @@ func (this *Pacifica) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes229112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes229112)
+		retRes230112 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes230112)
 	}
 
 	orders := (<-this.FetchOrdersAsync(symbol, nil, nil, params))
@@ -3024,8 +3032,8 @@ func (this *Pacifica) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes231212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes231212)
+		retRes232212 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes232212)
 	}
 	var userAddress any = nil
 	userAddressparamsVariable := this.HandleOriginAndSingleAddress("fetchOpenOrders", params)
@@ -3105,8 +3113,8 @@ func (this *Pacifica) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes237012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes237012)
+		retRes238012 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes238012)
 	}
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrders", "paginate", false)
@@ -3115,9 +3123,9 @@ func (this *Pacifica) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var defaultLimit int = 100 // max default 100
 	if EvalTruthy(paginate) {
 
-		retRes237619 := (<-this.FetchPaginatedCallCursorAsync("fetchOrders", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
-		PanicOnError(retRes237619)
-		ch <- retRes237619
+		retRes238619 := (<-this.FetchPaginatedCallCursorAsync("fetchOrders", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
+		PanicOnError(retRes238619)
+		ch <- retRes238619
 		return nil
 	}
 	var userAddress any = nil
@@ -3211,8 +3219,8 @@ func (this *Pacifica) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes245212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes245212)
+		retRes246212 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes246212)
 	}
 	var market any = nil
 	if !IsEqual(symbol, nil) {
@@ -3505,8 +3513,8 @@ func (this *Pacifica) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes271912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes271912)
+		retRes272912 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes272912)
 	}
 	var userAddress any = nil
 	userAddressparamsVariable := this.HandleOriginAndSingleAddress("fetchPositions", params)
@@ -3630,8 +3638,8 @@ func (this *Pacifica) setMarginModeBody(ch chan any, marginMode any, optionalArg
 	}
 	if IsEqual(this.Markets, nil) {
 
-		retRes282412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes282412)
+		retRes283412 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes283412)
 	}
 	var market any = this.Market(symbol)
 	var isIsolated bool = (IsEqual(marginMode, "isolated"))
@@ -3681,8 +3689,8 @@ func (this *Pacifica) setLeverageBody(ch chan any, leverage any, optionalArgs ..
 	}
 	if IsEqual(this.Markets, nil) {
 
-		retRes285812 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes285812)
+		retRes286812 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes286812)
 	}
 	var market any = this.Market(symbol)
 	var sigPayload map[string]any = map[string]any{
@@ -3730,8 +3738,8 @@ func (this *Pacifica) withdrawBody(ch chan any, code any, amount any, address an
 	var operationType string = "withdraw"
 	if IsEqual(this.Markets, nil) {
 
-		retRes289012 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes289012)
+		retRes290012 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes290012)
 	}
 	this.CheckAddress(address)
 	var sigPayload map[string]any = map[string]any{
@@ -3771,8 +3779,8 @@ func (this *Pacifica) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs 
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes291412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes291412)
+		retRes292412 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes292412)
 	}
 	var userAddress any = nil
 	userAddressparamsVariable := this.HandleOriginAndSingleAddress("fetchTradingFee", params)
@@ -3869,15 +3877,16 @@ func (this *Pacifica) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) a
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes299212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes299212)
+		retRes300212 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes300212)
 	}
 	symbols = this.MarketSymbols(symbols)
 
-	swapMarkets := (<-this.FetchSwapMarketsAsync())
-	PanicOnError(swapMarkets)
+	response := (<-this.PublicGetInfoPrices(params))
+	PanicOnError(response)
+	var data any = this.SafeList(response, "data", []any{})
 
-	ch <- this.ParseOpenInterests(swapMarkets, symbols)
+	ch <- this.ParseOpenInterests(data, symbols)
 	return nil
 }
 
@@ -3900,17 +3909,21 @@ func (this *Pacifica) fetchOpenInterestBody(ch chan any, symbol any, optionalArg
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	symbol = this.Symbol(symbol)
 	if IsEqual(this.Markets, nil) {
 
-		retRes301112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes301112)
+		retRes302112 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes302112)
 	}
+	symbol = this.Symbol(symbol)
 
 	ois := (<-this.FetchOpenInterestsAsync([]any{symbol}, params))
 	PanicOnError(ois)
+	var oi any = this.SafeDict(ois, symbol)
+	if IsEqual(oi, nil) {
+		panic(BadSymbol(Add(Add(this.Id, " fetchOpenInterest() could not find open interest for "), symbol)))
+	}
 
-	ch <- GetValue(ois, symbol)
+	ch <- oi
 	return nil
 }
 func (this *Pacifica) ParseOpenInterest(interest any, optionalArgs ...any) any {
@@ -3985,8 +3998,8 @@ func (this *Pacifica) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes307112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes307112)
+		retRes308612 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes308612)
 	}
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchLedger", "paginate", false)
@@ -3999,9 +4012,9 @@ func (this *Pacifica) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var defaultLimit int = 100 // Default max limit
 	if EvalTruthy(paginate) {
 
-		retRes307919 := (<-this.FetchPaginatedCallCursorAsync("fetchLedger", code, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
-		PanicOnError(retRes307919)
-		ch <- retRes307919
+		retRes309419 := (<-this.FetchPaginatedCallCursorAsync("fetchLedger", code, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
+		PanicOnError(retRes309419)
+		ch <- retRes309419
 		return nil
 	}
 	var request map[string]any = map[string]any{
@@ -4120,8 +4133,8 @@ func (this *Pacifica) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes317712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes317712)
+		retRes319212 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes319212)
 	}
 	var market any = nil
 	if !IsEqual(symbol, nil) {
@@ -4144,9 +4157,9 @@ func (this *Pacifica) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 	var defaultLimit int = 100
 	if EvalTruthy(paginate) {
 
-		retRes319519 := (<-this.FetchPaginatedCallCursorAsync("fetchFundingHistory", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
-		PanicOnError(retRes319519)
-		ch <- retRes319519
+		retRes321019 := (<-this.FetchPaginatedCallCursorAsync("fetchFundingHistory", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
+		PanicOnError(retRes321019)
+		ch <- retRes321019
 		return nil
 	}
 
@@ -4233,8 +4246,8 @@ func (this *Pacifica) transferBody(ch chan any, code any, amount any, fromAccoun
 	_ = params
 	if IsEqual(this.Markets, nil) {
 
-		retRes326612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes326612)
+		retRes328112 := (<-this.LoadMarketsAsync())
+		PanicOnError(retRes328112)
 	}
 	var currency any = this.Currency(code)
 	var operationType string = "transfer_funds"
@@ -4414,9 +4427,9 @@ func (this *Pacifica) bindAgentWalletBody(ch chan any, agentAddress any, optiona
 	}
 	var request any = this.PostActionRequest(operationType, sigPayload, params)
 
-	retRes340715 := (<-this.PrivatePostAgentBind(this.Extend(request, params)))
-	PanicOnError(retRes340715)
-	ch <- retRes340715
+	retRes342215 := (<-this.PrivatePostAgentBind(this.Extend(request, params)))
+	PanicOnError(retRes342215)
+	ch <- retRes342215
 	return nil
 }
 func (this *Pacifica) CreateApiKeyAsync(optionalArgs ...any) <-chan any {
@@ -4433,9 +4446,9 @@ func (this *Pacifica) createApiKeyBody(ch chan any, optionalArgs ...any) any {
 	var sigPayload map[string]any = map[string]any{}
 	var request any = this.PostActionRequest(operationType, sigPayload, params)
 
-	retRes341415 := (<-this.PrivatePostAccountApiKeysCreate(this.Extend(request, params)))
-	PanicOnError(retRes341415)
-	ch <- retRes341415
+	retRes342915 := (<-this.PrivatePostAccountApiKeysCreate(this.Extend(request, params)))
+	PanicOnError(retRes342915)
+	ch <- retRes342915
 	return nil
 }
 func (this *Pacifica) RevokeApiKeyAsync(apiKey any, optionalArgs ...any) <-chan any {
@@ -4454,9 +4467,9 @@ func (this *Pacifica) revokeApiKeyBody(ch chan any, apiKey any, optionalArgs ...
 	}
 	var request any = this.PostActionRequest(operationType, sigPayload, params)
 
-	retRes342315 := (<-this.PrivatePostAccountApiKeysRevoke(this.Extend(request, params)))
-	PanicOnError(retRes342315)
-	ch <- retRes342315
+	retRes343815 := (<-this.PrivatePostAccountApiKeysRevoke(this.Extend(request, params)))
+	PanicOnError(retRes343815)
+	ch <- retRes343815
 	return nil
 }
 func (this *Pacifica) FetchApiKeysAsync(optionalArgs ...any) <-chan any {
@@ -4473,9 +4486,9 @@ func (this *Pacifica) fetchApiKeysBody(ch chan any, optionalArgs ...any) any {
 	var sigPayload map[string]any = map[string]any{}
 	var request any = this.PostActionRequest(operationType, sigPayload, params)
 
-	retRes343015 := (<-this.PrivatePostAccountApiKeys(this.Extend(request, params)))
-	PanicOnError(retRes343015)
-	ch <- retRes343015
+	retRes344515 := (<-this.PrivatePostAccountApiKeys(this.Extend(request, params)))
+	PanicOnError(retRes344515)
+	ch <- retRes344515
 	return nil
 }
 func (this *Pacifica) ApproveBuilderCodeAsync(builderCode any, maxFeeRate any, optionalArgs ...any) <-chan any {
@@ -4495,9 +4508,9 @@ func (this *Pacifica) approveBuilderCodeBody(ch chan any, builderCode any, maxFe
 	}
 	var request any = this.PostActionRequest(operationType, sigPayload, params)
 
-	retRes344015 := (<-this.PrivatePostAccountBuilderCodesApprove(this.Extend(request, params)))
-	PanicOnError(retRes344015)
-	ch <- retRes344015
+	retRes345515 := (<-this.PrivatePostAccountBuilderCodesApprove(this.Extend(request, params)))
+	PanicOnError(retRes345515)
+	ch <- retRes345515
 	return nil
 }
 func (this *Pacifica) FetchBuilderApprovalsAsync(address any) <-chan any {
@@ -4512,9 +4525,9 @@ func (this *Pacifica) fetchBuilderApprovalsBody(ch chan any, address any) any {
 		"account": address,
 	}
 
-	retRes344715 := (<-this.PublicGetAccountBuilderCodesApprovals(this.Extend(request)))
-	PanicOnError(retRes344715)
-	ch <- retRes344715
+	retRes346215 := (<-this.PublicGetAccountBuilderCodesApprovals(this.Extend(request)))
+	PanicOnError(retRes346215)
+	ch <- retRes346215
 	return nil
 }
 func (this *Pacifica) RevokeBuilderCodeAsync(builderCode any, optionalArgs ...any) <-chan any {
@@ -4533,9 +4546,9 @@ func (this *Pacifica) revokeBuilderCodeBody(ch chan any, builderCode any, option
 	}
 	var request any = this.PostActionRequest(operationType, sigPayload, params)
 
-	retRes345615 := (<-this.PrivatePostAccountBuilderCodesRevoke(this.Extend(request, params)))
-	PanicOnError(retRes345615)
-	ch <- retRes345615
+	retRes347115 := (<-this.PrivatePostAccountBuilderCodesRevoke(this.Extend(request, params)))
+	PanicOnError(retRes347115)
+	ch <- retRes347115
 	return nil
 }
 func (this *Pacifica) HandleOriginAndSingleAddress(methodName any, params any) any {
@@ -4560,11 +4573,17 @@ func (this *Pacifica) HandleErrors(code any, reason any, url any, method any, he
 	//     {"success":false,"data":null,"error":"Beta access required. Signer must redeem a valid beta code.","code":403}
 	//     {"success":false,"data":null,"error":"Agent not authorized for account","code":400}
 	//     {"success":false,"data":null,"error":"Internal server error","code":500}
+	//     {"success":false,"data":null,"error":"Verification failed: signature does not match signer and canonical payload.","code":400,"error_id":"signature_verification_failed"}
+	//     {"success":false,"data":null,"error":"Order amount too low for <account>: 7.81140 < 10","code":0,"error_id":"invalid_amount"}
+	//     {"success":false,"data":null,"error":"Invalid transfer relationship: <from> -> <to>","code":33,"error_id":"unspecified"}
 	//
-	var inCode *int64 = this.SafeInteger(response, "code") // actually if all ok -> code = undefined or code = 200
+	// code carries a business code on 422 responses and an echo of the http status otherwise, it is undefined or 200 when all ok
+	// the string form is required for the exceptions lookup, an integer key never matches the string-keyed map on the python, go and c# ports
+	var errorCode *string = this.SafeString(response, "code")
+	var errorId *string = this.SafeString(response, "error_id") // undocumented, present on live errors and more specific than code
 	var message *string = this.SafeString(response, "error")
 	var error any = nil
-	if (inCode == nil) || (inCode != nil && *inCode == 200) {
+	if (errorCode == nil) || (errorCode != nil && *errorCode == "200") {
 		error = false
 	} else {
 		error = true
@@ -4572,10 +4591,13 @@ func (this *Pacifica) HandleErrors(code any, reason any, url any, method any, he
 	var nonEmptyMessage bool = ((message != nil) && (message == nil || *message != ""))
 	if EvalTruthy(error) || nonEmptyMessage {
 		var feedback any = Add(Add(this.Id, " "), body)
-		this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), message, feedback) // Try deeper catch first
-		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), inCode, feedback)
-		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), message, feedback)
-		panic(ExchangeError(feedback))
+		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), errorId, feedback)
+		this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), message, feedback) // documented message prefixes are more specific than the http-status echo
+		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), errorCode, feedback)
+		var codeAsString string = ToString(code)
+		if (IsLessThan(code, 400)) || !(InOp(this.HttpExceptions, codeAsString)) {
+			panic(ExchangeError(feedback))
+		}
 	}
 	return nil
 }
@@ -4736,6 +4758,7 @@ func (this *Pacifica) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name pacifica#fetchMarkets
@@ -4999,6 +5022,7 @@ func (this *Pacifica) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, e
  * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at (optional provide takeProfitCloid)
  * @param {string} [params.timeInForce] "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book)
  * @param {boolean} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
+ * @param {string} [params.slippage] the slippage for market orders in percent, defaults to options.defaultSlippage (0.5)
  * @param {string} [params.clientOrderId] client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
  * @param {int} [params.expiryWindow] time to live in milliseconds
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}

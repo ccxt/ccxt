@@ -1336,7 +1336,6 @@ public class Limitless extends LimitlessApi
         {
             askSizeStr = Precise.stringDiv(askSizeStr, "1000000");
         }
-        Long now = this.milliseconds();
         Object outcomeSymbol = this.safeOutcomeSymbol(null, market);
         final Object finalMarket = market;
         final Object finalBidStr = bidStr;
@@ -1351,8 +1350,8 @@ public class Limitless extends LimitlessApi
             put( "outcomeId", Limitless.this.safeString(finalMarket, "outcomeId") );
             put( "label", Limitless.this.safeString(finalMarket, "label") );
             put( "market", Limitless.this.safeString(finalMarket, "market") );
-            put( "timestamp", now );
-            put( "datetime", Limitless.this.iso8601(now) );
+            put( "timestamp", null );
+            put( "datetime", null );
             put( "high", null );
             put( "low", null );
             put( "bid", Limitless.this.parseNumber(finalBidStr) );
@@ -1577,7 +1576,6 @@ public class Limitless extends LimitlessApi
             //         "lastTradePrice": "0.161"
             //     }
             //
-            Long timestamp = this.milliseconds();
             Object decimals = this.safeInteger(this.options, "usdcDecimals", 6);
             // sizes are scaled by 10^decimals, USDC uses 6 decimals
             Object scaleStr = this.parsePrecision(this.numberToString(Helpers.opNeg(decimals)));
@@ -1622,8 +1620,8 @@ public class Limitless extends LimitlessApi
                 put( "outcome", Limitless.this.safeOutcomeSymbol(outcome, outcomeObj) );
                 put( "bids", Limitless.this.sortBy(bids, 0, true) );
                 put( "asks", Limitless.this.sortBy(asks, 0) );
-                put( "timestamp", timestamp );
-                put( "datetime", Limitless.this.iso8601(timestamp) );
+                put( "timestamp", null );
+                put( "datetime", null );
                 put( "nonce", null );
             }};
             return this.safePredictionOrderBook(orderbook, outcomeObj);

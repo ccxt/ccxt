@@ -9450,7 +9450,7 @@ func (this *Htx) Sign(path any, optionalArgs ...any) any {
 				"Signature": signature,
 			})))
 			url = Add(url, Add("?", auth))
-			if method == "POST" {
+			if IsEqual(method, "POST") {
 				var bodyRequest any = nil
 				if isArrayParams {
 					bodyRequest = params
@@ -9497,7 +9497,7 @@ func (this *Htx) Sign(path any, optionalArgs ...any) any {
 			}
 		} else if access != nil && *access == "private" {
 			this.CheckRequiredCredentials()
-			if method == "POST" {
+			if IsEqual(method, "POST") {
 				var options any = this.SafeValue(this.Options, "broker", map[string]any{})
 				var id *string = this.SafeString(options, "id", "AA03022abc")
 				if !isArrayParams {
@@ -9525,7 +9525,7 @@ func (this *Htx) Sign(path any, optionalArgs ...any) any {
 			}
 			// sorting needs such flow exactly, before urlencoding (more at: https://github.com/ccxt/ccxt/issues/24930 )
 			request = this.Keysort(request)
-			if method != "POST" {
+			if !IsEqual(method, "POST") {
 				var sortedQuery map[string]any = this.Keysort(query)
 				request = this.Extend(request, sortedQuery)
 			}
@@ -9538,7 +9538,7 @@ func (this *Htx) Sign(path any, optionalArgs ...any) any {
 				"Signature": signature,
 			})))
 			url = Add(url, Add("?", auth))
-			if method == "POST" {
+			if IsEqual(method, "POST") {
 				var bodyRequest any = nil
 				if isArrayParams {
 					bodyRequest = params
@@ -11936,6 +11936,7 @@ func (this *Htx) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name htx#fetchStatus

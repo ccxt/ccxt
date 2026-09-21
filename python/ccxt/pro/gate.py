@@ -419,6 +419,10 @@ class gate(ccxt.async_support.gate):
             limit = 50 if (market['spot'] is True) else 100  # max 100 atm
             if messageType == 'options':
                 limit = 50  # max 50 for options
+        if market['spot'] is True:
+            # the subscription limit seeds the rest snapshot, gateeu returns an empty book above 100
+            maxSpotLimit = self.handle_option('fetchOrderBook', 'maxSpotLimit', 1000)
+            limit = min(limit, maxSpotLimit)
         payload = []
         channel = ''
         if isEuUrl:

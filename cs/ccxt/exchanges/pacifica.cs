@@ -550,11 +550,17 @@ public partial class pacifica : Exchange
                     { "420", typeof(ExchangeError) },
                     { "422", typeof(ExchangeError) },
                     { "429", typeof(RateLimitExceeded) },
-                    { "500", typeof(ExchangeError) },
+                    { "500", typeof(ExchangeNotAvailable) },
                     { "503", typeof(ExchangeNotAvailable) },
                     { "504", typeof(RequestTimeout) },
+                    { "signature_verification_failed", typeof(AuthenticationError) },
+                    { "invalid_amount", typeof(InvalidOrder) },
                 } },
                 { "broad", new Dictionary<string, object>() {
+                    { "Invalid signature", typeof(AuthenticationError) },
+                    { "Invalid public key", typeof(AuthenticationError) },
+                    { "Verification failed", typeof(AuthenticationError) },
+                    { "Invalid message", typeof(BadRequest) },
                     { "UNKNOWN", typeof(ExchangeError) },
                     { "ACCOUNT_NOT_FOUND", typeof(ExchangeError) },
                     { "BOOK_NOT_FOUND", typeof(ExchangeError) },
@@ -1771,6 +1777,7 @@ public partial class pacifica : Exchange
      * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at (optional provide takeProfitCloid)
      * @param {string} [params.timeInForce] "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book)
      * @param {boolean} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
+     * @param {string} [params.slippage] the slippage for market orders in percent, defaults to options.defaultSlippage (0.5)
      * @param {string} [params.clientOrderId] client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
@@ -1786,7 +1793,7 @@ public partial class pacifica : Exchange
         var requestoperationTypeVariable = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         var request = ((IList<object>) requestoperationTypeVariable)[0];
         var operationType = ((IList<object>) requestoperationTypeVariable)[1];
-        parameters = this.omit(parameters, new List<object>() {"reduceOnly", "clientOrderId", "stopLimitPrice", "timeInForce", "triggerPrice", "stopLossCloid", "stopLossPrice", "stopLossLimitPrice", "takeProfitCloid", "takeProfitPrice", "takeProfitLimitPrice", "expiryWindow"});
+        parameters = this.omit(parameters, new List<object>() {"reduceOnly", "reduce_only", "clientOrderId", "stopLimitPrice", "timeInForce", "triggerPrice", "stopLossCloid", "stopLossPrice", "stopLossLimitPrice", "takeProfitCloid", "takeProfitPrice", "takeProfitLimitPrice", "expiryWindow", "slippage", "slippage_percent"});
         Dictionary<string, object> response = null;
         if (isTrue(isEqual(operationType, "create_market_order")))
         {
@@ -1854,6 +1861,7 @@ public partial class pacifica : Exchange
          * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at (optional provide takeProfitCloid)
          * @param {string} [params.timeInForce] "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book)
          * @param {boolean} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
+         * @param {string} [params.slippage] the slippage for market orders in percent, defaults to options.defaultSlippage (0.5)
          * @param {string} [params.clientOrderId] client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
          * @param {int} [params.expiryWindow] time to live in milliseconds
          * @returns {object} an [order structure]
@@ -3408,8 +3416,9 @@ public partial class pacifica : Exchange
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
-        object swapMarkets = ccxt.BaseExchange.FromMarketInterfaceList(await this.FetchSwapMarkets());
-        return ccxt.BaseExchange.ToOpenInterests(this.parseOpenInterests(swapMarkets, symbols));
+        Dictionary<string, object> response = await this.publicGetInfoPrices(parameters);
+        List<object> data = this.safeList(response, "data", new List<object>() {});
+        return ccxt.BaseExchange.ToOpenInterests(this.parseOpenInterests(data, symbols));
     }
 
     /**
@@ -3423,15 +3432,20 @@ public partial class pacifica : Exchange
      */
     public async override Task<ccxt.OpenInterest> FetchOpenInterest(string symbol, object parameters = null)
     {
-        string symbolVar = symbol;
+        object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        symbolVar = this.symbol(symbolVar);
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
+        symbolVar = this.symbol(symbolVar);
         object ois = ccxt.BaseExchange.FromOpenInterests(await this.FetchOpenInterests(new List<object>() {symbolVar}, parameters));
-        return ccxt.BaseExchange.ToOpenInterest(getValue(ois, symbolVar));
+        IDictionary<string, object> oi = this.safeDict(ois, symbolVar);
+        if (isTrue(isEqual(oi, null)))
+        {
+            throw new BadSymbol ((string)add(add(this.id, " fetchOpenInterest() could not find open interest for "), symbolVar)) ;
+        }
+        return ccxt.BaseExchange.ToOpenInterest(oi);
     }
 
     public override object parseOpenInterest(object interest, object market = null)
@@ -3961,11 +3975,17 @@ public partial class pacifica : Exchange
         //     {"success":false,"data":null,"error":"Beta access required. Signer must redeem a valid beta code.","code":403}
         //     {"success":false,"data":null,"error":"Agent not authorized for account","code":400}
         //     {"success":false,"data":null,"error":"Internal server error","code":500}
+        //     {"success":false,"data":null,"error":"Verification failed: signature does not match signer and canonical payload.","code":400,"error_id":"signature_verification_failed"}
+        //     {"success":false,"data":null,"error":"Order amount too low for <account>: 7.81140 < 10","code":0,"error_id":"invalid_amount"}
+        //     {"success":false,"data":null,"error":"Invalid transfer relationship: <from> -> <to>","code":33,"error_id":"unspecified"}
         //
-        Int64? inCode = this.safeInteger(response, "code"); // actually if all ok -> code = undefined or code = 200
+        // code carries a business code on 422 responses and an echo of the http status otherwise, it is undefined or 200 when all ok
+        // the string form is required for the exceptions lookup, an integer key never matches the string-keyed map on the python, go and c# ports
+        string? errorCode = this.safeString(response, "code");
+        string? errorId = this.safeString(response, "error_id"); // undocumented, present on live errors and more specific than code
         string? message = this.safeString(response, "error");
         bool? error = null;
-        if (isTrue(isTrue(isEqual(inCode, null)) || isTrue(isEqual(inCode, 200))))
+        if (isTrue(isTrue(isEqual(errorCode, null)) || isTrue(isEqual(errorCode, "200"))))
         {
             error = false;
         } else
@@ -3976,10 +3996,14 @@ public partial class pacifica : Exchange
         if (isTrue(isTrue(error) || isTrue(nonEmptyMessage)))
         {
             string feedback = add(add(this.id, " "), body);
-            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback); // Try deeper catch first
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), inCode, feedback);
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
-            throw new ExchangeError ((string)feedback) ;
+            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorId, feedback);
+            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback); // documented message prefixes are more specific than the http-status echo
+            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
+            string codeAsString = ((object)code).ToString();
+            if (isTrue(isTrue((isLessThan(code, 400))) || !isTrue((inOp(this.httpExceptions, codeAsString)))))
+            {
+                throw new ExchangeError ((string)feedback) ;
+            }
         }
         return null;
     }

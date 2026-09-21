@@ -733,8 +733,7 @@ public partial class bydfi : Exchange
         //     }
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        Int64 timestamp = this.milliseconds();
-        Dictionary<string, object> orderBook = ((Dictionary<string, object>)this.parseOrderBook(data, getValue(market, "symbol"), timestamp, "bids", "asks", "price", "amount"));
+        Dictionary<string, object> orderBook = ((Dictionary<string, object>)this.parseOrderBook(data, getValue(market, "symbol"), null, "bids", "asks", "price", "amount"));
         ((IDictionary<string,object>)orderBook)["nonce"] = this.safeInteger(data, "lastUpdateId");
         return ccxt.BaseExchange.ToOrderBook(orderBook);
     }
@@ -2968,11 +2967,10 @@ public partial class bydfi : Exchange
 
     public override object parseBalance(object response)
     {
-        Int64 timestamp = this.milliseconds();
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
-            { "timestamp", timestamp },
-            { "datetime", this.iso8601(timestamp) },
+            { "timestamp", null },
+            { "datetime", null },
         };
         for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
@@ -3032,9 +3030,6 @@ public partial class bydfi : Exchange
         bool? fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
         if (isTrue(isEqual(fillResponseFromRequest, true)))
         {
-            Int64 timestamp = this.milliseconds();
-            ((IDictionary<string,object>)transfer)["timestamp"] = timestamp;
-            ((IDictionary<string,object>)transfer)["datetime"] = this.iso8601(timestamp);
             ((IDictionary<string,object>)transfer)["currency"] = code;
             ((IDictionary<string,object>)transfer)["fromAccount"] = fromAccount;
             ((IDictionary<string,object>)transfer)["toAccount"] = toAccount;
