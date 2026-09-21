@@ -796,7 +796,7 @@ export default class blockchaincom extends blockchaincomRest {
                 'channel': 'auth',
                 'token': this.secret,
             };
-            return this.watch (url, messageHash, this.extend (request, params), messageHash);
+            this.watch (url, messageHash, this.extend (request, params), messageHash);
         }
         return await future;
     }
