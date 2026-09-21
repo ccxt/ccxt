@@ -7162,8 +7162,10 @@ class gate extends Exchange {
             if (($method === 'GET') || ($method === 'DELETE') || $requiresURLEncoding || ($method === 'PATCH')) {
                 if (count($query) > 0) {
                     // https://github.com/ccxt/ccxt/issues/27663
-                    $rawQueryString = $this->rawencode($query);
-                    $queryString = $this->urlencode($query);
+                    // sort explicitly (true) so the signed order matches the url order in Go,
+                    // where map iteration is not ordered (keysort's order is otherwise lost)
+                    $rawQueryString = $this->rawencode($query, true);
+                    $queryString = $this->urlencode($query, true);
                     // https://github.com/ccxt/ccxt/issues/25570
                     if (mb_strpos($queryString, 'currencies=') !== false && mb_strpos($queryString, '%2C') !== false) {
                         $queryString = str_replace('%2C', ',', $queryString);
