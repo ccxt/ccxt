@@ -1630,6 +1630,9 @@ public class Gate extends GateApi
                 put( "createOrder", new HashMap<String, Object>() {{
                     put( "expiration", 86400 );
                 }} );
+                put( "fetchOrderBook", new HashMap<String, Object>() {{
+                    put( "maxSpotLimit", 1000 );
+                }} );
                 put( "createMarketBuyOrderRequiresPrice", true );
                 put( "networks", new HashMap<String, Object>() {{
                     put( "BTC", "BTC" );
@@ -3904,7 +3907,9 @@ public class Gate extends GateApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
                 {
-                    limit = Helpers.mathMin(limit, 1000);
+                    // gateeu returns an empty book for a spot limit above 100
+                    Object maxSpotLimit = this.handleOption("fetchOrderBook", "maxSpotLimit", 1000);
+                    limit = Helpers.mathMin(limit, maxSpotLimit);
                 } else
                 {
                     limit = Helpers.mathMin(limit, 300);
