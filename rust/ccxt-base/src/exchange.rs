@@ -1628,13 +1628,13 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             .cloned()
             .ok_or_else(|| ExchangeError::new("NotSupported", format!("implicit API method {name} not found in api block")))?;
         let api = if scope_segments.len() == 1 {
-            Value::Str(scope_segments[0].clone())
+            Value::Str(scope_segments[0].clone().into())
         } else {
-            Value::Array(scope_segments.iter().map(|s| Value::Str(s.clone())).collect())
+            Value::Array(scope_segments.iter().map(|s| Value::Str(s.clone().into())).collect())
         };
         Ok(self.call_dynamic(
             "calculate_rate_limiter_cost",
-            vec![api, Value::Str(verb), Value::Str(path), params, config],
+            vec![api, Value::Str(verb.into()), Value::Str(path.into()), params, config],
         ).await)
     } }
 
@@ -2403,7 +2403,7 @@ mod response_mock_tests {
             assert_eq!(result, response);
             assert_eq!(exchange.exchange.last_request_url, Value::Str(format!(
                 "https://api.binance.com/api/v3/ticker/price?symbol={symbol}",
-            )));
+            ).into()));
         }
         exchange.exchange.mock_response = Value::Null;
         let error = exchange.request_typed(
@@ -2423,7 +2423,7 @@ mod response_mock_tests {
         ).await.expect("mock response must not require network access");
         assert_eq!(result, response);
         assert_eq!(exchange.exchange.last_request_url, Value::Str(
-            "https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT".to_string(),
+            "https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT".into(),
         ));
         assert_eq!(exchange.exchange.last_request_body, Value::Null);
     }
@@ -2444,7 +2444,7 @@ mod response_mock_tests {
         ).await.expect("signed mock response must not require network access");
         assert_eq!(result, response);
         assert_eq!(exchange.exchange.last_request_url, Value::Str(
-            "https://api.binance.com/api/v3/order".to_string(),
+            "https://api.binance.com/api/v3/order".into(),
         ));
         assert_eq!(get_value(&exchange.exchange.last_request_headers,
             &Value::Str("X-MBX-APIKEY".into())), Value::Str("fixture-key".into()));
@@ -2468,7 +2468,7 @@ mod method_name_snake_case_tests {
     use crate::Value;
 
     fn snake(name: &str) -> String {
-        method_name_to_snake_case(&Value::Str(name.to_string()))
+        method_name_to_snake_case(&Value::Str(name.to_string().into()))
     }
 
     // The four names the review called out, plus the digit/acronym shapes that
@@ -2526,7 +2526,7 @@ mod method_name_snake_case_tests {
     #[test]
     #[should_panic(expected = "NotSupported")]
     fn empty_method_name_is_loud() {
-        let _ = method_name_to_snake_case(&Value::Str(String::new()));
+        let _ = method_name_to_snake_case(&Value::Str(String::new().into()));
     }
 }
 
@@ -2825,7 +2825,7 @@ mod cow_alias_tests {
         let ohlcvs = Value::List(vec![row.clone(), row]);
         let r = ex.convert_ohlcv_to_trading_view(ohlcvs, &[]);
         for key in ["t", "o", "h", "l", "c", "v"] {
-            let col = crate::get_value(&r, &Value::Str(key.to_string()));
+            let col = crate::get_value(&r, &Value::Str(key.to_string().into()));
             assert_eq!(get_array_length(&col), Value::Int(2),
                 "result['{key}'] lost its pushes — COW write-back failed");
         }

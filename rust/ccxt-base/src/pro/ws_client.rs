@@ -975,10 +975,10 @@ mod tests {
         mock_setup(url);
         let client = get_client(url).expect("mock client");
         client.note_futures(&["pending".to_string(), "delivered".to_string()]);
-        client.resolve("delivered", Value::Str("payload".to_string()));
+        client.resolve("delivered", Value::Str("payload".into()));
 
         let handle = client_value(url);
-        let error = Value::Str("[InvalidNonce] gap detected".to_string());
+        let error = Value::Str("[InvalidNonce] gap detected".into());
         value_reset(&handle, error.clone());
 
         // The pending waiter fails fast with the reset error…
@@ -989,7 +989,7 @@ mod tests {
         // …while the already-delivered value still reaches its waiter.
         assert_eq!(
             client.take_settled(&["delivered".to_string()]),
-            Some(Ok(Value::Str("payload".to_string())))
+            Some(Ok(Value::Str("payload".into())))
         );
         assert!(!client.has_pending_futures());
 
@@ -1090,7 +1090,7 @@ mod tests {
         // dispatch each to handle_message, return once "ticker" resolves.
         let result = ExchangeRuntime::watch(
             &mut core,
-            Value::Str(url.clone()),
+            Value::Str(url.clone().into()),
             Value::Str("ticker".into()),
             &[
                 Value::Str("{\"op\":\"subscribe\",\"channel\":\"ticker\"}".into()),
@@ -1203,7 +1203,7 @@ mod tests {
     /// The transpiled follower test, `messageHash in client.futures`.
     fn in_op_futures(c: &Arc<ClientState>, hash: &str) -> bool {
         !matches!(
-            crate::get_value(&c.futures_value(), &Value::Str(hash.to_string())),
+            crate::get_value(&c.futures_value(), &Value::Str(hash.to_string().into())),
             Value::Null
         )
     }
