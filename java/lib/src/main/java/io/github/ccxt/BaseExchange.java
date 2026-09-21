@@ -1920,7 +1920,7 @@ public class BaseExchange {
     }
 
     public void onClose(Client client, Object error) {
-        if (!client.error) {
+        if (client.error == null) {
             this.cleanupWsClient(client, error);
         }
     }
@@ -1931,22 +1931,31 @@ public class BaseExchange {
 
     @SuppressWarnings("unchecked")
     private void cleanupWsClient(Client client, Object error) {
+        // Retire the client that errored or closed, by reference — not by
+        // registry key: a reconnect may have installed a healthy replacement
+        // under the same url in the meantime, and that replacement must keep
+        // serving its consumers, see
+        // https://github.com/ccxt/ccxt/issues/30463. retire marks the client
+        // with the terminal error, rejects every pending future and clears
+        // its subscriptions; on the error path WsClient.onError has already
+        // retired it, so this call is an idempotent no-op there.
+        Object reason = (error != null)
+                ? wrapAsNetworkError(error)
+                : new io.github.ccxt.errors.NetworkError("connection closed by remote server");
+        client.retire(reason);
+        // NOTE: do NOT call client.close() here. Empirical test (full
+        // Java WS sweep) showed close()'s messageExecutor.shutdown() races
+        // with in-flight handleMessage tasks the per-exchange tests still
+        // need, causing 15 new exchanges to time out vs the baseline.
+        // The leak the close() was meant to fix is slow-drip (virtual
+        // threads ~1KB each) and is now handled by the delayed shutdown
+        // below: scheduleExecutorShutdown() arms a grace-period timer that
+        // lets in-flight frames drain, re-checks liveness before shutting
+        // down, and disarms if the client is re-dialed in the meantime.
         var clientsMap = (java.util.concurrent.ConcurrentHashMap<String, Client>) this.clients;
-        var urlClient = clientsMap.get(client.url);
-        if (urlClient != null) {
-            urlClient.subscriptionsMap().clear();
-            urlClient.reject(wrapAsNetworkError(error));
-            clientsMap.remove(client.url);
-            // NOTE: do NOT call urlClient.close() here. Empirical test (full
-            // Java WS sweep) showed close()'s messageExecutor.shutdown() races
-            // with in-flight handleMessage tasks the per-exchange tests still
-            // need, causing 15 new exchanges to time out vs the baseline.
-            // The leak the close() was meant to fix is slow-drip (virtual
-            // threads ~1KB each) and is now handled by the delayed shutdown
-            // below: scheduleExecutorShutdown() arms a grace-period timer that
-            // lets in-flight frames drain, re-checks liveness before shutting
-            // down, and disarms if the client is re-dialed in the meantime.
-        }
+        // atomic compare-and-remove: drop the registry entry only while it
+        // still points at this same client — a healthy replacement keeps its slot
+        clientsMap.remove(client.url, client);
         client.scheduleExecutorShutdown();
     }
 
