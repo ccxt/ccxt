@@ -176,6 +176,13 @@ public class OrderRouter
 
     private bool balancesLoaded = false;
 
+    //  bumped by every invalidation, so a wallet read that was already in flight when the
+    //  cache was dropped cannot store its now-obsolete snapshot on the way back
+    private int balancesGeneration = 0;
+
+    /// <summary>Whether a balances snapshot is currently cached.</summary>
+    public bool BalancesAreLoaded => this.balancesLoaded;
+
     //  Whether this router manages balances at all. TWO decisions used to ride on `venues`: where
     //  you can trade, and what you hold. The first is a filter - free, and it cannot go stale. The
     //  second costs an authenticated call per venue and made one bad key enough to kill a quote.
@@ -905,6 +912,21 @@ public class OrderRouter
         {
             throw new BadRequest("OrderRouter: /stream/route does not accept balanceMode, because it does not accept balances. Use FetchRoute");
         }
+        //  the same venue filter FetchRoute applies. A router built with venues can only execute
+        //  on those, so a stream that quoted the rest would hand back routes its own executor
+        //  must refuse. The caller's own exchanges parameter still wins.
+        var storedIds = new List<string>(this.venues.Keys);
+        storedIds.Sort(StringComparer.Ordinal);
+        if (storedIds.Count > 0 && this.ValueAt(parameters, "exchanges") == null)
+        {
+            var scoped = new dict();
+            foreach (var pair in parameters)
+            {
+                scoped[pair.Key] = pair.Value;
+            }
+            scoped["exchanges"] = string.Join(",", storedIds);
+            parameters = scoped;
+        }
         //  includeQuotes is deliberately NOT defaulted: the service defaults it to false on this
         //  endpoint and true on the REST one, and RouteQuery omits what the caller did not set.
         var query = this.RouteQuery(fromAsset, toAsset, parameters);
@@ -1523,10 +1545,18 @@ public class OrderRouter
         {
             return this.balancesCache;
         }
+        var generation = this.balancesGeneration;
         var collected = await this.CollectBalances(this.venues);
-        this.balancesCache = this.StringAt(collected, "balances", "");
-        this.balancesLoaded = true;
-        return this.balancesCache;
+        var rendered = this.StringAt(collected, "balances", "");
+        //  an invalidation landed while these wallets were being read, which means money moved
+        //  under this snapshot. It is still the right answer for THIS caller, but it must not
+        //  become the cache the next quote trusts.
+        if (generation == this.balancesGeneration)
+        {
+            this.balancesCache = rendered;
+            this.balancesLoaded = true;
+        }
+        return rendered;
     }
 
     /// <summary>Drops the cached balances, so the next quote re-reads the wallets.</summary>
@@ -1534,6 +1564,7 @@ public class OrderRouter
     {
         this.balancesLoaded = false;
         this.balancesCache = "";
+        this.balancesGeneration = this.balancesGeneration + 1;
     }
 
     /// <summary>reads every supplied venue's wallet and renders it as the router's balances string</summary>
@@ -2781,6 +2812,13 @@ public class OrderRouter
         //  `dryRun` says only WHETHER. The guardrails that do the work all still run
         //  BEFORE anything is sent.
         var strategy = requestedStrategy;
+        //  REFUSED, not ignored. `live` was the old knob and it is gone; `live: false` meant
+        //  "place nothing" and now means nothing at all, so ignoring it silently would send the
+        //  orders while the caller believed they had opted out.
+        if (this.ValueAt(options, "live") != null)
+        {
+            throw new BadRequest("OrderRouter: options.live is gone — execute places orders, and a rehearsal is asked for with dryRun. Remove live, or pass dryRun to place nothing");
+        }
         var dryRun = this.IsExactlyTrue(options, "dryRun");
         var steps = this.CloneSteps(plan);
         var report = this.EmptyReport(plan, strategy, dryRun, steps);
@@ -2928,20 +2966,29 @@ public class OrderRouter
         this.RecordExecutedPlan(planId);
         //  From here orders go out, so whatever balances were cached are about to be wrong.
         this.InvalidateBalances();
-        if (strategy == "parallel_within_hop")
+        try
         {
-            await this.ExecuteParallelWithinHop(report, steps, venues, options, usdRates);
+            if (strategy == "parallel_within_hop")
+            {
+                await this.ExecuteParallelWithinHop(report, steps, venues, options, usdRates);
+            }
+            else if (strategy == "best_effort")
+            {
+                await this.ExecuteBestEffort(report, steps, venues, options, usdRates);
+            }
+            else
+            {
+                //  sequential, limit_protected and atomic_ish all walk the plan one
+                //  order at a time; they differ in how a single order is placed and
+                //  in whether they lean on the previous hop's proceeds
+                await this.ExecuteSequential(report, steps, venues, options, usdRates, strategy);
+            }
         }
-        else if (strategy == "best_effort")
+        finally
         {
-            await this.ExecuteBestEffort(report, steps, venues, options, usdRates);
-        }
-        else
-        {
-            //  sequential, limit_protected and atomic_ish all walk the plan one
-            //  order at a time; they differ in how a single order is placed and
-            //  in whether they lean on the previous hop's proceeds
-            await this.ExecuteSequential(report, steps, venues, options, usdRates, strategy);
+            //  and AGAIN on the way out, success or throw: a quote issued while the orders were
+            //  in flight repopulates the cache from wallets that had not settled yet.
+            this.InvalidateBalances();
         }
         this.SummariseReport(report, steps);
         return report;

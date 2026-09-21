@@ -1158,7 +1158,7 @@ func TestOrderRouterPlanAgeIsReportedAndRefusedOnlyWhenAsked(t *testing.T) {
 	// this test deliberately runs the same plan several times to isolate the age check,
 	// which is exactly what allowReexecution is for
 	opts := func() map[string]any {
-		return map[string]any{"strategy": "sequential", "live": true, "usdRates": map[string]any{"USDT": 1.0}, "allowReexecution": true}
+		return map[string]any{"strategy": "sequential", "usdRates": map[string]any{"USDT": 1.0}, "allowReexecution": true}
 	}
 
 	// Always reported, even with nothing enforced, and nothing is refused by default.
@@ -1347,7 +1347,7 @@ func TestOrderRouterRefusesToGoLiveWithoutAWayToValueTheTradeWhenACapIsSet(t *te
 	router := routerTestRouter(t)
 	plan := routerMustPlan(router.BuildExecutionPlan(routerOneLegRoute("buy", "BTC", "USDT", 0.2, 100), nil))
 	venue := newOrderRouterStubVenue(1, false)
-	_, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": venue}), map[string]any{"strategy": "sequential", "live": true, "maxNotionalUsd": 25.0})
+	_, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": venue}), map[string]any{"strategy": "sequential", "maxNotionalUsd": 25.0})
 	if routerErrorCode(err) != "ExchangeError" {
 		t.Fatalf("an unvaluable plan is refused, got %v", err)
 	}
@@ -1360,7 +1360,7 @@ func TestOrderRouterRefusesToGoLiveWithoutAWayToValueTheTradeWhenACapIsSet(t *te
 	// evaluate, so demanding the inputs for one would be asking for something
 	// nobody wanted
 	uncapped := newOrderRouterStubVenue(1, false)
-	report, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": uncapped}), map[string]any{"strategy": "sequential", "live": true})
+	report, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": uncapped}), map[string]any{"strategy": "sequential"})
 	if err != nil {
 		t.Fatalf("no cap means no usdRates are needed, got %v", err)
 	}
@@ -1376,7 +1376,7 @@ func TestOrderRouterRefusesToGoLiveAboveACapTheCallerSet(t *testing.T) {
 	router := routerTestRouter(t)
 	plan := routerMustPlan(router.BuildExecutionPlan(routerOneLegRoute("buy", "BTC", "USDT", 5, 100), nil))
 	venue := newOrderRouterStubVenue(1, false)
-	_, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": venue}), map[string]any{"strategy": "sequential", "live": true, "usdRates": map[string]any{"USDT": 1.0}, "maxNotionalUsd": 25.0})
+	_, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": venue}), map[string]any{"strategy": "sequential", "usdRates": map[string]any{"USDT": 1.0}, "maxNotionalUsd": 25.0})
 	if routerErrorCode(err) != "ExchangeError" {
 		t.Fatalf("a 500 USD plan is refused under a 25 USD cap, got %v", err)
 	}
@@ -1388,7 +1388,7 @@ func TestOrderRouterRefusesToGoLiveAboveACapTheCallerSet(t *testing.T) {
 	// the same 500 USD trade with no cap set goes through: that is the point of the
 	// guardrail being opt-in
 	uncapped := newOrderRouterStubVenue(1, false)
-	report, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": uncapped}), map[string]any{"strategy": "sequential", "live": true, "usdRates": map[string]any{"USDT": 1.0}})
+	report, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": uncapped}), map[string]any{"strategy": "sequential", "usdRates": map[string]any{"USDT": 1.0}})
 	if err != nil {
 		t.Fatalf("500 USD is a normal trade when nobody asked for a cap, got %v", err)
 	}
@@ -1401,7 +1401,7 @@ func TestOrderRouterSequentialPlacesIocLimitOrdersInPlanOrder(t *testing.T) {
 	router := routerTestRouter(t)
 	plan := routerMustPlan(router.BuildExecutionPlan(routerOneLegRoute("buy", "BTC", "USDT", 0.2, 100), map[string]any{"slippageBps": 100.0}))
 	venue := newOrderRouterStubVenue(1, false)
-	report, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": venue}), map[string]any{"strategy": "sequential", "live": true, "usdRates": map[string]any{"USDT": 1.0}})
+	report, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": venue}), map[string]any{"strategy": "sequential", "usdRates": map[string]any{"USDT": 1.0}})
 	if err != nil {
 		t.Fatalf("execute: %v", err)
 	}
@@ -1425,7 +1425,7 @@ func TestOrderRouterSequentialObeysTheHaltVerdict(t *testing.T) {
 	plan := routerMustPlan(router.BuildExecutionPlan(routerTwoHopRoute(), nil))
 	// hop 0 fills half: a 50% shortfall against a 2% tolerance
 	venue := newOrderRouterStubVenue(0.5, false)
-	report, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": venue}), map[string]any{"strategy": "sequential", "live": true, "usdRates": map[string]any{"USDT": 1.0}})
+	report, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": venue}), map[string]any{"strategy": "sequential", "usdRates": map[string]any{"USDT": 1.0}})
 	if err != nil {
 		t.Fatalf("execute: %v", err)
 	}
@@ -1459,7 +1459,7 @@ func TestOrderRouterMarketOrderNeedsBothAMissingIocAndAnExplicitOptIn(t *testing
 	// a venue that advertises GTC only
 	noIoc := newOrderRouterStubVenue(1, false)
 	noIoc.features = gtcOnly
-	refused, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": noIoc}), map[string]any{"strategy": "sequential", "live": true, "usdRates": map[string]any{"USDT": 1.0}})
+	refused, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": noIoc}), map[string]any{"strategy": "sequential", "usdRates": map[string]any{"USDT": 1.0}})
 	if err != nil {
 		t.Fatalf("execute: %v", err)
 	}
@@ -1474,7 +1474,7 @@ func TestOrderRouterMarketOrderNeedsBothAMissingIocAndAnExplicitOptIn(t *testing
 	allowed.features = gtcOnly
 	// the same plan again on purpose: this test is about the market-order opt-in, not about
 	// idempotency, so the re-execution guard is explicitly waived
-	placed, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": allowed}), map[string]any{"strategy": "sequential", "live": true, "usdRates": map[string]any{"USDT": 1.0}, "allowMarketOrders": true, "allowReexecution": true})
+	placed, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": allowed}), map[string]any{"strategy": "sequential", "usdRates": map[string]any{"USDT": 1.0}, "allowMarketOrders": true, "allowReexecution": true})
 	if err != nil {
 		t.Fatalf("execute: %v", err)
 	}
@@ -1489,7 +1489,7 @@ func TestOrderRouterMarketOrderNeedsBothAMissingIocAndAnExplicitOptIn(t *testing
 	// computed from is a cap that silently disappears. Refused together.
 	capped := newOrderRouterStubVenue(1, false)
 	capped.features = gtcOnly
-	underCap, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": capped}), map[string]any{"strategy": "sequential", "live": true, "usdRates": map[string]any{"USDT": 1.0}, "allowMarketOrders": true, "maxNotionalUsd": 1000.0, "allowReexecution": true})
+	underCap, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": capped}), map[string]any{"strategy": "sequential", "usdRates": map[string]any{"USDT": 1.0}, "allowMarketOrders": true, "maxNotionalUsd": 1000.0, "allowReexecution": true})
 	if err != nil {
 		t.Fatalf("execute: %v", err)
 	}
@@ -1504,7 +1504,7 @@ func TestOrderRouterMarketOrderNeedsBothAMissingIocAndAnExplicitOptIn(t *testing
 	// rejected IOC is loud and cheap, an unintended market order is not
 	unknown := newOrderRouterStubVenue(1, false)
 	unknown.features = map[string]any{}
-	assumed, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": unknown}), map[string]any{"strategy": "sequential", "live": true, "usdRates": map[string]any{"USDT": 1.0}, "allowReexecution": true})
+	assumed, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": unknown}), map[string]any{"strategy": "sequential", "usdRates": map[string]any{"USDT": 1.0}, "allowReexecution": true})
 	if err != nil {
 		t.Fatalf("execute: %v", err)
 	}
@@ -1529,7 +1529,7 @@ func TestOrderRouterParallelWithinHopContainsAFailingLeg(t *testing.T) {
 	good := newOrderRouterStubVenue(1, false)
 	bad := newOrderRouterStubVenue(1, true)
 	good2 := newOrderRouterStubVenue(1, false)
-	report, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"good": good, "bad": bad, "good2": good2}), map[string]any{"strategy": "parallel_within_hop", "live": true, "usdRates": map[string]any{"USDT": 1.0}})
+	report, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"good": good, "bad": bad, "good2": good2}), map[string]any{"strategy": "parallel_within_hop", "usdRates": map[string]any{"USDT": 1.0}})
 	if err != nil {
 		t.Fatalf("execute: %v", err)
 	}
@@ -1551,16 +1551,16 @@ func TestOrderRouterBestEffortRefusesMultiHopAndDemandsItsAcknowledgements(t *te
 	venue := newOrderRouterStubVenue(1, false)
 	venues := routerStubVenues(map[string]*orderRouterStubVenue{"stub": venue})
 	multiHop := routerMustPlan(router.BuildExecutionPlan(routerTwoHopRoute(), nil))
-	_, err := router.Execute(multiHop, venues, map[string]any{"strategy": "best_effort", "live": true, "usdRates": map[string]any{"USDT": 1.0}, "acknowledgeDispersion": true, "maxOrders": 5.0})
+	_, err := router.Execute(multiHop, venues, map[string]any{"strategy": "best_effort", "usdRates": map[string]any{"USDT": 1.0}, "acknowledgeDispersion": true, "maxOrders": 5.0})
 	if routerErrorCode(err) != "NotSupported" {
 		t.Fatalf("best_effort refuses multi-hop, got %v", err)
 	}
 	singleHop := routerMustPlan(router.BuildExecutionPlan(routerOneLegRoute("buy", "BTC", "USDT", 0.2, 100), nil))
-	_, err = router.Execute(singleHop, venues, map[string]any{"strategy": "best_effort", "live": true, "usdRates": map[string]any{"USDT": 1.0}, "maxOrders": 5.0})
+	_, err = router.Execute(singleHop, venues, map[string]any{"strategy": "best_effort", "usdRates": map[string]any{"USDT": 1.0}, "maxOrders": 5.0})
 	if routerErrorCode(err) != "BadRequest" {
 		t.Fatalf("best_effort requires acknowledgeDispersion, got %v", err)
 	}
-	_, err = router.Execute(singleHop, venues, map[string]any{"strategy": "best_effort", "live": true, "usdRates": map[string]any{"USDT": 1.0}, "acknowledgeDispersion": true})
+	_, err = router.Execute(singleHop, venues, map[string]any{"strategy": "best_effort", "usdRates": map[string]any{"USDT": 1.0}, "acknowledgeDispersion": true})
 	if routerErrorCode(err) != "BadRequest" {
 		t.Fatalf("best_effort requires a positive maxOrders, got %v", err)
 	}
@@ -1581,7 +1581,7 @@ func TestOrderRouterBestEffortStopsAtMaxOrdersAndNeverHalts(t *testing.T) {
 	plan := routerMustPlan(router.BuildExecutionPlan(route, nil))
 	c := newOrderRouterStubVenue(1, false)
 	venues := routerStubVenues(map[string]*orderRouterStubVenue{"a": newOrderRouterStubVenue(1, false), "b": newOrderRouterStubVenue(0.01, false), "c": c})
-	report, err := router.Execute(plan, venues, map[string]any{"strategy": "best_effort", "live": true, "usdRates": map[string]any{"USDT": 1.0}, "acknowledgeDispersion": true, "maxOrders": 2.0})
+	report, err := router.Execute(plan, venues, map[string]any{"strategy": "best_effort", "usdRates": map[string]any{"USDT": 1.0}, "acknowledgeDispersion": true, "maxOrders": 2.0})
 	if err != nil {
 		t.Fatalf("execute: %v", err)
 	}
@@ -1662,7 +1662,7 @@ func TestOrderRouterBestEffortDerivesTheHopCountFromTheSteps(t *testing.T) {
 		t.Fatal("and it really has two hops worth of steps")
 	}
 	venue := newOrderRouterStubVenue(0.1, false)
-	_, err := router.Execute(withoutHopCount, routerStubVenues(map[string]*orderRouterStubVenue{"stub": venue}), map[string]any{"strategy": "best_effort", "live": true, "usdRates": map[string]any{"USDT": 1.0}, "acknowledgeDispersion": true, "maxOrders": 5.0})
+	_, err := router.Execute(withoutHopCount, routerStubVenues(map[string]*orderRouterStubVenue{"stub": venue}), map[string]any{"strategy": "best_effort", "usdRates": map[string]any{"USDT": 1.0}, "acknowledgeDispersion": true, "maxOrders": 5.0})
 	if err == nil {
 		t.Fatal("best_effort across a bridge is refused however the plan reached us")
 	}
@@ -1702,7 +1702,7 @@ func TestOrderRouterVenueSupportsIocReadsADictionary(t *testing.T) {
 	}
 	// end to end: the documented market-order fallback is reachable again
 	plan := routerMustPlan(router.BuildExecutionPlan(routerOneLegRoute("buy", "BTC", "USDT", 0.2, 100), nil))
-	refused, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": noIoc}), map[string]any{"strategy": "sequential", "live": true, "usdRates": map[string]any{"USDT": 1.0}})
+	refused, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": noIoc}), map[string]any{"strategy": "sequential", "usdRates": map[string]any{"USDT": 1.0}})
 	if err != nil {
 		t.Fatalf("execute: %v", err)
 	}
@@ -1716,7 +1716,7 @@ func TestOrderRouterVenueSupportsIocReadsADictionary(t *testing.T) {
 	allowed.features = noIocFeatures
 	// the same plan again on purpose: this test is about the market-order opt-in, not about
 	// idempotency, so the re-execution guard is explicitly waived
-	placed, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": allowed}), map[string]any{"strategy": "sequential", "live": true, "usdRates": map[string]any{"USDT": 1.0}, "allowMarketOrders": true, "allowReexecution": true})
+	placed, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": allowed}), map[string]any{"strategy": "sequential", "usdRates": map[string]any{"USDT": 1.0}, "allowMarketOrders": true, "allowReexecution": true})
 	if err != nil {
 		t.Fatalf("execute: %v", err)
 	}
@@ -1741,7 +1741,7 @@ func TestOrderRouterLimitProtectedRefusesAZeroPollInterval(t *testing.T) {
 	for _, interval := range []float64{0.0, -1.0} {
 		venue := newOrderRouterStubVenue(1, false)
 		venue.createdStatus = "open"
-		_, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": venue}), map[string]any{"strategy": "limit_protected", "live": true, "usdRates": map[string]any{"USDT": 1.0}, "orderTimeoutMs": 4.0, "pollIntervalMs": interval})
+		_, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": venue}), map[string]any{"strategy": "limit_protected", "usdRates": map[string]any{"USDT": 1.0}, "orderTimeoutMs": 4.0, "pollIntervalMs": interval})
 		if err == nil {
 			t.Fatalf("pollIntervalMs %v must be refused", interval)
 		}
@@ -1752,7 +1752,7 @@ func TestOrderRouterLimitProtectedRefusesAZeroPollInterval(t *testing.T) {
 	ok := newOrderRouterStubVenue(1, false)
 	ok.createdStatus = "open"
 	ok.fetchOrderResults = []Order{routerStubOrder("stub-order", "closed", 0.0002, 100000, 20)}
-	report, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": ok}), map[string]any{"strategy": "limit_protected", "live": true, "usdRates": map[string]any{"USDT": 1.0}, "orderTimeoutMs": 4.0, "pollIntervalMs": 1.0})
+	report, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": ok}), map[string]any{"strategy": "limit_protected", "usdRates": map[string]any{"USDT": 1.0}, "orderTimeoutMs": 4.0, "pollIntervalMs": 1.0})
 	if err != nil {
 		t.Fatalf("an ordinary interval still works: %v", err)
 	}
@@ -1771,7 +1771,7 @@ func TestOrderRouterLimitProtectedKeepsAVenueSideCancelFill(t *testing.T) {
 		routerStubOrder("stub-order", "canceled", 0.0001, 100000, 10),
 	}
 	venue.cancelThrows = true
-	report, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": venue}), map[string]any{"strategy": "limit_protected", "live": true, "usdRates": map[string]any{"USDT": 1.0}, "orderTimeoutMs": 2.0, "pollIntervalMs": 1.0})
+	report, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": venue}), map[string]any{"strategy": "limit_protected", "usdRates": map[string]any{"USDT": 1.0}, "orderTimeoutMs": 2.0, "pollIntervalMs": 1.0})
 	if err != nil {
 		t.Fatalf("execute: %v", err)
 	}
@@ -1812,7 +1812,7 @@ func TestOrderRouterOrderIdSurvivesAFailureAfterCreate(t *testing.T) {
 	venue := newOrderRouterStubVenue(1, false)
 	venue.createdStatus = "open"
 	venue.fetchOrderThrows = true
-	report, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": venue}), map[string]any{"strategy": "limit_protected", "live": true, "usdRates": map[string]any{"USDT": 1.0}, "orderTimeoutMs": 4.0, "pollIntervalMs": 1.0})
+	report, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": venue}), map[string]any{"strategy": "limit_protected", "usdRates": map[string]any{"USDT": 1.0}, "orderTimeoutMs": 4.0, "pollIntervalMs": 1.0})
 	if err != nil {
 		t.Fatalf("execute: %v", err)
 	}
@@ -1839,7 +1839,7 @@ func TestOrderRouterOrderIdSurvivesAFailureAfterCreate(t *testing.T) {
 	// the same holds for an immediate order, which has no poll loop at all
 	other := newOrderRouterStubVenue(1, false)
 	other.createdStatus = "open"
-	okReport, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": other}), map[string]any{"strategy": "sequential", "live": true, "usdRates": map[string]any{"USDT": 1.0}, "allowReexecution": true})
+	okReport, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": other}), map[string]any{"strategy": "sequential", "usdRates": map[string]any{"USDT": 1.0}, "allowReexecution": true})
 	if err != nil {
 		t.Fatalf("execute: %v", err)
 	}
@@ -1875,7 +1875,7 @@ func TestOrderRouterARestingOrderIsCancelled(t *testing.T) {
 	router := routerTestRouter(t)
 	strategies := []string{"sequential", "parallel_within_hop", "best_effort"}
 	for _, strategy := range strategies {
-		options := map[string]any{"strategy": strategy, "live": true, "usdRates": map[string]any{"USDT": 1.0}}
+		options := map[string]any{"strategy": strategy, "usdRates": map[string]any{"USDT": 1.0}}
 		if strategy == "best_effort" {
 			options["acknowledgeDispersion"] = true
 			options["maxOrders"] = 4.0
@@ -1954,7 +1954,7 @@ func TestOrderRouterAtomicIshDemandsTheWholeRoutePrefunded(t *testing.T) {
 	plan := routerMustPlan(router.BuildExecutionPlan(routerTwoHopRoute(), nil))
 	// hop 0 needs 20 USDT and hop 1 needs 0.2 BTC, both already sitting there
 	funded := newOrderRouterStubVenue(1, false)
-	rich, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": funded}), map[string]any{"strategy": "atomic_ish", "live": true, "usdRates": map[string]any{"USDT": 1.0}})
+	rich, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": funded}), map[string]any{"strategy": "atomic_ish", "usdRates": map[string]any{"USDT": 1.0}})
 	if err != nil {
 		t.Fatalf("a pre-funded route runs end to end: %v", err)
 	}
@@ -1967,7 +1967,7 @@ func TestOrderRouterAtomicIshDemandsTheWholeRoutePrefunded(t *testing.T) {
 		btc := 0.0
 		return Balances{Free: map[string]*float64{"USDT": &usdt, "BTC": &btc}}, nil
 	}
-	_, err = router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": broke}), map[string]any{"strategy": "atomic_ish", "live": true, "usdRates": map[string]any{"USDT": 1.0}, "allowReexecution": true})
+	_, err = router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": broke}), map[string]any{"strategy": "atomic_ish", "usdRates": map[string]any{"USDT": 1.0}, "allowReexecution": true})
 	if routerErrorCode(err) != "InsufficientFunds" {
 		t.Fatalf("an underfunded route is refused, got %v", err)
 	}
@@ -2371,7 +2371,7 @@ func TestOrderRouterLiveRequiresAnIdentity(t *testing.T) {
 	route["requestId"] = ""
 	plan := routerMustPlan(router.BuildExecutionPlan(route, nil))
 	rates := map[string]any{"USDT": 1.0}
-	live := map[string]any{"strategy": "sequential", "live": true, "usdRates": rates}
+	live := map[string]any{"strategy": "sequential", "usdRates": rates}
 	venue := newOrderRouterStubVenue(1, false)
 	_, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": venue}), live)
 	if err == nil || !strings.Contains(err.Error(), "carries no requestId") {
@@ -2389,7 +2389,7 @@ func TestOrderRouterLiveRequiresAnIdentity(t *testing.T) {
 	// shape, and such a plan never went through a routing request, so requestId is the one
 	// identity it cannot have. options idempotencyKey is how it supplies one.
 	supplied := newOrderRouterStubVenue(1, false)
-	keyed, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": supplied}), map[string]any{"strategy": "sequential", "live": true, "usdRates": rates, "idempotencyKey": "hand-built-1"})
+	keyed, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": supplied}), map[string]any{"strategy": "sequential", "usdRates": rates, "idempotencyKey": "hand-built-1"})
 	if err != nil {
 		t.Fatalf("a supplied idempotencyKey is an identity: %v", err)
 	}
@@ -2404,7 +2404,7 @@ func TestOrderRouterLiveRequiresAnIdentity(t *testing.T) {
 	}
 	// and the guard keys off it, exactly as it does off a requestId
 	again := newOrderRouterStubVenue(1, false)
-	_, err = router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": again}), map[string]any{"strategy": "sequential", "live": true, "usdRates": rates, "idempotencyKey": "hand-built-1"})
+	_, err = router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": again}), map[string]any{"strategy": "sequential", "usdRates": rates, "idempotencyKey": "hand-built-1"})
 	if err == nil || !strings.Contains(err.Error(), "already executed") {
 		t.Fatalf("the same key must be refused a second time, got %v", err)
 	}
@@ -2412,7 +2412,7 @@ func TestOrderRouterLiveRequiresAnIdentity(t *testing.T) {
 	// about what this execution is, and the caller is closer to that than the plan is
 	routed := routerMustPlan(router.BuildExecutionPlan(routerOneLegRoute("buy", "BTC", "USDT", 0.2, 100), nil))
 	overridden := newOrderRouterStubVenue(1, false)
-	report, err := router.Execute(routed, routerStubVenues(map[string]*orderRouterStubVenue{"stub": overridden}), map[string]any{"strategy": "sequential", "live": true, "usdRates": rates, "idempotencyKey": "override-1"})
+	report, err := router.Execute(routed, routerStubVenues(map[string]*orderRouterStubVenue{"stub": overridden}), map[string]any{"strategy": "sequential", "usdRates": rates, "idempotencyKey": "override-1"})
 	if err != nil {
 		t.Fatalf("an explicit key overrides: %v", err)
 	}
@@ -2432,7 +2432,7 @@ func TestOrderRouterClientOrderIdIsNeverInjected(t *testing.T) {
 	// by default nothing is injected: each exchange's CreateOrder sends whatever identifier
 	// it generates on its own
 	bare := newOrderRouterStubVenue(1, false)
-	report, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": bare}), map[string]any{"strategy": "sequential", "live": true, "usdRates": map[string]any{"USDT": 1.0}})
+	report, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": bare}), map[string]any{"strategy": "sequential", "usdRates": map[string]any{"USDT": 1.0}})
 	if err != nil {
 		t.Fatalf("execute: %v", err)
 	}
@@ -2456,7 +2456,6 @@ func TestOrderRouterClientOrderIdIsNeverInjected(t *testing.T) {
 	venue := newOrderRouterStubVenue(1, false)
 	supplied, err := second.Execute(routerMustPlan(second.BuildExecutionPlan(route, nil)), routerStubVenues(map[string]*orderRouterStubVenue{"stub": venue}), map[string]any{
 		"strategy":    "sequential",
-		"live":        true,
 		"usdRates":    map[string]any{"USDT": 1.0},
 		"orderParams": map[string]any{"clientOrderId": "caller-supplied", "reduceOnly": true},
 	})
@@ -2478,7 +2477,7 @@ func TestOrderRouterClientOrderIdIsNeverInjected(t *testing.T) {
 func TestOrderRouterReexecutionIsRefused(t *testing.T) {
 	router := routerTestRouter(t)
 	plan := routerMustPlan(router.BuildExecutionPlan(routerOneLegRoute("buy", "BTC", "USDT", 0.2, 100), nil))
-	options := map[string]any{"strategy": "sequential", "live": true, "usdRates": map[string]any{"USDT": 1.0}}
+	options := map[string]any{"strategy": "sequential", "usdRates": map[string]any{"USDT": 1.0}}
 	first := newOrderRouterStubVenue(1, false)
 	report, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": first}), options)
 	if err != nil {
@@ -2506,7 +2505,7 @@ func TestOrderRouterReexecutionIsRefused(t *testing.T) {
 	}
 	// ...and the legitimate retry path is explicit
 	allowed := newOrderRouterStubVenue(1, false)
-	retry, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": allowed}), map[string]any{"strategy": "sequential", "live": true, "usdRates": map[string]any{"USDT": 1.0}, "allowReexecution": true})
+	retry, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": allowed}), map[string]any{"strategy": "sequential", "usdRates": map[string]any{"USDT": 1.0}, "allowReexecution": true})
 	if err != nil {
 		t.Fatalf("an explicit opt-in runs it again: %v", err)
 	}
@@ -2533,7 +2532,7 @@ func TestOrderRouterDryRunDoesNotConsumeAPlan(t *testing.T) {
 	// same. The ledger records the attempt, not the outcome.
 	failedPlan := routerMustPlan(router.BuildExecutionPlan(routerOneLegRoute("buy", "BTC", "USDT", 0.2, 100), nil))
 	broken := newOrderRouterStubVenue(1, true)
-	failedReport, err := router.Execute(failedPlan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": broken}), map[string]any{"strategy": "sequential", "live": true, "usdRates": rates})
+	failedReport, err := router.Execute(failedPlan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": broken}), map[string]any{"strategy": "sequential", "usdRates": rates})
 	if err != nil {
 		t.Fatalf("a contained failure is reported, not returned: %v", err)
 	}
@@ -2541,7 +2540,7 @@ func TestOrderRouterDryRunDoesNotConsumeAPlan(t *testing.T) {
 		t.Fatal("the run halted")
 	}
 	retry := newOrderRouterStubVenue(1, false)
-	_, err = router.Execute(failedPlan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": retry}), map[string]any{"strategy": "sequential", "live": true, "usdRates": rates})
+	_, err = router.Execute(failedPlan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": retry}), map[string]any{"strategy": "sequential", "usdRates": rates})
 	if err == nil || !strings.Contains(err.Error(), "already executed") {
 		t.Fatalf("a failed run still consumed the plan, got %v", err)
 	}
@@ -2594,7 +2593,7 @@ func TestOrderRouterLedgerIsBounded(t *testing.T) {
 	// documented weakening at the cap, not an accident — if this assertion ever has to
 	// change, the comment on OrderRouterMaxExecutedPlanIds has to change with it.
 	rates := map[string]any{"USDT": 1.0}
-	opts := map[string]any{"strategy": "sequential", "live": true, "usdRates": rates}
+	opts := map[string]any{"strategy": "sequential", "usdRates": rates}
 	plan := routerMustPlan(bounded.BuildExecutionPlan(routerOneLegRoute("buy", "BTC", "USDT", 0.2, 100), nil))
 	if _, err := bounded.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": newOrderRouterStubVenue(1, false)}), opts); err != nil {
 		t.Fatalf("the first execution runs: %v", err)
@@ -2631,7 +2630,7 @@ func TestOrderRouterOnStepSeesEveryStepAndCanStopTheRoute(t *testing.T) {
 	venue := newOrderRouterStubVenue(1, false)
 	seen := []map[string]any{}
 	report, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": venue}), map[string]any{
-		"strategy": "sequential", "live": true, "usdRates": map[string]any{"USDT": 1.0},
+		"strategy": "sequential", "usdRates": map[string]any{"USDT": 1.0},
 		"onStep": func(event map[string]any) string {
 			seen = append(seen, event)
 			if routerNumberAt(event, "stepIndex", -1) == 0 {
@@ -2681,7 +2680,7 @@ func TestOrderRouterOnStepThatPanicsIsRecordedAndDoesNotTakeTheRunDown(t *testin
 	plan := routerMustPlan(router.BuildExecutionPlan(routerOneLegRoute("buy", "BTC", "USDT", 0.2, 100), map[string]any{}))
 	venue := newOrderRouterStubVenue(1, false)
 	report, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": venue}), map[string]any{
-		"strategy": "sequential", "live": true, "usdRates": map[string]any{"USDT": 1.0},
+		"strategy": "sequential", "usdRates": map[string]any{"USDT": 1.0},
 		"onStep": func(event map[string]any) string { panic(ExchangeError("hook is broken")) },
 	})
 	if err != nil {
@@ -2711,7 +2710,7 @@ func TestOrderRouterOnStepCanOnlyNarrow(t *testing.T) {
 	plan := routerMustPlan(router.BuildExecutionPlan(routerTwoHopRoute(), map[string]any{}))
 	starved := newOrderRouterStubVenue(0.1, false)
 	report, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": starved}), map[string]any{
-		"strategy": "sequential", "live": true, "usdRates": map[string]any{"USDT": 1.0},
+		"strategy": "sequential", "usdRates": map[string]any{"USDT": 1.0},
 		"onStep": func(event map[string]any) string { return "continue" },
 	})
 	if err != nil {
@@ -2740,7 +2739,7 @@ func TestOrderRouterRetryFailedStepsUsesANewClientOrderIdAndNeverRetriesAnUnknow
 	relents := newOrderRouterStubVenue(1, false)
 	relents.failCreateTimes = 1
 	report, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": relents}), map[string]any{
-		"strategy": "sequential", "live": true, "usdRates": map[string]any{"USDT": 1.0},
+		"strategy": "sequential", "usdRates": map[string]any{"USDT": 1.0},
 		"retryFailedSteps": 2.0, "retryDelayMs": 0.0,
 	})
 	if err != nil {
@@ -2766,7 +2765,7 @@ func TestOrderRouterRetryFailedStepsUsesANewClientOrderIdAndNeverRetriesAnUnknow
 	unknown.timeoutCreate = true
 	plan2 := routerMustPlan(router.BuildExecutionPlan(routerOneLegRoute("buy", "BTC", "USDT", 0.2, 100), map[string]any{}))
 	second2, err := router.Execute(plan2, routerStubVenues(map[string]*orderRouterStubVenue{"stub": unknown}), map[string]any{
-		"strategy": "sequential", "live": true, "usdRates": map[string]any{"USDT": 1.0},
+		"strategy": "sequential", "usdRates": map[string]any{"USDT": 1.0},
 		"retryFailedSteps": 5.0, "retryDelayMs": 0.0,
 	})
 	if err != nil {
@@ -2789,4 +2788,130 @@ func routerCallsOfKind(log []string, kind string) []string {
 		}
 	}
 	return picked
+}
+
+func TestOrderRouterLiveOptionIsRefused(t *testing.T) {
+	// `live` used to gate execution and is gone. A call still carrying it was written against
+	// the old contract, and the dangerous reading is the silent one: `live: false` meant
+	// "place nothing" and now means nothing at all, so the orders would go out while the
+	// caller believed they had opted out.
+	router := routerTestRouter(t)
+	plan := routerMustPlan(router.BuildExecutionPlan(routerOneLegRoute("buy", "BTC", "USDT", 0.2, 100), nil))
+	venue := newOrderRouterStubVenue(1, false)
+	venues := routerStubVenues(map[string]*orderRouterStubVenue{"stub": venue})
+	rates := map[string]any{"USDT": 1.0}
+	if _, err := router.Execute(plan, venues, map[string]any{"live": false, "usdRates": rates}); routerErrorCode(err) != "BadRequest" {
+		t.Fatalf("live: false is refused rather than trading behind the caller, got %v", err)
+	}
+	if _, err := router.Execute(plan, venues, map[string]any{"live": true, "usdRates": rates}); routerErrorCode(err) != "BadRequest" {
+		t.Fatalf("and so is live: true — the option is gone, not redundant, got %v", err)
+	}
+	if len(venue.callLog()) != 0 {
+		t.Fatalf("refused before a single call reached the venue, got %v", venue.callLog())
+	}
+}
+
+func TestOrderRouterBalanceGenerationGuard(t *testing.T) {
+	// Dropping the cache before dispatch is not enough on its own. A read that began before an
+	// invalidation and lands after it describes holdings from before money moved, and
+	// installing it as the cache would fund the next quote against a wallet that no longer
+	// exists. The read still answers its own caller; it just does not become the cache.
+	venue := newOrderRouterStubVenue(1, false)
+	router, err := NewOrderRouter(map[string]any{
+		"venues":        routerStubVenues(map[string]*orderRouterStubVenue{"stub": venue}),
+		"trackBalances": true,
+	})
+	if err != nil {
+		t.Fatalf("NewOrderRouter: %v", err)
+	}
+	usdt := 1000.0
+	// the invalidation lands DURING the read, exactly as a concurrent execute would place it
+	venue.balanceFn = func() (Balances, error) {
+		router.InvalidateBalances()
+		return Balances{Free: map[string]*float64{"USDT": &usdt}, Total: map[string]*float64{"USDT": &usdt}}, nil
+	}
+	rendered, err := router.LoadBalances(true)
+	if err != nil {
+		t.Fatalf("LoadBalances: %v", err)
+	}
+	if rendered == "" {
+		t.Fatal("the caller still gets the wallet it asked for")
+	}
+	if router.BalancesAreLoaded() {
+		t.Fatal("but it did not resurrect a snapshot the invalidation retired")
+	}
+	venue.balanceFn = nil
+	if _, err := router.LoadBalances(true); err != nil {
+		t.Fatalf("LoadBalances: %v", err)
+	}
+	if !router.BalancesAreLoaded() {
+		t.Fatal("an undisturbed read still caches")
+	}
+	// a run that halts moved money too, so the cache goes with it
+	plan := routerMustPlan(router.BuildExecutionPlan(routerOneLegRoute("buy", "BTC", "USDT", 0.2, 100), nil))
+	broken := newOrderRouterStubVenue(1, true)
+	if _, err := router.Execute(plan, routerStubVenues(map[string]*orderRouterStubVenue{"stub": broken}), map[string]any{"usdRates": map[string]any{"USDT": 1.0}, "idempotencyKey": "halted-drops-cache"}); err != nil {
+		t.Fatalf("a contained failure is reported, not returned: %v", err)
+	}
+	if router.BalancesAreLoaded() {
+		t.Fatal("a halted run moved money too, so the cache goes with it")
+	}
+}
+
+func TestOrderRouterStreamUrlAppliesTheVenueFilter(t *testing.T) {
+	// A router built with venues can only execute on those. A stream that quoted the rest would
+	// hand back routes its own executor must refuse.
+	router, err := NewOrderRouter(map[string]any{
+		"venues": routerStubVenues(map[string]*orderRouterStubVenue{
+			"stub":  newOrderRouterStubVenue(1, false),
+			"other": newOrderRouterStubVenue(1, false),
+		}),
+		"baseUrl": "https://example.test/api",
+	})
+	if err != nil {
+		t.Fatalf("NewOrderRouter: %v", err)
+	}
+	url, err := router.StreamUrl("USDT", "BTC", map[string]any{"amountIn": 1.0})
+	if err != nil {
+		t.Fatalf("StreamUrl: %v", err)
+	}
+	if !strings.Contains(url, "exchanges=other%2Cstub") {
+		t.Fatalf("the held venues are the default filter, got %s", url)
+	}
+	explicitVenues, err := router.StreamUrl("USDT", "BTC", map[string]any{"amountIn": 1.0, "exchanges": []any{"kraken"}})
+	if err != nil {
+		t.Fatalf("StreamUrl: %v", err)
+	}
+	if !strings.Contains(explicitVenues, "kraken") || strings.Contains(explicitVenues, "stub") {
+		t.Fatalf("an explicit exchanges parameter wins, got %s", explicitVenues)
+	}
+	bare := routerTestRouter(t)
+	plain, err := bare.StreamUrl("USDT", "BTC", map[string]any{"amountIn": 1.0})
+	if err != nil {
+		t.Fatalf("StreamUrl: %v", err)
+	}
+	if strings.Contains(plain, "exchanges=") {
+		t.Fatalf("a router holding nothing adds nothing, got %s", plain)
+	}
+}
+
+func TestOrderRouterJoinBalancesSeparator(t *testing.T) {
+	// asserted EXACTLY, not by substring: `USDT:100` is also a substring of the malformed
+	// `.USDT:100` a port produced by hard-coding the separator, so a contains-check passes on
+	// the broken spelling and ships it to a server that rejects that syntax.
+	router := routerTestRouter(t)
+	unqualified, err := router.joinBalances([]map[string]any{{"asset": "USDT", "amount": 100.0}})
+	if err != nil {
+		t.Fatalf("joinBalances: %v", err)
+	}
+	if unqualified != "USDT:100" {
+		t.Fatalf("an unqualified holding carries no leading dot, got %s", unqualified)
+	}
+	qualified, err := router.joinBalances([]map[string]any{{"exchangeId": "mexc", "asset": "USDT", "amount": 100.0}})
+	if err != nil {
+		t.Fatalf("joinBalances: %v", err)
+	}
+	if qualified != "mexc.USDT:100" {
+		t.Fatalf("a qualified one does, got %s", qualified)
+	}
 }

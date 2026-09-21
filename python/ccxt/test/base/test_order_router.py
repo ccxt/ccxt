@@ -1859,6 +1859,74 @@ def test_retry_failed_steps():
 
 # ---------------------------------------------------------------------------
 
+@test('options.live is refused, not ignored: the old knob cannot silently place orders')
+def test_live_option_is_refused():
+    # `live` used to gate execution and is gone. A call still carrying it was written against
+    # the old contract, and the dangerous reading is the silent one: `live: False` meant
+    # "place nothing" and now means nothing at all, so the orders would go out while the
+    # caller believed they had opted out.
+    plan = router.build_execution_plan(one_leg_route('buy', 'BTC', 'USDT', 0.2, 100), {})
+    venue = StubVenue('stub')
+    assert_raises(BadRequest, lambda: router.execute(plan, {'stub': venue}, {'live': False, 'usdRates': {'USDT': 1}}), 'live: False is refused rather than trading behind the caller')
+    assert_raises(BadRequest, lambda: router.execute(plan, {'stub': venue}, {'live': True, 'usdRates': {'USDT': 1}}), 'and so is live: True — the option is gone, not redundant')
+    assert venue.calls == [], 'refused before a single call reached the venue'
+
+
+@test('a wallet read that straddles an invalidation never becomes the cache')
+def test_balance_generation_guard():
+    # Dropping the cache before dispatch is not enough on its own. A read that began before an
+    # invalidation and lands after it is describing holdings from before money moved, and
+    # installing it as the cache would fund the next quote against a wallet that no longer
+    # exists. The read still answers its own caller; it just does not become the cache.
+    venue = StubVenue('stub')
+    held = OrderRouter({'venues': {'stub': venue}, 'trackBalances': True})
+    original = venue.fetch_balance
+
+    def invalidating_read():
+        # the invalidation lands DURING the read, exactly as a concurrent execute would place it
+        held.invalidate_balances()
+        return original()
+    venue.fetch_balance = invalidating_read
+    rendered = held.load_balances(True)
+    assert rendered != '', 'the caller still gets the wallet it asked for'
+    assert not held.balances_loaded, 'but it did not resurrect a snapshot the invalidation retired'
+    venue.fetch_balance = original
+    # a run that halts moved money too, so the cache goes with it
+    held.load_balances(True)
+    assert held.balances_loaded
+    plan = held.build_execution_plan(one_leg_route('buy', 'BTC', 'USDT', 0.2, 100), {})
+    broken = StubVenue('stub', 1, True)
+    held.execute(plan, {'stub': broken}, {'usdRates': {'USDT': 1}, 'idempotencyKey': 'halted-drops-cache'})
+    assert not held.balances_loaded, 'a halted run moved money too, so the cache goes with it'
+
+
+@test('watch_route applies the same venue filter fetch_route does')
+def test_stream_url_applies_the_venue_filter():
+    # A router built with venues can only execute on those. A stream that quoted the rest would
+    # hand back routes its own executor must refuse, which is exactly the mismatch the
+    # constructor filter exists to remove.
+    held = OrderRouter({'venues': {'stub': StubVenue('stub'), 'other': StubVenue('other')}, 'baseUrl': 'https://example.test/api'})
+    url = held.stream_url('USDT', 'BTC', {'amountIn': 1})
+    assert url.find('exchanges=other%2Cstub') >= 0, url
+    # the caller still wins
+    explicit = held.stream_url('USDT', 'BTC', {'amountIn': 1, 'exchanges': ['kraken']})
+    assert explicit.find('kraken') >= 0, explicit
+    assert explicit.find('stub') == -1, explicit
+    # and a router holding nothing adds nothing
+    bare = OrderRouter({'baseUrl': 'https://example.test/api'})
+    assert bare.stream_url('USDT', 'BTC', {'amountIn': 1}).find('exchanges=') == -1
+
+
+@test('join_balances spells an unqualified holding without a leading dot')
+def test_join_balances_separator():
+    # asserted EXACTLY, not by substring: `USDT:100` is also a substring of the malformed
+    # `.USDT:100` a port produced by hard-coding the separator, so a contains-check passes on
+    # the broken spelling and ships it to a server that rejects that syntax.
+    assert router.join_balances([{'asset': 'USDT', 'amount': 100}]) == 'USDT:100'
+    assert router.join_balances([{'exchangeId': 'mexc', 'asset': 'USDT', 'amount': 100}]) == 'mexc.USDT:100'
+    assert router.join_balances([{'asset': 'USDT', 'amount': 100}, {'exchangeId': 'mexc', 'asset': 'BTC', 'amount': 0.5}]) == 'USDT:100,mexc.BTC:0.5'
+
+
 def test_order_router():
     failures = 0
     for i in range(len(TESTS)):

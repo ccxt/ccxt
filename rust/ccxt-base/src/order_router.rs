@@ -241,6 +241,9 @@ pub struct OrderRouter {
     //  HTTP request and must stay that way. Placing an order is what makes balances wrong,
     //  so a live execute drops it. A Mutex because fetch_route takes &self.
     balances_cache: std::sync::Mutex<Option<String>>,
+    //  bumped by every invalidation, so a wallet read that was already in flight when the
+    //  cache was dropped cannot store its now-obsolete snapshot on the way back
+    balances_generation: std::sync::atomic::AtomicU64,
 
     //  Whether this router manages balances at all. TWO decisions used to ride on `venues`:
     //  where you can trade, and what you hold. The first is a filter - free, and it cannot go
@@ -585,6 +588,7 @@ impl OrderRouter {
             on_step: None,
             venues: std::collections::BTreeMap::new(),
             balances_cache: std::sync::Mutex::new(None),
+            balances_generation: std::sync::atomic::AtomicU64::new(0),
             track_balances: false,
         };
         // The service dropped API keys in favour of per-IP rate limiting, so an empty key is
@@ -617,6 +621,7 @@ impl OrderRouter {
             on_step: None,
             venues: std::collections::BTreeMap::new(),
             balances_cache: std::sync::Mutex::new(None),
+            balances_generation: std::sync::atomic::AtomicU64::new(0),
             track_balances: false,
         })
     }
@@ -1726,6 +1731,19 @@ impl OrderRouter {
                 "OrderRouter: /stream/route does not accept balanceMode, because it does not accept balances. Use fetch_route",
             ));
         }
+        // the same venue filter fetch_route applies. A router built with venues can only
+        // execute on those, so a stream that quoted the rest would hand back routes its own
+        // executor must refuse. The caller's own exchanges parameter still wins.
+        let scoped_params: Value;
+        let params = if !self.venues.is_empty() && field(params, "exchanges").is_none() {
+            let mut scoped = params.as_map().cloned().unwrap_or_default();
+            let stored_ids: Vec<String> = self.venues.keys().cloned().collect();
+            scoped.insert("exchanges".to_string(), Value::from(stored_ids.join(",")));
+            scoped_params = Value::map(scoped);
+            &scoped_params
+        } else {
+            params
+        };
         // includeQuotes is deliberately NOT defaulted: the service defaults it to false on
         // this endpoint and true on the REST one, and the query builder omits what the
         // caller did not set.
@@ -3484,6 +3502,14 @@ impl OrderRouter {
         //  `dryRun` says only WHETHER. The guardrails that do the work all still run
         //  BEFORE anything is sent.
         let strategy = requested_strategy.clone();
+        //  REFUSED, not ignored. `live` was the old knob and it is gone; `live: false` meant
+        //  "place nothing" and now means nothing at all, so ignoring it silently would send
+        //  the orders while the caller believed they had opted out.
+        if field(options, "live").is_some() {
+            return Err(bad_request(
+                "OrderRouter: options.live is gone — execute places orders, and a rehearsal is asked for with dryRun. Remove live, or pass dryRun to place nothing",
+            ));
+        }
         let dry_run = self.is_exactly_true(options, "dryRun");
         let mut steps = self.clone_steps(plan);
         let mut report = self.empty_report(plan, &strategy, dry_run, &steps);
@@ -3641,6 +3667,9 @@ impl OrderRouter {
             // whether they lean on the previous hop's proceeds.
             self.execute_sequential(&mut report, &mut steps, venues, options, &usd_rates, &strategy).await;
         }
+        //  and AGAIN on the way out: a quote issued while the orders were in flight
+        //  repopulates the cache from wallets that had not settled yet.
+        self.invalidate_balances();
         self.summarise_report(&mut report, &steps);
         Ok(report)
     }
@@ -3781,7 +3810,7 @@ impl OrderRouter {
         }
     }
 
-    fn join_balances(&self, entries: &[Value]) -> RouterResult<String> {
+    pub(crate) fn join_balances(&self, entries: &[Value]) -> RouterResult<String> {
         let mut text = String::new();
         for (i, entry) in entries.iter().enumerate() {
             if i > 0 {
@@ -3821,17 +3850,39 @@ impl OrderRouter {
                 }
             }
         }
+        let generation = self
+            .balances_generation
+            .load(std::sync::atomic::Ordering::SeqCst);
         let (balances, _dropped) = self.collect_balances(&self.venues).await?;
-        if let Ok(mut guard) = self.balances_cache.lock() {
-            *guard = Some(balances.clone());
+        //  an invalidation landed while these wallets were being read, which means money
+        //  moved under this snapshot. It is still the right answer for THIS caller, but it
+        //  must not become the cache the next quote trusts.
+        if generation
+            == self
+                .balances_generation
+                .load(std::sync::atomic::Ordering::SeqCst)
+        {
+            if let Ok(mut guard) = self.balances_cache.lock() {
+                *guard = Some(balances.clone());
+            }
         }
         Ok(balances)
     }
 
     /// Drops the cached balances, so the next quote re-reads the wallets.
     pub fn invalidate_balances(&self) {
+        self.balances_generation
+            .fetch_add(1, std::sync::atomic::Ordering::SeqCst);
         if let Ok(mut guard) = self.balances_cache.lock() {
             *guard = None;
+        }
+    }
+
+    /// Reports whether a balances snapshot is currently cached.
+    pub fn balances_are_loaded(&self) -> bool {
+        match self.balances_cache.lock() {
+            Ok(guard) => guard.is_some(),
+            Err(_) => false,
         }
     }
 

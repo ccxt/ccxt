@@ -174,6 +174,9 @@ class OrderRouter {
         //  so a live execute drops it.
         $this->balancesCache = '';
         $this->balancesLoaded = false;
+        //  bumped by every invalidation, so a wallet read that was already in flight when the
+        //  cache was dropped cannot store its now-obsolete snapshot on the way back
+        $this->balancesGeneration = 0;
         //  Whether this router manages balances at all. TWO decisions used to ride on `venues`: where
         //  you can trade, and what you hold. The first is a filter - free, and it cannot go stale. The
         //  second costs an authenticated call per venue and made one bad key enough to kill a quote.
@@ -716,6 +719,19 @@ class OrderRouter {
         if ($this->fieldAt($params, 'balanceMode') !== null) {
             throw new BadRequest('OrderRouter: /stream/route does not accept balanceMode, because it does not accept balances. Use fetchRoute');
         }
+        //  the same venue filter fetchRoute applies. A router built with venues can only execute
+        //  on those, so a stream that quoted the rest would hand back routes its own executor
+        //  must refuse. The caller's own exchanges parameter still wins.
+        $storedIds = array_keys($this->venues);
+        sort($storedIds);
+        if (count($storedIds) > 0 && $this->fieldAt($params, 'exchanges') === null) {
+            $scoped = array();
+            foreach ($params as $key => $value) {
+                $scoped[$key] = $value;
+            }
+            $scoped['exchanges'] = implode(',', $storedIds);
+            $params = $scoped;
+        }
         //  includeQuotes is deliberately NOT defaulted: the service defaults it to false on this
         //  endpoint and true on the REST one, and routeQuery omits what the caller did not set.
         $query = $this->routeQuery($fromAsset, $toAsset, $params);
@@ -1136,10 +1152,17 @@ class OrderRouter {
         if ($this->balancesLoaded && !$reload) {
             return $this->balancesCache;
         }
+        $generation = $this->balancesGeneration;
         $collected = $this->collectBalances($this->venues);
-        $this->balancesCache = $this->stringAt($collected, 'balances', '');
-        $this->balancesLoaded = true;
-        return $this->balancesCache;
+        $rendered = $this->stringAt($collected, 'balances', '');
+        //  an invalidation landed while these wallets were being read, which means money moved
+        //  under this snapshot. It is still the right answer for THIS caller, but it must not
+        //  become the cache the next quote trusts.
+        if ($generation === $this->balancesGeneration) {
+            $this->balancesCache = $rendered;
+            $this->balancesLoaded = true;
+        }
+        return $rendered;
     }
 
     /**
@@ -1148,6 +1171,7 @@ class OrderRouter {
     public function invalidateBalances() {
         $this->balancesLoaded = false;
         $this->balancesCache = '';
+        $this->balancesGeneration = $this->balancesGeneration + 1;
     }
 
     /**
@@ -1342,7 +1366,10 @@ class OrderRouter {
             if ($i > 0) {
                 $text = $text . ',';
             }
-            $text = $text . $entry['exchangeId'] . '.' . $entry['asset'] . ':' . $this->formatNumber($entry['amount']);
+            //  a bare ASSET:amount, with no venue, means "wherever you hold it"
+            $venuePrefix = $this->stringAt($entry, 'exchangeId', '');
+            $scope = ($venuePrefix === '') ? '' : ($venuePrefix . '.');
+            $text = $text . $scope . $entry['asset'] . ':' . $this->formatNumber($entry['amount']);
         }
         return $text;
     }
@@ -2267,6 +2294,12 @@ class OrderRouter {
         //
         //  ONE knob, not two. `strategy` says only HOW, `dryRun` says only WHETHER.
         $strategy = $requestedStrategy;
+        //  REFUSED, not ignored. `live` was the old knob and it is gone; `live => false` meant
+        //  "place nothing" and now means nothing at all, so ignoring it silently would send the
+        //  orders while the caller believed they had opted out.
+        if ($this->fieldAt($options, 'live') !== null) {
+            throw new BadRequest('OrderRouter: options.live is gone — execute places orders, and a rehearsal is asked for with dryRun. Remove live, or pass dryRun to place nothing');
+        }
         $dryRun = ($this->fieldAt($options, 'dryRun') === true);
         $steps = $this->cloneSteps($plan);
         $report = $this->emptyReport($plan, $strategy, $dryRun, $steps);
@@ -2390,15 +2423,21 @@ class OrderRouter {
         $this->recordExecutedPlan($planId);
         //  From here orders go out, so whatever balances were cached are about to be wrong.
         $this->invalidateBalances();
-        if ($strategy === 'parallel_within_hop') {
-            $this->executeParallelWithinHop($report, $steps, $venues, $options, $usdRates);
-        } elseif ($strategy === 'best_effort') {
-            $this->executeBestEffort($report, $steps, $venues, $options, $usdRates);
-        } else {
-            //  sequential, limit_protected and atomic_ish all walk the plan one
-            //  order at a time; they differ in how a single order is placed and
-            //  in whether they lean on the previous hop's proceeds
-            $this->executeSequential($report, $steps, $venues, $options, $usdRates, $strategy);
+        try {
+            if ($strategy === 'parallel_within_hop') {
+                $this->executeParallelWithinHop($report, $steps, $venues, $options, $usdRates);
+            } elseif ($strategy === 'best_effort') {
+                $this->executeBestEffort($report, $steps, $venues, $options, $usdRates);
+            } else {
+                //  sequential, limit_protected and atomic_ish all walk the plan one
+                //  order at a time; they differ in how a single order is placed and
+                //  in whether they lean on the previous hop's proceeds
+                $this->executeSequential($report, $steps, $venues, $options, $usdRates, $strategy);
+            }
+        } finally {
+            //  and AGAIN on the way out, success or throw: a quote issued while the orders were
+            //  in flight repopulates the cache from wallets that had not settled yet.
+            $this->invalidateBalances();
         }
         $this->summariseReport($report, $steps);
         return $report;

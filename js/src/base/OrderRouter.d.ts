@@ -19,6 +19,7 @@ declare class OrderRouter {
     venues: Dict;
     balancesCache: string;
     balancesLoaded: boolean;
+    balancesGeneration: number;
     trackBalances: boolean;
     timeoutMs: number;
     maxNotionalUsd: number;

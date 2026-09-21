@@ -704,6 +704,12 @@ test ('balances accept the shape a caller actually writes, and refuse what canno
     assert.ok (nested.indexOf (encodeURIComponent ('mexc.USDT:100')) >= 0, nested);
     //  a flat wallet, with no venue, is the single-venue spelling the router also accepts
     const flat = router.routeQuery ('USDT', 'BTC', { 'balances': { 'USDT': 100 } });
+    //  asserted EXACTLY, not by substring: `USDT:100` is also a substring of the malformed
+    //  `.USDT:100` a port produced by hard-coding the separator, so a contains-check passes
+    //  on the broken spelling. An unqualified holding carries no leading dot.
+    assert.strictEqual (router.joinBalances ([ { 'asset': 'USDT', 'amount': 100 } ]), 'USDT:100');
+    assert.strictEqual (router.joinBalances ([ { 'exchangeId': 'mexc', 'asset': 'USDT', 'amount': 100 } ]), 'mexc.USDT:100');
+    assert.ok (flat.indexOf (encodeURIComponent ('.USDT:100')) < 0, 'no leading dot on an unqualified holding: ' + flat);
     assert.ok (flat.indexOf (encodeURIComponent ('USDT:100')) >= 0, flat);
     //  the rendered string still passes through untouched
     const already = router.routeQuery ('USDT', 'BTC', { 'balances': 'mexc.USDT:100' });
@@ -2356,7 +2362,6 @@ test ('the fee fix reaches the LIVE path, not just a direct reconcile call', asy
     const events: any[] = [];
     const report = await router.execute (plan, { 'stub': venue }, {
         'strategy': 'sequential',
-        'live': true,
         'usdRates': { 'USDT': 1 },
         'onStep': (event: any) => { events.push (event); return 'continue'; },
     });
@@ -2734,4 +2739,69 @@ test ('an ambiguous venue error is never retried, whatever its ccxt class', asyn
         assert.ok (report['openOrders'].length >= 1,
             name + ' must leave an openOrders entry for an operator to reconcile');
     }
+});
+
+test ('options.live is refused, not ignored: the old knob cannot silently place orders', async () => {
+    //  `live` used to gate execution and is gone. A call still carrying it was written against
+    //  the old contract, and the dangerous reading is the silent one: `live: false` meant
+    //  "place nothing" and now means nothing at all, so the orders would go out while the
+    //  caller believed they had opted out. Both spellings are refused, before any venue call.
+    const plan = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 0.2, 100), {});
+    const venue = new StubVenue ('stub');
+    await assert.rejects (async () => {
+        await router.execute (plan, { 'stub': venue }, { 'live': false, 'usdRates': { 'USDT': 1 } });
+    }, BadRequest, 'live: false is refused rather than trading behind the caller');
+    await assert.rejects (async () => {
+        await router.execute (plan, { 'stub': venue }, { 'live': true, 'usdRates': { 'USDT': 1 } });
+    }, BadRequest, 'and so is live: true — the option is gone, not redundant');
+    assert.deepStrictEqual (venue.calls, [], 'refused before a single call reached the venue');
+});
+
+test ('a quote in flight during a run cannot restore the pre-trade balances', async () => {
+    //  Dropping the cache before dispatch is not enough on its own. A quote issued while the
+    //  orders are in flight reads wallets that have not settled, and would install that
+    //  pre-trade snapshot as the cache the NEXT quote trusts. Execute therefore invalidates on
+    //  the way out as well, and a wallet read that straddles an invalidation returns its answer
+    //  without caching it.
+    const venue = new StubVenue ('stub');
+    const held = new OrderRouter ({ 'venues': { 'stub': venue }, 'trackBalances': true });
+    const stub = stubRouteFetch ();
+    let route: Dict = {};
+    try {
+        route = await held.fetchRoute ('USDT', 'BTC', { 'amountIn': 20 });
+    } finally {
+        stub.restore ();
+    }
+    const countReads = () => venue.calls.filter ((call: string) => call === 'fetchBalance').length;
+    assert.strictEqual (countReads (), 1, 'the quote primed the cache');
+    //  a read that began before the run and lands after it must not become the cache
+    const straddling = held.loadBalances (true);
+    held.invalidateBalances ();
+    await straddling;
+    assert.strictEqual (held.balancesLoaded, false, 'the in-flight read did not resurrect a snapshot the invalidation retired');
+    //  and a run that throws mid-flight still leaves the cache dropped
+    await held.loadBalances (true);
+    assert.strictEqual (held.balancesLoaded, true);
+    const broken = new StubVenue ('stub');
+    broken.failCreate = true;
+    await held.execute (route, { 'stub': broken }, { 'usdRates': { 'USDT': 1 }, 'idempotencyKey': 'straddle-failed' });
+    assert.strictEqual (held.balancesLoaded, false, 'a halted run moved money too, so the cache goes with it');
+});
+
+test ('watchRoute applies the same venue filter fetchRoute does', async () => {
+    //  A router built with venues can only execute on those. A stream that quoted the rest
+    //  would hand back routes its own executor must refuse, which is exactly the mismatch the
+    //  constructor filter exists to remove — and it must not appear the moment a caller
+    //  switches from polling to watching.
+    const venue = new StubVenue ('stub');
+    const held = new OrderRouter ({ 'venues': { 'stub': venue, 'other': new StubVenue ('other') } });
+    const url = held.streamUrl ('USDT', 'BTC', { 'amountIn': 1 });
+    assert.ok (url.indexOf ('exchanges=' + encodeURIComponent ('other,stub')) >= 0, 'the held venues are the default filter: ' + url);
+    //  sorted, so the same router always produces the same url — and the caller still wins
+    const explicit = held.streamUrl ('USDT', 'BTC', { 'amountIn': 1, 'exchanges': [ 'kraken' ] });
+    assert.ok (explicit.indexOf ('kraken') >= 0, explicit);
+    assert.ok (explicit.indexOf ('stub') < 0, 'an explicit exchanges parameter overrides the held venues: ' + explicit);
+    //  and a router holding nothing adds nothing
+    const bare = new OrderRouter ({});
+    assert.ok (bare.streamUrl ('USDT', 'BTC', { 'amountIn': 1 }).indexOf ('exchanges=') < 0);
 });

@@ -298,6 +298,8 @@ class OrderRouterStubVenue {
     //  refuse this many createOrder calls, then behave: a venue that rejects and then relents
     public $failCreateTimes;
 
+    public $invalidateDuringRead = null;
+
     public function __construct($id, $fillRatio = 1, $failCreate = false) {
         $this->id = $id;
         $this->fillRatio = $fillRatio;
@@ -355,6 +357,11 @@ class OrderRouterStubVenue {
 
     public function fetchBalance() {
         $this->calls[] = 'fetchBalance';
+        //  set to a router to have the read straddle an invalidation, as a concurrent
+        //  execute would place one
+        if ($this->invalidateDuringRead !== null) {
+            $this->invalidateDuringRead->invalidateBalances();
+        }
         return $this->balance;
     }
 
@@ -988,6 +995,12 @@ function order_router_test_balances_shapes($router) {
     order_router_assert(strpos($nested, 'mexc.BTC%3A0.5') !== false, 'the nested wallet renders: ' . $nested);
     order_router_assert(strpos($nested, 'mexc.USDT%3A100') !== false, 'both assets render: ' . $nested);
     $flat = $router->routeQuery('USDT', 'BTC', array('balances' => array('USDT' => 100)));
+    //  asserted EXACTLY, not by substring: `USDT:100` is also a substring of the malformed
+    //  `.USDT:100` this port produced by hard-coding the separator, so a contains-check passed
+    //  on the broken spelling and shipped it to a server that rejects that syntax.
+    order_router_assert($router->joinBalances(array(array('asset' => 'USDT', 'amount' => 100))) === 'USDT:100', 'an unqualified holding carries no leading dot');
+    order_router_assert($router->joinBalances(array(array('exchangeId' => 'mexc', 'asset' => 'USDT', 'amount' => 100))) === 'mexc.USDT:100', 'a qualified one does');
+    order_router_assert(strpos($flat, '.USDT%3A100') === false, 'no leading dot on the wire: ' . $flat);
     order_router_assert(strpos($flat, 'USDT%3A100') !== false, 'a flat wallet renders: ' . $flat);
     $already = $router->routeQuery('USDT', 'BTC', array('balances' => 'mexc.USDT:100'));
     order_router_assert(strpos($already, 'mexc.USDT%3A100') !== false, 'a rendered string passes through');
@@ -1899,6 +1912,58 @@ function order_router_test_ledger_is_bounded($router) {
     order_router_assert(count($reexecuted->calls) > 0, 'which means real orders — the bound costs a guarantee');
 }
 
+function order_router_test_live_option_is_refused($router) {
+    //  `live` used to gate execution and is gone. A call still carrying it was written against
+    //  the old contract, and the dangerous reading is the silent one: `live => false` meant
+    //  "place nothing" and now means nothing at all, so the orders would go out while the
+    //  caller believed they had opted out.
+    $plan = $router->buildExecutionPlan(order_router_one_leg_route('buy', 'BTC', 'USDT', 0.2, 100), array());
+    $venue = new OrderRouterStubVenue('stub');
+    order_router_assert_throws(function () use ($router, $plan, $venue) {
+        $router->execute($plan, array('stub' => $venue), array('live' => false, 'usdRates' => array('USDT' => 1)));
+    }, BadRequest::class, 'live => false is refused rather than trading behind the caller');
+    order_router_assert_throws(function () use ($router, $plan, $venue) {
+        $router->execute($plan, array('stub' => $venue), array('live' => true, 'usdRates' => array('USDT' => 1)));
+    }, BadRequest::class, 'and so is live => true — the option is gone, not redundant');
+    order_router_assert(count($venue->calls) === 0, 'refused before a single call reached the venue');
+}
+
+function order_router_test_balance_generation_guard($router) {
+    //  Dropping the cache before dispatch is not enough on its own. A read that began before an
+    //  invalidation and lands after it describes holdings from before money moved, and
+    //  installing it as the cache would fund the next quote against a wallet that no longer
+    //  exists. The read still answers its own caller; it just does not become the cache.
+    $venue = new OrderRouterStubVenue('stub');
+    $held = new OrderRouter(array('venues' => array('stub' => $venue), 'trackBalances' => true));
+    //  the invalidation lands DURING the read, exactly as a concurrent execute would place it
+    $venue->invalidateDuringRead = $held;
+    $rendered = $held->loadBalances(true);
+    order_router_assert($rendered !== '', 'the caller still gets the wallet it asked for');
+    order_router_assert($held->balancesLoaded === false, 'but it did not resurrect a snapshot the invalidation retired');
+    $venue->invalidateDuringRead = null;
+    $held->loadBalances(true);
+    order_router_assert($held->balancesLoaded === true, 'an undisturbed read still caches');
+    //  a run that halts moved money too, so the cache goes with it
+    $plan = $held->buildExecutionPlan(order_router_one_leg_route('buy', 'BTC', 'USDT', 0.2, 100), array());
+    $broken = new OrderRouterStubVenue('stub', 1, true);
+    $held->execute($plan, array('stub' => $broken), array('usdRates' => array('USDT' => 1), 'idempotencyKey' => 'halted-drops-cache'));
+    order_router_assert($held->balancesLoaded === false, 'a halted run moved money too, so the cache goes with it');
+}
+
+function order_router_test_stream_url_applies_the_venue_filter($router) {
+    //  A router built with venues can only execute on those. A stream that quoted the rest
+    //  would hand back routes its own executor must refuse, which is exactly the mismatch the
+    //  constructor filter exists to remove.
+    $held = new OrderRouter(array('venues' => array('stub' => new OrderRouterStubVenue('stub'), 'other' => new OrderRouterStubVenue('other')), 'baseUrl' => 'https://example.test/api'));
+    $url = $held->streamUrl('USDT', 'BTC', array('amountIn' => 1));
+    order_router_assert(strpos($url, 'exchanges=other%2Cstub') !== false, 'the held venues are the default filter: ' . $url);
+    $explicit = $held->streamUrl('USDT', 'BTC', array('amountIn' => 1, 'exchanges' => array('kraken')));
+    order_router_assert(strpos($explicit, 'kraken') !== false, $explicit);
+    order_router_assert(strpos($explicit, 'stub') === false, 'an explicit exchanges parameter wins: ' . $explicit);
+    $bare = new OrderRouter(array('baseUrl' => 'https://example.test/api'));
+    order_router_assert(strpos($bare->streamUrl('USDT', 'BTC', array('amountIn' => 1)), 'exchanges=') === false, 'a router holding nothing adds nothing');
+}
+
 function test_order_router() {
     $router = new OrderRouter(array('apiKey' => 'test-key'));
     $tests = array(
@@ -1977,6 +2042,9 @@ function test_order_router() {
         'an onStep that throws is recorded, and does not take the run down with it' => 'ccxt\order_router_test_on_step_that_throws_is_recorded',
         'onStep can only narrow: it cannot resume a route the reconciliation already halted' => 'ccxt\order_router_test_on_step_can_only_narrow',
         'retryFailedSteps re-places a rejected step as a fresh order, and never retries an unknown outcome' => 'ccxt\order_router_test_retry_failed_steps',
+        'options.live is refused, not ignored: the old knob cannot silently place orders' => 'ccxt\order_router_test_live_option_is_refused',
+        'a wallet read that straddles an invalidation never becomes the cache' => 'ccxt\order_router_test_balance_generation_guard',
+        'watchRoute applies the same venue filter fetchRoute does' => 'ccxt\order_router_test_stream_url_applies_the_venue_filter',
     );
     $passed = 0;
     $failures = array();

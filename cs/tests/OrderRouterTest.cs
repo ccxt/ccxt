@@ -139,6 +139,10 @@ public class OrderRouterTest
         RunAsync("onStep can only narrow: it cannot resume a route the reconciliation already halted", OnStepCanOnlyNarrow);
         RunAsync("retryFailedSteps re-places a rejected step as a fresh order, and never retries an unknown outcome", RetryPlacesAFreshOrder);
         Run("formatNumber never emits exponent notation", FormatNumberIsPlain);
+        RunAsync("options.live is refused, not ignored: the old knob cannot silently place orders", LiveOptionIsRefused);
+        RunAsync("a wallet read that straddles an invalidation never becomes the cache", BalanceGenerationGuard);
+        Run("watchRoute applies the same venue filter fetchRoute does", StreamUrlAppliesTheVenueFilter);
+        Run("joinBalances spells an unqualified holding without a leading dot", JoinBalancesSeparator);
         Console.WriteLine("[C#] OrderRouter: " + passes.ToString(CultureInfo.InvariantCulture) + " passed, " + failures.ToString(CultureInfo.InvariantCulture) + " failed");
         return failures;
     }
@@ -1352,7 +1356,6 @@ public class OrderRouterTest
         var report = await router.Execute(plan, Venues(venue), new dict()
         {
             { "strategy", "sequential" },
-            { "live", true },
             { "usdRates", new dict() { { "USDT", 1.0 } } },
             { "onStep", hook },
         });
@@ -1381,7 +1384,6 @@ public class OrderRouterTest
         var report = await router.Execute(plan, Venues(venue), new dict()
         {
             { "strategy", "sequential" },
-            { "live", true },
             { "usdRates", new dict() { { "USDT", 1.0 } } },
             { "onStep", hook },
         });
@@ -1411,7 +1413,6 @@ public class OrderRouterTest
         var report = await router.Execute(plan, Venues(starved), new dict()
         {
             { "strategy", "sequential" },
-            { "live", true },
             { "usdRates", new dict() { { "USDT", 1.0 } } },
             { "onStep", hook },
         });
@@ -1433,7 +1434,6 @@ public class OrderRouterTest
         var report = await router.Execute(plan, Venues(relents), new dict()
         {
             { "strategy", "sequential" },
-            { "live", true },
             { "usdRates", new dict() { { "USDT", 1.0 } } },
             { "retryFailedSteps", 2.0 },
             { "retryDelayMs", 0.0 },
@@ -1458,7 +1458,6 @@ public class OrderRouterTest
             new dict()
             {
                 { "strategy", "sequential" },
-                { "live", true },
                 { "usdRates", new dict() { { "USDT", 1.0 } } },
                 { "retryFailedSteps", 5.0 },
                 { "retryDelayMs", 0.0 },
@@ -1562,10 +1561,18 @@ public class OrderRouterTest
         // Overrides the REAL signature: Exchange exposes FetchBalance returning the typed
         // Balances, not a camelCase method returning object. The stub used to declare the latter,
         // so it overrode nothing that exists and the library did not compile at all.
+        //  set to a router to have the read straddle an invalidation, as a concurrent
+        //  execute would place one
+        public OrderRouter invalidateDuringRead = null;
+
         public override async Task<ccxt.Balances> FetchBalance(object parameters = null)
         {
             this.calls.Add("fetchBalance");
             await Task.CompletedTask;
+            if (this.invalidateDuringRead != null)
+            {
+                this.invalidateDuringRead.InvalidateBalances();
+            }
             if (this.balanceOverride != null)
             {
                 return new ccxt.Balances(this.balanceOverride);
@@ -1622,6 +1629,72 @@ public class OrderRouterTest
             }
             return new ccxt.Order(payload);
         }
+    }
+
+    private static async Task LiveOptionIsRefused()
+    {
+        //  `live` used to gate execution and is gone. A call still carrying it was written
+        //  against the old contract, and the dangerous reading is the silent one: `live: false`
+        //  meant "place nothing" and now means nothing at all, so the orders would go out while
+        //  the caller believed they had opted out.
+        var router = NewRouter();
+        var plan = router.BuildExecutionPlan(OneLegRoute("buy", "BTC", "USDT", 0.2, 100), new dict());
+        var venue = new StubVenue("stub");
+        await Rejects<BadRequest>(async () => await router.Execute(plan, Venues(venue), new dict() { { "live", false }, { "usdRates", new dict() { { "USDT", 1.0 } } } }), "live: false is refused rather than trading behind the caller");
+        await Rejects<BadRequest>(async () => await router.Execute(plan, Venues(venue), new dict() { { "live", true }, { "usdRates", new dict() { { "USDT", 1.0 } } } }), "and so is live: true — the option is gone, not redundant");
+        EqualCalls(venue.calls, new List<string>(), "refused before a single call reached the venue");
+    }
+
+    private static async Task BalanceGenerationGuard()
+    {
+        //  Dropping the cache before dispatch is not enough on its own. A read that began before
+        //  an invalidation and lands after it describes holdings from before money moved, and
+        //  installing it as the cache would fund the next quote against a wallet that no longer
+        //  exists. The read still answers its own caller; it just does not become the cache.
+        var venue = new StubVenue("stub");
+        var held = new OrderRouter(new dict() { { "venues", Venues(venue) }, { "trackBalances", true } });
+        //  the invalidation lands DURING the read, exactly as a concurrent execute would place it
+        venue.invalidateDuringRead = held;
+        var rendered = await held.LoadBalances(true);
+        EqualBool(rendered != "", true, "the caller still gets the wallet it asked for");
+        EqualBool(held.BalancesAreLoaded, false, "but it did not resurrect a snapshot the invalidation retired");
+        venue.invalidateDuringRead = null;
+        await held.LoadBalances(true);
+        EqualBool(held.BalancesAreLoaded, true, "an undisturbed read still caches");
+        //  a run that halts moved money too, so the cache goes with it
+        var plan = held.BuildExecutionPlan(OneLegRoute("buy", "BTC", "USDT", 0.2, 100), new dict());
+        var broken = new StubVenue("stub");
+        broken.failCreate = true;
+        await held.Execute(plan, Venues(broken), new dict() { { "usdRates", new dict() { { "USDT", 1.0 } } }, { "idempotencyKey", "halted-drops-cache" } });
+        EqualBool(held.BalancesAreLoaded, false, "a halted run moved money too, so the cache goes with it");
+    }
+
+    private static void StreamUrlAppliesTheVenueFilter()
+    {
+        //  A router built with venues can only execute on those. A stream that quoted the rest
+        //  would hand back routes its own executor must refuse.
+        var held = new OrderRouter(new dict()
+        {
+            { "venues", Venues(new StubVenue("stub"), new StubVenue("other")) },
+            { "baseUrl", "https://example.test/api" },
+        });
+        var url = held.StreamUrl("USDT", "BTC", new dict() { { "amountIn", 1.0 } });
+        EqualBool(url.Contains("exchanges=other%2Cstub"), true, "the held venues are the default filter: " + url);
+        var explicitVenues = held.StreamUrl("USDT", "BTC", new dict() { { "amountIn", 1.0 }, { "exchanges", new List<object>() { "kraken" } } });
+        EqualBool(explicitVenues.Contains("kraken"), true, explicitVenues);
+        EqualBool(explicitVenues.Contains("stub"), false, "an explicit exchanges parameter wins: " + explicitVenues);
+        var bare = new OrderRouter(new dict() { { "baseUrl", "https://example.test/api" } });
+        EqualBool(bare.StreamUrl("USDT", "BTC", new dict() { { "amountIn", 1.0 } }).Contains("exchanges="), false, "a router holding nothing adds nothing");
+    }
+
+    private static void JoinBalancesSeparator()
+    {
+        //  asserted EXACTLY, not by substring: `USDT:100` is also a substring of the malformed
+        //  `.USDT:100` a port produced by hard-coding the separator, so a contains-check passes
+        //  on the broken spelling and ships it to a server that rejects that syntax.
+        var router = NewRouter();
+        EqualString(router.JoinBalances(new list() { new dict() { { "asset", "USDT" }, { "amount", 100.0 } } }), "USDT:100", "an unqualified holding carries no leading dot");
+        EqualString(router.JoinBalances(new list() { new dict() { { "exchangeId", "mexc" }, { "asset", "USDT" }, { "amount", 100.0 } } }), "mexc.USDT:100", "a qualified one does");
     }
 
     private static Dictionary<string, Exchange> Venues(params Exchange[] instances)
@@ -2220,7 +2293,6 @@ public class OrderRouterTest
         var supplied = await second.Execute(router.BuildExecutionPlan(route, new dict()), Venues(venue), new dict()
         {
             { "strategy", "sequential" },
-            { "live", true },
             { "usdRates", new dict() { { "USDT", 1.0 } } },
             { "orderParams", new dict() { { "clientOrderId", "caller-supplied" }, { "reduceOnly", true } } },
         });

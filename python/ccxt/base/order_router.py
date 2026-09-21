@@ -203,6 +203,9 @@ class OrderRouter:
         # wrong, so a live execute drops it.
         self.balances_cache = ''
         self.balances_loaded = False
+        # bumped by every invalidation, so a wallet read that was already in flight when the
+        # cache was dropped cannot store its now-obsolete snapshot on the way back
+        self.balances_generation = 0
         # Whether this router manages balances at all. TWO decisions used to ride on `venues`: where
         # you can trade, and what you hold. The first is a filter - free, and it cannot go stale. The
         # second costs an authenticated call per venue and made one bad key enough to kill a quote.
@@ -930,6 +933,16 @@ class OrderRouter:
             raise BadRequest('OrderRouter: /stream/route does not accept balances — a socket outlives the holdings it was opened with. Use fetch_route')
         if params.get('balanceMode') is not None:
             raise BadRequest('OrderRouter: /stream/route does not accept balanceMode, because it does not accept balances. Use fetch_route')
+        # the same venue filter fetch_route applies. A router built with venues can only
+        # execute on those, so a stream that quoted the rest would hand back routes its own
+        # executor must refuse. The caller's own exchanges parameter still wins.
+        stored_ids = sorted(list(self.venues.keys()))
+        if len(stored_ids) > 0 and params.get('exchanges') is None:
+            scoped = {}
+            for key in params:
+                scoped[key] = params[key]
+            scoped['exchanges'] = ','.join(stored_ids)
+            params = scoped
         # includeQuotes is deliberately NOT defaulted: the service defaults it to False on this
         # endpoint and True on the REST one, and route_query omits what the caller did not set.
         query = self.route_query(from_asset, to_asset, params)
@@ -974,10 +987,16 @@ class OrderRouter:
             return ''
         if self.balances_loaded and not reload:
             return self.balances_cache
+        generation = self.balances_generation
         collected = self.collect_balances(self.venues)
-        self.balances_cache = self.string_at(collected, 'balances', '')
-        self.balances_loaded = True
-        return self.balances_cache
+        rendered = self.string_at(collected, 'balances', '')
+        # an invalidation landed while these wallets were being read, which means money moved
+        # under this snapshot. It is still the right answer for THIS caller, but it must not
+        # become the cache the next quote trusts.
+        if generation == self.balances_generation:
+            self.balances_cache = rendered
+            self.balances_loaded = True
+        return rendered
 
     def invalidate_balances(self):
         """
@@ -985,6 +1004,7 @@ class OrderRouter:
         """
         self.balances_loaded = False
         self.balances_cache = ''
+        self.balances_generation = self.balances_generation + 1
 
     def collect_balances(self, venues):
         """
@@ -1889,6 +1909,12 @@ class OrderRouter:
         # ONE knob, not two. `strategy` says only HOW, `dryRun` says only WHETHER. `is True` is
         # deliberate: a config that stringifies its booleans must not silently stop trading.
         strategy = requested_strategy
+        # REFUSED, not ignored. `live` was the old knob and it is gone; a call still carrying
+        # it was written against the old contract, and the dangerous reading is the silent one:
+        # `live: False` meant "place nothing" and now means nothing at all, so the orders would
+        # go out while the caller believed they had opted out.
+        if options.get('live') is not None:
+            raise BadRequest('OrderRouter: options.live is gone — execute places orders, and a rehearsal is asked for with dryRun. Remove live, or pass dryRun to place nothing')
         dry_run = options.get('dryRun') is True
         steps = self.clone_steps(plan)
         report = self.empty_report(plan, strategy, dry_run, steps)
@@ -1990,15 +2016,21 @@ class OrderRouter:
         # From here orders go out, so whatever balances were cached are about to be wrong.
         # Dropped BEFORE dispatch: a run that raises half way through has still moved money.
         self.invalidate_balances()
-        if strategy == 'parallel_within_hop':
-            self.execute_parallel_within_hop(report, steps, venues, options, usd_rates)
-        elif strategy == 'best_effort':
-            self.execute_best_effort(report, steps, venues, options, usd_rates)
-        else:
-            # sequential, limit_protected and atomic_ish all walk the plan one
-            # order at a time; they differ in how a single order is placed and in
-            # whether they lean on the previous hop's proceeds
-            self.execute_sequential(report, steps, venues, options, usd_rates, strategy)
+        try:
+            if strategy == 'parallel_within_hop':
+                self.execute_parallel_within_hop(report, steps, venues, options, usd_rates)
+            elif strategy == 'best_effort':
+                self.execute_best_effort(report, steps, venues, options, usd_rates)
+            else:
+                # sequential, limit_protected and atomic_ish all walk the plan one
+                # order at a time; they differ in how a single order is placed and in
+                # whether they lean on the previous hop's proceeds
+                self.execute_sequential(report, steps, venues, options, usd_rates, strategy)
+        finally:
+            # and AGAIN on the way out, success or raise. The pre-dispatch drop cannot be the
+            # only one: a quote issued while the orders were in flight repopulates the cache
+            # from wallets that had not settled yet.
+            self.invalidate_balances()
         self.summarise_report(report, steps)
         return report
 

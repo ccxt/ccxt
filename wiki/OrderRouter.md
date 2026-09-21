@@ -14,6 +14,10 @@
 * [fetchCachedOrderBook](#fetchcachedorderbook)
 * [watchRoute](#watchroute)
 * [fetchRouteWithBalances](#fetchroutewithbalances)
+* [loadBalances](#loadbalances)
+* [invalidateBalances](#invalidatebalances)
+* [marketsOf](#marketsof)
+* [renderBalances](#renderbalances)
 * [buildExecutionPlan](#buildexecutionplan)
 * [checkExecutionPlanSafety](#checkexecutionplansafety)
 * [reconcileExecutionStep](#reconcileexecutionstep)
@@ -46,6 +50,8 @@ creates a client for the CCXT order-router service
 | config | <code>object</code> | Yes | client configuration |
 | config.apiKey | <code>string</code> | No | optional. The router service is public and rate-limits by IP, so no key is needed; one supplied here is still sent as the x-api-key header, which a keyless server ignores |
 | config.baseUrl | <code>string</code> | No | router base url, defaults to https://docs.ccxt.com/router/api |
+| config.venues | <code>object</code> | No | exchangeId to a ccxt exchange instance. Routes are filtered to these, and execute sends orders to them |
+| config.trackBalances | <code>bool</code> | No | read those venues' wallets and route on what you can actually fund, default false. Off, fetchRoute never touches a venue and stays a single HTTP request |
 | config.timeoutMs | <code>int</code> | No | request timeout in milliseconds, defaults to 30000 |
 | config.maxNotionalUsd | <code>float</code> | No | optional per-trade USD notional guardrail. Omitted or 0 means NO cap and no notional check at all; any positive value is honoured exactly, never clamped |
 
@@ -225,13 +231,83 @@ reads the live balances of the supplied venues, sends them to the router, and re
 | --- | --- | --- | --- |
 | fromAsset | <code>string</code> | Yes | the asset being spent |
 | toAsset | <code>string</code> | Yes | the asset being acquired |
-| venues | <code>object</code> | Yes | a dictionary of exchangeId to a ccxt exchange instance |
+| venues | <code>object</code> | No | a dictionary of exchangeId to a ccxt exchange instance; defaults to the venues the router was constructed with |
 | params | <code>object</code> | Yes | the same parameters fetchRoute accepts, minus balances which this method builds |
 | params.requireBalancesApplied | <code>bool</code> | No | throw when the router did not echo balancesApplied, default true |
 
 
 ```javascript
-OrderRouter.fetchRouteWithBalances (fromAsset, toAsset, venues, params)
+OrderRouter.fetchRouteWithBalances (fromAsset, toAsset, venues?, params)
+```
+
+
+<a name="loadBalances" id="loadbalances"></a>
+
+### loadBalances{docsify-ignore}
+reads the venues' wallets once and caches the result, so a quote stays a single HTTP request. Called for you by fetchRoute; call it yourself to prime the cache at start-up, or with reload to refresh it
+
+**Kind**: instance method of [<code>OrderRouter</code>](#OrderRouter)  
+**Returns**: <code>string</code> - the rendered balances string, empty when the router holds no venues
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| reload | <code>bool</code> | No | true re-reads the wallets even when they are already cached |
+
+
+```javascript
+OrderRouter.loadBalances (reload?)
+```
+
+
+<a name="invalidateBalances" id="invalidatebalances"></a>
+
+### invalidateBalances{docsify-ignore}
+drops the cached balances, so the next quote re-reads the wallets. Called for you after any run that reached a venue
+
+**Kind**: instance method of [<code>OrderRouter</code>](#OrderRouter)  
+
+
+```javascript
+OrderRouter.invalidateBalances ()
+```
+
+
+<a name="marketsOf" id="marketsof"></a>
+
+### marketsOf{docsify-ignore}
+loads each venue's markets and keys them by exchange id, which is the shape checkExecutionPlanSafety wants. execute does this for you; this is for calling the check yourself
+
+**Kind**: instance method of [<code>OrderRouter</code>](#OrderRouter)  
+**Returns**: <code>object</code> - exchangeId to that venue's markets
+
+
+| Param | Type | Description |
+| --- | --- | --- |
+| venues | <code>object</code> | a dictionary of exchangeId to a ccxt exchange instance |
+
+
+```javascript
+OrderRouter.marketsOf (venues)
+```
+
+
+<a name="renderBalances" id="renderbalances"></a>
+
+### renderBalances{docsify-ignore}
+turns whatever a caller wrote for `balances` into the router's wire form. Accepts the rendered string itself, a list of entries, a per-venue wallet ({ mexc: { USDT: 100 } }) and a flat single-venue wallet ({ USDT: 100 })
+
+**Kind**: instance method of [<code>OrderRouter</code>](#OrderRouter)  
+**Returns**: <code>string</code> - the `[exchangeId.]ASSET:amount` string the service reads
+
+
+| Param | Type | Description |
+| --- | --- | --- |
+| value | <code>object</code>, <code>string</code> | the holdings, in any accepted shape |
+
+
+```javascript
+OrderRouter.renderBalances (value)
 ```
 
 
@@ -324,7 +400,7 @@ OrderRouter.buildUnwindPlan (report)
 <a name="execute" id="execute"></a>
 
 ### execute{docsify-ignore}
-executes a plan against live exchange instances. THE ONLY IMPURE METHOD. dry_run is the default and options.live !== true forces dry_run regardless of the strategy requested, so a call that looks live but forgot the flag places nothing
+executes a plan against live exchange instances. THE ONLY IMPURE METHOD, and IT PLACES ORDERS: calling it is the instruction, there is no permission flag beside it. Pass options.dryRun true to rehearse instead, which makes not one call against a venue
 
 **Kind**: instance method of [<code>OrderRouter</code>](#OrderRouter)  
 **Returns**: <code>object</code> - an execution report with per-step results, openOrders, errors and the halt verdict
@@ -335,10 +411,10 @@ executes a plan against live exchange instances. THE ONLY IMPURE METHOD. dry_run
 | plan | <code>object</code> | Yes | a RouteResult from fetchRoute, a plan from buildExecutionPlan, or a caller-assembled plan of the same shape — this method never assumes it came from the routing service. A route is turned into a plan here, so the simple path is fetchRoute then execute; build the plan yourself when you want to inspect or change it first |
 | venues | <code>object</code> | Yes | a dictionary of exchangeId to a ccxt exchange instance |
 | options | <code>object</code> | No | execution options |
-| options.strategy | <code>string</code> | No | dry_run, sequential, parallel_within_hop, limit_protected, best_effort or atomic_ish |
+| options.strategy | <code>string</code> | No | HOW the orders go out: sequential (the default), parallel_within_hop, limit_protected, best_effort or atomic_ish. Whether they go out at all is options.dryRun |
 | options.slippageBps | <code>float</code> | No | only when a route is passed: how far the limit sits from the expected price, default 25 |
 | options.reconcileToleranceRatio | <code>float</code> | No | only when a route is passed: the shortfall ratio reconcileExecutionStep halts on, default 0.02 |
-| options.live | <code>bool</code> | No | must be exactly true for any order to be placed |
+| options.dryRun | <code>bool</code> | No | exactly true rehearses: the plan is built, checked and reported on, and not one call is made against a venue. Anything else, including absent, PLACES ORDERS |
 | options.usdRates | <code>object</code> | No | currency code to USD price, required when live because the notional cap cannot be enforced without it |
 | options.allowMarketOrders | <code>bool</code> | No | permit a market order when the venue cannot do IOC, default false |
 | options.maxOrders | <code>int</code> | No | hard order-count cap, required by best_effort |

@@ -175,6 +175,9 @@ type OrderRouter struct {
 	// so a live Execute drops it.
 	balancesCache  string
 	balancesLoaded bool
+	// bumped by every invalidation, so a wallet read that was already in flight when the
+	// cache was dropped cannot store its now-obsolete snapshot on the way back
+	balancesGeneration int
 
 	// Whether this router manages balances at all. TWO decisions used to ride on `venues`: where
 	// you can trade, and what you hold. The first is a filter - free, and it cannot go stale. The
@@ -773,6 +776,22 @@ func (this *OrderRouter) StreamUrl(fromAsset string, toAsset string, params map[
 	if mode, ok := params["balanceMode"]; ok && mode != nil {
 		return "", BadRequest("OrderRouter: /stream/route does not accept balanceMode, because it does not accept balances. Use FetchRoute")
 	}
+	// the same venue filter FetchRoute applies. A router built with venues can only execute
+	// on those, so a stream that quoted the rest would hand back routes its own executor
+	// must refuse. The caller's own exchanges parameter still wins.
+	storedIds := make([]string, 0, len(this.Venues))
+	for venueId := range this.Venues {
+		storedIds = append(storedIds, venueId)
+	}
+	sort.Strings(storedIds)
+	if existing, ok := params["exchanges"]; len(storedIds) > 0 && (!ok || existing == nil) {
+		scoped := map[string]any{}
+		for key, value := range params {
+			scoped[key] = value
+		}
+		scoped["exchanges"] = strings.Join(storedIds, ",")
+		params = scoped
+	}
 	// includeQuotes is deliberately NOT defaulted: the service defaults it to false on this
 	// endpoint and true on the REST one, and RouteQuery omits what the caller did not set.
 	query, err := this.RouteQuery(fromAsset, toAsset, params)
@@ -1261,19 +1280,31 @@ func (this *OrderRouter) LoadBalances(reload bool) (string, error) {
 	if this.balancesLoaded && !reload {
 		return this.balancesCache, nil
 	}
+	generation := this.balancesGeneration
 	balances, _, err := this.CollectBalances(this.Venues)
 	if err != nil {
 		return "", err
 	}
-	this.balancesCache = balances
-	this.balancesLoaded = true
-	return this.balancesCache, nil
+	// an invalidation landed while these wallets were being read, which means money moved
+	// under this snapshot. It is still the right answer for THIS caller, but it must not
+	// become the cache the next quote trusts.
+	if generation == this.balancesGeneration {
+		this.balancesCache = balances
+		this.balancesLoaded = true
+	}
+	return balances, nil
 }
 
 // InvalidateBalances drops the cached balances, so the next quote re-reads the wallets.
 func (this *OrderRouter) InvalidateBalances() {
 	this.balancesLoaded = false
 	this.balancesCache = ""
+	this.balancesGeneration = this.balancesGeneration + 1
+}
+
+// BalancesAreLoaded reports whether a balances snapshot is currently cached.
+func (this *OrderRouter) BalancesAreLoaded() bool {
+	return this.balancesLoaded
 }
 
 // CollectBalances reads every supplied venue's wallet and renders it as the
@@ -2291,6 +2322,12 @@ func (this *OrderRouter) Execute(plan map[string]any, venues map[string]IExchang
 	// `dryRun` says only WHETHER. The guardrails that do the work all still run
 	// BEFORE anything is sent.
 	strategy := requestedStrategy
+	// REFUSED, not ignored. `live` was the old knob and it is gone; `live: false` meant
+	// "place nothing" and now means nothing at all, so ignoring it silently would send the
+	// orders while the caller believed they had opted out.
+	if live, ok := options["live"]; ok && live != nil {
+		return nil, BadRequest("OrderRouter: options.live is gone — execute places orders, and a rehearsal is asked for with dryRun. Remove live, or pass dryRun to place nothing")
+	}
 	dryRun := routerIsExactlyTrue(options, "dryRun")
 	steps := this.cloneSteps(plan)
 	report, results := this.emptyReport(plan, strategy, dryRun, steps)
@@ -2420,6 +2457,12 @@ func (this *OrderRouter) Execute(plan map[string]any, venues map[string]IExchang
 	// fails half way through has still placed orders, and a guard that only recorded
 	// completed runs would wave through exactly the retry that double-fills.
 	this.RecordExecutedPlan(planId)
+	// From here orders go out, so whatever balances were cached are about to be wrong.
+	// Dropped BEFORE dispatch rather than after, because a run that fails half way through
+	// has still moved money - and again on the way out, because a quote issued while the
+	// orders were in flight repopulates the cache from wallets that had not settled yet.
+	this.InvalidateBalances()
+	defer this.InvalidateBalances()
 	var err error
 	if strategy == "parallel_within_hop" {
 		err = this.executeParallelWithinHop(report, results, steps, venues, options, usdRates)

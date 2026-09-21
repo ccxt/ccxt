@@ -1665,6 +1665,9 @@ pub fn run() -> Result<usize, String> {
         ("balances accept the shape a caller actually writes", Box::new(|| balances_shapes(&router()?))),
         ("plan-shaping options with a built plan are refused, not ignored", Box::new(|| plan_shaping_refused(&router()?))),
         ("execute: a rehearsal is asked for by dryRun and places nothing", Box::new(|| dry_run_places_nothing(&router()?))),
+        ("options.live is refused, not ignored: the old knob cannot silently place orders", Box::new(|| live_option_is_refused(&router()?))),
+        ("watchRoute applies the same venue filter fetchRoute does", Box::new(|| stream_url_applies_the_venue_filter(&router()?))),
+        ("joinBalances spells an unqualified holding without a leading dot", Box::new(|| join_balances_separator(&router()?))),
         ("execute: an unknown strategy is refused even in dry run", Box::new(|| an_unknown_strategy_is_refused_even_in_dry_run(&router()?))),
         ("execute: sequential places IOC limit orders in plan order", Box::new(|| sequential_places_and_fills(&router()?))),
         ("execute: a failure BEFORE dispatch records no open order", Box::new(|| a_failure_before_dispatch_records_no_open_order(&router()?))),
@@ -2010,6 +2013,99 @@ fn plan_shaping_refused(r: &OrderRouter) -> Result<(), String> {
         Err(e) => Err(format!("wrong refusal: {e}")),
         Ok(_) => Err("shaping an already-built plan is refused".to_string()),
     }
+}
+
+fn live_option_is_refused(r: &OrderRouter) -> Result<(), String> {
+    // `live` used to gate execution and is gone. A call still carrying it was
+    // written against the old contract, and the dangerous reading is the silent
+    // one: `live: false` meant "place nothing" and now means nothing at all, so
+    // the orders would go out while the caller believed they had opted out.
+    let plan = one_leg_plan(r)?;
+    let venue = StubVenue::new("stub");
+    let counter = StdArc::clone(&venue.orders_placed);
+    let mut venues: BTreeMap<String, Box<dyn RouterVenue>> = BTreeMap::new();
+    venues.insert("stub".to_string(), Box::new(venue));
+    for flag in [false, true] {
+        let mut options = execute_options(true, "sequential").as_map().cloned().unwrap_or_default();
+        options.shift_remove("dryRun");
+        options.insert("live".to_string(), Value::Bool(flag));
+        match block_on(r.execute(&plan, &venues, &Value::map(options))) {
+            Ok(_) => return Err(format!("options.live = {flag} must be refused, not ignored")),
+            Err(error) => {
+                if !error.to_string().contains("options.live is gone") {
+                    return Err(format!("the refusal must name the replacement, got {error}"));
+                }
+            }
+        }
+    }
+    if counter.load(Ordering::SeqCst) != 0 {
+        return Err("refused before a single order reached the venue".to_string());
+    }
+    Ok(())
+}
+
+fn stream_url_applies_the_venue_filter(_r: &OrderRouter) -> Result<(), String> {
+    // A router built with venues can only execute on those. A stream that quoted
+    // the rest would hand back routes its own executor must refuse.
+    let mut config = HashMap::new();
+    config.insert("baseUrl".to_string(), Value::Str("https://example.test/api".to_string()));
+    let mut held = OrderRouter::new(&Value::Map(config)).map_err(|e| e.to_string())?;
+    let mut venues: BTreeMap<String, Box<dyn RouterVenue>> = BTreeMap::new();
+    venues.insert("stub".to_string(), Box::new(StubVenue::new("stub")));
+    venues.insert("other".to_string(), Box::new(StubVenue::new("other")));
+    held.set_venues(venues);
+    let mut params = HashMap::new();
+    params.insert("amountIn".to_string(), Value::Float(1.0));
+    let url = held
+        .stream_url("USDT", "BTC", &Value::Map(params.clone()))
+        .map_err(|e| e.to_string())?;
+    if !url.contains("exchanges=other%2Cstub") {
+        return Err(format!("the held venues are the default filter, got {url}"));
+    }
+    let mut explicit = params.clone();
+    explicit.insert("exchanges".to_string(), Value::List(vec![Value::Str("kraken".into())]));
+    let chosen = held
+        .stream_url("USDT", "BTC", &Value::Map(explicit))
+        .map_err(|e| e.to_string())?;
+    if !chosen.contains("kraken") || chosen.contains("stub") {
+        return Err(format!("an explicit exchanges parameter wins, got {chosen}"));
+    }
+    // and a router holding nothing adds nothing
+    held.clear_venues();
+    let plain = held
+        .stream_url("USDT", "BTC", &Value::Map(params))
+        .map_err(|e| e.to_string())?;
+    if plain.contains("exchanges=") {
+        return Err(format!("a router holding nothing adds nothing, got {plain}"));
+    }
+    Ok(())
+}
+
+fn join_balances_separator(r: &OrderRouter) -> Result<(), String> {
+    // asserted EXACTLY, not by substring: `USDT:100` is also a substring of the
+    // malformed `.USDT:100` a port produced by hard-coding the separator, so a
+    // contains-check passes on the broken spelling and ships it to a server that
+    // rejects that syntax.
+    let mut unqualified = HashMap::new();
+    unqualified.insert("asset".to_string(), Value::Str("USDT".to_string()));
+    unqualified.insert("amount".to_string(), Value::Float(100.0));
+    let bare = r
+        .join_balances(&[Value::Map(unqualified)])
+        .map_err(|e| e.to_string())?;
+    if bare != "USDT:100" {
+        return Err(format!("an unqualified holding carries no leading dot, got {bare}"));
+    }
+    let mut qualified = HashMap::new();
+    qualified.insert("exchangeId".to_string(), Value::Str("mexc".to_string()));
+    qualified.insert("asset".to_string(), Value::Str("USDT".to_string()));
+    qualified.insert("amount".to_string(), Value::Float(100.0));
+    let scoped = r
+        .join_balances(&[Value::Map(qualified)])
+        .map_err(|e| e.to_string())?;
+    if scoped != "mexc.USDT:100" {
+        return Err(format!("a qualified one does, got {scoped}"));
+    }
+    Ok(())
 }
 
 fn dry_run_places_nothing(r: &OrderRouter) -> Result<(), String> {

@@ -155,6 +155,7 @@ class OrderRouter {
         this.venues = this.dictAt(config, 'venues');
         this.balancesCache = '';
         this.balancesLoaded = false;
+        this.balancesGeneration = 0;
         this.trackBalances = this.boolAt(config, 'trackBalances', false);
         this.timeoutMs = this.numberAt(config, 'timeoutMs', OrderRouter.DEFAULT_TIMEOUT_MS);
         const maxNotionalUsd = this.numberAt(config, 'maxNotionalUsd', OrderRouter.NO_CAP);
@@ -625,6 +626,20 @@ class OrderRouter {
         }
         if (params['balanceMode'] !== undefined && params['balanceMode'] !== null) {
             throw new BadRequest('OrderRouter: /stream/route does not accept balanceMode, because it does not accept balances. Use fetchRoute');
+        }
+        //  the same venue filter fetchRoute applies. A router built with venues can only
+        //  execute on those, so a stream that quoted the rest would hand back routes its own
+        //  executor must refuse. The caller's own exchanges parameter still wins.
+        const storedIds = Object.keys(this.venues);
+        storedIds.sort();
+        if (storedIds.length > 0 && params['exchanges'] === undefined) {
+            const scoped = {};
+            const keys = Object.keys(params);
+            for (let i = 0; i < keys.length; i++) {
+                scoped[keys[i]] = params[keys[i]];
+            }
+            scoped['exchanges'] = storedIds.join(',');
+            params = scoped;
         }
         //  includeQuotes is deliberately NOT defaulted here. The service defaults it to false on
         //  this endpoint and true on the REST one, and routeQuery omits what the caller did not
@@ -1264,10 +1279,17 @@ class OrderRouter {
         if (this.balancesLoaded && !reload) {
             return this.balancesCache;
         }
+        const generation = this.balancesGeneration;
         const collected = await this.collectBalances(this.venues);
-        this.balancesCache = this.stringAt(collected, 'balances', '');
-        this.balancesLoaded = true;
-        return this.balancesCache;
+        const rendered = this.stringAt(collected, 'balances', '');
+        //  an invalidation landed while these wallets were being read, which means money moved
+        //  under this snapshot. It is still the right answer for THIS caller — it is what the
+        //  venues said — but it must not become the cache the next quote trusts.
+        if (generation === this.balancesGeneration) {
+            this.balancesCache = rendered;
+            this.balancesLoaded = true;
+        }
+        return rendered;
     }
     /**
      * @method
@@ -1278,6 +1300,7 @@ class OrderRouter {
     invalidateBalances() {
         this.balancesLoaded = false;
         this.balancesCache = '';
+        this.balancesGeneration = this.balancesGeneration + 1;
         return undefined;
     }
     /**
@@ -2364,6 +2387,14 @@ class OrderRouter {
         //  report to recover the strategy the conflation had overwritten. `strategy` now says
         //  only HOW, `dryRun` says only WHETHER, and the report needs no second strategy field.
         const strategy = requestedStrategy;
+        //  REFUSED, not ignored. `live` was the old knob and it is gone; a call still carrying
+        //  it means the caller is working from the old contract. Ignoring it silently is the
+        //  dangerous reading, because `live: false` used to mean "place nothing" and now means
+        //  nothing at all — the orders would go out while the caller believed they had opted
+        //  out. Naming the replacement costs one throw and no money.
+        if (options['live'] !== undefined && options['live'] !== null) {
+            throw new BadRequest('OrderRouter: options.live is gone — execute places orders, and a rehearsal is asked for with dryRun. Remove live, or pass dryRun to place nothing');
+        }
         const dryRun = (options['dryRun'] === true);
         const steps = this.cloneSteps(plan);
         const report = this.emptyReport(plan, strategy, dryRun, steps);
@@ -2499,17 +2530,26 @@ class OrderRouter {
         //  next quote funded against holdings that no longer exist. dry_run never reaches this
         //  line, so a rehearsal keeps the cache.
         this.invalidateBalances();
-        if (strategy === 'parallel_within_hop') {
-            await this.executeParallelWithinHop(report, steps, venues, options, usdRates);
+        try {
+            if (strategy === 'parallel_within_hop') {
+                await this.executeParallelWithinHop(report, steps, venues, options, usdRates);
+            }
+            else if (strategy === 'best_effort') {
+                await this.executeBestEffort(report, steps, venues, options, usdRates);
+            }
+            else {
+                //  sequential, limit_protected and atomic_ish all walk the plan one
+                //  order at a time; they differ in how a single order is placed and
+                //  in whether they lean on the previous hop's proceeds
+                await this.executeSequential(report, steps, venues, options, usdRates, strategy);
+            }
         }
-        else if (strategy === 'best_effort') {
-            await this.executeBestEffort(report, steps, venues, options, usdRates);
-        }
-        else {
-            //  sequential, limit_protected and atomic_ish all walk the plan one
-            //  order at a time; they differ in how a single order is placed and
-            //  in whether they lean on the previous hop's proceeds
-            await this.executeSequential(report, steps, venues, options, usdRates, strategy);
+        finally {
+            //  and AGAIN on the way out, success or throw. The pre-dispatch drop cannot be the
+            //  only one: a quote issued while the orders were in flight repopulates the cache
+            //  from wallets that had not settled yet, and without this second invalidation that
+            //  pre-trade snapshot would outlive the trade it was taken before.
+            this.invalidateBalances();
         }
         this.summariseReport(report, steps);
         return report;
