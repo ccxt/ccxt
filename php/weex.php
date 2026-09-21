@@ -708,7 +708,7 @@ class weex extends Exchange {
         ));
     }
 
-    public function nonce() {
+    public function nonce(): float {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
@@ -1823,7 +1823,7 @@ class weex extends Exchange {
         ), $market);
     }
 
-    public function fetch_open_interest(string $symbol, $params = array()) {
+    public function fetch_open_interest(string $symbol, $params = array()): array {
         /**
          * retrieves the open interest of a contract trading pair
          *
@@ -1844,7 +1844,7 @@ class weex extends Exchange {
         return $this->parse_open_interest($response, $market);
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null): array {
         //
         //     {
         //         "symbol": "ETHUSDT",
@@ -1941,7 +1941,7 @@ class weex extends Exchange {
         );
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical funding rate prices
          *
@@ -1975,7 +1975,7 @@ class weex extends Exchange {
         return $this->parse_funding_rate_histories($response, $market, $since, $limit);
     }
 
-    public function parse_funding_rate_history(mixed $contract, ?array $market = null) {
+    public function parse_funding_rate_history(mixed $contract, ?array $market = null): array {
         //
         //     {
         //         "symbol": "ETHUSDT",
@@ -2169,7 +2169,7 @@ class weex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * Create an order on the exchange
          *
@@ -2491,7 +2491,7 @@ class weex extends Exchange {
         return $this->safe_string($types, $triggerPriceType, $triggerPriceType);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * cancels an open $order
          *
@@ -2557,7 +2557,7 @@ class weex extends Exchange {
         return $order;
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): array {
         /**
          * cancel all open orders
          *
@@ -2601,7 +2601,7 @@ class weex extends Exchange {
         return $this->parse_orders($response, $market, null, null, $extendedParams);
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()): array {
         /**
          * cancel multiple orders
          *
@@ -2656,7 +2656,7 @@ class weex extends Exchange {
         return $this->parse_orders($ordersResponse, $market, null, null, $extendedParams);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetches information on an order made by the user
          *
@@ -3289,7 +3289,7 @@ class weex extends Exchange {
         throw new InvalidOrder($feedback);
     }
 
-    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all the trades made from a single order
          *
@@ -3707,7 +3707,7 @@ class weex extends Exchange {
         return $this->parse_positions($response, $symbols);
     }
 
-    public function fetch_position(string $symbol, $params = array()) {
+    public function fetch_position(string $symbol, $params = array()): array {
         /**
          * fetch data on an open position
          *
@@ -3748,7 +3748,7 @@ class weex extends Exchange {
         return $this->parse_positions($response, array( $market['symbol'] ));
     }
 
-    public function parse_position(array $position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null): array {
         //
         //     {
         //         "id": 737191855967437160,
@@ -4038,7 +4038,7 @@ class weex extends Exchange {
         return $this->safe_string($marginTypes, $marginType, $marginType);
     }
 
-    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array()) {
+    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array()): array {
         /**
          * set margin mode to 'cross' or 'isolated'
          *
@@ -4135,7 +4135,7 @@ class weex extends Exchange {
         );
     }
 
-    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()): array {
         /**
          * set the level of $leverage for a $market
          *
@@ -4210,7 +4210,7 @@ class weex extends Exchange {
         );
     }
 
-    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array()) {
+    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array()): array {
         /**
          * set $hedged to true or false for a $market
          *
@@ -4243,7 +4243,7 @@ class weex extends Exchange {
         return $this->contractPrivatePostCapiV3AccountMarginType($this->extend($request, $params));
     }
 
-    public function modify_margin_helper(string $symbol, mixed $amount, mixed $type, $params = array()): array {
+    public function modify_margin_helper(string $symbol, ?float $amount, int $type, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -4363,7 +4363,7 @@ class weex extends Exchange {
         $this->options['sandboxMode'] = $enable;
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $endpoint = $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $isBatch = (mb_strpos($path, 'batch') !== false);

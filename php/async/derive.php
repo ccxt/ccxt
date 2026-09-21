@@ -460,7 +460,7 @@ class derive extends Exchange {
         $this->options['sandboxMode'] = $enable;
     }
 
-    public function fetch_time($params = array()) {
+    public function fetch_time($params = array()): PromiseInterface {
         return Async\async(self::do_fetch_time(...))($params);
     }
 
@@ -1121,7 +1121,7 @@ class derive extends Exchange {
         ), $market);
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_funding_rate_history(...))($symbol, $since, $limit, $params);
     }
 
@@ -1253,7 +1253,7 @@ class derive extends Exchange {
         return $this->hash($this->binary_concat($prefix, $binaryDomainSeparator, $accountHash), 'keccak', 'hex');
     }
 
-    public function sign_order(mixed $order, mixed $privateKey) {
+    public function sign_order(mixed $order, string $privateKey): string {
         $hashOrder = $this->hash_order_message($order);
         return $this->sign_hash(mb_substr($hashOrder, -64), mb_substr($privateKey, -64));
     }
@@ -1267,7 +1267,7 @@ class derive extends Exchange {
         return '0x' . $this->hash($this->binary_concat($prefix, $binaryMessage), 'keccak', 'hex');
     }
 
-    public function sign_hash(mixed $hash, mixed $privateKey) {
+    public function sign_hash(string $hash, string $privateKey): string {
         $this->check_required_credentials();
         $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
         $r = $signature['r'];
@@ -1276,11 +1276,11 @@ class derive extends Exchange {
         return '0x' . str_pad($r, 64, '0', STR_PAD_LEFT) . str_pad($s, 64, '0', STR_PAD_LEFT) . $v;
     }
 
-    public function sign_message(mixed $message, mixed $privateKey) {
+    public function sign_message(mixed $message, string $privateKey): string {
         return $this->sign_hash($this->hash_message($message), mb_substr($privateKey, -64));
     }
 
-    public function parse_units(string $num, $dec = '1000000000000000000') {
+    public function parse_units(string $num, string $dec = '1000000000000000000'): ?string {
         return Precise::string_mul($num, $dec);
     }
 
@@ -1663,7 +1663,7 @@ class derive extends Exchange {
         return $order;
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
     }
 
@@ -1761,7 +1761,7 @@ class derive extends Exchange {
         return $this->extend($this->parse_order($order, $market), $extendParams);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_all_orders(...))($symbol, $params);
     }
 
@@ -1904,7 +1904,7 @@ class derive extends Exchange {
         //     "id": "e5a88d4f-7ac7-40cd-aec9-e0e8152b8b92"
         // }
         //
-        $data = $this->safe_value($response, 'result');
+        $data = $this->safe_dict($response, 'result');
         $page = $this->safe_integer($params, 'page');
         if ($page !== null) {
             $pagination = $this->safe_dict($data, 'pagination');
@@ -1965,7 +1965,7 @@ class derive extends Exchange {
         return Async\await($this->fetch_orders($symbol, $since, $limit, $extendedParams));
     }
 
-    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_canceled_orders(...))($symbol, $since, $limit, $params);
     }
 
@@ -2138,7 +2138,7 @@ class derive extends Exchange {
         ), $market);
     }
 
-    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order_trades(...))($id, $symbol, $since, $limit, $params);
     }
 
@@ -2218,7 +2218,7 @@ class derive extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit, $params);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
     }
 
@@ -2378,7 +2378,7 @@ class derive extends Exchange {
         return $this->parse_positions($positions, $symbols);
     }
 
-    public function parse_position(array $position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null): array {
         //
         // {
         //     "instrument_type": "perp",
@@ -2455,7 +2455,7 @@ class derive extends Exchange {
         ));
     }
 
-    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_funding_history(...))($symbol, $since, $limit, $params);
     }
 
@@ -2541,7 +2541,7 @@ class derive extends Exchange {
         return $this->parse_incomes($events, $market, $since, $limit);
     }
 
-    public function parse_income(mixed $income, ?array $market = null) {
+    public function parse_income(mixed $income, ?array $market = null): array {
         //
         // {
         //     "instrument_name": "BTC-PERP",
@@ -2866,7 +2866,7 @@ class derive extends Exchange {
         return null;
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $url = $this->urls['api'][$api] . '/' . $path;
         if ($method === 'POST') {
             $headers = array(

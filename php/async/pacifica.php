@@ -1373,7 +1373,7 @@ class pacifica extends Exchange {
         );
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_trades(...))($symbol, $since, $limit, $params);
     }
 
@@ -1573,7 +1573,7 @@ class pacifica extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -1801,7 +1801,7 @@ class pacifica extends Exchange {
         );
     }
 
-    public function create_orders_request(array $orders, $params = array()) {
+    public function create_orders_request(array $orders, $params = array()): array {
         $actions = array();
         $timestamp = $this->milliseconds(); // unified sequence
         for ($i = 0; $i < count($orders); $i++) {
@@ -1828,7 +1828,7 @@ class pacifica extends Exchange {
         return $this->batch_orders_request($actions);
     }
 
-    public function create_orders(array $orders, $params = array()) {
+    public function create_orders(array $orders, $params = array()): PromiseInterface {
         return Async\async(self::do_create_orders(...))($orders, $params);
     }
 
@@ -1885,7 +1885,7 @@ class pacifica extends Exchange {
         return $ordersToReturn;
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_orders(...))($ids, $symbol, $params);
     }
 
@@ -1949,7 +1949,7 @@ class pacifica extends Exchange {
         return $ordersToReturn;
     }
 
-    public function cancel_orders_request(array $ids, ?string $symbol = null, $params = array()) {
+    public function cancel_orders_request(array $ids, ?string $symbol = null, $params = array()): array {
         $actions = array();
         for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
@@ -1977,7 +1977,7 @@ class pacifica extends Exchange {
         return $this->batch_orders_request($actions);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_all_orders(...))($symbol, $params);
     }
 
@@ -2017,7 +2017,7 @@ class pacifica extends Exchange {
         );
     }
 
-    public function cancel_all_orders_request(?string $symbol, $params = array()) {
+    public function cancel_all_orders_request(?string $symbol, $params = array()): array {
         $operationType = 'cancel_all_orders';
         $sigPayload = array( );
         $excludeReduceOnly = $this->safe_bool($params, 'excludeReduceOnly', false);
@@ -2033,7 +2033,7 @@ class pacifica extends Exchange {
         return $request;
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
     }
 
@@ -2080,7 +2080,7 @@ class pacifica extends Exchange {
         return $this->safe_order(array( 'id' => $id, 'status' => $status, 'info' => $response, 'symbol' => $symbol ));
     }
 
-    public function cancel_order_request(?string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order_request(mixed $id, ?string $symbol = null, $params = array()): array {
         $market = $this->market($symbol);
         $isStopOrder = $this->safe_bool_2($params, 'trigger', 'stop', false);
         $operationType = null;
@@ -2102,7 +2102,7 @@ class pacifica extends Exchange {
         return $request;
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_edit_order(...))($id, $symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -2143,7 +2143,7 @@ class pacifica extends Exchange {
         return $this->safe_order(array( 'id' => $orderId, 'info' => $response, 'symbol' => $symbol ));
     }
 
-    public function edit_order_request(string $id, ?string $symbol, string $type, ?string $side, ?float $amount, ?float $price, array $market, $params = array()) {
+    public function edit_order_request(string $id, ?string $symbol, string $type, ?string $side, ?float $amount, ?float $price, array $market, $params = array()): array {
         if ($side === null) {
             throw new ArgumentsRequired($this->id . ' requires a $side argument');
         }
@@ -2174,7 +2174,7 @@ class pacifica extends Exchange {
         return $request;
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_funding_rate_history(...))($symbol, $since, $limit, $params);
     }
 
@@ -2541,7 +2541,7 @@ class pacifica extends Exchange {
         return $orders;
     }
 
-    public function add_pagination_cursor_to_result(mixed $response) {
+    public function add_pagination_cursor_to_result(array $response): array {
         $data = $this->safe_list($response, 'data', array());
         $paginationCursor = $this->safe_string($response, 'next_cursor');
         $hasMore = $this->safe_bool($response, 'has_more', false);
@@ -2557,7 +2557,7 @@ class pacifica extends Exchange {
         return $data;
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order(...))($id, $symbol, $params);
     }
 
@@ -2813,7 +2813,7 @@ class pacifica extends Exchange {
         ), $market);
     }
 
-    public function fetch_position(string $symbol, $params = array()) {
+    public function fetch_position(string $symbol, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_position(...))($symbol, $params);
     }
 
@@ -2884,7 +2884,7 @@ class pacifica extends Exchange {
         return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
     }
 
-    public function parse_position(array $position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null): array {
         //
         //     {
         //       "symbol": "AAVE",
@@ -3126,7 +3126,7 @@ class pacifica extends Exchange {
         );
     }
 
-    public function fetch_open_interests(?array $symbols = null, $params = array()) {
+    public function fetch_open_interests(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_open_interests(...))($symbols, $params);
     }
 
@@ -3175,7 +3175,7 @@ class pacifica extends Exchange {
         return $oi;
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null): array {
         //
         //     {
         //       "funding": "0.00010529",
@@ -3302,7 +3302,7 @@ class pacifica extends Exchange {
         ), $currency);
     }
 
-    public function parse_ledger_entry_type(mixed $type) {
+    public function parse_ledger_entry_type(?string $type): ?string {
         $ledgerType = array(
             'subaccount_transfer' => 'transfer',
             'deposit' => 'transaction',
@@ -3323,7 +3323,7 @@ class pacifica extends Exchange {
         return $this->safe_string($ledgerType, $type, $type);
     }
 
-    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_funding_history(...))($symbol, $since, $limit, $params);
     }
 
@@ -3385,7 +3385,7 @@ class pacifica extends Exchange {
         return $this->parse_incomes($data, $market, $since, $limit);
     }
 
-    public function parse_income(mixed $income, ?array $market = null) {
+    public function parse_income(mixed $income, ?array $market = null): array {
         //
         //     {
         //       "history_id": 2287920,
@@ -3575,7 +3575,7 @@ class pacifica extends Exchange {
         return $response;
     }
 
-    public function bind_agent_wallet(string $agentAddress, $params = array()) {
+    public function bind_agent_wallet(string $agentAddress, $params = array()): PromiseInterface {
         return Async\async(self::do_bind_agent_wallet(...))($agentAddress, $params);
     }
 
@@ -3588,7 +3588,7 @@ class pacifica extends Exchange {
         return Async\await($this->privatePostAgentBind($this->extend($request, $params)));
     }
 
-    public function create_api_key($params = array()) {
+    public function create_api_key($params = array()): PromiseInterface {
         return Async\async(self::do_create_api_key(...))($params);
     }
 
@@ -3599,7 +3599,7 @@ class pacifica extends Exchange {
         return Async\await($this->privatePostAccountApiKeysCreate($this->extend($request, $params)));
     }
 
-    public function revoke_api_key(string $apiKey, $params = array()) {
+    public function revoke_api_key(string $apiKey, $params = array()): PromiseInterface {
         return Async\async(self::do_revoke_api_key(...))($apiKey, $params);
     }
 
@@ -3612,7 +3612,7 @@ class pacifica extends Exchange {
         return Async\await($this->privatePostAccountApiKeysRevoke($this->extend($request, $params)));
     }
 
-    public function fetch_api_keys($params = array()) {
+    public function fetch_api_keys($params = array()): PromiseInterface {
         return Async\async(self::do_fetch_api_keys(...))($params);
     }
 
@@ -3623,7 +3623,7 @@ class pacifica extends Exchange {
         return Async\await($this->privatePostAccountApiKeys($this->extend($request, $params)));
     }
 
-    public function approve_builder_code(string $builderCode, string $maxFeeRate, $params = array()) {
+    public function approve_builder_code(string $builderCode, string $maxFeeRate, $params = array()): PromiseInterface {
         return Async\async(self::do_approve_builder_code(...))($builderCode, $maxFeeRate, $params);
     }
 
@@ -3648,7 +3648,7 @@ class pacifica extends Exchange {
         return Async\await($this->publicGetAccountBuilderCodesApprovals($this->extend($request)));
     }
 
-    public function revoke_builder_code(string $builderCode, $params = array()) {
+    public function revoke_builder_code(string $builderCode, $params = array()): PromiseInterface {
         return Async\async(self::do_revoke_builder_code(...))($builderCode, $params);
     }
 
@@ -3711,7 +3711,7 @@ class pacifica extends Exchange {
         return null;
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $isTestnet = $this->isSandboxModeEnabled;
         $urlKey = ($isTestnet) ? 'test' : 'api';
         $host = $this->implode_hostname($this->urls[$urlKey][$api]);
@@ -3734,7 +3734,7 @@ class pacifica extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function calculate_rate_limiter_cost(mixed $api, mixed $method, mixed $path, mixed $params, $config = array()) {
+    public function calculate_rate_limiter_cost(mixed $api, mixed $method, mixed $path, mixed $params, mixed $config = array()) {
         $cost = $this->safe_string($config, 'cost', '1');
         $costNumber = $this->parse_number($cost);
         // 1 is normal POST/GET, 0.5 is cancels, 3-12 is heavy GET

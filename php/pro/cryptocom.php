@@ -66,11 +66,11 @@ class cryptocom extends \ccxt\async\cryptocom {
         ));
     }
 
-    public function pong(Client $client, mixed $message) {
+    public function pong(Client $client, array $message) {
         return Async\async(self::do_pong(...))($client, $message);
     }
 
-    private function do_pong(Client $client, mixed $message) {
+    private function do_pong(Client $client, array $message) {
         // {
         //     "id": 1587523073344,
         //     "method": "public/heartbeat",
@@ -169,7 +169,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         return $orderbook->limit();
     }
 
-    public function un_watch_order_book_for_symbols(array $symbols, $params = array()): PromiseInterface {
+    public function un_watch_order_book_for_symbols(array $symbols, $params = array()) {
         return Async\async(self::do_un_watch_order_book_for_symbols(...))($symbols, $params);
     }
 
@@ -235,7 +235,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         }
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         // snapshot
         //    {
@@ -295,7 +295,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $data = $this->safe_value($message, 'data');
-        $data = $this->safe_value($data, 0);
+        $data = $this->safe_dict($data, 0);
         $timestamp = $this->safe_integer($data, 't');
         if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $limit = $this->safe_integer($message, 'depth');
@@ -312,7 +312,7 @@ class cryptocom extends \ccxt\async\cryptocom {
             $orderbook['datetime'] = $this->iso8601($timestamp);
             $orderbook['nonce'] = $nonce;
         } else {
-            $books = $this->safe_value($data, 'update', array());
+            $books = $this->safe_dict($data, 'update', array());
             $previousNonce = $this->safe_integer($data, 'pu');
             $currentNonce = $orderbook['nonce'];
             if ($currentNonce !== $previousNonce) {
@@ -322,8 +322,8 @@ class cryptocom extends \ccxt\async\cryptocom {
                 }
             }
         }
-        $this->handle_deltas($orderbook['asks'], $this->safe_value($books, 'asks', array()));
-        $this->handle_deltas($orderbook['bids'], $this->safe_value($books, 'bids', array()));
+        $this->handle_deltas($orderbook['asks'], $this->safe_list($books, 'asks', array()));
+        $this->handle_deltas($orderbook['bids'], $this->safe_list($books, 'bids', array()));
         $orderbook['nonce'] = $nonce;
         $this->orderbooks[$symbol] = $orderbook;
         $messageHash = 'orderbook:' . $symbol;
@@ -345,7 +345,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         return $this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params);
     }
 
-    public function un_watch_trades(string $symbol, $params = array()): PromiseInterface {
+    public function un_watch_trades(string $symbol, $params = array()) {
         /**
          * get the list of most recent trades for a particular $symbol
          *
@@ -387,7 +387,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         }
         $trades = Async\await($this->watch_public_multiple($topics, $topics, $params));
         if ($this->newUpdates) {
-            $first = $this->safe_value($trades, 0);
+            $first = $this->safe_dict($trades, 0);
             $tradeSymbol = $this->safe_string($first, 'symbol');
             $limit = $trades->getLimit($tradeSymbol, $limit);
         }
@@ -424,7 +424,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         return Async\await($this->un_watch_public_multiple('trades', $symbols, $messageHashes, $topics, $topics, $params));
     }
 
-    public function handle_trades(Client $client, mixed $message) {
+    public function handle_trades(Client $client, array $message) {
         //
         // {
         //     "code": 0,
@@ -625,7 +625,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         return Async\await($this->un_watch_public_multiple('ticker', $symbols, $messageHashes, $subMessageHashes, $subMessageHashes, $params));
     }
 
-    public function handle_ticker(Client $client, mixed $message) {
+    public function handle_ticker(Client $client, array $message) {
         //
         //     {
         //       "instrument_name": "ETHUSD-PERP",
@@ -757,7 +757,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         return $this->filter_by_array($this->bidsasks, 'symbol', $symbols);
     }
 
-    public function handle_bid_ask(Client $client, mixed $message) {
+    public function handle_bid_ask(Client $client, array $message) {
         $data = $this->safe_list($message, 'data', array());
         $ticker = $this->safe_dict($data, 0, array());
         $parsedTicker = $this->parse_ws_bid_ask($ticker);
@@ -846,7 +846,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         return Async\await($this->un_watch_public_multiple('ohlcv', array( $market['symbol'] ), array( $messageHash ), array( $subMessageHash ), array( $subMessageHash ), $params, $subExtend));
     }
 
-    public function handle_ohlcv(Client $client, mixed $message) {
+    public function handle_ohlcv(Client $client, array $message) {
         //
         //  {
         //       "instrument_name": "BTC_USDT",
@@ -863,7 +863,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         $symbol = $market['symbol'];
         $interval = $this->safe_string($message, 'interval');
         $timeframe = $this->find_timeframe($interval);
-        $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
+        $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
         $stored = $this->safe_value($this->safe_value($this->ohlcvs, $symbol), $timeframe);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
@@ -914,7 +914,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
     }
 
-    public function handle_orders(Client $client, mixed $message, ?array $subscription = null) {
+    public function handle_orders(Client $client, array $message, ?array $subscription = null) {
         //
         //    {
         //        "method": "subscribe",
@@ -1031,11 +1031,11 @@ class cryptocom extends \ccxt\async\cryptocom {
         }
     }
 
-    public function load_positions_snapshot(Client $client, mixed $messageHash) {
+    public function load_positions_snapshot(Client $client, string $messageHash) {
         return Async\async(self::do_load_positions_snapshot(...))($client, $messageHash);
     }
 
-    private function do_load_positions_snapshot(Client $client, mixed $messageHash) {
+    private function do_load_positions_snapshot(Client $client, string $messageHash) {
         $positions = Async\await($this->fetch_positions());
         $this->positions = new ArrayCacheBySymbolBySide();
         $cache = $this->positions;
@@ -1054,7 +1054,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         }
     }
 
-    public function handle_positions(mixed $client, mixed $message) {
+    public function handle_positions(Client $client, array $message) {
         //
         //    {
         //        "subscription": "user.position_balance",
@@ -1081,8 +1081,8 @@ class cryptocom extends \ccxt\async\cryptocom {
         //
         // each account is connected to a different endpoint
         // and has exactly one subscriptionhash which is the account type
-        $data = $this->safe_value($message, 'data', array());
-        $firstData = $this->safe_value($data, 0, array());
+        $data = $this->safe_list($message, 'data', array());
+        $firstData = $this->safe_dict($data, 0, array());
         $rawPositions = $this->safe_list($firstData, 'positions', array());
         if ($this->positions === null) {
             $this->positions = new ArrayCacheBySymbolBySide();
@@ -1126,7 +1126,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         return Async\await($this->watch_private_subscribe($messageHash, $params));
     }
 
-    public function handle_balance(Client $client, mixed $message) {
+    public function handle_balance(Client $client, array $message) {
         //
         //     {
         //         "id": 1,
@@ -1257,7 +1257,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         return Async\await($this->watch_private_request($messageHash, $request));
     }
 
-    public function handle_order(Client $client, mixed $message) {
+    public function handle_order(Client $client, array $message) {
         //
         //    {
         //        "id": 1,
@@ -1270,7 +1270,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         //    }
         //
         $messageHash = $this->safe_string($message, 'id');
-        $rawOrder = $this->safe_value($message, 'result', array());
+        $rawOrder = $this->safe_dict($message, 'result', array());
         $order = $this->parse_order($rawOrder);
         $client->resolve($order, $messageHash);
     }
@@ -1304,7 +1304,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         return Async\await($this->watch_private_request($messageHash, $request));
     }
 
-    public function cancel_all_orders_ws(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders_ws(?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_all_orders_ws(...))($symbol, $params);
     }
 
@@ -1334,7 +1334,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         return Async\await($this->watch_private_request($messageHash, $request));
     }
 
-    public function handle_cancel_all_orders(Client $client, mixed $message) {
+    public function handle_cancel_all_orders(Client $client, array $message) {
         //
         //    {
         //        "id": 1688914586647,
@@ -1346,11 +1346,11 @@ class cryptocom extends \ccxt\async\cryptocom {
         $client->resolve($message, $messageHash);
     }
 
-    public function watch_public(mixed $messageHash, $params = array()) {
+    public function watch_public(?string $messageHash, $params = array()) {
         return Async\async(self::do_watch_public(...))($messageHash, $params);
     }
 
-    private function do_watch_public(mixed $messageHash, $params = array()) {
+    private function do_watch_public(?string $messageHash, $params = array()) {
         $url = $this->urls['api']['ws']['public'];
         $id = $this->nonce();
         $request = array(
@@ -1364,11 +1364,11 @@ class cryptocom extends \ccxt\async\cryptocom {
         return Async\await($this->watch($url, $messageHash, $message, $messageHash));
     }
 
-    public function watch_public_multiple(mixed $messageHashes, mixed $topics, $params = array()) {
+    public function watch_public_multiple(array $messageHashes, array $topics, $params = array()) {
         return Async\async(self::do_watch_public_multiple(...))($messageHashes, $topics, $params);
     }
 
-    private function do_watch_public_multiple(mixed $messageHashes, mixed $topics, $params = array()) {
+    private function do_watch_public_multiple(array $messageHashes, array $topics, $params = array()) {
         $url = $this->urls['api']['ws']['public'];
         $id = $this->nonce();
         $request = array(
@@ -1382,11 +1382,11 @@ class cryptocom extends \ccxt\async\cryptocom {
         return Async\await($this->watch_multiple($url, $messageHashes, $message, $messageHashes));
     }
 
-    public function un_watch_public_multiple(string $topic, array $symbols, array $messageHashes, array $subMessageHashes, array $topics, $params = array(), $subExtend = array()) {
+    public function un_watch_public_multiple(string $topic, array $symbols, array $messageHashes, array $subMessageHashes, array $topics, $params = array(), array $subExtend = array()) {
         return Async\async(self::do_un_watch_public_multiple(...))($topic, $symbols, $messageHashes, $subMessageHashes, $topics, $params, $subExtend);
     }
 
-    private function do_un_watch_public_multiple(string $topic, array $symbols, array $messageHashes, array $subMessageHashes, array $topics, $params = array(), $subExtend = array()) {
+    private function do_un_watch_public_multiple(string $topic, array $symbols, array $messageHashes, array $subMessageHashes, array $topics, $params = array(), array $subExtend = array()) {
         $url = $this->urls['api']['ws']['public'];
         $id = $this->nonce();
         $request = array(
@@ -1408,11 +1408,11 @@ class cryptocom extends \ccxt\async\cryptocom {
         return Async\await($this->watch_multiple($url, $messageHashes, $message, $messageHashes, $this->extend($subscription, $subExtend)));
     }
 
-    public function watch_private_request(mixed $nonce, $params = array()) {
+    public function watch_private_request(float $nonce, $params = array()) {
         return Async\async(self::do_watch_private_request(...))($nonce, $params);
     }
 
-    private function do_watch_private_request(mixed $nonce, $params = array()) {
+    private function do_watch_private_request(float $nonce, $params = array()) {
         Async\await($this->authenticate());
         $url = $this->urls['api']['ws']['private'];
         $request = array(
@@ -1423,11 +1423,11 @@ class cryptocom extends \ccxt\async\cryptocom {
         return Async\await($this->watch($url, (string) $nonce, $message, true));
     }
 
-    public function watch_private_subscribe(mixed $messageHash, $params = array()) {
+    public function watch_private_subscribe(?string $messageHash, $params = array()) {
         return Async\async(self::do_watch_private_subscribe(...))($messageHash, $params);
     }
 
-    private function do_watch_private_subscribe(mixed $messageHash, $params = array()) {
+    private function do_watch_private_subscribe(?string $messageHash, $params = array()) {
         Async\await($this->authenticate());
         $url = $this->urls['api']['ws']['private'];
         $id = $this->nonce();
@@ -1457,7 +1457,7 @@ class cryptocom extends \ccxt\async\cryptocom {
             if (($errorCode !== null && $errorCode !== '') && $errorCode !== '0') {
                 $feedback = $this->id . ' ' . $this->json($message);
                 $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
-                $messageString = $this->safe_value($message, 'message');
+                $messageString = $this->safe_string($message, 'message');
                 if ($messageString !== null) {
                     $this->throw_broadly_matched_exception($this->exceptions['broad'], $messageString, $feedback);
                 }
@@ -1478,7 +1478,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         }
     }
 
-    public function handle_subscribe(Client $client, mixed $message) {
+    public function handle_subscribe(Client $client, array $message) {
         $methods = array(
             'candlestick' => array($this, 'handle_ohlcv'),
             'ticker' => array($this, 'handle_ticker'),
@@ -1506,7 +1506,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         }
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         //
         // ping
         //    {
@@ -1591,11 +1591,11 @@ class cryptocom extends \ccxt\async\cryptocom {
         return Async\await($future);
     }
 
-    public function handle_ping(Client $client, mixed $message) {
+    public function handle_ping(Client $client, array $message) {
         $this->spawn(array($this, 'pong'), $client, $message);
     }
 
-    public function handle_authenticate(Client $client, mixed $message) {
+    public function handle_authenticate(Client $client, array $message) {
         //
         //  { id: 1648132625434, method: "public/auth", code: 0 }
         //
@@ -1603,7 +1603,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         $future->resolve(true);
     }
 
-    public function handle_unsubscribe(Client $client, mixed $message) {
+    public function handle_unsubscribe(Client $client, array $message) {
         $id = $this->safe_string($message, 'id');
         $keys = is_array($client->subscriptions) ? array_keys($client->subscriptions) : array();
         for ($i = 0; $i < count($keys); $i++) {

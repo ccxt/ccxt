@@ -300,7 +300,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         return $this->filter_by_array($this->tickers, 'symbol', $symbols);
     }
 
-    public function handle_instrument(Client $client, mixed $message) {
+    public function handle_instrument(Client $client, array $message) {
         //
         //    {
         //        "sequence": 1,
@@ -412,7 +412,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         ));
     }
 
-    public function handle_ticker(Client $client, mixed $message) {
+    public function handle_ticker(Client $client, array $message) {
         //
         // snapshot
         //    {
@@ -514,7 +514,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
     }
 
-    public function handle_ohlcv(Client $client, mixed $message) {
+    public function handle_ohlcv(Client $client, array $message) {
         //
         // {
         //     "sequence": 0,
@@ -538,8 +538,8 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $timeframe = $this->find_timeframe($messageHash);
-        $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
-        if ($this->safe_value($this->ohlcvs[$symbol], $timeframe) === null) {
+        $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
+        if ($this->safe_dict($this->ohlcvs[$symbol], $timeframe) === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $this->ohlcvs[$symbol][$timeframe] = new ArrayCacheByTimestamp($limit);
         }
@@ -594,7 +594,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
-    public function handle_trade(mixed $client, mixed $message) {
+    public function handle_trade(Client $client, array $message): array {
         //
         //    {
         //       "sequence": 0,
@@ -624,7 +624,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         return $message;
     }
 
-    public function parse_ws_trade(mixed $trade, ?array $market = null) {
+    public function parse_ws_trade(array $trade, ?array $market = null): array {
         //
         //    {
         //       "sequence": 0,
@@ -684,7 +684,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         return $this->subscribe_multiple('LEVEL2', $symbols, $params);
     }
 
-    public function handle_order_book(mixed $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         // snapshot
         //    {
@@ -760,7 +760,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         }
     }
 
-    public function handle_subscription_status(Client $client, mixed $message) {
+    public function handle_subscription_status(Client $client, array $message): array {
         //
         //    {
         //       "channels": [
@@ -817,7 +817,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $client->resolve($fundingRate, $channel . '::' . $fundingRate['symbol']);
     }
 
-    public function handle_error_message(Client $client, mixed $message): ?bool {
+    public function handle_error_message(Client $client, array $message): ?bool {
         //
         //    {
         //        message: 'Failed to subscribe',
@@ -843,7 +843,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         return true;
     }
 
-    public function handle_message(mixed $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         if ($this->handle_error_message($client, $message) === true) {
             return;
         }

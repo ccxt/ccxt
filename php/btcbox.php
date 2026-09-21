@@ -562,7 +562,7 @@ class btcbox extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * create a trade order
          *
@@ -596,7 +596,7 @@ class btcbox extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * cancels an open order
          *
@@ -699,7 +699,7 @@ class btcbox extends Exchange {
         ), $market);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetches information on an order made by the user
          *
@@ -738,7 +738,7 @@ class btcbox extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function fetch_orders_by_type(mixed $type, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_orders_by_type(?string $type, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -805,11 +805,11 @@ class btcbox extends Exchange {
         return $this->fetch_orders_by_type('open', $symbol, $since, $limit, $params);
     }
 
-    public function nonce() {
+    public function nonce(): float {
         return $this->milliseconds();
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $url = $this->urls['api']['rest'] . '/' . $this->version . '/' . $path;
         if ($api === 'public') {
             if (count($params) > 0) {
@@ -843,17 +843,17 @@ class btcbox extends Exchange {
         if ($httpCode >= 400) {
             return null; // resort to defaultErrorHandler
         }
-        $result = $this->safe_value($response, 'result');
+        $result = $this->safe_bool($response, 'result');
         if ($result === null || $result === true) {
             return null; // either public API (no error codes expected) or success
         }
-        $code = $this->safe_value($response, 'code');
+        $code = $this->safe_string($response, 'code');
         $feedback = $this->id . ' ' . $body;
         $this->throw_exactly_matched_exception($this->exceptions, $code, $feedback);
         throw new ExchangeError($feedback); // unknown message
     }
 
-    public function request(mixed $path, $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, $config = array()) {
+    public function request(mixed $path, $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, mixed $config = array()) {
         $response = $this->fetch2($path, $api, $method, $params, $headers, $body, $config);
         if (gettype($response) === 'string') {
             // sometimes the exchange returns whitespace prepended to json

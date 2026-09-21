@@ -407,7 +407,7 @@ class aster extends \ccxt\async\aster {
         return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes));
     }
 
-    public function handle_ticker(Client $client, mixed $message) {
+    public function handle_ticker(Client $client, array $message) {
         //
         //     {
         //             "e": "24hrTicker",
@@ -451,7 +451,7 @@ class aster extends \ccxt\async\aster {
         }
     }
 
-    public function parse_ws_ticker(mixed $message, mixed $marketType) {
+    public function parse_ws_ticker(array $message, ?string $marketType): array {
         $event = $this->safe_string($message, 'e');
         $marketId = $this->safe_string($message, 's');
         $timestamp = $this->safe_integer($message, 'E');
@@ -589,7 +589,7 @@ class aster extends \ccxt\async\aster {
         return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes));
     }
 
-    public function handle_bid_ask(Client $client, mixed $message) {
+    public function handle_bid_ask(Client $client, array $message) {
         //
         //     {
         //             "e": "bookTicker",
@@ -616,7 +616,7 @@ class aster extends \ccxt\async\aster {
         $client->resolve($ticker, $messageHash);
     }
 
-    public function parse_ws_bid_ask(mixed $message, ?array $market = null) {
+    public function parse_ws_bid_ask(array $message, ?array $market = null): array {
         $timestamp = $this->safe_integer($message, 'T');
         $bidAskSymbol = ($market !== null) ? $market['symbol'] : null;
         return $this->safe_ticker(array(
@@ -721,7 +721,7 @@ class aster extends \ccxt\async\aster {
         }
         $trades = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes));
         if ($this->newUpdates) {
-            $first = $this->safe_value($trades, 0);
+            $first = $this->safe_dict($trades, 0);
             $tradeSymbol = $this->safe_string($first, 'symbol');
             $limit = $trades->getLimit($tradeSymbol, $limit);
         }
@@ -772,7 +772,7 @@ class aster extends \ccxt\async\aster {
         return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes));
     }
 
-    public function handle_trade(Client $client, mixed $message) {
+    public function handle_trade(Client $client, array $message) {
         //
         //     {
         //         "e": "aggTrade",
@@ -805,7 +805,7 @@ class aster extends \ccxt\async\aster {
         $client->resolve($stored, 'trade::' . $symbol);
     }
 
-    public function parse_ws_trade(mixed $trade, ?array $market = null): array {
+    public function parse_ws_trade(array $trade, ?array $market = null): array {
         //
         // public watchTrades (spot)
         //
@@ -1101,7 +1101,7 @@ class aster extends \ccxt\async\aster {
         return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes));
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         //     {
         //             "e": "depthUpdate",
@@ -1300,7 +1300,7 @@ class aster extends \ccxt\async\aster {
         return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes));
     }
 
-    public function handle_ohlcv(Client $client, mixed $message) {
+    public function handle_ohlcv(Client $client, array $message) {
         //
         //     {
         //             "e": "kline",
@@ -1338,7 +1338,7 @@ class aster extends \ccxt\async\aster {
         if ($timeframe === null) {
             return;
         }
-        $ohlcvsByTimeframe = $this->safe_value($this->ohlcvs, $symbol);
+        $ohlcvsByTimeframe = $this->safe_dict($this->ohlcvs, $symbol);
         if ($ohlcvsByTimeframe === null) {
             $this->ohlcvs[$symbol] = array();
         }
@@ -1365,11 +1365,11 @@ class aster extends \ccxt\async\aster {
         );
     }
 
-    public function authenticate($type = 'spot', $params = array()) {
+    public function authenticate(string $type = 'spot', $params = array()) {
         return Async\async(self::do_authenticate(...))($type, $params);
     }
 
-    private function do_authenticate($type = 'spot', $params = array()) {
+    private function do_authenticate(string $type = 'spot', $params = array()) {
         $time = $this->milliseconds();
         $lastAuthenticatedTimeOptions = $this->safe_dict($this->options, 'lastAuthenticatedTime', array());
         $lastAuthenticatedTime = $this->safe_integer($lastAuthenticatedTimeOptions, $type, 0);
@@ -1462,7 +1462,7 @@ class aster extends \ccxt\async\aster {
         $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $params);
     }
 
-    public function get_private_url($type = 'spot') {
+    public function get_private_url(string $type = 'spot'): string {
         $listenKeyOptions = $this->safe_dict($this->options, 'listenKey', array());
         $listenKey = $this->safe_string($listenKeyOptions, $type);
         $url = $this->urls['api']['ws']['private'][$type] . '/' . $listenKey;
@@ -1508,7 +1508,7 @@ class aster extends \ccxt\async\aster {
         if ((is_array($client->subscriptions) && array_key_exists($type ?? '', $client->subscriptions)) && (is_array($this->balance) && array_key_exists($type ?? '', $this->balance))) {
             return;
         }
-        $options = $this->safe_value($this->options, 'watchBalance');
+        $options = $this->safe_dict($this->options, 'watchBalance');
         $fetchBalanceSnapshot = $this->safe_bool($options, 'fetchBalanceSnapshot', false);
         if ($fetchBalanceSnapshot === true) {
             $messageHash = $type . ':fetchBalanceSnapshot';
@@ -1521,16 +1521,16 @@ class aster extends \ccxt\async\aster {
         }
     }
 
-    public function load_balance_snapshot(Client $client, mixed $messageHash, mixed $type) {
+    public function load_balance_snapshot(Client $client, string $messageHash, mixed $type) {
         return Async\async(self::do_load_balance_snapshot(...))($client, $messageHash, $type);
     }
 
-    private function do_load_balance_snapshot(Client $client, mixed $messageHash, mixed $type) {
+    private function do_load_balance_snapshot(Client $client, string $messageHash, mixed $type) {
         $params = array(
             'type' => $type,
         );
         $response = Async\await($this->fetch_balance($params));
-        $this->balance[$type] = $this->extend($response, $this->safe_value($this->balance, $type, array()));
+        $this->balance[$type] = $this->extend($response, $this->safe_dict($this->balance, $type, array()));
         // don't remove the future from the .futures cache
         if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
             $future = $client->futures[$messageHash];
@@ -1539,7 +1539,7 @@ class aster extends \ccxt\async\aster {
         }
     }
 
-    public function handle_balance(Client $client, mixed $message) {
+    public function handle_balance(Client $client, array $message) {
         //
         // spot balance update
         //     {
@@ -1686,11 +1686,11 @@ class aster extends \ccxt\async\aster {
         }
     }
 
-    public function load_positions_snapshot(Client $client, mixed $messageHash) {
+    public function load_positions_snapshot(Client $client, string $messageHash) {
         return Async\async(self::do_load_positions_snapshot(...))($client, $messageHash);
     }
 
-    private function do_load_positions_snapshot(Client $client, mixed $messageHash) {
+    private function do_load_positions_snapshot(Client $client, string $messageHash) {
         $positions = Async\await($this->fetch_positions());
         $this->positions = new ArrayCacheBySymbolBySide();
         $cache = $this->positions;
@@ -1709,7 +1709,7 @@ class aster extends \ccxt\async\aster {
         }
     }
 
-    public function handle_positions(mixed $client, mixed $message) {
+    public function handle_positions(Client $client, array $message) {
         //
         //     {
         //         "e": "ACCOUNT_UPDATE",
@@ -1770,7 +1770,7 @@ class aster extends \ccxt\async\aster {
         }
     }
 
-    public function parse_ws_position(mixed $position, ?array $market = null) {
+    public function parse_ws_position(array $position, ?array $market = null): array {
         //
         //     {
         //         "s": "BTCUSDT", // Symbol
@@ -1911,7 +1911,7 @@ class aster extends \ccxt\async\aster {
         return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
     }
 
-    public function handle_order_update(Client $client, mixed $message) {
+    public function handle_order_update(Client $client, array $message) {
         $rawOrder = $this->safe_dict($message, 'o', $message);
         $e = $this->safe_string($message, 'e');
         if (($e === 'ORDER_TRADE_UPDATE') || ($e === 'ALGO_UPDATE')) {
@@ -1921,7 +1921,7 @@ class aster extends \ccxt\async\aster {
         $this->handle_my_trade($client, $message);
     }
 
-    public function handle_my_trade(Client $client, mixed $message) {
+    public function handle_my_trade(Client $client, array $message) {
         $messageHash = 'myTrades';
         $executionType = $this->safe_string($message, 'x');
         if ($executionType === 'TRADE') {
@@ -1936,12 +1936,12 @@ class aster extends \ccxt\async\aster {
             if ($orderId !== null && $tradeFee !== null && $symbol !== null) {
                 $cachedOrders = $this->orders;
                 if ($cachedOrders !== null) {
-                    $orders = $this->safe_value($cachedOrders->hashmap, $symbol, array());
-                    $order = $this->safe_value($orders, $orderId);
+                    $orders = $this->safe_dict($cachedOrders->hashmap, $symbol, array());
+                    $order = $this->safe_dict($orders, $orderId);
                     if ($order !== null) {
                         // accumulate order fees
-                        $fees = $this->safe_value($order, 'fees');
-                        $fee = $this->safe_value($order, 'fee');
+                        $fees = $this->safe_list($order, 'fees', array());
+                        $fee = $this->safe_dict($order, 'fee');
                         if (!$this->is_empty($fees)) {
                             $insertNewFeeCurrency = true;
                             for ($i = 0; $i < count($fees); $i++) {
@@ -1992,7 +1992,7 @@ class aster extends \ccxt\async\aster {
         }
     }
 
-    public function handle_order(Client $client, mixed $message) {
+    public function handle_order(Client $client, array $message) {
         //
         // spot
         //     {
@@ -2085,7 +2085,7 @@ class aster extends \ccxt\async\aster {
         }
     }
 
-    public function parse_ws_order(mixed $order, ?array $market = null) {
+    public function parse_ws_order(array $order, ?array $market = null): array {
         $executionType = $this->safe_string($order, 'x');
         $marketId = $this->safe_string($order, 's');
         $market = $this->safe_market($marketId, $market);
@@ -2150,18 +2150,18 @@ class aster extends \ccxt\async\aster {
         ));
     }
 
-    public function get_market_from_order(Client $client, mixed $order) {
+    public function get_market_from_order(Client $client, array $order): array {
         $marketId = $this->safe_string($order, 's');
         $marketType = $this->get_account_type_from_url($client->url);
         return $this->safe_market($marketId, null, null, $marketType);
     }
 
-    public function handle_balance_and_position(Client $client, mixed $message) {
+    public function handle_balance_and_position(Client $client, array $message) {
         $this->handle_balance($client, $message);
         $this->handle_positions($client, $message);
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         $messageInner = $this->safe_dict($message, 'data', $message); // can be either wrapped in 'data' or full object itself
         $event = $this->safe_string($messageInner, 'e');
         $methods = array(

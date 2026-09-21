@@ -1245,7 +1245,7 @@ class gate extends Exchange {
         $this->options['sandboxMode'] = $enable;
     }
 
-    public function load_unified_status($params = array()) {
+    public function load_unified_status($params = array()): PromiseInterface {
         return Async\async(self::do_load_unified_status(...))($params);
     }
 
@@ -1285,7 +1285,7 @@ class gate extends Exchange {
         return $this->options['unifiedAccount'];
     }
 
-    public function upgrade_unified_trade_account($params = array()) {
+    public function upgrade_unified_trade_account($params = array()): PromiseInterface {
         return Async\async(self::do_upgrade_unified_trade_account(...))($params);
     }
 
@@ -1315,7 +1315,7 @@ class gate extends Exchange {
         return $this->safe_integer($response, 'server_time');
     }
 
-    public function create_expired_option_market(string $symbol) {
+    public function create_expired_option_market(string $symbol): array {
         // support expired option contracts
         $quote = 'USDT';
         $settle = $quote;
@@ -1485,7 +1485,7 @@ class gate extends Exchange {
         for ($i = 0; $i < count($spotMarketsResponse); $i++) {
             $spotMarket = $this->safe_dict($spotMarketsResponse, $i, array());
             $id = $this->safe_string($spotMarket, 'id');
-            $marginMarket = $this->safe_value($marginMarkets, $id);
+            $marginMarket = $this->safe_dict($marginMarkets, $id);
             $market = $this->deep_extend($marginMarket, $spotMarket);
             list($baseId, $quoteId) = explode('_', $id);
             $base = $this->safe_currency_code($baseId);
@@ -1606,7 +1606,7 @@ class gate extends Exchange {
         return $result;
     }
 
-    public function parse_contract_market(mixed $market, mixed $settleId) {
+    public function parse_contract_market(array $market, ?string $settleId): array {
         //
         //  Perpetual swap
         //
@@ -1854,7 +1854,7 @@ class gate extends Exchange {
                 $symbol = $base . '/' . $quote;
                 $expiry = $this->safe_timestamp($market, 'expiration_time');
                 $strike = $this->safe_string($market, 'strike_price');
-                $isCall = $this->safe_value($market, 'is_call');
+                $isCall = $this->safe_bool($market, 'is_call');
                 $optionLetter = ($isCall === true) ? 'C' : 'P';
                 $optionType = ($isCall === true) ? 'call' : 'put';
                 $symbol = $symbol . ':' . $quote . '-' . $this->yymmdd($expiry) . '-' . $strike . '-' . $optionLetter;
@@ -2028,7 +2028,7 @@ class gate extends Exchange {
         return array( $request, $query );
     }
 
-    public function get_margin_mode(mixed $trigger, mixed $params) {
+    public function get_margin_mode(?bool $trigger, array $params): array {
         /**
          * @ignore
          * Gets the margin type for this api call
@@ -2063,11 +2063,11 @@ class gate extends Exchange {
         return array( $marginMode, $params );
     }
 
-    public function get_settlement_currencies(mixed $type, mixed $method) {
-        $options = $this->safe_value($this->options, $type, array()); // [ 'BTC', 'USDT' ] unified codes
-        $fetchMarketsContractOptions = $this->safe_value($options, $method, array());
+    public function get_settlement_currencies(?string $type, ?string $method): array {
+        $options = $this->safe_dict($this->options, $type, array()); // [ 'BTC', 'USDT' ] unified codes
+        $fetchMarketsContractOptions = $this->safe_dict($options, $method, array());
         $defaultSettle = ($type === 'swap') ? array( 'usdt' ) : array( 'btc' );
-        return $this->safe_value($fetchMarketsContractOptions, 'settlementCurrencies', $defaultSettle);
+        return $this->safe_list($fetchMarketsContractOptions, 'settlementCurrencies', $defaultSettle);
     }
 
     public function fetch_currencies($params = array()): PromiseInterface {
@@ -2084,7 +2084,7 @@ class gate extends Exchange {
          * @return {array} an associative dictionary of currencies
          */
         // sandbox/testnet only supports future markets
-        $apiBackup = $this->safe_value($this->urls, 'apiBackup');
+        $apiBackup = $this->safe_dict($this->urls, 'apiBackup');
         if ($apiBackup !== null) {
             return array();
         }
@@ -2395,7 +2395,7 @@ class gate extends Exchange {
         );
     }
 
-    public function parse_funding_interval(mixed $interval) {
+    public function parse_funding_interval(?string $interval): ?string {
         $intervals = array(
             '3600000' => '1h',
             '14400000' => '4h',
@@ -2406,7 +2406,7 @@ class gate extends Exchange {
         return $this->safe_string($intervals, $interval, $interval);
     }
 
-    public function fetch_network_deposit_address(string $code, $params = array()) {
+    public function fetch_network_deposit_address(string $code, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_network_deposit_address(...))($code, $params);
     }
 
@@ -2474,7 +2474,7 @@ class gate extends Exchange {
             'currency' => $currency['id'],
         );
         $response = Async\await($this->privateWalletGetDepositAddress($this->extend($request, $params)));
-        $chains = $this->safe_value($response, 'multichain_addresses', array());
+        $chains = $this->safe_list($response, 'multichain_addresses', array());
         $currencyId = $this->safe_string($response, 'currency');
         $currency = $this->safe_currency($currencyId, $currency);
         $parsed = $this->parse_deposit_addresses($chains, null, false);
@@ -2602,7 +2602,7 @@ class gate extends Exchange {
         return $this->parse_trading_fees($response);
     }
 
-    public function parse_trading_fees(mixed $response) {
+    public function parse_trading_fees(array $response): array {
         $result = array();
         $symbols = $this->symbols;
         for ($i = 0; $i < count($symbols); $i++) {
@@ -2613,7 +2613,7 @@ class gate extends Exchange {
         return $result;
     }
 
-    public function parse_trading_fee(mixed $info, ?array $market = null) {
+    public function parse_trading_fee(array $info, ?array $market = null): array {
         //
         //    {
         //        "user_id": 1486602,
@@ -2628,10 +2628,10 @@ class gate extends Exchange {
         //        "futures_maker_fee": "0"
         //    }
         //
-        $gtDiscount = $this->safe_value($info, 'gt_discount');
+        $gtDiscount = $this->safe_bool($info, 'gt_discount');
         $taker = ($gtDiscount === true) ? 'gt_taker_fee' : 'taker_fee';
         $maker = ($gtDiscount === true) ? 'gt_maker_fee' : 'maker_fee';
-        $contract = $this->safe_value($market, 'contract');
+        $contract = $this->safe_bool($market, 'contract');
         $takerKey = ($contract === true) ? 'futures_taker_fee' : $taker;
         $makerKey = ($contract === true) ? 'futures_maker_fee' : $maker;
         return array(
@@ -2690,7 +2690,7 @@ class gate extends Exchange {
             if (($codes !== null) && !$this->in_array($code, $codes)) {
                 continue;
             }
-            $withdrawFixOnChains = $this->safe_value($entry, 'withdraw_fix_on_chains');
+            $withdrawFixOnChains = $this->safe_dict($entry, 'withdraw_fix_on_chains');
             if ($withdrawFixOnChains === null) {
                 $withdrawFees = $this->safe_number($entry, 'withdraw_fix');
             } else {
@@ -2752,7 +2752,7 @@ class gate extends Exchange {
         return $this->parse_deposit_withdraw_fees($response, $codes, 'currency');
     }
 
-    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null) {
+    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null): mixed {
         //
         //    {
         //        "currency": "MTN",
@@ -2770,7 +2770,7 @@ class gate extends Exchange {
         //        }
         //    }
         //
-        $withdrawFixOnChains = $this->safe_value($fee, 'withdraw_fix_on_chains');
+        $withdrawFixOnChains = $this->safe_dict($fee, 'withdraw_fix_on_chains');
         $result = array(
             'info' => $fee,
             'withdraw' => array(
@@ -2807,7 +2807,7 @@ class gate extends Exchange {
         return $result;
     }
 
-    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_funding_history(...))($symbol, $since, $limit, $params);
     }
 
@@ -3078,7 +3078,7 @@ class gate extends Exchange {
                 }
             }
         } else {
-            $ticker = $this->safe_value($response, 0);
+            $ticker = $this->safe_dict($response, 0);
         }
         if ($ticker === null) {
             throw new NullResponse($this->id . ' fetchTicker() returned empty response');
@@ -3248,7 +3248,7 @@ class gate extends Exchange {
         return $this->parse_tickers($response, $symbols);
     }
 
-    public function parse_balance_helper(mixed $entry) {
+    public function parse_balance_helper(array $entry) {
         $account = $this->account();
         $account['used'] = $this->safe_string_2($entry, 'freeze', 'locked');
         $account['free'] = $this->safe_string($entry, 'available');
@@ -3538,8 +3538,8 @@ class gate extends Exchange {
         for ($i = 0; $i < count($data); $i++) {
             $entry = $data[$i];
             if ($isolated) {
-                $base = $this->safe_value($entry, 'base', array());
-                $quote = $this->safe_value($entry, 'quote', array());
+                $base = $this->safe_dict($entry, 'base', array());
+                $quote = $this->safe_dict($entry, 'quote', array());
                 $baseCode = $this->safe_currency_code($this->safe_string($base, 'currency'));
                 $quoteCode = $this->safe_currency_code($this->safe_string($quote, 'currency'));
                 $result = $this->merge_balance_account($result, $baseCode, $this->parse_balance_helper($base));
@@ -3635,11 +3635,11 @@ class gate extends Exchange {
         return $this->parse_ohlcvs($this->to_array($response), $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_option_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+    public function fetch_option_ohlcv(string $symbol, ?string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_option_ohlcv(...))($symbol, $timeframe, $since, $limit, $params);
     }
 
-    private function do_fetch_option_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+    private function do_fetch_option_ohlcv(string $symbol, ?string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
         // separated option logic because the from, to and limit parameters weren't functioning
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -3652,7 +3652,7 @@ class gate extends Exchange {
         return $this->parse_ohlcvs($this->to_array($response), $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_funding_rate_history(...))($symbol, $since, $limit, $params);
     }
 
@@ -3885,7 +3885,7 @@ class gate extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order_trades(...))($id, $symbol, $since, $limit, $params);
     }
 
@@ -3934,7 +3934,7 @@ class gate extends Exchange {
         return $response;
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
     }
 
@@ -4405,7 +4405,7 @@ class gate extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction_type(mixed $type) {
+    public function parse_transaction_type(?string $type): ?string {
         $types = array(
             'd' => 'deposit',
             'w' => 'withdrawal',
@@ -4526,7 +4526,7 @@ class gate extends Exchange {
         );
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -4669,7 +4669,7 @@ class gate extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function create_orders_request(array $orders, $params = array()) {
+    public function create_orders_request(array $orders, $params = array()): array {
         $ordersRequests = array();
         $orderSymbols = array();
         $ordersLength = count($orders);
@@ -4687,7 +4687,7 @@ class gate extends Exchange {
             $side = $this->safe_string($rawOrder, 'side');
             $amount = $this->safe_value($rawOrder, 'amount');
             $price = $this->safe_value($rawOrder, 'price');
-            $orderParams = $this->safe_value($rawOrder, 'params', array());
+            $orderParams = $this->safe_dict($rawOrder, 'params', array());
             $extendedParams = $this->extend($orderParams, $params); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             $triggerValue = $this->safe_value_n($orderParams, array( 'triggerPrice', 'stopPrice', 'takeProfitPrice', 'stopLossPrice' ));
             if ($triggerValue !== null) {
@@ -4705,7 +4705,7 @@ class gate extends Exchange {
         return $ordersRequests;
     }
 
-    public function create_orders(array $orders, $params = array()) {
+    public function create_orders(array $orders, $params = array()): PromiseInterface {
         return Async\async(self::do_create_orders(...))($orders, $params);
     }
 
@@ -4736,7 +4736,7 @@ class gate extends Exchange {
         return $this->parse_orders($response);
     }
 
-    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($type === null) {
             throw new ArgumentsRequired($this->id . ' requires a $type argument');
         }
@@ -4950,7 +4950,7 @@ class gate extends Exchange {
                 }
             } else {
                 // spot conditional order
-                $options = $this->safe_value($this->options, 'createOrder', array());
+                $options = $this->safe_dict($this->options, 'createOrder', array());
                 $marginMode = null;
                 list($marginMode, $params) = $this->get_margin_mode(true, $params);
                 if ($timeInForce === null) {
@@ -4995,7 +4995,7 @@ class gate extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array()) {
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array()): PromiseInterface {
         return Async\async(self::do_create_market_buy_order_with_cost(...))($symbol, $cost, $params);
     }
 
@@ -5023,7 +5023,7 @@ class gate extends Exchange {
         return Async\await($this->create_order($symbol, 'market', 'buy', $cost, null, $params));
     }
 
-    public function edit_order_request(string $id, ?string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    public function edit_order_request(string $id, ?string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): array {
         $market = $this->market($symbol);
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('editOrder', $market, $params);
@@ -5065,7 +5065,7 @@ class gate extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_edit_order(...))($id, $symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -5356,8 +5356,8 @@ class gate extends Exchange {
                 'id' => $this->safe_string($order, 'id'),
             ));
         }
-        $put = $this->safe_value_2($order, 'put', 'initial', array());
-        $trigger = $this->safe_value($order, 'trigger', array());
+        $put = $this->safe_dict_2($order, 'put', 'initial', array());
+        $trigger = $this->safe_dict($order, 'trigger', array());
         $contract = $this->safe_string($put, 'contract');
         $type = $this->safe_string($put, 'type');
         $timeInForce = $this->safe_string_upper_2($put, 'time_in_force', 'tif');
@@ -5497,14 +5497,14 @@ class gate extends Exchange {
             'cost' => Precise::string_abs($cost),
             'filled' => null,
             'remaining' => $remaining,
-            'fee' => $multipleFeeCurrencies ? null : $this->safe_value($fees, 0),
+            'fee' => $multipleFeeCurrencies ? null : $this->safe_dict($fees, 0),
             'fees' => $multipleFeeCurrencies ? $fees : array(),
             'trades' => null,
             'info' => $order,
         ), $market);
     }
 
-    public function fetch_order_request(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order_request(string $id, ?string $symbol = null, $params = array()): array {
         $market = ($symbol === null) ? null : $this->market($symbol);
         $trigger = $this->safe_bool_n($params, array( 'trigger', 'is_stop_order', 'stop' ), false);
         $params = $this->omit($params, array( 'is_stop_order', 'stop', 'trigger' ));
@@ -5524,7 +5524,7 @@ class gate extends Exchange {
         return array( $request, $requestParams );
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order(...))($id, $symbol, $params);
     }
 
@@ -5677,7 +5677,7 @@ class gate extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function prepare_orders_by_status_request(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function prepare_orders_by_status_request(?string $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -5717,11 +5717,11 @@ class gate extends Exchange {
         return array( $request, $finalParams );
     }
 
-    public function fetch_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+    public function fetch_orders_by_status(?string $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_orders_by_status(...))($status, $symbol, $since, $limit, $params);
     }
 
-    private function do_fetch_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    private function do_fetch_orders_by_status(?string $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -5926,7 +5926,7 @@ class gate extends Exchange {
         return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
     }
 
@@ -6066,7 +6066,7 @@ class gate extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_orders(...))($ids, $symbol, $params);
     }
 
@@ -6122,7 +6122,7 @@ class gate extends Exchange {
         return $this->parse_orders($response);
     }
 
-    public function cancel_orders_for_symbols(array $orders, $params = array()) {
+    public function cancel_orders_for_symbols(array $orders, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_orders_for_symbols(...))($orders, $params);
     }
 
@@ -6169,7 +6169,7 @@ class gate extends Exchange {
         return $this->parse_orders($response);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_all_orders(...))($symbol, $params);
     }
 
@@ -6424,7 +6424,7 @@ class gate extends Exchange {
         return $response;
     }
 
-    public function parse_position(array $position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null): array {
         //
         // swap and future
         //
@@ -6569,7 +6569,7 @@ class gate extends Exchange {
         ));
     }
 
-    public function fetch_position(string $symbol, $params = array()) {
+    public function fetch_position(string $symbol, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_position(...))($symbol, $params);
     }
 
@@ -7346,11 +7346,11 @@ class gate extends Exchange {
         );
     }
 
-    public function nonce() {
+    public function nonce(): float {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function sign(mixed $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $authentication = $api[0]; // public, private
         $type = $api[1]; // spot, margin, future, delivery
         $query = $this->omit($params, $this->extract_params($path));
@@ -7372,7 +7372,7 @@ class gate extends Exchange {
             // endpoints like createOrders use an array instead of an object
             // so we infer the settle from one of the elements
             // they have to be all the same so relying on the first one is fine
-            $first = $this->safe_value($params, 0, array());
+            $first = $this->safe_dict($params, 0, array());
             $path = $this->implode_params($path, $first);
         } else {
             $path = $this->implode_params($path, $params);
@@ -7446,11 +7446,11 @@ class gate extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function modify_margin_helper(string $symbol, mixed $amount, $params = array()): PromiseInterface {
+    public function modify_margin_helper(string $symbol, ?float $amount, $params = array()): PromiseInterface {
         return Async\async(self::do_modify_margin_helper(...))($symbol, $amount, $params);
     }
 
-    private function do_modify_margin_helper(string $symbol, mixed $amount, $params = array()) {
+    private function do_modify_margin_helper(string $symbol, ?float $amount, $params = array()) {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -7505,7 +7505,7 @@ class gate extends Exchange {
             'marginMode' => 'isolated',
             'amount' => null,
             'total' => $total,
-            'code' => $this->safe_value($market, 'quote'),
+            'code' => $this->safe_string($market, 'quote'),
             'status' => 'ok',
             'timestamp' => null,
             'datetime' => null,
@@ -7787,14 +7787,14 @@ class gate extends Exchange {
             //
             $response = Async\await($this->privateOptionsGetMySettlements($this->extend($request, $params)));
         }
-        $result = $this->safe_value($response, 'result', array());
-        $data = $this->safe_value($result, 'list', array());
+        $result = $this->safe_dict($response, 'result', array());
+        $data = $this->safe_list($result, 'list', array());
         $settlements = $this->parse_settlements($data, $market);
         $sorted = $this->sort_by($settlements, 'timestamp');
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
-    public function parse_settlement(mixed $settlement, mixed $market) {
+    public function parse_settlement(array $settlement, ?array $market = null): array {
         //
         // fetchSettlementHistory
         //
@@ -7845,7 +7845,7 @@ class gate extends Exchange {
         );
     }
 
-    public function parse_settlements(mixed $settlements, mixed $market) {
+    public function parse_settlements(array $settlements, ?array $market = null): array {
         //
         // fetchSettlementHistory
         //
@@ -8088,7 +8088,7 @@ class gate extends Exchange {
         ), $currency);
     }
 
-    public function parse_ledger_entry_type(mixed $type) {
+    public function parse_ledger_entry_type(?string $type): ?string {
         $ledgerType = array(
             'deposit' => 'deposit',
             'withdraw' => 'withdrawal',
@@ -8200,7 +8200,7 @@ class gate extends Exchange {
         return $underlyings;
     }
 
-    public function fetch_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_liquidations(...))($symbol, $since, $limit, $params);
     }
 
@@ -8251,7 +8251,7 @@ class gate extends Exchange {
         return $this->parse_liquidations($this->to_array($response), $market, $since, $limit);
     }
 
-    public function fetch_my_liquidations(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_liquidations(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_liquidations(...))($symbol, $since, $limit, $params);
     }
 
@@ -8334,7 +8334,7 @@ class gate extends Exchange {
         return $this->parse_liquidations($this->to_array($response), $market, $since, $limit);
     }
 
-    public function parse_liquidation(mixed $liquidation, ?array $market = null) {
+    public function parse_liquidation(mixed $liquidation, ?array $market = null): array {
         //
         // fetchLiquidations
         //

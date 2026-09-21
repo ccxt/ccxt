@@ -134,7 +134,7 @@ class blofin extends \ccxt\async\blofin {
         return $this->sort_by($result, 'timestamp'); // needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599430/job/59597237029?pr=27624#step:11:611
     }
 
-    public function handle_trades(Client $client, mixed $message) {
+    public function handle_trades(Client $client, array $message) {
         //
         //     {
         //       arg: {
@@ -169,7 +169,7 @@ class blofin extends \ccxt\async\blofin {
         }
     }
 
-    public function parse_ws_trade(mixed $trade, ?array $market = null): array {
+    public function parse_ws_trade(array $trade, ?array $market = null): array {
         return $this->parse_trade($trade, $market);
     }
 
@@ -223,7 +223,7 @@ class blofin extends \ccxt\async\blofin {
         return $orderbook->limit();
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         //   {
         //     arg: {
@@ -316,7 +316,7 @@ class blofin extends \ccxt\async\blofin {
         return $this->filter_by_array($this->tickers, 'symbol', $symbols);
     }
 
-    public function handle_ticker(Client $client, mixed $message) {
+    public function handle_ticker(Client $client, array $message) {
         //
         // message
         //
@@ -391,7 +391,7 @@ class blofin extends \ccxt\async\blofin {
         return $this->filter_by_array($this->bidsasks, 'symbol', $symbols);
     }
 
-    public function handle_bid_ask(Client $client, mixed $message) {
+    public function handle_bid_ask(Client $client, array $message) {
         $data = $this->safe_list($message, 'data');
         for ($i = 0; $i < count($data); $i++) {
             $ticker = $this->parse_ws_bid_ask($data[$i]);
@@ -402,7 +402,7 @@ class blofin extends \ccxt\async\blofin {
         }
     }
 
-    public function parse_ws_bid_ask(mixed $ticker, ?array $market = null) {
+    public function parse_ws_bid_ask(array $ticker, ?array $market = null): array {
         $marketId = $this->safe_string($ticker, 'instId');
         $market = $this->safe_market($marketId, $market, '-');
         $symbol = $this->safe_string($market, 'symbol');
@@ -469,7 +469,7 @@ class blofin extends \ccxt\async\blofin {
         return $this->create_ohlcv_object($symbol, $timeframe, $filtered);
     }
 
-    public function handle_ohlcv(Client $client, mixed $message) {
+    public function handle_ohlcv(Client $client, array $message) {
         //
         // message
         //
@@ -539,7 +539,7 @@ class blofin extends \ccxt\async\blofin {
         return Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
     }
 
-    public function handle_balance(Client $client, mixed $message) {
+    public function handle_balance(Client $client, array $message) {
         //
         //     {
         //         arg: {
@@ -557,7 +557,7 @@ class blofin extends \ccxt\async\blofin {
         $client->resolve($this->balance[$marketType], $messageHash);
     }
 
-    public function parse_ws_balance(mixed $message) {
+    public function parse_ws_balance(array $message): array {
         return $this->parse_balance($message);
     }
 
@@ -606,19 +606,19 @@ class blofin extends \ccxt\async\blofin {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $trigger = $this->safe_value_2($params, 'stop', 'trigger');
+        $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         $params = $this->omit($params, array( 'stop', 'trigger' ));
         $channel = ($trigger === true) ? 'orders-algo' : 'orders';
         $orders = Async\await($this->watch_multiple_wrapper(false, $channel, 'watchOrdersForSymbols', $symbols, $params));
         if ($this->newUpdates) {
-            $first = $this->safe_value($orders, 0);
+            $first = $this->safe_dict($orders, 0);
             $tradeSymbol = $this->safe_string($first, 'symbol');
             $limit = $orders->getLimit($tradeSymbol, $limit);
         }
         return $this->filter_by_since_limit($orders, $since, $limit, 'timestamp', true);
     }
 
-    public function handle_orders(Client $client, mixed $message) {
+    public function handle_orders(Client $client, array $message) {
         //
         //     {
         //         action: 'update',
@@ -646,7 +646,7 @@ class blofin extends \ccxt\async\blofin {
         }
     }
 
-    public function parse_ws_order(mixed $order, ?array $market = null): array {
+    public function parse_ws_order(array $order, ?array $market = null): array {
         return $this->parse_order($order, $market);
     }
 
@@ -677,7 +677,7 @@ class blofin extends \ccxt\async\blofin {
         return $this->filter_by_symbols_since_limit($this->positions, $symbols, $since, $limit);
     }
 
-    public function handle_positions(Client $client, mixed $message) {
+    public function handle_positions(Client $client, array $message) {
         //
         //     {
         //         arg: { channel: 'positions' },
@@ -737,7 +737,7 @@ class blofin extends \ccxt\async\blofin {
         return Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
     }
 
-    public function handle_funding_rate(Client $client, mixed $message) {
+    public function handle_funding_rate(Client $client, array $message) {
         //
         //     {
         //         "arg": {

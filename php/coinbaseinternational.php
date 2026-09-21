@@ -395,7 +395,7 @@ class coinbaseinternational extends Exchange {
         return array( $networkId, $params );
     }
 
-    public function fetch_accounts($params = array()) {
+    public function fetch_accounts($params = array()): array {
         /**
          * fetch all the accounts associated with a profile
          *
@@ -428,7 +428,7 @@ class coinbaseinternational extends Exchange {
         return $this->parse_accounts($response, $params);
     }
 
-    public function parse_account(mixed $account) {
+    public function parse_account(array $account): array {
         //
         //    {
         //       "portfolio_id":"1ap32qsc-1-0",
@@ -530,7 +530,7 @@ class coinbaseinternational extends Exchange {
         );
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical funding rate prices
          *
@@ -589,7 +589,7 @@ class coinbaseinternational extends Exchange {
         return $this->parse_funding_rate_histories($rawRates, $market, $since, $limit);
     }
 
-    public function parse_funding_rate_history(mixed $info, ?array $market = null) {
+    public function parse_funding_rate_history(mixed $info, ?array $market = null): array {
         return $this->parse_funding_rate($info, $market);
     }
 
@@ -624,7 +624,7 @@ class coinbaseinternational extends Exchange {
         );
     }
 
-    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch the history of funding payments paid and received on this account
          *
@@ -664,7 +664,7 @@ class coinbaseinternational extends Exchange {
         return $this->parse_incomes($fundings, $market, $since, $limit);
     }
 
-    public function parse_income(mixed $income, ?array $market = null) {
+    public function parse_income(mixed $income, ?array $market = null): array {
         //
         // {
         //     "amount":"0.0008",
@@ -859,7 +859,7 @@ class coinbaseinternational extends Exchange {
         );
     }
 
-    public function find_default_network(mixed $networks) {
+    public function find_default_network(array $networks): array {
         $networksArray = $this->to_array($networks);
         for ($i = 0; $i < count($networksArray); $i++) {
             $info = $networksArray[$i]['info'];
@@ -871,7 +871,7 @@ class coinbaseinternational extends Exchange {
         return $networksArray[0];
     }
 
-    public function load_currency_networks(mixed $code, $params = array()) {
+    public function load_currency_networks(string $code, $params = array()): bool {
         $currency = $this->currency($code);
         $networks = $this->safe_dict($currency, 'networks');
         if ($networks !== null) {
@@ -903,7 +903,7 @@ class coinbaseinternational extends Exchange {
         return true;
     }
 
-    public function parse_networks(mixed $networks, $params = array()) {
+    public function parse_networks(array $networks, $params = array()): array {
         $result = array();
         for ($i = 0; $i < count($networks); $i++) {
             $network = $this->extend($this->parse_network($networks[$i]), $params);
@@ -912,7 +912,7 @@ class coinbaseinternational extends Exchange {
         return $result;
     }
 
-    public function parse_network(mixed $network, $params = array()) {
+    public function parse_network(array $network, $params = array()): array {
         //
         //    {
         //        "asset_id":"1",
@@ -1060,7 +1060,7 @@ class coinbaseinternational extends Exchange {
         return $this->parse_transactions($rawTransactions);
     }
 
-    public function fetch_position(string $symbol, $params = array()) {
+    public function fetch_position(string $symbol, $params = array()): array {
         /**
          *
          * @see https://docs.cloud.coinbase.com/intx/reference/getportfolioposition
@@ -1099,7 +1099,7 @@ class coinbaseinternational extends Exchange {
         return $this->parse_position($position);
     }
 
-    public function parse_position(array $position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null): array {
         //
         //    {
         //       "symbol":"BTC-PERP",
@@ -1784,7 +1784,7 @@ class coinbaseinternational extends Exchange {
         );
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * create a trade order
          *
@@ -1976,7 +1976,7 @@ class coinbaseinternational extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * cancels an open order
          *
@@ -2027,7 +2027,7 @@ class coinbaseinternational extends Exchange {
         return $this->parse_order($orders, $market);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): array {
         /**
          * cancel all open $orders
          * @param {string} [$symbol] unified $market $symbol, only $orders in the $market of this $symbol are cancelled when $symbol is not null
@@ -2051,7 +2051,7 @@ class coinbaseinternational extends Exchange {
         return $this->parse_orders($orders, $market);
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): array {
         /**
          * edit a trade $order
          *
@@ -2098,7 +2098,7 @@ class coinbaseinternational extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetches information on an $order made by the user
          *
@@ -2238,7 +2238,7 @@ class coinbaseinternational extends Exchange {
         return $this->parse_orders($rawOrders, $market, $since, $limit);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all $trades made by the user
          *
@@ -2384,7 +2384,7 @@ class coinbaseinternational extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function sign(mixed $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $version = $api[0];
         $signed = $api[1] === 'private';
         $fullPath = '/' . $version . '/' . $this->implode_params($path, $params);

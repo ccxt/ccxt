@@ -565,7 +565,7 @@ class bitmex extends Exchange {
                 );
             }
         }
-        $currencyEnabled = $this->safe_value($currency, 'enabled');
+        $currencyEnabled = $this->safe_bool($currency, 'enabled');
         $currencyActive = ($currencyEnabled === true) || ($depositEnabled || $withdrawEnabled);
         $minWithdrawalString = $this->safe_string($currency, 'minWithdrawalAmount');
         $minWithdrawal = $this->parse_number(Precise::string_mul($minWithdrawalString, $precisionString));
@@ -603,7 +603,7 @@ class bitmex extends Exchange {
         ));
     }
 
-    public function convert_from_real_amount(mixed $code, mixed $amount) {
+    public function convert_from_real_amount(?string $code, ?float $amount): ?float {
         $currency = $this->currency($code);
         $precision = $this->safe_string($currency, 'precision');
         $amountString = $this->number_to_string($amount);
@@ -622,18 +622,18 @@ class bitmex extends Exchange {
         return Precise::string_mul($amount, $precision);
     }
 
-    public function amount_to_precision(?string $symbol, mixed $amount) {
+    public function amount_to_precision(?string $symbol, mixed $amount): ?string {
         $symbol = $this->safe_symbol($symbol);
         $market = $this->market($symbol);
-        $oldPrecision = $this->safe_value($this->options, 'oldPrecision');
+        $oldPrecision = $this->safe_bool($this->options, 'oldPrecision');
         if (($market['spot'] === true) && ($oldPrecision !== true)) {
             $amount = $this->convert_from_real_amount($market['base'], $amount);
         }
         return parent::amount_to_precision($symbol, $amount);
     }
 
-    public function convert_from_raw_quantity(mixed $symbol, mixed $rawQuantity, $currencySide = 'base') {
-        if ($this->safe_value($this->options, 'oldPrecision') === true) {
+    public function convert_from_raw_quantity(?string $symbol, ?string $rawQuantity, ?string $currencySide = 'base'): ?float {
+        if ($this->safe_bool($this->options, 'oldPrecision') === true) {
             return $this->parse_number($rawQuantity);
         }
         $symbol = $this->safe_symbol($symbol);
@@ -648,7 +648,7 @@ class bitmex extends Exchange {
         return $this->parse_number($rawQuantity);
     }
 
-    public function convert_from_raw_cost(mixed $symbol, mixed $rawQuantity) {
+    public function convert_from_raw_cost(?string $symbol, ?string $rawQuantity): ?float {
         return $this->convert_from_raw_quantity($symbol, $rawQuantity, 'quote');
     }
 
@@ -1167,7 +1167,7 @@ class bitmex extends Exchange {
         return $result;
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order(...))($id, $symbol, $params);
     }
 
@@ -1294,7 +1294,7 @@ class bitmex extends Exchange {
         return $this->filter_by_array($orders, 'status', array( 'closed', 'canceled' ), false);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
     }
 
@@ -1400,7 +1400,7 @@ class bitmex extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function parse_ledger_entry_type(mixed $type) {
+    public function parse_ledger_entry_type(?string $type): ?string {
         $types = array(
             'Withdrawal' => 'transaction',
             'RealisedPNL' => 'margin',
@@ -1722,7 +1722,7 @@ class bitmex extends Exchange {
             'symbol' => $market['id'],
         );
         $response = Async\await($this->publicGetInstrument($this->extend($request, $params)));
-        $ticker = $this->safe_value($response, 0);
+        $ticker = $this->safe_dict($response, 0);
         if ($ticker === null) {
             throw new BadSymbol($this->id . ' fetchTicker() $symbol ' . $symbol . ' not found');
         }
@@ -2225,7 +2225,7 @@ class bitmex extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -2334,7 +2334,7 @@ class bitmex extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_edit_order(...))($id, $symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -2397,7 +2397,7 @@ class bitmex extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
     }
 
@@ -2425,7 +2425,7 @@ class bitmex extends Exchange {
             $params = $this->omit($params, array( 'clOrdID', 'clientOrderId' ));
         }
         $response = Async\await($this->privateDeleteOrder($this->extend($request, $params)));
-        $order = $this->safe_value($response, 0, array());
+        $order = $this->safe_dict($response, 0, array());
         $error = $this->safe_string($order, 'error');
         if ($error !== null) {
             if (mb_strpos($error, 'Unable to cancel $order due to existing state') !== false) {
@@ -2435,7 +2435,7 @@ class bitmex extends Exchange {
         return $this->parse_order($order);
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_orders(...))($ids, $symbol, $params);
     }
 
@@ -2467,7 +2467,7 @@ class bitmex extends Exchange {
         return $this->parse_orders($response);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_all_orders(...))($symbol, $params);
     }
 
@@ -2717,7 +2717,7 @@ class bitmex extends Exchange {
         return $this->filter_by_array_positions($results, 'symbol', $symbols, false);
     }
 
-    public function parse_position(array $position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null): array {
         //
         //     {
         //         "account": 9371654,
@@ -2816,7 +2816,7 @@ class bitmex extends Exchange {
         $market = $this->safe_market($this->safe_string($position, 'symbol'), $market);
         $symbol = $market['symbol'];
         $datetime = $this->safe_string($position, 'timestamp');
-        $crossMargin = $this->safe_value($position, 'crossMargin');
+        $crossMargin = $this->safe_bool($position, 'crossMargin');
         $marginMode = ($crossMargin === true) ? 'cross' : 'isolated';
         $notionalString = Precise::string_abs($this->safe_string_2($position, 'foreignNotional', 'homeNotional'));
         $settleCurrencyCode = $this->safe_string($market, 'settle');
@@ -2984,7 +2984,7 @@ class bitmex extends Exchange {
         );
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_funding_rate_history(...))($symbol, $since, $limit, $params);
     }
 
@@ -3058,7 +3058,7 @@ class bitmex extends Exchange {
         return $this->parse_funding_rate_histories($response, $market, $since, $limit);
     }
 
-    public function parse_funding_rate_history(mixed $info, ?array $market = null) {
+    public function parse_funding_rate_history(mixed $info, ?array $market = null): array {
         //
         //    {
         //        "timestamp": "2016-05-07T12:00:00.000Z",
@@ -3194,7 +3194,7 @@ class bitmex extends Exchange {
         );
     }
 
-    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null) {
+    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null): mixed {
         //
         //    {
         //        "asset": "XBT",
@@ -3310,7 +3310,7 @@ class bitmex extends Exchange {
         return $this->parse_deposit_withdraw_fees($assets, $codes, 'asset');
     }
 
-    public function fetch_open_interests(?array $symbols = null, $params = array()) {
+    public function fetch_open_interests(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_open_interests(...))($symbols, $params);
     }
 
@@ -3347,7 +3347,7 @@ class bitmex extends Exchange {
         return $this->parse_open_interests($response, $symbols);
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null): array {
         //
         // fetchOpenInterest
         //
@@ -3382,7 +3382,7 @@ class bitmex extends Exchange {
         ), $market);
     }
 
-    public function calculate_rate_limiter_cost(mixed $api, mixed $method, mixed $path, mixed $params, $config = array()) {
+    public function calculate_rate_limiter_cost(mixed $api, mixed $method, mixed $path, mixed $params, mixed $config = array()) {
         $isAuthenticated = $this->check_required_credentials(false);
         $cost = $this->safe_value($config, 'cost', 1);
         if ($cost !== 1) { // trading endpoints
@@ -3447,7 +3447,7 @@ class bitmex extends Exchange {
         return $this->parse_liquidations($this->to_array($response), $market, $since, $limit);
     }
 
-    public function parse_liquidation(mixed $liquidation, ?array $market = null) {
+    public function parse_liquidation(mixed $liquidation, ?array $market = null): array {
         //
         //     {
         //         "orderID": "string",
@@ -3806,7 +3806,7 @@ class bitmex extends Exchange {
         return $this->parse_settlements($response, $market, $since, $limit);
     }
 
-    public function parse_settlements(mixed $settlements, ?array $market = null, ?int $since = null, ?int $limit = null) {
+    public function parse_settlements(array $settlements, ?array $market = null, ?int $since = null, ?int $limit = null): array {
         $result = array();
         for ($i = 0; $i < count($settlements); $i++) {
             $result[] = $this->parse_settlement($settlements[$i], $market);
@@ -3816,7 +3816,7 @@ class bitmex extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
-    public function parse_settlement(mixed $settlement, ?array $market = null) {
+    public function parse_settlement(array $settlement, ?array $market = null): array {
         //
         //    {
         //        timestamp: '2025-03-28T12:00:00.000Z',
@@ -3897,7 +3897,7 @@ class bitmex extends Exchange {
             throw new DDoSProtection($this->id . ' ' . $body);
         }
         if ($code >= 400) {
-            $error = $this->safe_value($response, 'error', array());
+            $error = $this->safe_dict($response, 'error', array());
             $message = $this->safe_string($error, 'message');
             $feedback = $this->id . ' ' . $body;
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
@@ -3910,11 +3910,11 @@ class bitmex extends Exchange {
         return null;
     }
 
-    public function nonce() {
+    public function nonce(): float {
         return $this->milliseconds();
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, $api = 'public', mixed $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $query = '/api/' . $this->version . '/' . $path;
         if ($method === 'GET') {
             if (count($params) > 0) {
