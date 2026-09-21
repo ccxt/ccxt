@@ -2359,16 +2359,6 @@ class BaseExchange {
     }
 
     public function precision_from_string($str) {
-        // support string formats like '1e-4' and signed mantissas like '-8e-8'
-        if (stripos($str, 'e') > -1) {
-            $numStr = preg_replace('/^[-+]?\d\.?\d*[eE]/', '', $str);
-            return ((int)$numStr) * -1;
-        }
-        // support integer formats (without dot) like '1', '10' etc [Note: bug in decimalToPrecision, so this should not be used atm]
-        // if (strpos($str, '.') === -1) {
-        //     return strlen(str) * -1;
-        // }
-        // default strings like '0.0001'
         return static::precisionFromString($str);
     }
 
@@ -2441,8 +2431,12 @@ class BaseExchange {
     }
 
     public static function precisionFromString($x) {
-        // equivalent to explode('.', preg_replace('/0+$/', '', $x)) but without the intermediate allocations
         $str = (string) $x;
+        $exponentIndex = stripos($str, 'e');
+        if ($exponentIndex !== false) {
+            return ((int)substr($str, $exponentIndex + 1)) * -1;
+        }
+        // equivalent to explode('.', preg_replace('/0+$/', '', $x)) but without the intermediate allocations
         $dot = strpos($str, '.');
         if ($dot === false) {
             return 0;
