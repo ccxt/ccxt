@@ -1041,7 +1041,7 @@ public partial class coinsph : Exchange
         if ((symbols != null))
         {
             List<object> ids = new List<object>() {};
-            for (int i = 0; i < symbols?.Count ?? 0; i++)
+            for (int i = 0; i < (symbols?.Count ?? 0); i++)
             {
                 Dictionary<string, object> market = this.market(getValue(symbols, i));
                 string? id = ((string)(market.ContainsKey("id") ? market["id"] : null));

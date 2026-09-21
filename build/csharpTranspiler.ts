@@ -6006,9 +6006,15 @@ class NewTranspiler {
             // (unparenthesised it is `symbols?.Count ?? (0 == 1)`, CS0019). Every other emitted
             // site ends at `;`, `,` or `)` -- census: 424 sites, 0 with an operator after.
             const following = region.substring (at + match[0].length).replace (/^\s+/, '').charAt (0);
-            out += (following !== '' && '=<>!&|+-*/%^?:'.indexOf (following) !== -1)
-                ? '(' + replacement + ')'
-                : replacement;
+            // the same grouping when the operator PRECEDES the call: `i < symbols?.Count ?? 0`
+            // parses as `(i < symbols?.Count) ?? 0` (CS0019 bool ?? int) once the comparison
+            // itself prints natively
+            const before = region.substring (0, at).replace (/\s+$/, '');
+            // a plain assignment `x = getArrayLength (y);` is not an operand position
+            const preceding = /(?:^|[^=<>!])=$/.test (before) ? '' : before.slice (-1);
+            const operand = (following !== '' && '=<>!&|+-*/%^?:'.indexOf (following) !== -1)
+                || (preceding !== '' && '=<>!&|+-*/%^?:'.indexOf (preceding) !== -1);
+            out += (operand && replacement.includes ('??')) ? '(' + replacement + ')' : replacement;
             cursor = at + match[0].length;
         }
         if (cursor === 0) {

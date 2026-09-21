@@ -1254,7 +1254,7 @@ public partial class bithumb : Exchange
             if ((symbols != null))
             {
                 Dictionary<string, object> requiredQuotes = new Dictionary<string, object>() {};
-                for (int i = 0; i < symbols?.Count ?? 0; i++)
+                for (int i = 0; i < (symbols?.Count ?? 0); i++)
                 {
                     string? symbol = ((string)getValue(symbols, i));
                     Dictionary<string, object> market = this.market(symbol);

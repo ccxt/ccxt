@@ -274,7 +274,7 @@ public partial class bydfi : ccxt.bydfi
             channels.Add("!ticker@arr");
         } else
         {
-            for (int i = 0; i < symbols?.Count ?? 0; i++)
+            for (int i = 0; i < (symbols?.Count ?? 0); i++)
             {
                 string? symbol = ((string)getValue(symbols, i));
                 object marketId = this.marketId(symbol);
@@ -433,7 +433,7 @@ public partial class bydfi : ccxt.bydfi
         await this.loadMarkets();
         List<object> channels = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (int i = 0; i < symbolsAndTimeframes?.Count ?? 0; i++)
+        for (int i = 0; i < (symbolsAndTimeframes?.Count ?? 0); i++)
         {
             object symbolAndTimeframe = getValue(symbolsAndTimeframes, i);
             string? marketId = this.safeString(symbolAndTimeframe, 0);
@@ -600,7 +600,7 @@ public partial class bydfi : ccxt.bydfi
         }
         List<object> channels = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (int i = 0; i < symbols?.Count ?? 0; i++)
+        for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
             string? symbol = ((string)getValue(symbols, i));
             Dictionary<string, object> market = this.market(symbol);
@@ -691,7 +691,7 @@ public partial class bydfi : ccxt.bydfi
             messageHashes.Add("orders");
         } else
         {
-            for (int i = 0; i < symbols?.Count ?? 0; i++)
+            for (int i = 0; i < (symbols?.Count ?? 0); i++)
             {
                 string? symbol = ((string)getValue(symbols, i));
                 messageHashes.Add(("orders::" + symbol));

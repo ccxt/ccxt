@@ -1956,7 +1956,7 @@ public partial class mexc : ccxt.mexc
         }
         List<object> messageHashes = new List<object>() {};
         List<object> topics = new List<object>() {};
-        for (int i = 0; i < symbols?.Count ?? 0; i++)
+        for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
             if (isSpot)
             {

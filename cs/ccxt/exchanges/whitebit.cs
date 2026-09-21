@@ -1390,7 +1390,7 @@ public partial class whitebit : Exchange
             if ((symbols != null))
             {
                 bool symbolFound = false;
-                for (int j = 0; j < symbols?.Count ?? 0; j++)
+                for (int j = 0; j < (symbols?.Count ?? 0); j++)
                 {
                     if (isEqual(getValue(symbols, j), symbol))
                     {
@@ -1876,7 +1876,7 @@ public partial class whitebit : Exchange
         bool onlyContractSymbols = true;
         if ((symbols != null))
         {
-            for (int i = 0; i < symbols?.Count ?? 0; i++)
+            for (int i = 0; i < (symbols?.Count ?? 0); i++)
             {
                 string? symbol = ((string)getValue(symbols, i));
                 Dictionary<string, object> market = this.market(symbol);

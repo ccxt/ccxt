@@ -1098,7 +1098,7 @@ public partial class gate : ccxt.gate
         object channel = add(messageType, ".trades");
         List<object> subMessageHashes = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (int i = 0; i < symbols?.Count ?? 0; i++)
+        for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
             string? symbol = ((string)getValue(symbols, i));
             subMessageHashes.Add(("trades:" + symbol));

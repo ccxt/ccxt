@@ -220,7 +220,7 @@ public partial class cryptocom : ccxt.cryptocom
         {
             ((IDictionary<string,object>)getValue(parameters, "params"))["bookSubscriptionType"] = bookUpdateFrequency2;
         }
-        for (int i = 0; i < symbols?.Count ?? 0; i++)
+        for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
             string? symbol = ((string)getValue(symbols, i));
             Dictionary<string, object> market = this.market(symbol);
@@ -439,7 +439,7 @@ public partial class cryptocom : ccxt.cryptocom
         symbols = this.marketSymbols(symbols);
         List<object> topics = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (int i = 0; i < symbols?.Count ?? 0; i++)
+        for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
             string? symbol = ((string)getValue(symbols, i));
             Dictionary<string, object> market = this.market(symbol);

@@ -3203,7 +3203,7 @@ public partial class myriad : PredictionExchange
         await this.loadOutcomes(outcomes);
         Dictionary<string, object> outcomesByMarket = new Dictionary<string, object>() {};
         List<object> marketKeys = new List<object>() {};
-        for (int i = 0; i < outcomes?.Count ?? 0; i++)
+        for (int i = 0; i < (outcomes?.Count ?? 0); i++)
         {
             IDictionary<string, object> outcomeObj = this.outcome(getValue(outcomes, i));
             IDictionary<string, object> info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});

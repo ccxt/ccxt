@@ -336,7 +336,7 @@ public partial class kucoin : ccxt.kucoin
             ((IDictionary<string,object>)subscription)[requestId] = requestId;
         }
         var client = this.client(url);
-        for (int i = 0; i < subscriptionHashes?.Count ?? 0; i++)
+        for (int i = 0; i < (subscriptionHashes?.Count ?? 0); i++)
         {
             string? subscriptionHash = ((string)getValue(subscriptionHashes, i));
             if (!(inOp(client.subscriptions, subscriptionHash)))
@@ -585,7 +585,7 @@ public partial class kucoin : ccxt.kucoin
         symbols = this.marketSymbols(symbols, null, false, true);
         string messageHash = "uta:ticker";
         List<object> messageHashes = new List<object>() {};
-        for (int i = 0; i < symbols?.Count ?? 0; i++)
+        for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
             string? symbol = this.safeString(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
@@ -1336,7 +1336,7 @@ public partial class kucoin : ccxt.kucoin
             channelName = "/contractMarket/execution:";
         }
         string topic = (channelName + String.Join(",", marketIds.ToArray()));
-        for (int i = 0; i < symbols?.Count ?? 0; i++)
+        for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
             string? symbol = ((string)getValue(symbols, i));
             messageHashes.Add(("unsubscribe:trades:" + symbol));
@@ -1764,7 +1764,7 @@ public partial class kucoin : ccxt.kucoin
         object topic = add(add(method, ":"), String.Join(",", marketIds.ToArray()));
         List<object> messageHashes = new List<object>() {};
         List<object> subscriptionHashes = new List<object>() {};
-        for (int i = 0; i < symbols?.Count ?? 0; i++)
+        for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
             string? symbol = ((string)getValue(symbols, i));
             messageHashes.Add(("unsubscribe:orderbook:" + symbol));

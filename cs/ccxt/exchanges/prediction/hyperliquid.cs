@@ -732,7 +732,7 @@ public partial class hyperliquid : PredictionExchange
             // one warm-up for the whole list (a cold cache bulk-loads once via loadAllOutcomes),
             // then identities resolve synchronously
             await this.loadOutcomes(outcomes);
-            for (int i = 0; i < outcomes?.Count ?? 0; i++)
+            for (int i = 0; i < (outcomes?.Count ?? 0); i++)
             {
                 string? requested = ((string)getValue(outcomes, i));
                 IDictionary<string, object> requestedOutcomeObj = this.safeOutcome(requested);

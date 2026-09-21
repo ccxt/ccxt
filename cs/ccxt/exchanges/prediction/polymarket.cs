@@ -1404,7 +1404,7 @@ public partial class polymarket : PredictionExchange
         // batch-resolve the uncached outcomes (one gamma request per 50 token ids)
         await this.loadOutcomes(outcomes);
         List<object> targets = new List<object>() {};
-        for (int oi = 0; oi < outcomes?.Count ?? 0; oi++)
+        for (int oi = 0; oi < (outcomes?.Count ?? 0); oi++)
         {
             targets.Add(getValue(outcomes, oi));
         }

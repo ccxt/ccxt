@@ -292,7 +292,7 @@ public partial class okx : ccxt.okx
         parameters = channelparametersVariable[1];
         List<object> topics = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (int i = 0; i < symbols?.Count ?? 0; i++)
+        for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
             string? symbol = ((string)getValue(symbols, i));
             messageHashes.Add(((("unsubscribe:" + (channel)) + ":") + symbol));
@@ -430,7 +430,7 @@ public partial class okx : ccxt.okx
         string channel = "funding-rate";
         List<object> topics = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (int i = 0; i < symbols?.Count ?? 0; i++)
+        for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
             string? symbol = ((string)getValue(symbols, i));
             messageHashes.Add(((channel + ":") + symbol));
@@ -645,7 +645,7 @@ public partial class okx : ccxt.okx
         parameters = channelparametersVariable[1];
         List<object> topics = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (int i = 0; i < symbols?.Count ?? 0; i++)
+        for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
             string? symbol = ((string)getValue(symbols, i));
             messageHashes.Add(("unsubscribe:ticker:" + symbol));
@@ -880,7 +880,7 @@ public partial class okx : ccxt.okx
         List<object> messageHashes = new List<object>() {};
         if ((symbols != null))
         {
-            for (int i = 0; i < symbols?.Count ?? 0; i++)
+            for (int i = 0; i < (symbols?.Count ?? 0); i++)
             {
                 string? symbol = ((string)getValue(symbols, i));
                 messageHashes.Add(((messageHash + "::") + symbol));
@@ -999,7 +999,7 @@ public partial class okx : ccxt.okx
         List<object> messageHashes = new List<object>() {};
         if ((symbols != null))
         {
-            for (int i = 0; i < symbols?.Count ?? 0; i++)
+            for (int i = 0; i < (symbols?.Count ?? 0); i++)
             {
                 string? symbol = ((string)getValue(symbols, i));
                 messageHashes.Add(((messageHash + "::") + symbol));
@@ -1304,7 +1304,7 @@ public partial class okx : ccxt.okx
         }
         List<object> topics = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (int i = 0; i < symbolsAndTimeframes?.Count ?? 0; i++)
+        for (int i = 0; i < (symbolsAndTimeframes?.Count ?? 0); i++)
         {
             object symbolAndTimeframe = getValue(symbolsAndTimeframes, i);
             object sym = getValue(symbolAndTimeframe, 0);
@@ -1518,7 +1518,7 @@ public partial class okx : ccxt.okx
         List<object> topics = new List<object>() {};
         List<object> subMessageHashes = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (int i = 0; i < symbols?.Count ?? 0; i++)
+        for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
             string? symbol = ((string)getValue(symbols, i));
             subMessageHashes.Add(add(add(depth, ":"), symbol));

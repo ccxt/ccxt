@@ -3578,7 +3578,7 @@ public partial class bybit : Exchange
             object defaultType = getValue(marketTypeInfo, 0); // don't omit here
             // we can't use marketSymbols here due to the conflicting ids between markets
             object currentType = null;
-            for (int i = 0; i < symbols?.Count ?? 0; i++)
+            for (int i = 0; i < (symbols?.Count ?? 0); i++)
             {
                 string? symbol = ((string)getValue(symbols, i));
                 // using safeMarket here because if the user provides for instance BTCUSDT and "type": "spot" in params we should

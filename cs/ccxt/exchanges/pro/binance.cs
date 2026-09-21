@@ -415,7 +415,7 @@ public partial class binance : ccxt.binance
             messageHashes.Add("liquidations");
         } else
         {
-            for (int i = 0; i < symbols?.Count ?? 0; i++)
+            for (int i = 0; i < (symbols?.Count ?? 0); i++)
             {
                 Dictionary<string, object> market = this.market(getValue(symbols, i));
                 subscriptionHashes.Add(add((market.ContainsKey("lowercaseId") ? market["lowercaseId"] : null), "@forceOrder"));
@@ -654,7 +654,7 @@ public partial class binance : ccxt.binance
         List<object> messageHashes = new List<object>() {"myLiquidations"};
         if (!this.isEmpty(symbols))
         {
-            for (int i = 0; i < symbols?.Count ?? 0; i++)
+            for (int i = 0; i < (symbols?.Count ?? 0); i++)
             {
                 string? symbol = ((string)getValue(symbols, i));
                 messageHashes.Add(("myLiquidations::" + symbol));
@@ -914,7 +914,7 @@ public partial class binance : ccxt.binance
         List<object> subParams = new List<object>() {};
         List<object> subMessageHashes = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (int i = 0; i < symbols?.Count ?? 0; i++)
+        for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
             string? symbol = ((string)getValue(symbols, i));
             Dictionary<string, object> market = this.market(symbol);
@@ -1504,7 +1504,7 @@ public partial class binance : ccxt.binance
             // eOptions: always subscribe per-underlying (<underlying>@optionTrade)
             // handleTrade filters to the correct symbol via the 's' field
             Dictionary<string, object> seenUnderlyings = new Dictionary<string, object>() {};
-            for (int i = 0; i < symbols?.Count ?? 0; i++)
+            for (int i = 0; i < (symbols?.Count ?? 0); i++)
             {
                 string? symbol = ((string)getValue(symbols, i));
                 Dictionary<string, object> market = this.market(symbol);
@@ -1521,7 +1521,7 @@ public partial class binance : ccxt.binance
             }
         } else
         {
-            for (int i = 0; i < symbols?.Count ?? 0; i++)
+            for (int i = 0; i < (symbols?.Count ?? 0); i++)
             {
                 string? symbol = ((string)getValue(symbols, i));
                 Dictionary<string, object> market = this.market(symbol);
@@ -2012,7 +2012,7 @@ public partial class binance : ccxt.binance
         List<object> rawHashes = new List<object>() {};
         List<object> subMessageHashes = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (int i = 0; i < symbolsAndTimeframes?.Count ?? 0; i++)
+        for (int i = 0; i < (symbolsAndTimeframes?.Count ?? 0); i++)
         {
             object symAndTf = getValue(symbolsAndTimeframes, i);
             object symbolString = getValue(symAndTf, 0);

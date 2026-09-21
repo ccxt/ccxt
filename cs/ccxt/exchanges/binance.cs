@@ -6376,7 +6376,7 @@ public partial class binance : Exchange
         {
             return;
         }
-        for (int i = 0; i < symbols?.Count ?? 0; i++)
+        for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
             Dictionary<string, object> symbolMarket = this.market(getValue(symbols, i));
             bool? stock = this.safeBool(symbolMarket, "stock", false);

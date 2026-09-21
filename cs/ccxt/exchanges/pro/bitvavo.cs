@@ -396,7 +396,7 @@ public partial class bitvavo : ccxt.bitvavo
         string name = "trades";
         List<object> marketIds = new List<object>() {};
         List<object> subMessageHashes = new List<object>() {};
-        for (int i = 0; i < symbols?.Count ?? 0; i++)
+        for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
             Dictionary<string, object> market = this.market(getValue(symbols, i));
             marketIds.Add(((string)(market.ContainsKey("id") ? market["id"] : null)));
@@ -623,7 +623,7 @@ public partial class bitvavo : ccxt.bitvavo
         string name = "candles";
         List<object> subMessageHashes = new List<object>() {};
         Dictionary<string, object> marketIdsByInterval = new Dictionary<string, object>() {};
-        for (int i = 0; i < symbolsAndTimeframes?.Count ?? 0; i++)
+        for (int i = 0; i < (symbolsAndTimeframes?.Count ?? 0); i++)
         {
             object symbolAndTimeframe = getValue(symbolsAndTimeframes, i);
             Dictionary<string, object> market = this.market(getValue(symbolAndTimeframe, 0));
@@ -782,7 +782,7 @@ public partial class bitvavo : ccxt.bitvavo
         string name = "book";
         List<object> marketIds = new List<object>() {};
         List<object> subMessageHashes = new List<object>() {};
-        for (int i = 0; i < symbols?.Count ?? 0; i++)
+        for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
             Dictionary<string, object> market = this.market(getValue(symbols, i));
             marketIds.Add(((string)(market.ContainsKey("id") ? market["id"] : null)));
@@ -983,7 +983,7 @@ public partial class bitvavo : ccxt.bitvavo
     public virtual void handleOrderBookSubscriptions(WebSocketClient client, Dictionary<string, object> message, IList<object> marketIds)
     {
         string name = "book";
-        for (int i = 0; i < marketIds?.Count ?? 0; i++)
+        for (int i = 0; i < (marketIds?.Count ?? 0); i++)
         {
             string? marketId = this.safeString(marketIds, i);
             string? symbol = this.safeSymbol(marketId, null, "-");

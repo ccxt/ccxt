@@ -1336,7 +1336,7 @@ public partial class limitless : PredictionExchange
         await this.loadOutcomes(outcomes);
         Dictionary<string, object> outcomesBySlug = new Dictionary<string, object>() {};
         List<object> slugs = new List<object>() {};
-        for (int i = 0; i < outcomes?.Count ?? 0; i++)
+        for (int i = 0; i < (outcomes?.Count ?? 0); i++)
         {
             IDictionary<string, object> outcomeObj = this.outcome(getValue(outcomes, i));
             string? slug = this.safeString((outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("info") ? ((IDictionary<string, object>)outcomeObj)["info"] : null), "slug");

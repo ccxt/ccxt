@@ -1196,7 +1196,7 @@ public partial class kalshi : PredictionExchange
         // batch-resolve the uncached outcomes (one markets request per 100 tickers)
         await this.loadOutcomes(outcomes);
         List<object> targets = new List<object>() {};
-        for (int i = 0; i < outcomes?.Count ?? 0; i++)
+        for (int i = 0; i < (outcomes?.Count ?? 0); i++)
         {
             targets.Add(getValue(outcomes, i));
         }

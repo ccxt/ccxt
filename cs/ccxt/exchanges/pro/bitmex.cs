@@ -419,7 +419,7 @@ public partial class bitmex : ccxt.bitmex
             messageHashes.Add("liquidations");
         } else
         {
-            for (int i = 0; i < symbols?.Count ?? 0; i++)
+            for (int i = 0; i < (symbols?.Count ?? 0); i++)
             {
                 string? symbol = ((string)getValue(symbols, i));
                 Dictionary<string, object> market = this.market(symbol);

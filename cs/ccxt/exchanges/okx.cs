@@ -8329,7 +8329,7 @@ public partial class okx : Exchange
         symbols = this.marketSymbols(symbols, null, true);
         if ((symbols != null))
         {
-            for (int i = 0; i < symbols?.Count ?? 0; i++)
+            for (int i = 0; i < (symbols?.Count ?? 0); i++)
             {
                 Dictionary<string, object> market = this.market(getValue(symbols, i));
                 IDictionary<string, object> marketInfo = this.safeDict(market, "info", new Dictionary<string, object>() {});
