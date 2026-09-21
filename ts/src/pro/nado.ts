@@ -144,9 +144,7 @@ export default class nado extends nadoRest {
         }
         const trades = await this.watchPublicMultiple ('trade', markets, messageHashes, params);
         if (this.newUpdates) {
-            const first = this.safeDict (trades, 0);
-            const tradeSymbol = this.safeString (first, 'symbol');
-            limit = trades.getLimit (tradeSymbol, limit);
+            limit = trades.getLimit (undefined, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }

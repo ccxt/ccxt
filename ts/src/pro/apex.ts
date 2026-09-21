@@ -103,9 +103,7 @@ export default class apex extends apexRest {
         }
         const trades = await this.watchTopics (url, messageHashes, topics, params);
         if (this.newUpdates) {
-            const first = this.safeValue (trades, 0);
-            const tradeSymbol = this.safeString (first, 'symbol');
-            limit = trades.getLimit (tradeSymbol, limit);
+            limit = trades.getLimit (undefined, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }

@@ -1126,9 +1126,7 @@ export default class kucoin extends kucoinRest {
             const channel = 'trade';
             const trades = await this.subscribePublicUta (messageHash, channel, symbol, params);
             if (this.newUpdates) {
-                const first = this.safeValue (trades, 0);
-                const tradeSymbol = this.safeString (first, 'symbol');
-                limit = trades.getLimit (tradeSymbol, limit);
+                limit = trades.getLimit (symbol, limit);
             }
             return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
         }
@@ -1175,9 +1173,7 @@ export default class kucoin extends kucoinRest {
         }
         const trades = await this.subscribeMultiple (url, messageHashes, topic, subscriptionHashes, params);
         if (this.newUpdates) {
-            const first = this.safeValue (trades, 0);
-            const tradeSymbol = this.safeString (first, 'symbol');
-            limit = trades.getLimit (tradeSymbol, limit);
+            limit = trades.getLimit (undefined, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }

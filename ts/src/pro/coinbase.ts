@@ -590,9 +590,7 @@ export default class coinbase extends coinbaseRest {
         const name = 'market_trades';
         const trades = await this.subscribeMultiple (name, false, symbols, params);
         if (this.newUpdates) {
-            const first = this.safeDict (trades, 0);
-            const tradeSymbol = this.safeString (first, 'symbol');
-            limit = trades.getLimit (tradeSymbol, limit);
+            limit = trades.getLimit (undefined, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
