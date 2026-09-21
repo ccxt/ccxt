@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class zaif : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "zaif" },
@@ -325,7 +325,7 @@ public partial class zaif : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(markets));
     }
 
-    public override object parseMarket(object market)
+    public override Dictionary<string, object> parseMarket(object market)
     {
         string? id = this.safeString(market, "currency_pair");
         string? name = this.safeString(market, "name");
@@ -399,14 +399,14 @@ public partial class zaif : Exchange
             { "timestamp", null },
             { "datetime", null },
         };
-        object funds = this.safeValue(balances, "funds", new Dictionary<string, object>() {});
+        IDictionary<string, object> funds = this.safeDict(balances, "funds", new Dictionary<string, object>() {});
         List<object> currencyIds = new List<object>(((IDictionary<string,object>)funds).Keys);
         for (int i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
         {
             string? currencyId = ((string)getValue(currencyIds, i));
             string? code = this.safeCurrencyCode(currencyId);
             string? balance = this.safeString(funds, currencyId);
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["free"] = balance;
             ((IDictionary<string,object>)account)["total"] = balance;
             if (isTrue(!isEqual(deposit, null)))
@@ -468,7 +468,7 @@ public partial class zaif : Exchange
         return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, getValue(market, "symbol")));
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         //
         // {
@@ -545,7 +545,7 @@ public partial class zaif : Exchange
         return ccxt.BaseExchange.ToTicker(this.parseTicker(ticker, market));
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades (public)
@@ -561,7 +561,7 @@ public partial class zaif : Exchange
         //
         string? side = this.safeString(trade, "trade_type");
         side = ((bool) isTrue((isEqual(side, "bid")))) ? "buy" : "sell";
-        object timestamp = this.safeTimestamp(trade, "date");
+        Int64? timestamp = this.safeTimestamp(trade, "date");
         string? id = this.safeString2(trade, "id", "tid");
         string? priceString = this.safeString(trade, "price");
         string? amountString = this.safeString(trade, "amount");
@@ -703,7 +703,7 @@ public partial class zaif : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(data));
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         //     {
@@ -729,7 +729,7 @@ public partial class zaif : Exchange
         //
         string? side = this.safeString(order, "action");
         side = ((bool) isTrue((isEqual(side, "bid")))) ? "buy" : "sell";
-        object timestamp = this.safeTimestamp(order, "timestamp");
+        Int64? timestamp = this.safeTimestamp(order, "timestamp");
         string? marketId = this.safeString(order, "currency_pair");
         string? symbol = this.safeSymbol(marketId, market, "_");
         string? price = this.safeString(order, "price");

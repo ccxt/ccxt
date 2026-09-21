@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class independentreserve : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "independentreserve" },
@@ -508,7 +508,7 @@ public partial class independentreserve : Exchange
             object balance = getValue(response, i);
             string? currencyId = this.safeString(balance, "CurrencyCode");
             string? code = this.safeCurrencyCode(currencyId);
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "AvailableBalance");
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "TotalBalance");
             if (isTrue(!isEqual(code, null)))
@@ -563,7 +563,7 @@ public partial class independentreserve : Exchange
         return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, getValue(market, "symbol"), timestamp, "BuyOrders", "SellOrders", "Price", "Volume"));
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         // {
         //     "DayHighestPrice":43489.49,
@@ -650,7 +650,7 @@ public partial class independentreserve : Exchange
         return ccxt.BaseExchange.ToTicker(this.parseTicker(response, market));
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         // fetchOrder
@@ -938,7 +938,7 @@ public partial class independentreserve : Exchange
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(data, market, since, limitVar));
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         Int64? timestamp = this.parse8601(getValue(trade, "TradeTimestampUtc"));
         string? id = this.safeString(trade, "TradeGuid");
@@ -1053,7 +1053,7 @@ public partial class independentreserve : Exchange
             }
         }
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        object symbols = this.symbols;
+        List<object> symbols = this.symbols;
         for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
@@ -1239,9 +1239,9 @@ public partial class independentreserve : Exchange
         {
             ((IDictionary<string,object>)request)["destinationTag"] = tagVar;
         }
-        object networkCode = null;
+        string? networkCode = null;
         IList<object> networkCodeparametersVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
-        networkCode = ((IList<object>)networkCodeparametersVariable)[0];
+        networkCode = (string)((IList<object>)networkCodeparametersVariable)[0];
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         if (isTrue(!isEqual(networkCode, null)))
         {
@@ -1354,7 +1354,7 @@ public partial class independentreserve : Exchange
             ((IDictionary<string,object>)query)["signature"] = ((string)signature).ToUpper();
             for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
             {
-                object key = getValue(keys, i);
+                string? key = ((string)getValue(keys, i));
                 ((IDictionary<string,object>)query)[(string)key] = getValue(parameters, key);
             }
             body = this.json(query);

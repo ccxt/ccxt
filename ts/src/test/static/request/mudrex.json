@@ -108,6 +108,17 @@
                     "DOGE/USDT:USDT"
                 ],
                 "output": null
+            },
+            {
+                "description": "fetchMyTrades limit is doubled and paginated to cover excluded rows",
+                "method": "fetchMyTrades",
+                "url": "https://trade.mudrex.com/fapi/v1/futures/fee/history?limit=40&offset=0",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    null,
+                    20
+                ],
+                "output": null
             }
         ],
         "fetchPositions": [

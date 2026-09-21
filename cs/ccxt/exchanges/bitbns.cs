@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class bitbns : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "bitbns" },
@@ -474,7 +474,7 @@ public partial class bitbns : Exchange
         return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, getValue(market, "symbol"), timestamp));
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         //
         //     {
@@ -604,7 +604,7 @@ public partial class bitbns : Exchange
             {
                 string? currencyId = this.safeString(parts, 1);
                 // note that "Money" stands for INR - the only fiat in bitbns
-                object account = this.account();
+                Dictionary<string, object> account = this.account();
                 ((IDictionary<string,object>)account)["free"] = this.safeString(data, key);
                 ((IDictionary<string,object>)account)["used"] = this.safeString(data, add("inorder", currencyId));
                 if (isTrue(isEqual(currencyId, "Money")))
@@ -667,7 +667,7 @@ public partial class bitbns : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         // createOrder
@@ -862,7 +862,7 @@ public partial class bitbns : Exchange
         };
         Dictionary<string, object> response = null;
         string tail = ((bool) isTrue((isEqual(isTrigger, true)))) ? "StopLossOrder" : "Order";
-        object quoteSide = ((bool) isTrue((isEqual(getValue(market, "quoteId"), "USDT")))) ? "usdtcancel" : "cancel";
+        string quoteSide = ((bool) isTrue((isEqual(getValue(market, "quoteId"), "USDT")))) ? "usdtcancel" : "cancel";
         quoteSide = add(quoteSide, tail);
         ((IDictionary<string,object>)request)["side"] = quoteSide;
         response = await this.v2PostCancel(this.extend(request, parameters));
@@ -990,7 +990,7 @@ public partial class bitbns : Exchange
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market, since, limit));
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         // fetchMyTrades
@@ -1435,7 +1435,7 @@ public partial class bitbns : Exchange
                 { "X-BITBNS-APIKEY", this.apiKey },
             };
         }
-        string baseUrl = this.implodeHostname(getValue(getValue(this.urls, "api"), api));
+        object baseUrl = this.implodeHostname(getValue(getValue(this.urls, "api"), api));
         object url = add(add(baseUrl, "/"), this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         string nonce = ((object)this.nonce()).ToString();

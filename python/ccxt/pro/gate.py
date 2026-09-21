@@ -128,7 +128,7 @@ class gate(ccxt.async_support.gate):
                     'spot': 'spot.balances',  # spot.margin_balances, spot.funding_balances or spot.cross_balances
                 },
                 'watchPositions': {
-                    'fetchPositionsSnapshot': True,  # or False
+                    'fetchPositionsSnapshot': True,  # or false
                     'awaitPositionsSnapshot': True,  # whether to wait for the positions snapshot before providing updates
                 },
             },
@@ -558,14 +558,14 @@ class gate(ccxt.async_support.gate):
         #             "U": 140595902,
         #             "u": 140595902,
         #             "b": [
-        #                 ['2.51518', "228.119"],
-        #                 ['2.50587', "1510.11"],
-        #                 ['2.49944', "67.6"],
+        #                 [ '2.51518', "228.119" ],
+        #                 [ '2.50587', "1510.11" ],
+        #                 [ '2.49944', "67.6" ],
         #             ],
         #             "a": [
-        #                 ['2.5182', "4.199"],
-        #                 ["2.51926", "1874"],
-        #                 ['2.53528', "96.529"],
+        #                 [ '2.5182', "4.199" ],
+        #                 [ "2.51926", "1874" ],
+        #                 [ '2.53528', "96.529" ],
         #             ]
         #         }
         #     }
@@ -584,14 +584,14 @@ class gate(ccxt.async_support.gate):
         #             "U": 1577718307,
         #             "u": 1577719254,
         #             "b": [
-        #                 {p: "2.5178", s: 0},
-        #                 {p: "2.5179", s: 0},
-        #                 {p: "2.518", s: 0},
+        #                 { p: "2.5178", s: 0 },
+        #                 { p: "2.5179", s: 0 },
+        #                 { p: "2.518", s: 0 },
         #             ],
         #             "a": [
-        #                 {p: "2.52", s: 0},
-        #                 {p: "2.5201", s: 0},
-        #                 {p: "2.5203", s: 0},
+        #                 { p: "2.52", s: 0 },
+        #                 { p: "2.5201", s: 0 },
+        #                 { p: "2.5203", s: 0 },
         #             ]
         #         }
         #     }
@@ -975,13 +975,13 @@ class gate(ccxt.async_support.gate):
         #     "channel": "spot.candlesticks",
         #     "event": "update",
         #     "result": {
-        #       "t": "1606292580",  # total volume
-        #       "v": "2362.32035",  # volume
-        #       "c": "19128.1",  # close
-        #       "h": "19128.1",  # high
-        #       "l": "19128.1",  # low
-        #       "o": "19128.1",  # open
-        #       "n": "1m_BTC_USDT"  # sub
+        #       "t": "1606292580", // total volume
+        #       "v": "2362.32035", // volume
+        #       "c": "19128.1", // close
+        #       "h": "19128.1", // high
+        #       "l": "19128.1", // low
+        #       "o": "19128.1", // open
+        #       "n": "1m_BTC_USDT" // sub
         #     }
         #   }
         #
@@ -1089,7 +1089,7 @@ class gate(ccxt.async_support.gate):
         #     ]
         # }
         #
-        result = self.safe_value(message, 'result', [])
+        result = self.safe_list(message, 'result', [])
         tradesLength = len(result)
         if tradesLength == 0:
             return
@@ -1211,7 +1211,7 @@ class gate(ccxt.async_support.gate):
         #       ]
         #   }
         #
-        result = self.safe_value(message, 'result', [])
+        result = self.safe_list(message, 'result', [])
         self.balance['info'] = result
         for i in range(0, len(result)):
             rawBalance = result[i]
@@ -1352,7 +1352,7 @@ class gate(ccxt.async_support.gate):
         #    }
         #
         type = self.get_market_type_by_url(client.url)
-        data = self.safe_value(message, 'result', [])
+        data = self.safe_list(message, 'result', [])
         cache = self.positions[type]
         newPositions = []
         for i in range(0, len(data)):
@@ -1709,7 +1709,7 @@ class gate(ccxt.async_support.gate):
         #        "time": 1647274664,
         #        "channel": "futures.orders",
         #        "event": "subscribe",
-        #        "error": {code: 2, message: "unknown contract BTC_USDT_20220318"},
+        #        "error": { code: 2, message: "unknown contract BTC_USDT_20220318" },
         #    }
         #    {
         #      "time": 1647276473,
@@ -1730,7 +1730,7 @@ class gate(ccxt.async_support.gate):
         #         client_id: '81.34.68.6-0xc16375e2c0',
         #         conn_id: '9539116e0e09678f'
         #       },
-        #       data: {errs: {label: 'AUTHENTICATION_FAILED', message: 'Not login'}},
+        #       data: { errs: { label: 'AUTHENTICATION_FAILED', message: 'Not login' } },
         #       request_id: '10406147'
         #     }
         #     {
@@ -1858,7 +1858,7 @@ class gate(ccxt.async_support.gate):
         #        "id": 1649062303,
         #        "channel": "spot.candlesticks",
         #        "event": "subscribe",
-        #        "result": {status: "success"}
+        #        "result": { status: "success" }
         #    }
         #
         # candlestick
@@ -1950,7 +1950,7 @@ class gate(ccxt.async_support.gate):
             self.handle_un_subscribe(client, message)
             return
         channel = self.safe_string(message, 'channel', '')
-        # after supporting more method we can create a mapping for self
+        # after supporting more method we can create a mapping for this
         if channel == 'spot.obu':
             self.handle_order_book(client, message)
             return

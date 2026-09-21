@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 use crate::pro::*;
 
 
@@ -717,8 +721,8 @@ impl HtxCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_391: bool = true;
-            while { if !__for_first_391 { i = add(&i, &Value::Int(1)); } __for_first_391 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_398: bool = true;
+            while { if !__for_first_398 { i = add(&i, &Value::Int(1)); } __for_first_398 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut trade: Value = self.parse_trade(get_value(&data, &i), &[market.clone()]);
             tradesCache.append(trade.clone());
         }
@@ -1016,8 +1020,8 @@ impl HtxCore {
                 orderbook.reset(snapshot.clone());
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_392: bool = true;
-                    while { if !__for_first_392 { i = add(&i, &Value::Int(1)); } __for_first_392 = false; is_less_than(&i, &get_array_length(&messages)) } {
+                    let mut __for_first_399: bool = true;
+                    while { if !__for_first_399 { i = add(&i, &Value::Int(1)); } __for_first_399 = false; is_less_than(&i, &get_array_length(&messages)) } {
                     self.handle_order_book_message(client.clone(), get_value(&messages, &i));
                 }
                 }
@@ -1093,8 +1097,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     pub fn handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_393: bool = true;
-            while { if !__for_first_393 { i = add(&i, &Value::Int(1)); } __for_first_393 = false; is_less_than(&i, &get_array_length(&deltas)) } {
+            let mut __for_first_400: bool = true;
+            while { if !__for_first_400 { i = add(&i, &Value::Int(1)); } __for_first_400 = false; is_less_than(&i, &get_array_length(&deltas)) } {
             self.handle_delta(bookside.clone(), get_value(&deltas, &i));
         }
         }
@@ -1750,7 +1754,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }  else {
             // contract branch
             parsedOrder = self.parse_ws_order(message.clone(), &[market.clone()]);
-            let mut rawTrades: Value = self.safe_value_k(message.clone(), "trade", &[Value::List(vec![])]);
+            let mut rawTrades: Value = self.safe_list_k(message.clone(), "trade", &[Value::List(vec![])]);
             let mut tradesLength: Value = get_array_length(&rawTrades);
             if is_greater_than(&tradesLength, &Value::Int(0)) {
                 let mut tradesObject: Value = Value::Map({
@@ -2268,18 +2272,18 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     m
 }));
         }
-        let mut rawPositions: Value = self.safe_value_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut rawPositions: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
         if is_true(&self.is_empty(rawPositions.clone())) {
             let mut prefixes: Value = Value::List(vec![Value::Str("cross:positions".to_string()), Value::Str("isolated:positions".to_string())]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_395: bool = true;
-                while { if !__for_first_395 { i = add(&i, &Value::Int(1)); } __for_first_395 = false; is_less_than(&i, &get_array_length(&prefixes)) } {
+                let mut __for_first_402: bool = true;
+                while { if !__for_first_402 { i = add(&i, &Value::Int(1)); } __for_first_402 = false; is_less_than(&i, &get_array_length(&prefixes)) } {
                 let mut messageHashes: Value = self.find_message_hashes(client.clone(), get_value(&prefixes, &i));
                 {
                                         let mut j: Value = Value::Int(0);
-                    let mut __for_first_394: bool = true;
-                    while { if !__for_first_394 { j = add(&j, &Value::Int(1)); } __for_first_394 = false; is_less_than(&j, &get_array_length(&messageHashes)) } {
+                    let mut __for_first_401: bool = true;
+                    while { if !__for_first_401 { j = add(&j, &Value::Int(1)); } __for_first_401 = false; is_less_than(&j, &get_array_length(&messageHashes)) } {
                     client.resolve(&[Value::List(vec![]), get_value(&messageHashes, &j)]);
                 }
                 }
@@ -2295,8 +2299,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut timestamp: Value = self.safe_integer_k(message.clone(), "ts", &[]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_396: bool = true;
-            while { if !__for_first_396 { i = add(&i, &Value::Int(1)); } __for_first_396 = false; is_less_than(&i, &get_array_length(&rawPositions)) } {
+            let mut __for_first_403: bool = true;
+            while { if !__for_first_403 { i = add(&i, &Value::Int(1)); } __for_first_403 = false; is_less_than(&i, &get_array_length(&rawPositions)) } {
             let mut rawPosition: Value = get_value(&rawPositions, &i);
             let mut rawPosition: Value = get_value(&rawPositions, &i);
             let mut position: Value = self.parse_position(rawPosition.clone(), &[]);
@@ -2320,16 +2324,16 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut marginModes: Value = object_keys(&positionsByMarginMode);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_398: bool = true;
-            while { if !__for_first_398 { i = add(&i, &Value::Int(1)); } __for_first_398 = false; is_less_than(&i, &get_array_length(&marginModes)) } {
+            let mut __for_first_405: bool = true;
+            while { if !__for_first_405 { i = add(&i, &Value::Int(1)); } __for_first_405 = false; is_less_than(&i, &get_array_length(&marginModes)) } {
             let mut marginMode: Value = get_value(&marginModes, &i);
             let mut marginMode: Value = get_value(&marginModes, &i);
             let mut marginModePositions: Value = self.safe_value(positionsByMarginMode.clone(), marginMode.clone(), &[Value::List(vec![])]);
             let mut messageHashes: Value = self.find_message_hashes(client.clone(), add(&marginMode, &Value::Str(":positions::".to_string())));
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_397: bool = true;
-                while { if !__for_first_397 { j = add(&j, &Value::Int(1)); } __for_first_397 = false; is_less_than(&j, &get_array_length(&messageHashes)) } {
+                let mut __for_first_404: bool = true;
+                while { if !__for_first_404 { j = add(&j, &Value::Int(1)); } __for_first_404 = false; is_less_than(&j, &get_array_length(&messageHashes)) } {
                 let mut messageHash: Value = get_value(&messageHashes, &j);
                 let mut messageHash: Value = get_value(&messageHashes, &j);
                 let mut parts: Value = split(&messageHash, &Value::Str("::".to_string()));
@@ -2575,7 +2579,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //     }
         //
         let mut channel: Value = self.safe_string_k(message.clone(), "ch", &[]);
-        let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
         let mut timestamp: Value = self.safe_integer_k(data.clone(), "changeTime", &[self.safe_integer(message.clone(), Value::Str("ts".to_string()), &[])]);
         add_element_to_object(&mut self.balance, &Value::Str("timestamp".to_string()), timestamp.clone());
         { let __be_tmp = self.iso8601(timestamp.clone()); add_element_to_object(&mut self.balance, &Value::Str("datetime".to_string()), __be_tmp); };
@@ -2607,8 +2611,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 let mut detailsLength: Value = get_array_length(&details);
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_399: bool = true;
-                    while { if !__for_first_399 { i = add(&i, &Value::Int(1)); } __for_first_399 = false; is_less_than(&i, &detailsLength) } {
+                    let mut __for_first_406: bool = true;
+                    while { if !__for_first_406 { i = add(&i, &Value::Int(1)); } __for_first_406 = false; is_less_than(&i, &detailsLength) } {
                     let mut detail: Value = get_value(&details, &i);
                     let mut detail: Value = get_value(&details, &i);
                     let mut currencyId: Value = self.safe_string_k(detail.clone(), "currency", &[]);
@@ -2693,8 +2697,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 }  else {
                     {
                                                 let mut i: Value = Value::Int(0);
-                        let mut __for_first_400: bool = true;
-                        while { if !__for_first_400 { i = add(&i, &Value::Int(1)); } __for_first_400 = false; is_less_than(&i, &get_array_length(&data)) } {
+                        let mut __for_first_407: bool = true;
+                        while { if !__for_first_407 { i = add(&i, &Value::Int(1)); } __for_first_407 = false; is_less_than(&i, &get_array_length(&data)) } {
                         let mut isolatedBalance: Value = get_value(&data, &i);
                         let mut isolatedBalance: Value = get_value(&data, &i);
                         let mut account: Value = self.account();
@@ -2712,8 +2716,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }  else {
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_401: bool = true;
-                    while { if !__for_first_401 { i = add(&i, &Value::Int(1)); } __for_first_401 = false; is_less_than(&i, &get_array_length(&data)) } {
+                    let mut __for_first_408: bool = true;
+                    while { if !__for_first_408 { i = add(&i, &Value::Int(1)); } __for_first_408 = false; is_less_than(&i, &get_array_length(&data)) } {
                     let mut balance: Value = get_value(&data, &i);
                     let mut balance: Value = get_value(&data, &i);
                     let mut currencyId: Value = self.safe_string_k(balance.clone(), "symbol", &[]);
@@ -2777,8 +2781,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut subMessageHashes: Value = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_402: bool = true;
-            while { if !__for_first_402 { i = add(&i, &Value::Int(1)); } __for_first_402 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
+            let mut __for_first_409: bool = true;
+            while { if !__for_first_409 { i = add(&i, &Value::Int(1)); } __for_first_409 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
             let mut unsubHash: Value = get_value(&messageHashes, &i);
             let mut unsubHash: Value = get_value(&messageHashes, &i);
             let mut subHash: Value = get_value(&subMessageHashes, &i);
@@ -3290,8 +3294,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if is_true(&Value::Bool(is_array(&data))) {
                     {
                                                 let mut i: Value = Value::Int(0);
-                        let mut __for_first_403: bool = true;
-                        while { if !__for_first_403 { i = add(&i, &Value::Int(1)); } __for_first_403 = false; is_less_than(&i, &get_array_length(&data)) } {
+                        let mut __for_first_410: bool = true;
+                        while { if !__for_first_410 { i = add(&i, &Value::Int(1)); } __for_first_410 = false; is_less_than(&i, &get_array_length(&data)) } {
                         let mut parsed: Value = self.parse_ws_trade(get_value(&data, &i), &[market.clone()]);
                         let mut symbol: Value = self.safe_string_k(parsed.clone(), "symbol", &[]);
                         if !is_equal(&symbol, &Value::Null) {
@@ -3314,13 +3318,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }  else {
                 // this trades object is artificially created
                 // in handleOrder
-                let mut rawTrades: Value = self.safe_value_k(message.clone(), "trades", &[Value::List(vec![])]);
+                let mut rawTrades: Value = self.safe_list_k(message.clone(), "trades", &[Value::List(vec![])]);
                 let mut marketId: Value = self.safe_value_k(message.clone(), "symbol", &[]);
                 let mut market: Value = self.market(marketId.clone());
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_404: bool = true;
-                    while { if !__for_first_404 { i = add(&i, &Value::Int(1)); } __for_first_404 = false; is_less_than(&i, &get_array_length(&rawTrades)) } {
+                    let mut __for_first_411: bool = true;
+                    while { if !__for_first_411 { i = add(&i, &Value::Int(1)); } __for_first_411 = false; is_less_than(&i, &get_array_length(&rawTrades)) } {
                     let mut trade: Value = get_value(&rawTrades, &i);
                     let mut trade: Value = get_value(&rawTrades, &i);
                     let mut parsedTrade: Value = self.parse_trade(trade.clone(), &[market.clone()]);

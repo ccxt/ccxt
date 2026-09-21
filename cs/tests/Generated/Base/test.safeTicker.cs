@@ -21,7 +21,7 @@ public partial class BaseTest
                 { "open", 5 },
                 { "change", 1 },
             };
-            object result1 = exchange.safeTicker(ticker1);
+            Dictionary<string, object> result1 = exchange.safeTicker(ticker1);
             Assert(preciseEqualStr(exchange, result1, "percentage", "20.0"));
             Assert(preciseEqualStr(exchange, result1, "average", "5.5"));
             Assert(preciseEqualStr(exchange, result1, "close", "6.0"));
@@ -31,7 +31,7 @@ public partial class BaseTest
                 { "open", 5 },
                 { "percentage", 20 },
             };
-            object result2 = exchange.safeTicker(ticker2);
+            Dictionary<string, object> result2 = exchange.safeTicker(ticker2);
             Assert(preciseEqualStr(exchange, result2, "change", "1.0"));
             Assert(preciseEqualStr(exchange, result2, "average", "5.5"));
             Assert(preciseEqualStr(exchange, result2, "close", "6.0"));
@@ -41,7 +41,7 @@ public partial class BaseTest
                 { "close", 6 },
                 { "change", 1 },
             };
-            object result3 = exchange.safeTicker(ticker3);
+            Dictionary<string, object> result3 = exchange.safeTicker(ticker3);
             Assert(preciseEqualStr(exchange, result3, "open", "5.0"));
             Assert(preciseEqualStr(exchange, result3, "percentage", "20.0"));
             Assert(preciseEqualStr(exchange, result3, "average", "5.5"));
@@ -51,7 +51,7 @@ public partial class BaseTest
                 { "close", 6 },
                 { "percentage", 20 },
             };
-            object result4 = exchange.safeTicker(ticker4);
+            Dictionary<string, object> result4 = exchange.safeTicker(ticker4);
             Assert(preciseEqualStr(exchange, result4, "open", "5.0"));
             Assert(preciseEqualStr(exchange, result4, "change", "1.0"));
             Assert(preciseEqualStr(exchange, result4, "average", "5.5"));
@@ -61,7 +61,7 @@ public partial class BaseTest
                 { "average", 5.5 },
                 { "percentage", 20 },
             };
-            object result5 = exchange.safeTicker(ticker5);
+            Dictionary<string, object> result5 = exchange.safeTicker(ticker5);
             Assert(preciseEqualStr(exchange, result5, "open", "5.0"));
             Assert(preciseEqualStr(exchange, result5, "change", "1.0"));
             Assert(preciseEqualStr(exchange, result5, "close", "6.0"));
@@ -71,7 +71,7 @@ public partial class BaseTest
                 { "average", 5.5 },
                 { "change", 1 },
             };
-            object result6 = exchange.safeTicker(ticker6);
+            Dictionary<string, object> result6 = exchange.safeTicker(ticker6);
             Assert(preciseEqualStr(exchange, result6, "open", "5.0"));
             Assert(preciseEqualStr(exchange, result6, "percentage", "20.0"));
             Assert(preciseEqualStr(exchange, result6, "close", "6.0"));
@@ -81,7 +81,7 @@ public partial class BaseTest
                 { "open", 5 },
                 { "close", 6 },
             };
-            object result7 = exchange.safeTicker(ticker7);
+            Dictionary<string, object> result7 = exchange.safeTicker(ticker7);
             Assert(preciseEqualStr(exchange, result7, "change", "1.0"));
             Assert(preciseEqualStr(exchange, result7, "percentage", "20.0"));
             Assert(preciseEqualStr(exchange, result7, "average", "5.5"));
@@ -108,7 +108,7 @@ public partial class BaseTest
                 { "markPrice", 5.9 },
                 { "info", new Dictionary<string, object>() {} },
             };
-            object result8 = exchange.safeTicker(ticker8);
+            Dictionary<string, object> result8 = exchange.safeTicker(ticker8);
             Assert(preciseEqualStr(exchange, result8, "open", "5.0"));
             Assert(preciseEqualStr(exchange, result8, "high", "6.5"));
             Assert(preciseEqualStr(exchange, result8, "low", "4.5"));
@@ -136,10 +136,23 @@ public partial class BaseTest
                 { "change", 0 },
                 { "percentage", 0 },
             };
-            object result9 = exchange.safeTicker(ticker9);
+            Dictionary<string, object> result9 = exchange.safeTicker(ticker9);
             Assert(preciseEqualStr(exchange, result9, "change", "0"));
             Assert(preciseEqualStr(exchange, result9, "percentage", "0"));
             Assert(preciseEqualStr(exchange, result9, "open", "6.0"));
             Assert(preciseEqualStr(exchange, result9, "last", "6.0"));
+            // CASE 10 - by open and average, the pair that derives close from average
+            Dictionary<string, object> ticker10 = new Dictionary<string, object>() {
+                { "open", 5 },
+                { "average", 5.5 },
+            };
+            Dictionary<string, object> result10 = exchange.safeTicker(ticker10);
+            Assert(preciseEqualStr(exchange, result10, "close", "6.0"));
+            Assert(preciseEqualStr(exchange, result10, "last", "6.0"));
+            // the supplied average must survive untouched, and this path deliberately
+            // leaves change and percentage underived - pin that boundary
+            Assert(preciseEqualStr(exchange, result10, "average", "5.5"));
+            Assert(isEqual(getValue(result10, "change"), null));
+            Assert(isEqual(getValue(result10, "percentage"), null));
         }
 }

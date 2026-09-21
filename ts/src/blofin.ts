@@ -3,7 +3,7 @@
 
 import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/blofin.js';
-import { ExchangeError, ExchangeNotAvailable, ArgumentsRequired, BadRequest, InvalidOrder, AuthenticationError, RateLimitExceeded, InsufficientFunds, NullResponse } from './base/errors.js';
+import { ExchangeError, ExchangeNotAvailable, ArgumentsRequired, BadRequest, InvalidOrder, AuthenticationError, RateLimitExceeded, InsufficientFunds, NullResponse, PermissionDenied, InvalidNonce, InvalidAddress, OrderNotFound, DuplicateOrderId } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Strings, Currency, Position, TransferEntry, Leverage, Leverages, MarginMode, Num, TradingFeeInterface, Dict, int, LedgerEntry, FundingRate, ADL, Fee, FeeString, Bool, List, NullableDict, IndexType, PositionModeInfo, Endpoint } from './base/types.js';
@@ -139,7 +139,7 @@ export default class blofin extends Exchange {
                 'setPositionMode': true,
                 'signIn': false,
                 'transfer': true,
-                'withdraw': false,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -411,8 +411,8 @@ export default class blofin extends Exchange {
                     '405': BadRequest,  // Method Not Allowed
                     '406': BadRequest,  // Not Acceptable
                     '429': RateLimitExceeded,  // Too Many Requests
-                    '152001': BadRequest,  // Parameter {} cannot be empty
-                    '152002': BadRequest,  // Parameter {} error
+                    '152001': BadRequest,  // Parameter {} cannot be empty - verified live 2026-09-14 (withdrawal-apply without addrType)
+                    '152002': BadRequest,  // Parameter {} error - verified live 2026-09-14 (short-form chain id in withdrawal-apply; NOTE the live message omits the field name)
                     '152003': BadRequest,  // Either parameter {} or {} is required
                     '152004': BadRequest,  // JSON syntax error
                     '152005': BadRequest,  // Parameter error: wrong or empty
@@ -445,6 +445,46 @@ export default class blofin extends Exchange {
                     '102065': BadRequest,  // Sell price is not within the price limit
                     '102068': BadRequest,  // Cancel failed as the order has been filled, triggered, canceled or does not exist
                     '103013': ExchangeError,  // Internal error; unable to process your request. Please try again.
+                    '102067': OrderNotFound,  // Order modification failed as the order has been filled, triggered, canceled or does not exist.
+                    '102089': BadRequest,  // Position mode mismatch
+                    '102148': DuplicateOrderId,  // Duplicate requestId, request ignored.
+                    '103003': InsufficientFunds,  // Order failed. Insufficient USDT margin in account
+                    '110006': InvalidOrder,  // You have pending cross orders. Please cancel them before adjusting your leverage.
+                    '110019': InvalidOrder,  // Setting failed. Cancel any open orders, and close positions first.
+                    '148082': BadRequest,  // Callback percentage range 0.1% - 100%
+                    '148083': BadRequest,  // Callback constant range
+                    '152011': PermissionDenied,  // Transaction API Key does not support brokerId
+                    '152012': BadRequest,  // BrokerId is required
+                    '152013': PermissionDenied,  // Unmatched brokerId, please check your API key's bound broker
+                    '152014': BadRequest,  // Instrument ID does not exist
+                    '152015': BadRequest,  // Number of instId values exceeds the maximum limit of 20
+                    '152020': InvalidAddress,  // Address binding not found.
+                    '152022': BadRequest,  // Current network is not available.
+                    '152023': PermissionDenied,  // This address is still within the 24-hour withdrawal lock period.
+                    '152024': PermissionDenied,  // Your account now can only withdraw to whitelist addresses.
+                    '152025': PermissionDenied,  // Deposits not supported yet, contact customer support for details.
+                    '152026': BadRequest,  // Amount precision error.
+                    '152027': BadRequest,  // The withdrawal must exceed the minimum limit.
+                    '152028': InsufficientFunds,  // Insufficient balance.
+                    '152029': PermissionDenied,  // The maximum daily withdrawal amount has been reached.
+                    '152030': DuplicateOrderId,  // Duplicated clientId.
+                    '152031': InvalidAddress,  // This address is not marked as verification-free. - verified live 2026-09-14 (account-policy rejection, address must carry the verification-free flag for api withdrawals)
+                    '152032': PermissionDenied,  // Quick withdrawal daily limit exceeded. Please complete 2FA verification.
+                    '152401': AuthenticationError,  // Access key does not exist
+                    '152402': AuthenticationError,  // Access key has expired
+                    '152404': PermissionDenied,  // This operation is not supported, Please check the requestPath or API key permissions. - verified live 2026-09-14 (api key without the withdrawal permission)
+                    '152405': InvalidNonce,  // Timestamp in header or signature has expired, need to be within 60s
+                    '152406': PermissionDenied,  // Your IP is not included in your API key's IP whitelist
+                    '152407': InvalidNonce,  // Repeated nonce, Reusing within 60 seconds is not allowed.
+                    '152408': AuthenticationError,  // Passphrase error
+                    '152409': AuthenticationError,  // Signature verification failed
+                    '152410': InvalidNonce,  // The value of ACCESS-TIMESTAMP needs to be a millisecond timestamp
+                    '152420': DuplicateOrderId,  // Duplicate order in batch request
+                    '152421': DuplicateOrderId,  // requestId already exists, please try again later
+                    '152422': BadRequest,  // Exactly one of callbackRatio and callbackSpread must be provided
+                    '152423': InvalidOrder,  // New size cannot be less than filled size
+                    '152428': BadRequest,  // Invalid trigger price type
+                    '152429': BadRequest,  // Request expired, ttl exceeded
                     'Order failed. Insufficient USDT margin in account': InsufficientFunds,  // Insufficient USDT margin in account
                 },
                 'broad': {
@@ -479,10 +519,49 @@ export default class blofin extends Exchange {
                     'USDT': 'TRC20',
                 },
                 'networks': {
+                    // code -> the live withdrawal-apply chain identifier where
+                    // it carries no parenthesized suffix; the suffix family
+                    // ('Tron (TRC20)' and friends) is constructed at runtime
+                    // in networkCodeToChainId from networkPrefixes, because a
+                    // space before a paren inside a source literal is not
+                    // transpiler-safe
                     'BTC': 'Bitcoin',
-                    'BEP20': 'BSC',
-                    'ERC20': 'ERC20',
-                    'TRC20': 'TRC20',
+                    'SOL': 'Solana',
+                    'MATIC': 'Polygon POS',
+                    'AVAXC': 'AVAX C-Chain',
+                    'ARBITRUM': 'Arbitrum One',
+                    'OP': 'Optimism',
+                    'KAIA': 'KAIA',
+                },
+                'networkPrefixes': {
+                    // code -> the display-name prefix; the venue id is
+                    // prefix + space + parenthesized suffix, where the suffix
+                    // defaults to the unified code itself
+                    'TRC20': 'Tron',
+                    'ERC20': 'Ethereum',
+                    'BEP20': 'BNB Smart Chain',
+                    'APT': 'APT',
+                    'TON': 'TON',
+                },
+                'networkSuffixes': {
+                    // only where the parenthesized suffix differs from the code
+                    'TON': 'Toncoin',
+                },
+                'networkCodesBySuffix': {
+                    // reverse of networkSuffixes for parsing venue ids
+                    'Toncoin': 'TON',
+                },
+                'networksById': {
+                    // paren-free venue ids and legacy short forms -> unified;
+                    // ids with a parenthesized suffix are parsed at runtime in
+                    // chainIdToNetworkCode
+                    'Bitcoin': 'BTC',
+                    'Solana': 'SOL',
+                    'Polygon POS': 'MATIC',
+                    'AVAX C-Chain': 'AVAXC',
+                    'Arbitrum One': 'ARBITRUM',
+                    'Optimism': 'OP',
+                    'BSC': 'BEP20',
                 },
                 'fetchOpenInterestHistory': {
                     'timeframes': {
@@ -1897,6 +1976,133 @@ export default class blofin extends Exchange {
         return this.parseTransactions (data, currency, since, limit, params);
     }
 
+    networkCodeToChainId (networkCode: string): Str {
+        // the live venue identifies chains by display names; the suffix
+        // family is built here as prefix + space + parenthesized suffix
+        // because such literals are not transpiler-safe in source
+        const networks = this.safeDict (this.options, 'networks', {});
+        const direct = this.safeString (networks, networkCode);
+        if (direct !== undefined) {
+            return direct;
+        }
+        const prefixes = this.safeDict (this.options, 'networkPrefixes', {});
+        const prefix = this.safeString (prefixes, networkCode);
+        if (prefix !== undefined) {
+            const suffixes = this.safeDict (this.options, 'networkSuffixes', {});
+            const suffix = this.safeString (suffixes, networkCode, networkCode);
+            return prefix + ' ' + '(' + suffix + ')';
+        }
+        return networkCode;
+    }
+
+    chainIdToNetworkCode (chainId: Str): Str {
+        // live history rows and the currencies registry carry display-name
+        // chain ids like Tron with a parenthesized TRC20 suffix (verified
+        // live 2026-09-15), while the doc examples still show short forms -
+        // parse the suffix when present, fall back to the id maps otherwise
+        if (chainId === undefined) {
+            return undefined;
+        }
+        if (chainId.indexOf ('(') > -1) {
+            // php-safe suffix extraction: split instead of index arithmetic,
+            // because a stored strpos result and a two-argument slice do not
+            // survive the php conversion (false-vs-int compare; length arg)
+            const parts = chainId.split ('(');
+            const tail = this.safeString (parts, 1, '');
+            const tailParts = tail.split (')');
+            const suffix = this.safeString (tailParts, 0);
+            const bySuffix = this.safeDict (this.options, 'networkCodesBySuffix', {});
+            return this.safeString (bySuffix, suffix, suffix);
+        }
+        // delegate the paren-free branch to the base resolver so the
+        // currency-scoped networks and the deprecated-network-code aliases
+        // keep applying alongside options['networksById']
+        return this.networkIdToCode (chainId);
+    }
+
+    /**
+     * @method
+     * @name blofin#withdraw
+     * @description make a withdrawal
+     * @see https://docs.blofin.com/index.html#withdrawal
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw, the withdrawal fee is not included and must be reserved on top
+     * @param {string} address the address to withdraw to, or a UID / email / phone number for an internal transfer
+     * @param {string} tag additional identifier (memo / payment id) required by certain networks
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network] the unified network code for on-chain withdrawals, mapped to the exchange's chain name
+     * @param {string} [params.dest] 'onchain' (default) or 'internal' for an internal transfer
+     * @param {string} [params.addrType] address type, 1: wallet address, 2: UID, 3: email, 4: mobile phone
+     * @param {string} [params.areaCode] area code for the phone number, required when address is a phone number
+     * @param {string} [params.clientId] a client-supplied id of up to 32 case-sensitive alphanumerics
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
+        // LIVE API vs DOCS quirks, verified against the venue 2026-09-14:
+        // - addrType is documented optional but the live venue rejects
+        //   on-chain withdrawals without it: 152001 "Parameter addrType
+        //   cannot be empty" - defaulted to 1 below
+        // - the chain identifiers accepted here are the DISPLAY NAMES from
+        //   GET /asset/currencies ("Tron (TRC20)", "Ethereum (ERC20)", ...);
+        //   the short forms shown in the doc examples ("TRC20") are rejected
+        //   with 152002 "Invalid parameter" - see options["networks"]
+        // - 152002 responses omit the offending field name even though the
+        //   error table documents the message as "Parameter {} error"
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request: Dict = {
+            'currency': currency['id'],
+            'address': address,
+            'amount': this.numberToString (amount),
+        };
+        const dest = this.safeString (params, 'dest', 'onchain');
+        request['dest'] = dest;
+        params = this.omit (params, 'dest');
+        if (dest === 'onchain') {
+            this.checkAddress (address);
+            // the doc's Request Parameters table marks addrType "Required:
+            // No", but the live venue rejects on-chain withdrawals without
+            // it (152001 "Parameter addrType cannot be empty") - default to
+            // 1 = wallet address, callers can override for other kinds
+            request['addrType'] = this.safeString (params, 'addrType', '1');
+            params = this.omit (params, 'addrType');
+        }
+        if (tag !== undefined) {
+            request['tag'] = tag;
+        }
+        // consume the unified network key unconditionally so it never leaks
+        // onto the wire; an explicit raw params['chain'] takes precedence
+        let networkCode: Str = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        const chain = this.safeString (params, 'chain');
+        if (chain === undefined) {
+            if (networkCode !== undefined) {
+                request['chain'] = this.networkCodeToChainId (networkCode);
+            } else if (dest === 'onchain') {
+                // required for on-chain withdrawals, optional for internal transfers
+                throw new ArgumentsRequired (this.id + ' withdraw() requires a params["network"] or params["chain"] for on-chain withdrawals');
+            }
+        }
+        const response = await this.privatePostAssetWithdrawalApply (this.extend (request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "success",
+        //         "data": {
+        //             "withdrawId": "a1b2c3d4e5",
+        //             "clientId": "broker-20260706-0001"
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        // the response carries only withdrawId + clientId, and this class's
+        // parseTransaction reads every field from the payload - seed the
+        // parsed structure from the request so the unified transaction
+        // reflects what was actually submitted
+        return this.parseTransaction (this.extend (request, data), currency);
+    }
+
     /**
      * @method
      * @name blofin#fetchLedger
@@ -1992,6 +2198,16 @@ export default class blofin extends Exchange {
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId);
         const amount = this.safeNumber (transaction, 'amount');
+        // live history rows carry the DISPLAY-NAME chain identifiers
+        // ('Tron (TRC20)', verified live 2026-09-15) even though the doc
+        // examples show short forms ('TRC20') - chainIdToNetworkCode parses
+        // the parenthesized suffix for the display-name family, and the
+        // paren-free ids resolve through the base networkIdToCode with
+        // options['networksById']. note the history
+        // amount is NET of the fee: a 30 USDT withdrawal-apply lands as
+        // amount 29 + fee 1
+        const networkId = this.safeString (transaction, 'chain');
+        const networkCode = this.chainIdToNetworkCode (networkId);
         const txid = this.safeString (transaction, 'txId');
         const timestamp = this.safeInteger (transaction, 'ts');
         const feeCurrencyId = this.safeString (transaction, 'feeCurrency');
@@ -2002,7 +2218,7 @@ export default class blofin extends Exchange {
             'id': id,
             'currency': code,
             'amount': amount,
-            'network': undefined,
+            'network': networkCode,
             'addressFrom': undefined,
             'addressTo': addressTo,
             'address': address,

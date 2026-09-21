@@ -19,6 +19,8 @@ public partial class BaseExchange
 
     protected readonly object idLock = new object();
 
+    protected readonly object lastNonceLock = new object();
+
     public BaseExchange(object userConfig2 = null)
     {
         var userConfig = (dict)userConfig2;
@@ -159,6 +161,27 @@ public partial class BaseExchange
 
     public async virtual Task<object> fetch(object url2, object method2 = null, object headers2 = null, object body2 = null)
     {
+
+        if (fetchResponseByUrl != null)
+        {
+            var mockUrl = Convert.ToString(url2);
+            var byUrl = fetchResponseByUrl as dict;
+            object firstBody = null;
+            var isFirst = true;
+            foreach (var entry in byUrl)
+            {
+                if (isFirst)
+                {
+                    firstBody = entry.Value;
+                    isFirst = false;
+                }
+                if (mockUrl.Contains(entry.Key))
+                {
+                    return entry.Value;
+                }
+            }
+            return firstBody;
+        }
 
         if (fetchResponse != null)
         {
@@ -532,16 +555,16 @@ public partial class BaseExchange
         return Convert.ToInt64(res);
     }
 
-    public async virtual Task<object> loadMarketsHelper(bool reload = false, dict parameters = null)
+    public async virtual Task<IDictionary<string, object>> loadMarketsHelper(bool reload = false, dict parameters = null)
     {
         if (!reload && this.markets != null)
         {
             if (this.markets_by_id == null)
             {
-                return this.setMarkets(this.markets);
+                return ((IDictionary<string, object>)((object)(this.setMarkets(this.markets))));
             }
             // return Task.FromResult(this.markets);
-            return this.markets;
+            return ((IDictionary<string, object>)((object)(this.markets)));
         }
 
         object currencies = null;
@@ -553,10 +576,10 @@ public partial class BaseExchange
         }
         var markets = await this.FetchMarkets();
         this.options.TryRemove("cachedCurrencies", out _);
-        return this.setMarkets(markets, currencies);
+        return ((IDictionary<string, object>)((object)(this.setMarkets(markets, currencies))));
     }
 
-    public virtual Task<object> loadMarkets(object reload2 = null, object parameters2 = null)
+    public virtual Task<IDictionary<string, object>> loadMarkets(object reload2 = null, object parameters2 = null)
     {
         reload2 ??= false;
         var reload = (bool)reload2;
@@ -585,9 +608,9 @@ public partial class BaseExchange
         return ToMarketInterfaceList(this.toArray(this.markets));
     }
 
-    public virtual async Task<object> fetchCurrencies(object parameters = null)
+    public virtual async Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
-        return this.currencies;
+        return ((IDictionary<string, object>)((object)(this.currencies)));
     }
 
     public async Task<Currencies> FetchCurrencies(object parameters = null)
@@ -596,9 +619,9 @@ public partial class BaseExchange
         return new Currencies(res);
     }
 
-    public virtual async Task<object> fetchCurrenciesWs(object parameters = null)
+    public virtual async Task<IDictionary<string, object>> fetchCurrenciesWs(object parameters = null)
     {
-        return this.currencies;
+        return ((IDictionary<string, object>)((object)(this.currencies)));
     }
 
     public async Task<Currencies> FetchCurrenciesWs(object parameters = null)
@@ -1477,6 +1500,16 @@ public partial class BaseExchange
     public void unlockId()
     {
         Monitor.Exit(this.idLock);
+    }
+
+    public void lockLastNonce()
+    {
+        Monitor.Enter(this.lastNonceLock);
+    }
+
+    public void unlockLastNonce()
+    {
+        Monitor.Exit(this.lastNonceLock);
     }
 
 

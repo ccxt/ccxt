@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class revolutx : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "revolutx" },
@@ -208,7 +208,7 @@ public partial class revolutx : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string implodedPath = this.implodeParams(path, parameters);
+        string? implodedPath = this.implodeParams(path, parameters);
         object query = this.omit(parameters, this.extractParams(path));
         List<object> queryKeys = new List<object>(((IDictionary<string,object>)query).Keys);
         int queryLength = getArrayLength(queryKeys);
@@ -242,7 +242,7 @@ public partial class revolutx : Exchange
             {
                 bodyString = body;
             }
-            object message = add(add(add(add(timestamp, ((string)method).ToUpper()), requestPath), queryString), bodyString);
+            string message = add(add(add(add(timestamp, ((string)method).ToUpper()), requestPath), queryString), bodyString);
             string signature = eddsa(this.encode(message), this.privateKey, ed25519);
             headers = new Dictionary<string, object>() {
                 { "X-Revx-API-Key", this.apiKey },
@@ -286,12 +286,12 @@ public partial class revolutx : Exchange
      * @param {object} market the raw market data from the exchange
      * @returns {object} a [market structure]{@link https://docs.ccxt.com/?id=market-structure}
      */
-    public override object parseMarket(object market)
+    public override Dictionary<string, object> parseMarket(object market)
     {
         string? id = this.safeString(market, "id");
-        object bs = this.safeString(market, "base", "");
+        string bs = ((string)this.safeString(market, "base", ""));
         string? quote = this.safeString(market, "quote", "");
-        object baseId = bs;
+        string baseId = bs;
         string? quoteId = quote;
         string? baseStep = this.safeString(market, "base_step");
         string? quoteStep = this.safeString(market, "quote_step");
@@ -300,8 +300,8 @@ public partial class revolutx : Exchange
         string? minOrderSizeQuote = this.safeString(market, "min_order_size_quote");
         string? status = this.safeString(market, "status");
         bool active = (isEqual(status, "active"));
-        object symbol = add(add(bs, "/"), quote);
-        return new Dictionary<string, object>() {
+        string symbol = add(add(bs, "/"), quote);
+        return ccxt.BaseExchange.ToDict(new Dictionary<string, object>() {
             { "id", id },
             { "symbol", symbol },
             { "base", bs },
@@ -355,7 +355,7 @@ public partial class revolutx : Exchange
             } },
             { "created", null },
             { "info", market },
-        };
+        });
     }
 
     /**
@@ -413,7 +413,7 @@ public partial class revolutx : Exchange
      * @param {object} currency the raw currency data from the exchange
      * @returns {object} a [currency structure]{@link https://docs.ccxt.com/?id=currency-structure}
      */
-    public override object parseCurrency(object currency)
+    public override Dictionary<string, object> parseCurrency(object currency)
     {
         string? id = this.safeString2(currency, "id", "symbol", "");
         string? code = this.safeCurrencyCode(id);
@@ -424,7 +424,7 @@ public partial class revolutx : Exchange
         string? assetType = this.safeString(currency, "asset_type");
         string type = ((bool) isTrue((isEqual(assetType, "crypto")))) ? "crypto" : "fiat";
         double? precision = ((bool) isTrue((!isEqual(scale, null)))) ? Math.Pow(Convert.ToDouble(10), Convert.ToDouble(prefixUnaryNeg(ref scale))) : null;
-        return new Dictionary<string, object>() {
+        return ccxt.BaseExchange.ToDict(new Dictionary<string, object>() {
             { "info", currency },
             { "id", id },
             { "code", code },
@@ -450,7 +450,7 @@ public partial class revolutx : Exchange
                 } },
             } },
             { "networks", new Dictionary<string, object>() {} },
-        };
+        });
     }
 
     /**
@@ -462,7 +462,7 @@ public partial class revolutx : Exchange
      * @param {string} [params.region] the region to filter currencies by
      * @returns {object} a dictionary of [currency structures]{@link https://docs.ccxt.com/?id=currency-structure}
      */
-    public async override Task<object> fetchCurrencies(object parameters = null)
+    public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {};
@@ -488,7 +488,7 @@ public partial class revolutx : Exchange
             Dictionary<string, object> currencyData = this.extend(currency, new Dictionary<string, object>() {
                 { "id", key },
             });
-            object parsed = this.parseCurrency(currencyData);
+            Dictionary<string, object> parsed = this.parseCurrency(currencyData);
             string? code = this.safeString(parsed, "code", "");
             if (isTrue(isEqual(code, "")))
             {
@@ -496,7 +496,7 @@ public partial class revolutx : Exchange
             }
             ((IDictionary<string,object>)result)[(string)code] = parsed;
         }
-        return result;
+        return ((IDictionary<string, object>)((object)(result)));
     }
 
     /**
@@ -508,7 +508,7 @@ public partial class revolutx : Exchange
      * @param {object} [market] the market the ticker is for
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         string? tickerSymbol = this.safeString(ticker, "symbol");
         string? symbol = this.safeSymbol(tickerSymbol, market, "/");
@@ -608,7 +608,7 @@ public partial class revolutx : Exchange
         {
             IDictionary<string, object> tickerData = this.safeDict(data, i, new Dictionary<string, object>() {});
             ((IDictionary<string,object>)tickerData)["timestamp"] = timestamp;
-            object ticker = this.parseTicker(tickerData);
+            Dictionary<string, object> ticker = this.parseTicker(tickerData);
             string? symbol = this.safeString(ticker, "symbol", "");
             if (isTrue(isEqual(symbol, "")))
             {
@@ -741,7 +741,7 @@ public partial class revolutx : Exchange
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -793,7 +793,7 @@ public partial class revolutx : Exchange
      * @param {object} [market] the market the trade was executed in
      * @returns {object} a [trade structure]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         string? id = this.safeString(trade, "id");
         string? tradeSymbol = this.safeString(trade, "symbol");
@@ -807,7 +807,7 @@ public partial class revolutx : Exchange
         {
             cost = multiply(price, amount);
         }
-        return new Dictionary<string, object>() {
+        return ((Dictionary<string, object>)((object)(new Dictionary<string, object>() {
             { "info", trade },
             { "id", id },
             { "order", null },
@@ -822,7 +822,7 @@ public partial class revolutx : Exchange
             { "datetime", this.iso8601(timestamp) },
             { "fee", null },
             { "fees", new List<object>() {} },
-        };
+        })));
     }
 
     /**
@@ -931,7 +931,7 @@ public partial class revolutx : Exchange
             {
                 continue;
             }
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "available");
             string? reserved = this.safeString(balance, "reserved");
             string? staked = this.safeString(balance, "staked");
@@ -979,7 +979,7 @@ public partial class revolutx : Exchange
      * @param {object} [market] the market the order was placed in
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         string? orderId = this.safeString2(order, "id", "venue_order_id");
         string? clientOrderId = this.safeString(order, "client_order_id");
@@ -1141,7 +1141,7 @@ public partial class revolutx : Exchange
         IDictionary<string, object> orderData = ((bool) isTrue(((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))) ? this.safeDict(data, 0, new Dictionary<string, object>() {}) : this.safeDict(response, "data", new Dictionary<string, object>() {});
         string? venueOrderId = this.safeString(orderData, "venue_order_id");
         string? state = this.safeString(orderData, "state");
-        object order = this.parseOrder(this.extend(orderData, new Dictionary<string, object>() {
+        Dictionary<string, object> order = this.parseOrder(this.extend(orderData, new Dictionary<string, object>() {
             { "id", venueOrderId },
             { "symbol", getValue(market, "id") },
             { "status", state },
@@ -1589,7 +1589,7 @@ public partial class revolutx : Exchange
         IDictionary<string, object> orderData = ((bool) isTrue(((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))) ? this.safeDict(data, 0, new Dictionary<string, object>() {}) : this.safeDict(response, "data", new Dictionary<string, object>() {});
         string? newVenueOrderId = this.safeString(orderData, "venue_order_id");
         string? state = this.safeString(orderData, "state");
-        object order = this.parseOrder(this.extend(orderData, new Dictionary<string, object>() {
+        Dictionary<string, object> order = this.parseOrder(this.extend(orderData, new Dictionary<string, object>() {
             { "id", newVenueOrderId },
             { "symbol", getValue(market, "id") },
             { "status", state },

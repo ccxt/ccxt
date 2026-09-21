@@ -77,6 +77,16 @@ impl IndependentreserveCore {
         self.call_method(Value::Str("public_get_get_order_minimum_volumes".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `publicGetGetDepositFees` implicit endpoint.
+    pub async fn public_get_get_deposit_fees(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_get_deposit_fees".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetGetFiatWithdrawalFees` implicit endpoint.
+    pub async fn public_get_get_fiat_withdrawal_fees(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_get_fiat_withdrawal_fees".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `publicGetGetCryptoWithdrawalFees` implicit endpoint.
     pub async fn public_get_get_crypto_withdrawal_fees(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_get_crypto_withdrawal_fees".to_string()), optional_args).await
@@ -157,6 +167,11 @@ impl IndependentreserveCore {
         self.call_method(Value::Str("private_post_get_trades".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privatePostGetTradesByOrder` implicit endpoint.
+    pub async fn private_post_get_trades_by_order(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_get_trades_by_order".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privatePostGetBrokerageFees` implicit endpoint.
     pub async fn private_post_get_brokerage_fees(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_get_brokerage_fees".to_string()), optional_args).await
@@ -165,6 +180,21 @@ impl IndependentreserveCore {
     /// Auto-generated wrapper for the `privatePostGetDigitalCurrencyWithdrawal` implicit endpoint.
     pub async fn private_post_get_digital_currency_withdrawal(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_get_digital_currency_withdrawal".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostGetFiatWithdrawal` implicit endpoint.
+    pub async fn private_post_get_fiat_withdrawal(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_get_fiat_withdrawal".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostGetDepositLimits` implicit endpoint.
+    pub async fn private_post_get_deposit_limits(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_get_deposit_limits".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostGetWithdrawalLimits` implicit endpoint.
+    pub async fn private_post_get_withdrawal_limits(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_get_withdrawal_limits".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostPlaceLimitOrder` implicit endpoint.
@@ -180,6 +210,11 @@ impl IndependentreserveCore {
     /// Auto-generated wrapper for the `privatePostCancelOrder` implicit endpoint.
     pub async fn private_post_cancel_order(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_cancel_order".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostCancelOrders` implicit endpoint.
+    pub async fn private_post_cancel_orders(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_cancel_orders".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostSynchDigitalCurrencyDepositAddressWithBlockchain` implicit endpoint.

@@ -112,6 +112,11 @@ impl ApexCore {
         self.call_method(Value::Str("private_get_v3_transfer".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetV3StockAccount` implicit endpoint.
+    pub async fn private_get_v3_stock_account(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v3_stock_account".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privatePostV3DeleteOpenOrders` implicit endpoint.
     pub async fn private_post_v3_delete_open_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v3_delete_open_orders".to_string()), optional_args).await
@@ -145,6 +150,26 @@ impl ApexCore {
     /// Auto-generated wrapper for the `privatePostV3ContractTransferOut` implicit endpoint.
     pub async fn private_post_v3_contract_transfer_out(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v3_contract_transfer_out".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV3ContractTransferTo` implicit endpoint.
+    pub async fn private_post_v3_contract_transfer_to(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v3_contract_transfer_to".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV3SubmitWithdrawClaim` implicit endpoint.
+    pub async fn private_post_v3_submit_withdraw_claim(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v3_submit_withdraw_claim".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV3StockRegisterAccount` implicit endpoint.
+    pub async fn private_post_v3_stock_register_account(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v3_stock_register_account".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV3StockGenerateApi` implicit endpoint.
+    pub async fn private_post_v3_stock_generate_api(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v3_stock_generate_api".to_string()), optional_args).await
     }
 
 }

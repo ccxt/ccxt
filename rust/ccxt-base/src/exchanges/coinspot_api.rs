@@ -247,9 +247,19 @@ impl CoinspotCore {
         self.call_method(Value::Str("v2_private_post_my_buy_now".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `v2PrivatePostMyBuyNowCoinlist` implicit endpoint.
+    pub async fn v2_private_post_my_buy_now_coinlist(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v2_private_post_my_buy_now_coinlist".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `v2PrivatePostMySellNow` implicit endpoint.
     pub async fn v2_private_post_my_sell_now(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v2_private_post_my_sell_now".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v2PrivatePostMySellNowCoinlist` implicit endpoint.
+    pub async fn v2_private_post_my_sell_now_coinlist(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v2_private_post_my_sell_now_coinlist".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `v2PrivatePostMySwapNow` implicit endpoint.
@@ -285,6 +295,16 @@ impl CoinspotCore {
     /// Auto-generated wrapper for the `v2PrivatePostMyCoinWithdrawSend` implicit endpoint.
     pub async fn v2_private_post_my_coin_withdraw_send(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v2_private_post_my_coin_withdraw_send".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v2PrivatePostMyCoinWithdrawSendAsync` implicit endpoint.
+    pub async fn v2_private_post_my_coin_withdraw_send_async(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v2_private_post_my_coin_withdraw_send_async".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v2PrivatePostMyCoinWithdrawSendStatus` implicit endpoint.
+    pub async fn v2_private_post_my_coin_withdraw_send_status(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v2_private_post_my_coin_withdraw_send_status".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `v2PrivatePostRoStatus` implicit endpoint.

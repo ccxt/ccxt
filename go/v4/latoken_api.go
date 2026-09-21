@@ -8,281 +8,281 @@
 package ccxt
 
 // PublicGetBookCurrencyQuote returns a channel that yields a JSON object.
-func (this *LatokenCore) PublicGetBookCurrencyQuote(args ...any) <-chan any {
+func (this *Latoken) PublicGetBookCurrencyQuote(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetBookCurrencyQuote", args...)
 }
 
 // PublicGetChartWeek returns a channel that yields a JSON object.
-func (this *LatokenCore) PublicGetChartWeek(args ...any) <-chan any {
+func (this *Latoken) PublicGetChartWeek(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetChartWeek", args...)
 }
 
 // PublicGetChartWeekCurrencyQuote returns a channel that yields a JSON object.
-func (this *LatokenCore) PublicGetChartWeekCurrencyQuote(args ...any) <-chan any {
+func (this *Latoken) PublicGetChartWeekCurrencyQuote(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetChartWeekCurrencyQuote", args...)
 }
 
 // PublicGetCurrency returns a channel that yields a JSON array.
-func (this *LatokenCore) PublicGetCurrency(args ...any) <-chan any {
+func (this *Latoken) PublicGetCurrency(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetCurrency", args...)
 }
 
 // PublicGetCurrencyAvailable returns a channel that yields a JSON array.
-func (this *LatokenCore) PublicGetCurrencyAvailable(args ...any) <-chan any {
+func (this *Latoken) PublicGetCurrencyAvailable(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetCurrencyAvailable", args...)
 }
 
 // PublicGetCurrencyQuotes returns a channel that yields a JSON array.
-func (this *LatokenCore) PublicGetCurrencyQuotes(args ...any) <-chan any {
+func (this *Latoken) PublicGetCurrencyQuotes(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetCurrencyQuotes", args...)
 }
 
 // PublicGetCurrencyCurrency returns a channel that yields a JSON object.
-func (this *LatokenCore) PublicGetCurrencyCurrency(args ...any) <-chan any {
+func (this *Latoken) PublicGetCurrencyCurrency(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetCurrencyCurrency", args...)
 }
 
 // PublicGetPair returns a channel that yields a JSON array.
-func (this *LatokenCore) PublicGetPair(args ...any) <-chan any {
+func (this *Latoken) PublicGetPair(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetPair", args...)
 }
 
 // PublicGetPairAvailable returns a channel that yields a JSON array.
-func (this *LatokenCore) PublicGetPairAvailable(args ...any) <-chan any {
+func (this *Latoken) PublicGetPairAvailable(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetPairAvailable", args...)
 }
 
 // PublicGetTicker returns a channel that yields a JSON array.
-func (this *LatokenCore) PublicGetTicker(args ...any) <-chan any {
+func (this *Latoken) PublicGetTicker(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTicker", args...)
 }
 
 // PublicGetTickerBaseQuote returns a channel that yields a JSON object.
-func (this *LatokenCore) PublicGetTickerBaseQuote(args ...any) <-chan any {
+func (this *Latoken) PublicGetTickerBaseQuote(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTickerBaseQuote", args...)
 }
 
 // PublicGetTime returns a channel that yields a JSON object.
-func (this *LatokenCore) PublicGetTime(args ...any) <-chan any {
+func (this *Latoken) PublicGetTime(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTime", args...)
 }
 
 // PublicGetTradeHistoryCurrencyQuote returns a channel that yields a JSON array.
-func (this *LatokenCore) PublicGetTradeHistoryCurrencyQuote(args ...any) <-chan any {
+func (this *Latoken) PublicGetTradeHistoryCurrencyQuote(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTradeHistoryCurrencyQuote", args...)
 }
 
 // PublicGetTradeFeeCurrencyQuote returns a channel that yields a JSON object.
-func (this *LatokenCore) PublicGetTradeFeeCurrencyQuote(args ...any) <-chan any {
+func (this *Latoken) PublicGetTradeFeeCurrencyQuote(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTradeFeeCurrencyQuote", args...)
 }
 
 // PublicGetTradeFeeLevels returns a channel that yields a JSON array.
-func (this *LatokenCore) PublicGetTradeFeeLevels(args ...any) <-chan any {
+func (this *Latoken) PublicGetTradeFeeLevels(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTradeFeeLevels", args...)
 }
 
 // PublicGetTransactionBindings returns a channel that yields a JSON array.
-func (this *LatokenCore) PublicGetTransactionBindings(args ...any) <-chan any {
+func (this *Latoken) PublicGetTransactionBindings(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTransactionBindings", args...)
 }
 
 // PrivateGetAuthAccount returns a channel that yields a JSON array.
-func (this *LatokenCore) PrivateGetAuthAccount(args ...any) <-chan any {
+func (this *Latoken) PrivateGetAuthAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAuthAccount", args...)
 }
 
 // PrivateGetAuthAccountCurrencyCurrencyType returns a channel that yields a JSON array.
-func (this *LatokenCore) PrivateGetAuthAccountCurrencyCurrencyType(args ...any) <-chan any {
+func (this *Latoken) PrivateGetAuthAccountCurrencyCurrencyType(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAuthAccountCurrencyCurrencyType", args...)
 }
 
 // PrivateGetAuthAccountFiltered returns a channel that yields a JSON array.
-func (this *LatokenCore) PrivateGetAuthAccountFiltered(args ...any) <-chan any {
+func (this *Latoken) PrivateGetAuthAccountFiltered(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAuthAccountFiltered", args...)
 }
 
 // PrivateGetAuthOrder returns a channel that yields a JSON array.
-func (this *LatokenCore) PrivateGetAuthOrder(args ...any) <-chan any {
+func (this *Latoken) PrivateGetAuthOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAuthOrder", args...)
 }
 
 // PrivateGetAuthOrderActive returns a channel that yields a JSON array.
-func (this *LatokenCore) PrivateGetAuthOrderActive(args ...any) <-chan any {
+func (this *Latoken) PrivateGetAuthOrderActive(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAuthOrderActive", args...)
 }
 
 // PrivateGetAuthOrderGetOrderId returns a channel that yields a JSON object.
-func (this *LatokenCore) PrivateGetAuthOrderGetOrderId(args ...any) <-chan any {
+func (this *Latoken) PrivateGetAuthOrderGetOrderId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAuthOrderGetOrderId", args...)
 }
 
 // PrivateGetAuthOrderPairCurrencyQuote returns a channel that yields a JSON array.
-func (this *LatokenCore) PrivateGetAuthOrderPairCurrencyQuote(args ...any) <-chan any {
+func (this *Latoken) PrivateGetAuthOrderPairCurrencyQuote(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAuthOrderPairCurrencyQuote", args...)
 }
 
 // PrivateGetAuthOrderPairCurrencyQuoteActive returns a channel that yields a JSON array.
-func (this *LatokenCore) PrivateGetAuthOrderPairCurrencyQuoteActive(args ...any) <-chan any {
+func (this *Latoken) PrivateGetAuthOrderPairCurrencyQuoteActive(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAuthOrderPairCurrencyQuoteActive", args...)
 }
 
 // PrivateGetAuthStopOrder returns a channel that yields a JSON array.
-func (this *LatokenCore) PrivateGetAuthStopOrder(args ...any) <-chan any {
+func (this *Latoken) PrivateGetAuthStopOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAuthStopOrder", args...)
 }
 
 // PrivateGetAuthStopOrderGetOrderId returns a channel that yields a JSON object.
-func (this *LatokenCore) PrivateGetAuthStopOrderGetOrderId(args ...any) <-chan any {
+func (this *Latoken) PrivateGetAuthStopOrderGetOrderId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAuthStopOrderGetOrderId", args...)
 }
 
 // PrivateGetAuthStopOrderPairCurrencyQuote returns a channel that yields a JSON array.
-func (this *LatokenCore) PrivateGetAuthStopOrderPairCurrencyQuote(args ...any) <-chan any {
+func (this *Latoken) PrivateGetAuthStopOrderPairCurrencyQuote(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAuthStopOrderPairCurrencyQuote", args...)
 }
 
 // PrivateGetAuthStopOrderPairCurrencyQuoteActive returns a channel that yields a JSON array.
-func (this *LatokenCore) PrivateGetAuthStopOrderPairCurrencyQuoteActive(args ...any) <-chan any {
+func (this *Latoken) PrivateGetAuthStopOrderPairCurrencyQuoteActive(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAuthStopOrderPairCurrencyQuoteActive", args...)
 }
 
 // PrivateGetAuthTrade returns a channel that yields a JSON array.
-func (this *LatokenCore) PrivateGetAuthTrade(args ...any) <-chan any {
+func (this *Latoken) PrivateGetAuthTrade(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAuthTrade", args...)
 }
 
 // PrivateGetAuthTradePairCurrencyQuote returns a channel that yields a JSON array.
-func (this *LatokenCore) PrivateGetAuthTradePairCurrencyQuote(args ...any) <-chan any {
+func (this *Latoken) PrivateGetAuthTradePairCurrencyQuote(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAuthTradePairCurrencyQuote", args...)
 }
 
 // PrivateGetAuthTradeFeeCurrencyQuote returns a channel that yields a JSON object.
-func (this *LatokenCore) PrivateGetAuthTradeFeeCurrencyQuote(args ...any) <-chan any {
+func (this *Latoken) PrivateGetAuthTradeFeeCurrencyQuote(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAuthTradeFeeCurrencyQuote", args...)
 }
 
 // PrivateGetAuthTransaction returns a channel that yields a JSON object.
-func (this *LatokenCore) PrivateGetAuthTransaction(args ...any) <-chan any {
+func (this *Latoken) PrivateGetAuthTransaction(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAuthTransaction", args...)
 }
 
 // PrivateGetAuthTransactionBindings returns a channel that yields a JSON object.
-func (this *LatokenCore) PrivateGetAuthTransactionBindings(args ...any) <-chan any {
+func (this *Latoken) PrivateGetAuthTransactionBindings(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAuthTransactionBindings", args...)
 }
 
 // PrivateGetAuthTransactionBindingsCurrency returns a channel that yields a JSON array.
-func (this *LatokenCore) PrivateGetAuthTransactionBindingsCurrency(args ...any) <-chan any {
+func (this *Latoken) PrivateGetAuthTransactionBindingsCurrency(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAuthTransactionBindingsCurrency", args...)
 }
 
 // PrivateGetAuthTransactionId returns a channel that yields a JSON object.
-func (this *LatokenCore) PrivateGetAuthTransactionId(args ...any) <-chan any {
+func (this *Latoken) PrivateGetAuthTransactionId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAuthTransactionId", args...)
 }
 
 // PrivateGetAuthTransfer returns a channel that yields a JSON object.
-func (this *LatokenCore) PrivateGetAuthTransfer(args ...any) <-chan any {
+func (this *Latoken) PrivateGetAuthTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAuthTransfer", args...)
 }
 
 // PrivatePostAuthOrderCancel returns a channel that yields a JSON object.
-func (this *LatokenCore) PrivatePostAuthOrderCancel(args ...any) <-chan any {
+func (this *Latoken) PrivatePostAuthOrderCancel(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthOrderCancel", args...)
 }
 
 // PrivatePostAuthOrderCancelAll returns a channel that yields a JSON object.
-func (this *LatokenCore) PrivatePostAuthOrderCancelAll(args ...any) <-chan any {
+func (this *Latoken) PrivatePostAuthOrderCancelAll(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthOrderCancelAll", args...)
 }
 
 // PrivatePostAuthOrderCancelAllCurrencyQuote returns a channel that yields a JSON object.
-func (this *LatokenCore) PrivatePostAuthOrderCancelAllCurrencyQuote(args ...any) <-chan any {
+func (this *Latoken) PrivatePostAuthOrderCancelAllCurrencyQuote(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthOrderCancelAllCurrencyQuote", args...)
 }
 
 // PrivatePostAuthOrderCancelBulk returns a channel that yields a JSON object.
-func (this *LatokenCore) PrivatePostAuthOrderCancelBulk(args ...any) <-chan any {
+func (this *Latoken) PrivatePostAuthOrderCancelBulk(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthOrderCancelBulk", args...)
 }
 
 // PrivatePostAuthOrderPlace returns a channel that yields a JSON object.
-func (this *LatokenCore) PrivatePostAuthOrderPlace(args ...any) <-chan any {
+func (this *Latoken) PrivatePostAuthOrderPlace(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthOrderPlace", args...)
 }
 
 // PrivatePostAuthOrderPlaceBulk returns a channel that yields a JSON object.
-func (this *LatokenCore) PrivatePostAuthOrderPlaceBulk(args ...any) <-chan any {
+func (this *Latoken) PrivatePostAuthOrderPlaceBulk(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthOrderPlaceBulk", args...)
 }
 
 // PrivatePostAuthSpotDeposit returns a channel that yields a JSON object.
-func (this *LatokenCore) PrivatePostAuthSpotDeposit(args ...any) <-chan any {
+func (this *Latoken) PrivatePostAuthSpotDeposit(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthSpotDeposit", args...)
 }
 
 // PrivatePostAuthSpotWithdraw returns a channel that yields a JSON object.
-func (this *LatokenCore) PrivatePostAuthSpotWithdraw(args ...any) <-chan any {
+func (this *Latoken) PrivatePostAuthSpotWithdraw(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthSpotWithdraw", args...)
 }
 
 // PrivatePostAuthStopOrderCancel returns a channel that yields a JSON object.
-func (this *LatokenCore) PrivatePostAuthStopOrderCancel(args ...any) <-chan any {
+func (this *Latoken) PrivatePostAuthStopOrderCancel(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthStopOrderCancel", args...)
 }
 
 // PrivatePostAuthStopOrderCancelAll returns a channel that yields a JSON object.
-func (this *LatokenCore) PrivatePostAuthStopOrderCancelAll(args ...any) <-chan any {
+func (this *Latoken) PrivatePostAuthStopOrderCancelAll(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthStopOrderCancelAll", args...)
 }
 
 // PrivatePostAuthStopOrderCancelAllCurrencyQuote returns a channel that yields a JSON object.
-func (this *LatokenCore) PrivatePostAuthStopOrderCancelAllCurrencyQuote(args ...any) <-chan any {
+func (this *Latoken) PrivatePostAuthStopOrderCancelAllCurrencyQuote(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthStopOrderCancelAllCurrencyQuote", args...)
 }
 
 // PrivatePostAuthStopOrderPlace returns a channel that yields a JSON object.
-func (this *LatokenCore) PrivatePostAuthStopOrderPlace(args ...any) <-chan any {
+func (this *Latoken) PrivatePostAuthStopOrderPlace(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthStopOrderPlace", args...)
 }
 
 // PrivatePostAuthTransactionDepositAddress returns a channel that yields a JSON object.
-func (this *LatokenCore) PrivatePostAuthTransactionDepositAddress(args ...any) <-chan any {
+func (this *Latoken) PrivatePostAuthTransactionDepositAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthTransactionDepositAddress", args...)
 }
 
 // PrivatePostAuthTransactionWithdraw returns a channel that yields a JSON object.
-func (this *LatokenCore) PrivatePostAuthTransactionWithdraw(args ...any) <-chan any {
+func (this *Latoken) PrivatePostAuthTransactionWithdraw(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthTransactionWithdraw", args...)
 }
 
 // PrivatePostAuthTransactionWithdrawCancel returns a channel that yields a JSON object.
-func (this *LatokenCore) PrivatePostAuthTransactionWithdrawCancel(args ...any) <-chan any {
+func (this *Latoken) PrivatePostAuthTransactionWithdrawCancel(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthTransactionWithdrawCancel", args...)
 }
 
 // PrivatePostAuthTransactionWithdrawConfirm returns a channel that yields a JSON object.
-func (this *LatokenCore) PrivatePostAuthTransactionWithdrawConfirm(args ...any) <-chan any {
+func (this *Latoken) PrivatePostAuthTransactionWithdrawConfirm(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthTransactionWithdrawConfirm", args...)
 }
 
 // PrivatePostAuthTransactionWithdrawResendCode returns a channel that yields a JSON object.
-func (this *LatokenCore) PrivatePostAuthTransactionWithdrawResendCode(args ...any) <-chan any {
+func (this *Latoken) PrivatePostAuthTransactionWithdrawResendCode(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthTransactionWithdrawResendCode", args...)
 }
 
 // PrivatePostAuthTransferEmail returns a channel that yields a JSON object.
-func (this *LatokenCore) PrivatePostAuthTransferEmail(args ...any) <-chan any {
+func (this *Latoken) PrivatePostAuthTransferEmail(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthTransferEmail", args...)
 }
 
 // PrivatePostAuthTransferId returns a channel that yields a JSON object.
-func (this *LatokenCore) PrivatePostAuthTransferId(args ...any) <-chan any {
+func (this *Latoken) PrivatePostAuthTransferId(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthTransferId", args...)
 }
 
 // PrivatePostAuthTransferPhone returns a channel that yields a JSON object.
-func (this *LatokenCore) PrivatePostAuthTransferPhone(args ...any) <-chan any {
+func (this *Latoken) PrivatePostAuthTransferPhone(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthTransferPhone", args...)
 }

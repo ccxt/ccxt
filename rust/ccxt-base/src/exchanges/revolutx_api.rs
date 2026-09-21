@@ -72,6 +72,11 @@ impl RevolutxCore {
         self.call_method(Value::Str("private_get10_trades_private_symbol".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGet10Transactions` implicit endpoint.
+    pub async fn private_get10_transactions(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get10_transactions".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privatePost10Orders` implicit endpoint.
     pub async fn private_post10_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post10_orders".to_string()), optional_args).await

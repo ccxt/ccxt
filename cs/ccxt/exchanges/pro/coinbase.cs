@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class coinbase { public coinbase(object args = null) : base(args) { } }
 public partial class coinbase : ccxt.coinbase
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -93,7 +93,7 @@ public partial class coinbase : ccxt.coinbase
             messageHash = add(add(name, "::"), symbol);
             productIds = new List<object>() {getValue(market, "id")};
         }
-        object url = getValue(getValue(this.urls, "api"), "ws");
+        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "type", "subscribe" },
             { "product_ids", productIds },
@@ -152,7 +152,7 @@ public partial class coinbase : ccxt.coinbase
             unWatchMessageHash = add(add(unWatchMessageHash, "::"), symbol);
             productIds = new List<object>() {getValue(market, "id")};
         }
-        object url = getValue(getValue(this.urls, "api"), "ws");
+        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         // '{"type": "unsubscribe", "product_ids": ["BTC-USD", "ETH-USD"], "channel": "ticker"}'
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "type", "unsubscribe" },
@@ -202,11 +202,11 @@ public partial class coinbase : ccxt.coinbase
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            object marketId = getValue(market, "id");
+            string? marketId = ((string)getValue(market, "id"));
             ((IList<object>)productIds).Add(marketId);
             ((IList<object>)messageHashes).Add(add(add(name, "::"), symbol));
         }
-        object url = getValue(getValue(this.urls, "api"), "ws");
+        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "type", "subscribe" },
             { "product_ids", productIds },
@@ -251,12 +251,12 @@ public partial class coinbase : ccxt.coinbase
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            object marketId = getValue(market, "id");
+            string? marketId = ((string)getValue(market, "id"));
             ((IList<object>)productIds).Add(marketId);
             ((IList<object>)watchMessageHashes).Add(add(add(name, "::"), symbol));
             ((IList<object>)unWatchMessageHashes).Add(add(add(add("unsubscribe:", name), "::"), symbol));
         }
-        object url = getValue(getValue(this.urls, "api"), "ws");
+        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "type", "unsubscribe" },
             { "product_ids", productIds },
@@ -280,7 +280,7 @@ public partial class coinbase : ccxt.coinbase
         return res;
     }
 
-    public virtual object createWSAuth(object name, object productIds)
+    public virtual Dictionary<string, object> createWSAuth(object name, object productIds)
     {
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {};
         object timestamp = this.numberToString(this.seconds());
@@ -304,13 +304,13 @@ public partial class coinbase : ccxt.coinbase
             if (isTrue(isTrue(isEqual(currentToken, null)) || isTrue(isLessThan(add(tokenTimestamp, 120), seconds))))
             {
                 // we should generate new token
-                object token = this.createAuthToken(seconds);
+                string token = this.createAuthToken(seconds);
                 ((IDictionary<string,object>)this.options)["wsToken"] = token;
                 ((IDictionary<string,object>)this.options)["wsTokenTimestamp"] = seconds;
             }
             ((IDictionary<string,object>)subscribe)["jwt"] = this.safeString(this.options, "wsToken");
         }
-        return subscribe;
+        return ((Dictionary<string, object>)((object)(subscribe)));
     }
 
     /**
@@ -516,7 +516,7 @@ public partial class coinbase : ccxt.coinbase
                 {
                     continue;
                 }
-                object result = this.parseWsTicker(ticker);
+                Dictionary<string, object> result = ((Dictionary<string, object>)this.parseWsTicker(ticker));
                 ((IDictionary<string,object>)result)["timestamp"] = timestamp;
                 ((IDictionary<string,object>)result)["datetime"] = datetime;
                 object symbol = getValue(result, "symbol");
@@ -910,7 +910,7 @@ public partial class coinbase : ccxt.coinbase
             for (int j = 0; isLessThan(j, getArrayLength(responseOrders)); postFixIncrement(ref j))
             {
                 object responseOrder = getValue(responseOrders, j);
-                object parsed = this.parseWsOrder(responseOrder);
+                Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsOrder(responseOrder));
                 object cachedOrders = this.orders;
                 string? marketId = this.safeString(responseOrder, "product_id");
                 if (isTrue(!isEqual(marketId, null)))
@@ -925,7 +925,7 @@ public partial class coinbase : ccxt.coinbase
         }
         for (int i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
-            object marketId = getValue(marketIds, i);
+            string? marketId = ((string)getValue(marketIds, i));
             string? symbol = this.safeSymbol(marketId);
             string messageHash = add("user::", symbol);
             callDynamically(client as WebSocketClient, "resolve", new object[] {this.orders, messageHash});
@@ -1043,7 +1043,7 @@ public partial class coinbase : ccxt.coinbase
             string? marketId = this.safeString(eventVar, "product_id");
             // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, as they are aliases
             Dictionary<string, object> market = this.safeMarket(marketId);
-            object symbol = getValue(market, "symbol");
+            string? symbol = ((string)getValue(market, "symbol"));
             string messageHash = add("level2::", symbol);
             object subscription = this.safeValue(((WebSocketClient)client).subscriptions, messageHash, new Dictionary<string, object>() {});
             Int64? limit = this.safeInteger(subscription, "limit");
@@ -1098,7 +1098,7 @@ public partial class coinbase : ccxt.coinbase
         //      }
         //
         List<object> events = this.safeList(message, "events", new List<object>() {});
-        object firstEvent = this.safeValue(events, 0, new Dictionary<string, object>() {});
+        IDictionary<string, object> firstEvent = this.safeDict(events, 0, new Dictionary<string, object>() {});
         bool isUnsub = (inOp(firstEvent, "subscriptions"));
         List<object> subKeys = new List<object>(((IDictionary<string,object>)getValue(firstEvent, "subscriptions")).Keys);
         int subKeysLength = getArrayLength(subKeys);

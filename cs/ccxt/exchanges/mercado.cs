@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class mercado : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "mercado" },
@@ -441,7 +441,7 @@ public partial class mercado : Exchange
         return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, getValue(market, "symbol")));
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         //
         //     {
@@ -456,7 +456,7 @@ public partial class mercado : Exchange
         //     }
         //
         string? symbol = this.safeSymbol(null, market);
-        object timestamp = this.safeTimestamp(ticker, "date");
+        Int64? timestamp = this.safeTimestamp(ticker, "date");
         string? last = this.safeString(ticker, "last");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
@@ -520,9 +520,9 @@ public partial class mercado : Exchange
         return ccxt.BaseExchange.ToTicker(this.parseTicker(ticker, market));
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
-        object timestamp = this.safeTimestamp2(trade, "date", "executed_timestamp");
+        Int64? timestamp = this.safeTimestamp2(trade, "date", "executed_timestamp");
         market = this.safeMarket(null, market);
         string? id = this.safeString2(trade, "tid", "operation_id");
         object type = null;
@@ -598,7 +598,7 @@ public partial class mercado : Exchange
     public override object parseBalance(object response)
     {
         object data = this.safeValue(response, "response_data", new Dictionary<string, object>() {});
-        object balances = this.safeValue(data, "balance", new Dictionary<string, object>() {});
+        IDictionary<string, object> balances = this.safeDict(data, "balance", new Dictionary<string, object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
@@ -610,7 +610,7 @@ public partial class mercado : Exchange
             if (isTrue(inOp(balances, currencyId)))
             {
                 object balance = this.safeValue(balances, currencyId, new Dictionary<string, object>() {});
-                object account = this.account();
+                Dictionary<string, object> account = this.account();
                 ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "available");
                 ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "total");
                 if (isTrue(!isEqual(code, null)))
@@ -762,7 +762,7 @@ public partial class mercado : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         //     {
@@ -799,7 +799,7 @@ public partial class mercado : Exchange
         string? status = this.parseOrderStatus(this.safeString(order, "status"));
         string? marketId = this.safeString(order, "coin_pair");
         market = this.safeMarket(marketId, market);
-        object timestamp = this.safeTimestamp(order, "created_timestamp");
+        Int64? timestamp = this.safeTimestamp(order, "created_timestamp");
         Dictionary<string, object> fee = new Dictionary<string, object>() {
             { "cost", this.safeString(order, "fee") },
             { "currency", getValue(market, "quote") },
@@ -809,7 +809,7 @@ public partial class mercado : Exchange
         string? average = this.safeString(order, "executed_price_avg");
         string? amount = this.safeString(order, "quantity");
         string? filled = this.safeString(order, "executed_quantity");
-        object lastTradeTimestamp = this.safeTimestamp(order, "updated_timestamp");
+        Int64? lastTradeTimestamp = this.safeTimestamp(order, "updated_timestamp");
         object rawTrades = this.safeValue(order, "operations", new List<object>() {});
         object symbol = getValue(market, "symbol");
         return this.safeOrder(new Dictionary<string, object>() {
@@ -1008,7 +1008,7 @@ public partial class mercado : Exchange
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         object limitVar = limit;
         timeframeVar ??= "15m";
         parameters ??= new Dictionary<string, object>();
@@ -1133,22 +1133,22 @@ public partial class mercado : Exchange
         object responseData = this.safeValue(response, "response_data", new Dictionary<string, object>() {});
         object ordersRaw = this.safeValue(responseData, "orders", new List<object>() {});
         IList<object> orders = this.parseOrders(ordersRaw, market, since, limit);
-        object trades = this.ordersToTrades(orders);
+        List<object> trades = this.ordersToTrades(orders);
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, getValue(market, "symbol"), since, limit));
     }
 
-    public virtual object ordersToTrades(object orders)
+    public virtual List<object> ordersToTrades(object orders)
     {
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
-            object trades = this.safeValue(getValue(orders, i), "trades", new List<object>() {});
+            List<object> trades = this.safeList(getValue(orders, i), "trades", new List<object>() {});
             for (int y = 0; isLessThan(y, getArrayLength(trades)); postFixIncrement(ref y))
             {
                 ((IList<object>)result).Add(getValue(trades, y));
             }
         }
-        return result;
+        return ((List<object>)((object)(result)));
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)

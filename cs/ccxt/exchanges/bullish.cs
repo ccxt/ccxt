@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class bullish : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "bullish" },
@@ -617,7 +617,7 @@ public partial class bullish : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public async override Task<object> fetchCurrencies(object parameters = null)
+    public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         List<object> response = await this.publicGetV1Assets(parameters);
@@ -668,7 +668,7 @@ public partial class bullish : Exchange
         return this.parseCurrencies(response);
     }
 
-    public override object parseCurrency(object rawCurrency)
+    public override Dictionary<string, object> parseCurrency(object rawCurrency)
     {
         string? id = this.safeString(rawCurrency, "symbol");
         string? code = this.safeCurrencyCode(id);
@@ -718,7 +718,7 @@ public partial class bullish : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(response));
     }
 
-    public override object parseMarket(object market)
+    public override Dictionary<string, object> parseMarket(object market)
     {
         //
         //     {
@@ -1276,7 +1276,7 @@ public partial class bullish : Exchange
         return await this.FetchMyTrades(((string)symbol),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades
@@ -1434,7 +1434,7 @@ public partial class bullish : Exchange
         return ccxt.BaseExchange.ToTicker(this.parseTicker(response, market));
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         //
         //     {
@@ -1563,7 +1563,7 @@ public partial class bullish : Exchange
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1590,7 +1590,7 @@ public partial class bullish : Exchange
         parameters = ((IList<object>)requestparametersVariable)[1];
         object until = this.safeInteger(request, "createdAtDatetime[lte]");
         int duration = this.parseTimeframe(timeframeVar);
-        object maxDelta = multiply(multiply(1000, duration), maxLimit);
+        Int64 maxDelta = multiply(multiply(1000, duration), maxLimit);
         object startTime = since;
         // both of since and until are required
         if (isTrue(isTrue(isEqual(startTime, null)) && isTrue(isEqual(until, null))))
@@ -1799,9 +1799,9 @@ public partial class bullish : Exchange
     public virtual object handlePaginationParams(object method, object since = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object ninetyDays = multiply(multiply(multiply(multiply(90, 24), 60), 60), 1000);
+        Int64 ninetyDays = multiply(multiply(multiply(multiply(90, 24), 60), 60), 1000);
         Int64 now = this.milliseconds();
-        object allowedSince = subtract(now, ninetyDays);
+        Int64 allowedSince = subtract(now, ninetyDays);
         if (isTrue(isTrue((!isEqual(since, null))) && isTrue((isLessThan(since, allowedSince)))))
         {
             throw new BadRequest ((string)add(add(add(this.id, " "), method), "() only allows fetching entries up to 90 days in the past")) ;
@@ -1828,7 +1828,7 @@ public partial class bullish : Exchange
         object until = this.safeInteger(parameters, "until");
         if (isTrue(isTrue((!isEqual(since, null))) || isTrue((!isEqual(until, null)))))
         {
-            object timeDelta = multiply(multiply(multiply(multiply(7, 24), 60), 60), 1000); // 7 days
+            Int64 timeDelta = multiply(multiply(multiply(multiply(7, 24), 60), 60), 1000); // 7 days
             if (isTrue(isEqual(since, null)))
             {
                 since = subtract(until, timeDelta);
@@ -2030,7 +2030,7 @@ public partial class bullish : Exchange
      */
     public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
     {
-        object typeVar = type;
+        string typeVar = type;
         parameters ??= new Dictionary<string, object>();
         await promiseAll(new List<object> {this.loadMarkets(), this.handleToken()});
         object tradingAccountId = await this.loadAccount(parameters);
@@ -2043,9 +2043,9 @@ public partial class bullish : Exchange
             { "tradingAccountId", tradingAccountId },
         };
         bool isMarketOrder = (isTrue((isEqual(typeVar, "market"))) || isTrue(isEqual(typeVar, "MARKET")));
-        object postOnly = false;
+        bool postOnly = false;
         IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isMarketOrder, isEqual(typeVar, "POST_ONLY"), parameters);
-        postOnly = ((IList<object>)postOnlyparametersVariable)[0];
+        postOnly = (bool)((IList<object>)postOnlyparametersVariable)[0];
         parameters = ((IList<object>)postOnlyparametersVariable)[1];
         if (isTrue(postOnly))
         {
@@ -2218,7 +2218,7 @@ public partial class bullish : Exchange
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(orders, market));
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         // fetchOrders, fetchOrder
@@ -2450,9 +2450,9 @@ public partial class bullish : Exchange
                 { "quantity", this.currencyToPrecision(((string)code), amount) },
             } },
         };
-        object networkCode = null;
+        string? networkCode = null;
         IList<object> networkCodeparametersVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
-        networkCode = ((IList<object>)networkCodeparametersVariable)[0];
+        networkCode = (string)((IList<object>)networkCodeparametersVariable)[0];
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         if (isTrue(!isEqual(networkCode, null)))
         {
@@ -2737,7 +2737,7 @@ public partial class bullish : Exchange
         //
         IList<object> safeResponse = this.toArray(response);
         int length = getArrayLength(safeResponse);
-        object data = this.safeDict(safeResponse, 0, new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(safeResponse, 0, new Dictionary<string, object>() {});
         object network = null;
         IList<object> networkparametersVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
         network = ((IList<object>)networkparametersVariable)[0];
@@ -2842,7 +2842,7 @@ public partial class bullish : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        object account = this.account();
+        Dictionary<string, object> account = this.account();
         ((IDictionary<string,object>)account)["free"] = this.safeString(response, "availableQuantity");
         ((IDictionary<string,object>)account)["used"] = this.safeString(response, "lockedQuantity");
         ((IDictionary<string,object>)result)[(string)((string)code)] = account;
@@ -2859,7 +2859,7 @@ public partial class bullish : Exchange
             object balance = getValue(response, i);
             string? symbol = this.safeString(balance, "assetSymbol");
             string? code = this.safeCurrencyCode(symbol);
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "availableQuantity");
             ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "lockedQuantity");
             if (isTrue(!isEqual(code, null)))
@@ -2914,7 +2914,7 @@ public partial class bullish : Exchange
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(results, "symbol", symbols, false));
     }
 
-    public override object parsePosition(object position, object market = null)
+    public override Dictionary<string, object> parsePosition(object position, object market = null)
     {
         //
         //     [
@@ -3179,7 +3179,7 @@ public partial class bullish : Exchange
         IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("createdAtDatetime[lte]", request, parameters);
         request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        object until = this.safeInteger(request, "createdAtDatetime[lte]");
+        Int64? until = this.safeInteger(request, "createdAtDatetime[lte]");
         // current endpoint requires both since and until parameters
         if (isTrue(isEqual(startTimestamp, null)))
         {
@@ -3366,7 +3366,7 @@ public partial class bullish : Exchange
             string timestamp = ((object)this.getTimestamp()).ToString();
             if (isTrue(isEqual(method, "GET")))
             {
-                object payload = add(add(add(add(timestamp, nonce), method), "/trading-api/"), path);
+                string payload = add(add(add(add(timestamp, nonce), method), "/trading-api/"), path);
                 string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "hex");
                 headers = new Dictionary<string, object>() {
                     { "BX-TIMESTAMP", timestamp },
@@ -3376,7 +3376,7 @@ public partial class bullish : Exchange
             } else if (isTrue(isEqual(method, "POST")))
             {
                 body = this.json(parameters);
-                object payload = add(add(add(add(add(timestamp, nonce), method), "/trading-api/"), path), body);
+                string payload = add(add(add(add(add(timestamp, nonce), method), "/trading-api/"), path), body);
                 object digest = this.hash(this.encode(payload), sha256, "hex");
                 string signature = this.hmac(this.encode(digest), this.encode(this.secret), sha256, "hex");
                 headers = new Dictionary<string, object>() {

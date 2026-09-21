@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class coinspot : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "coinspot" },
@@ -598,7 +598,7 @@ public partial class coinspot : Exchange
                     object currencyId = getValue(currencyIds, j);
                     object balance = getValue(currencies, currencyId);
                     string? code = this.safeCurrencyCode(currencyId);
-                    object account = this.account();
+                    Dictionary<string, object> account = this.account();
                     ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "balance");
                     if (isTrue(!isEqual(code, null)))
                     {
@@ -613,7 +613,7 @@ public partial class coinspot : Exchange
             {
                 object currencyId = getValue(currencyIds, i);
                 string? code = this.safeCurrencyCode(currencyId);
-                object account = this.account();
+                Dictionary<string, object> account = this.account();
                 ((IDictionary<string,object>)account)["total"] = this.safeString(balances, currencyId);
                 if (isTrue(!isEqual(code, null)))
                 {
@@ -692,7 +692,7 @@ public partial class coinspot : Exchange
         return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(orderbook, getValue(market, "symbol"), null, "buyorders", "sellorders", "rate", "amount"));
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         //
         //     {
@@ -809,7 +809,7 @@ public partial class coinspot : Exchange
             Dictionary<string, object> market = this.safeMarket(id);
             if (isTrue(isEqual(getValue(market, "spot"), true)))
             {
-                object symbol = getValue(market, "symbol");
+                string? symbol = ((string)getValue(market, "symbol"));
                 object ticker = getValue(prices, id);
                 ((IDictionary<string,object>)result)[(string)symbol] = this.parseTicker(ticker, market);
             }
@@ -921,7 +921,7 @@ public partial class coinspot : Exchange
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit));
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         // public fetchTrades

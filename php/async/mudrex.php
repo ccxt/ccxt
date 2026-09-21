@@ -208,7 +208,7 @@ class mudrex extends Exchange {
             $requestHeaders['X-Authentication'] = $this->secret;
             if ($methodUpper === 'POST' || $methodUpper === 'PATCH' || $methodUpper === 'DELETE') {
                 $requestHeaders['Content-Type'] = 'application/json';
-                // is_symbol is a $query-string flag even on write requests
+                // is_symbol is a query-string flag even on write requests
                 $isSymbol = $this->safe_string($query, 'is_symbol');
                 if ($isSymbol !== null) {
                     $query = $this->omit($query, 'is_symbol');
@@ -261,8 +261,8 @@ class mudrex extends Exchange {
 
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
-        //     array( 1782984660, 60681, 60797.6, 60671.8, 60693.3, 275.741 )
-        //     array( timestampInSeconds, open, high, low, close, volume )
+        //     [ 1782984660, 60681, 60797.6, 60671.8, 60693.3, 275.741 ]
+        //     [ timestampInSeconds, open, high, low, close, volume ]
         //
         return array(
             $this->safe_timestamp($ohlcv, 0),
@@ -339,10 +339,10 @@ class mudrex extends Exchange {
         }
         //
         //     {
-        //         "success" => true,
-        //         "data" => {
-        //             "asset_ticks" => {
-        //                 "btc/usdt" => array( array( 1782984660, 60681, 60797.6, 60671.8, 60693.3, 275.741 ) )
+        //         "success": true,
+        //         "data": {
+        //             "asset_ticks": {
+        //                 "btc/usdt": [ [ 1782984660, 60681, 60797.6, 60671.8, 60693.3, 275.741 ] ]
         //             }
         //         }
         //     }
@@ -514,7 +514,7 @@ class mudrex extends Exchange {
             if ($numItems < $pageLimit) {
                 $paging = false;
             } else {
-                // array($this, 'sum') keeps the $offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
+                // this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
                 $offset = $this->sum($offset, $pageLimit);
             }
         }
@@ -644,11 +644,11 @@ class mudrex extends Exchange {
         $account = $this->account();
         $futuresBalance = $this->safe_string($data, 'balance');
         if ($futuresBalance !== null) {
-            // futures wallet => balance is the free/available margin, locked_amount is used, safeBalance derives total
+            // futures wallet: balance is the free/available margin, locked_amount is used, safeBalance derives total
             $account['free'] = $futuresBalance;
             $account['used'] = $this->safe_string($data, 'locked_amount');
         } else {
-            // spot wallet => total is the total, withdrawable is free, safeBalance derives used
+            // spot wallet: total is the total, withdrawable is free, safeBalance derives used
             $account['total'] = $this->safe_string($data, 'total');
             $account['free'] = $this->safe_string($data, 'withdrawable');
         }
@@ -757,7 +757,7 @@ class mudrex extends Exchange {
         }
         $market = $this->market($symbol);
         // standalone stop-loss / take-profit orders (stopLossPrice/takeProfitPrice) are attached to
-        // an existing position through the riskorder endpoint, so a $positionId is required
+        // an existing position through the riskorder endpoint, so a positionId is required
         $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
         $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
         if (($stopLossPrice !== null) || ($takeProfitPrice !== null)) {
@@ -795,7 +795,7 @@ class mudrex extends Exchange {
             'trigger_type' => ($type === 'market') ? 'MARKET' : 'LIMIT',
             'reduce_only' => $this->safe_bool($params, 'reduceOnly', false),
         );
-        // mudrex only supports take-profit / stop-loss orders attached to the position-opening $order
+        // mudrex only supports take-profit / stop-loss orders attached to the position-opening order
         $takeProfit = $this->safe_dict($params, 'takeProfit');
         $stopLoss = $this->safe_dict($params, 'stopLoss');
         if ($takeProfit !== null) {
@@ -809,7 +809,7 @@ class mudrex extends Exchange {
         $params = $this->omit($params, array( 'leverage', 'reduceOnly', 'takeProfit', 'stopLoss' ));
         $response = Async\await($this->privatePostFuturesAssetIdOrder($this->extend($request, $params)));
         $data = $this->safe_dict($response, 'data', $response);
-        // the create $response omits the order/trigger $type, so parse a $merged copy - the base derivations, like timeInForce, need to see them - then keep the untouched raw payload under info
+        // the create response omits the order/trigger type, so parse a merged copy - the base derivations, like timeInForce, need to see them - then keep the untouched raw payload under info
         $merged = $this->extend($data, array( 'order_type' => $request['order_type'], 'trigger_type' => $request['trigger_type'] ));
         $order = $this->parse_order($merged, $market);
         $order['info'] = $data;
@@ -1163,23 +1163,23 @@ class mudrex extends Exchange {
         $response = Async\await($this->privateGetFuturesPositionsHistory($this->extend($request, $params)));
         //
         //     {
-        //         "success" => true,
-        //         "data" => array(
+        //         "success": true,
+        //         "data": [
         //             {
-        //                 "id" => "019f1ed6-...",
-        //                 "position_type" => "SHORT",
-        //                 "status" => "CLOSED",
-        //                 "leverage" => "3",
-        //                 "entry_price" => "1.3112",
-        //                 "closed_price" => "1.3395",
-        //                 "quantity" => "34",
-        //                 "pnl" => "-0.9622",
-        //                 "created_at" => "2026-07-01T10:18:57Z",
-        //                 "updated_at" => "2026-07-01T18:00:21Z",
-        //                 "symbol" => "CAKEUSDT",
-        //                 "trade_currency" => "USDT"
+        //                 "id": "019f1ed6-...",
+        //                 "position_type": "SHORT",
+        //                 "status": "CLOSED",
+        //                 "leverage": "3",
+        //                 "entry_price": "1.3112",
+        //                 "closed_price": "1.3395",
+        //                 "quantity": "34",
+        //                 "pnl": "-0.9622",
+        //                 "created_at": "2026-07-01T10:18:57Z",
+        //                 "updated_at": "2026-07-01T18:00:21Z",
+        //                 "symbol": "CAKEUSDT",
+        //                 "trade_currency": "USDT"
         //             }
-        //         )
+        //         ]
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
@@ -1365,15 +1365,16 @@ class mudrex extends Exchange {
 
     private function do_fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
-         * fetch all trades made by the user
+         * fetch all trades made by the user, derived from the TRANSACTION $rows of the fee history endpoint - FUNDING $rows are excluded and each fill's REBATE row is netted into the trade fee
          *
-         * @see https://docs.trade.mudrex.com/docs
+         * @see https://docs.trade.mudrex.com/docs/fees
          *
-         * @param {string} [$symbol] unified $market $symbol
-         * @param {int} [$since] the earliest time in ms to fetch trades for
-         * @param {int} [$limit] the maximum number of trade structures to retrieve
+         * @param {string} [$symbol] unified $market $symbol, applied client-side because the endpoint has no $symbol filter
+         * @param {int} [$since] the earliest time in ms to fetch trades for, applied client-side
+         * @param {int} [$limit] the maximum number of trade structures to retrieve, further pages are requested until the $limit is satisfied, the history ends or the page cap is reached
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string} [$params->trade_currency] the settlement currency to filter trades by
+         * @param {string} [$params->trade_currency] the settlement currency to filter trades by, 'USDT' (default) or 'INR'
+         * @param {int} [$params->paginationCalls] the maximum number of pages to $request (default 10) - a $symbol with few or no recent fills can exhaust the cap and return fewer than $limit trades
          * @return {Trade[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
          */
         if ($this->markets === null) {
@@ -1383,43 +1384,127 @@ class mudrex extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $request = array();
+        $maxCalls = null;
+        list($maxCalls, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginationCalls', 10);
+        $pageSize = 0;
         if ($limit !== null) {
-            $request['limit'] = $limit;
+            // every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
+            $pageSize = $limit * 2;
         }
-        $response = Async\await($this->privateGetFuturesFeeHistory($this->extend($request, $params)));
-        $data = $this->safe_value($response, 'data', array());
-        $rows = $this->to_array($data);
+        $allRows = array();
+        $transactionsCount = 0;
+        $calls = 0;
+        $offset = 0;
+        $paging = true;
+        while ($paging === true) {
+            $request = array();
+            if ($pageSize > 0) {
+                $request['limit'] = $pageSize;
+                $request['offset'] = $offset;
+            }
+            $response = Async\await($this->privateGetFuturesFeeHistory($this->extend($request, $params)));
+            $data = $this->safe_list($response, 'data', array());
+            $dataLength = count($data);
+            for ($i = 0; $i < $dataLength; $i++) {
+                $entry = $data[$i];
+                $allRows[] = $entry;
+                if ($this->safe_string($entry, 'fee_type') === 'TRANSACTION') {
+                    // count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns
+                    if (($market === null) || ($this->safe_string($entry, 'symbol') === $market['id'])) {
+                        $transactionsCount = $this->sum($transactionsCount, 1);
+                    }
+                }
+            }
+            $calls = $this->sum($calls, 1);
+            $paging = false;
+            // the page cap bounds the walk when the requested symbol has few or no rows anywhere near the top of the history
+            if (($limit !== null) && ($dataLength === $pageSize) && ($transactionsCount < $limit) && ($calls < $maxCalls)) {
+                // this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
+                $offset = $this->sum($offset, $pageSize);
+                $paging = true;
+            }
+        }
+        // a REBATE row is a partial refund of one fill's TRANSACTION fee, matched by symbol, time and notional - each rebate is consumed once, so equal fills sharing a key net exactly one refund apiece
+        $rebateKeys = array();
+        $rebateAmounts = array();
+        $transactions = array();
+        $transactionKeys = array();
+        for ($i = 0; $i < count($allRows); $i++) {
+            $entry = $allRows[$i];
+            $feeType = $this->safe_string($entry, 'fee_type');
+            $pairKey = $this->safe_string($entry, 'symbol', '') . ':' . $this->safe_string($entry, 'created_at', '') . ':' . $this->safe_string($entry, 'transaction_amount', '');
+            if ($feeType === 'TRANSACTION') {
+                $transactions[] = $entry;
+                $transactionKeys[] = $pairKey;
+            } elseif ($feeType === 'REBATE') {
+                $rebateKeys[] = $pairKey;
+                $rebateAmounts[] = $this->safe_string($entry, 'fee_amount', '0');
+            }
+        }
+        $rows = array();
+        for ($i = 0; $i < count($transactions); $i++) {
+            $rebate = null;
+            for ($j = 0; $j < count($rebateKeys); $j++) {
+                if ($rebateKeys[$j] === $transactionKeys[$i]) {
+                    $rebate = $rebateAmounts[$j];
+                    // blank the consumed key so the next equal fill matches the next rebate, never the same one twice
+                    $rebateKeys[$j] = null;
+                    break;
+                }
+            }
+            if ($rebate === null) {
+                $rows[] = $transactions[$i];
+            } else {
+                $rows[] = $this->extend($transactions[$i], array( 'rebate_amount' => $rebate ));
+            }
+        }
         return $this->parse_trades($rows, $market, $since, $limit);
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
+        //
+        //     {
+        //         "id": "019f21e1-9093-7333-866d-31f19c1300ed",
+        //         "symbol": "APTUSDT",
+        //         "fee_amount": "0.02468116",
+        //         "fee_perc": "0.05900003",
+        //         "fee_type": "TRANSACTION",
+        //         "created_at": "2026-07-02T08:10:58Z",
+        //         "transaction_amount": "41.83245",
+        //         "trade_currency": "USDT",
+        //         "order_type": "LONG",
+        //         "trigger_type": "MARKET",
+        //         "gst_amount": "0.00376492"
+        //     }
+        //
         $ms = $this->safe_string($trade, 'symbol');
         $market = $this->safe_market($ms, $market);
         $symbol = $market['symbol'];
         $ts = $this->parse8601($this->safe_string($trade, 'created_at'));
-        if ($ts === null) {
-            $ts = $this->safe_integer($trade, 'time');
-        }
-        $side = $this->safe_string_lower_2($trade, 'side', 'order_type');
+        // exit fills carry STOPLOSS / TAKEPROFIT markers without the closing direction, so their unified direction stays undefined
+        $side = $this->safe_string_lower($trade, 'order_type');
         $tradeSide = null;
-        if ($side === 'buy' || $side === 'long') {
+        if ($side === 'long') {
             $tradeSide = 'buy';
-        } elseif ($side === 'sell' || $side === 'short') {
+        } elseif ($side === 'short') {
             $tradeSide = 'sell';
         }
-        $feeType = $this->safe_string_upper($trade, 'fee_type');
+        $trig = $this->safe_string_upper($trade, 'trigger_type');
         $takerOrMaker = null;
-        if ($feeType === 'TRANSACTION') {
+        if ($trig === 'MARKET') {
+            // a market execution always takes liquidity, a limit execution can be either
             $takerOrMaker = 'taker';
-        } elseif ($feeType === 'REBATE') {
-            $takerOrMaker = 'maker';
         }
         $fee = null;
-        $feeCost = $this->safe_number($trade, 'fee_amount');
-        if ($feeCost !== null) {
+        $feeCostString = $this->safe_string($trade, 'fee_amount');
+        // rebate_amount is attached by fetchMyTrades from the fill's REBATE row - the reported fee is the net charge
+        $rebateString = $this->safe_string($trade, 'rebate_amount');
+        if (($feeCostString !== null) && ($rebateString !== null)) {
+            $feeCostString = Precise::string_sub($feeCostString, $rebateString);
+        }
+        if ($feeCostString !== null) {
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => $feeCostString,
                 'currency' => $this->safe_string($trade, 'trade_currency'),
             );
         }
@@ -1428,14 +1513,14 @@ class mudrex extends Exchange {
             'timestamp' => $ts,
             'datetime' => $this->iso8601($ts),
             'symbol' => $symbol,
-            'id' => $this->safe_string_2($trade, 'execId', 'id'),
-            'order' => $this->safe_string($trade, 'order_id'),
+            'id' => $this->safe_string($trade, 'id'),
+            'order' => null,
             'type' => $this->safe_string_lower($trade, 'trigger_type'),
             'side' => $tradeSide,
             'takerOrMaker' => $takerOrMaker,
-            'price' => $this->safe_number($trade, 'price'),
-            'amount' => $this->safe_number_2($trade, 'size', 'quantity'),
-            'cost' => $this->safe_number($trade, 'transaction_amount'),
+            'price' => null,
+            'amount' => null,
+            'cost' => $this->safe_string($trade, 'transaction_amount'),
             'fee' => $fee,
         ), $market);
     }

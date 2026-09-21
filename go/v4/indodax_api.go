@@ -8,121 +8,121 @@
 package ccxt
 
 // PublicGetApiServerTime returns a channel that yields a JSON object.
-func (this *IndodaxCore) PublicGetApiServerTime(args ...any) <-chan any {
+func (this *Indodax) PublicGetApiServerTime(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetApiServerTime", args...)
 }
 
 // PublicGetApiPairs returns a channel that yields a JSON array.
-func (this *IndodaxCore) PublicGetApiPairs(args ...any) <-chan any {
+func (this *Indodax) PublicGetApiPairs(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetApiPairs", args...)
 }
 
 // PublicGetApiPriceIncrements returns a channel that yields a JSON object.
-func (this *IndodaxCore) PublicGetApiPriceIncrements(args ...any) <-chan any {
+func (this *Indodax) PublicGetApiPriceIncrements(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetApiPriceIncrements", args...)
 }
 
 // PublicGetApiSummaries returns a channel that yields a JSON object.
-func (this *IndodaxCore) PublicGetApiSummaries(args ...any) <-chan any {
+func (this *Indodax) PublicGetApiSummaries(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetApiSummaries", args...)
 }
 
 // PublicGetApiTickerPair returns a channel that yields a JSON object.
-func (this *IndodaxCore) PublicGetApiTickerPair(args ...any) <-chan any {
+func (this *Indodax) PublicGetApiTickerPair(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetApiTickerPair", args...)
 }
 
 // PublicGetApiTickerAll returns a channel that yields a JSON object.
-func (this *IndodaxCore) PublicGetApiTickerAll(args ...any) <-chan any {
+func (this *Indodax) PublicGetApiTickerAll(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetApiTickerAll", args...)
 }
 
 // PublicGetApiTradesPair returns a channel that yields a JSON array.
-func (this *IndodaxCore) PublicGetApiTradesPair(args ...any) <-chan any {
+func (this *Indodax) PublicGetApiTradesPair(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetApiTradesPair", args...)
 }
 
 // PublicGetApiDepthPair returns a channel that yields a JSON object.
-func (this *IndodaxCore) PublicGetApiDepthPair(args ...any) <-chan any {
+func (this *Indodax) PublicGetApiDepthPair(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetApiDepthPair", args...)
 }
 
 // PublicGetTradingviewHistoryV2 returns a channel that yields a JSON array.
-func (this *IndodaxCore) PublicGetTradingviewHistoryV2(args ...any) <-chan any {
+func (this *Indodax) PublicGetTradingviewHistoryV2(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTradingviewHistoryV2", args...)
 }
 
 // PrivatePostGetInfo returns a channel that yields a JSON object.
-func (this *IndodaxCore) PrivatePostGetInfo(args ...any) <-chan any {
+func (this *Indodax) PrivatePostGetInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetInfo", args...)
 }
 
 // PrivatePostTransHistory returns a channel that yields a JSON object.
-func (this *IndodaxCore) PrivatePostTransHistory(args ...any) <-chan any {
+func (this *Indodax) PrivatePostTransHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostTransHistory", args...)
 }
 
 // PrivatePostTrade returns a channel that yields a JSON object.
-func (this *IndodaxCore) PrivatePostTrade(args ...any) <-chan any {
+func (this *Indodax) PrivatePostTrade(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostTrade", args...)
 }
 
 // PrivatePostTradeHistory returns a channel that yields a JSON object.
-func (this *IndodaxCore) PrivatePostTradeHistory(args ...any) <-chan any {
+func (this *Indodax) PrivatePostTradeHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostTradeHistory", args...)
 }
 
 // PrivatePostOpenOrders returns a channel that yields a JSON object.
-func (this *IndodaxCore) PrivatePostOpenOrders(args ...any) <-chan any {
+func (this *Indodax) PrivatePostOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOpenOrders", args...)
 }
 
 // PrivatePostOrderHistory returns a channel that yields a JSON object.
-func (this *IndodaxCore) PrivatePostOrderHistory(args ...any) <-chan any {
+func (this *Indodax) PrivatePostOrderHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrderHistory", args...)
 }
 
 // PrivatePostGetOrder returns a channel that yields a JSON object.
-func (this *IndodaxCore) PrivatePostGetOrder(args ...any) <-chan any {
+func (this *Indodax) PrivatePostGetOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetOrder", args...)
 }
 
 // PrivatePostGetOrderByClientOrderId returns a channel that yields a JSON object.
-func (this *IndodaxCore) PrivatePostGetOrderByClientOrderId(args ...any) <-chan any {
+func (this *Indodax) PrivatePostGetOrderByClientOrderId(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetOrderByClientOrderId", args...)
 }
 
 // PrivatePostCancelOrder returns a channel that yields a JSON object.
-func (this *IndodaxCore) PrivatePostCancelOrder(args ...any) <-chan any {
+func (this *Indodax) PrivatePostCancelOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCancelOrder", args...)
 }
 
 // PrivatePostCancelByClientOrderId returns a channel that yields a JSON object.
-func (this *IndodaxCore) PrivatePostCancelByClientOrderId(args ...any) <-chan any {
+func (this *Indodax) PrivatePostCancelByClientOrderId(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCancelByClientOrderId", args...)
 }
 
 // PrivatePostWithdrawFee returns a channel that yields a JSON object.
-func (this *IndodaxCore) PrivatePostWithdrawFee(args ...any) <-chan any {
+func (this *Indodax) PrivatePostWithdrawFee(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostWithdrawFee", args...)
 }
 
 // PrivatePostWithdrawCoin returns a channel that yields a JSON object.
-func (this *IndodaxCore) PrivatePostWithdrawCoin(args ...any) <-chan any {
+func (this *Indodax) PrivatePostWithdrawCoin(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostWithdrawCoin", args...)
 }
 
 // PrivatePostListDownline returns a channel that yields a JSON object.
-func (this *IndodaxCore) PrivatePostListDownline(args ...any) <-chan any {
+func (this *Indodax) PrivatePostListDownline(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostListDownline", args...)
 }
 
 // PrivatePostCheckDownline returns a channel that yields a JSON object.
-func (this *IndodaxCore) PrivatePostCheckDownline(args ...any) <-chan any {
+func (this *Indodax) PrivatePostCheckDownline(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCheckDownline", args...)
 }
 
 // PrivatePostCreateVoucher returns a channel that yields a JSON object.
-func (this *IndodaxCore) PrivatePostCreateVoucher(args ...any) <-chan any {
+func (this *Indodax) PrivatePostCreateVoucher(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCreateVoucher", args...)
 }

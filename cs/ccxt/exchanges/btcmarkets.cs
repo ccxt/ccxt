@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class btcmarkets : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "btcmarkets" },
@@ -602,7 +602,7 @@ public partial class btcmarkets : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(response));
     }
 
-    public override object parseMarket(object market)
+    public override Dictionary<string, object> parseMarket(object market)
     {
         string? baseId = this.safeString(market, "baseAssetName");
         string? quoteId = this.safeString(market, "quoteAssetName");
@@ -703,7 +703,7 @@ public partial class btcmarkets : Exchange
             object balance = getValue(response, i);
             string? currencyId = this.safeString(balance, "assetName");
             string? code = this.safeCurrencyCode(currencyId);
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "locked");
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "balance");
             if (isTrue(!isEqual(code, null)))
@@ -762,7 +762,7 @@ public partial class btcmarkets : Exchange
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -832,12 +832,12 @@ public partial class btcmarkets : Exchange
         //     }
         //
         Int64? timestamp = this.safeIntegerProduct(response, "snapshotId", 0.001);
-        object orderbook = this.parseOrderBook(response, symbol, timestamp);
+        Dictionary<string, object> orderbook = ((Dictionary<string, object>)this.parseOrderBook(response, symbol, timestamp));
         ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(response, "snapshotId");
         return ccxt.BaseExchange.ToOrderBook(orderbook);
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         //
         // fetchTicker
@@ -943,7 +943,7 @@ public partial class btcmarkets : Exchange
         return ccxt.BaseExchange.ToTicker(this.parseTicker(response, market));
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         // public fetchTrades
@@ -1291,7 +1291,7 @@ public partial class btcmarkets : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         // createOrder

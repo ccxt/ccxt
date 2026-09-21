@@ -7,6 +7,7 @@
 
 package io.github.ccxt.api.prediction;
 import io.github.ccxt.PredictionExchange;
+import java.util.concurrent.CompletableFuture;
 
 public class OpinionApi extends PredictionExchange
 {
@@ -25,7 +26,7 @@ public class OpinionApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<Object>  opinionPublicGetMarket (Object... optionalArgs)
+    public CompletableFuture<Object>  opinionPublicGetMarket (Object... optionalArgs)
     {
         return this.callAsync ("opinionPublicGetMarket", optionalArgs);
     }
@@ -36,7 +37,7 @@ public class OpinionApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<Object>  opinionPublicGetMarketMarketId (Object... optionalArgs)
+    public CompletableFuture<Object>  opinionPublicGetMarketMarketId (Object... optionalArgs)
     {
         return this.callAsync ("opinionPublicGetMarketMarketId", optionalArgs);
     }
@@ -47,7 +48,7 @@ public class OpinionApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<Object>  opinionPublicGetMarketCategoricalMarketId (Object... optionalArgs)
+    public CompletableFuture<Object>  opinionPublicGetMarketCategoricalMarketId (Object... optionalArgs)
     {
         return this.callAsync ("opinionPublicGetMarketCategoricalMarketId", optionalArgs);
     }
@@ -58,7 +59,7 @@ public class OpinionApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<Object>  opinionPublicGetMarketSlugSlug (Object... optionalArgs)
+    public CompletableFuture<Object>  opinionPublicGetMarketSlugSlug (Object... optionalArgs)
     {
         return this.callAsync ("opinionPublicGetMarketSlugSlug", optionalArgs);
     }
@@ -69,7 +70,7 @@ public class OpinionApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<Object>  opinionPublicGetLabel (Object... optionalArgs)
+    public CompletableFuture<Object>  opinionPublicGetLabel (Object... optionalArgs)
     {
         return this.callAsync ("opinionPublicGetLabel", optionalArgs);
     }
@@ -80,7 +81,7 @@ public class OpinionApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<Object>  opinionPublicGetTokenLatestPrice (Object... optionalArgs)
+    public CompletableFuture<Object>  opinionPublicGetTokenLatestPrice (Object... optionalArgs)
     {
         return this.callAsync ("opinionPublicGetTokenLatestPrice", optionalArgs);
     }
@@ -91,7 +92,7 @@ public class OpinionApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<Object>  opinionPublicGetTokenOrderbook (Object... optionalArgs)
+    public CompletableFuture<Object>  opinionPublicGetTokenOrderbook (Object... optionalArgs)
     {
         return this.callAsync ("opinionPublicGetTokenOrderbook", optionalArgs);
     }
@@ -102,7 +103,7 @@ public class OpinionApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<Object>  opinionPublicGetTokenPriceHistory (Object... optionalArgs)
+    public CompletableFuture<Object>  opinionPublicGetTokenPriceHistory (Object... optionalArgs)
     {
         return this.callAsync ("opinionPublicGetTokenPriceHistory", optionalArgs);
     }
@@ -113,7 +114,7 @@ public class OpinionApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<Object>  opinionPublicGetQuoteToken (Object... optionalArgs)
+    public CompletableFuture<Object>  opinionPublicGetQuoteToken (Object... optionalArgs)
     {
         return this.callAsync ("opinionPublicGetQuoteToken", optionalArgs);
     }
@@ -124,7 +125,7 @@ public class OpinionApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<Object>  opinionPrivateGetOrder (Object... optionalArgs)
+    public CompletableFuture<Object>  opinionPrivateGetOrder (Object... optionalArgs)
     {
         return this.callAsync ("opinionPrivateGetOrder", optionalArgs);
     }
@@ -135,7 +136,7 @@ public class OpinionApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<Object>  opinionPrivateGetOrderOrderId (Object... optionalArgs)
+    public CompletableFuture<Object>  opinionPrivateGetOrderOrderId (Object... optionalArgs)
     {
         return this.callAsync ("opinionPrivateGetOrderOrderId", optionalArgs);
     }
@@ -146,7 +147,7 @@ public class OpinionApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<Object>  opinionPrivateGetPositionsUserWalletAddress (Object... optionalArgs)
+    public CompletableFuture<Object>  opinionPrivateGetPositionsUserWalletAddress (Object... optionalArgs)
     {
         return this.callAsync ("opinionPrivateGetPositionsUserWalletAddress", optionalArgs);
     }
@@ -157,7 +158,7 @@ public class OpinionApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<Object>  opinionPrivateGetTradeUserWalletAddress (Object... optionalArgs)
+    public CompletableFuture<Object>  opinionPrivateGetTradeUserWalletAddress (Object... optionalArgs)
     {
         return this.callAsync ("opinionPrivateGetTradeUserWalletAddress", optionalArgs);
     }
@@ -168,7 +169,7 @@ public class OpinionApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<Object>  opinionPrivateGetAuthApiKey (Object... optionalArgs)
+    public CompletableFuture<Object>  opinionPrivateGetAuthApiKey (Object... optionalArgs)
     {
         return this.callAsync ("opinionPrivateGetAuthApiKey", optionalArgs);
     }
@@ -179,7 +180,7 @@ public class OpinionApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<Object>  opinionPrivateGetUserAuth (Object... optionalArgs)
+    public CompletableFuture<Object>  opinionPrivateGetUserAuth (Object... optionalArgs)
     {
         return this.callAsync ("opinionPrivateGetUserAuth", optionalArgs);
     }
@@ -190,7 +191,7 @@ public class OpinionApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<Object>  opinionPrivateGetUserBalance (Object... optionalArgs)
+    public CompletableFuture<Object>  opinionPrivateGetUserBalance (Object... optionalArgs)
     {
         return this.callAsync ("opinionPrivateGetUserBalance", optionalArgs);
     }
@@ -201,7 +202,7 @@ public class OpinionApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<Object>  opinionPrivatePostAuthApiKey (Object... optionalArgs)
+    public CompletableFuture<Object>  opinionPrivatePostAuthApiKey (Object... optionalArgs)
     {
         return this.callAsync ("opinionPrivatePostAuthApiKey", optionalArgs);
     }
@@ -212,7 +213,7 @@ public class OpinionApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<Object>  opinionPrivatePostOrder (Object... optionalArgs)
+    public CompletableFuture<Object>  opinionPrivatePostOrder (Object... optionalArgs)
     {
         return this.callAsync ("opinionPrivatePostOrder", optionalArgs);
     }
@@ -223,7 +224,7 @@ public class OpinionApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<Object>  opinionPrivatePostOrderCancel (Object... optionalArgs)
+    public CompletableFuture<Object>  opinionPrivatePostOrderCancel (Object... optionalArgs)
     {
         return this.callAsync ("opinionPrivatePostOrderCancel", optionalArgs);
     }
@@ -234,7 +235,7 @@ public class OpinionApi extends PredictionExchange
      * @param optionalArgs the request parameters
      * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<Object>  opinionPrivateDeleteAuthApiKey (Object... optionalArgs)
+    public CompletableFuture<Object>  opinionPrivateDeleteAuthApiKey (Object... optionalArgs)
     {
         return this.callAsync ("opinionPrivateDeleteAuthApiKey", optionalArgs);
     }

@@ -1,6 +1,6 @@
 import { Transpiler } from 'ast-transpiler';
 import { getProgramBatch } from './worker-program-batch.js';
-import { installCsharpLocalTypes, installCsharpNumericReturns, installCsharpStringReturns } from './csharp-local-types.js';
+import { installCsharpAsyncCoreReturns, installCsharpCollectionReturns, installCsharpLocalTypes, installCsharpNumericReturns, installCsharpStringReturns } from './csharp-local-types.js';
 import log from 'ololog'
 // "typescript6" is an npm alias for typescript@6 — the last release that ships the JS compiler API
 import ts from 'typescript6';
@@ -60,6 +60,11 @@ export function setupCsharpPrinter (transpiler: Transpiler) {
     // (see the numeric-returns section of build/csharp-local-types.js) — the locals map
     // registers the same types
     installCsharpNumericReturns (transpiler);
+    // concrete return types for the async base cores whose C# signature was `Task<object>`
+    // while every declaration's runtime value already is the markets/currencies dictionary
+    // (see the async-core-returns section of build/csharp-local-types.js) — the awaited-locals
+    // map registers the same names with the same type, so awaited locals follow the signature
+    installCsharpAsyncCoreReturns (transpiler);
     // `async <name> (...): Promise<boolean>` methods print `Task<bool>` / `Task<bool?>`
     // instead of `Task<object>`: the annotation names the exact value the method returns
     // (its body only ever returns booleans), and printFunctionType's bool branch + the
@@ -115,6 +120,10 @@ export function setupCsharpPrinter (transpiler: Transpiler) {
     // local-types hook so both see the
     // same table
     installCsharpStringReturns (transpiler);
+    // concrete return types for generated non-async dict/list-returning methods (see
+    // the dict/list-returns section of build/csharp-local-types.js) — their returns carry
+    // the same boundary cast and the locals map registers the same types
+    installCsharpCollectionReturns (transpiler);
 }
 
 // piscina reuses worker threads across tasks — cache the Transpiler per thread

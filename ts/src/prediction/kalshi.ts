@@ -3,12 +3,7 @@ import Exchange from '../abstract/prediction/kalshi.js';
 import { Precise } from '../base/Precise.js';
 import { rsa } from '../base/functions/rsa.js';
 import { BadSymbol, ArgumentsRequired, BadRequest, OrderNotFillable, InvalidOrder, ExchangeError } from '../base/errors.js';
-import type {
-    Int, int, Str, Num, Dict, Strings,
-    Market, PredictionOrderBook, OHLCV,
-    Balances, PredictionOpenInterest,
-    PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionSettlement,
-    fetchEventsParams,Bool, Fee, OrderSide, Endpoint } from '../base/types.js';
+import type { Int, int, Str, Num, Dict, Strings, Market, PredictionOrderBook, OHLCV, Balances, PredictionOpenInterest, PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionSettlement, fetchEventsParams,Bool, Fee, OrderSide, Endpoint } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -815,9 +810,9 @@ export default class kalshi extends Exchange {
 
     override parsePredictionOpenInterest (interest: Dict, market: Market = undefined): PredictionOpenInterest {
         //
-        //     { "ticker": "...", "open_interest_fp": "60802.01", ... }   // open interest in contracts
+        //     { "ticker": "...", "open_interest_fp": "60802.01", "updated_time": "2026-04-09T10:32:47.890506Z", ... }   // the market object of GET /markets/{ticker}, open interest in contracts
         //
-        const timestamp = this.milliseconds ();
+        const timestamp = this.parse8601 (this.safeString (interest, 'updated_time'));
         const openInterest: Dict = this.safeOpenInterest ({
             'symbol': this.safeSymbol (undefined, market),
             'openInterestAmount': this.safeNumber2 (interest, 'open_interest_fp', 'open_interest'),
@@ -903,7 +898,7 @@ export default class kalshi extends Exchange {
         const outcomeObj = this.safeOutcome (this.safeString (marketAny, 'outcome'), marketAny);
         const outcomeLabel = (market !== undefined && market !== null) ? this.safeString (market, 'label', this.safeString (market['info'], 'outcomeLabel', 'YES')) : 'YES';
         const isNo = outcomeLabel.toUpperCase () === 'NO';
-        const now = this.milliseconds ();
+        const timestamp = this.parse8601 (this.safeString (raw, 'updated_time'));
         const outcome = this.safeString (outcomeObj, 'outcome');
         const yesAsk = this.safeNumber (raw, 'yes_ask_dollars');
         const yesBid = this.safeNumber (raw, 'yes_bid_dollars');
@@ -944,8 +939,8 @@ export default class kalshi extends Exchange {
             'outcomeId': this.safeString2 (outcomeObj, 'outcomeId', 'id'),
             'label': this.safeString (outcomeObj, 'label'),
             'market': this.safeString2 (outcomeObj, 'market', 'outcome'),
-            'timestamp': now,
-            'datetime': this.iso8601 (now),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'high': undefined,
             'low': undefined,
             'bid': bid,
@@ -1074,7 +1069,6 @@ export default class kalshi extends Exchange {
         //     }
         //
         const book = this.safeValue (response, 'orderbook_fp', response);
-        const timestamp = this.milliseconds ();
         // Kalshi uses YES-side perspective: `yes` = bids, `no` = asks (inverted)
         const rawYes = this.safeList (book, 'yes_dollars', []);
         const rawNo = this.safeList (book, 'no_dollars', []);
@@ -1104,7 +1098,7 @@ export default class kalshi extends Exchange {
                 asks.push ([ price, this.safeNumber (rawNo[ai], 1) ]);
             }
         }
-        return this.safePredictionOrderBook (this.sortedOrders (this.safeString (outcomeObj, 'outcome', outcome), timestamp, bids, asks), outcomeObj);
+        return this.safePredictionOrderBook (this.sortedOrders (this.safeString (outcomeObj, 'outcome', outcome), undefined, bids, asks), outcomeObj);
     }
 
     /**
@@ -1311,7 +1305,7 @@ export default class kalshi extends Exchange {
         const ticker = this.safeString (outcomeObj['info'], 'ticker');
         const request: Dict = { 'ticker': ticker };
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min (limit, 1000);
         }
         const response = await this.kalshiPublicGetMarketsTrades (this.extend (request, params));
         const trades = this.safeList (response, 'trades', []);

@@ -1191,7 +1191,7 @@ class onetrading extends onetrading$1["default"] {
         }, market);
     }
     parseBalance(response) {
-        const balances = this.safeValue(response, 'balances', []);
+        const balances = this.safeList(response, 'balances', []);
         const result = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];

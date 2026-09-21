@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class upbit { public upbit(object args = null) : base(args) { } }
 public partial class upbit : ccxt.upbit
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -50,7 +50,7 @@ public partial class upbit : ccxt.upbit
             symbols = new List<object>() {};
         }
         IList<object> marketIds = this.marketIds(symbols);
-        string url = this.implodeParams(getValue(getValue(this.urls, "api"), "ws"), new Dictionary<string, object>() {
+        string? url = this.implodeParams(getValue(getValue(this.urls, "api"), "ws"), new Dictionary<string, object>() {
             { "hostname", this.hostname },
         });
         var client = this.client(url);
@@ -247,7 +247,7 @@ public partial class upbit : ccxt.upbit
         //   "acc_trade_price_24h": 2.5955306323568927,
         //   "acc_trade_volume_24h": 118.38798416,
         //   "stream_type": "SNAPSHOT" }
-        object ticker = this.parseTicker(message);
+        Dictionary<string, object> ticker = this.parseTicker(message);
         object symbol = getValue(ticker, "symbol");
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -296,7 +296,7 @@ public partial class upbit : ccxt.upbit
         ((IDictionary<string,object>)orderbook)["symbol"] = symbol;
         object bids = getValue(orderbook, "bids");
         object asks = getValue(orderbook, "asks");
-        object data = this.safeValue(message, "orderbook_units", new List<object>() {});
+        List<object> data = this.safeList(message, "orderbook_units", new List<object>() {});
         for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object entry = getValue(data, i);
@@ -331,7 +331,7 @@ public partial class upbit : ccxt.upbit
         //   "change_price": 27000,
         //   "sequential_id": 1584508285000002,
         //   "stream_type": "REALTIME" }
-        object trade = this.parseTrade(message);
+        Dictionary<string, object> trade = this.parseTrade(message);
         object symbol = getValue(trade, "symbol");
         if (isTrue(isEqual(symbol, null)))
         {
@@ -415,7 +415,7 @@ public partial class upbit : ccxt.upbit
             ((IDictionary<string,object>)request)["codes"] = marketIds;
             messageHash = add(add(messageHash, ":"), symbol);
         }
-        string url = this.implodeParams(getValue(getValue(this.urls, "api"), "ws"), new Dictionary<string, object>() {
+        object url = this.implodeParams(getValue(getValue(this.urls, "api"), "ws"), new Dictionary<string, object>() {
             { "hostname", this.hostname },
         });
         url = add(url, "/private");
@@ -663,7 +663,7 @@ public partial class upbit : ccxt.upbit
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             myTrades = new ArrayCacheBySymbolById(limit);
         }
-        object trade = this.parseWsTrade(message);
+        Dictionary<string, object> trade = ((Dictionary<string, object>)this.parseWsTrade(message));
         callDynamically(myTrades, "append", new object[] {trade});
         string messageHash = "myTrades";
         callDynamically(client as WebSocketClient, "resolve", new object[] {myTrades, messageHash});
@@ -673,7 +673,7 @@ public partial class upbit : ccxt.upbit
 
     public virtual void handleOrder(WebSocketClient client, object message)
     {
-        object parsed = this.parseWsOrder(message);
+        Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsOrder(message));
         string? symbol = this.safeString(parsed, "symbol");
         string? orderId = this.safeString(parsed, "id");
         if (isTrue(isEqual(this.orders, null)))
@@ -756,7 +756,7 @@ public partial class upbit : ccxt.upbit
             string? code = this.safeCurrencyCode(currencyId);
             string? available = this.safeString(balance, "balance");
             string? frozen = this.safeString(balance, "locked");
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["free"] = available;
             ((IDictionary<string,object>)account)["used"] = frozen;
             if (isTrue(!isEqual(code, null)))

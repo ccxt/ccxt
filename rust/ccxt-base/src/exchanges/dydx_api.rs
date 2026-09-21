@@ -242,6 +242,36 @@ impl DydxCore {
         self.call_method(Value::Str("indexer_get_historical_pnl_parent_subaccount".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `indexerGetPnl` implicit endpoint.
+    pub async fn indexer_get_pnl(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("indexer_get_pnl".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `indexerGetPnlParentSubaccountNumber` implicit endpoint.
+    pub async fn indexer_get_pnl_parent_subaccount_number(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("indexer_get_pnl_parent_subaccount_number".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `indexerGetTradeHistory` implicit endpoint.
+    pub async fn indexer_get_trade_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("indexer_get_trade_history".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `indexerGetTradeHistoryParentSubaccountNumber` implicit endpoint.
+    pub async fn indexer_get_trade_history_parent_subaccount_number(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("indexer_get_trade_history_parent_subaccount_number".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `indexerPostTurnkeySignin` implicit endpoint.
+    pub async fn indexer_post_turnkey_signin(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("indexer_post_turnkey_signin".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `indexerPostTurnkeyUploadAddress` implicit endpoint.
+    pub async fn indexer_post_turnkey_upload_address(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("indexer_post_turnkey_upload_address".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `nodeRpcGetAbciInfo` implicit endpoint.
     pub async fn node_rpc_get_abci_info(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("node_rpc_get_abci_info".to_string()), optional_args).await

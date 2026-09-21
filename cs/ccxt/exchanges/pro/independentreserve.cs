@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class independentreserve { public independentreserve(object args = null) : base(args) { } }
 public partial class independentreserve : ccxt.independentreserve
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -94,7 +94,7 @@ public partial class independentreserve : ccxt.independentreserve
             stored = new ArrayCache(limit);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
-        object trade = this.parseWsTrade(data);
+        Dictionary<string, object> trade = ((Dictionary<string, object>)this.parseWsTrade(data));
         callDynamically(stored, "append", new object[] {trade});
         ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.trades, symbol), messageHash});
@@ -217,7 +217,7 @@ public partial class independentreserve : ccxt.independentreserve
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
         if (isTrue(isEqual(eventVar, "OrderBookSnapshot")))
         {
-            object snapshot = this.parseOrderBook(orderBook, symbol, timestamp, "Bids", "Offers", "Price", "Volume");
+            Dictionary<string, object> snapshot = ((Dictionary<string, object>)this.parseOrderBook(orderBook, symbol, timestamp, "Bids", "Offers", "Price", "Volume"));
             (orderbook as IOrderBook).reset(snapshot);
             // write through the parent index: php copies arrays by value, so
             // mutating the local bind would not persist the flag
@@ -287,7 +287,7 @@ public partial class independentreserve : ccxt.independentreserve
 
     public override void handleDelta(object bookside, object delta)
     {
-        object bidAsk = this.parseOrderBookBidAsk(delta, "Price", "Volume");
+        List<object> bidAsk = this.parseOrderBookBidAsk(delta, "Price", "Volume");
         (bookside as IOrderBookSide).storeArray(bidAsk);
     }
 

@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class paradex : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "paradex" },
@@ -783,7 +783,7 @@ public partial class paradex : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(data));
     }
 
-    public override object parseMarket(object market)
+    public override Dictionary<string, object> parseMarket(object market)
     {
         //
         //     {
@@ -883,7 +883,7 @@ public partial class paradex : Exchange
         if (isTrue(isOption))
         {
             string optionTypeSuffix = ((bool) isTrue((isEqual(optionType, "CALL")))) ? "C" : "P";
-            object deliveryValue = ((bool) isTrue((isEqual(expiry, 0)))) ? "" : add(this.yymmdd(expiry), "-");
+            string deliveryValue = ((bool) isTrue((isEqual(expiry, 0)))) ? "" : add(this.yymmdd(expiry), "-");
             symbol = add(add(add(add(add(symbol, "-"), deliveryValue), strikePrice), "-"), optionTypeSuffix);
             makerFee = this.parseNumber("0.0003");
         } else
@@ -1065,7 +1065,7 @@ public partial class paradex : Exchange
         //         ]
         //     }
         //
-        object fees = this.safeList(response, "results", new List<object>() {});
+        List<object> fees = this.safeList(response, "results", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(fees)); postFixIncrement(ref i))
         {
@@ -1092,7 +1092,7 @@ public partial class paradex : Exchange
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1149,7 +1149,7 @@ public partial class paradex : Exchange
         //         ]
         //     }
         //
-        object data = this.safeList(response, "results", new List<object>() {});
+        List<object> data = this.safeList(response, "results", new List<object>() {});
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(data, market,((string)timeframeVar), since, limit));
     }
 
@@ -1261,7 +1261,7 @@ public partial class paradex : Exchange
         return ccxt.BaseExchange.ToTicker(this.parseTicker(ticker, market));
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         //
         //     {
@@ -1483,7 +1483,7 @@ public partial class paradex : Exchange
             ((IDictionary<string,object>)request)["depth"] = limit;
         }
         Int64? timestamp = this.safeInteger(response, "last_updated_at");
-        object orderbook = this.parseOrderBook(response, getValue(market, "symbol"), timestamp);
+        Dictionary<string, object> orderbook = ((Dictionary<string, object>)this.parseOrderBook(response, getValue(market, "symbol"), timestamp));
         ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(response, "seq_no");
         return ccxt.BaseExchange.ToOrderBook(orderbook);
     }
@@ -1549,7 +1549,7 @@ public partial class paradex : Exchange
         //         ]
         //     }
         //
-        object trades = this.safeList(response, "results", new List<object>() {});
+        List<object> trades = this.safeList(response, "results", new List<object>() {});
         for (int i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
         {
             ((IDictionary<string,object>)getValue(trades, i))["next"] = this.safeString(response, "next");
@@ -1557,7 +1557,7 @@ public partial class paradex : Exchange
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit));
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades (public)
@@ -1714,7 +1714,7 @@ public partial class paradex : Exchange
 
     public virtual object signHash(object hash, object privateKey)
     {
-        object signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
+        Dictionary<string, object> signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
         object r = getValue(signature, "r");
         object s = getValue(signature, "s");
         string v = this.intToBase16(this.sum(27, getValue(signature, "v")));
@@ -1726,7 +1726,7 @@ public partial class paradex : Exchange
         return this.signHash(this.hashMessage(message), slice(privateKey, -64, null));
     }
 
-    public async virtual Task<object> getSystemConfig()
+    public async virtual Task<IDictionary<string, object>> getSystemConfig()
     {
         IDictionary<string, object> cachedConfig = this.safeDict(this.options, "systemConfig");
         if (isTrue(!isEqual(cachedConfig, null)))
@@ -1769,7 +1769,7 @@ public partial class paradex : Exchange
     public async virtual Task<object> prepareParadexDomain(object l1 = null)
     {
         l1 ??= false;
-        object systemConfig = await this.getSystemConfig();
+        IDictionary<string, object> systemConfig = await this.getSystemConfig();
         if (isTrue(isEqual(l1, true)))
         {
             Dictionary<string, object> l1D = new Dictionary<string, object>() {
@@ -1795,7 +1795,7 @@ public partial class paradex : Exchange
             return cachedAccount;
         }
         this.checkRequiredCredentials();
-        object systemConfig = await this.getSystemConfig();
+        IDictionary<string, object> systemConfig = await this.getSystemConfig();
         object domain = await this.prepareParadexDomain(true);
         Dictionary<string, object> messageTypes = new Dictionary<string, object>() {
             { "Constant", new List<object>() {new Dictionary<string, object>() {
@@ -1806,7 +1806,7 @@ public partial class paradex : Exchange
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "action", "STARK Key" },
         };
-        object msg = this.ethEncodeStructuredData(domain, messageTypes, message);
+        byte[] msg = this.ethEncodeStructuredData(domain, messageTypes, message);
         object signature = this.signMessage(msg, this.privateKey);
         object account = this.retrieveStarkAccount(signature, getValue(systemConfig, "paraclear_account_hash"), getValue(systemConfig, "paraclear_account_proxy_hash"));
         ((IDictionary<string,object>)this.options)["paradexAccount"] = account;
@@ -1900,7 +1900,7 @@ public partial class paradex : Exchange
         return token;
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         // {
@@ -1932,7 +1932,7 @@ public partial class paradex : Exchange
         //
         Int64? timestamp = this.safeInteger(order, "created_at");
         string? orderId = this.safeString(order, "id");
-        object clientOrderId = this.omitZero(this.safeString(order, "client_id"));
+        string? clientOrderId = ((string)this.omitZero(this.safeString(order, "client_id")));
         string? marketId = this.safeString(order, "market");
         market = this.safeMarket(marketId, market);
         object symbol = getValue(market, "symbol");
@@ -1952,9 +1952,9 @@ public partial class paradex : Exchange
             }
         }
         string? side = this.safeStringLower(order, "side");
-        object average = this.omitZero(this.safeString(order, "avg_fill_price"));
-        object remaining = this.omitZero(this.safeString(order, "remaining_size"));
-        object triggerPrice = this.omitZero(this.safeString(order, "trigger_price"));
+        string? average = ((string)this.omitZero(this.safeString(order, "avg_fill_price")));
+        string? remaining = ((string)this.omitZero(this.safeString(order, "remaining_size")));
+        string? triggerPrice = ((string)this.omitZero(this.safeString(order, "trigger_price")));
         Int64? lastUpdateTimestamp = this.safeInteger(order, "last_updated_at");
         List<object> flags = this.safeList(order, "flags");
         bool? reduceOnly = null;
@@ -2035,7 +2035,7 @@ public partial class paradex : Exchange
         return Precise.stringMul(num, "100000000");
     }
 
-    public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(type, null)))
@@ -2064,7 +2064,7 @@ public partial class paradex : Exchange
         bool isStopLossOrder = (!isEqual(stopLossPrice, null));
         bool isStopOrder = isTrue(isTrue((!isEqual(triggerPrice, null))) || isTrue(isTakeProfitOrder)) || isTrue(isStopLossOrder);
         string? timeInForce = this.safeStringUpper(parameters, "timeInForce");
-        object postOnly = this.isPostOnly(isMarket, null, parameters);
+        bool postOnly = this.isPostOnly(isMarket, null, parameters);
         if (!isTrue(isMarket))
         {
             if (isTrue(postOnly))
@@ -2267,7 +2267,7 @@ public partial class paradex : Exchange
         //     "type": "MARKET"
         // }
         //
-        object order = this.parseOrder(response, market);
+        Dictionary<string, object> order = this.parseOrder(response, market);
         return ccxt.BaseExchange.ToOrder(order);
     }
 
@@ -2403,7 +2403,7 @@ public partial class paradex : Exchange
         //
         List<object> responseOrders = this.safeList(response, "orders", new List<object>() {});
         IList<object> parsedOrders = this.parseOrders(responseOrders);
-        object errors = this.safeList(response, "errors", new List<object>() {});
+        List<object> errors = this.safeList(response, "errors", new List<object>() {});
         for (int i = 0; isLessThan(i, getArrayLength(errors)); postFixIncrement(ref i))
         {
             object error = getValue(errors, i);
@@ -2514,7 +2514,7 @@ public partial class paradex : Exchange
         //     ]
         // }
         //
-        object results = this.safeList(response, "results", new List<object>() {});
+        List<object> results = this.safeList(response, "results", new List<object>() {});
         List<object> orders = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(results)); postFixIncrement(ref i))
         {
@@ -2721,7 +2721,7 @@ public partial class paradex : Exchange
         //     ]
         //   }
         //
-        object orders = this.safeList(response, "results", new List<object>() {});
+        List<object> orders = this.safeList(response, "results", new List<object>() {});
         string? paginationCursor = this.safeString(response, "next");
         int ordersLength = getArrayLength(orders);
         if (isTrue(isTrue((!isEqual(paginationCursor, null))) && isTrue((isGreaterThan(ordersLength, 0)))))
@@ -2792,7 +2792,7 @@ public partial class paradex : Exchange
         //     ]
         //   }
         //
-        object orders = this.safeList(response, "results", new List<object>() {});
+        List<object> orders = this.safeList(response, "results", new List<object>() {});
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(orders, market, since, limit));
     }
 
@@ -2838,7 +2838,7 @@ public partial class paradex : Exchange
             IDictionary<string, object> balance = this.safeDict(response, i, new Dictionary<string, object>() {});
             string? currencyId = this.safeString(balance, "token");
             string? code = this.safeCurrencyCode(currencyId);
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "size");
             if (isTrue(!isEqual(code, null)))
             {
@@ -2919,7 +2919,7 @@ public partial class paradex : Exchange
         //         ]
         //     }
         //
-        object trades = this.safeList(response, "results", new List<object>() {});
+        List<object> trades = this.safeList(response, "results", new List<object>() {});
         for (int i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
         {
             ((IDictionary<string,object>)getValue(trades, i))["next"] = this.safeString(response, "next");
@@ -2993,11 +2993,11 @@ public partial class paradex : Exchange
         //         ]
         //     }
         //
-        object data = this.safeList(response, "results", new List<object>() {});
+        List<object> data = this.safeList(response, "results", new List<object>() {});
         return ccxt.BaseExchange.ToPositionList(this.parsePositions(data, symbols));
     }
 
-    public override object parsePosition(object position, object market = null)
+    public override Dictionary<string, object> parsePosition(object position, object market = null)
     {
         //
         //     {
@@ -3105,7 +3105,7 @@ public partial class paradex : Exchange
         //         ]
         //     }
         //
-        object data = this.safeList(response, "results", new List<object>() {});
+        List<object> data = this.safeList(response, "results", new List<object>() {});
         return ccxt.BaseExchange.ToLiquidationList(this.parseLiquidations(data, market, since, limit));
     }
 
@@ -3195,7 +3195,7 @@ public partial class paradex : Exchange
         //         ]
         //     }
         //
-        object rows = this.safeList(response, "results", new List<object>() {});
+        List<object> rows = this.safeList(response, "results", new List<object>() {});
         List<object> deposits = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
         {
@@ -3271,7 +3271,7 @@ public partial class paradex : Exchange
         //         ]
         //     }
         //
-        object rows = this.safeList(response, "results", new List<object>() {});
+        List<object> rows = this.safeList(response, "results", new List<object>() {});
         List<object> deposits = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
         {
@@ -3352,7 +3352,7 @@ public partial class paradex : Exchange
         //         ]
         //     }
         //
-        object rows = this.safeList(response, "results", new List<object>() {});
+        List<object> rows = this.safeList(response, "results", new List<object>() {});
         return ccxt.BaseExchange.ToTransferEntryList(this.parseTransfers(rows, currency, since, limit));
     }
 
@@ -3990,7 +3990,7 @@ public partial class paradex : Exchange
         // every row is one observation of a rate quoted for a whole funding period,
         // not a settled payment: paradex recomputes it each second and accrues it
         // into funding_index, so the series cannot be summed
-        object results = this.safeList(response, "results", new List<object>() {});
+        List<object> results = this.safeList(response, "results", new List<object>() {});
         List<object> rates = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(results)); postFixIncrement(ref i))
         {
@@ -4020,7 +4020,7 @@ public partial class paradex : Exchange
             version = "v2";
             path = ((string)path).Replace((string)"v2/", (string)"");
         }
-        object url = add(add(this.implodeHostname(getValue(getValue(this.urls, "api"), ((string)version))), "/"), this.implodeParams(path, parameters));
+        string url = add(add(this.implodeHostname(getValue(getValue(this.urls, "api"), ((string)version))), "/"), this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         if (isTrue(isEqual(api, "public")))
         {

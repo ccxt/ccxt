@@ -116,10 +116,10 @@ func TestMicroseconds() {
 	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
 	}, map[string]any{}, exchange)
-	var value any = exchange.Microseconds()
+	var value int64 = exchange.Microseconds()
 	var valueString string = ccxt.ToString(value)
 	Assert(ccxt.IsGreaterThan(value, 0))
-	Assert(ccxt.IsEqual(ccxt.GetLength(valueString), 16))
+	Assert((ccxt.IsEqual(ccxt.GetLength(valueString), 16)))
 }
 func TestMilliseconds() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
@@ -127,10 +127,10 @@ func TestMilliseconds() {
 	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
 	}, map[string]any{}, exchange)
-	var value any = exchange.Milliseconds()
+	var value int64 = exchange.Milliseconds()
 	var valueString string = ccxt.ToString(value)
 	Assert(ccxt.IsGreaterThan(value, 0))
-	Assert(ccxt.IsEqual(ccxt.GetLength(valueString), 13))
+	Assert((ccxt.IsEqual(ccxt.GetLength(valueString), 13)))
 }
 func TestSeconds() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
@@ -138,10 +138,10 @@ func TestSeconds() {
 	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
 	}, map[string]any{}, exchange)
-	var value any = exchange.Seconds()
+	var value int64 = exchange.Seconds()
 	var valueString string = ccxt.ToString(value)
 	Assert(ccxt.IsGreaterThan(value, 0))
-	Assert(ccxt.IsEqual(ccxt.GetLength(valueString), 10))
+	Assert((ccxt.IsEqual(ccxt.GetLength(valueString), 10)))
 }
 func TestConvertExpireDate() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
@@ -167,12 +167,12 @@ func TestYymmdd() {
 		"id": "sampleexchange",
 	}, map[string]any{}, exchange)
 	var testMs int = 1750123456789 // 17 June 2025
-	var value any = exchange.Yymmdd(testMs, "_")
-	Assert(ccxt.IsEqual(value, "25_06_17"))
-	var value2 any = exchange.Yymmdd(exchange.Milliseconds())
-	Assert(ccxt.IsEqual(ccxt.GetLength(value2), 6))
+	var value string = exchange.Yymmdd(testMs, "_")
+	Assert((value == "25_06_17"))
+	var value2 string = exchange.Yymmdd(exchange.Milliseconds())
+	Assert((ccxt.IsEqual(ccxt.GetLength(value2), 6)))
 	var intNum any = exchange.ParseToInt(value2)
-	Assert(ccxt.IsTrue(ccxt.IsGreaterThan(intNum, 260000)) && ccxt.IsTrue(ccxt.IsLessThan(intNum, 360000))) // date between 2026 and 2036
+	Assert(ccxt.IsGreaterThan(intNum, 260000) && ccxt.IsLessThan(intNum, 360000)) // date between 2026 and 2036
 }
 func TestYyyymmdd() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
@@ -181,12 +181,12 @@ func TestYyyymmdd() {
 		"id": "sampleexchange",
 	}, map[string]any{}, exchange)
 	var testMs int = 1750123456789 // 17 June 2025
-	var value any = exchange.Yyyymmdd(testMs, "_")
-	Assert(ccxt.IsEqual(value, "2025_06_17"))
-	var value2 any = exchange.Yyyymmdd(exchange.Milliseconds())
-	Assert(ccxt.IsEqual(ccxt.GetLength(value2), 10))
+	var value string = exchange.Yyyymmdd(testMs, "_")
+	Assert((value == "2025_06_17"))
+	var value2 string = exchange.Yyyymmdd(exchange.Milliseconds())
+	Assert((ccxt.IsEqual(ccxt.GetLength(value2), 10)))
 	var intNum any = exchange.ParseToInt(ccxt.Replace((ccxt.Replace(value2, "-", "")), "-", ""))
-	Assert(ccxt.IsTrue(ccxt.IsGreaterThan(intNum, 20260000)) && ccxt.IsTrue(ccxt.IsLessThan(intNum, 20360000))) // date between 2026 and 2036
+	Assert(ccxt.IsGreaterThan(intNum, 20260000) && ccxt.IsLessThan(intNum, 20360000)) // date between 2026 and 2036
 }
 func TestYmd() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
@@ -195,8 +195,8 @@ func TestYmd() {
 		"id": "sampleexchange",
 	}, map[string]any{}, exchange)
 	var testMs int = 1750123456789 // 17 June 2025
-	var value any = exchange.Ymd(testMs, "_")
-	Assert(ccxt.IsEqual(value, "2025_06_17"))
+	var value string = exchange.Ymd(testMs, "_")
+	Assert((value == "2025_06_17"))
 }
 func TestYmdhms() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
@@ -205,8 +205,8 @@ func TestYmdhms() {
 		"id": "sampleexchange",
 	}, map[string]any{}, exchange)
 	var testMs int = 1750123456789 // 17 June 2025
-	var value any = exchange.Ymdhms(testMs, "_")
-	Assert(ccxt.IsTrue(ccxt.IsEqual(value, "2025-06-17_01:24:16")) || ccxt.IsTrue(ccxt.IsEqual(value, "2025-06-17_01:24:17"))) // todo: php/py rounds up to 17
+	var value string = exchange.Ymdhms(testMs, "_")
+	Assert((value == "2025-06-17_01:24:16") || (value == "2025-06-17_01:24:17")) // todo: php/py rounds up to 17
 }
 func TestDatetime() {
 	TestIso8601()

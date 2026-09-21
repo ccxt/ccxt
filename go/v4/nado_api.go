@@ -8,81 +8,81 @@
 package ccxt
 
 // GatewayPublicGetSymbols returns a channel that yields a JSON array.
-func (this *NadoCore) GatewayPublicGetSymbols(args ...any) <-chan any {
+func (this *Nado) GatewayPublicGetSymbols(args ...any) <-chan any {
 	return this.callEndpointAsync("gatewayPublicGetSymbols", args...)
 }
 
 // GatewayPublicGetQuery returns a channel that yields a JSON object.
-func (this *NadoCore) GatewayPublicGetQuery(args ...any) <-chan any {
+func (this *Nado) GatewayPublicGetQuery(args ...any) <-chan any {
 	return this.callEndpointAsync("gatewayPublicGetQuery", args...)
 }
 
 // GatewayPublicGetEdgeQuery returns a channel that yields a JSON object.
-func (this *NadoCore) GatewayPublicGetEdgeQuery(args ...any) <-chan any {
+func (this *Nado) GatewayPublicGetEdgeQuery(args ...any) <-chan any {
 	return this.callEndpointAsync("gatewayPublicGetEdgeQuery", args...)
 }
 
 // GatewayPublicPostQuery returns a channel that yields a JSON object.
-func (this *NadoCore) GatewayPublicPostQuery(args ...any) <-chan any {
+func (this *Nado) GatewayPublicPostQuery(args ...any) <-chan any {
 	return this.callEndpointAsync("gatewayPublicPostQuery", args...)
 }
 
 // GatewayPublicPostEdgeQuery returns a channel that yields a JSON object.
-func (this *NadoCore) GatewayPublicPostEdgeQuery(args ...any) <-chan any {
+func (this *Nado) GatewayPublicPostEdgeQuery(args ...any) <-chan any {
 	return this.callEndpointAsync("gatewayPublicPostEdgeQuery", args...)
 }
 
 // GatewayPrivatePostExecute returns a channel that yields a JSON object.
-func (this *NadoCore) GatewayPrivatePostExecute(args ...any) <-chan any {
+func (this *Nado) GatewayPrivatePostExecute(args ...any) <-chan any {
 	return this.callEndpointAsync("gatewayPrivatePostExecute", args...)
 }
 
 // GatewayV2PublicGetAssets returns a channel that yields a JSON array.
-func (this *NadoCore) GatewayV2PublicGetAssets(args ...any) <-chan any {
+func (this *Nado) GatewayV2PublicGetAssets(args ...any) <-chan any {
 	return this.callEndpointAsync("gatewayV2PublicGetAssets", args...)
 }
 
 // GatewayV2PublicGetPairs returns a channel that yields a JSON array.
-func (this *NadoCore) GatewayV2PublicGetPairs(args ...any) <-chan any {
+func (this *Nado) GatewayV2PublicGetPairs(args ...any) <-chan any {
 	return this.callEndpointAsync("gatewayV2PublicGetPairs", args...)
 }
 
 // GatewayV2PublicGetOrderbook returns a channel that yields a JSON object.
-func (this *NadoCore) GatewayV2PublicGetOrderbook(args ...any) <-chan any {
+func (this *Nado) GatewayV2PublicGetOrderbook(args ...any) <-chan any {
 	return this.callEndpointAsync("gatewayV2PublicGetOrderbook", args...)
 }
 
 // ArchivePost returns a channel that yields a JSON object.
-func (this *NadoCore) ArchivePost(args ...any) <-chan any {
+func (this *Nado) ArchivePost(args ...any) <-chan any {
 	return this.callEndpointAsync("archivePost", args...)
 }
 
 // ArchiveV2PublicGetTickers returns a channel that yields a JSON object.
-func (this *NadoCore) ArchiveV2PublicGetTickers(args ...any) <-chan any {
+func (this *Nado) ArchiveV2PublicGetTickers(args ...any) <-chan any {
 	return this.callEndpointAsync("archiveV2PublicGetTickers", args...)
 }
 
 // ArchiveV2PublicGetContracts returns a channel that yields a JSON object.
-func (this *NadoCore) ArchiveV2PublicGetContracts(args ...any) <-chan any {
+func (this *Nado) ArchiveV2PublicGetContracts(args ...any) <-chan any {
 	return this.callEndpointAsync("archiveV2PublicGetContracts", args...)
 }
 
 // ArchiveV2PublicGetTrades returns a channel that yields a JSON array.
-func (this *NadoCore) ArchiveV2PublicGetTrades(args ...any) <-chan any {
+func (this *Nado) ArchiveV2PublicGetTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("archiveV2PublicGetTrades", args...)
 }
 
 // ArchiveV2PublicGetSymbols returns a channel that yields a JSON object.
-func (this *NadoCore) ArchiveV2PublicGetSymbols(args ...any) <-chan any {
+func (this *Nado) ArchiveV2PublicGetSymbols(args ...any) <-chan any {
 	return this.callEndpointAsync("archiveV2PublicGetSymbols", args...)
 }
 
 // TriggerPrivatePostExecute returns a channel that yields a JSON object.
-func (this *NadoCore) TriggerPrivatePostExecute(args ...any) <-chan any {
+func (this *Nado) TriggerPrivatePostExecute(args ...any) <-chan any {
 	return this.callEndpointAsync("triggerPrivatePostExecute", args...)
 }
 
 // TriggerPrivatePostQuery returns a channel that yields a JSON object.
-func (this *NadoCore) TriggerPrivatePostQuery(args ...any) <-chan any {
+func (this *Nado) TriggerPrivatePostQuery(args ...any) <-chan any {
 	return this.callEndpointAsync("triggerPrivatePostQuery", args...)
 }

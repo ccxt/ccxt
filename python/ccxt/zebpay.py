@@ -361,7 +361,7 @@ class zebpay(Exchange, ImplicitAPI):
         #                     "fullName": "150",
         #                     "precision": "0.2",
         #                     "type": "fiat",
-        #                     "isDebitEnabled": False,
+        #                     "isDebitEnabled": false,
         #                     "chains": [
         #                         {
         #                             "chainName": "Bitcoin",
@@ -493,7 +493,7 @@ class zebpay(Exchange, ImplicitAPI):
             #         "symbol": "BTCINR",
             #         "takerFeeRate": "0.01",
             #         "makerFeeRate": "0.05",
-            #         "percentage": True
+            #         "percentage": true
             #       } ,
             #     "statusCode": 200,
             # }
@@ -583,12 +583,12 @@ class zebpay(Exchange, ImplicitAPI):
             #
             #       {
             #         "asks": [
-            #                 [5000, 1000],           #Price, quantity
-            #                 [6000, 1983]            #Price, quantity
+            #                 [5000, 1000],           //Price, quantity
+            #                 [6000, 1983]            //Price, quantity
             #         ],
             #         "bids": [
-            #                 [3200, 800],            #Price, quantity
-            #                 [3100, 100]             #Price, quantity
+            #                 [3200, 800],            //Price, quantity
+            #                 [3100, 100]             //Price, quantity
             #         ],
             #       }
             # }
@@ -903,7 +903,7 @@ class zebpay(Exchange, ImplicitAPI):
         #     firstTradeId: '7018766077',
         #     lastTradeId: '7018766081',
         #     tradeTime: '1765381971447',
-        #     isBuyerMarketMaker: True
+        #     isBuyerMarketMaker: true
         #   }
         #
         #
@@ -1372,7 +1372,7 @@ class zebpay(Exchange, ImplicitAPI):
         response = self.privateSwapGetV1TradeUserLeverage(self.extend(request, params))
         #
         #     {
-        #         "data": {symbol: "ETHINR", longLeverage: 1, shortLeverage: 1, marginMode: "isolated"}
+        #         "data": { symbol: "ETHINR", longLeverage: 1, shortLeverage: 1, marginMode: "isolated" }
         #     }
         #
         data = self.safe_dict(response, 'data', {})
@@ -1399,7 +1399,7 @@ class zebpay(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         #
-        # {data: {"symbol", "longLeverage": 10, "shortLeverage": 1, "marginMode": "isolated"}
+        # { data: { "symbol", "longLeverage": 10, "shortLeverage": 1, "marginMode": "isolated" }
         #
         response = self.privateSwapPostV1TradeUpdateUserLeverage(self.extend(request, params))
         return response
@@ -1537,7 +1537,7 @@ class zebpay(Exchange, ImplicitAPI):
         #            "quoteMaxSize": "2000",
         #            "baseIncrement": "0.00001"
         #            "quoteIncrement": "0.00001",
-        #            "enableTrading": True
+        #            "enableTrading": true
         #        }
         #    }
         #
@@ -1607,7 +1607,7 @@ class zebpay(Exchange, ImplicitAPI):
         #            "quantityPrecision": 0.05,
         #            "baseAssetPrecision": 0,
         #            "quotePrecision": 0,
-        #            "orderType": ["LIMIT", "MARKET"]
+        #            "orderType": ["LIMIT", "MARKET" ]
         #            "timeInForce": ["GTC"],
         #            "makerFee": "0.01",
         #            "takerFee": "0.01",
@@ -1811,7 +1811,6 @@ class zebpay(Exchange, ImplicitAPI):
         #         "status": "ok"
         #    }
         #
-        timestamp = self.milliseconds()
         return {
             'info': info,
             'symbol': self.safe_string(market, 'id'),
@@ -1821,8 +1820,8 @@ class zebpay(Exchange, ImplicitAPI):
             'total': None,
             'code': self.safe_string(info, 'code'),
             'status': self.safe_string(info, 'status'),
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
         }
 
     def sign(self, path: object, api: object = 'public', method='GET', params: dict = {}, headers: dict = None, body: Str = None):
@@ -1874,9 +1873,9 @@ class zebpay(Exchange, ImplicitAPI):
             return None
         #
         # bad
-        #     {"code": "400100", "msg": "validation.createOrder.clientOidIsRequired"}
+        #     { "code": "400100", "msg": "validation.createOrder.clientOidIsRequired" }
         # good
-        #     {code: "200000", data: {...}}
+        #     { code: "200000", data: { ... }}
         # {"statusDescription":"Order quantity is out of range","data":{},"statusCode":400,"customMessage":["Order quantity is out of range"]}
         #
         errorCode = self.safe_string_2(response, 'code', 'statusCode')

@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class ndax : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "ndax" },
@@ -688,7 +688,7 @@ public partial class ndax : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public async override Task<object> fetchCurrencies(object parameters = null)
+    public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Int64? omsId = this.safeInteger(this.options, "omsId", 1);
@@ -718,7 +718,7 @@ public partial class ndax : Exchange
         return this.parseCurrencies(response);
     }
 
-    public override object parseCurrency(object rawCurrency)
+    public override Dictionary<string, object> parseCurrency(object rawCurrency)
     {
         string? id = this.safeString(rawCurrency, "ProductId");
         string? code = this.safeCurrencyCode(this.safeString(rawCurrency, "Product"));
@@ -820,7 +820,7 @@ public partial class ndax : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(response));
     }
 
-    public override object parseMarket(object market)
+    public override Dictionary<string, object> parseMarket(object market)
     {
         string? id = this.safeString(market, "InstrumentId");
         // const lowercaseId = this.safeStringLower (market, 'symbol');
@@ -923,9 +923,9 @@ public partial class ndax : Exchange
                     nonce = mathMax(nonce, newNonce);
                 }
             }
-            object bidask = this.parseOrderBookBidAsk(level, priceKey, amountKey);
+            List<object> bidask = this.parseOrderBookBidAsk(level, priceKey, amountKey);
             Int64? levelSide = this.safeInteger(level, 9);
-            object side = ((bool) isTrue((isTrue(isTrue(!isEqual(levelSide, null)) && isTrue(!isEqual(levelSide, null))) && isTrue(!isEqual(levelSide, 0))))) ? asksKey : bidsKey;
+            object side = ((bool) isTrue((isTrue(!isEqual(levelSide, null)) && isTrue(!isEqual(levelSide, 0))))) ? asksKey : bidsKey;
             ((IList<object>)getValue(result, side)).Add(bidask);
         }
         ((IDictionary<string,object>)result)["bids"] = this.sortBy(getValue(result, "bids"), 0, true);
@@ -988,7 +988,7 @@ public partial class ndax : Exchange
         return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, symbol));
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         //
         // fetchTicker
@@ -1199,7 +1199,7 @@ public partial class ndax : Exchange
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         Int64? omsId = this.safeInteger(this.options, "omsId", 1);
@@ -1249,7 +1249,7 @@ public partial class ndax : Exchange
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(candles, market,((string)timeframeVar), since, limit));
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades (public)
@@ -1377,8 +1377,14 @@ public partial class ndax : Exchange
             timestamp = this.safeInteger(trade, 6);
             id = this.safeString(trade, 0);
             marketId = this.safeString(trade, 1);
-            object takerSide = this.safeValue(trade, 8);
-            side = ((bool) isTrue((isEqual(takerSide, true)))) ? "sell" : "buy";
+            Int64? takerSide = this.safeInteger(trade, 8);
+            if (isTrue(isEqual(takerSide, 0)))
+            {
+                side = "buy";
+            } else if (isTrue(isEqual(takerSide, 1)))
+            {
+                side = "sell";
+            }
             orderId = this.safeString(trade, 4);
         } else
         {
@@ -1513,7 +1519,7 @@ public partial class ndax : Exchange
             if (isTrue(isTrue(isTrue((!isEqual(currencyId, null))) && isTrue((!isEqual(this.currencies_by_id, null)))) && isTrue((inOp(this.currencies_by_id, currencyId)))))
             {
                 string? code = this.safeCurrencyCode(currencyId);
-                object account = this.account();
+                Dictionary<string, object> account = this.account();
                 ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "Amount");
                 ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "Hold");
                 if (isTrue(!isEqual(code, null)))
@@ -1745,7 +1751,7 @@ public partial class ndax : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         // createOrder
@@ -2159,7 +2165,7 @@ public partial class ndax : Exchange
         }
         parameters = this.omit(parameters, new List<object>() {"clientOrderId", "ClOrderId"});
         Dictionary<string, object> response = await this.privatePostCancelOrder(this.extend(request, parameters));
-        object order = this.parseOrder(response, market);
+        Dictionary<string, object> order = this.parseOrder(response, market);
         return ccxt.BaseExchange.ToOrder(this.extend(order, new Dictionary<string, object>() {             { "id", id },             { "clientOrderId", clientOrderId },         }));
     }
 

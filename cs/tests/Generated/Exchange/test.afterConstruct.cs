@@ -24,7 +24,7 @@ public partial class testMainClass : BaseTest
             // safeDict, not exchange.options['networks']: a direct missing-key access throws
             // KeyError in Python (e.g. an exchange whose options has no 'networks', like the
             // hyperliquid prediction market)
-            object networks = exchange.safeDict(exchange.options, "networks");
+            IDictionary<string, object> networks = exchange.safeDict(exchange.options, "networks");
             if (isTrue(isEqual(networks, null)))
             {
                 return;

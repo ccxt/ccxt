@@ -8,156 +8,156 @@
 package ccxt
 
 // PublicGetHealth returns a channel that yields a JSON object.
-func (this *HollaexCore) PublicGetHealth(args ...any) <-chan any {
+func (this *Hollaex) PublicGetHealth(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetHealth", args...)
 }
 
 // PublicGetConstants returns a channel that yields a JSON object.
-func (this *HollaexCore) PublicGetConstants(args ...any) <-chan any {
+func (this *Hollaex) PublicGetConstants(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetConstants", args...)
 }
 
 // PublicGetKit returns a channel that yields a JSON object.
-func (this *HollaexCore) PublicGetKit(args ...any) <-chan any {
+func (this *Hollaex) PublicGetKit(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetKit", args...)
 }
 
 // PublicGetTiers returns a channel that yields a JSON object.
-func (this *HollaexCore) PublicGetTiers(args ...any) <-chan any {
+func (this *Hollaex) PublicGetTiers(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTiers", args...)
 }
 
 // PublicGetTicker returns a channel that yields a JSON object.
-func (this *HollaexCore) PublicGetTicker(args ...any) <-chan any {
+func (this *Hollaex) PublicGetTicker(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTicker", args...)
 }
 
 // PublicGetTickers returns a channel that yields a JSON object.
-func (this *HollaexCore) PublicGetTickers(args ...any) <-chan any {
+func (this *Hollaex) PublicGetTickers(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTickers", args...)
 }
 
 // PublicGetOrderbook returns a channel that yields a JSON object.
-func (this *HollaexCore) PublicGetOrderbook(args ...any) <-chan any {
+func (this *Hollaex) PublicGetOrderbook(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetOrderbook", args...)
 }
 
 // PublicGetOrderbooks returns a channel that yields a JSON object.
-func (this *HollaexCore) PublicGetOrderbooks(args ...any) <-chan any {
+func (this *Hollaex) PublicGetOrderbooks(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetOrderbooks", args...)
 }
 
 // PublicGetTrades returns a channel that yields a JSON object.
-func (this *HollaexCore) PublicGetTrades(args ...any) <-chan any {
+func (this *Hollaex) PublicGetTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTrades", args...)
 }
 
 // PublicGetChart returns a channel that yields a JSON array.
-func (this *HollaexCore) PublicGetChart(args ...any) <-chan any {
+func (this *Hollaex) PublicGetChart(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetChart", args...)
 }
 
 // PublicGetCharts returns a channel that yields a JSON object.
-func (this *HollaexCore) PublicGetCharts(args ...any) <-chan any {
+func (this *Hollaex) PublicGetCharts(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetCharts", args...)
 }
 
 // PublicGetMinicharts returns a channel that yields a JSON object.
-func (this *HollaexCore) PublicGetMinicharts(args ...any) <-chan any {
+func (this *Hollaex) PublicGetMinicharts(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetMinicharts", args...)
 }
 
 // PublicGetOraclePrices returns a channel that yields a JSON object.
-func (this *HollaexCore) PublicGetOraclePrices(args ...any) <-chan any {
+func (this *Hollaex) PublicGetOraclePrices(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetOraclePrices", args...)
 }
 
 // PublicGetQuickTrade returns a channel that yields a JSON object.
-func (this *HollaexCore) PublicGetQuickTrade(args ...any) <-chan any {
+func (this *Hollaex) PublicGetQuickTrade(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetQuickTrade", args...)
 }
 
 // PublicGetUdfConfig returns a channel that yields a JSON object.
-func (this *HollaexCore) PublicGetUdfConfig(args ...any) <-chan any {
+func (this *Hollaex) PublicGetUdfConfig(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetUdfConfig", args...)
 }
 
 // PublicGetUdfHistory returns a channel that yields a JSON object.
-func (this *HollaexCore) PublicGetUdfHistory(args ...any) <-chan any {
+func (this *Hollaex) PublicGetUdfHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetUdfHistory", args...)
 }
 
 // PublicGetUdfSymbols returns a channel that yields a JSON object.
-func (this *HollaexCore) PublicGetUdfSymbols(args ...any) <-chan any {
+func (this *Hollaex) PublicGetUdfSymbols(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetUdfSymbols", args...)
 }
 
 // PrivateGetUser returns a channel that yields a JSON object.
-func (this *HollaexCore) PrivateGetUser(args ...any) <-chan any {
+func (this *Hollaex) PrivateGetUser(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUser", args...)
 }
 
 // PrivateGetUserBalance returns a channel that yields a JSON object.
-func (this *HollaexCore) PrivateGetUserBalance(args ...any) <-chan any {
+func (this *Hollaex) PrivateGetUserBalance(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUserBalance", args...)
 }
 
 // PrivateGetUserDeposits returns a channel that yields a JSON object.
-func (this *HollaexCore) PrivateGetUserDeposits(args ...any) <-chan any {
+func (this *Hollaex) PrivateGetUserDeposits(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUserDeposits", args...)
 }
 
 // PrivateGetUserWithdrawals returns a channel that yields a JSON object.
-func (this *HollaexCore) PrivateGetUserWithdrawals(args ...any) <-chan any {
+func (this *Hollaex) PrivateGetUserWithdrawals(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUserWithdrawals", args...)
 }
 
 // PrivateGetUserWithdrawalFee returns a channel that yields a JSON object.
-func (this *HollaexCore) PrivateGetUserWithdrawalFee(args ...any) <-chan any {
+func (this *Hollaex) PrivateGetUserWithdrawalFee(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUserWithdrawalFee", args...)
 }
 
 // PrivateGetSubaccounts returns a channel that yields a JSON object.
-func (this *HollaexCore) PrivateGetSubaccounts(args ...any) <-chan any {
+func (this *Hollaex) PrivateGetSubaccounts(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetSubaccounts", args...)
 }
 
 // PrivateGetUserTrades returns a channel that yields a JSON object.
-func (this *HollaexCore) PrivateGetUserTrades(args ...any) <-chan any {
+func (this *Hollaex) PrivateGetUserTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUserTrades", args...)
 }
 
 // PrivateGetOrders returns a channel that yields a JSON object.
-func (this *HollaexCore) PrivateGetOrders(args ...any) <-chan any {
+func (this *Hollaex) PrivateGetOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOrders", args...)
 }
 
 // PrivateGetOrder returns a channel that yields a JSON object.
-func (this *HollaexCore) PrivateGetOrder(args ...any) <-chan any {
+func (this *Hollaex) PrivateGetOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOrder", args...)
 }
 
 // PrivatePostUserWithdrawal returns a channel that yields a JSON object.
-func (this *HollaexCore) PrivatePostUserWithdrawal(args ...any) <-chan any {
+func (this *Hollaex) PrivatePostUserWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostUserWithdrawal", args...)
 }
 
 // PrivatePostSubaccountTransfer returns a channel that yields a JSON object.
-func (this *HollaexCore) PrivatePostSubaccountTransfer(args ...any) <-chan any {
+func (this *Hollaex) PrivatePostSubaccountTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostSubaccountTransfer", args...)
 }
 
 // PrivatePostOrder returns a channel that yields a JSON object.
-func (this *HollaexCore) PrivatePostOrder(args ...any) <-chan any {
+func (this *Hollaex) PrivatePostOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrder", args...)
 }
 
 // PrivateDeleteOrderAll returns a channel that yields a JSON array.
-func (this *HollaexCore) PrivateDeleteOrderAll(args ...any) <-chan any {
+func (this *Hollaex) PrivateDeleteOrderAll(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteOrderAll", args...)
 }
 
 // PrivateDeleteOrder returns a channel that yields a JSON object.
-func (this *HollaexCore) PrivateDeleteOrder(args ...any) <-chan any {
+func (this *Hollaex) PrivateDeleteOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteOrder", args...)
 }

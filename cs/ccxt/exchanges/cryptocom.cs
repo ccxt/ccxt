@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class cryptocom : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "cryptocom" },
@@ -794,7 +794,7 @@ public partial class cryptocom : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public async override Task<object> fetchCurrencies(object parameters = null)
+    public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         // this endpoint requires authentication
         parameters ??= new Dictionary<string, object>();
@@ -870,11 +870,11 @@ public partial class cryptocom : Exchange
         //
         IDictionary<string, object> resultData = this.safeDict(response, "result", new Dictionary<string, object>() {});
         IDictionary<string, object> currencyMap = this.safeDict(resultData, "currency_map", new Dictionary<string, object>() {});
-        object enhancedArray = this.addKeyInArrayItems(currencyMap, "_coin_id");
+        List<object> enhancedArray = this.addKeyInArrayItems(currencyMap, "_coin_id");
         return this.parseCurrencies(enhancedArray);
     }
 
-    public override object parseCurrency(object currency)
+    public override Dictionary<string, object> parseCurrency(object currency)
     {
         string? id = this.safeString(currency, "_coin_id");
         string? code = this.safeCurrencyCode(id);
@@ -1046,7 +1046,7 @@ public partial class cryptocom : Exchange
             string? strike = this.safeString(market, "strike");
             bool? marginBuyEnabled = this.safeBool(market, "margin_buy_enabled");
             bool? marginSellEnabled = this.safeBool(market, "margin_sell_enabled");
-            object expiryString = this.omitZero(this.safeString(market, "expiry_timestamp_ms"));
+            string? expiryString = ((string)this.omitZero(this.safeString(market, "expiry_timestamp_ms")));
             object expiry = ((bool) isTrue((!isEqual(expiryString, null)))) ? parseInt(expiryString) : null;
             object symbol = add(add(bs, "/"), quote);
             string? type = null;
@@ -1205,7 +1205,7 @@ public partial class cryptocom : Exchange
      */
     public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -1398,7 +1398,7 @@ public partial class cryptocom : Exchange
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
@@ -1527,7 +1527,7 @@ public partial class cryptocom : Exchange
     {
         IDictionary<string, object> responseResult = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> data = this.safeList(responseResult, "data", new List<object>() {});
-        object positionBalances = this.safeValue(getValue(data, 0), "position_balances", new List<object>() {});
+        List<object> positionBalances = this.safeList(getValue(data, 0), "position_balances", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
@@ -1536,7 +1536,7 @@ public partial class cryptocom : Exchange
             object balance = getValue(positionBalances, i);
             string? currencyId = this.safeString(balance, "instrument_name");
             string? code = this.safeCurrencyCode(currencyId);
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "quantity");
             ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "reserved_qty");
             if (isTrue(!isEqual(code, null)))
@@ -1672,7 +1672,7 @@ public partial class cryptocom : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(order, market));
     }
 
-    public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(type, null)))
@@ -1696,10 +1696,10 @@ public partial class cryptocom : Exchange
         }
         string? broker = this.safeString(this.options, "broker", "CCXT");
         ((IDictionary<string,object>)request)["broker_id"] = broker;
-        object marketType = null;
+        string? marketType = null;
         object marginMode = null;
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("createOrder", market, parameters);
-        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         IList<object> marginModeparametersVariable = (IList<object>)this.customHandleMarginModeAndParams("createOrder", parameters);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
@@ -1841,7 +1841,7 @@ public partial class cryptocom : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
+        Dictionary<string, object> request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         Dictionary<string, object> response = await this.v1PrivatePostPrivateCreateOrder(request);
         //
         //     {
@@ -1885,7 +1885,7 @@ public partial class cryptocom : Exchange
             object amount = this.safeValue(rawOrder, "amount");
             object price = this.safeValue(rawOrder, "price");
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
-            object orderRequest = this.createAdvancedOrderRequest(marketId, type, side, amount, price, orderParams);
+            Dictionary<string, object> orderRequest = this.createAdvancedOrderRequest(marketId, type, side, amount, price, orderParams);
             ((IList<object>)ordersRequests).Add(orderRequest);
         }
         string? contigency = this.safeString(parameters, "contingency_type", "LIST");
@@ -1947,7 +1947,7 @@ public partial class cryptocom : Exchange
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(result));
     }
 
-    public virtual object createAdvancedOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createAdvancedOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(type, null)))
@@ -2131,13 +2131,13 @@ public partial class cryptocom : Exchange
         {
             await this.loadMarkets();
         }
-        object request = this.editOrderRequest(id, symbol, amount, price, parameters);
+        Dictionary<string, object> request = this.editOrderRequest(id, symbol, amount, price, parameters);
         Dictionary<string, object> response = await this.v1PrivatePostPrivateAmendOrder(request);
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToOrder(this.parseOrder(result));
     }
 
-    public virtual object editOrderRequest(object id, object symbol, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> editOrderRequest(object id, object symbol, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {};
@@ -2465,7 +2465,7 @@ public partial class cryptocom : Exchange
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit));
     }
 
-    public virtual object parseAddress(object addressString)
+    public virtual List<object> parseAddress(object addressString)
     {
         object address = null;
         object tag = null;
@@ -2517,9 +2517,9 @@ public partial class cryptocom : Exchange
         {
             ((IDictionary<string,object>)request)["address_tag"] = tagVar;
         }
-        object networkCode = null;
+        string? networkCode = null;
         IList<object> networkCodeparametersVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
-        networkCode = ((IList<object>)networkCodeparametersVariable)[0];
+        networkCode = (string)((IList<object>)networkCodeparametersVariable)[0];
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         object networkId = this.networkCodeToId(networkCode, code);
         if (isTrue(!isEqual(networkId, null)))
@@ -2785,7 +2785,7 @@ public partial class cryptocom : Exchange
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(withdrawalList, currency, since, limit));
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         //
         // fetchTicker
@@ -2847,7 +2847,7 @@ public partial class cryptocom : Exchange
         }, market);
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades
@@ -2945,7 +2945,7 @@ public partial class cryptocom : Exchange
         return this.safeString(timeInForces, ((string)timeInForce), timeInForce);
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         // createOrder, cancelOrder
@@ -3171,7 +3171,7 @@ public partial class cryptocom : Exchange
         };
     }
 
-    public virtual object customHandleMarginModeAndParams(object methodName, object parameters = null)
+    public virtual List<object> customHandleMarginModeAndParams(object methodName, object parameters = null)
     {
         /**
         * @ignore
@@ -3562,9 +3562,9 @@ public partial class cryptocom : Exchange
         {
             market = this.market(symbol);
         }
-        object type = null;
+        string? type = null;
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchSettlementHistory", market, parameters);
-        type = ((IList<object>)typeparametersVariable)[0];
+        type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         this.checkRequiredArgument("fetchSettlementHistory", type, "type", new List<object>() {"future", "option", "WARRANT", "FUTURE"});
         if (isTrue(isEqual(type, "option")))
@@ -3599,7 +3599,7 @@ public partial class cryptocom : Exchange
         return ccxt.BaseExchange.ToDictList(this.filterBySymbolSinceLimit(sorted, symbol, since, limit));
     }
 
-    public virtual object parseSettlement(object settlement, object market)
+    public virtual Dictionary<string, object> parseSettlement(object settlement, object market)
     {
         //
         //     {
@@ -3938,7 +3938,7 @@ public partial class cryptocom : Exchange
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", null, false));
     }
 
-    public override object parsePosition(object position, object market = null)
+    public override Dictionary<string, object> parsePosition(object position, object market = null)
     {
         //
         //     {
@@ -4162,7 +4162,7 @@ public partial class cryptocom : Exchange
         return ccxt.BaseExchange.ToTradingFees(this.parseTradingFees(result));
     }
 
-    public virtual object parseTradingFees(object response)
+    public virtual Dictionary<string, object> parseTradingFees(object response)
     {
         //
         // {
@@ -4193,7 +4193,7 @@ public partial class cryptocom : Exchange
             };
             ((IDictionary<string,object>)result)[(string)symbol] = tradingFee;
         }
-        return result;
+        return ((Dictionary<string, object>)((object)(result)));
     }
 
     public virtual object parseTradingFee(object fee, object market = null)

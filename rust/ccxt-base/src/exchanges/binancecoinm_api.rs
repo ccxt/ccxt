@@ -1122,6 +1122,11 @@ impl BinancecoinmCore {
         self.call_method(Value::Str("sapi_get_portfolio_delta_mode".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `sapiGetPortfolioMarginCallLevel` implicit endpoint.
+    pub async fn sapi_get_portfolio_margin_call_level(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("sapi_get_portfolio_margin_call_level".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `sapiGetStakingProductList` implicit endpoint.
     pub async fn sapi_get_staking_product_list(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_get_staking_product_list".to_string()), optional_args).await
@@ -1907,6 +1912,11 @@ impl BinancecoinmCore {
         self.call_method(Value::Str("sapi_post_portfolio_delta_mode".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `sapiPostPortfolioMarginCallLevel` implicit endpoint.
+    pub async fn sapi_post_portfolio_margin_call_level(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("sapi_post_portfolio_margin_call_level".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `sapiPostLendingAutoInvestPlanAdd` implicit endpoint.
     pub async fn sapi_post_lending_auto_invest_plan_add(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_post_lending_auto_invest_plan_add".to_string()), optional_args).await
@@ -2025,6 +2035,11 @@ impl BinancecoinmCore {
     /// Auto-generated wrapper for the `sapiPutUserDataStreamIsolated` implicit endpoint.
     pub async fn sapi_put_user_data_stream_isolated(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("sapi_put_user_data_stream_isolated".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `sapiDeletePortfolioMarginCallLevel` implicit endpoint.
+    pub async fn sapi_delete_portfolio_margin_call_level(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("sapi_delete_portfolio_margin_call_level".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `sapiDeleteMarginOpenOrders` implicit endpoint.
@@ -3272,6 +3287,11 @@ impl BinancecoinmCore {
         self.call_method(Value::Str("eapi_private_post_block_order_execute".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `eapiPrivatePostStockContract` implicit endpoint.
+    pub async fn eapi_private_post_stock_contract(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("eapi_private_post_stock_contract".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `eapiPrivatePutListenKey` implicit endpoint.
     pub async fn eapi_private_put_listen_key(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("eapi_private_put_listen_key".to_string()), optional_args).await
@@ -3382,9 +3402,29 @@ impl BinancecoinmCore {
         self.call_method(Value::Str("public_get_exchange_info".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `publicGetExecutionRules` implicit endpoint.
+    pub async fn public_get_execution_rules(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_execution_rules".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `publicGetAvgPrice` implicit endpoint.
     pub async fn public_get_avg_price(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_avg_price".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetReferencePrice` implicit endpoint.
+    pub async fn public_get_reference_price(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_reference_price".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetReferencePriceCalculation` implicit endpoint.
+    pub async fn public_get_reference_price_calculation(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_reference_price_calculation".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetHistoricalBlockTrades` implicit endpoint.
+    pub async fn public_get_historical_block_trades(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_historical_block_trades".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicPutUserDataStream` implicit endpoint.
@@ -3595,6 +3635,21 @@ impl BinancecoinmCore {
     /// Auto-generated wrapper for the `papiGetUmConditionalAllOrders` implicit endpoint.
     pub async fn papi_get_um_conditional_all_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("papi_get_um_conditional_all_orders".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `papiGetUmAlgoAlgoOrder` implicit endpoint.
+    pub async fn papi_get_um_algo_algo_order(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("papi_get_um_algo_algo_order".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `papiGetUmAlgoOpenAlgoOrders` implicit endpoint.
+    pub async fn papi_get_um_algo_open_algo_orders(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("papi_get_um_algo_open_algo_orders".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `papiGetUmAlgoAllAlgoOrders` implicit endpoint.
+    pub async fn papi_get_um_algo_all_algo_orders(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("papi_get_um_algo_all_algo_orders".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `papiGetCmConditionalOpenOrder` implicit endpoint.
@@ -3877,6 +3932,11 @@ impl BinancecoinmCore {
         self.call_method(Value::Str("papi_post_um_conditional_order".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `papiPostUmAlgoOrder` implicit endpoint.
+    pub async fn papi_post_um_algo_order(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("papi_post_um_algo_order".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `papiPostCmOrder` implicit endpoint.
     pub async fn papi_post_cm_order(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("papi_post_cm_order".to_string()), optional_args).await
@@ -4005,6 +4065,16 @@ impl BinancecoinmCore {
     /// Auto-generated wrapper for the `papiDeleteUmConditionalAllOpenOrders` implicit endpoint.
     pub async fn papi_delete_um_conditional_all_open_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("papi_delete_um_conditional_all_open_orders".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `papiDeleteUmAlgoOrder` implicit endpoint.
+    pub async fn papi_delete_um_algo_order(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("papi_delete_um_algo_order".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `papiDeleteUmAlgoAllOpenOrders` implicit endpoint.
+    pub async fn papi_delete_um_algo_all_open_orders(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("papi_delete_um_algo_all_open_orders".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `papiDeleteCmOrder` implicit endpoint.

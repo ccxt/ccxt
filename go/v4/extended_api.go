@@ -8,346 +8,346 @@
 package ccxt
 
 // V1PublicGetInfoMarkets returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PublicGetInfoMarkets(args ...any) <-chan any {
+func (this *Extended) V1PublicGetInfoMarkets(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PublicGetInfoMarkets", args...)
 }
 
 // V1PublicGetInfoAssets returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PublicGetInfoAssets(args ...any) <-chan any {
+func (this *Extended) V1PublicGetInfoAssets(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PublicGetInfoAssets", args...)
 }
 
 // V1PublicGetInfoAssetsAssetPrice returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PublicGetInfoAssetsAssetPrice(args ...any) <-chan any {
+func (this *Extended) V1PublicGetInfoAssetsAssetPrice(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PublicGetInfoAssetsAssetPrice", args...)
 }
 
 // V1PublicGetInfoMarketsMarketStats returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PublicGetInfoMarketsMarketStats(args ...any) <-chan any {
+func (this *Extended) V1PublicGetInfoMarketsMarketStats(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PublicGetInfoMarketsMarketStats", args...)
 }
 
 // V1PublicGetInfoMarketsMarketOrderbook returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PublicGetInfoMarketsMarketOrderbook(args ...any) <-chan any {
+func (this *Extended) V1PublicGetInfoMarketsMarketOrderbook(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PublicGetInfoMarketsMarketOrderbook", args...)
 }
 
 // V1PublicGetInfoMarketsMarketTrades returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PublicGetInfoMarketsMarketTrades(args ...any) <-chan any {
+func (this *Extended) V1PublicGetInfoMarketsMarketTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PublicGetInfoMarketsMarketTrades", args...)
 }
 
 // V1PublicGetInfoCandlesMarketCandleType returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PublicGetInfoCandlesMarketCandleType(args ...any) <-chan any {
+func (this *Extended) V1PublicGetInfoCandlesMarketCandleType(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PublicGetInfoCandlesMarketCandleType", args...)
 }
 
 // V1PublicGetInfoMarketFunding returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PublicGetInfoMarketFunding(args ...any) <-chan any {
+func (this *Extended) V1PublicGetInfoMarketFunding(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PublicGetInfoMarketFunding", args...)
 }
 
 // V1PublicGetInfoMarketOpenInterests returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PublicGetInfoMarketOpenInterests(args ...any) <-chan any {
+func (this *Extended) V1PublicGetInfoMarketOpenInterests(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PublicGetInfoMarketOpenInterests", args...)
 }
 
 // V1PublicGetInfoBuilderDashboard returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PublicGetInfoBuilderDashboard(args ...any) <-chan any {
+func (this *Extended) V1PublicGetInfoBuilderDashboard(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PublicGetInfoBuilderDashboard", args...)
 }
 
 // V1PublicGetInterestInfoRateCurves returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PublicGetInterestInfoRateCurves(args ...any) <-chan any {
+func (this *Extended) V1PublicGetInterestInfoRateCurves(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PublicGetInterestInfoRateCurves", args...)
 }
 
 // V1PublicGetInterestInfoLatestRateCurves returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PublicGetInterestInfoLatestRateCurves(args ...any) <-chan any {
+func (this *Extended) V1PublicGetInterestInfoLatestRateCurves(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PublicGetInterestInfoLatestRateCurves", args...)
 }
 
 // V1PrivateGetUserAccounts returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetUserAccounts(args ...any) <-chan any {
+func (this *Extended) V1PrivateGetUserAccounts(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetUserAccounts", args...)
 }
 
 // V1PrivateGetUserAccountInfo returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetUserAccountInfo(args ...any) <-chan any {
+func (this *Extended) V1PrivateGetUserAccountInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetUserAccountInfo", args...)
 }
 
 // V1PrivateGetUserBalance returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetUserBalance(args ...any) <-chan any {
+func (this *Extended) V1PrivateGetUserBalance(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetUserBalance", args...)
 }
 
 // V1PrivateGetUserSpotBalances returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetUserSpotBalances(args ...any) <-chan any {
+func (this *Extended) V1PrivateGetUserSpotBalances(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetUserSpotBalances", args...)
 }
 
 // V1PrivateGetUserAssetOperations returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetUserAssetOperations(args ...any) <-chan any {
+func (this *Extended) V1PrivateGetUserAssetOperations(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetUserAssetOperations", args...)
 }
 
 // V1PrivateGetUserPositions returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetUserPositions(args ...any) <-chan any {
+func (this *Extended) V1PrivateGetUserPositions(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetUserPositions", args...)
 }
 
 // V1PrivateGetUserPositionsHistory returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetUserPositionsHistory(args ...any) <-chan any {
+func (this *Extended) V1PrivateGetUserPositionsHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetUserPositionsHistory", args...)
 }
 
 // V1PrivateGetUserOrders returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetUserOrders(args ...any) <-chan any {
+func (this *Extended) V1PrivateGetUserOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetUserOrders", args...)
 }
 
 // V1PrivateGetUserOrdersHistory returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetUserOrdersHistory(args ...any) <-chan any {
+func (this *Extended) V1PrivateGetUserOrdersHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetUserOrdersHistory", args...)
 }
 
 // V1PrivateGetUserOrdersId returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetUserOrdersId(args ...any) <-chan any {
+func (this *Extended) V1PrivateGetUserOrdersId(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetUserOrdersId", args...)
 }
 
 // V1PrivateGetUserOrdersExternalExternalId returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetUserOrdersExternalExternalId(args ...any) <-chan any {
+func (this *Extended) V1PrivateGetUserOrdersExternalExternalId(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetUserOrdersExternalExternalId", args...)
 }
 
 // V1PrivateGetUserTrades returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetUserTrades(args ...any) <-chan any {
+func (this *Extended) V1PrivateGetUserTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetUserTrades", args...)
 }
 
 // V1PrivateGetUserFundingHistory returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetUserFundingHistory(args ...any) <-chan any {
+func (this *Extended) V1PrivateGetUserFundingHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetUserFundingHistory", args...)
 }
 
 // V1PrivateGetUserRebatesStats returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetUserRebatesStats(args ...any) <-chan any {
+func (this *Extended) V1PrivateGetUserRebatesStats(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetUserRebatesStats", args...)
 }
 
 // V1PrivateGetUserLeverage returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetUserLeverage(args ...any) <-chan any {
+func (this *Extended) V1PrivateGetUserLeverage(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetUserLeverage", args...)
 }
 
 // V1PrivateGetUserFees returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetUserFees(args ...any) <-chan any {
+func (this *Extended) V1PrivateGetUserFees(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetUserFees", args...)
 }
 
 // V1PrivateGetUserBridgeConfig returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetUserBridgeConfig(args ...any) <-chan any {
+func (this *Extended) V1PrivateGetUserBridgeConfig(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetUserBridgeConfig", args...)
 }
 
 // V1PrivateGetUserBridgeQuote returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetUserBridgeQuote(args ...any) <-chan any {
+func (this *Extended) V1PrivateGetUserBridgeQuote(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetUserBridgeQuote", args...)
 }
 
 // V1PrivateGetUserAffiliate returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetUserAffiliate(args ...any) <-chan any {
+func (this *Extended) V1PrivateGetUserAffiliate(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetUserAffiliate", args...)
 }
 
 // V1PrivateGetUserReferralsStatus returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetUserReferralsStatus(args ...any) <-chan any {
+func (this *Extended) V1PrivateGetUserReferralsStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetUserReferralsStatus", args...)
 }
 
 // V1PrivateGetUserReferralsLinks returns a channel that yields a JSON array.
-func (this *ExtendedCore) V1PrivateGetUserReferralsLinks(args ...any) <-chan any {
+func (this *Extended) V1PrivateGetUserReferralsLinks(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetUserReferralsLinks", args...)
 }
 
 // V1PrivateGetUserReferralsDashboard returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetUserReferralsDashboard(args ...any) <-chan any {
+func (this *Extended) V1PrivateGetUserReferralsDashboard(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetUserReferralsDashboard", args...)
 }
 
 // V1PrivateGetUserRewardsEarned returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetUserRewardsEarned(args ...any) <-chan any {
+func (this *Extended) V1PrivateGetUserRewardsEarned(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetUserRewardsEarned", args...)
 }
 
 // V1PrivateGetUserRewardsLeaderboardStats returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetUserRewardsLeaderboardStats(args ...any) <-chan any {
+func (this *Extended) V1PrivateGetUserRewardsLeaderboardStats(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetUserRewardsLeaderboardStats", args...)
 }
 
 // V1PrivateGetPortfolioChartsEquities returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetPortfolioChartsEquities(args ...any) <-chan any {
+func (this *Extended) V1PrivateGetPortfolioChartsEquities(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetPortfolioChartsEquities", args...)
 }
 
 // V1PrivateGetPortfolioChartsPnl returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetPortfolioChartsPnl(args ...any) <-chan any {
+func (this *Extended) V1PrivateGetPortfolioChartsPnl(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetPortfolioChartsPnl", args...)
 }
 
 // V1PrivateGetPortfolioChartsPnlPercentage returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetPortfolioChartsPnlPercentage(args ...any) <-chan any {
+func (this *Extended) V1PrivateGetPortfolioChartsPnlPercentage(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetPortfolioChartsPnlPercentage", args...)
 }
 
 // V1PrivateGetPortfolioChartsPnlCumulative returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetPortfolioChartsPnlCumulative(args ...any) <-chan any {
+func (this *Extended) V1PrivateGetPortfolioChartsPnlCumulative(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetPortfolioChartsPnlCumulative", args...)
 }
 
 // V1PrivateGetPortfolioChartsPnlCumulativePercentage returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetPortfolioChartsPnlCumulativePercentage(args ...any) <-chan any {
+func (this *Extended) V1PrivateGetPortfolioChartsPnlCumulativePercentage(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetPortfolioChartsPnlCumulativePercentage", args...)
 }
 
 // V1PrivateGetPortfolioChartsVaultEquities returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetPortfolioChartsVaultEquities(args ...any) <-chan any {
+func (this *Extended) V1PrivateGetPortfolioChartsVaultEquities(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetPortfolioChartsVaultEquities", args...)
 }
 
 // V1PrivateGetPortfolioChartsMaxDrawdown returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetPortfolioChartsMaxDrawdown(args ...any) <-chan any {
+func (this *Extended) V1PrivateGetPortfolioChartsMaxDrawdown(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetPortfolioChartsMaxDrawdown", args...)
 }
 
 // V1PrivateGetPortfolioChartsFunding returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetPortfolioChartsFunding(args ...any) <-chan any {
+func (this *Extended) V1PrivateGetPortfolioChartsFunding(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetPortfolioChartsFunding", args...)
 }
 
 // V1PrivateGetPortfolioAccountsSummary returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetPortfolioAccountsSummary(args ...any) <-chan any {
+func (this *Extended) V1PrivateGetPortfolioAccountsSummary(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetPortfolioAccountsSummary", args...)
 }
 
 // V1PrivateGetPortfolioAccountsHealth returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetPortfolioAccountsHealth(args ...any) <-chan any {
+func (this *Extended) V1PrivateGetPortfolioAccountsHealth(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetPortfolioAccountsHealth", args...)
 }
 
 // V1PrivateGetPortfolioAccountsPerformance returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetPortfolioAccountsPerformance(args ...any) <-chan any {
+func (this *Extended) V1PrivateGetPortfolioAccountsPerformance(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetPortfolioAccountsPerformance", args...)
 }
 
 // V1PrivateGetPortfolioFundingStats returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetPortfolioFundingStats(args ...any) <-chan any {
+func (this *Extended) V1PrivateGetPortfolioFundingStats(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetPortfolioFundingStats", args...)
 }
 
 // V1PrivateGetPortfolioFundingHistory returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetPortfolioFundingHistory(args ...any) <-chan any {
+func (this *Extended) V1PrivateGetPortfolioFundingHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetPortfolioFundingHistory", args...)
 }
 
 // V1PrivateGetVaultPublicPerformance returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetVaultPublicPerformance(args ...any) <-chan any {
+func (this *Extended) V1PrivateGetVaultPublicPerformance(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetVaultPublicPerformance", args...)
 }
 
 // V1PrivateGetVaultPublicSummary returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetVaultPublicSummary(args ...any) <-chan any {
+func (this *Extended) V1PrivateGetVaultPublicSummary(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetVaultPublicSummary", args...)
 }
 
 // V1PrivateGetBuilderTrades returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetBuilderTrades(args ...any) <-chan any {
+func (this *Extended) V1PrivateGetBuilderTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetBuilderTrades", args...)
 }
 
 // V1PrivateGetInterestKeyMetrics returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetInterestKeyMetrics(args ...any) <-chan any {
+func (this *Extended) V1PrivateGetInterestKeyMetrics(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetInterestKeyMetrics", args...)
 }
 
 // V1PrivateGetInterestDailyMetrics returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetInterestDailyMetrics(args ...any) <-chan any {
+func (this *Extended) V1PrivateGetInterestDailyMetrics(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetInterestDailyMetrics", args...)
 }
 
 // V1PrivateGetInterestPaymentChart returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetInterestPaymentChart(args ...any) <-chan any {
+func (this *Extended) V1PrivateGetInterestPaymentChart(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetInterestPaymentChart", args...)
 }
 
 // V1PrivateGetInterestPayments returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateGetInterestPayments(args ...any) <-chan any {
+func (this *Extended) V1PrivateGetInterestPayments(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetInterestPayments", args...)
 }
 
 // V1PrivatePostUserOrder returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivatePostUserOrder(args ...any) <-chan any {
+func (this *Extended) V1PrivatePostUserOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivatePostUserOrder", args...)
 }
 
 // V1PrivatePostUserOrderRfq returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivatePostUserOrderRfq(args ...any) <-chan any {
+func (this *Extended) V1PrivatePostUserOrderRfq(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivatePostUserOrderRfq", args...)
 }
 
 // V1PrivatePostUserOrderMassCancel returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivatePostUserOrderMassCancel(args ...any) <-chan any {
+func (this *Extended) V1PrivatePostUserOrderMassCancel(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivatePostUserOrderMassCancel", args...)
 }
 
 // V1PrivatePostUserDeadmanswitch returns a channel that yields a JSON scalar.
-func (this *ExtendedCore) V1PrivatePostUserDeadmanswitch(args ...any) <-chan any {
+func (this *Extended) V1PrivatePostUserDeadmanswitch(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivatePostUserDeadmanswitch", args...)
 }
 
 // V1PrivatePostUserBridgeQuote returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivatePostUserBridgeQuote(args ...any) <-chan any {
+func (this *Extended) V1PrivatePostUserBridgeQuote(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivatePostUserBridgeQuote", args...)
 }
 
 // V1PrivatePostUserWithdrawal returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivatePostUserWithdrawal(args ...any) <-chan any {
+func (this *Extended) V1PrivatePostUserWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivatePostUserWithdrawal", args...)
 }
 
 // V1PrivatePostUserTransfer returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivatePostUserTransfer(args ...any) <-chan any {
+func (this *Extended) V1PrivatePostUserTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivatePostUserTransfer", args...)
 }
 
 // V1PrivatePostUserReferralsUse returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivatePostUserReferralsUse(args ...any) <-chan any {
+func (this *Extended) V1PrivatePostUserReferralsUse(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivatePostUserReferralsUse", args...)
 }
 
 // V1PrivatePostUserReferrals returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivatePostUserReferrals(args ...any) <-chan any {
+func (this *Extended) V1PrivatePostUserReferrals(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivatePostUserReferrals", args...)
 }
 
 // V1PrivatePutUserReferrals returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivatePutUserReferrals(args ...any) <-chan any {
+func (this *Extended) V1PrivatePutUserReferrals(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivatePutUserReferrals", args...)
 }
 
 // V1PrivatePatchUserLeverage returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivatePatchUserLeverage(args ...any) <-chan any {
+func (this *Extended) V1PrivatePatchUserLeverage(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivatePatchUserLeverage", args...)
 }
 
 // V1PrivateDeleteUserOrderId returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateDeleteUserOrderId(args ...any) <-chan any {
+func (this *Extended) V1PrivateDeleteUserOrderId(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateDeleteUserOrderId", args...)
 }
 
 // V1PrivateDeleteUserOrder returns a channel that yields a JSON object.
-func (this *ExtendedCore) V1PrivateDeleteUserOrder(args ...any) <-chan any {
+func (this *Extended) V1PrivateDeleteUserOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateDeleteUserOrder", args...)
 }

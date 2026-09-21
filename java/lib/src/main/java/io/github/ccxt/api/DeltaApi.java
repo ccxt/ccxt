@@ -7,6 +7,9 @@
 
 package io.github.ccxt.api;
 import io.github.ccxt.Exchange;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class DeltaApi extends Exchange
 {
@@ -25,7 +28,7 @@ public class DeltaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetAssets (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetAssets (Object... optionalArgs)
     {
         return this.callAsync ("publicGetAssets", optionalArgs);
     }
@@ -36,7 +39,7 @@ public class DeltaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetIndices (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetIndices (Object... optionalArgs)
     {
         return this.callAsync ("publicGetIndices", optionalArgs);
     }
@@ -47,7 +50,7 @@ public class DeltaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetProducts (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetProducts (Object... optionalArgs)
     {
         return this.callAsync ("publicGetProducts", optionalArgs);
     }
@@ -58,7 +61,7 @@ public class DeltaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetProductsSymbol (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetProductsSymbol (Object... optionalArgs)
     {
         return this.callAsync ("publicGetProductsSymbol", optionalArgs);
     }
@@ -69,7 +72,7 @@ public class DeltaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetTickers (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetTickers (Object... optionalArgs)
     {
         return this.callAsync ("publicGetTickers", optionalArgs);
     }
@@ -80,7 +83,7 @@ public class DeltaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetTickersSymbol (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetTickersSymbol (Object... optionalArgs)
     {
         return this.callAsync ("publicGetTickersSymbol", optionalArgs);
     }
@@ -91,7 +94,7 @@ public class DeltaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetL2orderbookSymbol (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetL2orderbookSymbol (Object... optionalArgs)
     {
         return this.callAsync ("publicGetL2orderbookSymbol", optionalArgs);
     }
@@ -102,7 +105,7 @@ public class DeltaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetTradesSymbol (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetTradesSymbol (Object... optionalArgs)
     {
         return this.callAsync ("publicGetTradesSymbol", optionalArgs);
     }
@@ -113,7 +116,7 @@ public class DeltaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetStats (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  publicGetStats (Object... optionalArgs)
     {
         return this.callAsync ("publicGetStats", optionalArgs);
     }
@@ -124,7 +127,7 @@ public class DeltaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetHistoryCandles (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetHistoryCandles (Object... optionalArgs)
     {
         return this.callAsync ("publicGetHistoryCandles", optionalArgs);
     }
@@ -135,7 +138,7 @@ public class DeltaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetHistorySparklines (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetHistorySparklines (Object... optionalArgs)
     {
         return this.callAsync ("publicGetHistorySparklines", optionalArgs);
     }
@@ -146,7 +149,7 @@ public class DeltaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetSettings (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  publicGetSettings (Object... optionalArgs)
     {
         return this.callAsync ("publicGetSettings", optionalArgs);
     }
@@ -157,7 +160,7 @@ public class DeltaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateGetOrders", optionalArgs);
     }
@@ -168,7 +171,7 @@ public class DeltaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetOrdersOrderId (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetOrdersOrderId (Object... optionalArgs)
     {
         return this.callAsync ("privateGetOrdersOrderId", optionalArgs);
     }
@@ -179,7 +182,7 @@ public class DeltaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetOrdersClientOrderIdClientOid (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetOrdersClientOrderIdClientOid (Object... optionalArgs)
     {
         return this.callAsync ("privateGetOrdersClientOrderIdClientOid", optionalArgs);
     }
@@ -190,7 +193,7 @@ public class DeltaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetProductsProductIdOrdersLeverage (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetProductsProductIdOrdersLeverage (Object... optionalArgs)
     {
         return this.callAsync ("privateGetProductsProductIdOrdersLeverage", optionalArgs);
     }
@@ -201,7 +204,7 @@ public class DeltaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetPositionsMargined (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetPositionsMargined (Object... optionalArgs)
     {
         return this.callAsync ("privateGetPositionsMargined", optionalArgs);
     }
@@ -212,7 +215,7 @@ public class DeltaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetPositions (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetPositions (Object... optionalArgs)
     {
         return this.callAsync ("privateGetPositions", optionalArgs);
     }
@@ -223,7 +226,7 @@ public class DeltaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetOrdersHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetOrdersHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateGetOrdersHistory", optionalArgs);
     }
@@ -234,7 +237,7 @@ public class DeltaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetFills (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetFills (Object... optionalArgs)
     {
         return this.callAsync ("privateGetFills", optionalArgs);
     }
@@ -245,7 +248,7 @@ public class DeltaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetFillsHistoryDownloadCsv (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetFillsHistoryDownloadCsv (Object... optionalArgs)
     {
         return this.callAsync ("privateGetFillsHistoryDownloadCsv", optionalArgs);
     }
@@ -256,7 +259,7 @@ public class DeltaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetWalletBalances (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetWalletBalances (Object... optionalArgs)
     {
         return this.callAsync ("privateGetWalletBalances", optionalArgs);
     }
@@ -267,7 +270,7 @@ public class DeltaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetWalletTransactions (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetWalletTransactions (Object... optionalArgs)
     {
         return this.callAsync ("privateGetWalletTransactions", optionalArgs);
     }
@@ -278,7 +281,7 @@ public class DeltaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetWalletTransactionsDownload (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetWalletTransactionsDownload (Object... optionalArgs)
     {
         return this.callAsync ("privateGetWalletTransactionsDownload", optionalArgs);
     }
@@ -289,7 +292,7 @@ public class DeltaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetWalletsSubAccountsTransferHistory (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetWalletsSubAccountsTransferHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateGetWalletsSubAccountsTransferHistory", optionalArgs);
     }
@@ -300,7 +303,7 @@ public class DeltaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetUsersTradingPreferences (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetUsersTradingPreferences (Object... optionalArgs)
     {
         return this.callAsync ("privateGetUsersTradingPreferences", optionalArgs);
     }
@@ -311,7 +314,7 @@ public class DeltaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetSubAccounts (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetSubAccounts (Object... optionalArgs)
     {
         return this.callAsync ("privateGetSubAccounts", optionalArgs);
     }
@@ -322,7 +325,7 @@ public class DeltaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetProfile (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetProfile (Object... optionalArgs)
     {
         return this.callAsync ("privateGetProfile", optionalArgs);
     }
@@ -333,7 +336,7 @@ public class DeltaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetRateLimitsQuota (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetRateLimitsQuota (Object... optionalArgs)
     {
         return this.callAsync ("privateGetRateLimitsQuota", optionalArgs);
     }
@@ -344,7 +347,7 @@ public class DeltaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetHeartbeat (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetHeartbeat (Object... optionalArgs)
     {
         return this.callAsync ("privateGetHeartbeat", optionalArgs);
     }
@@ -355,7 +358,7 @@ public class DeltaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetDepositsAddress (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateGetDepositsAddress (Object... optionalArgs)
     {
         return this.callAsync ("privateGetDepositsAddress", optionalArgs);
     }
@@ -366,7 +369,7 @@ public class DeltaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostOrders (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOrders", optionalArgs);
     }
@@ -377,7 +380,7 @@ public class DeltaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOrdersBracket (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostOrdersBracket (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOrdersBracket", optionalArgs);
     }
@@ -388,7 +391,7 @@ public class DeltaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOrdersBatch (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostOrdersBatch (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOrdersBatch", optionalArgs);
     }
@@ -399,7 +402,7 @@ public class DeltaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostProductsProductIdOrdersLeverage (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostProductsProductIdOrdersLeverage (Object... optionalArgs)
     {
         return this.callAsync ("privatePostProductsProductIdOrdersLeverage", optionalArgs);
     }
@@ -410,7 +413,7 @@ public class DeltaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostPositionsChangeMargin (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostPositionsChangeMargin (Object... optionalArgs)
     {
         return this.callAsync ("privatePostPositionsChangeMargin", optionalArgs);
     }
@@ -421,7 +424,7 @@ public class DeltaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostPositionsCloseAll (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostPositionsCloseAll (Object... optionalArgs)
     {
         return this.callAsync ("privatePostPositionsCloseAll", optionalArgs);
     }
@@ -432,7 +435,7 @@ public class DeltaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostWalletsSubAccountBalanceTransfer (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostWalletsSubAccountBalanceTransfer (Object... optionalArgs)
     {
         return this.callAsync ("privatePostWalletsSubAccountBalanceTransfer", optionalArgs);
     }
@@ -443,7 +446,7 @@ public class DeltaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostHeartbeatCreate (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostHeartbeatCreate (Object... optionalArgs)
     {
         return this.callAsync ("privatePostHeartbeatCreate", optionalArgs);
     }
@@ -454,7 +457,7 @@ public class DeltaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostHeartbeat (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostHeartbeat (Object... optionalArgs)
     {
         return this.callAsync ("privatePostHeartbeat", optionalArgs);
     }
@@ -465,7 +468,7 @@ public class DeltaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOrdersCancelAfter (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostOrdersCancelAfter (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOrdersCancelAfter", optionalArgs);
     }
@@ -476,7 +479,7 @@ public class DeltaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOrdersLeverage (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePostOrdersLeverage (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOrdersLeverage", optionalArgs);
     }
@@ -487,7 +490,7 @@ public class DeltaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePutOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePutOrders (Object... optionalArgs)
     {
         return this.callAsync ("privatePutOrders", optionalArgs);
     }
@@ -498,7 +501,7 @@ public class DeltaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePutOrdersBracket (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePutOrdersBracket (Object... optionalArgs)
     {
         return this.callAsync ("privatePutOrdersBracket", optionalArgs);
     }
@@ -509,7 +512,7 @@ public class DeltaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePutOrdersBatch (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePutOrdersBatch (Object... optionalArgs)
     {
         return this.callAsync ("privatePutOrdersBatch", optionalArgs);
     }
@@ -520,7 +523,7 @@ public class DeltaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePutPositionsAutoTopup (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePutPositionsAutoTopup (Object... optionalArgs)
     {
         return this.callAsync ("privatePutPositionsAutoTopup", optionalArgs);
     }
@@ -531,7 +534,7 @@ public class DeltaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePutUsersUpdateMmp (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePutUsersUpdateMmp (Object... optionalArgs)
     {
         return this.callAsync ("privatePutUsersUpdateMmp", optionalArgs);
     }
@@ -542,7 +545,7 @@ public class DeltaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePutUsersResetMmp (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePutUsersResetMmp (Object... optionalArgs)
     {
         return this.callAsync ("privatePutUsersResetMmp", optionalArgs);
     }
@@ -553,7 +556,7 @@ public class DeltaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePutUsersMarginMode (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePutUsersMarginMode (Object... optionalArgs)
     {
         return this.callAsync ("privatePutUsersMarginMode", optionalArgs);
     }
@@ -564,7 +567,7 @@ public class DeltaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePutUsersTradingPreferences (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privatePutUsersTradingPreferences (Object... optionalArgs)
     {
         return this.callAsync ("privatePutUsersTradingPreferences", optionalArgs);
     }
@@ -575,7 +578,7 @@ public class DeltaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteOrders (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeleteOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteOrders", optionalArgs);
     }
@@ -586,7 +589,7 @@ public class DeltaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteOrdersAll (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeleteOrdersAll (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteOrdersAll", optionalArgs);
     }
@@ -597,7 +600,7 @@ public class DeltaApi extends Exchange
      * @param optionalArgs the request parameters
      * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteOrdersBatch (Object... optionalArgs)
+    public CompletableFuture<Map<String, Object>>  privateDeleteOrdersBatch (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteOrdersBatch", optionalArgs);
     }

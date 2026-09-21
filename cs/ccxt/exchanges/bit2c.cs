@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class bit2c : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "bit2c" },
@@ -348,7 +348,7 @@ public partial class bit2c : Exchange
         for (int i = 0; isLessThan(i, getArrayLength(codes)); postFixIncrement(ref i))
         {
             string? code = ((string)getValue(codes, i));
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             Dictionary<string, object> currency = this.currency(((string)code));
             string uppercase = ((string)getValue(currency, "id")).ToUpper();
             if (isTrue(inOp(response, uppercase)))
@@ -480,7 +480,7 @@ public partial class bit2c : Exchange
         return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(filtered, symbol));
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         string? symbol = this.safeSymbol(null, market);
         string? averagePrice = this.safeString(ticker, "av");
@@ -627,7 +627,7 @@ public partial class bit2c : Exchange
         //         }
         //     }
         //
-        object fees = this.safeValue(response, "Fees", new Dictionary<string, object>() {});
+        IDictionary<string, object> fees = this.safeDict(response, "Fees", new Dictionary<string, object>() {});
         List<object> keys = new List<object>(((IDictionary<string,object>)fees).Keys);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
@@ -790,7 +790,7 @@ public partial class bit2c : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         //      createOrder
@@ -1001,7 +1001,7 @@ public partial class bit2c : Exchange
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(responseList, market, since, limit));
     }
 
-    public virtual object removeCommaFromValue(object str)
+    public virtual string? removeCommaFromValue(object str)
     {
         object newString = "";
         List<object> strParts = ((string)str).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
@@ -1009,10 +1009,10 @@ public partial class bit2c : Exchange
         {
             newString = add(newString, getValue(strParts, i));
         }
-        return newString;
+        return ((string?)((object)(newString)));
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         // public fetchTrades
@@ -1048,7 +1048,7 @@ public partial class bit2c : Exchange
         //
         object timestamp = null;
         object id = null;
-        object price = null;
+        string? price = null;
         string? amount = null;
         object orderId = null;
         Dictionary<string, object> fee = null;
@@ -1121,9 +1121,9 @@ public partial class bit2c : Exchange
         }, market);
     }
 
-    public virtual object isFiat(object code)
+    public virtual bool isFiat(object code)
     {
-        return isEqual(code, "NIS");
+        return ((bool)((object)(isEqual(code, "NIS")))!);
     }
 
     /**

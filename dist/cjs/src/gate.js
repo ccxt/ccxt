@@ -7229,8 +7229,10 @@ class gate extends gate$1["default"] {
             if ((method === 'GET') || (method === 'DELETE') || requiresURLEncoding || (method === 'PATCH')) {
                 if (Object.keys(query).length > 0) {
                     // https://github.com/ccxt/ccxt/issues/27663
-                    rawQueryString = this.rawencode(query);
-                    queryString = this.urlencode(query);
+                    // sort explicitly (true) so the signed order matches the url order in Go,
+                    // where map iteration is not ordered (keysort's order is otherwise lost)
+                    rawQueryString = this.rawencode(query, true);
+                    queryString = this.urlencode(query, true);
                     // https://github.com/ccxt/ccxt/issues/25570
                     if (queryString.indexOf('currencies=') >= 0 && queryString.indexOf('%2C') >= 0) {
                         queryString = queryString.replaceAll('%2C', ',');
@@ -7242,7 +7244,7 @@ class gate extends gate$1["default"] {
                 }
             }
             else {
-                const urlQueryParams = this.safeValue(query, 'query', {});
+                const urlQueryParams = this.safeDict(query, 'query', {});
                 if (Object.keys(urlQueryParams).length > 0) {
                     queryString = this.urlencode(urlQueryParams);
                     url += '?' + queryString;

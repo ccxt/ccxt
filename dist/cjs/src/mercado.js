@@ -534,7 +534,7 @@ class mercado extends mercado$1["default"] {
     }
     parseBalance(response) {
         const data = this.safeValue(response, 'response_data', {});
-        const balances = this.safeValue(data, 'balance', {});
+        const balances = this.safeDict(data, 'balance', {});
         const result = { 'info': response };
         const currencyIds = Object.keys(balances);
         for (let i = 0; i < currencyIds.length; i++) {
@@ -1012,7 +1012,7 @@ class mercado extends mercado$1["default"] {
     ordersToTrades(orders) {
         const result = [];
         for (let i = 0; i < orders.length; i++) {
-            const trades = this.safeValue(orders[i], 'trades', []);
+            const trades = this.safeList(orders[i], 'trades', []);
             for (let y = 0; y < trades.length; y++) {
                 result.push(trades[y]);
             }

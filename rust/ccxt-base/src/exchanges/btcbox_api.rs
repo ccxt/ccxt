@@ -37,6 +37,11 @@ impl BtcboxCore {
         self.call_method(Value::Str("private_post_balance".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privatePostOrderHistory` implicit endpoint.
+    pub async fn private_post_order_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_order_history".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privatePostTradeAdd` implicit endpoint.
     pub async fn private_post_trade_add(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_trade_add".to_string()), optional_args).await

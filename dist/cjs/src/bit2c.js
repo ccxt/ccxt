@@ -541,7 +541,7 @@ class bit2c extends bit2c$1["default"] {
         //         }
         //     }
         //
-        const fees = this.safeValue(response, 'Fees', {});
+        const fees = this.safeDict(response, 'Fees', {});
         const keys = Object.keys(fees);
         const result = {};
         for (let i = 0; i < keys.length; i++) {

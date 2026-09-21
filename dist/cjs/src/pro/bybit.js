@@ -251,7 +251,7 @@ class bybit extends bybit$1["default"] {
      * @param {boolean} [params.isLeverage] *unified spot only* false then spot trading true then margin trading
      * @param {string} [params.tpslMode] *contract only* 'full' or 'partial'
      * @param {string} [params.mmp] *option only* market maker protection
-     * @param {string} [params.triggerDirection] *contract only* the direction for trigger orders, 'above' or 'below'
+     * @param {string} [params.triggerDirection] *contract only* the direction for trigger orders, 'ascending' or 'descending'
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
      * @param {float} [params.stopLossPrice] The price at which a stop loss order is triggered at
      * @param {float} [params.takeProfitPrice] The price at which a take profit order is triggered at
@@ -268,7 +268,7 @@ class bybit extends bybit$1["default"] {
             await this.loadMarkets();
         }
         const orderRequest = this.createOrderRequest(symbol, type, side, amount, price, params, true);
-        const url = this.urls['api']['ws']['private']['trade'];
+        const url = this.implodeHostname(this.urls['api']['ws']['private']['trade']);
         await this.authenticate(url);
         const requestId = this.requestId().toString();
         const request = {
@@ -314,7 +314,7 @@ class bybit extends bybit$1["default"] {
             await this.loadMarkets();
         }
         const orderRequest = this.editOrderRequest(id, symbol, type, side, amount, price, params);
-        const url = this.urls['api']['ws']['private']['trade'];
+        const url = this.implodeHostname(this.urls['api']['ws']['private']['trade']);
         await this.authenticate(url);
         const requestId = this.requestId().toString();
         const request = {
@@ -351,7 +351,7 @@ class bybit extends bybit$1["default"] {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrderWs() requires a symbol argument');
         }
         const orderRequest = this.cancelOrderRequest(id, symbol, params);
-        const url = this.urls['api']['ws']['private']['trade'];
+        const url = this.implodeHostname(this.urls['api']['ws']['private']['trade']);
         await this.authenticate(url);
         const requestId = this.requestId().toString();
         if ('orderFilter' in orderRequest) {
@@ -1450,7 +1450,7 @@ class bybit extends bybit$1["default"] {
         const executionFast = topic === 'execution.fast';
         let data = this.safeValue(message, 'data', []);
         if (!Array.isArray(data)) {
-            data = this.safeValue(data, 'result', []);
+            data = this.safeList(data, 'result', []);
         }
         if (this.myTrades === undefined) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
@@ -1633,7 +1633,7 @@ class bybit extends bybit$1["default"] {
         }
         const cache = this.positions;
         const newPositions = [];
-        const rawPositions = this.safeValue(message, 'data', []);
+        const rawPositions = this.safeList(message, 'data', []);
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
             const position = this.parsePosition(rawPosition);
@@ -2000,7 +2000,7 @@ class bybit extends bybit$1["default"] {
             this.orders = new Cache.ArrayCacheBySymbolById(limit);
         }
         const orders = this.orders;
-        let rawOrders = this.safeValue(message, 'data', []);
+        let rawOrders = this.safeList(message, 'data', []);
         const first = this.safeValue(rawOrders, 0, {});
         const category = this.safeString(first, 'category');
         const isSpot = category === 'spot';
@@ -2245,7 +2245,7 @@ class bybit extends bybit$1["default"] {
         let account = undefined;
         if (topic === 'outboundAccountInfo') {
             account = 'spot';
-            const data = this.safeValue(message, 'data', []);
+            const data = this.safeList(message, 'data', []);
             for (let i = 0; i < data.length; i++) {
                 const B = this.safeValue(data[i], 'B', []);
                 rawBalances = this.arrayConcat(rawBalances, B);
@@ -2347,13 +2347,56 @@ class bybit extends bybit$1["default"] {
         }
     }
     async watchTopics(url, messageHashes, topics, params = {}) {
-        const request = {
-            'op': 'subscribe',
-            'req_id': this.requestId(),
-            'args': topics,
-        };
-        const message = this.extend(request, params);
-        return await this.watchMultiple(url, messageHashes, message, messageHashes);
+        const client = this.client(url);
+        const newTopics = [];
+        const topicsLength = topics.length;
+        const messageHashesLength = messageHashes.length;
+        if (topicsLength === messageHashesLength) {
+            for (let i = 0; i < topicsLength; i++) {
+                const messageHash = messageHashes[i];
+                if (!(messageHash in client.subscriptions)) {
+                    newTopics.push(topics[i]);
+                }
+            }
+        }
+        else {
+            // watchOrders spot: two topics, one hash. Collect topics already
+            // recorded on any subscription so a later call with a new hash
+            // does not resend already-subscribed topics.
+            const subscribedTopics = {};
+            const subscriptionHashes = Object.keys(client.subscriptions);
+            for (let i = 0; i < subscriptionHashes.length; i++) {
+                const existing = this.safeDict(client.subscriptions, subscriptionHashes[i], {});
+                const recordedTopics = this.safeList(existing, 'topics', []);
+                const recordedLength = recordedTopics.length;
+                for (let j = 0; j < recordedLength; j++) {
+                    subscribedTopics[recordedTopics[j]] = true;
+                }
+            }
+            for (let i = 0; i < topicsLength; i++) {
+                const topic = topics[i];
+                if (!(topic in subscribedTopics)) {
+                    newTopics.push(topic);
+                }
+            }
+        }
+        let message = undefined;
+        let subscription = undefined;
+        const newTopicsLength = newTopics.length;
+        if (newTopicsLength > 0) {
+            const reqId = this.requestId();
+            const request = {
+                'op': 'subscribe',
+                'req_id': reqId,
+                'args': newTopics,
+            };
+            message = this.extend(request, params);
+            subscription = {
+                'id': reqId,
+                'topics': newTopics,
+            };
+        }
+        return await this.watchMultiple(url, messageHashes, message, messageHashes, subscription);
     }
     async unWatchTopics(url, topic, symbols, messageHashes, subMessageHashes, topics, params = {}, subExtension = {}) {
         const reqId = this.requestId();
@@ -2463,30 +2506,49 @@ class bybit extends bybit$1["default"] {
             return false;
         }
         catch (error) {
-            const messageHash = this.safeString2(message, 'req_id', 'reqId');
-            if (messageHash !== undefined) {
-                client.reject(error, messageHash);
-            }
-            else if (error instanceof errors.AuthenticationError) {
-                const authenticatedHash = 'authenticated';
-                client.reject(error, authenticatedHash);
-                if (authenticatedHash in client.subscriptions) {
-                    delete client.subscriptions[authenticatedHash];
-                }
-                const op = this.safeString(message, 'op');
-                if ((op !== undefined) && (op !== 'auth')) {
-                    // an operation response that carries no reqId, e.g. bybit
-                    // omits it on some permission rejections of trade ops,
-                    // would leave the awaiting future pending forever, and
-                    // since nothing on this client can proceed without
-                    // authentication, reject everything pending, mirroring the
-                    // behavior of unattributable non auth errors, see
-                    // https://github.com/ccxt/ccxt/issues/29361
-                    client.reject(error);
+            const reqId = this.safeString2(message, 'req_id', 'reqId');
+            let foundSubscription = false;
+            if (reqId !== undefined) {
+                const keys = Object.keys(client.subscriptions);
+                for (let i = 0; i < keys.length; i++) {
+                    const messageHash = keys[i];
+                    if (!(messageHash in client.subscriptions)) {
+                        continue;
+                    }
+                    const subscription = this.safeDict(client.subscriptions, messageHash);
+                    const subId = this.safeString(subscription, 'id');
+                    if (reqId === subId) {
+                        foundSubscription = true;
+                        delete client.subscriptions[messageHash];
+                        client.reject(error, messageHash);
+                    }
                 }
             }
-            else {
-                client.reject(error, messageHash);
+            if (!foundSubscription) {
+                if (reqId !== undefined) {
+                    client.reject(error, reqId);
+                }
+                else if (error instanceof errors.AuthenticationError) {
+                    const authenticatedHash = 'authenticated';
+                    client.reject(error, authenticatedHash);
+                    if (authenticatedHash in client.subscriptions) {
+                        delete client.subscriptions[authenticatedHash];
+                    }
+                    const op = this.safeString(message, 'op');
+                    if ((op !== undefined) && (op !== 'auth')) {
+                        // an operation response that carries no reqId, e.g. bybit
+                        // omits it on some permission rejections of trade ops,
+                        // would leave the awaiting future pending forever, and
+                        // since nothing on this client can proceed without
+                        // authentication, reject everything pending, mirroring the
+                        // behavior of unattributable non auth errors, see
+                        // https://github.com/ccxt/ccxt/issues/29361
+                        client.reject(error);
+                    }
+                }
+                else {
+                    client.reject(error, reqId);
+                }
             }
             return true;
         }

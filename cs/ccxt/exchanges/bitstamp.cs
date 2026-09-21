@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class bitstamp : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "bitstamp" },
@@ -1270,10 +1270,10 @@ public partial class bitstamp : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
-    public virtual object constructCurrencyObject(object id, object code, object name, object precision, object minCost, object originalPayload)
+    public virtual Dictionary<string, object> constructCurrencyObject(object id, object code, object name, object precision, object minCost, object originalPayload)
     {
         string currencyType = "crypto";
-        object description = this.describe();
+        Dictionary<string, object> description = this.describe();
         if (isTrue(this.isFiat(code)))
         {
             currencyType = "fiat";
@@ -1357,7 +1357,7 @@ public partial class bitstamp : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public async override Task<object> fetchCurrencies(object parameters = null)
+    public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = ccxt.BaseExchange.FromDictList(await this.FetchMarketsFromCache(parameters));
@@ -1467,12 +1467,12 @@ public partial class bitstamp : Exchange
             throw new ExchangeError ((string)add(this.id, " fetchOrderBook() missing microtimestamp")) ;
         }
         Int64? timestamp = this.parseToInt(divide(microtimestamp, 1000));
-        object orderbook = this.parseOrderBook(response, getValue(market, "symbol"), timestamp);
+        Dictionary<string, object> orderbook = ((Dictionary<string, object>)this.parseOrderBook(response, getValue(market, "symbol"), timestamp));
         ((IDictionary<string,object>)orderbook)["nonce"] = microtimestamp;
         return ccxt.BaseExchange.ToOrderBook(orderbook);
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         //
         // {
@@ -1492,7 +1492,7 @@ public partial class bitstamp : Exchange
         //
         string? marketId = this.safeString(ticker, "pair");
         string? symbol = this.safeSymbol(marketId, market);
-        object timestamp = this.safeTimestamp(ticker, "timestamp");
+        Int64? timestamp = this.safeTimestamp(ticker, "timestamp");
         string? vwap = this.safeString(ticker, "vwap");
         string? baseVolume = this.safeString(ticker, "volume");
         string? quoteVolume = Precise.stringMul(baseVolume, vwap);
@@ -1596,7 +1596,7 @@ public partial class bitstamp : Exchange
         return ccxt.BaseExchange.ToTickers(this.parseTickers(response, symbols));
     }
 
-    public virtual object getCurrencyIdFromTransaction(object transaction)
+    public virtual string? getCurrencyIdFromTransaction(object transaction)
     {
         //
         //     {
@@ -1658,7 +1658,7 @@ public partial class bitstamp : Exchange
         return null;
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades (public)
@@ -1893,11 +1893,12 @@ public partial class bitstamp : Exchange
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
@@ -1911,17 +1912,31 @@ public partial class bitstamp : Exchange
             { "step", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
         int duration = this.parseTimeframe(timeframeVar);
+        Int64? until = this.safeInteger(parameters, "until");
+        bool untilIsDefined = (!isEqual(until, null));
         if (isTrue(isEqual(limitVar, null)))
         {
+            limitVar = 1000;
             if (isTrue(isEqual(since, null)))
             {
-                ((IDictionary<string,object>)request)["limit"] = 1000; // we need to specify an allowed amount of `limitVar` if no `since` is set and there is no default limitVar by exchange
+                ((IDictionary<string,object>)request)["limit"] = limitVar;
+                if (isTrue(untilIsDefined))
+                {
+                    Int64? end = this.parseToInt(divide(until, 1000));
+                    ((IDictionary<string,object>)request)["start"] = subtract(subtract(end, (multiply(duration, limitVar))), 1);
+                    ((IDictionary<string,object>)request)["end"] = end;
+                }
             } else
             {
-                limitVar = 1000;
                 Int64? start = this.parseToInt(divide(since, 1000));
                 ((IDictionary<string,object>)request)["start"] = start;
-                ((IDictionary<string,object>)request)["end"] = this.sum(start, multiply(duration, (subtract(limitVar, 1))));
+                if (isTrue(untilIsDefined))
+                {
+                    ((IDictionary<string,object>)request)["end"] = this.parseToInt(divide(until, 1000));
+                } else
+                {
+                    ((IDictionary<string,object>)request)["end"] = this.sum(start, subtract(multiply(duration, limitVar), 1));
+                }
                 ((IDictionary<string,object>)request)["limit"] = limitVar;
             }
         } else
@@ -1930,10 +1945,21 @@ public partial class bitstamp : Exchange
             {
                 Int64? start = this.parseToInt(divide(since, 1000));
                 ((IDictionary<string,object>)request)["start"] = start;
-                ((IDictionary<string,object>)request)["end"] = this.sum(start, multiply(duration, (subtract(limitVar, 1))));
+                object end = this.sum(start, subtract(multiply(duration, limitVar), 1));
+                if (isTrue(untilIsDefined))
+                {
+                    end = mathMin(end, this.parseToInt(divide(until, 1000)));
+                }
+                ((IDictionary<string,object>)request)["end"] = end;
+            } else if (isTrue(untilIsDefined))
+            {
+                Int64? end = this.parseToInt(divide(until, 1000));
+                ((IDictionary<string,object>)request)["end"] = end;
+                ((IDictionary<string,object>)request)["start"] = subtract(subtract(end, (multiply(duration, limitVar))), 1);
             }
             ((IDictionary<string,object>)request)["limit"] = mathMin(limitVar, 1000); // min 1, max 1000
         }
+        parameters = this.omit(parameters, "until");
         Dictionary<string, object> response = await this.publicGetOhlcPair(this.extend(request, parameters));
         //
         //     {
@@ -1969,7 +1995,7 @@ public partial class bitstamp : Exchange
             object currencyBalance = getValue(response, i);
             string? currencyId = this.safeString(currencyBalance, "currency");
             string? currencyCode = this.safeCurrencyCode(currencyId);
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(currencyBalance, "available");
             ((IDictionary<string,object>)account)["used"] = this.safeString(currencyBalance, "reserved");
             ((IDictionary<string,object>)account)["total"] = this.safeString(currencyBalance, "total");
@@ -2047,7 +2073,7 @@ public partial class bitstamp : Exchange
         //     ]
         //
         Dictionary<string, object> tradingFeesByMarketId = this.indexBy(response, "currency_pair");
-        object tradingFee = this.safeDict(tradingFeesByMarketId, getValue(market, "id"));
+        IDictionary<string, object> tradingFee = this.safeDict(tradingFeesByMarketId, getValue(market, "id"));
         if (isTrue(isEqual(tradingFee, null)))
         {
             tradingFee = new Dictionary<string, object>() {};
@@ -2069,7 +2095,7 @@ public partial class bitstamp : Exchange
         };
     }
 
-    public virtual object parseTradingFees(object fees)
+    public virtual Dictionary<string, object> parseTradingFees(object fees)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", fees },
@@ -2083,7 +2109,7 @@ public partial class bitstamp : Exchange
                 ((IDictionary<string,object>)result)[(string)symbol] = fee;
             }
         }
-        return result;
+        return ((Dictionary<string, object>)((object)(result)));
     }
 
     /**
@@ -2150,7 +2176,7 @@ public partial class bitstamp : Exchange
         return ccxt.BaseExchange.ToDict(this.parseTransactionFees(response));
     }
 
-    public virtual object parseTransactionFees(object response, object codes = null)
+    public virtual Dictionary<string, object> parseTransactionFees(object response, object codes = null)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         Dictionary<string, object> currencies = this.indexBy(response, "currency");
@@ -2173,7 +2199,7 @@ public partial class bitstamp : Exchange
                 };
             }
         }
-        return result;
+        return ((Dictionary<string, object>)((object)(result)));
     }
 
     /**
@@ -2209,7 +2235,7 @@ public partial class bitstamp : Exchange
 
     public override object parseDepositWithdrawFee(object fee, object currency = null)
     {
-        object result = this.depositWithdrawFee(fee);
+        Dictionary<string, object> result = this.depositWithdrawFee(fee);
         string? code = this.safeString(currency, "code");
         for (int j = 0; isLessThan(j, getArrayLength(fee)); postFixIncrement(ref j))
         {
@@ -2306,7 +2332,7 @@ public partial class bitstamp : Exchange
             }
         }
         Dictionary<string, object> orderResponse = ((bool) isTrue((isEqual(response, null)))) ? new Dictionary<string, object>() {} : response;
-        object order = this.parseOrder(orderResponse, market);
+        Dictionary<string, object> order = this.parseOrder(orderResponse, market);
         ((IDictionary<string,object>)order)["type"] = type;
         return ccxt.BaseExchange.ToOrder(order);
     }
@@ -2350,7 +2376,7 @@ public partial class bitstamp : Exchange
             ((IDictionary<string,object>)request)["id"] = id;
         }
         Dictionary<string, object> response = await this.privatePostReplaceOrder(this.extend(request, parameters));
-        object order = this.parseOrder(response, market);
+        Dictionary<string, object> order = this.parseOrder(response, market);
         ((IDictionary<string,object>)order)["type"] = type;
         return ccxt.BaseExchange.ToOrder(order);
     }
@@ -2448,7 +2474,7 @@ public partial class bitstamp : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public async override Task<string> FetchOrderStatus(object id, object symbol = null, object parameters = null)
+    public async override Task<string> FetchOrderStatus(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2801,7 +2827,7 @@ public partial class bitstamp : Exchange
         //     }
         //
         Int64? timestamp = this.parse8601(this.safeString(transaction, "datetime"));
-        object currencyId = this.getCurrencyIdFromTransaction(transaction);
+        string? currencyId = this.getCurrencyIdFromTransaction(transaction);
         string? code = this.safeCurrencyCode(currencyId, currency);
         string? feeCost = this.safeString(transaction, "fee");
         object feeCurrency = null;
@@ -2911,7 +2937,7 @@ public partial class bitstamp : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         //   from fetch order:
@@ -3058,7 +3084,7 @@ public partial class bitstamp : Exchange
         object type = this.parseLedgerEntryType(this.safeString(item, "type"));
         if (isTrue(isEqual(type, "trade")))
         {
-            object parsedTrade = this.parseTrade(item);
+            Dictionary<string, object> parsedTrade = this.parseTrade(item);
             object market = null;
             List<object> keys = new List<object>(((IDictionary<string,object>)item).Keys);
             for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
@@ -3202,14 +3228,16 @@ public partial class bitstamp : Exchange
         //         "next_funding_time": "1644406050"
         //     }
         //
+        // the websocket funding_rate channel additionally carries mark_price and index_price
+        //
         Int64? currentTime = this.safeIntegerProduct(fundingRate, "timestamp", 1000);
         Int64? nextFundingRateTimestamp = this.safeIntegerProduct(fundingRate, "next_funding_time", 1000);
         string? marketId = this.safeString(fundingRate, "market");
         return new Dictionary<string, object>() {
             { "info", fundingRate },
             { "symbol", this.safeSymbol(marketId, market) },
-            { "markPrice", null },
-            { "indexPrice", null },
+            { "markPrice", this.safeNumber(fundingRate, "mark_price") },
+            { "indexPrice", this.safeNumber(fundingRate, "index_price") },
             { "interestRate", null },
             { "estimatedSettlePrice", null },
             { "timestamp", currentTime },
@@ -3279,9 +3307,9 @@ public partial class bitstamp : Exchange
         return ((string)code).ToLower();
     }
 
-    public virtual object isFiat(object code)
+    public virtual bool isFiat(object code)
     {
-        return isTrue(isTrue(isEqual(code, "USD")) || isTrue(isEqual(code, "EUR"))) || isTrue(isEqual(code, "GBP"));
+        return ((bool)((object)(isTrue(isTrue(isEqual(code, "USD")) || isTrue(isEqual(code, "EUR"))) || isTrue(isEqual(code, "GBP"))))!);
     }
 
     /**
@@ -3561,7 +3589,7 @@ public partial class bitstamp : Exchange
                 ((IList<object>)errors).Add(reasonInner);
             } else
             {
-                object all = this.safeValue(reasonInner, "__all__", new List<object>() {});
+                List<object> all = this.safeList(reasonInner, "__all__", new List<object>() {});
                 for (int i = 0; isLessThan(i, getArrayLength(all)); postFixIncrement(ref i))
                 {
                     ((IList<object>)errors).Add(getValue(all, i));

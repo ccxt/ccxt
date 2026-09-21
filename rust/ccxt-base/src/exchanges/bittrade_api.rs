@@ -342,6 +342,11 @@ impl BittradeCore {
         self.call_method(Value::Str("public_get_settings_currencys".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `publicGetRetailMaintainTime` implicit endpoint.
+    pub async fn public_get_retail_maintain_time(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_retail_maintain_time".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetAccountAccounts` implicit endpoint.
     pub async fn private_get_account_accounts(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_account_accounts".to_string()), optional_args).await
@@ -462,6 +467,11 @@ impl BittradeCore {
         self.call_method(Value::Str("private_get_stable_coin_quote".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetRetailOrderList` implicit endpoint.
+    pub async fn private_get_retail_order_list(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_retail_order_list".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privatePostAccountTransfer` implicit endpoint.
     pub async fn private_post_account_transfer(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_account_transfer".to_string()), optional_args).await
@@ -560,6 +570,11 @@ impl BittradeCore {
     /// Auto-generated wrapper for the `privatePostSubuserTransfer` implicit endpoint.
     pub async fn private_post_subuser_transfer(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_subuser_transfer".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostRetailOrderPlace` implicit endpoint.
+    pub async fn private_post_retail_order_place(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_retail_order_place".to_string()), optional_args).await
     }
 
 }

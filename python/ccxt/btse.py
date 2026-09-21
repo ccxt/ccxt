@@ -28,7 +28,7 @@ class btse(Exchange, ImplicitAPI):
         return self.deep_extend(super(btse, self).describe(), {
             'id': 'btse',
             'name': 'BTSE',
-            'countries': ['VG'],  # Virgin Islands(British)
+            'countries': ['VG'],  # Virgin Islands (British)
             'rateLimit': 1000 / 75,  # 75 requests per second
             'version': 'v3',  # spot v3.3 and v3.2, swap v.2.3
             'certified': False,
@@ -524,12 +524,12 @@ class btse(Exchange, ImplicitAPI):
             'exceptions': {
                 'exact': {
                     # 200 {"symbol":"ETH-PERP","timestamp":1770892916507,"status":135,"type":93,"message":"{\"msgKey\":\"trade.error.invalid.position_id\",\"params\":[\"ETH-PERP-USDT\"] ,\"default_msg\":\"User is in ISOLATE_HEDGE in market: ETH-PERP-USDT, but positionId is empty in the request.\"}"}
-                    # {"code":400,"msg":"BADREQUEST: startTime can not before than 1569888000000(2019-10-01T00:00)","time":1770828108074,"data":null,"success":false}
+                    # {"code":400,"msg":"BADREQUEST: startTime can not before than 1569888000000 (2019-10-01T00:00)","time":1770828108074,"data":null,"success":false}
                     # {"code":400,"msg":"BADREQUEST: resolution too small for the requested time range. Records returned exceeds 300","success":false,"time":1770452248292,"data":[]}
                     # when position mode is wrong {"status":429,"errorCode":-1,"message":"Order not found","extraData":["117","0"]}
                     # {"status":400,"errorCode":-2,"message":"Invalid request parameters","extraData":null}
                     # {"status":400,"errorCode":-2,"message":"Can't support count more than 500","extraData":null}
-                    # code -1 is ambiguous(TIMEOUT in the official status enum, generic failure with a
+                    # code -1 is ambiguous (TIMEOUT in the official status enum, generic failure with a
                     # varying message in the legacy envelope), so it is classified by message in the broad map
                     '-2': BadRequest,  # INVALID_REQUEST {"status":400,"errorCode":-2,"message":"symbol parameter is mandatory","extraData":null}
                     '-7': AuthenticationError,  # {"status":400,"errorCode":-7,"message":"Authenticate failed","extraData":null}
@@ -569,7 +569,7 @@ class btse(Exchange, ImplicitAPI):
                     '51523': InsufficientFunds,  # {"code":51523,"msg":"BADREQUEST: Insufficient wallet balance","time":1770814875493,"data":null,"success":false}
                     '33001001': InvalidOrder,  # {"code":33001001,"msg":"BADREQUEST: The distance between Trigger Price and Limit Price cannot exceed 5.0 %","time":1770815167145,"data":["5.0 %"],"success":false}
                     '33001003': InvalidOrder,  # {"status":400,"errorCode":33001003,"message":"You can not SELL ETH lower than 1825.24 USDT","extraData":["SELL","ETH","lower","1825.24","USDT"]}
-                    '33199101': InsufficientFunds,  # {"status":400,"errorCode":33199101,"message":"Available balance is insufficient to meet self order.","extraData":["0.013553333"]}
+                    '33199101': InsufficientFunds,  # {"status":400,"errorCode":33199101,"message":"Available balance is insufficient to meet this order.","extraData":["0.013553333"]}
                     '33199120': InvalidOrder,  # {"status":400,"errorCode":33199120,"message":"Reduce only open order canceled because no active position exists","extraData":null}
                 },
                 'broad': {
@@ -663,7 +663,7 @@ class btse(Exchange, ImplicitAPI):
         #         "baseCurrency": "BTC",
         #         "quoteCurrency": "USDT",
         #         "displayName": "Bitcoin",
-        #         "active": True,
+        #         "active": true,
         #         "minOrderPrice": "0.1",
         #         "minPriceIncrement": "0.1",
         #         "pricePrecision": 1,
@@ -682,7 +682,7 @@ class btse(Exchange, ImplicitAPI):
         #         "baseCurrency": "BTC",
         #         "quoteCurrency": "USDT",
         #         "displayName": "Bitcoin",
-        #         "active": True,
+        #         "active": true,
         #         "minOrderPrice": "0.1",
         #         "minPriceIncrement": "0.1",
         #         "pricePrecision": 1,
@@ -691,7 +691,7 @@ class btse(Exchange, ImplicitAPI):
         #         "minSizeIncrement": "1",
         #         "sizePrecision": 0,
         #         "contractSize": "0.00001",
-        #         "availableSettlement": ["USD", "USDT"]
+        #         "availableSettlement": [ "USD", "USDT" ]
         #     }
         #
         # future
@@ -703,7 +703,7 @@ class btse(Exchange, ImplicitAPI):
         #         "baseCurrency": "BTC",
         #         "quoteCurrency": "USDT",
         #         "displayName": "Bitcoin",
-        #         "active": True,
+        #         "active": true,
         #         "minOrderPrice": "0.1",
         #         "minPriceIncrement": "0.1",
         #         "pricePrecision": 1,
@@ -712,7 +712,7 @@ class btse(Exchange, ImplicitAPI):
         #         "minSizeIncrement": "1",
         #         "sizePrecision": 0,
         #         "contractSize": "0.00001",
-        #         "availableSettlement": ["USD", "USDT"],
+        #         "availableSettlement": [ "USD", "USDT" ],
         #         "contractStartTime": 1774569600000,
         #         "contractEndTime": 1790323230000,
         #         "matchingStartTime": 1774569615000,
@@ -865,7 +865,7 @@ class btse(Exchange, ImplicitAPI):
         #         ],
         #         "code": 1,
         #         "msg": "Success",
-        #         "success": True,
+        #         "success": true,
         #         "time": 1786604274378
         #     }
         #
@@ -876,12 +876,12 @@ class btse(Exchange, ImplicitAPI):
     def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         #     [
-        #         "1786600800",  # timestamp in seconds
+        #         "1786600800", // timestamp in seconds
         #         "1895.78",
         #         "1898.52",
         #         "1892.05",
         #         "1898.3",
-        #         "560622.306372"  # volume in quote currency, contract rows may use scientific notation
+        #         "560622.306372" // volume in quote currency, contract rows may use scientific notation
         #     ]
         #
         return [
@@ -917,15 +917,15 @@ class btse(Exchange, ImplicitAPI):
         #         "data": {
         #             "timestamp": 1786605670799,
         #             "bids": [
-        #                 ["1896.11", "0.015"]
+        #                 [ "1896.11", "0.015" ]
         #             ],
         #             "asks": [
-        #                 ["1896.74", "0.945"]
+        #                 [ "1896.74", "0.945" ]
         #             ]
         #         },
         #         "code": 1,
         #         "msg": "Success",
-        #         "success": True,
+        #         "success": true,
         #         "time": 1786605670833
         #     }
         #
@@ -981,7 +981,7 @@ class btse(Exchange, ImplicitAPI):
         #         ],
         #         "code": 1,
         #         "msg": "Success",
-        #         "success": True,
+        #         "success": true,
         #         "time": 1786607775380
         #     }
         #
@@ -1039,13 +1039,13 @@ class btse(Exchange, ImplicitAPI):
             #                 "type": "CRYPTO",
             #                 "totalAmount": "100.0",
             #                 "availableAmount": "100.0",
-            #                 "availableActions": ["CONVERT", "TRANSFER", "WITHDRAW", "DEPOSIT", "SEND_TO"],
-            #                 "cryptoNetwork": {"depositNetworks": ["BITCOIN"], "withdrawalNetworks": ["BITCOIN"]}
+            #                 "availableActions": [ "CONVERT", "TRANSFER", "WITHDRAW", "DEPOSIT", "SEND_TO" ],
+            #                 "cryptoNetwork": { "depositNetworks": [ "BITCOIN" ], "withdrawalNetworks": [ "BITCOIN" ] }
             #             }
             #         ],
             #         "code": 1,
             #         "msg": "Success",
-            #         "success": True,
+            #         "success": true,
             #         "time": 1624989977940
             #     }
             #
@@ -1147,14 +1147,14 @@ class btse(Exchange, ImplicitAPI):
         #             {
         #                 "symbol": "BTC-PERP-USDT",
         #                 "riskLimits": [
-        #                     {"level": 1, "value": 3000000},
-        #                     {"level": 2, "value": 6000000}
+        #                     { "level": 1, "value": 3000000 },
+        #                     { "level": 2, "value": 6000000 }
         #                 ]
         #             }
         #         ],
         #         "code": 1,
         #         "msg": "Success",
-        #         "success": True,
+        #         "success": true,
         #         "time": 1786609503920
         #     }
         #
@@ -1283,7 +1283,7 @@ class btse(Exchange, ImplicitAPI):
         #         ],
         #         "code": 1,
         #         "msg": "Success",
-        #         "success": True,
+        #         "success": true,
         #         "time": 1786602644221
         #     }
         #
@@ -1479,7 +1479,7 @@ class btse(Exchange, ImplicitAPI):
         nextFundingTimestamp = self.safe_integer_omit_zero(contract, 'nextFundingTime')
         fundingIntervalMinutes = self.safe_integer(contract, 'fundingIntervalMinutes')
         interval = None
-        # a wire value of zero minutes reaches self, and zero hours is not an
+        # a wire value of zero minutes reaches this, and zero hours is not an
         # interval: a caller annualising a rate divides by it. anything under an
         # hour rounds to the same string, and the vocabulary has no minutes
         if (fundingIntervalMinutes is not None) and (fundingIntervalMinutes >= 60):
@@ -1544,7 +1544,7 @@ class btse(Exchange, ImplicitAPI):
         #         ],
         #         "code": 1,
         #         "msg": "Success",
-        #         "success": True,
+        #         "success": true,
         #         "time": 1786605671650
         #     }
         #
@@ -1621,7 +1621,7 @@ class btse(Exchange, ImplicitAPI):
             #         ],
             #         "code": 1,
             #         "msg": "Success",
-            #         "success": True,
+            #         "success": true,
             #         "time": 1786610160164
             #     }
             #
@@ -1662,7 +1662,7 @@ class btse(Exchange, ImplicitAPI):
             #         ],
             #         "code": 1,
             #         "msg": "Success",
-            #         "success": True,
+            #         "success": true,
             #         "time": 1786610160164
             #     }
             #
@@ -1823,7 +1823,7 @@ class btse(Exchange, ImplicitAPI):
         :param float [params.stopPrice]: *NB - It is NOT stopLossPrice or triggerPricenot !! OCO orders only* Mandatory when creating an OCO order. Indicates the stop price
         :param bool [params.hedged]: *contract markets only* True for hedged mode, False for one way mode, default is False
         :param str [params.marginMode]: *contract markets only* 'cross' or 'isolated'(default is 'cross') - the exchange does not have cross/isolated margin modes but instead has 'ONE_WAY', 'HEDGE' and 'ISOLATED' position modes, so self param will be converted to the appropriate position mode
-        :param str [params.positionMode]: *contract markets only* 'ONE_WAY(default) or 'HEDGE or 'ISOLATED'(if not provided, it will be derived from marginMode and hedged params)
+        :param str [params.positionMode]: *contract markets only* 'ONE_WAY (default) or 'HEDGE or 'ISOLATED'(if not provided, it will be derived from marginMode and hedged params)
         :param dict [params.takeProfit]: *contract markets only* *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered(perpetual swap markets only)
         :param float [params.takeProfit.triggerPrice]: *contract markets only* take profit trigger price
         :param str [params.takeProfit.priceType]: *contract markets only* 'markPrice' or 'lastPrice', default is 'markPrice'
@@ -1883,7 +1883,7 @@ class btse(Exchange, ImplicitAPI):
         isLimitOrder = (type == 'LIMIT')
         postOnly = False
         # exchange-specific postOnly is the same as the unified one
-        postOnly, params = self.handle_post_only(isMarketOrder, postOnly, params)  # self will remove PO from params.timeInForce if present
+        postOnly, params = self.handle_post_only(isMarketOrder, postOnly, params)  # this will remove PO from params.timeInForce if present
         if postOnly:
             request['postOnly'] = True
         timeInForce = self.handle_time_in_force(params)
@@ -1938,7 +1938,7 @@ class btse(Exchange, ImplicitAPI):
             #             "type": 76,
             #             "orderSide": "BUY",
             #             "orderPrice": 61024.1,
-            #             "postOnly": False,
+            #             "postOnly": false,
             #             "timestamp": 1784891308063,
             #             "orderDetailType": null,
             #             "message": null,
@@ -2082,7 +2082,7 @@ class btse(Exchange, ImplicitAPI):
         isLimitOrder = (type == 'LIMIT')
         postOnly = False
         # exchange-specific postOnly is the same as the unified one
-        postOnly, params = self.handle_post_only(isMarketOrder, postOnly, params)  # self will remove PO from params.timeInForce if present
+        postOnly, params = self.handle_post_only(isMarketOrder, postOnly, params)  # this will remove PO from params.timeInForce if present
         if postOnly:
             request['postOnly'] = True
         timeInForce = self.handle_time_in_force(params)
@@ -2125,7 +2125,7 @@ class btse(Exchange, ImplicitAPI):
             #         "status": 2,
             #         "type": 0,
             #         "symbol": "BTC-PERP",
-            #         "postOnly": False,
+            #         "postOnly": false,
             #         "orderSide": "BUY",
             #         "orderId": "0251ea47-88b5-48c0-aeb3-b38774fd1f90",
             #         "clOrderID": "",
@@ -2480,12 +2480,12 @@ class btse(Exchange, ImplicitAPI):
         #         "timestamp": 1770813053751,
         #         "triggerPrice": 0,
         #         "stopPrice": null,
-        #         "trigger": False,
+        #         "trigger": false,
         #         "message": "",
         #         "clOrderID": null,
         #         "stealth": 1,
         #         "deviation": 1,
-        #         "postOnly": False,
+        #         "postOnly": false,
         #         "orderDetailType": null,
         #         "originalOrderBaseSize": 0.0001,
         #         "originalOrderQuoteSize": null,
@@ -2510,7 +2510,7 @@ class btse(Exchange, ImplicitAPI):
         #         "orderID": "5c6a26db-8cfb-45c7-b25d-56927bc36795",
         #         "timestamp": 1770821231984,
         #         "triggerPrice": 0,
-        #         "trigger": False,
+        #         "trigger": false,
         #         "deviation": 100,
         #         "stealth": 100,
         #         "message": "",
@@ -2521,7 +2521,7 @@ class btse(Exchange, ImplicitAPI):
         #         "filledSize": 1,
         #         "totalFilledSize": 1,
         #         "remainingSize": 0,
-        #         "postOnly": False,
+        #         "postOnly": false,
         #         "orderDetailType": null,
         #         "positionMode": "ONE_WAY",
         #         "positionDirection": null,
@@ -2533,8 +2533,8 @@ class btse(Exchange, ImplicitAPI):
         market = self.safe_market(marketId, market)
         timestamp = self.safe_integer(order, 'timestamp')
         # open_orders rows carry no numeric status - the state lives in
-        # orderState(STATUS_ACTIVE / STATUS_INACTIVE), and time_in_force
-        # is spelled timeInForce there(observed live), so both fall back
+        # orderState (STATUS_ACTIVE / STATUS_INACTIVE), and time_in_force
+        # is spelled timeInForce there (observed live), so both fall back
         rawStatus = self.safe_string_2(order, 'status', 'orderState')
         rawType = self.safe_string_2(order, 'orderType', 'type')
         status = self.parse_order_status(rawStatus)
@@ -2728,7 +2728,7 @@ class btse(Exchange, ImplicitAPI):
         #                 "txId": "0xb4d88986d013f799d78e6232792c44b45dff1213a015171ddcf4adfcd283b3fd"
         #             }
         #         ],
-        #         "success": True
+        #         "success": true
         #     }
         #
         rawRows = self.safe_list(response, 'data', response)
@@ -3113,19 +3113,19 @@ class btse(Exchange, ImplicitAPI):
         #         "isolatedLeverage": 25,
         #         "adlScoreBucket": 1,
         #         "contractSize": 0.0001,
-        #         "liquidationInProgress": False,
+        #         "liquidationInProgress": false,
         #         "timestamp": 1770880518034,
         #         "takeProfitOrder": {
         #             "orderId": "18b4056a-59de-424a-843e-c2df5c9f7265",
         #             "side": "SELL",
         #             "triggerPrice": 2500,
-        #             "triggerUseLastPrice": False
+        #             "triggerUseLastPrice": false
         #         },
         #         "stopLossOrder": {
         #             "orderId": "e7ef1035-0773-446d-9a80-2de0e1de2c13",
         #             "side": "SELL",
         #             "triggerPrice": 1000,
-        #             "triggerUseLastPrice": False
+        #             "triggerUseLastPrice": false
         #         },
         #         "positionMode": "ONE_WAY",
         #         "positionDirection": null,
@@ -3245,7 +3245,7 @@ class btse(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: response from the exchange
         """
-        # NBnot !! This method also sets margin mode to cross on btse
+        # NB!!! This method also sets margin mode to cross on btse
         # btse do not have specific endpoint for marginMode
         # both marginMode and positionMode are set and get with the same endpoints
         # it terms of btse positionMode could be HEDGE, ONE_WAY or ISOLATED

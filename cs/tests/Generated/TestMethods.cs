@@ -109,6 +109,7 @@ public partial class testMainClass
             { "timeout", 30000 },
         };
         BaseExchange exchange = initExchange(exchangeId, exchangeArgs, this.wsTests);
+        setExchangeProp(exchange, "fetchHistoryCacheSize", 5);
         if (isTrue(exchange.alias))
         {
             dump(this.addPadding("[INFO] skipping alias", 25));
@@ -438,7 +439,7 @@ public partial class testMainClass
                 object isAuthError = (e is AuthenticationError);
                 object isNotSupported = (e is NotSupported);
                 object isOperationFailed = (e is OperationFailed); // includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable", "OperationFailed", "InvalidNonce", ...
-                string lastUrlMsg = ((bool) isTrue(this.wsTests)) ? "" : add(add(" (Last url: ", exchange.last_request_url), " )");
+                string lastUrlMsg = ((bool) isTrue(this.wsTests)) ? "" : add(add(" (Last url: ", this.getLastRequestUrl(exchange)), " )");
                 if (isTrue(isOperationFailed))
                 {
                     // if last retry was gone with same `tempFailure` error, then let's eventually return false
@@ -523,6 +524,22 @@ public partial class testMainClass
         return true;
     }
 
+    public virtual object getLastRequestUrl(BaseExchange exchange)
+    {
+        object fetchCache = exchange.getFetchCache();
+        object url = "";
+        if (isTrue(isGreaterThan(getArrayLength(fetchCache), 0)))
+        {
+            object lastEntry = getValue(fetchCache, subtract(getArrayLength(fetchCache), 1));
+            object lastRequest = getValue(lastEntry, "request");
+            if (isTrue(!isEqual(lastRequest, null)))
+            {
+                url = exchange.safeString(lastRequest, "url", "");
+            }
+        }
+        return url;
+    }
+
     public async virtual Task<object> runPublicTests(BaseExchange exchange, object symbols)
     {
         object primarySymbol = getValue(symbols, 0);
@@ -589,7 +606,7 @@ public partial class testMainClass
         }
         // todo - not yet ready in other langs too
         // promises.push (testThrottle ());
-        object results = await promiseAll(promises);
+        List<object> results = await promiseAll(promises);
         // now count which test-methods retuned `false` from "testSafe" and dump that info below
         List<object> failedMethods = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(testNames)); postFixIncrement(ref i))
@@ -2148,6 +2165,23 @@ public partial class testMainClass
         {
             object callOutput = exchange.safeValue(data, "output");
             this.assertStaticRequestOutput(exchange, type, skipKeys, getValue(data, "url"), ((string)requestUrl), callOutput, output);
+            // optional per-test header pinning. only the keys the fixture lists are compared, so a
+            // fixture can pin one auth header without freezing the whole header set. this is the
+            // only cross-language assertion on header *names*, which the php transpiler can
+            // silently corrupt when a header literal contains a local/parameter name of sign ()
+            object storedHeaders = exchange.safeDict(data, "headers");
+            if (isTrue(!isEqual(storedHeaders, null)))
+            {
+                object sentHeaders = ((bool) isTrue((!isEqual(exchange.last_request_headers, null)))) ? exchange.last_request_headers : new Dictionary<string, object>() {};
+                List<object> storedHeaderKeys = new List<object>(((IDictionary<string,object>)storedHeaders).Keys);
+                for (int i = 0; isLessThan(i, getArrayLength(storedHeaderKeys)); postFixIncrement(ref i))
+                {
+                    string? headerKey = ((string)getValue(storedHeaderKeys, i));
+                    object storedHeaderValue = getValue(storedHeaders, headerKey);
+                    object sentHeaderValue = exchange.safeString(sentHeaders, headerKey);
+                    this.assertStaticError(isEqual(sentHeaderValue, storedHeaderValue), add("header mismatch for ", headerKey), storedHeaderValue, sentHeaderValue);
+                }
+            }
         } catch(Exception e)
         {
             this.requestTestsFailed = true;
@@ -2160,7 +2194,18 @@ public partial class testMainClass
     public async virtual Task<object> testResponseStatically(BaseExchange exchange, object method, object skipKeys, object data)
     {
         object expectedResult = exchange.safeValue(data, "parsedResponse");
-        var mockedExchange = setFetchResponse(exchange, getValue(data, "httpResponse"));
+        // 'httpResponseByUrl' serves a body per url fragment for methods that call several
+        // endpoints; the typed ports narrow each body to the shape its api leaf declares,
+        // so one shared 'httpResponse' cannot cover two differently-shaped endpoints
+        object responsesByUrl = exchange.safeDict(data, "httpResponseByUrl");
+        var mockedExchange = exchange;
+        if (isTrue(!isEqual(responsesByUrl, null)))
+        {
+            mockedExchange = setFetchResponseByUrl(exchange, responsesByUrl);
+        } else
+        {
+            mockedExchange = setFetchResponse(exchange, getValue(data, "httpResponse"));
+        }
         if (isTrue(this.info))
         {
             dump("[INFO] STATIC RESPONSE TEST:", method, ":", getValue(data, "description"));
@@ -2322,7 +2367,7 @@ public partial class testMainClass
                 // was replayed — live structures like orderbooks keep updating
                 // after the first resolution, so serialize only at the end
                 List<object> promises = new List<object> {callExchangeMethodDynamically(exchange, method, input), this.injectWsMessages(exchange, url, messages)};
-                object results = await promiseAll(promises);
+                List<object> results = await promiseAll(promises);
                 object unifiedResult = jsonParse(jsonStringify(getValue(results, 0)));
                 this.assertStaticResponseOutput(exchange, skipKeys, unifiedResult, getValue(data, "parsedResponse"));
                 this.assertWsSentMessages(exchange, url, data);
@@ -2388,6 +2433,11 @@ public partial class testMainClass
                 {
                     continue;
                 }
+                object isDisabledRust = exchange.safeString(result, "disabledRS");
+                if (isTrue(isTrue((!isEqual(isDisabledRust, null))) && isTrue((isEqual(this.lang, "RUST")))))
+                {
+                    continue;
+                }
                 exchange.extendExchangeOptions(globalOptions);
                 object testExchangeOptions = exchange.safeValue(result, "options", new Dictionary<string, object>() {});
                 exchange.extendExchangeOptions(testExchangeOptions);
@@ -2426,7 +2476,7 @@ public partial class testMainClass
         object wasmExecPath = null;
         object libraryPath = null;
         // const wasmExecPath = getRootDir () + '/src/test/static/binaries/wasm_exec.js';
-        // const ligherWasmPath = getRootDir () + 'ts/src/test/static/binaries/lighter.wasm';
+        // const ligherWasmPath = getRootDir () + 'ts/src/test/static/binaries/lighter-signer.wasm';
         // const binaryPath = getRootDir () + '/ts/src/test/static/binaries/lighter-signer-linux-amd64.so';
         // const librarypath = (this.lang === 'JS') ? ligherWasmPath : binaryPath;
         object basePath = add(getRootDir(), "ts/src/test/static/binaries/");
@@ -2435,7 +2485,7 @@ public partial class testMainClass
             if (isTrue(isEqual(this.lang, "JS")))
             {
                 wasmExecPath = add(basePath, "wasm_exec.js");
-                libraryPath = add(basePath, "lighter.wasm");
+                libraryPath = add(basePath, "lighter-signer.wasm");
             } else
             {
                 if (isTrue(isWindows()))
@@ -2908,7 +2958,7 @@ public partial class testMainClass
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        List<object> promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testXT(), this.testParadex(), this.testHashkey(), this.testCryptomus(), this.testDerive(), this.testModeTrade(), this.testBackpack(), this.testToobit(), this.testWeex(), this.testFoxbit()};
+        List<object> promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testXT(), this.testParadex(), this.testHashkey(), this.testCryptomus(), this.testDerive(), this.testModeTrade(), this.testBackpack(), this.testToobit(), this.testWeex(), this.testFoxbit(), this.testBithumb()};
         await promiseAll(promises);
         string successMessage = add(add("[", this.lang), "][TEST_SUCCESS] brokerId tests passed.");
         dump(add("[INFO]", successMessage));
@@ -3080,6 +3130,50 @@ public partial class testMainClass
             reqHeaders = ((bool) isTrue((isTrue(!isEqual(exchange.last_request_headers, null)) && isTrue(!isEqual(exchange.last_request_headers, null))))) ? exchange.last_request_headers : new Dictionary<string, object>() {};
         }
         assert(isEqual(getValue(reqHeaders, "Referer"), id), add(add("bybit - id: ", id), " not in headers."));
+        if (!isTrue(isSync()))
+        {
+            await close(exchange);
+        }
+        return true;
+    }
+
+    public async virtual Task<object> testBithumb()
+    {
+        Exchange exchange = ((Exchange)this.initOfflineExchange("bithumb"));
+        string id = "CCXT";
+        object reqHeaders = new Dictionary<string, object>() {};
+        try
+        {
+            // default path: generation 2, the versioned (jwt-signed) endpoints
+            await exchange.CreateOrder("BTC/KRW", "limit", "buy", 1, 20000);
+        } catch(Exception e)
+        {
+            // we expect an error here, we're only interested in the headers
+            reqHeaders = ((bool) isTrue((isTrue(!isEqual(exchange.last_request_headers, null)) && isTrue(!isEqual(exchange.last_request_headers, null))))) ? exchange.last_request_headers : new Dictionary<string, object>() {};
+        }
+        assert(isEqual(getValue(reqHeaders, "OPEN-API-PARTNER"), id), add(add("bithumb - id: ", id), " not in headers (v2 endpoints)."));
+        reqHeaders = new Dictionary<string, object>() {};
+        try
+        {
+            // legacy path: generation 1, the hmac-signed endpoints
+            await exchange.CreateOrder("BTC/KRW", "limit", "buy", 1, 20000, new Dictionary<string, object>() {
+                { "generation", 1 },
+            });
+        } catch(Exception e)
+        {
+            reqHeaders = ((bool) isTrue((isTrue(!isEqual(exchange.last_request_headers, null)) && isTrue(!isEqual(exchange.last_request_headers, null))))) ? exchange.last_request_headers : new Dictionary<string, object>() {};
+        }
+        assert(isEqual(getValue(reqHeaders, "OPEN-API-PARTNER"), id), add(add("bithumb - id: ", id), " not in headers (legacy endpoints)."));
+        reqHeaders = new Dictionary<string, object>() {};
+        try
+        {
+            // public endpoints carry the partner header as well
+            await exchange.FetchTicker("BTC/KRW");
+        } catch(Exception e)
+        {
+            reqHeaders = ((bool) isTrue((isTrue(!isEqual(exchange.last_request_headers, null)) && isTrue(!isEqual(exchange.last_request_headers, null))))) ? exchange.last_request_headers : new Dictionary<string, object>() {};
+        }
+        assert(isEqual(getValue(reqHeaders, "OPEN-API-PARTNER"), id), add(add("bithumb - id: ", id), " not in headers (public endpoints)."));
         if (!isTrue(isSync()))
         {
             await close(exchange);

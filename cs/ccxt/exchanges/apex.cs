@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class apex : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "apex" },
@@ -399,14 +399,13 @@ public partial class apex : Exchange
         // }
         // }
         //
-        Int64 timestamp = this.milliseconds();
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
-            { "timestamp", timestamp },
-            { "datetime", this.iso8601(timestamp) },
+            { "timestamp", null },
+            { "datetime", null },
         };
         string code = "USDT";
-        object account = this.account();
+        Dictionary<string, object> account = this.account();
         ((IDictionary<string,object>)account)["free"] = this.safeString(response, "availableBalance");
         ((IDictionary<string,object>)account)["total"] = this.safeString(response, "totalEquityValue");
         ((IDictionary<string,object>)result)[(string)code] = account;
@@ -472,7 +471,7 @@ public partial class apex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public async override Task<object> fetchCurrencies(object parameters = null)
+    public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> response = await this.publicGetV3Symbols(parameters);
@@ -573,10 +572,10 @@ public partial class apex : Exchange
         ((IDictionary<string,object>)this.options)["_temp_currencies_chains"] = chains;
         Dictionary<string, object> result = this.parseCurrencies(rows);
         ((IDictionary<string,object>)this.options).Remove((string)"_temp_currencies_chains");
-        return result;
+        return ((IDictionary<string, object>)((object)(result)));
     }
 
-    public override object parseCurrency(object currency)
+    public override Dictionary<string, object> parseCurrency(object currency)
     {
         string? currencyId = this.safeString(currency, "token");
         string? code = this.safeCurrencyCode(currencyId);
@@ -726,7 +725,7 @@ public partial class apex : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(perpetualContract));
     }
 
-    public override object parseMarket(object market)
+    public override Dictionary<string, object> parseMarket(object market)
     {
         string? id = this.safeString(market, "symbol");
         string? id2 = this.safeString(market, "crossSymbolName");
@@ -794,7 +793,7 @@ public partial class apex : Exchange
         });
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         //
         // {
@@ -814,7 +813,6 @@ public partial class apex : Exchange
         //     "tradeCount": 100
         // }
         //
-        Int64 timestamp = this.milliseconds();
         string? marketId = this.safeString(ticker, "symbol");
         market = this.safeMarket(marketId, market);
         string? symbol = this.safeSymbol(marketId, market);
@@ -826,8 +824,8 @@ public partial class apex : Exchange
         string? low = this.safeString(ticker, "lowPrice24h");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
-            { "timestamp", timestamp },
-            { "datetime", this.iso8601(timestamp) },
+            { "timestamp", null },
+            { "datetime", null },
             { "high", high },
             { "low", low },
             { "bid", null },
@@ -912,7 +910,7 @@ public partial class apex : Exchange
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
@@ -1017,7 +1015,7 @@ public partial class apex : Exchange
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         Int64 timestamp = this.milliseconds();
-        object orderbook = this.parseOrderBook(data, getValue(market, "symbol"), timestamp, "b", "a");
+        Dictionary<string, object> orderbook = ((Dictionary<string, object>)this.parseOrderBook(data, getValue(market, "symbol"), timestamp, "b", "a"));
         ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(data, "u");
         return ccxt.BaseExchange.ToOrderBook(orderbook);
     }
@@ -1077,7 +1075,7 @@ public partial class apex : Exchange
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limitVar));
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         // [
@@ -1163,7 +1161,6 @@ public partial class apex : Exchange
         //     "tradeCount": 100
         // }
         //
-        Int64 timestamp = this.milliseconds();
         string? marketId = this.safeString(interest, "symbol");
         market = this.safeMarket(marketId, market);
         string? symbol = this.safeSymbol(marketId, market);
@@ -1171,8 +1168,8 @@ public partial class apex : Exchange
             { "symbol", symbol },
             { "openInterestAmount", this.safeString(interest, "openInterest") },
             { "openInterestValue", null },
-            { "timestamp", timestamp },
-            { "datetime", this.iso8601(timestamp) },
+            { "timestamp", null },
+            { "datetime", null },
             { "info", interest },
         }, market);
     }
@@ -1257,7 +1254,7 @@ public partial class apex : Exchange
         return ccxt.BaseExchange.ToFundingRateHistoryList(this.filterBySymbolSinceLimit(sorted, symbol, since, limit));
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         // {
@@ -1325,7 +1322,7 @@ public partial class apex : Exchange
         string? status = this.safeString(order, "status");
         string? side = this.safeStringLower(order, "side");
         // const average = this.omitZero (this.safeString (order, 'avg_fill_price'));
-        object remaining = this.omitZero(this.safeString(order, "remainingSize"));
+        string? remaining = ((string)this.omitZero(this.safeString(order, "remainingSize")));
         Int64? lastUpdateTimestamp = this.safeInteger(order, "updatedTime");
         return this.safeOrder(new Dictionary<string, object>() {
             { "id", orderId },
@@ -1535,7 +1532,7 @@ public partial class apex : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a price argument for market orders")) ;
         }
         string? timeInForce = this.safeStringUpper(parameters, "timeInForce");
-        object postOnly = this.isPostOnly(isMarket, null, parameters);
+        bool postOnly = this.isPostOnly(isMarket, null, parameters);
         if (isTrue(isEqual(timeInForce, null)))
         {
             timeInForce = "GOOD_TIL_CANCEL";
@@ -1661,7 +1658,7 @@ public partial class apex : Exchange
         }
         string? tokenId = this.safeString(currency, "tokenId", "");
         double? decimalsNum = this.safeNumber(currency, "decimals", 0);
-        object decimalsNumber = ((bool) isTrue((isEqual(decimalsNum, null)))) ? 0 : decimalsNum;
+        double? decimalsNumber = ((bool) isTrue((isEqual(decimalsNum, null)))) ? 0 : decimalsNum;
         double mathPowResult = (Math.Pow(Convert.ToDouble(10), Convert.ToDouble(decimalsNumber)));
         Int64? amountNumber = this.parseToInt(multiply(amount, mathPowResult));
         Int64? timestampSeconds = this.parseToInt(divide(this.milliseconds(), 1000));
@@ -2148,7 +2145,7 @@ public partial class apex : Exchange
         return ccxt.BaseExchange.ToPositionList(this.parsePositions(positions, symbols));
     }
 
-    public override object parsePosition(object position, object market = null)
+    public override Dictionary<string, object> parsePosition(object position, object market = null)
     {
         //
         // {
@@ -2209,7 +2206,7 @@ public partial class apex : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object url = add(add(this.implodeHostname(getValue(getValue(this.urls, "api"), api)), "/"), path);
+        string url = add(add(this.implodeHostname(getValue(getValue(this.urls, "api"), api)), "/"), path);
         headers = new Dictionary<string, object>() {
             { "User-Agent", "apex-CCXT" },
             { "Accept", "application/json" },

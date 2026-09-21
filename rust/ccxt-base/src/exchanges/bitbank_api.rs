@@ -67,6 +67,11 @@ impl BitbankCore {
         self.call_method(Value::Str("private_get_user_spot_active_orders".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetUserMarginStatus` implicit endpoint.
+    pub async fn private_get_user_margin_status(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_user_margin_status".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetUserMarginPositions` implicit endpoint.
     pub async fn private_get_user_margin_positions(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_user_margin_positions".to_string()), optional_args).await

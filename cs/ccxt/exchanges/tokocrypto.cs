@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class tokocrypto : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "tokocrypto" },
@@ -848,7 +848,7 @@ public partial class tokocrypto : Exchange
             await this.loadTimeDifference();
         }
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object list = this.safeValue(data, "list", new List<object>() {});
+        List<object> list = this.safeList(data, "list", new List<object>() {});
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(list)); postFixIncrement(ref i))
         {
@@ -866,7 +866,7 @@ public partial class tokocrypto : Exchange
             Dictionary<string, object> filtersByType = this.indexBy(filters, "filterType");
             string? status = this.safeString(market, "spotTradingEnable");
             bool active = (isEqual(status, "1"));
-            object permissions = this.safeValue(market, "permissions", new List<object>() {});
+            List<object> permissions = this.safeList(market, "permissions", new List<object>() {});
             for (int j = 0; isLessThan(j, getArrayLength(permissions)); postFixIncrement(ref j))
             {
                 if (isTrue(isEqual(getValue(permissions, j), "TRD_GRP_003")))
@@ -930,7 +930,7 @@ public partial class tokocrypto : Exchange
             };
             if (isTrue(inOp(filtersByType, "PRICE_FILTER")))
             {
-                object filter = this.safeValue(filtersByType, "PRICE_FILTER", new Dictionary<string, object>() {});
+                IDictionary<string, object> filter = this.safeDict(filtersByType, "PRICE_FILTER", new Dictionary<string, object>() {});
                 ((IDictionary<string,object>)getValue(entry, "precision"))["price"] = this.safeNumber(filter, "tickSize");
                 // PRICE_FILTER reports zero values for maxPrice
                 // since they updated filter types in November 2018
@@ -1033,12 +1033,12 @@ public partial class tokocrypto : Exchange
         //     }
         object data = this.safeValue(response, "data", response);
         Int64? timestamp = this.safeInteger2(response, "T", "timestamp");
-        object orderbook = this.parseOrderBook(data, symbol, timestamp);
+        Dictionary<string, object> orderbook = ((Dictionary<string, object>)this.parseOrderBook(data, symbol, timestamp));
         ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(data, "lastUpdateId");
         return ccxt.BaseExchange.ToOrderBook(orderbook);
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         // aggregate trades
@@ -1310,7 +1310,7 @@ public partial class tokocrypto : Exchange
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(responseList, market, since, limit));
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         //
         //     {
@@ -1455,7 +1455,7 @@ public partial class tokocrypto : Exchange
      * @param {object} market a unified market structure
      * @returns {string} the raw market id for native markets, the id without the underscore separator otherwise
      */
-    public virtual object getMarketIdByType(object market)
+    public virtual string? getMarketIdByType(object market)
     {
         if (isTrue(this.isNativeMarket(market)))
         {
@@ -1572,7 +1572,7 @@ public partial class tokocrypto : Exchange
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
@@ -1729,13 +1729,13 @@ public partial class tokocrypto : Exchange
             { "datetime", this.iso8601(timestamp) },
         };
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object balances = this.safeValue(data, "accountAssets", new List<object>() {});
+        List<object> balances = this.safeList(data, "accountAssets", new List<object>() {});
         for (int i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
         {
             object balance = getValue(balances, i);
             string? currencyId = this.safeString(balance, "asset");
             string? code = this.safeCurrencyCode(currencyId);
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "free");
             ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "locked");
             if (isTrue(!isEqual(code, null)))
@@ -1768,7 +1768,7 @@ public partial class tokocrypto : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         // spot

@@ -152,6 +152,16 @@ impl BithumbCore {
         self.call_method(Value::Str("private_get_v1_orders".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetV2OrdersPending` implicit endpoint.
+    pub async fn private_get_v2_orders_pending(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v2_orders_pending".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetV2OrdersHistory` implicit endpoint.
+    pub async fn private_get_v2_orders_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v2_orders_history".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetV1Twap` implicit endpoint.
     pub async fn private_get_v1_twap(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v1_twap".to_string()), optional_args).await
@@ -305,6 +315,11 @@ impl BithumbCore {
     /// Auto-generated wrapper for the `privatePostV2OrdersCancel` implicit endpoint.
     pub async fn private_post_v2_orders_cancel(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v2_orders_cancel".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV2OrdersSearch` implicit endpoint.
+    pub async fn private_post_v2_orders_search(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v2_orders_search".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV1Twap` implicit endpoint.

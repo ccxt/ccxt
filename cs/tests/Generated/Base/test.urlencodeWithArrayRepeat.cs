@@ -18,7 +18,7 @@ public partial class BaseTest
             };
             string expected2a = "a=1&product_ids=AA&product_ids=BB";
             string expected2b = "product_ids=AA&product_ids=BB&a=1";
-            object result2 = exchange.urlencodeWithArrayRepeat(dict2);
+            string result2 = exchange.urlencodeWithArrayRepeat(dict2);
             Assert(isTrue(isEqual(result2, expected2a)) || isTrue(isEqual(result2, expected2b)), add(add(add(add(add("urlencodeWithArrayRepeat: expected ", expected2a), " or "), expected2b), " but got "), result2));
         }
 }

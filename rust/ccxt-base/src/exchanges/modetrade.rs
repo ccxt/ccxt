@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 
 
 pub struct ModetradeCore {
@@ -518,6 +522,11 @@ impl ModetradeCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
+        m.insert("tv/kline_history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(20));
+    m
+}));
         m.insert("public/funding_rate_history".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
@@ -568,6 +577,11 @@ impl ModetradeCore {
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("register_account".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("public/query".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
     m
@@ -670,6 +684,11 @@ impl ModetradeCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
+        m.insert("internal_transfer_history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
         m.insert("volume/user/daily".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(60));
@@ -735,12 +754,72 @@ impl ModetradeCore {
         m.insert("cost".to_string(), Value::Int(10));
     m
 }));
+        m.insert("broker/daily_fee_revenue".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
         m.insert("orderbook/{symbol}".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
         m.insert("kline".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("client/leverages".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("client/margin_modes".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("referral/multi_level/admin".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("referral/multi_level/admin/info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("referral/multi_level/admin/referee_list".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("referral/multi_level/admin/summary".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("referral/multi_level/max_rebate_rate".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("referral/multi_level/rebate_info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("referral/multi_level/referee_list".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("referral/multi_level/statistics".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("referral/multi_level/volume_prerequisite".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
     m
@@ -799,6 +878,11 @@ impl ModetradeCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
+        m.insert("internal_transfer".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
         m.insert("notification/inbox/mark_read".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(60));
@@ -812,6 +896,21 @@ impl ModetradeCore {
         m.insert("client/leverage".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(120));
+    m
+}));
+        m.insert("client/leverages".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(120));
+    m
+}));
+        m.insert("client/margin_mode".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("position_margin".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
     m
 }));
         m.insert("client/maintenance_config".to_string(), Value::Map({
@@ -870,6 +969,51 @@ impl ModetradeCore {
     m
 }));
         m.insert("referral/edit_split".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("referral/edit_referee_description".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("referral/multi_level/admin".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("referral/multi_level/admin/update".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("referral/multi_level/admin/create/affiliate".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("referral/multi_level/admin/reset/affiliate".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("referral/multi_level/admin/update/affiliate".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("referral/multi_level/claim_code".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("referral/multi_level/rebate_rate/set_default".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("referral/multi_level/rebate_rate/update".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(10));
     m
@@ -1435,8 +1579,8 @@ impl ModetradeCore {
         });
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_949: bool = true;
-            while { if !__for_first_949 { j = add(&j, &Value::Int(1)); } __for_first_949 = false; is_less_than(&j, &get_array_length(&networks)) } {
+            let mut __for_first_952: bool = true;
+            while { if !__for_first_952 { j = add(&j, &Value::Int(1)); } __for_first_952 = false; is_less_than(&j, &get_array_length(&networks)) } {
             let mut network: Value = get_value(&networks, &j);
             let mut network: Value = get_value(&networks, &j);
             // TODO: transform chain id to human readable name
@@ -1904,8 +2048,8 @@ impl ModetradeCore {
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_950: bool = true;
-            while { if !__for_first_950 { i = add(&i, &Value::Int(1)); } __for_first_950 = false; is_less_than(&i, &get_array_length(&result)) } {
+            let mut __for_first_953: bool = true;
+            while { if !__for_first_953 { i = add(&i, &Value::Int(1)); } __for_first_953 = false; is_less_than(&i, &get_array_length(&result)) } {
             let mut entry: Value = get_value(&result, &i);
             let mut entry: Value = get_value(&result, &i);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
@@ -2106,8 +2250,8 @@ impl ModetradeCore {
         if !is_equal(&symbols, &Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_951: bool = true;
-                while { if !__for_first_951 { i = add(&i, &Value::Int(1)); } __for_first_951 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_954: bool = true;
+                while { if !__for_first_954 { i = add(&i, &Value::Int(1)); } __for_first_954 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbol: Value = get_value(&symbols, &i);
                 add_element_to_object(&mut result, &symbol, Value::Map({
@@ -2333,7 +2477,7 @@ impl ModetradeCore {
         let mut childOrders: Value = self.safe_value_k(order.clone(), "childOrders", &[]);
         if !is_equal(&childOrders, &Value::Null) {
             let mut first: Value = self.safe_value(childOrders.clone(), Value::Int(0), &[]);
-            let mut innerChildOrders: Value = self.safe_value_k(first.clone(), "childOrders", &[Value::List(vec![])]);
+            let mut innerChildOrders: Value = self.safe_list_k(first.clone(), "childOrders", &[Value::List(vec![])]);
             let mut innerChildOrdersLength: Value = get_array_length(&innerChildOrders);
             if is_greater_than(&innerChildOrdersLength, &Value::Int(0)) {
                 let mut takeProfitOrder: Value = self.safe_value(innerChildOrders.clone(), Value::Int(0), &[]);
@@ -2417,7 +2561,7 @@ impl ModetradeCore {
             }
             return self.safe_string(statuses.clone(), status.clone(), &[status.clone()]);
         }
-        return status;
+        return Value::Null;
 
     Value::Null
 }
@@ -2641,8 +2785,8 @@ impl ModetradeCore {
         let mut ordersRequests: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_952: bool = true;
-            while { if !__for_first_952 { i = add(&i, &Value::Int(1)); } __for_first_952 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_955: bool = true;
+            while { if !__for_first_955 { i = add(&i, &Value::Int(1)); } __for_first_955 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
@@ -3429,8 +3573,8 @@ impl ModetradeCore {
         let mut balances: Value = self.safe_list_k(response.clone(), "holding", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_953: bool = true;
-            while { if !__for_first_953 { i = add(&i, &Value::Int(1)); } __for_first_953 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_956: bool = true;
+            while { if !__for_first_956 { i = add(&i, &Value::Int(1)); } __for_first_956 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut balance: Value = get_value(&balances, &i);
             let mut balance: Value = get_value(&balances, &i);
             let mut code: Value = self.safe_currency_code(self.safe_string_k(balance.clone(), "token", &[]), &[]);
@@ -3503,13 +3647,13 @@ impl ModetradeCore {
         let mut currency: Value = Value::Null;
         if !is_equal(&code, &Value::Null) {
             currency = self.currency(code.clone());
-            add_element_to_object(&mut request, &Value::Str("balance_token".to_string()), get_value(&currency, &Value::Str("id".to_string())));
+            add_element_to_object(&mut request, &Value::Str("token".to_string()), get_value(&currency, &Value::Str("id".to_string())));
         }
         if !is_equal(&since, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("start_t".to_string()), since.clone());
         }
         if !is_equal(&limit, &Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("pageSize".to_string()), limit.clone());
+            add_element_to_object(&mut request, &Value::Str("size".to_string()), limit.clone());
         }
         let mut transactionType: Value = self.safe_string_k(params.clone(), "type", &[]);
         params = self.omit(params.clone(), Value::Str("type".to_string()), &[]);
@@ -3554,22 +3698,48 @@ impl ModetradeCore {
 
     pub fn parse_ledger_entry(&self, mut item: Value, optional_args: &[Value]) -> Value {
         let mut currency = get_arg(optional_args, 0, Value::Null);
+        //
+        //     {
+        //         "id": "230707030600002",
+        //         "tx_id": "0x4b0714c63cc7abae72bf68e84e25860b88ca651b7d27dad1e32bf4c027fa5326",
+        //         "side": "WITHDRAW",
+        //         "token": "USDC",
+        //         "amount": 555,
+        //         "fee": 123,
+        //         "trans_status": "FAILED",
+        //         "created_time": 1688699193034,
+        //         "updated_time": 1688699193096,
+        //         "chain_id": "986532"
+        //     }
+        //
         let mut currencyId: Value = self.safe_string_k(item.clone(), "token", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[currency.clone()]);
         currency = self.safe_currency(currencyId.clone(), &[currency.clone()]);
         let mut amount: Value = self.safe_number_k(item.clone(), "amount", &[]);
-        let mut side: Value = self.safe_string_k(item.clone(), "token_side", &[]);
-        let mut direction: Value = ternary(is_true(&(is_equal(&side, &Value::Str("DEPOSIT".to_string())))), Value::Str("in".to_string()), Value::Str("out".to_string()));
+        let mut side: Value = self.safe_string_k(item.clone(), "side", &[]);
+        let mut direction: Value = Value::Null;
+        if !is_equal(&side, &Value::Null) {
+            direction = ternary(is_true(&(is_equal(&side, &Value::Str("DEPOSIT".to_string())))), Value::Str("in".to_string()), Value::Str("out".to_string()));
+        }
         let mut timestamp: Value = self.safe_integer_k(item.clone(), "created_time", &[]);
-        let mut fee: Value = self.parse_token_and_fee_temp(item.clone(), Value::Str("fee_token".to_string()), Value::Str("fee_amount".to_string()));
+        let mut feeCost: Value = self.parse_number(self.safe_string_k(item.clone(), "fee", &[]), &[]);
+        let mut fee: Value = Value::Null;
+        if !is_equal(&feeCost, &Value::Null) {
+            fee = Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("currency".to_string(), code.clone());
+                    m.insert("cost".to_string(), feeCost.clone());
+                m
+            });
+        }
         return self.safe_ledger_entry(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(item.clone(), "id", &[]));
         m.insert("currency".to_string(), code.clone());
-        m.insert("account".to_string(), self.safe_string_k(item.clone(), "account", &[]));
+        m.insert("account".to_string(), Value::Null);
         m.insert("referenceAccount".to_string(), Value::Null);
         m.insert("referenceId".to_string(), self.safe_string_k(item.clone(), "tx_id", &[]));
-        m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_k(item.clone(), "status", &[])));
+        m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_k(item.clone(), "trans_status", &[])));
         m.insert("amount".to_string(), amount.clone());
         m.insert("before".to_string(), Value::Null);
         m.insert("after".to_string(), Value::Null);
@@ -3577,7 +3747,7 @@ impl ModetradeCore {
         m.insert("direction".to_string(), direction.clone());
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
-        m.insert("type".to_string(), self.parse_ledger_entry_type(self.safe_string_k(item.clone(), "type", &[])));
+        m.insert("type".to_string(), self.parse_ledger_entry_type(self.safe_string2(item.clone(), Value::Str("type".to_string()), Value::Str("side".to_string()), &[])));
         m.insert("info".to_string(), item.clone());
     m
 }), &[currency.clone()]);
@@ -3590,6 +3760,8 @@ impl ModetradeCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("BALANCE".to_string(), Value::Str("transaction".to_string()));
                 m.insert("COLLATERAL".to_string(), Value::Str("transfer".to_string()));
+                m.insert("DEPOSIT".to_string(), Value::Str("transaction".to_string()));
+                m.insert("WITHDRAW".to_string(), Value::Str("transaction".to_string()));
             m
         });
         return self.safe_string(types.clone(), type_var.clone(), &[type_var.clone()]);
@@ -3626,15 +3798,36 @@ impl ModetradeCore {
 
     pub fn parse_transaction(&self, mut transaction: Value, optional_args: &[Value]) -> Value {
         let mut currency = get_arg(optional_args, 0, Value::Null);
-        // example in fetchLedger
-        let mut code: Value = self.safe_string_k(transaction.clone(), "token", &[]);
-        let mut movementDirection: Value = self.safe_string_lower(transaction.clone(), Value::Str("token_side".to_string()), &[]);
+        //
+        //     {
+        //         "id": "230707030600002",
+        //         "tx_id": "0x4b0714c63cc7abae72bf68e84e25860b88ca651b7d27dad1e32bf4c027fa5326",
+        //         "side": "WITHDRAW",
+        //         "token": "USDC",
+        //         "amount": 555,
+        //         "fee": 123,
+        //         "trans_status": "FAILED",
+        //         "created_time": 1688699193034,
+        //         "updated_time": 1688699193096,
+        //         "chain_id": "986532"
+        //     }
+        //
+        let mut currencyId: Value = self.safe_string_k(transaction.clone(), "token", &[]);
+        let mut code: Value = self.safe_currency_code(currencyId.clone(), &[currency.clone()]);
+        let mut movementDirection: Value = self.safe_string_lower(transaction.clone(), Value::Str("side".to_string()), &[]);
         if is_equal(&movementDirection, &Value::Str("withdraw".to_string())) {
             movementDirection = Value::Str("withdrawal".to_string());
         }
-        let mut fee: Value = self.parse_token_and_fee_temp(transaction.clone(), Value::Str("fee_token".to_string()), Value::Str("fee_amount".to_string()));
-        let mut addressTo: Value = self.safe_string_k(transaction.clone(), "target_address", &[]);
-        let mut addressFrom: Value = self.safe_string_k(transaction.clone(), "source_address", &[]);
+        let mut feeCost: Value = self.parse_number(self.safe_string_k(transaction.clone(), "fee", &[]), &[]);
+        let mut fee: Value = Value::Null;
+        if !is_equal(&feeCost, &Value::Null) {
+            fee = Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("currency".to_string(), code.clone());
+                    m.insert("cost".to_string(), feeCost.clone());
+                m
+            });
+        }
         let mut timestamp: Value = self.safe_integer_k(transaction.clone(), "created_time", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3644,15 +3837,15 @@ impl ModetradeCore {
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("address".to_string(), Value::Null);
-        m.insert("addressFrom".to_string(), addressFrom.clone());
-        m.insert("addressTo".to_string(), addressTo.clone());
-        m.insert("tag".to_string(), self.safe_string_k(transaction.clone(), "extra", &[]));
+        m.insert("addressFrom".to_string(), Value::Null);
+        m.insert("addressTo".to_string(), Value::Null);
+        m.insert("tag".to_string(), Value::Null);
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("tagTo".to_string(), Value::Null);
         m.insert("type".to_string(), movementDirection.clone());
         m.insert("amount".to_string(), self.safe_number_k(transaction.clone(), "amount", &[]));
         m.insert("currency".to_string(), code.clone());
-        m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_k(transaction.clone(), "status", &[])));
+        m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_k(transaction.clone(), "trans_status", &[])));
         m.insert("updated".to_string(), self.safe_integer_k(transaction.clone(), "updated_time", &[]));
         m.insert("comment".to_string(), Value::Null);
         m.insert("internal".to_string(), Value::Null);
@@ -3669,8 +3862,11 @@ impl ModetradeCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("NEW".to_string(), Value::Str("pending".to_string()));
                 m.insert("CONFIRMING".to_string(), Value::Str("pending".to_string()));
+                m.insert("PENDING".to_string(), Value::Str("pending".to_string()));
+                m.insert("PENDING_REBALANCE".to_string(), Value::Str("pending".to_string()));
                 m.insert("PROCESSING".to_string(), Value::Str("pending".to_string()));
                 m.insert("COMPLETED".to_string(), Value::Str("ok".to_string()));
+                m.insert("FAILED".to_string(), Value::Str("failed".to_string()));
                 m.insert("CANCELED".to_string(), Value::Str("canceled".to_string()));
             m
         });
@@ -3769,6 +3965,18 @@ impl ModetradeCore {
         let mut currencyRows: Value = self.get_asset_history_rows(&[code.clone(), since.clone(), limit.clone(), __ws_arg_30]).await;
         let mut currency: Value = self.safe_value(currencyRows.clone(), Value::Int(0), &[]);
         let mut rows: Value = self.safe_list(currencyRows.clone(), Value::Int(1), &[Value::List(vec![])]);
+        //
+        //     {
+        //         "rows":[],
+        //         "meta":{
+        //             "total":0,
+        //             "records_per_page":25,
+        //             "current_page":1
+        //         },
+        //         "success":true
+        //     }
+        //
+        params = self.omit(params.clone(), Value::Str("side".to_string()), &[]); // request-side filter, not a unified transaction field
         return self.parse_transactions(rows.clone(), &[currency.clone(), since.clone(), limit.clone(), params.clone()]);
 
     Value::Null
@@ -4308,8 +4516,8 @@ impl ModetradeCore {
                         let mut ordersList: Value = self.safe_list_k(params.clone(), "orders", &[Value::List(vec![])]);
                         {
                                                         let mut i: Value = Value::Int(0);
-                            let mut __for_first_954: bool = true;
-                            while { if !__for_first_954 { i = add(&i, &Value::Int(1)); } __for_first_954 = false; is_less_than(&i, &get_array_length(&ordersList)) } {
+                            let mut __for_first_957: bool = true;
+                            while { if !__for_first_957 { i = add(&i, &Value::Int(1)); } __for_first_957 = false; is_less_than(&i, &get_array_length(&ordersList)) } {
                             add_element_to_object(get_value_mut(get_value_mut(&mut params, &Value::Str("orders".to_string())), &i), &Value::Str("order_tag".to_string()), brokerId.clone());
                         }
                         }

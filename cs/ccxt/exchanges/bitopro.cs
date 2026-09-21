@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class bitopro : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "bitopro" },
@@ -374,7 +374,7 @@ public partial class bitopro : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public async override Task<object> fetchCurrencies(object parameters = null)
+    public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> response = await this.publicGetProvisioningCurrencies(parameters);
@@ -398,7 +398,7 @@ public partial class bitopro : Exchange
         return this.parseCurrencies(currencies);
     }
 
-    public override object parseCurrency(object rawCurrency)
+    public override Dictionary<string, object> parseCurrency(object rawCurrency)
     {
         object fiatCurrencies = this.handleOption("fetchCurrencies", "fiatCurrencies", new List<object>() {});
         string? currencyId = this.safeString(rawCurrency, "currency");
@@ -467,7 +467,7 @@ public partial class bitopro : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(markets));
     }
 
-    public override object parseMarket(object market)
+    public override Dictionary<string, object> parseMarket(object market)
     {
         bool active = (!isEqual(this.safeBool(market, "maintain"), true));
         string? id = this.safeString(market, "pair");
@@ -534,7 +534,7 @@ public partial class bitopro : Exchange
         });
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         //
         //     {
@@ -697,7 +697,7 @@ public partial class bitopro : Exchange
         return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, getValue(market, "symbol"), null, "bids", "asks", "price", "amount"));
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades
@@ -725,7 +725,7 @@ public partial class bitopro : Exchange
         //
         string? id = this.safeString(trade, "tradeId");
         string? orderId = this.safeString(trade, "orderId");
-        object timestamp = null;
+        Int64? timestamp = null;
         if (isTrue(isEqual(id, null)))
         {
             timestamp = this.safeTimestamp(trade, "timestamp");
@@ -916,7 +916,7 @@ public partial class bitopro : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         double? maker = this.safeNumber(first, "makerFee");
         double? taker = this.safeNumber(first, "takerFee");
-        object symbols = this.symbols;
+        List<object> symbols = this.symbols;
         for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
@@ -951,7 +951,7 @@ public partial class bitopro : Exchange
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
@@ -981,7 +981,7 @@ public partial class bitopro : Exchange
             ((IDictionary<string,object>)request)["from"] = subtract(getValue(request, "to"), (multiply(limitVar, timeframeInSeconds)));
         } else
         {
-            object timeframeInMilliseconds = multiply(timeframeInSeconds, 1000);
+            Int64 timeframeInMilliseconds = multiply(timeframeInSeconds, 1000);
             alignedSince = multiply((Math.Floor(Double.Parse((divide(since, timeframeInMilliseconds)).ToString()))), timeframeInMilliseconds);
             ((IDictionary<string,object>)request)["from"] = (Math.Floor(Double.Parse((divide(since, 1000)).ToString())));
             ((IDictionary<string,object>)request)["to"] = this.sum(getValue(request, "from"), multiply(limitVar, timeframeInSeconds));
@@ -1133,7 +1133,7 @@ public partial class bitopro : Exchange
         return ((bool) isTrue((isEqual(status, null)))) ? null : this.safeString(statuses, status);
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         // createOrder
@@ -1284,7 +1284,7 @@ public partial class bitopro : Exchange
                 ((IDictionary<string,object>)request)["condition"] = condition;
             }
         }
-        object postOnly = this.isPostOnly(isEqual(orderType, "MARKET"), null, parameters);
+        bool postOnly = this.isPostOnly(isEqual(orderType, "MARKET"), null, parameters);
         if (isTrue(postOnly))
         {
             ((IDictionary<string,object>)request)["timeInForce"] = "POST_ONLY";
@@ -1342,7 +1342,7 @@ public partial class bitopro : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
     }
 
-    public virtual object parseCancelOrders(object data)
+    public virtual List<object> parseCancelOrders(object data)
     {
         List<object> dataKeys = new List<object>(((IDictionary<string,object>)data).Keys);
         List<object> orders = new List<object>() {};
@@ -1359,7 +1359,7 @@ public partial class bitopro : Exchange
                 }));
             }
         }
-        return orders;
+        return ((List<object>)((object)(orders)));
     }
 
     /**

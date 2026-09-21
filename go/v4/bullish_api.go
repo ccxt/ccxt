@@ -8,361 +8,361 @@
 package ccxt
 
 // PublicGetV1Nonce returns a channel that yields a JSON object.
-func (this *BullishCore) PublicGetV1Nonce(args ...any) <-chan any {
+func (this *Bullish) PublicGetV1Nonce(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV1Nonce", args...)
 }
 
 // PublicGetV1Time returns a channel that yields a JSON object.
-func (this *BullishCore) PublicGetV1Time(args ...any) <-chan any {
+func (this *Bullish) PublicGetV1Time(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV1Time", args...)
 }
 
 // PublicGetV1Assets returns a channel that yields a JSON array.
-func (this *BullishCore) PublicGetV1Assets(args ...any) <-chan any {
+func (this *Bullish) PublicGetV1Assets(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV1Assets", args...)
 }
 
 // PublicGetV1AssetsSymbol returns a channel that yields a JSON object.
-func (this *BullishCore) PublicGetV1AssetsSymbol(args ...any) <-chan any {
+func (this *Bullish) PublicGetV1AssetsSymbol(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV1AssetsSymbol", args...)
 }
 
 // PublicGetV1VolGrids returns a channel that yields a JSON array.
-func (this *BullishCore) PublicGetV1VolGrids(args ...any) <-chan any {
+func (this *Bullish) PublicGetV1VolGrids(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV1VolGrids", args...)
 }
 
 // PublicGetV1AssetsSymbolVolGrid returns a channel that yields a JSON object.
-func (this *BullishCore) PublicGetV1AssetsSymbolVolGrid(args ...any) <-chan any {
+func (this *Bullish) PublicGetV1AssetsSymbolVolGrid(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV1AssetsSymbolVolGrid", args...)
 }
 
 // PublicGetV1Markets returns a channel that yields a JSON array.
-func (this *BullishCore) PublicGetV1Markets(args ...any) <-chan any {
+func (this *Bullish) PublicGetV1Markets(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV1Markets", args...)
 }
 
 // PublicGetV1MarketsSymbol returns a channel that yields a JSON object.
-func (this *BullishCore) PublicGetV1MarketsSymbol(args ...any) <-chan any {
+func (this *Bullish) PublicGetV1MarketsSymbol(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV1MarketsSymbol", args...)
 }
 
 // PublicGetV1HistoryMarkets returns a channel that yields a JSON array.
-func (this *BullishCore) PublicGetV1HistoryMarkets(args ...any) <-chan any {
+func (this *Bullish) PublicGetV1HistoryMarkets(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV1HistoryMarkets", args...)
 }
 
 // PublicGetV1HistoryMarketsSymbol returns a channel that yields a JSON object.
-func (this *BullishCore) PublicGetV1HistoryMarketsSymbol(args ...any) <-chan any {
+func (this *Bullish) PublicGetV1HistoryMarketsSymbol(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV1HistoryMarketsSymbol", args...)
 }
 
 // PublicGetV1MarketsSymbolOrderbookHybrid returns a channel that yields a JSON object.
-func (this *BullishCore) PublicGetV1MarketsSymbolOrderbookHybrid(args ...any) <-chan any {
+func (this *Bullish) PublicGetV1MarketsSymbolOrderbookHybrid(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV1MarketsSymbolOrderbookHybrid", args...)
 }
 
 // PublicGetV1MarketsSymbolTrades returns a channel that yields a JSON array.
-func (this *BullishCore) PublicGetV1MarketsSymbolTrades(args ...any) <-chan any {
+func (this *Bullish) PublicGetV1MarketsSymbolTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV1MarketsSymbolTrades", args...)
 }
 
 // PublicGetV1MarketsSymbolTick returns a channel that yields a JSON object.
-func (this *BullishCore) PublicGetV1MarketsSymbolTick(args ...any) <-chan any {
+func (this *Bullish) PublicGetV1MarketsSymbolTick(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV1MarketsSymbolTick", args...)
 }
 
 // PublicGetV1MarketsSymbolCandle returns a channel that yields a JSON array.
-func (this *BullishCore) PublicGetV1MarketsSymbolCandle(args ...any) <-chan any {
+func (this *Bullish) PublicGetV1MarketsSymbolCandle(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV1MarketsSymbolCandle", args...)
 }
 
 // PublicGetV1MarketsSymbolAuctions returns a channel that yields a JSON object.
-func (this *BullishCore) PublicGetV1MarketsSymbolAuctions(args ...any) <-chan any {
+func (this *Bullish) PublicGetV1MarketsSymbolAuctions(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV1MarketsSymbolAuctions", args...)
 }
 
 // PublicGetV1MarketsSymbolAuctionsNoii returns a channel that yields a JSON object.
-func (this *BullishCore) PublicGetV1MarketsSymbolAuctionsNoii(args ...any) <-chan any {
+func (this *Bullish) PublicGetV1MarketsSymbolAuctionsNoii(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV1MarketsSymbolAuctionsNoii", args...)
 }
 
 // PublicGetV1HistoryMarketsSymbolTrades returns a channel that yields a JSON array.
-func (this *BullishCore) PublicGetV1HistoryMarketsSymbolTrades(args ...any) <-chan any {
+func (this *Bullish) PublicGetV1HistoryMarketsSymbolTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV1HistoryMarketsSymbolTrades", args...)
 }
 
 // PublicGetV1HistoryMarketsSymbolFundingRate returns a channel that yields a JSON array.
-func (this *BullishCore) PublicGetV1HistoryMarketsSymbolFundingRate(args ...any) <-chan any {
+func (this *Bullish) PublicGetV1HistoryMarketsSymbolFundingRate(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV1HistoryMarketsSymbolFundingRate", args...)
 }
 
 // PublicGetV1HistoryMarketsSymbolAuctions returns a channel that yields a JSON array.
-func (this *BullishCore) PublicGetV1HistoryMarketsSymbolAuctions(args ...any) <-chan any {
+func (this *Bullish) PublicGetV1HistoryMarketsSymbolAuctions(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV1HistoryMarketsSymbolAuctions", args...)
 }
 
 // PublicGetV1HistoryOptionTrades returns a channel that yields a JSON array.
-func (this *BullishCore) PublicGetV1HistoryOptionTrades(args ...any) <-chan any {
+func (this *Bullish) PublicGetV1HistoryOptionTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV1HistoryOptionTrades", args...)
 }
 
 // PublicGetV1IndexPrices returns a channel that yields a JSON array.
-func (this *BullishCore) PublicGetV1IndexPrices(args ...any) <-chan any {
+func (this *Bullish) PublicGetV1IndexPrices(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV1IndexPrices", args...)
 }
 
 // PublicGetV1IndexPricesAssetSymbol returns a channel that yields a JSON object.
-func (this *BullishCore) PublicGetV1IndexPricesAssetSymbol(args ...any) <-chan any {
+func (this *Bullish) PublicGetV1IndexPricesAssetSymbol(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV1IndexPricesAssetSymbol", args...)
 }
 
 // PublicGetV1ExpiryPricesSymbol returns a channel that yields a JSON object.
-func (this *BullishCore) PublicGetV1ExpiryPricesSymbol(args ...any) <-chan any {
+func (this *Bullish) PublicGetV1ExpiryPricesSymbol(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV1ExpiryPricesSymbol", args...)
 }
 
 // PublicGetV1OptionLadder returns a channel that yields a JSON array.
-func (this *BullishCore) PublicGetV1OptionLadder(args ...any) <-chan any {
+func (this *Bullish) PublicGetV1OptionLadder(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV1OptionLadder", args...)
 }
 
 // PublicGetV1OptionLadderSymbol returns a channel that yields a JSON object.
-func (this *BullishCore) PublicGetV1OptionLadderSymbol(args ...any) <-chan any {
+func (this *Bullish) PublicGetV1OptionLadderSymbol(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV1OptionLadderSymbol", args...)
 }
 
 // PrivateGetV2Orders returns a channel that yields a JSON array.
-func (this *BullishCore) PrivateGetV2Orders(args ...any) <-chan any {
+func (this *Bullish) PrivateGetV2Orders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV2Orders", args...)
 }
 
 // PrivateGetV2HistoryOrders returns a channel that yields a JSON array.
-func (this *BullishCore) PrivateGetV2HistoryOrders(args ...any) <-chan any {
+func (this *Bullish) PrivateGetV2HistoryOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV2HistoryOrders", args...)
 }
 
 // PrivateGetV2OrdersOrderId returns a channel that yields a JSON object.
-func (this *BullishCore) PrivateGetV2OrdersOrderId(args ...any) <-chan any {
+func (this *Bullish) PrivateGetV2OrdersOrderId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV2OrdersOrderId", args...)
 }
 
 // PrivateGetV2OrdersClientOrderIdClientOrderId returns a channel that yields a JSON object.
-func (this *BullishCore) PrivateGetV2OrdersClientOrderIdClientOrderId(args ...any) <-chan any {
+func (this *Bullish) PrivateGetV2OrdersClientOrderIdClientOrderId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV2OrdersClientOrderIdClientOrderId", args...)
 }
 
 // PrivateGetV2AmmInstructions returns a channel that yields a JSON array.
-func (this *BullishCore) PrivateGetV2AmmInstructions(args ...any) <-chan any {
+func (this *Bullish) PrivateGetV2AmmInstructions(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV2AmmInstructions", args...)
 }
 
 // PrivateGetV2AmmInstructionsInstructionId returns a channel that yields a JSON object.
-func (this *BullishCore) PrivateGetV2AmmInstructionsInstructionId(args ...any) <-chan any {
+func (this *Bullish) PrivateGetV2AmmInstructionsInstructionId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV2AmmInstructionsInstructionId", args...)
 }
 
 // PrivateGetV1WalletsTransactions returns a channel that yields a JSON object.
-func (this *BullishCore) PrivateGetV1WalletsTransactions(args ...any) <-chan any {
+func (this *Bullish) PrivateGetV1WalletsTransactions(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV1WalletsTransactions", args...)
 }
 
 // PrivateGetV1WalletsLimitsSymbol returns a channel that yields a JSON object.
-func (this *BullishCore) PrivateGetV1WalletsLimitsSymbol(args ...any) <-chan any {
+func (this *Bullish) PrivateGetV1WalletsLimitsSymbol(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV1WalletsLimitsSymbol", args...)
 }
 
 // PrivateGetV1WalletsDepositInstructionsCryptoSymbol returns a channel that yields a JSON array.
-func (this *BullishCore) PrivateGetV1WalletsDepositInstructionsCryptoSymbol(args ...any) <-chan any {
+func (this *Bullish) PrivateGetV1WalletsDepositInstructionsCryptoSymbol(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV1WalletsDepositInstructionsCryptoSymbol", args...)
 }
 
 // PrivateGetV1WalletsWithdrawalInstructionsCryptoSymbol returns a channel that yields a JSON array.
-func (this *BullishCore) PrivateGetV1WalletsWithdrawalInstructionsCryptoSymbol(args ...any) <-chan any {
+func (this *Bullish) PrivateGetV1WalletsWithdrawalInstructionsCryptoSymbol(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV1WalletsWithdrawalInstructionsCryptoSymbol", args...)
 }
 
 // PrivateGetV1WalletsDepositInstructionsFiatSymbol returns a channel that yields a JSON array.
-func (this *BullishCore) PrivateGetV1WalletsDepositInstructionsFiatSymbol(args ...any) <-chan any {
+func (this *Bullish) PrivateGetV1WalletsDepositInstructionsFiatSymbol(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV1WalletsDepositInstructionsFiatSymbol", args...)
 }
 
 // PrivateGetV1WalletsWithdrawalInstructionsFiatSymbol returns a channel that yields a JSON array.
-func (this *BullishCore) PrivateGetV1WalletsWithdrawalInstructionsFiatSymbol(args ...any) <-chan any {
+func (this *Bullish) PrivateGetV1WalletsWithdrawalInstructionsFiatSymbol(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV1WalletsWithdrawalInstructionsFiatSymbol", args...)
 }
 
 // PrivateGetV1WalletsSelfHostedVerificationAttempts returns a channel that yields a JSON array.
-func (this *BullishCore) PrivateGetV1WalletsSelfHostedVerificationAttempts(args ...any) <-chan any {
+func (this *Bullish) PrivateGetV1WalletsSelfHostedVerificationAttempts(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV1WalletsSelfHostedVerificationAttempts", args...)
 }
 
 // PrivateGetV1Trades returns a channel that yields a JSON array.
-func (this *BullishCore) PrivateGetV1Trades(args ...any) <-chan any {
+func (this *Bullish) PrivateGetV1Trades(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV1Trades", args...)
 }
 
 // PrivateGetV1HistoryTrades returns a channel that yields a JSON array.
-func (this *BullishCore) PrivateGetV1HistoryTrades(args ...any) <-chan any {
+func (this *Bullish) PrivateGetV1HistoryTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV1HistoryTrades", args...)
 }
 
 // PrivateGetV1TradesTradeId returns a channel that yields a JSON object.
-func (this *BullishCore) PrivateGetV1TradesTradeId(args ...any) <-chan any {
+func (this *Bullish) PrivateGetV1TradesTradeId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV1TradesTradeId", args...)
 }
 
 // PrivateGetV1TradesClientOrderIdClientOrderId returns a channel that yields a JSON array.
-func (this *BullishCore) PrivateGetV1TradesClientOrderIdClientOrderId(args ...any) <-chan any {
+func (this *Bullish) PrivateGetV1TradesClientOrderIdClientOrderId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV1TradesClientOrderIdClientOrderId", args...)
 }
 
 // PrivateGetV1AccountsAsset returns a channel that yields a JSON array.
-func (this *BullishCore) PrivateGetV1AccountsAsset(args ...any) <-chan any {
+func (this *Bullish) PrivateGetV1AccountsAsset(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV1AccountsAsset", args...)
 }
 
 // PrivateGetV1AccountsAssetSymbol returns a channel that yields a JSON object.
-func (this *BullishCore) PrivateGetV1AccountsAssetSymbol(args ...any) <-chan any {
+func (this *Bullish) PrivateGetV1AccountsAssetSymbol(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV1AccountsAssetSymbol", args...)
 }
 
 // PrivateGetV1UsersLogout returns a channel that yields a JSON object.
-func (this *BullishCore) PrivateGetV1UsersLogout(args ...any) <-chan any {
+func (this *Bullish) PrivateGetV1UsersLogout(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV1UsersLogout", args...)
 }
 
 // PrivateGetV1UsersHmacLogin returns a channel that yields a JSON object.
-func (this *BullishCore) PrivateGetV1UsersHmacLogin(args ...any) <-chan any {
+func (this *Bullish) PrivateGetV1UsersHmacLogin(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV1UsersHmacLogin", args...)
 }
 
 // PrivateGetV1AccountsTradingAccounts returns a channel that yields a JSON array.
-func (this *BullishCore) PrivateGetV1AccountsTradingAccounts(args ...any) <-chan any {
+func (this *Bullish) PrivateGetV1AccountsTradingAccounts(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV1AccountsTradingAccounts", args...)
 }
 
 // PrivateGetV1AccountsTradingAccountsTradingAccountId returns a channel that yields a JSON object.
-func (this *BullishCore) PrivateGetV1AccountsTradingAccountsTradingAccountId(args ...any) <-chan any {
+func (this *Bullish) PrivateGetV1AccountsTradingAccountsTradingAccountId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV1AccountsTradingAccountsTradingAccountId", args...)
 }
 
 // PrivateGetV1DerivativesPositions returns a channel that yields a JSON array.
-func (this *BullishCore) PrivateGetV1DerivativesPositions(args ...any) <-chan any {
+func (this *Bullish) PrivateGetV1DerivativesPositions(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV1DerivativesPositions", args...)
 }
 
 // PrivateGetV1HistoryDerivativesSettlement returns a channel that yields a JSON array.
-func (this *BullishCore) PrivateGetV1HistoryDerivativesSettlement(args ...any) <-chan any {
+func (this *Bullish) PrivateGetV1HistoryDerivativesSettlement(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV1HistoryDerivativesSettlement", args...)
 }
 
 // PrivateGetV1HistoryTransfer returns a channel that yields a JSON array.
-func (this *BullishCore) PrivateGetV1HistoryTransfer(args ...any) <-chan any {
+func (this *Bullish) PrivateGetV1HistoryTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV1HistoryTransfer", args...)
 }
 
 // PrivateGetV1HistoryBorrowInterest returns a channel that yields a JSON array.
-func (this *BullishCore) PrivateGetV1HistoryBorrowInterest(args ...any) <-chan any {
+func (this *Bullish) PrivateGetV1HistoryBorrowInterest(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV1HistoryBorrowInterest", args...)
 }
 
 // PrivateGetV2MmpConfiguration returns a channel that yields a JSON object.
-func (this *BullishCore) PrivateGetV2MmpConfiguration(args ...any) <-chan any {
+func (this *Bullish) PrivateGetV2MmpConfiguration(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV2MmpConfiguration", args...)
 }
 
 // PrivateGetV2OtcTrades returns a channel that yields a JSON array.
-func (this *BullishCore) PrivateGetV2OtcTrades(args ...any) <-chan any {
+func (this *Bullish) PrivateGetV2OtcTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV2OtcTrades", args...)
 }
 
 // PrivateGetV2OtcTradesOtcTradeId returns a channel that yields a JSON object.
-func (this *BullishCore) PrivateGetV2OtcTradesOtcTradeId(args ...any) <-chan any {
+func (this *Bullish) PrivateGetV2OtcTradesOtcTradeId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV2OtcTradesOtcTradeId", args...)
 }
 
 // PrivateGetV2OtcTradesUnconfirmedTrade returns a channel that yields a JSON object.
-func (this *BullishCore) PrivateGetV2OtcTradesUnconfirmedTrade(args ...any) <-chan any {
+func (this *Bullish) PrivateGetV2OtcTradesUnconfirmedTrade(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV2OtcTradesUnconfirmedTrade", args...)
 }
 
 // PrivateGetV2OtcTradesDelegatedAccounts returns a channel that yields a JSON array.
-func (this *BullishCore) PrivateGetV2OtcTradesDelegatedAccounts(args ...any) <-chan any {
+func (this *Bullish) PrivateGetV2OtcTradesDelegatedAccounts(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV2OtcTradesDelegatedAccounts", args...)
 }
 
 // PrivateGetV2IdbDelegatedAccounts returns a channel that yields a JSON array.
-func (this *BullishCore) PrivateGetV2IdbDelegatedAccounts(args ...any) <-chan any {
+func (this *Bullish) PrivateGetV2IdbDelegatedAccounts(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV2IdbDelegatedAccounts", args...)
 }
 
 // PrivateGetV2IdbOtcTrades returns a channel that yields a JSON array.
-func (this *BullishCore) PrivateGetV2IdbOtcTrades(args ...any) <-chan any {
+func (this *Bullish) PrivateGetV2IdbOtcTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV2IdbOtcTrades", args...)
 }
 
 // PrivatePostV2Orders returns a channel that yields a JSON object.
-func (this *BullishCore) PrivatePostV2Orders(args ...any) <-chan any {
+func (this *Bullish) PrivatePostV2Orders(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostV2Orders", args...)
 }
 
 // PrivatePostV2Command returns a channel that yields a JSON object.
-func (this *BullishCore) PrivatePostV2Command(args ...any) <-chan any {
+func (this *Bullish) PrivatePostV2Command(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostV2Command", args...)
 }
 
 // PrivatePostV2AmmInstructions returns a channel that yields a JSON object.
-func (this *BullishCore) PrivatePostV2AmmInstructions(args ...any) <-chan any {
+func (this *Bullish) PrivatePostV2AmmInstructions(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostV2AmmInstructions", args...)
 }
 
 // PrivatePostV1WalletsWithdrawal returns a channel that yields a JSON object.
-func (this *BullishCore) PrivatePostV1WalletsWithdrawal(args ...any) <-chan any {
+func (this *Bullish) PrivatePostV1WalletsWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostV1WalletsWithdrawal", args...)
 }
 
 // PrivatePostV2UsersLogin returns a channel that yields a JSON object.
-func (this *BullishCore) PrivatePostV2UsersLogin(args ...any) <-chan any {
+func (this *Bullish) PrivatePostV2UsersLogin(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostV2UsersLogin", args...)
 }
 
 // PrivatePostV1SimulatePortfolioMargin returns a channel that yields a JSON object.
-func (this *BullishCore) PrivatePostV1SimulatePortfolioMargin(args ...any) <-chan any {
+func (this *Bullish) PrivatePostV1SimulatePortfolioMargin(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostV1SimulatePortfolioMargin", args...)
 }
 
 // PrivatePostV1BulkSimulatePortfolioMargin returns a channel that yields a JSON array.
-func (this *BullishCore) PrivatePostV1BulkSimulatePortfolioMargin(args ...any) <-chan any {
+func (this *Bullish) PrivatePostV1BulkSimulatePortfolioMargin(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostV1BulkSimulatePortfolioMargin", args...)
 }
 
 // PrivatePostV1WalletsSelfHostedInitiate returns a channel that yields a JSON object.
-func (this *BullishCore) PrivatePostV1WalletsSelfHostedInitiate(args ...any) <-chan any {
+func (this *Bullish) PrivatePostV1WalletsSelfHostedInitiate(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostV1WalletsSelfHostedInitiate", args...)
 }
 
 // PrivatePostV2MmpConfiguration returns a channel that yields a JSON object.
-func (this *BullishCore) PrivatePostV2MmpConfiguration(args ...any) <-chan any {
+func (this *Bullish) PrivatePostV2MmpConfiguration(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostV2MmpConfiguration", args...)
 }
 
 // PrivatePostV2OtcTrades returns a channel that yields a JSON object.
-func (this *BullishCore) PrivatePostV2OtcTrades(args ...any) <-chan any {
+func (this *Bullish) PrivatePostV2OtcTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostV2OtcTrades", args...)
 }
 
 // PrivatePostV2OtcCommand returns a channel that yields a JSON object.
-func (this *BullishCore) PrivatePostV2OtcCommand(args ...any) <-chan any {
+func (this *Bullish) PrivatePostV2OtcCommand(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostV2OtcCommand", args...)
 }
 
 // PrivatePostV2IdbOtcTrades returns a channel that yields a JSON object.
-func (this *BullishCore) PrivatePostV2IdbOtcTrades(args ...any) <-chan any {
+func (this *Bullish) PrivatePostV2IdbOtcTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostV2IdbOtcTrades", args...)
 }
 
 // PrivatePostV2IdbOtcCommand returns a channel that yields a JSON object.
-func (this *BullishCore) PrivatePostV2IdbOtcCommand(args ...any) <-chan any {
+func (this *Bullish) PrivatePostV2IdbOtcCommand(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostV2IdbOtcCommand", args...)
 }

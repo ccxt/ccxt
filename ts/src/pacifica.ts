@@ -2,11 +2,11 @@
 
 import { ed25519 } from '@noble/curves/ed25519.js';
 import Exchange from './abstract/pacifica.js';
-import { ExchangeError, ArgumentsRequired, InvalidOrder, OrderNotFound, BadRequest, InsufficientFunds, PermissionDenied, RateLimitExceeded, ExchangeNotAvailable, RequestTimeout, NotSupported, AuthenticationError } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, InvalidOrder, OrderNotFound, BadRequest, BadSymbol, InsufficientFunds, PermissionDenied, RateLimitExceeded, ExchangeNotAvailable, RequestTimeout, NotSupported, AuthenticationError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { eddsa } from './base/functions/crypto.js';
-import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, NullableDict, Num, Bool, int, Transaction, Currency, TradingFeeInterface, LedgerEntry, FundingRates, FundingRate, OpenInterests, Leverage, MarginMode, Tickers, Ticker, FundingHistory, Endpoint, List } from './base/types.js';
+import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, NullableDict, Num, Bool, int, Transaction, Currency, TradingFeeInterface, LedgerEntry, FundingRates, FundingRate, OpenInterests, Leverage, MarginMode, Tickers, Ticker, FundingHistory, Endpoint, List, OpenInterest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -809,21 +809,35 @@ export default class pacifica extends Exchange {
         // {
         //   "success": true,
         //   "data": {
-        //     "balance": "2000.000000",
+        //     "balance": "4970.000323",           // USDC cash (perp collateral)
         //     "fee_level": 0,
         //     "maker_fee": "0.00015",
         //     "taker_fee": "0.0004",
-        //     "account_equity": "2150.250000",
-        //     "available_to_spend": "1800.750000",
-        //     "available_to_withdraw": "1500.850000",
-        //     "pending_balance": "0.000000",
-        //     "total_margin_used": "349.500000",
-        //     "cross_mmr": "420.690000",
-        //     "positions_count": 2,
-        //     "orders_count": 3,
-        //     "stop_orders_count": 1,
-        //     "updated_at": 1716200000000,
-        //     "use_ltp_for_stop_orders": false
+        //     "account_equity": "5478.140323",     // balance + spot_market_value
+        //     "cross_account_equity": "5376.512323",
+        //     "spot_market_value": "508.14",
+        //     "spot_collateral": "406.512",
+        //     "available_to_spend": "5376.512323",
+        //     "available_to_withdraw": "5376.512323",
+        //     "pending_balance": "0",
+        //     "pending_interest": "0",
+        //     "total_margin_used": "0",
+        //     "cross_mmr": "0",
+        //     "positions_count": 0,
+        //     "orders_count": 0,
+        //     "stop_orders_count": 0,
+        //     "spot_balances": [
+        //       {
+        //         "symbol": "SOL",
+        //         "amount": "5",
+        //         "available_to_withdraw": "5",
+        //         "pending_balance": "0",
+        //         "daily_withdraw_amount_usd": "0",
+        //         "effective_daily_deposit_limit_usd": "50000",
+        //         "effective_daily_withdraw_limit_usd": "250000"
+        //       }
+        //     ],
+        //     "updated_at": 1789394568220
         //   },
         //   "error": null,
         //   "code": null
@@ -832,15 +846,23 @@ export default class pacifica extends Exchange {
         const result: Dict = {
             'info': data,
         };
-        result['free'] = {};
-        result['used'] = {};
-        result['total'] = {};
-        const totalBalance = this.safeNumber (data, 'account_equity');
-        const usedMargin = this.safeNumber (data, 'total_margin_used');
-        const freeBalance = this.safeNumber (data, 'available_to_spend');
-        result['total']['USDC'] = totalBalance;
-        result['used']['USDC'] = usedMargin;
-        result['free']['USDC'] = freeBalance;
+        const usdcAccount = this.account ();
+        usdcAccount['total'] = this.safeString (data, 'balance');
+        usdcAccount['used'] = this.safeString (data, 'total_margin_used');
+        result['USDC'] = usdcAccount;
+        const spotBalances = this.safeList (data, 'spot_balances', []);
+        for (let i = 0; i < spotBalances.length; i++) {
+            const balance = spotBalances[i];
+            const currencyId = this.safeString (balance, 'symbol');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['total'] = this.safeString (balance, 'amount');
+            account['free'] = this.safeString (balance, 'available_to_withdraw');
+            // skip a spot USDC entry so it can't clobber the perp-collateral account above
+            if ((code !== undefined) && !(code in result)) {
+                result[code] = account;
+            }
+        }
         const timestamp = this.safeInteger (data, 'updated_at');
         result['timestamp'] = timestamp;
         result['datetime'] = this.iso8601 (timestamp);
@@ -1504,6 +1526,7 @@ export default class pacifica extends Exchange {
      * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at (optional provide takeProfitCloid)
      * @param {string} [params.timeInForce] "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book)
      * @param {boolean} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
+     * @param {string} [params.slippage] the slippage for market orders in percent, defaults to options.defaultSlippage (0.5)
      * @param {string} [params.clientOrderId] client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
@@ -1515,8 +1538,9 @@ export default class pacifica extends Exchange {
         await this.initializeClient ();
         const [ request, operationType ] = this.createOrderRequest (symbol, type, side, amount, price, params);
         params = this.omit (params, [
-            'reduceOnly', 'clientOrderId', 'stopLimitPrice', 'timeInForce', 'triggerPrice', 'stopLossCloid',
+            'reduceOnly', 'reduce_only', 'clientOrderId', 'stopLimitPrice', 'timeInForce', 'triggerPrice', 'stopLossCloid',
             'stopLossPrice', 'stopLossLimitPrice', 'takeProfitCloid', 'takeProfitPrice', 'takeProfitLimitPrice', 'expiryWindow',
+            'slippage', 'slippage_percent',
         ]);
         let response = undefined;
         if (operationType === 'create_market_order') {
@@ -1575,6 +1599,7 @@ export default class pacifica extends Exchange {
          * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at (optional provide takeProfitCloid)
          * @param {string} [params.timeInForce] "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book)
          * @param {boolean} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
+         * @param {string} [params.slippage] the slippage for market orders in percent, defaults to options.defaultSlippage (0.5)
          * @param {string} [params.clientOrderId] client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
          * @param {int} [params.expiryWindow] time to live in milliseconds
          * @returns {object} an [order structure]
@@ -2971,8 +2996,9 @@ export default class pacifica extends Exchange {
             await this.loadMarkets ();
         }
         symbols = this.marketSymbols (symbols);
-        const swapMarkets = await this.fetchSwapMarkets ();
-        return this.parseOpenInterests (swapMarkets, symbols) as OpenInterests;
+        const response = await this.publicGetInfoPrices (params);
+        const data = this.safeList (response, 'data', []);
+        return this.parseOpenInterests (data, symbols) as OpenInterests;
     }
 
     /**
@@ -2984,13 +3010,17 @@ export default class pacifica extends Exchange {
      * @param {object} [params] exchange specific parameters
      * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    override async fetchOpenInterest (symbol: string, params = {}) {
-        symbol = this.symbol (symbol);
+    override async fetchOpenInterest (symbol: string, params = {}): Promise<OpenInterest> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
+        symbol = this.symbol (symbol);
         const ois = await this.fetchOpenInterests ([ symbol ], params);
-        return ois[symbol];
+        const oi = this.safeDict (ois, symbol);
+        if (oi === undefined) {
+            throw new BadSymbol (this.id + ' fetchOpenInterest() could not find open interest for ' + symbol);
+        }
+        return oi as OpenInterest;
     }
 
     override parseOpenInterest (interest: any, market: Market = undefined) {
@@ -3241,14 +3271,18 @@ export default class pacifica extends Exchange {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     override async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const currency = this.currency (code);
         const operationType = 'transfer_funds';
         const sigPayload = {
             'to_account': toAccount,
-            'amount': amount,
+            'amount': this.numberToString (amount),
         };
         const request = this.postActionRequest (operationType, sigPayload, params);
         params = this.omit (params, [ 'expiryWindow' ]);
-        const response = this.privatePostAccountSubaccountTransfer (this.extend (request, params));
+        const response = await this.privatePostAccountSubaccountTransfer (this.extend (request, params));
         //
         // {
         //   "success": true,
@@ -3261,7 +3295,11 @@ export default class pacifica extends Exchange {
         // }
         //
         const data = this.safeDict (response, 'data', {});
-        return this.parseTransfer (data);
+        return this.extend (this.parseTransfer (data, currency), {
+            'amount': amount,
+            'fromAccount': this.safeString (request, 'account'),
+            'toAccount': toAccount,
+        }) as TransferEntry;
     }
 
     override parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
@@ -3276,16 +3314,21 @@ export default class pacifica extends Exchange {
         //   "code": null
         // }
         //
+        const success = this.safeBool (transfer, 'success');
+        let status: Str = undefined;
+        if (success !== undefined) {
+            status = (success === true) ? 'ok' : 'failed';
+        }
         return {
             'info': transfer,
             'id': undefined,
             'timestamp': undefined,
             'datetime': undefined,
-            'currency': undefined,
+            'currency': this.safeCurrencyCode (undefined, currency),
             'amount': undefined,
             'fromAccount': undefined,
             'toAccount': undefined,
-            'status': 'ok',
+            'status': status,
         };
     }
 
@@ -3304,7 +3347,7 @@ export default class pacifica extends Exchange {
     override async createSubAccount (name: string, params = {}) {
         const finalHeaders: Dict = { };
         let agentAddress: Str = undefined;
-        [ agentAddress, params ] = this.handleOption ('createSubAccount', 'agentAddress');
+        [ agentAddress, params ] = this.handleOptionAndParams (params, 'createSubAccount', 'agentAddress');
         let originAddress: Str = undefined;
         [ originAddress, params ] = this.handleOriginAndSingleAddress ('createSubAccount', params);
         if (originAddress === undefined) {
@@ -3323,7 +3366,8 @@ export default class pacifica extends Exchange {
         if (subAccountPrivateKey === undefined) {
             throw new ArgumentsRequired (this.id + ' createSubAccount() requires a "subAccountPrivateKey"!');
         }
-        const timestamp = this.milliseconds ();
+        let timestamp: Int = undefined;
+        [ timestamp, params ] = this.handleParamInteger (params, 'timestamp', this.milliseconds ());
         let expiryWindow: Int = undefined;
         [ expiryWindow, params ] = this.handleOptionAndParams2 (params, 'createSubAccount', 'expiryWindow', 'expiry_window', 5000);
         const subaccountSignatureHeader = {
@@ -3351,7 +3395,7 @@ export default class pacifica extends Exchange {
         finalHeaders['timestamp'] = timestamp;
         finalHeaders['expiry_window'] = expiryWindow;
         const request = finalHeaders;
-        const response = await this.privatePostAccountSubaccountCreate (request);
+        const response = await this.privatePostAccountSubaccountCreate (this.extend (request, params));
         //
         // {
         //   "success": true,

@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class grvt : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         int rlOthers = 40;
         int rlOrders = 20;
@@ -545,7 +545,7 @@ public partial class grvt : Exchange
         });
     }
 
-    public virtual object eipDefinitions()
+    public virtual Dictionary<string, object> eipDefinitions()
     {
         return new Dictionary<string, object>() {
             { "EIP712_ORDER_TYPE", new Dictionary<string, object>() {
@@ -718,7 +718,7 @@ public partial class grvt : Exchange
         };
     }
 
-    public virtual object usesPrivateKey()
+    public virtual bool usesPrivateKey()
     {
         bool privateKeyDefined = isTrue(!isEqual(this.privateKey, null)) && isTrue(!isEqual(this.privateKey, ""));
         bool apiKeyDefined = isTrue(!isEqual(this.apiKey, null)) && isTrue(!isEqual(this.apiKey, ""));
@@ -726,7 +726,7 @@ public partial class grvt : Exchange
         {
             throw new ExchangeError ((string)"You should provide either \"privateKey\" or \"apikey & secret\"") ;
         }
-        return privateKeyDefined;
+        return ((bool)((object)(privateKeyDefined))!);
     }
 
     /**
@@ -823,7 +823,7 @@ public partial class grvt : Exchange
         {
             return true;  // skip if builder fee is already approved
         }
-        object results = await promiseAll(new List<object> {this.privateTradingPostFullV1GetAuthorizedBuilders(), this.loadAccountInfos()});
+        List<object> results = await promiseAll(new List<object> {this.privateTradingPostFullV1GetAuthorizedBuilders(), this.loadAccountInfos()});
         //
         // {
         //     "results": [{
@@ -930,13 +930,13 @@ public partial class grvt : Exchange
         {
             ((IList<object>)promises).Add(this.signIn());
         }
-        object results = await promiseAll(promises);
+        List<object> results = await promiseAll(promises);
         object response = getValue(results, 0);
-        object result = this.safeList(response, "result", new List<object>() {});
+        List<object> result = this.safeList(response, "result", new List<object>() {});
         return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(result));
     }
 
-    public override object parseMarket(object market)
+    public override Dictionary<string, object> parseMarket(object market)
     {
         //
         //    {
@@ -980,7 +980,7 @@ public partial class grvt : Exchange
         bool isSwap = (isEqual(type, "swap"));
         bool isFuture = (isEqual(type, "future"));
         bool isContract = isTrue(isSwap) || isTrue(isFuture);
-        return new Dictionary<string, object>() {
+        return ccxt.BaseExchange.ToDict(new Dictionary<string, object>() {
             { "id", marketId },
             { "symbol", symbol },
             { "base", bs },
@@ -1030,7 +1030,7 @@ public partial class grvt : Exchange
             } },
             { "created", this.safeIntegerProduct(market, "create_time", 0.000001) },
             { "info", market },
-        };
+        });
     }
 
     /**
@@ -1041,7 +1041,7 @@ public partial class grvt : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public async override Task<object> fetchCurrencies(object parameters = null)
+    public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1063,7 +1063,7 @@ public partial class grvt : Exchange
         return this.parseCurrencies(responseResult);
     }
 
-    public override object parseCurrency(object rawCurrency)
+    public override Dictionary<string, object> parseCurrency(object rawCurrency)
     {
         //
         //            {
@@ -1162,7 +1162,7 @@ public partial class grvt : Exchange
         return ccxt.BaseExchange.ToTicker(this.parseTicker(result, market));
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         //
         //  {
@@ -1329,11 +1329,11 @@ public partial class grvt : Exchange
         //            },
         //            ...
         //
-        object result = this.safeList(response, "result", new List<object>() {});
+        List<object> result = this.safeList(response, "result", new List<object>() {});
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(result, market, since, limit));
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades
@@ -1438,7 +1438,7 @@ public partial class grvt : Exchange
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         int maxLimit = 1000;
@@ -1584,7 +1584,7 @@ public partial class grvt : Exchange
         //        "next": "eyJmdW5kaW5nVGltZSI6MTc2MDQ5NDI2MDAwMDAwMDAwMH0"
         //    }
         //
-        object result = this.safeList(response, "result", new List<object>() {});
+        List<object> result = this.safeList(response, "result", new List<object>() {});
         return ccxt.BaseExchange.ToFundingRateHistoryList(this.parseFundingRateHistories(result, market));
     }
 
@@ -1716,7 +1716,7 @@ public partial class grvt : Exchange
             object balance = getValue(spotBalances, i);
             string? currencyId = this.safeString(balance, "currency");
             string? code = this.safeCurrencyCode(currencyId);
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "balance");
             ((IDictionary<string,object>)account)["free"] = availableBalance; // todo: revise after API team clarification
             if (isTrue(!isEqual(code, null)))
@@ -1765,8 +1765,8 @@ public partial class grvt : Exchange
         if (isTrue(isEqual(useTransfersEndpoint, true)))
         {
             object transfers = await this.internalFetchTransfers(this.extend(request, parameters), currency, since, limit);
-            object filteredResults = this.filterTransfersByType(transfers, "deposit", true);
-            object transactions = this.getListFromObjectValues(getValue(filteredResults, 0), "info");
+            List<object> filteredResults = this.filterTransfersByType(transfers, "deposit", true);
+            List<object> transactions = this.getListFromObjectValues(getValue(filteredResults, 0), "info");
             return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(transactions, currency, since, limit));
         } else
         {
@@ -1786,7 +1786,7 @@ public partial class grvt : Exchange
             //     "next": "Qw0918="
             // }
             //
-            object result = this.safeList(response, "result", new List<object>() {});
+            List<object> result = this.safeList(response, "result", new List<object>() {});
             return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(result, currency, since, limit));
         }
     }
@@ -1832,8 +1832,8 @@ public partial class grvt : Exchange
         if (isTrue(isEqual(useTransfersEndpoint, true)))
         {
             object transfers = await this.internalFetchTransfers(this.extend(request, parameters), currency, since, limit);
-            object filteredResults = this.filterTransfersByType(transfers, "withdrawal", true);
-            object transactions = this.getListFromObjectValues(getValue(filteredResults, 0), "info");
+            List<object> filteredResults = this.filterTransfersByType(transfers, "withdrawal", true);
+            List<object> transactions = this.getListFromObjectValues(getValue(filteredResults, 0), "info");
             return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(transactions, currency, since, limit));
         } else
         {
@@ -1862,7 +1862,7 @@ public partial class grvt : Exchange
             //     "next": "Qw0918="
             // }
             //
-            object result = this.safeList(response, "result", new List<object>() {});
+            List<object> result = this.safeList(response, "result", new List<object>() {});
             return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(result, currency, since, limit));
         }
     }
@@ -1983,7 +1983,7 @@ public partial class grvt : Exchange
         string? code = this.safeCurrencyCode(currencyId, currency);
         if (isTrue(inOp(transaction, "transfer_metadata")))
         {
-            object metaData = this.omitZero(this.safeString(transaction, "transfer_metadata"));
+            string? metaData = ((string)this.omitZero(this.safeString(transaction, "transfer_metadata")));
             if (isTrue(!isEqual(metaData, null)))
             {
                 object parsedMeta = this.parseJson(metaData);
@@ -2097,11 +2097,11 @@ public partial class grvt : Exchange
         //
         List<object> rows = this.safeList(response, "result", new List<object>() {});
         object transfers = this.parseTransfers(rows, currency, since, limit);
-        object filteredResults = this.filterTransfersByType(transfers, "internal", false);
+        List<object> filteredResults = this.filterTransfersByType(transfers, "internal", false);
         return ccxt.BaseExchange.ToTransferEntryList(getValue(filteredResults, 1));
     }
 
-    public virtual object filterTransfersByType(object transfers, object transferType, object onlyMainAccount = null)
+    public virtual List<object> filterTransfersByType(object transfers, object transferType, object onlyMainAccount = null)
     {
         onlyMainAccount ??= true;
         List<object> matchedResults = new List<object>() {};
@@ -2293,7 +2293,7 @@ public partial class grvt : Exchange
         //         "sub_account_ids": ["4724219064482495","2095919380","1170592370"]
         //     }
         //
-        object responses = await promiseAll(promises);
+        List<object> responses = await promiseAll(promises);
         IDictionary<string, object> result1 = this.safeDict(getValue(responses, 0), "result", new Dictionary<string, object>() {});
         string? mainAccountId = this.safeString(result1, "main_account_id");
         ((IDictionary<string,object>)this.options)["userMainAccountId"] = mainAccountId;
@@ -2410,7 +2410,7 @@ public partial class grvt : Exchange
         {
             throw new InvalidOrder ((string)add(this.id, " createOrder(): order side must be either \"buy\" or \"sell\"")) ;
         }
-        object clientOrderId = this.safeString(parameters, "clientOrderId");
+        string? clientOrderId = this.safeString(parameters, "clientOrderId");
         if (isTrue(isEqual(clientOrderId, null)))
         {
             clientOrderId = add(add(((object)this.nonce()).ToString(), "000"), ((object)this.requestId()).ToString());
@@ -2432,7 +2432,7 @@ public partial class grvt : Exchange
             { "reduce_only", isReduceOnly },
         };
         string? timeInForce = this.safeStringUpper(parameters, "timeInForce", "GOOD_TILL_TIME");
-        object postOnly = this.isPostOnly(isMarketOrder, null, parameters);
+        bool postOnly = this.isPostOnly(isMarketOrder, null, parameters);
         if (isTrue(postOnly))
         {
             ((IDictionary<string,object>)orderRequest)["post_only"] = true;
@@ -2606,7 +2606,7 @@ public partial class grvt : Exchange
         return parseInt(x);
     }
 
-    public virtual object eipMessageForOrder(object order, object structureType)
+    public virtual Dictionary<string, object> eipMessageForOrder(object order, object structureType)
     {
         string priceMultiplier = "1000000000";
         List<object> orderLegs = this.safeList(order, "legs", new List<object>() {});
@@ -2662,7 +2662,7 @@ public partial class grvt : Exchange
             ((IDictionary<string,object>)returnValue)["builder"] = getValue(order, "builder");
             ((IDictionary<string,object>)returnValue)["builderFee"] = this.parseToInt(multiply(this.convertToBigIntCustom(this.feeAmountMultiplier()), parseFloat(getValue(order, "builder_fee")))); // the order is matter for Multiply in go, b must be float64 otherwise the value would be 0
         }
-        return returnValue;
+        return ((Dictionary<string, object>)((object)(returnValue)));
     }
 
     /**
@@ -2745,7 +2745,7 @@ public partial class grvt : Exchange
         //        "next": ""
         //    }
         //
-        object result = this.safeList(response, "result", new List<object>() {});
+        List<object> result = this.safeList(response, "result", new List<object>() {});
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(result, null, since, limit));
     }
 
@@ -2808,11 +2808,11 @@ public partial class grvt : Exchange
         //        ]
         //    }
         //
-        object result = this.safeList(response, "result", new List<object>() {});
+        List<object> result = this.safeList(response, "result", new List<object>() {});
         return ccxt.BaseExchange.ToPositionList(this.parsePositions(result, symbols));
     }
 
-    public override object parsePosition(object position, object market = null)
+    public override Dictionary<string, object> parsePosition(object position, object market = null)
     {
         //
         //            {
@@ -3085,7 +3085,7 @@ public partial class grvt : Exchange
         //        "next": ""
         //    }
         //
-        object result = this.safeList(response, "result", new List<object>() {});
+        List<object> result = this.safeList(response, "result", new List<object>() {});
         return ccxt.BaseExchange.ToFundingHistoryList(this.parseIncomes(result, market, since, limit));
     }
 
@@ -3218,7 +3218,7 @@ public partial class grvt : Exchange
         //        "next": ""
         //    }
         //
-        object result = this.safeList(response, "result", new List<object>() {});
+        List<object> result = this.safeList(response, "result", new List<object>() {});
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(result, market, since, limit));
     }
 
@@ -3301,7 +3301,7 @@ public partial class grvt : Exchange
         //        ]
         //    }
         //
-        object result = this.safeList(response, "result", new List<object>() {});
+        List<object> result = this.safeList(response, "result", new List<object>() {});
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(result, null, since, limit));
     }
 
@@ -3396,7 +3396,7 @@ public partial class grvt : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(result));
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         // fetchOrders, fetchOpenOrders, fetchOrder, createOrder
@@ -3509,7 +3509,7 @@ public partial class grvt : Exchange
             { "clientOrderId", this.safeString(metadata, "client_order_id") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "lastTradeTimeStamp", null },
+            { "lastTradeTimestamp", null },
             { "lastUpdateTimestamp", this.safeIntegerProduct(stateObj, "update_time", 0.000001) },
             { "status", this.parseOrderStatus(this.safeString(stateObj, "status")) },
             { "symbol", this.safeString(market, "symbol") },
@@ -3543,7 +3543,7 @@ public partial class grvt : Exchange
         return this.safeStringUpper(types, type, type);
     }
 
-    public virtual object timeInForceToInt(object timeInForce)
+    public virtual Int64? timeInForceToInt(object timeInForce)
     {
         Dictionary<string, object> timeInForces = new Dictionary<string, object>() {
             { "GOOD_TILL_TIME", 1 },
@@ -3552,7 +3552,7 @@ public partial class grvt : Exchange
             { "FILL_OR_KILL", 4 },
             { "RETAIL_PRICE_IMPROVEMENT", 5 },
         };
-        return this.safeInteger(timeInForces, timeInForce, 0);
+        return ((Int64?)((object)(this.safeInteger(timeInForces, timeInForce, 0))));
     }
 
     public virtual string? parseOrderStatus(object status)
@@ -3643,7 +3643,7 @@ public partial class grvt : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(result));
     }
 
-    public virtual object eipDomainData()
+    public virtual Dictionary<string, object> eipDomainData()
     {
         //     GrvtEnv.DEV.value: 327,
         //     GrvtEnv.STAGING.value: 327,
@@ -3663,7 +3663,7 @@ public partial class grvt : Exchange
 
     public virtual object createSignedRequest(object request, object structureType, object currencyObj = null, object signerAddress = null)
     {
-        object messageData = null;
+        Dictionary<string, object> messageData = null;
         if (isTrue(isEqual(structureType, "EIP712_TRANSFER_TYPE")))
         {
             object amountMultiplier = this.convertToBigIntCustom("1000000");
@@ -3719,14 +3719,14 @@ public partial class grvt : Exchange
                 { "expiration", getValue(getValue(request, "signature"), "expiration") },
             };
         }
-        object domainData = this.eipDomainData();
-        object definitions = this.eipDefinitions();
-        object ethEncodedMessage = this.ethEncodeStructuredData(domainData, getValue(definitions, structureType), messageData);
+        Dictionary<string, object> domainData = this.eipDomainData();
+        Dictionary<string, object> definitions = this.eipDefinitions();
+        byte[] ethEncodedMessage = this.ethEncodeStructuredData(domainData, getValue(definitions, structureType), messageData);
         string ethEncodedMessageHashed = add("0x", this.hash(ethEncodedMessage, keccak, "hex"));
-        object usesPrivKey = this.usesPrivateKey(); // py transpiler needs this line separated
-        object secretOrPrivkey = ((bool) isTrue(usesPrivKey)) ? this.privateKey : this.secret;
+        bool usesPrivKey = this.usesPrivateKey(); // py transpiler needs this line separated
+        string? secretOrPrivkey = ((bool) isTrue(usesPrivKey)) ? this.privateKey : this.secret;
         object privateKeyWithoutZero = this.remove0xPrefix(secretOrPrivkey);
-        object signature = ecdsa(this.remove0xPrefix(ethEncodedMessageHashed), privateKeyWithoutZero, secp256k1, null);
+        Dictionary<string, object> signature = ecdsa(this.remove0xPrefix(ethEncodedMessageHashed), privateKeyWithoutZero, secp256k1, null);
         ((IDictionary<string,object>)getValue(request, "signature"))["r"] = this.formatSignatureRS(getValue(signature, "r"));
         ((IDictionary<string,object>)getValue(request, "signature"))["s"] = this.formatSignatureRS(getValue(signature, "s"));
         ((IDictionary<string,object>)getValue(request, "signature"))["v"] = this.sum(27, getValue(signature, "v"));
@@ -3746,7 +3746,7 @@ public partial class grvt : Exchange
         }
     }
 
-    public virtual object defaultSignature()
+    public virtual Dictionary<string, object> defaultSignature()
     {
         object expiration = add(multiply(this.milliseconds(), 1000000), multiply(multiply(1000000, this.safeInteger(this.options, "expirationSeconds", 30)), 1000));
         return new Dictionary<string, object>() {
@@ -3760,7 +3760,7 @@ public partial class grvt : Exchange
         };
     }
 
-    public virtual object handleUntilOptionString(object key, object request, object parameters, object multiplier = null)
+    public virtual List<object> handleUntilOptionString(object key, object request, object parameters, object multiplier = null)
     {
         multiplier ??= 1;
         Int64? until = this.safeInteger2(parameters, "until", "till");
@@ -3774,7 +3774,7 @@ public partial class grvt : Exchange
 
     public virtual object requestId()
     {
-        object requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
+        Int64 requestId = ((Int64)this.sum(this.safeInteger(this.options, "requestId", 0), 1));
         ((IDictionary<string,object>)this.options)["requestId"] = requestId;
         return requestId;
     }

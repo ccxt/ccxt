@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class coinbaseexchange : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "coinbaseexchange" },
@@ -655,7 +655,7 @@ public partial class coinbaseexchange : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public async override Task<object> fetchCurrencies(object parameters = null)
+    public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         List<object> response = await this.publicGetCurrencies(parameters);
@@ -703,7 +703,7 @@ public partial class coinbaseexchange : Exchange
         return this.parseCurrencies(response);
     }
 
-    public override object parseCurrency(object rawCurrency)
+    public override Dictionary<string, object> parseCurrency(object rawCurrency)
     {
         string? id = this.safeString(rawCurrency, "id");
         string? name = this.safeString(rawCurrency, "name");
@@ -962,7 +962,7 @@ public partial class coinbaseexchange : Exchange
             object balance = getValue(response, i);
             string? currencyId = this.safeString(balance, "currency");
             string? code = this.safeCurrencyCode(currencyId);
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "available");
             ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "hold");
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "balance");
@@ -1033,12 +1033,12 @@ public partial class coinbaseexchange : Exchange
         //         ]
         //     }
         //
-        object orderbook = this.parseOrderBook(response, symbol);
+        Dictionary<string, object> orderbook = ((Dictionary<string, object>)this.parseOrderBook(response, symbol));
         ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(response, "sequence");
         return ccxt.BaseExchange.ToOrderBook(orderbook);
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         //
         // fetchTickers
@@ -1086,7 +1086,6 @@ public partial class coinbaseexchange : Exchange
         if (isTrue(((ticker is IList<object>) || (ticker.GetType().IsGenericType && ticker.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             last = this.safeString(ticker, 4);
-            timestamp = this.milliseconds();
         } else
         {
             timestamp = this.parse8601(this.safeValue(ticker, "time"));
@@ -1170,7 +1169,7 @@ public partial class coinbaseexchange : Exchange
             object entry = this.safeValue(response, marketId, new List<object>() {});
             object first = this.safeValue(entry, 0, new List<object>() {});
             Dictionary<string, object> market = this.safeMarket(marketId, null, delimiter);
-            object symbol = getValue(market, "symbol");
+            string? symbol = ((string)getValue(market, "symbol"));
             ((IDictionary<string,object>)result)[(string)symbol] = this.parseTicker(first, market);
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbols));
@@ -1231,7 +1230,7 @@ public partial class coinbaseexchange : Exchange
         return ccxt.BaseExchange.ToTicker(this.parseTicker(response, market));
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         //     {
@@ -1476,7 +1475,7 @@ public partial class coinbaseexchange : Exchange
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
@@ -1576,7 +1575,7 @@ public partial class coinbaseexchange : Exchange
         return this.safeString(statuses, ((string)status), status);
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         // createOrder
@@ -2508,7 +2507,7 @@ public partial class coinbaseexchange : Exchange
                 request = add(request, add("?", this.urlencode(query)));
             }
         }
-        object url = add(this.implodeHostname(getValue(getValue(this.urls, "api"), api)), request);
+        string url = add(this.implodeHostname(getValue(getValue(this.urls, "api"), api)), request);
         if (isTrue(isEqual(api, "private")))
         {
             this.checkRequiredCredentials();

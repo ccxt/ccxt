@@ -67,6 +67,11 @@ impl TokocryptoCore {
         self.call_method(Value::Str("binance_get_exchange_info".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `binanceGetExecutionRules` implicit endpoint.
+    pub async fn binance_get_execution_rules(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("binance_get_execution_rules".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `binancePutUserDataStream` implicit endpoint.
     pub async fn binance_put_user_data_stream(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("binance_put_user_data_stream".to_string()), optional_args).await
@@ -175,6 +180,11 @@ impl TokocryptoCore {
     /// Auto-generated wrapper for the `privatePostOpenV1UserDataStream` implicit endpoint.
     pub async fn private_post_open_v1_user_data_stream(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_open_v1_user_data_stream".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostOpenV1UserListenToken` implicit endpoint.
+    pub async fn private_post_open_v1_user_listen_token(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_open_v1_user_listen_token".to_string()), optional_args).await
     }
 
 }

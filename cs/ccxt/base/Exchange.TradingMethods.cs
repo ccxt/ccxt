@@ -65,7 +65,7 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " fetchPositionsRisk() is not supported yet")) ;
     }
 
-    public async virtual Task<List<ccxt.Position>> FetchPositionsForSymbol(object symbol, object parameters = null)
+    public async virtual Task<List<ccxt.Position>> FetchPositionsForSymbol(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchPositionsForSymbol() is not supported yet")) ;
@@ -149,7 +149,7 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " watchMarkPrices () is not supported yet")) ;
     }
 
-    public async virtual Task<ccxt.OrderBook> FetchL3OrderBook(object symbol, Int64? limit = null, object parameters = null)
+    public async virtual Task<ccxt.OrderBook> FetchL3OrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new BadRequest ((string)add(this.id, " fetchL3OrderBook() is not supported yet")) ;
@@ -671,7 +671,7 @@ public partial class Exchange
         }
     }
 
-    public async virtual Task<ccxt.OrderBook> FetchL2OrderBook(object symbol, Int64? limit = null, object parameters = null)
+    public async virtual Task<ccxt.OrderBook> FetchL2OrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object orderbook = ccxt.BaseExchange.FromOrderBook(await this.FetchOrderBook(((string)symbol),ccxt.BaseExchange.ToInt64Arg(limit), parameters));
@@ -802,7 +802,7 @@ public partial class Exchange
         return await this.FetchOrder("",((string)symbol), extendedParams);
     }
 
-    public async virtual Task<string> FetchOrderStatus(object id, object symbol = null, object parameters = null)
+    public async virtual Task<string> FetchOrderStatus(string id, string symbol = null, object parameters = null)
     {
         // TODO: TypeScript: change method signature by replacing
         // Promise<string> with Promise<Order['status']>.

@@ -118,7 +118,7 @@ class poloniex(ccxt.async_support.poloniex):
             #
             #    {
             #        "data": {
-            #            "success": True,
+            #            "success": true,
             #            "ts": 1645597033915
             #        },
             #        "channel": "auth"
@@ -128,7 +128,7 @@ class poloniex(ccxt.async_support.poloniex):
             #
             #    {
             #        "data": {
-            #            "success": False,
+            #            "success": false,
             #            "message": "Authentication failed!",
             #            "ts": 1646276295075
             #        },
@@ -237,7 +237,7 @@ class poloniex(ccxt.async_support.poloniex):
                 quoteAmount = self.cost_to_precision(symbol, cost)
             elif createMarketBuyOrderRequiresPrice:
                 if price is None:
-                    raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend(quote quantity) in the amount argument')
+                    raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend (quote quantity) in the amount argument')
                 else:
                     amountString = self.number_to_string(amount)
                     priceString = self.number_to_string(price)
@@ -322,7 +322,7 @@ class poloniex(ccxt.async_support.poloniex):
         #    }
         #
         messageHash = self.safe_string(message, 'id')
-        data = self.safe_value(message, 'data', [])
+        data = self.safe_list(message, 'data', [])
         orders = []
         for i in range(0, len(data)):
             order = data[i]
@@ -609,7 +609,7 @@ class poloniex(ccxt.async_support.poloniex):
         #        ]
         #    }
         #
-        data = self.safe_value(message, 'data', [])
+        data = self.safe_list(message, 'data', [])
         for i in range(0, len(data)):
             item = data[i]
             marketId = self.safe_string(item, 'symbol')
@@ -794,7 +794,7 @@ class poloniex(ccxt.async_support.poloniex):
         #        ]
         #    }
         #
-        data = self.safe_value(message, 'data', [])
+        data = self.safe_list(message, 'data', [])
         orders = self.orders
         if orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit')
@@ -818,7 +818,7 @@ class poloniex(ccxt.async_support.poloniex):
                     trade = self.parse_ws_trade(order)
                     self.handle_my_trades(client, trade)
                     if previousOrder is None:
-                        # fill event for an order missing from the cache(e.g. placed before subscribing or after a reconnect) - parse as a fresh order instead of aggregating
+                        # fill event for an order missing from the cache (e.g. placed before subscribing or after a reconnect) - parse as a fresh order instead of aggregating
                         parsedOrder = self.parse_ws_order(order)
                         orders.append(parsedOrder)
                         marketIds.append(marketId)
@@ -964,7 +964,7 @@ class poloniex(ccxt.async_support.poloniex):
         #        ]
         #    }
         #
-        data = self.safe_value(message, 'data', [])
+        data = self.safe_list(message, 'data', [])
         newTickers = {}
         for i in range(0, len(data)):
             item = data[i]
@@ -1036,7 +1036,7 @@ class poloniex(ccxt.async_support.poloniex):
         #        "action": "update"
         #    }
         #
-        data = self.safe_value(message, 'data', [])
+        data = self.safe_list(message, 'data', [])
         type = self.safe_string(message, 'action')
         snapshot = type == 'snapshot'
         update = type == 'update'
@@ -1190,7 +1190,7 @@ class poloniex(ccxt.async_support.poloniex):
         elif type is None:
             self.handle_order_request(client, message)
         else:
-            data = self.safe_value(message, 'data', [])
+            data = self.safe_list(message, 'data', [])
             dataLength = len(data)
             if dataLength > 0:
                 method(client, message)
@@ -1252,7 +1252,7 @@ class poloniex(ccxt.async_support.poloniex):
     def handle_authenticate(self, client: Client, message: object):
         #
         #    {
-        #        "success": True,
+        #        "success": true,
         #        "ret_msg": '',
         #        "op": "auth",
         #        "conn_id": "ce3dpomvha7dha97tvp0-2xh"
