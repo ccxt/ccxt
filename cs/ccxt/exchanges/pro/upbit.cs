@@ -57,7 +57,7 @@ public partial class upbit : ccxt.upbit
         string subscriptionsKey = "upbitPublicSubscriptions";
         if (!isTrue((inOp(((WebSocketClient)client).subscriptions, subscriptionsKey))))
         {
-            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)subscriptionsKey] = new Dictionary<string, object>() {};
+            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)subscriptionsKey] = this.createSafeDictionary(true);
         }
         object subscriptions = getValue(((WebSocketClient)client).subscriptions, subscriptionsKey);
         List<object> messageHashes = new List<object>() {};
@@ -424,7 +424,7 @@ public partial class upbit : ccxt.upbit
         string subscriptionsKey = "upbitPrivateSubscriptions";
         if (!isTrue((inOp(((WebSocketClient)client).subscriptions, subscriptionsKey))))
         {
-            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)subscriptionsKey] = new Dictionary<string, object>() {};
+            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)subscriptionsKey] = this.createSafeDictionary(true);
         }
         object channelKey = channel;
         if (isTrue(!isEqual(symbol, null)))
