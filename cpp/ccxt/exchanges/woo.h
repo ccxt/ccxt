@@ -6176,15 +6176,15 @@ public:
   /**
    * @method
    * @name woo#fetchPositionsADLRank
-   * @description fetches the auto deleveraging rank and risk percentage for a
-   * list of symbols
+   * @description fetches the autoFlag deleveraging rank and risk percentage for
+   * a list of symbols
    * @see https://developer.woox.io/api-reference/endpoint/futures/get_positions
    * @param {string[]} [symbols] a list of unified market symbols, the exchange
    * filters server-side when exactly one symbol is provided
    * @param {object} [params] extra parameters specific to the exchange API
    * endpoint
-   * @returns {object[]} an array of [auto de leverage structures]{@link
-   * https://docs.ccxt.com/?id=auto-de-leverage-structure}
+   * @returns {object[]} an array of [autoFlag de leverage structures]{@link
+   * https://docs.ccxt.com/?id=autoFlag-de-leverage-structure}
    */
   std::shared_future<ccxt::any>
   fetchPositionsADLRank(ccxt::any symbols = ccxt::any{},
