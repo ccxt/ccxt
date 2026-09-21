@@ -1247,6 +1247,10 @@ public partial class poloniex : ccxt.poloniex
                 {
                     ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
                 }
+                if (!isTrue((inOp(this.orderbooks, symbol))))
+                {
+                    continue;
+                }
                 ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
                 if (isTrue(!isEqual(bids, null)))
                 {
