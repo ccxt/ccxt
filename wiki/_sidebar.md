@@ -114,3 +114,4 @@
 	- [myriad](exchanges/prediction/myriad.md)
 	- [opinion](exchanges/prediction/opinion.md)
 	- [polymarket](exchanges/prediction/polymarket.md)
+	- [predictfun](exchanges/prediction/predictfun.md)

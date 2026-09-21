@@ -179,7 +179,7 @@ The library is under [MIT license](https://github.com/ccxt/ccxt/blob/master/LICE
 
 ## Prediction Market Exchanges
 
-<!--- init prediction list -->The CCXT library currently supports the following 7 prediction market exchanges and trading APIs:
+<!--- init prediction list -->The CCXT library currently supports the following 8 prediction market exchanges and trading APIs:
 
 |logo                                                                                                                                          |id           |name                                                      |ver                                                                                                                                          |
 |----------------------------------------------------------------------------------------------------------------------------------------------|-------------|----------------------------------------------------------|:-------------------------------------------------------------------------------------------------------------------------------------------:|
@@ -190,6 +190,7 @@ The library is under [MIT license](https://github.com/ccxt/ccxt/blob/master/LICE
 | [![myriad](https://github.com/user-attachments/assets/a393c885-99e8-4943-897d-ebc0555c3773)](https://myriad.markets)                         | myriad      | [Myriad](https://myriad.markets)                         | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://docs.myriad.markets)                                                   |
 | [![opinion](https://github.com/user-attachments/assets/9905d9d4-3eb3-48d2-bdb3-551a9ddc7559)](https://opinion.trade)                         | opinion     | [Opinion](https://opinion.trade)                         | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.opinion.trade)                                                    |
 | [![polymarket](https://github.com/user-attachments/assets/89e1a2c4-a682-44e7-ad50-9fb15b534437)](https://polymarket.com)                     | polymarket  | [Polymarket](https://polymarket.com)                     | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.polymarket.com)                                                   |
+| [![predictfun](https://github.com/user-attachments/assets/9fb5dccf-faa3-4b5a-b144-81d6994bc598)](https://predict.fun)                        | predictfun  | [predict.fun](https://predict.fun)                       | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.predict.fun)                                                      |
 <!--- end prediction list -->
 
 ## Builder Code Exchanges

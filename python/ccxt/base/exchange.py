@@ -103,6 +103,9 @@ from ccxt.base.types import Int
 
 class BaseExchange(object):
     """Base exchange class"""
+    # snake_case -> camelCase attribute names, shared by every instance since
+    # the conversion is a pure function of the name
+    _camelcase_cache = {}
     id = 'Exchange'
     name = None
     countries = None
@@ -396,12 +399,16 @@ class BaseExchange(object):
 
         # convert all properties from underscore notation foo_bar to camelcase notation fooBar
         cls = type(self)
+        camelcase_cache = self._camelcase_cache
         for name in dir(self):
             if name[0] != '_' and name[-1] != '_' and '_' in name:
-                parts = name.split('_')
-                # fetch_ohlcv → fetchOHLCV (not fetchOhlcv!)
-                exceptions = {'ohlcv': 'OHLCV', 'le': 'LE', 'be': 'BE', 'adl': 'ADL'}
-                camelcase = parts[0] + ''.join(exceptions.get(i, self.capitalize(i)) for i in parts[1:])
+                camelcase = camelcase_cache.get(name)
+                if camelcase is None:
+                    parts = name.split('_')
+                    # fetch_ohlcv → fetchOHLCV (not fetchOhlcv!)
+                    exceptions = {'ohlcv': 'OHLCV', 'le': 'LE', 'be': 'BE', 'adl': 'ADL'}
+                    camelcase = parts[0] + ''.join(exceptions.get(i, self.capitalize(i)) for i in parts[1:])
+                    camelcase_cache[name] = camelcase
                 attr = getattr(self, name)
                 if isinstance(attr, types.MethodType):
                     setattr(cls, camelcase, getattr(cls, name))

@@ -6762,8 +6762,10 @@ class gate(Exchange, ImplicitAPI):
             if (method == 'GET') or (method == 'DELETE') or requiresURLEncoding or (method == 'PATCH'):
                 if len(query) > 0:
                     # https://github.com/ccxt/ccxt/issues/27663
-                    rawQueryString = self.rawencode(query)
-                    queryString = self.urlencode(query)
+                    # sort explicitly (true) so the signed order matches the url order in Go,
+                    # where map iteration is not ordered (keysort's order is otherwise lost)
+                    rawQueryString = self.rawencode(query, True)
+                    queryString = self.urlencode(query, True)
                     # https://github.com/ccxt/ccxt/issues/25570
                     if queryString.find('currencies=') >= 0 and queryString.find('%2C') >= 0:
                         queryString = queryString.replace('%2C', ',')

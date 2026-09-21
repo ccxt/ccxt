@@ -9588,8 +9588,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if is_true(&(is_equal(&method, &Value::Str("GET".to_string())))) || is_true(&(is_equal(&method, &Value::Str("DELETE".to_string())))) || is_true(&requiresURLEncoding) || is_true(&(is_equal(&method, &Value::Str("PATCH".to_string())))) {
                 if is_greater_than(&get_array_length(&object_keys(&query)), &Value::Int(0)) {
                     // https://github.com/ccxt/ccxt/issues/27663
-                    rawQueryString = self.rawencode(query.clone(), &[]);
-                    queryString = self.urlencode(query.clone(), &[]);
+                    // sort explicitly (true) so the signed order matches the url order in Go,
+                    // where map iteration is not ordered (keysort's order is otherwise lost)
+                    rawQueryString = self.rawencode(query.clone(), &[Value::Bool(true)]);
+                    queryString = self.urlencode(query.clone(), &[Value::Bool(true)]);
                     // https://github.com/ccxt/ccxt/issues/25570
                     if is_greater_than_or_equal(&get_index_of(&queryString, &Value::Str("currencies=".to_string())), &Value::Int(0)) && is_greater_than_or_equal(&get_index_of(&queryString, &Value::Str("%2C".to_string())), &Value::Int(0)) {
                         queryString = replace_all_str(&queryString, &Value::Str("%2C".to_string()), &Value::Str(",".to_string()));

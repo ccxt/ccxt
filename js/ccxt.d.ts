@@ -195,6 +195,7 @@ import limitlessPrediction from './src/prediction/limitless.js';
 import myriadPrediction from './src/prediction/myriad.js';
 import opinionPrediction from './src/prediction/opinion.js';
 import polymarketPrediction from './src/prediction/polymarket.js';
+import predictfunPrediction from './src/prediction/predictfun.js';
 declare const exchanges: {
     alpaca: typeof alpaca;
     apex: typeof apex;
@@ -389,6 +390,7 @@ declare const prediction: {
     myriad: typeof myriadPrediction;
     opinion: typeof opinionPrediction;
     polymarket: typeof polymarketPrediction;
+    predictfun: typeof predictfunPrediction;
 };
 declare const ccxt: {
     version: string;
@@ -484,6 +486,7 @@ declare const ccxt: {
         myriad: typeof myriadPrediction;
         opinion: typeof opinionPrediction;
         polymarket: typeof polymarketPrediction;
+        predictfun: typeof predictfunPrediction;
     };
 } & {
     alpaca: typeof alpaca;

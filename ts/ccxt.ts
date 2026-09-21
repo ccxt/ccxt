@@ -238,6 +238,7 @@ import limitlessPrediction from  './src/prediction/limitless.js'
 import myriadPrediction from  './src/prediction/myriad.js'
 import opinionPrediction from  './src/prediction/opinion.js'
 import polymarketPrediction from  './src/prediction/polymarket.js'
+import predictfunPrediction from  './src/prediction/predictfun.js'
 
 const exchanges = {
     'alpaca':                 alpaca,
@@ -439,6 +440,7 @@ const prediction = {
     'myriad':                 myriadPrediction,
     'opinion':                opinionPrediction,
     'polymarket':             polymarketPrediction,
+    'predictfun':             predictfunPrediction,
 };
 
 (prediction as any).exchanges = Object.keys (prediction);
