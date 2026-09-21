@@ -408,7 +408,7 @@ class ndax(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_status(self, params={}) -> Status:
+    async def fetch_status(self, params: dict = {}) -> Status:
         """
         the latest known information on the availability of the exchange API
 
@@ -432,7 +432,7 @@ class ndax(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    async def sign_in(self, params={}):
+    async def sign_in(self, params: dict = {}) -> dict:
         """
         sign in, must be called prior to using other authenticated methods
 
@@ -482,7 +482,7 @@ class ndax(Exchange, ImplicitAPI):
             return responseInner
         return response
 
-    async def fetch_currencies(self, params={}) -> Currencies:
+    async def fetch_currencies(self, params: dict = {}) -> Currencies:
         """
         fetches all available currencies on an exchange
 
@@ -550,7 +550,7 @@ class ndax(Exchange, ImplicitAPI):
             'margin': self.safe_bool(rawCurrency, 'MarginEnabled'),
         })
 
-    async def fetch_markets(self, params={}) -> list[Market]:
+    async def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
         retrieves data on all markets for ndax
 
@@ -620,7 +620,7 @@ class ndax(Exchange, ImplicitAPI):
         base = self.safe_currency_code(self.safe_string(market, 'Product1Symbol'))
         quote = self.safe_currency_code(self.safe_string(market, 'Product2Symbol'))
         sessionStatus = self.safe_string(market, 'SessionStatus')
-        isDisable = self.safe_value(market, 'IsDisable')
+        isDisable = self.safe_bool(market, 'IsDisable')
         sessionRunning = (sessionStatus == 'Running')
         return self.safe_market_structure({
             'id': id,
@@ -707,7 +707,7 @@ class ndax(Exchange, ImplicitAPI):
         result['nonce'] = nonce
         return result
 
-    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -835,7 +835,7 @@ class ndax(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    async def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
@@ -867,7 +867,7 @@ class ndax(Exchange, ImplicitAPI):
         tickers = self.parse_tickers(response)
         return self.filter_by_array_tickers(tickers, 'symbol', symbols)
 
-    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -941,7 +941,7 @@ class ndax(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1156,7 +1156,7 @@ class ndax(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -1185,7 +1185,7 @@ class ndax(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    async def fetch_accounts(self, params={}) -> list[Account]:
+    async def fetch_accounts(self, params: dict = {}) -> list[Account]:
         """
         fetch all the accounts associated with a profile
 
@@ -1236,7 +1236,7 @@ class ndax(Exchange, ImplicitAPI):
                     result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_balance(self, params={}) -> Balances:
+    async def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
@@ -1364,7 +1364,7 @@ class ndax(Exchange, ImplicitAPI):
             'fee': None,
         }, currency)
 
-    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[LedgerEntry]:
+    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
@@ -1520,7 +1520,7 @@ class ndax(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
@@ -1592,7 +1592,7 @@ class ndax(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params: dict = {}) -> Order:
         """
         cancels an open order and places a new order
 
@@ -1656,7 +1656,7 @@ class ndax(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all trades made by the user
 
@@ -1742,7 +1742,7 @@ class ndax(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    async def cancel_all_orders(self, symbol: Str = None, params={}):
+    async def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel all open orders
 
@@ -1781,7 +1781,7 @@ class ndax(Exchange, ImplicitAPI):
             }),
         ]
 
-    async def cancel_order(self, id: str, symbol: Str = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         cancels an open order
 
@@ -1820,7 +1820,7 @@ class ndax(Exchange, ImplicitAPI):
             'clientOrderId': clientOrderId,
         })
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -1899,7 +1899,7 @@ class ndax(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -1992,7 +1992,7 @@ class ndax(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_order(self, id: str, symbol: Str = None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetches information on an order made by the user
 
@@ -2069,7 +2069,7 @@ class ndax(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    async def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all the trades made from a single order
 
@@ -2152,7 +2152,7 @@ class ndax(Exchange, ImplicitAPI):
         trades = self.safe_list(grouped, 'Trade', [])
         return self.parse_trades(trades, market, since, limit)
 
-    async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
+    async def fetch_deposit_address(self, code: str, params: dict = {}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -2222,7 +2222,7 @@ class ndax(Exchange, ImplicitAPI):
             'tag': tag,
         }
 
-    async def create_deposit_address(self, code: str, params={}) -> DepositAddress:
+    async def create_deposit_address(self, code: str, params: dict = {}) -> DepositAddress:
         """
         create a currency deposit address
         :param str code: unified currency code of the currency for the deposit address
@@ -2234,7 +2234,7 @@ class ndax(Exchange, ImplicitAPI):
         }
         return await self.fetch_deposit_address(code, self.extend(request, params))
 
-    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -2293,7 +2293,7 @@ class ndax(Exchange, ImplicitAPI):
             return self.parse_transactions(json.loads(response), currency, since, limit)
         return self.parse_transactions(response, currency, since, limit)
 
-    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -2391,7 +2391,7 @@ class ndax(Exchange, ImplicitAPI):
                 'Confirmed2Fa': 'pending',  # user has confirmed withdraw via 2-factor authentication.
             },
         }
-        statuses = {} if (type is None) else self.safe_value(statusesByType, type, {})
+        statuses = {} if (type is None) else self.safe_dict(statusesByType, type, {})
         if status is None:
             return None
         return self.safe_string(statuses, status, status)
@@ -2491,7 +2491,7 @@ class ndax(Exchange, ImplicitAPI):
             'network': None,
         }
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
         """
         make a withdrawal
         :param str code: unified currency code
@@ -2535,8 +2535,8 @@ class ndax(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        templateTypes = self.safe_value(withdrawTemplateTypesResponse, 'TemplateTypes', [])
-        firstTemplateType = self.safe_value(templateTypes, 0)
+        templateTypes = self.safe_list(withdrawTemplateTypesResponse, 'TemplateTypes', [])
+        firstTemplateType = self.safe_dict(templateTypes, 0)
         if firstTemplateType is None:
             raise ExchangeError(self.id + ' withdraw() could not find a withdraw template type for ' + currency['code'])
         templateName = self.safe_string(firstTemplateType, 'TemplateName')
@@ -2579,10 +2579,10 @@ class ndax(Exchange, ImplicitAPI):
         response = await self.privatePostCreateWithdrawTicket(self.deep_extend(withdrawRequest, params))
         return self.parse_transaction(response, currency)
 
-    def nonce(self):
+    def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         url = self.urls['api'][api] + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':

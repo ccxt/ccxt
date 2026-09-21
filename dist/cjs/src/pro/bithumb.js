@@ -480,7 +480,7 @@ class bithumb extends bithumb$1["default"] {
             return;
         }
         const streamType = this.safeString(message, 'stream_type');
-        const options = this.safeValue(this.options, 'watchOrderBook', {});
+        const options = this.safeDict(this.options, 'watchOrderBook', {});
         const obLimit = this.safeInteger(options, 'limit', 1000);
         if (!(symbol in this.orderbooks) || (streamType === 'SNAPSHOT')) {
             this.orderbooks[symbol] = this.orderBook({}, obLimit);

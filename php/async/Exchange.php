@@ -46,11 +46,11 @@ use Lighter\Signer;
 
 use Exception;
 
-$version = '4.5.81';
+$version = '4.5.82';
 
 class BaseExchange extends \ccxt\BaseExchange {
 
-    const VERSION = '4.5.81';
+    const VERSION = '4.5.82';
 
     public $browser;
     public $marketsLoading = null;
@@ -1105,7 +1105,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         return array( $httpProxy, $httpsProxy, $socksProxy );
     }
 
-    public function check_ws_proxy_settings() {
+    public function check_ws_proxy_settings(): array {
         $usedProxies = array();
         $wsProxy = null;
         $wssProxy = null;
@@ -1787,7 +1787,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         }
     }
 
-    public function features_mapper(mixed $initialFeatures, ?string $marketType, ?string $subType = null) {
+    public function features_mapper(array $initialFeatures, ?string $marketType, ?string $subType = null) {
         $featuresObj = ($subType !== null) ? $initialFeatures[$marketType][$subType] : $initialFeatures[$marketType];
         // if exchange does not have that market-type (eg. future>inverse)
         if ($featuresObj === null) {
@@ -3874,7 +3874,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         return $this->filter_by_currency_since_limit($result, $code, $since, $limit);
     }
 
-    public function nonce() {
+    public function nonce(): float {
         return $this->seconds();
     }
 
@@ -4370,7 +4370,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         return true;
     }
 
-    public function oath() {
+    public function oath(): string {
         if ($this->twofa !== null) {
             return $this->totp($this->twofa);
         } else {

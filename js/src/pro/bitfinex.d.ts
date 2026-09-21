@@ -3,8 +3,8 @@ import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, 
 import Client from '../base/ws/Client.js';
 export default class bitfinex extends bitfinexRest {
     describe(): any;
-    subscribe(channel: any, symbol: any, params?: {}): Promise<any>;
-    unSubscribe(channel: any, topic: any, symbol: any, params?: {}): Promise<any>;
+    subscribe(channel: any, symbol: any, params?: Dict): Promise<any>;
+    unSubscribe(channel: any, topic: any, symbol: any, params?: Dict): Promise<any>;
     subscribePrivate(messageHash: any): Promise<any>;
     /**
      * @method
@@ -17,7 +17,7 @@ export default class bitfinex extends bitfinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     /**
      * @method
      * @name bitfinex#unWatchOHLCV
@@ -27,8 +27,8 @@ export default class bitfinex extends bitfinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {bool} true if successfully unsubscribed, false otherwise
      */
-    unWatchOHLCV(symbol: string, timeframe?: string, params?: {}): Promise<any>;
-    handleOHLCV(client: Client, message: any, subscription: any): void;
+    unWatchOHLCV(symbol: string, timeframe?: string, params?: Dict): Promise<any>;
+    handleOHLCV(client: Client, message: any[], subscription: Dict): void;
     /**
      * @method
      * @name bitfinex#watchTrades
@@ -39,7 +39,7 @@ export default class bitfinex extends bitfinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name bitfinex#unWatchTrades
@@ -59,7 +59,7 @@ export default class bitfinex extends bitfinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name bitfinex#watchTicker
@@ -68,7 +68,7 @@ export default class bitfinex extends bitfinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    watchTicker(symbol: string, params?: Dict): Promise<Ticker>;
     /**
      * @method
      * @name bitfinex#unWatchTicker
@@ -78,10 +78,10 @@ export default class bitfinex extends bitfinexRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     unWatchTicker(symbol: string, params?: {}): Promise<any>;
-    handleMyTrade(client: Client, message: any, subscription?: {}): void;
-    handleTrades(client: Client, message: any, subscription: any): void;
+    handleMyTrade(client: Client, message: any[], subscription?: Dict): void;
+    handleTrades(client: Client, message: any[], subscription: Dict): void;
     parseWsTrade(trade: any, market?: Market): Trade;
-    handleTicker(client: Client, message: any, subscription: any): void;
+    handleTicker(client: Client, message: any[], subscription: Dict): void;
     parseWsTicker(ticker: Dict, market?: Market): Ticker;
     /**
      * @method
@@ -92,9 +92,9 @@ export default class bitfinex extends bitfinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    handleOrderBook(client: Client, message: any, subscription: any): void;
-    handleChecksum(client: Client, message: any, subscription: any): void;
+    watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
+    handleOrderBook(client: Client, message: any[], subscription: Dict): void;
+    handleChecksum(client: Client, message: any[], subscription: Dict): void;
     /**
      * @method
      * @name bitfinex#watchBalance
@@ -103,14 +103,14 @@ export default class bitfinex extends bitfinexRest {
      * @param {str} [params.type] spot or contract if not provided this.options['defaultType'] is used
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    watchBalance(params?: {}): Promise<Balances>;
-    handleBalance(client: Client, message: any, subscription: any): void;
+    watchBalance(params?: Dict): Promise<Balances>;
+    handleBalance(client: Client, message: any[], subscription: Dict): void;
     parseWsBalance(balance: any): import("../base/types.js").BalanceAccount;
-    handleSystemStatus(client: Client, message: any): any;
-    handleUnsubscriptionStatus(client: Client, message: any): boolean;
-    handleSubscriptionStatus(client: Client, message: any): any;
-    authenticate(params?: {}): Promise<any>;
-    handleAuthenticationMessage(client: Client, message: any): void;
+    handleSystemStatus(client: Client, message: Dict): Dict;
+    handleUnsubscriptionStatus(client: Client, message: Dict): boolean;
+    handleSubscriptionStatus(client: Client, message: Dict): Dict;
+    authenticate(params?: Dict): Promise<any>;
+    handleAuthenticationMessage(client: Client, message: Dict): void;
     /**
      * @method
      * @name bitfinex#watchOrders
@@ -121,9 +121,9 @@ export default class bitfinex extends bitfinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    handleOrders(client: Client, message: any, subscription: any): void;
-    parseWsOrderStatus(status: any): string;
-    parseWsOrder(order: any, market?: Market): Order;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
+    handleOrders(client: Client, message: any[], subscription: Dict): void;
+    parseWsOrderStatus(status: Str): Str;
+    parseWsOrder(order: Dict, market?: Market): Order;
     handleMessage(client: Client, message: any): void;
 }

@@ -134,7 +134,7 @@ class bitmex extends \ccxt\async\bitmex {
         return $this->filter_by_array($this->tickers, 'symbol', $symbols);
     }
 
-    public function handle_ticker(Client $client, mixed $message) {
+    public function handle_ticker(Client $client, array $message): array {
         //
         //     {
         //         "table": "instrument",
@@ -441,7 +441,7 @@ class bitmex extends \ccxt\async\bitmex {
         return $this->filter_by_symbols_since_limit($this->liquidations, $symbols, $since, $limit, true);
     }
 
-    public function handle_liquidation(Client $client, mixed $message) {
+    public function handle_liquidation(Client $client, array $message) {
         //
         //    {
         //        "table":"liquidation",
@@ -518,7 +518,7 @@ class bitmex extends \ccxt\async\bitmex {
         return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
     }
 
-    public function handle_balance(Client $client, mixed $message) {
+    public function handle_balance(Client $client, array $message) {
         //
         //     {
         //         "table": "margin",
@@ -617,14 +617,14 @@ class bitmex extends \ccxt\async\bitmex {
         //         ]
         //     }
         //
-        $data = $this->safe_value($message, 'data');
+        $data = $this->safe_list($message, 'data');
         $balance = $this->parse_balance($data);
         $this->balance = $this->extend($this->balance, $balance);
         $messageHash = $this->safe_string($message, 'table');
         $client->resolve($this->balance, $messageHash);
     }
 
-    public function handle_trades(Client $client, mixed $message) {
+    public function handle_trades(Client $client, array $message) {
         //
         // initial snapshot
         //
@@ -685,7 +685,7 @@ class bitmex extends \ccxt\async\bitmex {
         //     }
         //
         $table = 'trade';
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_list($message, 'data', array());
         $dataByMarketIds = $this->group_by($data, 'symbol');
         $marketIds = is_array($dataByMarketIds) ? array_keys($dataByMarketIds) : array();
         for ($i = 0; $i < count($marketIds); $i++) {
@@ -751,7 +751,7 @@ class bitmex extends \ccxt\async\bitmex {
         return Async\await($future);
     }
 
-    public function handle_authentication_message(Client $client, mixed $message) {
+    public function handle_authentication_message(Client $client, array $message) {
         $authenticated = $this->safe_bool($message, 'success', false);
         $messageHash = 'authenticated';
         if ($authenticated === true) {
@@ -807,7 +807,7 @@ class bitmex extends \ccxt\async\bitmex {
         return $this->filter_by_symbols_since_limit($this->positions, $symbols, $since, $limit, true);
     }
 
-    public function handle_positions(mixed $client, mixed $message) {
+    public function handle_positions(Client $client, array $message) {
         //
         // partial
         //    {
@@ -1043,7 +1043,7 @@ class bitmex extends \ccxt\async\bitmex {
         return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
     }
 
-    public function handle_orders(Client $client, mixed $message) {
+    public function handle_orders(Client $client, array $message) {
         //
         //     {
         //         "table": "order",
@@ -1207,7 +1207,7 @@ class bitmex extends \ccxt\async\bitmex {
             for ($i = 0; $i < $dataLength; $i++) {
                 $currentOrder = $data[$i];
                 $orderId = $this->safe_string($currentOrder, 'orderID');
-                $previousOrder = $this->safe_value($stored->hashmap, $orderId);
+                $previousOrder = $this->safe_dict($stored->hashmap, $orderId);
                 $rawOrder = $currentOrder;
                 if ($previousOrder !== null) {
                     $rawOrder = $this->extend($previousOrder['info'], $currentOrder);
@@ -1267,7 +1267,7 @@ class bitmex extends \ccxt\async\bitmex {
         return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
     }
 
-    public function handle_my_trades(Client $client, mixed $message) {
+    public function handle_my_trades(Client $client, array $message) {
         //
         //     {
         //         "table":"execution",
@@ -1326,9 +1326,9 @@ class bitmex extends \ccxt\async\bitmex {
         //     }
         //
         $messageHash = $this->safe_string($message, 'table');
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_list($message, 'data', array());
         $dataByExecType = $this->group_by($data, 'execType');
-        $rawTrades = $this->safe_value($dataByExecType, 'Trade', array());
+        $rawTrades = $this->safe_list($dataByExecType, 'Trade', array());
         $trades = $this->parse_trades($rawTrades);
         if ($this->myTrades === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
@@ -1452,7 +1452,7 @@ class bitmex extends \ccxt\async\bitmex {
         );
         $trades = Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($request, $params), $topics));
         if ($this->newUpdates) {
-            $first = $this->safe_value($trades, 0);
+            $first = $this->safe_dict($trades, 0);
             $tradeSymbol = $this->safe_string($first, 'symbol');
             $limit = $trades->getLimit($tradeSymbol, $limit);
         }
@@ -1497,7 +1497,7 @@ class bitmex extends \ccxt\async\bitmex {
         return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
     }
 
-    public function handle_ohlcv(Client $client, mixed $message) {
+    public function handle_ohlcv(Client $client, array $message) {
         //
         //     {
         //         "table": "tradeBin1m",
@@ -1583,7 +1583,7 @@ class bitmex extends \ccxt\async\bitmex {
                 $this->safe_float($candle, 'close'),
                 $this->safe_float($candle, 'volume'),
             );
-            $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
+            $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
             $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
             if ($stored === null) {
                 $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
@@ -1613,7 +1613,7 @@ class bitmex extends \ccxt\async\bitmex {
         return Async\await($this->watch($url, $event));
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         // first snapshot
         //
@@ -1672,7 +1672,7 @@ class bitmex extends \ccxt\async\bitmex {
         // if it's an initial snapshot
         if ($action === 'partial') {
             $filter = $this->safe_dict($message, 'filter', array());
-            $marketId = $this->safe_value($filter, 'symbol');
+            $marketId = $this->safe_string($filter, 'symbol');
             if ($marketId === null) {
                 return; // protecting from weird update
             }
@@ -1704,7 +1704,7 @@ class bitmex extends \ccxt\async\bitmex {
         } else {
             $numUpdatesByMarketId = array();
             for ($i = 0; $i < count($data); $i++) {
-                $marketId = $this->safe_value($data[$i], 'symbol');
+                $marketId = $this->safe_string($data[$i], 'symbol');
                 if ($marketId === null) {
                     return; // protecting from weird update
                 }
@@ -1738,7 +1738,7 @@ class bitmex extends \ccxt\async\bitmex {
         }
     }
 
-    public function handle_system_status(Client $client, mixed $message) {
+    public function handle_system_status(Client $client, array $message): array {
         //
         // todo answer the question whether handleSystemStatus should be renamed
         // and unified as handleStatus for any usage pattern that
@@ -1755,7 +1755,7 @@ class bitmex extends \ccxt\async\bitmex {
         return $message;
     }
 
-    public function handle_subscription_status(Client $client, mixed $message) {
+    public function handle_subscription_status(Client $client, array $message): array {
         //
         //     {
         //         "success": true,
@@ -1785,7 +1785,7 @@ class bitmex extends \ccxt\async\bitmex {
         //
         $error = $this->safe_string($message, 'error');
         if ($error !== null) {
-            $request = $this->safe_value($message, 'request', array());
+            $request = $this->safe_dict($message, 'request', array());
             $args = $this->safe_list($request, 'args', array());
             $numArgs = count($args);
             if ($numArgs > 0) {
@@ -1805,7 +1805,7 @@ class bitmex extends \ccxt\async\bitmex {
         return true;
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         //
         //     {
         //         "info": "Welcome to the BitMEX Realtime API.",
@@ -1860,8 +1860,8 @@ class bitmex extends \ccxt\async\bitmex {
             );
             $method = $this->safe_value($methods, $table);
             if ($method === null) {
-                $request = $this->safe_value($message, 'request', array());
-                $op = $this->safe_value($request, 'op');
+                $request = $this->safe_dict($message, 'request', array());
+                $op = $this->safe_string($request, 'op');
                 if ($op === 'authKeyExpires') {
                     $this->handle_authentication_message($client, $message);
                 }

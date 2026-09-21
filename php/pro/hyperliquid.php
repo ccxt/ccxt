@@ -74,7 +74,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         ));
     }
 
-    public function create_orders_ws(array $orders, $params = array()) {
+    public function create_orders_ws(array $orders, $params = array()): PromiseInterface {
         return Async\async(self::do_create_orders_ws(...))($orders, $params);
     }
 
@@ -103,7 +103,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         return $this->parse_orders($statuses, null);
     }
 
-    public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_order_ws(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -142,7 +142,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         return $parsedOrder;
     }
 
-    public function edit_order_ws(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    public function edit_order_ws(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_edit_order_ws(...))($id, $symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -187,7 +187,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         return $parsedOrder;
     }
 
-    public function cancel_orders_ws(array $ids, ?string $symbol = null, $params = array()) {
+    public function cancel_orders_ws(array $ids, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_orders_ws(...))($ids, $symbol, $params);
     }
 
@@ -228,7 +228,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         return $orders;
     }
 
-    public function cancel_order_ws(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order_ws(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order_ws(...))($id, $symbol, $params);
     }
 
@@ -318,7 +318,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         return Async\await($this->watch($url, $messageHash, $message, $messageHash));
     }
 
-    public function handle_order_book(mixed $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         //     {
         //         "channel": "l2Book",
@@ -602,7 +602,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         return Async\await($this->watch($url, $messageHash, $message, $messageHash));
     }
 
-    public function handle_ws_tickers(Client $client, mixed $message): bool {
+    public function handle_ws_tickers(Client $client, array $message): bool {
         // hip3 mids
         // {
         //     channel: 'allMids',
@@ -642,7 +642,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         return true;
     }
 
-    public function handle_active_asset_ctx(Client $client, mixed $message): bool {
+    public function handle_active_asset_ctx(Client $client, array $message): bool {
         //
         //     {
         //         "channel": "activeAssetCtx",
@@ -682,7 +682,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         return $this->parse_ticker($rawTicker, $market);
     }
 
-    public function handle_my_trades(Client $client, mixed $message) {
+    public function handle_my_trades(Client $client, array $message) {
         //
         //     {
         //         "channel": "userFills",
@@ -811,7 +811,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         return Async\await($this->watch($url, $messageHash, $message, $messageHash));
     }
 
-    public function handle_trades(Client $client, mixed $message) {
+    public function handle_trades(Client $client, array $message) {
         //
         //     {
         //         "channel": "trades",
@@ -992,7 +992,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         return Async\await($this->watch($url, $messagehash, $message, $messagehash));
     }
 
-    public function handle_ohlcv(Client $client, mixed $message) {
+    public function handle_ohlcv(Client $client, array $message) {
         //
         //     {
         //         channel: 'candle',
@@ -1142,7 +1142,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         return Async\await($this->watch($url, $messageHash, $message, $messageHash));
     }
 
-    public function handle_balance(Client $client, mixed $message) {
+    public function handle_balance(Client $client, array $message) {
         //
         // spot
         // {
@@ -1198,7 +1198,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         if ($this->balance === null) {
             $this->balance = array();
         }
-        $topic = $this->safe_value($message, 'channel');
+        $topic = $this->safe_string($message, 'channel');
         $messageHash = $topic . '::balance';
         $info = null;
         $rawBalances = array();
@@ -1232,7 +1232,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $client->resolve($this->balance[$account], $messageHash);
     }
 
-    public function parse_ws_balance(mixed $balance, ?string $accountType = null) {
+    public function parse_ws_balance(array $balance, ?string $accountType = null) {
         //
         // spot
         //     {
@@ -1351,7 +1351,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $this->positions = new ArrayCacheBySymbolBySide();
     }
 
-    public function handle_positions(mixed $client, mixed $message) {
+    public function handle_positions(Client $client, array $message) {
         if ($this->positions === null) {
             $this->positions = new ArrayCacheBySymbolBySide();
         }
@@ -1516,7 +1516,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         return Async\await($this->watch($url, $messageHash, $message, $messageHash));
     }
 
-    public function handle_order(Client $client, mixed $message) {
+    public function handle_order(Client $client, array $message) {
         //
         //     {
         //         channel: 'orderUpdates',
@@ -1565,7 +1565,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $client->resolve($stored, $messageHash);
     }
 
-    public function handle_error_message(Client $client, mixed $message): ?bool {
+    public function handle_error_message(Client $client, array $message): ?bool {
         //
         //    {
         //      "channel": "post",
@@ -1770,7 +1770,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         }
     }
 
-    public function handle_subscription_response(Client $client, mixed $message) {
+    public function handle_subscription_response(Client $client, array $message) {
         // {
         //     "channel":"subscriptionResponse",
         //     "data":{
@@ -1822,7 +1822,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         }
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         //
         // {
         //     "channel":"subscriptionResponse",
@@ -1872,13 +1872,13 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         }
     }
 
-    public function ping(Client $client) {
+    public function ping(Client $client): array {
         return array(
             'method' => 'ping',
         );
     }
 
-    public function handle_pong(Client $client, mixed $message) {
+    public function handle_pong(Client $client, array $message): array {
         //
         //   {
         //       "channel": "pong"

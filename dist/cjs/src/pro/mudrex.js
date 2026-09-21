@@ -200,8 +200,8 @@ class mudrex extends mudrex$1["default"] {
             this.safeNumber(data, 'c'),
             this.safeNumber(data, 'v'),
         ];
-        this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
-        let stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), tf);
+        this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
+        let stored = this.safeValue(this.safeDict(this.ohlcvs, symbol), tf);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
             stored = new Cache.ArrayCacheByTimestamp(limit);

@@ -752,7 +752,7 @@ class krakenfutures extends krakenfutures$1["default"] {
             orders = new Cache.ArrayCacheBySymbolById(limit);
             this.orders = orders;
         }
-        const order = this.safeValue(message, 'order');
+        const order = this.safeDict(message, 'order');
         if (order !== undefined) {
             const marketId = this.safeString(order, 'instrument');
             const feed = this.safeString(message, 'feed');
@@ -762,8 +762,8 @@ class krakenfutures extends krakenfutures$1["default"] {
             }
             const symbol = this.safeSymbol(marketId);
             const orderId = this.safeString(order, 'order_id');
-            const previousOrders = this.safeValue(orders.hashmap, symbol, {});
-            const previousOrder = this.safeValue(previousOrders, orderId);
+            const previousOrders = this.safeDict(orders.hashmap, symbol, {});
+            const previousOrder = this.safeDict(previousOrders, orderId);
             const reason = this.safeString(message, 'reason');
             if ((previousOrder === undefined) || (reason === 'edited_by_user')) {
                 const parsed = this.parseWsOrder(order);
@@ -816,7 +816,7 @@ class krakenfutures extends krakenfutures$1["default"] {
             }
         }
         else {
-            const isCancel = this.safeValue(message, 'is_cancel');
+            const isCancel = this.safeBool(message, 'is_cancel');
             if (isCancel === true) {
                 // Kraken documents is_cancel as "fully filled, cancelled, or
                 // rejected". Derive unified status from `reason` instead of
@@ -969,7 +969,7 @@ class krakenfutures extends krakenfutures$1["default"] {
         //        "reduce_only": false
         //    }
         //
-        const isCancelled = this.safeValue(order, 'is_cancel');
+        const isCancelled = this.safeBool(order, 'is_cancel');
         let unparsedOrder = order;
         let status = undefined;
         if (isCancelled !== undefined) {
@@ -1406,9 +1406,9 @@ class krakenfutures extends krakenfutures$1["default"] {
         //        "seq": 2
         //    }
         //
-        const holding = this.safeValue(message, 'holding');
-        const futures = this.safeValue(message, 'futures');
-        const flexFutures = this.safeValue(message, 'flex_futures');
+        const holding = this.safeDict(message, 'holding');
+        const futures = this.safeDict(message, 'futures');
+        const flexFutures = this.safeDict(message, 'flex_futures');
         const messageHash = 'balances';
         const timestamp = this.safeInteger(message, 'timestamp');
         if (holding !== undefined) {
@@ -1442,7 +1442,7 @@ class krakenfutures extends krakenfutures$1["default"] {
                 const key = futuresKeys[i];
                 const symbol = this.safeSymbol(key);
                 const newAccount = this.account();
-                const future = this.safeValue(futures, key);
+                const future = this.safeDict(futures, key);
                 const currencyId = this.safeString(future, 'unit');
                 const code = this.safeCurrencyCode(currencyId);
                 newAccount['free'] = this.safeString(future, 'available');
@@ -1467,7 +1467,7 @@ class krakenfutures extends krakenfutures$1["default"] {
             };
             for (let i = 0; i < flexFuturesKeys.length; i++) {
                 const key = flexFuturesKeys[i];
-                const flexFuture = this.safeValue(flexFutureCurrencies, key);
+                const flexFuture = this.safeDict(flexFutureCurrencies, key);
                 const code = this.safeCurrencyCode(key);
                 const newAccount = this.account();
                 newAccount['free'] = this.safeString(flexFuture, 'available');
@@ -1555,7 +1555,7 @@ class krakenfutures extends krakenfutures$1["default"] {
         const timestamp = this.safeInteger(trade, 'time');
         const marketId = this.safeString(trade, 'instrument');
         market = this.safeMarket(marketId, market);
-        const isBuy = this.safeValue(trade, 'buy');
+        const isBuy = this.safeBool(trade, 'buy');
         const feeCurrencyId = this.safeString(trade, 'fee_currency');
         return this.safeTrade({
             'info': trade,
@@ -1702,7 +1702,7 @@ class krakenfutures extends krakenfutures$1["default"] {
         //        "message": "226aee50-88fc-4618-a42a-34f7709570b2"
         //    }
         //
-        const event = this.safeValue(message, 'event');
+        const event = this.safeString(message, 'event');
         const messageHash = 'challenge';
         if (event !== 'error') {
             const challenge = this.safeValue(message, 'message');

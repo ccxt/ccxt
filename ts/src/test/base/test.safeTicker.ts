@@ -1,11 +1,8 @@
 
 
-
 import assert from 'assert';
 import Precise from '../../base/Precise.js';
 import ccxt from '../../../ccxt.js';
-
-
 
 function preciseEqualStr (exchange:any, result: any, key: string, expected: string) {
     return Precise.stringEq (exchange.safeString (result, key), expected);
@@ -38,7 +35,6 @@ function testSafeTicker () {
     assert (preciseEqualStr (exchange, result2, 'average', '5.5'));
     assert (preciseEqualStr (exchange, result2, 'close', '6.0'));
     assert (preciseEqualStr (exchange, result2, 'last', '6.0'));
-
 
     // CASE 3 - by close
     const ticker3 = {

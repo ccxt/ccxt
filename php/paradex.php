@@ -1320,7 +1320,7 @@ class paradex extends Exchange {
         ), $market);
     }
 
-    public function fetch_open_interest(string $symbol, $params = array()) {
+    public function fetch_open_interest(string $symbol, $params = array()): array {
         /**
          * retrieves the open $interest of a contract trading pair
          *
@@ -1367,7 +1367,7 @@ class paradex extends Exchange {
         return $this->parse_open_interest($interest, $market);
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null): array {
         //
         //     {
         //         "symbol": "BTC-USD-PERP",
@@ -1403,7 +1403,7 @@ class paradex extends Exchange {
         return '0x' . $this->hash($message, 'keccak', 'hex');
     }
 
-    public function sign_hash(mixed $hash, mixed $privateKey) {
+    public function sign_hash(string $hash, string $privateKey): string {
         $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
         $r = $signature['r'];
         $s = $signature['s'];
@@ -1411,7 +1411,7 @@ class paradex extends Exchange {
         return '0x' . str_pad($r, 64, '0', STR_PAD_LEFT) . str_pad($s, 64, '0', STR_PAD_LEFT) . $v;
     }
 
-    public function sign_message(mixed $message, mixed $privateKey) {
+    public function sign_message(mixed $message, string $privateKey): string {
         return $this->sign_hash($this->hash_message($message), mb_substr($privateKey, -64));
     }
 
@@ -1453,7 +1453,7 @@ class paradex extends Exchange {
         return $this->safe_dict($this->options, 'systemConfig', array());
     }
 
-    public function prepare_paradex_domain($l1 = false) {
+    public function prepare_paradex_domain(bool $l1 = false): array {
         $systemConfig = $this->get_system_config();
         if ($l1 === true) {
             $l1D = array(
@@ -1693,7 +1693,7 @@ class paradex extends Exchange {
         return Precise::string_mul($num, '100000000');
     }
 
-    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($type === null) {
             throw new ArgumentsRequired($this->id . ' requires a $type argument');
         }
@@ -1782,7 +1782,7 @@ class paradex extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function sign_order_request(array $request, $modify = false) {
+    public function sign_order_request(array $request, bool $modify = false): array {
         $account = $this->retrieve_account();
         $now = $this->nonce();
         $orderType = $this->safe_string($request, 'type');
@@ -1826,7 +1826,7 @@ class paradex extends Exchange {
         return $request;
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * create a trade $order
          *
@@ -1888,7 +1888,7 @@ class paradex extends Exchange {
         return $order;
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): array {
         /**
          * edit an open limit order or TPSL order
          *
@@ -2022,7 +2022,7 @@ class paradex extends Exchange {
         return $parsedOrders;
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * cancels an open order
          *
@@ -2054,7 +2054,7 @@ class paradex extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()): array {
         /**
          * cancel multiple $orders
          *
@@ -2135,7 +2135,7 @@ class paradex extends Exchange {
         return $orders;
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): array {
         /**
          * cancel all open orders in a $market
          *
@@ -2163,7 +2163,7 @@ class paradex extends Exchange {
         return array( $this->safe_order(array( 'info' => $response )) );
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetches information on an order made by the user
          *
@@ -2405,7 +2405,7 @@ class paradex extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all $trades made by the user
          *
@@ -2472,7 +2472,7 @@ class paradex extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_position(string $symbol, $params = array()) {
+    public function fetch_position(string $symbol, $params = array()): array {
         /**
          * fetch data on an open position
          *
@@ -2536,7 +2536,7 @@ class paradex extends Exchange {
         return $this->parse_positions($data, $symbols);
     }
 
-    public function parse_position(array $position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null): array {
         //
         //     {
         //         "id": "0x49ddd7a564c978f6e4089ff8355b56a42b7e2d48ba282cb5aad60f04bea0ec3-BTC-USD-PERP",
@@ -2638,7 +2638,7 @@ class paradex extends Exchange {
         return $this->parse_liquidations($data, $market, $since, $limit);
     }
 
-    public function parse_liquidation(mixed $liquidation, ?array $market = null) {
+    public function parse_liquidation(mixed $liquidation, ?array $market = null): array {
         //
         //     {
         //         "created_at": 1697213130097,
@@ -3076,7 +3076,7 @@ class paradex extends Exchange {
         );
     }
 
-    public function encode_margin_mode(mixed $mode) {
+    public function encode_margin_mode(?string $mode): ?string {
         $modes = array(
             'cross' => 'CROSS',
             'isolated' => 'ISOLATED',
@@ -3348,7 +3348,7 @@ class paradex extends Exchange {
         return $this->parse_incomes($results, $market, $since, $limit);
     }
 
-    public function parse_income(mixed $income, ?array $market = null) {
+    public function parse_income(mixed $income, ?array $market = null): array {
         //
         //     {
         //         "account": "string",
@@ -3374,7 +3374,7 @@ class paradex extends Exchange {
         );
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical funding $rate prices
          *
@@ -3449,7 +3449,7 @@ class paradex extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $version = $this->version;
         if (mb_strpos($path, 'v2/') === 0) {
             $version = 'v2';

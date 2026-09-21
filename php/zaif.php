@@ -323,8 +323,8 @@ class zaif extends Exchange {
     }
 
     public function parse_balance(mixed $response): array {
-        $balances = $this->safe_value($response, 'return', array());
-        $deposit = $this->safe_value($balances, 'deposit');
+        $balances = $this->safe_dict($response, 'return', array());
+        $deposit = $this->safe_dict($balances, 'deposit');
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -543,7 +543,7 @@ class zaif extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          *
          * @see https://zaif-api-document.readthedocs.io/ja/latest/MarginTradingAPI.html#id23
@@ -578,7 +578,7 @@ class zaif extends Exchange {
         ), $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          *
          * @see https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id37
@@ -800,7 +800,7 @@ class zaif extends Exchange {
         //
         $currency = $this->safe_currency(null, $currency);
         $fee = null;
-        $feeCost = $this->safe_value($transaction, 'fee');
+        $feeCost = $this->safe_number($transaction, 'fee');
         if ($feeCost !== null) {
             $fee = array(
                 'cost' => $feeCost,
@@ -837,7 +837,7 @@ class zaif extends Exchange {
         return sprintf('%.8f', $nonce);
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $url = $this->urls['api']['rest'] . '/';
         if ($api === 'public') {
             $url .= 'api/' . $this->version . '/' . $this->implode_params($path, $params);

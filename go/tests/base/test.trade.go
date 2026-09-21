@@ -51,7 +51,7 @@ func TestTrade(exchange ccxt.ICoreExchange, skippedProperties any, method any, e
 	if !(InOp(skippedProperties, "fees")) {
 		// todo: remove undefined check and probably non-empty array check later
 		if !IsEqual(GetValue(entry, "fees"), nil) {
-			for i := 0; IsLessThan(i, GetArrayLength(GetValue(entry, "fees"))); i++ {
+			for i := 0; i < GetArrayLength(GetValue(entry, "fees")); i++ {
 				AssertFeeStructure(exchange, skippedProperties, method, GetValue(entry, "fees"), i)
 			}
 		}

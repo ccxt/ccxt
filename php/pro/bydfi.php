@@ -100,11 +100,11 @@ class bydfi extends \ccxt\async\bydfi {
         return $reqid;
     }
 
-    public function watch_public(mixed $messageHashes, mixed $channels, $params = array(), $subscription = array()) {
+    public function watch_public(array $messageHashes, ?array $channels, $params = array(), array $subscription = array()) {
         return Async\async(self::do_watch_public(...))($messageHashes, $channels, $params, $subscription);
     }
 
-    private function do_watch_public(mixed $messageHashes, mixed $channels, $params = array(), $subscription = array()) {
+    private function do_watch_public(array $messageHashes, ?array $channels, $params = array(), array $subscription = array()) {
         $url = $this->urls['api']['ws'];
         $id = $this->request_id();
         $subscriptionParams = array(
@@ -126,11 +126,11 @@ class bydfi extends \ccxt\async\bydfi {
         return Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($message, $params), $messageHashes, $this->extend($subscriptionParams, $subscription)));
     }
 
-    public function watch_private(mixed $messageHashes, $params = array()) {
+    public function watch_private(array $messageHashes, $params = array()) {
         return Async\async(self::do_watch_private(...))($messageHashes, $params);
     }
 
-    private function do_watch_private(mixed $messageHashes, $params = array()) {
+    private function do_watch_private(array $messageHashes, $params = array()) {
         $this->check_required_credentials();
         $url = $this->urls['api']['ws'];
         $subHash = 'private';
@@ -302,7 +302,7 @@ class bydfi extends \ccxt\async\bydfi {
         return $messageHashes;
     }
 
-    public function handle_ticker(Client $client, mixed $message) {
+    public function handle_ticker(Client $client, array $message) {
         //
         //     {
         //         "s": "KAS-USDT",
@@ -323,11 +323,11 @@ class bydfi extends \ccxt\async\bydfi {
         $client->resolve($this->tickers, 'ticker::all');
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_watch_ohlcv(...))($symbol, $timeframe, $since, $limit, $params);
     }
 
-    private function do_watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+    private function do_watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * watches historical candlestick data containing the open, high, low, close price, and the volume of a market
          *
@@ -437,7 +437,7 @@ class bydfi extends \ccxt\async\bydfi {
         return Async\await($this->watch_public($messageHashes, $channels, $params, $subscription));
     }
 
-    public function handle_ohlcv(Client $client, mixed $message) {
+    public function handle_ohlcv(Client $client, array $message) {
         //
         //     {
         //         "s": "ETH-USDC",
@@ -582,7 +582,7 @@ class bydfi extends \ccxt\async\bydfi {
         return Async\await($this->watch_public($messageHashes, $channels, $params, $subscription));
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         //     {
         //         "a": [ [ 150000, 15 ], ... ],
@@ -660,14 +660,14 @@ class bydfi extends \ccxt\async\bydfi {
         }
         $orders = Async\await($this->watch_private($messageHashes, $params));
         if ($this->newUpdates) {
-            $first = $this->safe_value($orders, 0);
+            $first = $this->safe_dict($orders, 0);
             $tradeSymbol = $this->safe_string($first, 'symbol');
             $limit = $orders->getLimit($tradeSymbol, $limit);
         }
         return $this->filter_by_since_limit($orders, $since, $limit, 'timestamp', true);
     }
 
-    public function handle_order(Client $client, mixed $message) {
+    public function handle_order(Client $client, array $message) {
         //
         //     {
         //         "T": 1766588450558,
@@ -817,7 +817,7 @@ class bydfi extends \ccxt\async\bydfi {
         return $this->filter_by_symbols_since_limit($this->positions, $symbols, $since, $limit, true);
     }
 
-    public function handle_positions(mixed $client, mixed $message) {
+    public function handle_positions(Client $client, array $message) {
         //
         //     {
         //         "a": {
@@ -879,7 +879,7 @@ class bydfi extends \ccxt\async\bydfi {
         $client->resolve(array( $parsedPosition ), $symbolMessageHash);
     }
 
-    public function parse_ws_position(mixed $position, ?array $market = null) {
+    public function parse_ws_position(array $position, ?array $market = null): array {
         //
         //     {
         //         "S": "1",
@@ -972,7 +972,7 @@ class bydfi extends \ccxt\async\bydfi {
     }
 
     public function fetch_balance_snapshot(Client $client) {
-        $options = $this->safe_value($this->options, 'watchBalance');
+        $options = $this->safe_dict($this->options, 'watchBalance');
         $fetchBalanceSnapshot = $this->safe_bool($options, 'fetchBalanceSnapshot', false);
         if ($fetchBalanceSnapshot === true) {
             $messageHash = 'fetchBalanceSnapshot';
@@ -983,11 +983,11 @@ class bydfi extends \ccxt\async\bydfi {
         }
     }
 
-    public function load_balance_snapshot(Client $client, mixed $messageHash) {
+    public function load_balance_snapshot(Client $client, string $messageHash) {
         return Async\async(self::do_load_balance_snapshot(...))($client, $messageHash);
     }
 
-    private function do_load_balance_snapshot(Client $client, mixed $messageHash) {
+    private function do_load_balance_snapshot(Client $client, string $messageHash) {
         $params = array(
             'type' => 'swap',
         );
@@ -999,7 +999,7 @@ class bydfi extends \ccxt\async\bydfi {
         $client->resolve($this->balance, 'balance');
     }
 
-    public function handle_balance(Client $client, mixed $message) {
+    public function handle_balance(Client $client, array $message) {
         //
         //     {
         //         "a": {
@@ -1067,7 +1067,7 @@ class bydfi extends \ccxt\async\bydfi {
         }
     }
 
-    public function handle_subscription_status(Client $client, mixed $message) {
+    public function handle_subscription_status(Client $client, array $message): array {
         //
         //     {
         //         "result": true,
@@ -1095,7 +1095,7 @@ class bydfi extends \ccxt\async\bydfi {
         $this->clean_cache($subscription);
     }
 
-    public function handle_pong(Client $client, mixed $message) {
+    public function handle_pong(Client $client, array $message): array {
         //
         //     {
         //         "id": 1,
@@ -1106,7 +1106,7 @@ class bydfi extends \ccxt\async\bydfi {
         return $message;
     }
 
-    public function handle_error_message(Client $client, mixed $message) {
+    public function handle_error_message(Client $client, array $message) {
         //
         //     {
         //         "msg": "Service error",
@@ -1122,7 +1122,7 @@ class bydfi extends \ccxt\async\bydfi {
         throw new ExchangeError($feedback);
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         $code = $this->safe_string($message, 'code');
         if ($code !== null && ($code !== '0')) {
             $this->handle_error_message($client, $message);

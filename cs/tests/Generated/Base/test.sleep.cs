@@ -16,7 +16,7 @@ public partial class BaseTest
             object sleepAmount = 100; // milliseconds
             await exchange.sleep(sleepAmount);
             Int64 end = exchange.milliseconds();
-            Int64 elapsed = subtract(end, start);
+            Int64 elapsed = (end - start);
             // Allow a small margin of error due to execution time and timer jitter
             // (some runtimes, e.g. .NET Task.Delay, may return a few ms early)
             object marginOfError = 20;
@@ -32,8 +32,8 @@ public partial class BaseTest
             object maxElapsed = add(sleepAmount, maxOvershoot);
             bool elapsedBiggerThanSleep = isGreaterThanOrEqual(elapsed, minElapsed);
             bool elapsedLessThanMax = isLessThanOrEqual(elapsed, maxElapsed);
-            Assert(elapsedBiggerThanSleep, add(add(add(add(add(add("Elapsed time ", ((object)elapsed).ToString()), "ms is less than minimum "), ((object)minElapsed).ToString()), "ms (sleep amount "), ((object)sleepAmount).ToString()), "ms)"));
-            Assert(elapsedLessThanMax, add(add(add(add("Elapsed time ", ((object)elapsed).ToString()), "ms exceeds sleep amount "), ((object)maxElapsed).ToString()), "ms"));
+            Assert(elapsedBiggerThanSleep, (((((("Elapsed time " + ((object)elapsed).ToString()) + "ms is less than minimum ") + ((object)minElapsed).ToString()) + "ms (sleep amount ") + ((object)sleepAmount).ToString()) + "ms)"));
+            Assert(elapsedLessThanMax, (((("Elapsed time " + ((object)elapsed).ToString()) + "ms exceeds sleep amount ") + ((object)maxElapsed).ToString()) + "ms"));
             return true;
         }
 }

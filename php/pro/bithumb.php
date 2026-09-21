@@ -189,7 +189,7 @@ class bithumb extends \ccxt\async\bithumb {
         return $this->filter_by_array($this->tickers, 'symbol', $symbols);
     }
 
-    public function handle_ticker(Client $client, mixed $message) {
+    public function handle_ticker(Client $client, array $message) {
         //
         // generation 1
         //
@@ -424,7 +424,7 @@ class bithumb extends \ccxt\async\bithumb {
         return $orderbook->limit();
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         // generation 1
         //
@@ -503,7 +503,7 @@ class bithumb extends \ccxt\async\bithumb {
             return;
         }
         $streamType = $this->safe_string($message, 'stream_type');
-        $options = $this->safe_value($this->options, 'watchOrderBook', array());
+        $options = $this->safe_dict($this->options, 'watchOrderBook', array());
         $obLimit = $this->safe_integer($options, 'limit', 1000);
         if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks)) || ($streamType === 'SNAPSHOT')) {
             $this->orderbooks[$symbol] = $this->order_book(array(), $obLimit);
@@ -615,7 +615,7 @@ class bithumb extends \ccxt\async\bithumb {
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
 
-    public function handle_trades(mixed $client, mixed $message) {
+    public function handle_trades(Client $client, array $message) {
         //
         // generation 1
         //
@@ -688,7 +688,7 @@ class bithumb extends \ccxt\async\bithumb {
         }
     }
 
-    public function parse_ws_trade(mixed $trade, ?array $market = null) {
+    public function parse_ws_trade(array $trade, ?array $market = null): array {
         //
         // generation 1
         //
@@ -752,7 +752,7 @@ class bithumb extends \ccxt\async\bithumb {
         ), $market);
     }
 
-    public function handle_error_message(Client $client, mixed $message): ?bool {
+    public function handle_error_message(Client $client, array $message): ?bool {
         //
         //    {
         //        "status" : "5100",
@@ -821,7 +821,7 @@ class bithumb extends \ccxt\async\bithumb {
         return $balance;
     }
 
-    public function handle_balance(Client $client, mixed $message) {
+    public function handle_balance(Client $client, array $message) {
         //
         //    {
         //        "type": "myAsset",
@@ -887,7 +887,7 @@ class bithumb extends \ccxt\async\bithumb {
         return $request;
     }
 
-    public function authenticate($params = array()) {
+    public function authenticate($params = array()): PromiseInterface {
         $this->check_required_credentials();
         $wsOptions = $this->safe_dict($this->options, 'ws', array());
         $authenticated = $this->safe_string($wsOptions, 'token');
@@ -954,7 +954,7 @@ class bithumb extends \ccxt\async\bithumb {
         return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
     }
 
-    public function handle_orders(Client $client, mixed $message) {
+    public function handle_orders(Client $client, array $message) {
         //
         //    {
         //        "type": "myOrder",
@@ -994,7 +994,7 @@ class bithumb extends \ccxt\async\bithumb {
         $client->resolve($cachedOrders, $symbolSpecificMessageHash);
     }
 
-    public function parse_ws_order(mixed $order, ?array $market = null) {
+    public function parse_ws_order(array $order, ?array $market = null): array {
         //
         //    {
         //        "type": "myOrder",

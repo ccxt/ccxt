@@ -251,7 +251,7 @@ class hitbtc extends \ccxt\async\hitbtc {
          * @param {int} [$params->speed] 100 (default), 500, or 1000
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
-        $options = $this->safe_value($this->options, 'watchOrderBook');
+        $options = $this->safe_dict($this->options, 'watchOrderBook');
         $defaultMethod = $this->safe_string($options, 'method', 'orderbook/full');
         $name = $this->safe_string_2($params, 'method', 'defaultMethod', $defaultMethod);
         $depth = $this->safe_string($params, 'depth', '20');
@@ -271,7 +271,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         return $orderbook->limit();
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
         //    {
         //        "ch": "orderbook/full",                 // Channel
@@ -383,7 +383,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             Async\await($this->load_markets());
         }
         $symbols = $this->market_symbols($symbols);
-        $options = $this->safe_value($this->options, 'watchTicker');
+        $options = $this->safe_dict($this->options, 'watchTicker');
         $defaultMethod = $this->safe_string($options, 'method', 'ticker/{$speed}/batch');
         $method = $this->safe_string_2($params, 'method', 'defaultMethod', $defaultMethod);
         $speed = $this->safe_string($params, 'speed', '1s');
@@ -416,7 +416,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         return $this->filter_by_array($newTickers, 'symbol', $symbols);
     }
 
-    public function handle_ticker(Client $client, mixed $message) {
+    public function handle_ticker(Client $client, array $message) {
         //
         //    {
         //        "ch": "ticker/1s",
@@ -548,7 +548,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             Async\await($this->load_markets());
         }
         $symbols = $this->market_symbols($symbols, null, false);
-        $options = $this->safe_value($this->options, 'watchBidsAsks');
+        $options = $this->safe_dict($this->options, 'watchBidsAsks');
         $defaultMethod = $this->safe_string($options, 'method', 'orderbook/top/{$speed}/batch');
         $method = $this->safe_string_2($params, 'method', 'defaultMethod', $defaultMethod);
         $speed = $this->safe_string($params, 'speed', '100ms');
@@ -571,7 +571,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         return $this->filter_by_array($newTickers, 'symbol', $symbols);
     }
 
-    public function handle_bid_ask(Client $client, mixed $message) {
+    public function handle_bid_ask(Client $client, array $message) {
         //
         //     {
         //         "ch": "orderbook/top/100ms", // or 'orderbook/top/100ms/batch'
@@ -603,7 +603,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         $client->resolve($result, $topic);
     }
 
-    public function parse_ws_bid_ask(mixed $ticker, ?array $market = null) {
+    public function parse_ws_bid_ask(array $ticker, ?array $market = null): array {
         $timestamp = $this->safe_integer($ticker, 't');
         $bidAskSymbol = ($market !== null) ? $market['symbol'] : null;
         return $this->safe_ticker(array(
@@ -654,7 +654,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp');
     }
 
-    public function handle_trades(Client $client, mixed $message) {
+    public function handle_trades(Client $client, array $message): array {
         //
         //    {
         //        "result": {
@@ -716,7 +716,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         return $message;
     }
 
-    public function parse_ws_trades(array $trades, ?array $market = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function parse_ws_trades(array $trades, ?array $market = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         $tradesArray = $this->to_array($trades);
         $result = array();
         for ($i = 0; $i < count($tradesArray); $i++) {
@@ -728,7 +728,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
     }
 
-    public function parse_ws_trade(mixed $trade, ?array $market = null) {
+    public function parse_ws_trade(array $trade, ?array $market = null): array {
         //
         //    {
         //        "t": 1626861123552,       // Timestamp in milliseconds
@@ -791,7 +791,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         return $this->filter_by_since_limit($ohlcv, $since, $limit, 0);
     }
 
-    public function handle_ohlcv(Client $client, mixed $message) {
+    public function handle_ohlcv(Client $client, array $message): array {
         //
         //    {
         //        "ch": "candles/M1",                     // Channel
@@ -838,7 +838,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             $marketId = $marketIds[$i];
             $market = $this->safe_market($marketId);
             $symbol = $market['symbol'];
-            $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
+            $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
             $stored = $this->safe_value($this->safe_value($this->ohlcvs, $symbol), $timeframe);
             if ($stored === null) {
                 $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
@@ -917,7 +917,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         return $this->filter_by_since_limit($orders, $since, $limit, 'timestamp');
     }
 
-    public function handle_order(Client $client, mixed $message) {
+    public function handle_order(Client $client, array $message): array {
         //
         //    {
         //        "jsonrpc": "2.0",
@@ -995,7 +995,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         return $message;
     }
 
-    public function handle_order_helper(Client $client, mixed $message, mixed $order) {
+    public function handle_order_helper(Client $client, array $message, array $order) {
         $orders = $this->orders;
         if ($orders === null) {
             return;
@@ -1011,7 +1011,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         $client->resolve($orders, $messageHash . '::' . $symbol);
     }
 
-    public function parse_ws_order_trade(array $trade, ?array $market = null) {
+    public function parse_ws_order_trade(array $trade, ?array $market = null): array {
         //
         //    {
         //        "id": 584244931496,
@@ -1061,7 +1061,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         ), $market);
     }
 
-    public function parse_ws_order(mixed $order, ?array $market = null) {
+    public function parse_ws_order(array $order, ?array $market = null): array {
         //
         //    {
         //        "id": 584244931496,
@@ -1332,7 +1332,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         }
     }
 
-    public function handle_balance(Client $client, mixed $message) {
+    public function handle_balance(Client $client, array $message) {
         //
         //    {
         //        "jsonrpc": "2.0",
@@ -1355,14 +1355,14 @@ class hitbtc extends \ccxt\async\hitbtc {
         $client->resolve($this->balance, $messageHash);
     }
 
-    public function handle_notification(Client $client, mixed $message) {
+    public function handle_notification(Client $client, array $message): array {
         //
         //     { jsonrpc: "2.0", result: true, id: null }
         //
         return $message;
     }
 
-    public function handle_order_request(Client $client, mixed $message) {
+    public function handle_order_request(Client $client, array $message): array {
         //
         // createOrderWs, cancelOrderWs
         //
@@ -1406,7 +1406,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         return $message;
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_message(Client $client, array $message) {
         if ($this->handle_error($client, $message)) {
             return;
         }
@@ -1459,14 +1459,14 @@ class hitbtc extends \ccxt\async\hitbtc {
         }
     }
 
-    public function handle_authenticate(Client $client, mixed $message) {
+    public function handle_authenticate(Client $client, array $message): array {
         //
         //    {
         //        "jsonrpc": "2.0",
         //        "result": true
         //    }
         //
-        $success = $this->safe_value($message, 'result');
+        $success = $this->safe_bool($message, 'result');
         $messageHash = 'authenticated';
         if ($success === true) {
             $future = $this->safe_value($client->futures, $messageHash);
@@ -1481,7 +1481,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         return $message;
     }
 
-    public function handle_error(Client $client, mixed $message): bool {
+    public function handle_error(Client $client, array $message): bool {
         //
         //    {
         //        jsonrpc: '2.0',
@@ -1493,7 +1493,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         //        id: 1700228604325
         //    }
         //
-        $error = $this->safe_value($message, 'error');
+        $error = $this->safe_dict($message, 'error');
         if ($error !== null) {
             try {
                 $code = $this->safe_value($error, 'code');

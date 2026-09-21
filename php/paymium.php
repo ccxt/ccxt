@@ -446,7 +446,7 @@ class paymium extends Exchange {
         );
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * create a trade order
          *
@@ -480,7 +480,7 @@ class paymium extends Exchange {
         ), $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * cancels an open order
          *
@@ -601,8 +601,8 @@ class paymium extends Exchange {
         $currencyId = $this->safe_string($transfer, 'currency');
         $updatedAt = $this->safe_string($transfer, 'updated_at');
         $timetstamp = $this->parse_date($updatedAt);
-        $accountOperations = $this->safe_value($transfer, 'account_operations');
-        $firstOperation = $this->safe_value($accountOperations, 0, array());
+        $accountOperations = $this->safe_list($transfer, 'account_operations');
+        $firstOperation = $this->safe_dict($accountOperations, 0, array());
         $status = $this->safe_string($transfer, 'state');
         return array(
             'info' => $transfer,
@@ -625,7 +625,7 @@ class paymium extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $url = $this->urls['api']['rest'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {

@@ -5,6 +5,7 @@
 
 from ccxt.async_support.binance import binance
 from ccxt.abstract.binanceusdm import ImplicitAPI
+from ccxt.base.types import TransferEntry
 from ccxt.base.errors import InvalidOrder
 
 
@@ -54,10 +55,10 @@ class binanceusdm(binance, ImplicitAPI):
             },
         })
 
-    async def transfer_in(self, code: str, amount: object, params={}):
+    async def transfer_in(self, code: str, amount: float, params: dict = {}) -> TransferEntry:
         # transfer from spot wallet to usdm futures wallet
         return await self.futuresTransfer(code, amount, 1, params)
 
-    async def transfer_out(self, code: str, amount: object, params={}):
+    async def transfer_out(self, code: str, amount: float, params: dict = {}) -> TransferEntry:
         # transfer from usdm futures wallet to spot wallet
         return await self.futuresTransfer(code, amount, 2, params)

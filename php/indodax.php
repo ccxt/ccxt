@@ -306,7 +306,7 @@ class indodax extends Exchange {
         ));
     }
 
-    public function nonce() {
+    public function nonce(): float {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
@@ -433,9 +433,9 @@ class indodax extends Exchange {
     }
 
     public function parse_balance(mixed $response): array {
-        $balances = $this->safe_value($response, 'return', array());
+        $balances = $this->safe_dict($response, 'return', array());
         $free = $this->safe_dict($balances, 'balance', array());
-        $used = $this->safe_value($balances, 'balance_hold', array());
+        $used = $this->safe_dict($balances, 'balance_hold', array());
         $timestamp = $this->safe_timestamp($balances, 'server_time');
         $result = array(
             'info' => $response,
@@ -867,7 +867,7 @@ class indodax extends Exchange {
         ));
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetches information on an $order made by the user
          *
@@ -970,7 +970,7 @@ class indodax extends Exchange {
         return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * create a trade order
          *
@@ -1032,7 +1032,7 @@ class indodax extends Exchange {
             $request[$market['baseId']] = $this->amount_to_precision($symbol, $amount);
         }
         $result = $this->privatePostTrade($this->extend($request, $params));
-        $data = $this->safe_value($result, 'return', array());
+        $data = $this->safe_dict($result, 'return', array());
         $id = $this->safe_string($data, 'order_id');
         return $this->safe_order(array(
             'info' => $result,
@@ -1040,7 +1040,7 @@ class indodax extends Exchange {
         ), $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * cancels an open order
          *
@@ -1119,7 +1119,7 @@ class indodax extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'return', array());
+        $data = $this->safe_dict($response, 'return', array());
         $currencyId = $this->safe_string($data, 'currency');
         return array(
             'info' => $response,
@@ -1242,7 +1242,7 @@ class indodax extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'return', array());
+        $data = $this->safe_dict($response, 'return', array());
         $withdraw = $this->safe_dict($data, 'withdraw', array());
         $deposit = $this->safe_dict($data, 'deposit', array());
         $transactions = array();
@@ -1260,8 +1260,8 @@ class indodax extends Exchange {
             }
         } else {
             $currency = $this->currency($code);
-            $withdraws = $this->safe_value($withdraw, $currency['id'], array());
-            $deposits = $this->safe_value($deposit, $currency['id'], array());
+            $withdraws = $this->safe_list($withdraw, $currency['id'], array());
+            $deposits = $this->safe_list($deposit, $currency['id'], array());
             $transactions = $this->array_concat($withdraws, $deposits);
         }
         return $this->parse_transactions($transactions, $currency, $since, $limit);
@@ -1508,7 +1508,7 @@ class indodax extends Exchange {
         return $result;
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $url = $this->urls['api'][$api];
         if ($api === 'public') {
             $query = $this->omit($params, $this->extract_params($path));
@@ -1544,7 +1544,7 @@ class indodax extends Exchange {
         if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
             return null; // public endpoints may return []-arrays
         }
-        $error = $this->safe_value($response, 'error', '');
+        $error = $this->safe_string($response, 'error', '');
         if (!(is_array($response) && array_key_exists('success' ?? '', $response)) && $error === '') {
             return null; // no 'success' property on public responses
         }

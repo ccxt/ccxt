@@ -387,7 +387,7 @@ class hollaex extends Exchange {
                 'swap' => false,
                 'future' => false,
                 'option' => false,
-                'active' => $this->safe_value($market, 'active'),
+                'active' => $this->safe_bool($market, 'active'),
                 'contract' => false,
                 'linear' => null,
                 'inverse' => null,
@@ -560,7 +560,7 @@ class hollaex extends Exchange {
                 ),
                 'withdraw' => array(
                     'min' => null,
-                    'max' => $this->safe_value($withdrawalLimits, 0),
+                    'max' => $this->safe_number($withdrawalLimits, 0),
                 ),
             ),
             'networks' => $networks,
@@ -641,7 +641,7 @@ class hollaex extends Exchange {
         //         // ...
         //     }
         //
-        $orderbook = $this->safe_value($response, $market['id']);
+        $orderbook = $this->safe_dict($response, $market['id']);
         $timestamp = $this->parse8601($this->safe_string($orderbook, 'timestamp'));
         return $this->parse_order_book($orderbook, $market['symbol'], $timestamp);
     }
@@ -933,10 +933,10 @@ class hollaex extends Exchange {
         //         ...
         //     }
         //
-        $firstTier = $this->safe_value($response, '1', array());
-        $fees = $this->safe_value($firstTier, 'fees', array());
-        $makerFees = $this->safe_value($fees, 'maker', array());
-        $takerFees = $this->safe_value($fees, 'taker', array());
+        $firstTier = $this->safe_dict($response, '1', array());
+        $fees = $this->safe_dict($firstTier, 'fees', array());
+        $makerFees = $this->safe_dict($fees, 'maker', array());
+        $takerFees = $this->safe_dict($fees, 'taker', array());
         $result = array();
         for ($i = 0; $i < count($this->symbols); $i++) {
             $symbol = $this->symbols[$i];
@@ -1189,7 +1189,7 @@ class hollaex extends Exchange {
         return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order(...))($id, $symbol, $params);
     }
 
@@ -1365,7 +1365,7 @@ class hollaex extends Exchange {
         $amount = $this->safe_string($order, 'size');
         $filled = $this->safe_string($order, 'filled');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $meta = $this->safe_value($order, 'meta', array());
+        $meta = $this->safe_dict($order, 'meta', array());
         $postOnly = $this->safe_bool($meta, 'post_only', false);
         return $this->safe_order(array(
             'id' => $id,
@@ -1392,7 +1392,7 @@ class hollaex extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -1425,7 +1425,7 @@ class hollaex extends Exchange {
             // 'meta': {}, // other options such as post_only
         );
         $triggerPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPrice', 'stop' ));
-        $meta = $this->safe_value($params, 'meta', array());
+        $meta = $this->safe_dict($params, 'meta', array());
         $exchangeSpecificParam = $this->safe_bool($meta, 'post_only', false);
         $isMarketOrder = $type === 'market';
         $postOnly = $this->is_post_only($isMarketOrder, $exchangeSpecificParam, $params);
@@ -1466,7 +1466,7 @@ class hollaex extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
     }
 
@@ -1504,7 +1504,7 @@ class hollaex extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_all_orders(...))($symbol, $params);
     }
 
@@ -1547,7 +1547,7 @@ class hollaex extends Exchange {
         return $this->parse_orders($response, $market);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
     }
 
@@ -1702,7 +1702,7 @@ class hollaex extends Exchange {
         //         ]
         //     }
         //
-        $wallet = $this->safe_value($response, 'wallet', array());
+        $wallet = $this->safe_list($response, 'wallet', array());
         $addresses = ($network === null) ? $wallet : $this->filter_by($wallet, 'network', $network);
         return $this->parse_deposit_addresses($addresses, $codes, false);
     }
@@ -1824,7 +1824,7 @@ class hollaex extends Exchange {
         //         ]
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         $transaction = $this->safe_dict($data, 0, array());
         return $this->parse_transaction($transaction, $currency);
     }
@@ -1950,8 +1950,8 @@ class hollaex extends Exchange {
         $currencyId = $this->safe_string($transaction, 'currency');
         $currency = $this->safe_currency($currencyId, $currency);
         $status = $this->safe_value($transaction, 'status');
-        $dismissed = $this->safe_value($transaction, 'dismissed');
-        $rejected = $this->safe_value($transaction, 'rejected');
+        $dismissed = $this->safe_bool($transaction, 'dismissed');
+        $rejected = $this->safe_bool($transaction, 'rejected');
         if ($status === true) {
             $status = 'ok';
         } elseif ($dismissed === true) {
@@ -2046,7 +2046,7 @@ class hollaex extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null) {
+    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null): mixed {
         //
         //    "bch":{
         //        "id":4,
@@ -2089,11 +2089,11 @@ class hollaex extends Exchange {
             ),
             'networks' => array(),
         );
-        $allowWithdrawal = $this->safe_value($fee, 'allow_withdrawal');
+        $allowWithdrawal = $this->safe_bool($fee, 'allow_withdrawal');
         if ($allowWithdrawal === true) {
             $result['withdraw'] = array( 'fee' => $this->safe_number($fee, 'withdrawal_fee'), 'percentage' => false );
         }
-        $withdrawalFees = $this->safe_value($fee, 'withdrawal_fees');
+        $withdrawalFees = $this->safe_dict($fee, 'withdrawal_fees');
         if ($withdrawalFees !== null) {
             $keys = is_array($withdrawalFees) ? array_keys($withdrawalFees) : array();
             $keysLength = count($keys);
@@ -2171,7 +2171,7 @@ class hollaex extends Exchange {
         return $this->parse_deposit_withdraw_fees($coins, $codes, 'symbol');
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $query = $this->omit($params, $this->extract_params($path));
         $path = '/' . $this->version . '/' . $this->implode_params($path, $params);
         if (($method === 'GET') || ($method === 'DELETE')) {

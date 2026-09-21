@@ -400,11 +400,18 @@ class pacifica extends pacifica$1["default"] {
                     '420': errors.ExchangeError, // ENGINE_ERROR_CODE
                     '422': errors.ExchangeError, // Business Logic Error - See below
                     '429': errors.RateLimitExceeded, // Too Many Requests - Rate limit exceeded; RATE_LIMIT_EXCEEDED_CODE
-                    '500': errors.ExchangeError, // Internal Server Error; UNKNOWN_ERROR_CODE
+                    '500': errors.ExchangeNotAvailable, // Internal Server Error; UNKNOWN_ERROR_CODE
                     '503': errors.ExchangeNotAvailable, // Service Unavailable
                     '504': errors.RequestTimeout, // Gateway Timeout
+                    // error_id values, undocumented but present on live error responses
+                    'signature_verification_failed': errors.AuthenticationError,
+                    'invalid_amount': errors.InvalidOrder,
                 },
                 'broad': {
+                    'Invalid signature': errors.AuthenticationError,
+                    'Invalid public key': errors.AuthenticationError,
+                    'Verification failed': errors.AuthenticationError,
+                    'Invalid message': errors.BadRequest, // expired or malformed signed message
                     'UNKNOWN': errors.ExchangeError,
                     'ACCOUNT_NOT_FOUND': errors.ExchangeError,
                     'BOOK_NOT_FOUND': errors.ExchangeError,
@@ -3433,11 +3440,17 @@ class pacifica extends pacifica$1["default"] {
         //     {"success":false,"data":null,"error":"Beta access required. Signer must redeem a valid beta code.","code":403}
         //     {"success":false,"data":null,"error":"Agent not authorized for account","code":400}
         //     {"success":false,"data":null,"error":"Internal server error","code":500}
+        //     {"success":false,"data":null,"error":"Verification failed: signature does not match signer and canonical payload.","code":400,"error_id":"signature_verification_failed"}
+        //     {"success":false,"data":null,"error":"Order amount too low for <account>: 7.81140 < 10","code":0,"error_id":"invalid_amount"}
+        //     {"success":false,"data":null,"error":"Invalid transfer relationship: <from> -> <to>","code":33,"error_id":"unspecified"}
         //
-        const inCode = this.safeInteger(response, 'code'); // actually if all ok -> code = undefined or code = 200
+        // code carries a business code on 422 responses and an echo of the http status otherwise, it is undefined or 200 when all ok
+        // the string form is required for the exceptions lookup, an integer key never matches the string-keyed map on the python, go and c# ports
+        const errorCode = this.safeString(response, 'code');
+        const errorId = this.safeString(response, 'error_id'); // undocumented, present on live errors and more specific than code
         const message = this.safeString(response, 'error');
         let error = undefined;
-        if (inCode === undefined || inCode === 200) {
+        if (errorCode === undefined || errorCode === '200') {
             error = false;
         }
         else {
@@ -3446,10 +3459,13 @@ class pacifica extends pacifica$1["default"] {
         const nonEmptyMessage = ((message !== undefined) && (message !== ''));
         if (error || nonEmptyMessage) {
             const feedback = this.id + ' ' + body;
-            this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback); // Try deeper catch first
-            this.throwExactlyMatchedException(this.exceptions['exact'], inCode, feedback);
-            this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
-            throw new errors.ExchangeError(feedback); // unknown message
+            this.throwExactlyMatchedException(this.exceptions['exact'], errorId, feedback);
+            this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback); // documented message prefixes are more specific than the http-status echo
+            this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
+            const codeAsString = code.toString();
+            if ((code < 400) || !(codeAsString in this.httpExceptions)) {
+                throw new errors.ExchangeError(feedback); // unknown message
+            }
         }
         return undefined;
     }
