@@ -23,7 +23,7 @@ export default class bybit extends Exchange {
             'countries': [ 'VG' ], // British Virgin Islands
             'version': 'v5',
             'userAgent': undefined,
-            'rateLimit': 20 * 1.01, // give a slight buffer https://github.com/ccxt/ccxt/pull/30573
+            'rateLimit': 20 * 1.05, // give a slight buffer https://github.com/ccxt/ccxt/pull/30573
             'hostname': 'bybit.com', // bybit.com, bytick.com, bybit.nl, bybit.com.hk
             'pro': true,
             'certified': true,
