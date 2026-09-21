@@ -293,11 +293,11 @@ public partial class predictfun : PredictionExchange
         object events = ccxt.BaseExchange.FromPredictionEventList(await this.FetchEvents(parameters));
         int eventsLength = getArrayLength(events);
         List<object> markets = new List<object>() {};
-        for (int ei = 0; isLessThan(ei, eventsLength); postFixIncrement(ref ei))
+        for (int ei = 0; ei < eventsLength; ei++)
         {
             IList<object> eventMarkets = (IList<object>)(this.safeList(getValue(events, ei), "markets", new List<object>() {}));
-            int eventMarketsLength = getArrayLength(eventMarkets);
-            for (int mi = 0; isLessThan(mi, eventMarketsLength); postFixIncrement(ref mi))
+            int eventMarketsLength = (eventMarkets?.Count ?? 0);
+            for (int mi = 0; mi < eventMarketsLength; mi++)
             {
                 ((IList<object>)markets).Add(getValue(eventMarkets, mi));
             }
@@ -322,13 +322,13 @@ public partial class predictfun : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         string? paramSlug = this.safeString(parameters, "slug");
         object slug = id;
-        if (isTrue(!isEqual(paramSlug, null)))
+        if ((paramSlug != null))
         {
             slug = paramSlug;
         }
-        if (isTrue(isEqual(slug, null)))
+        if ((slug == null))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " fetchEvent() requires the \"id\" argument or the \"slug\" parameter")) ;
+            throw new ArgumentsRequired ((string)(this.id + " fetchEvent() requires the \"id\" argument or the \"slug\" parameter")) ;
         }
         object events = ccxt.BaseExchange.FromPredictionEventList(await this.FetchEvents(this.extend(new Dictionary<string, object>() { { "slug", slug }, }, parameters)));
         return ccxt.BaseExchange.ToPredictionEvent(this.safeDict(events, 0));
@@ -355,34 +355,34 @@ public partial class predictfun : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         bool? allowUnscopedFetchEvents = this.safeBool(this.options, "allowUnscopedFetchEvents", false);
-        if (!isTrue(allowUnscopedFetchEvents))
+        if (allowUnscopedFetchEvents != true)
         {
             this.requireEventQuery(parameters);
         }
         List<object> queries = this.parseSearchQueries(parameters);
-        int queriesLength = getArrayLength(queries);
+        int queriesLength = (queries?.Count ?? 0);
         parameters = this.omit(parameters, new List<object>() {"query", "queries"});
         Int64? userLimit = this.safeInteger(parameters, "limit");
         Int64? fetchCap = this.safeInteger(this.options, "maxFetchEventsResults", 100);
-        if (isTrue(!isEqual(userLimit, null)))
+        if (!isEqual(userLimit, null))
         {
             fetchCap = userLimit;
         }
         string? slug = this.safeString2(parameters, "slug", "eventId");
         object rest = this.omit(parameters, new List<object>() {"status", "limit", "sort", "eventId", "slug", "tags", "marketVariant"});
-        if (isTrue(isEqual(this.markets, null)))
+        if ((this.markets == null))
         {
             this.markets = this.createSafeDictionary();
         }
         object rawTopics = new List<object>() {};
-        if (isTrue(!isEqual(slug, null)))
+        if ((slug != null))
         {
             Dictionary<string, object> response = await this.predictfunGetV1CategoriesSlug(this.extend(new Dictionary<string, object>() {
                 { "slug", slug },
             }, rest));
             IDictionary<string, object> data = this.safeDict(response, "data");
             rawTopics = new List<object>() {data};
-        } else if (isTrue(isGreaterThan(queriesLength, 0)))
+        } else if (queriesLength > 0)
         {
             // a query/queries scope is answered by the dedicated search endpoint — the categories
             // listing has no text filter, so paging it and matching client-side would both miss
@@ -392,8 +392,8 @@ public partial class predictfun : PredictionExchange
         {
             Dictionary<string, object> request = new Dictionary<string, object>() {};
             List<object> tags = this.safeList(parameters, "tags", new List<object>() {});
-            int tagsLength = getArrayLength(tags);
-            if (isTrue(isGreaterThan(tagsLength, 0)))
+            int tagsLength = tags.Count;
+            if (tagsLength > 0)
             {
                 string tagsString = String.Join(",", ((IList<object>)tags).ToArray());
                 ((IDictionary<string,object>)request)["tagIds"] = tagsString;
@@ -572,7 +572,7 @@ public partial class predictfun : PredictionExchange
             while (isLessThan(topicsLength, fetchCap))
             {
                 string? nextPageToken = this.safeString(rawTopicsResponse, "cursor");
-                if (isTrue(isEqual(nextPageToken, null)))
+                if ((nextPageToken == null))
                 {
                     break;
                 }
@@ -582,25 +582,25 @@ public partial class predictfun : PredictionExchange
                 rawTopics = this.arrayConcat(rawTopics, data);
                 topicsLength = getArrayLength(rawTopics);
             }
-            if (isTrue(isGreaterThan(topicsLength, fetchCap)))
+            if (isGreaterThan(topicsLength, fetchCap))
             {
                 rawTopics = this.arraySlice(rawTopics, 0, fetchCap);
             }
         }
         int rawTopicsLength = getArrayLength(rawTopics);
         List<object> result = new List<object>() {};
-        for (int i = 0; isLessThan(i, rawTopicsLength); postFixIncrement(ref i))
+        for (int i = 0; i < rawTopicsLength; i++)
         {
             object parsedEvent = this.parseEvent(getValue(rawTopics, i));
             ((IList<object>)result).Add(parsedEvent);
             IList<object> parsedMarkets = (IList<object>)(this.safeList(parsedEvent, "markets", new List<object>() {}));
-            int parsedMarketsLength = getArrayLength(parsedMarkets);
-            for (int mi = 0; isLessThan(mi, parsedMarketsLength); postFixIncrement(ref mi))
+            int parsedMarketsLength = (parsedMarkets?.Count ?? 0);
+            for (int mi = 0; mi < parsedMarketsLength; mi++)
             {
                 object m = getValue(parsedMarkets, mi);
                 // prediction market rows are keyed by the unified 'market' handle
                 string? handle = this.safeString(m, "market");
-                if (isTrue(!isEqual(handle, null)))
+                if ((handle != null))
                 {
                     ((IDictionary<string,object>)this.markets)[(string)handle] = m;
                 }
@@ -614,12 +614,12 @@ public partial class predictfun : PredictionExchange
         // status is documented as the venue enum ('OPEN' / 'RESOLVED') but the shared client-side
         // pass speaks the unified vocabulary — translate so it doesn't discard every row it matched
         string? rawStatus = this.safeString(parameters, "status");
-        if (isTrue(isEqual(rawStatus, "OPEN")))
+        if ((rawStatus == "OPEN"))
         {
             postParams = this.extend(postParams, new Dictionary<string, object>() {
                 { "status", "active" },
             });
-        } else if (isTrue(isEqual(rawStatus, "RESOLVED")))
+        } else if ((rawStatus == "RESOLVED"))
         {
             postParams = this.extend(postParams, new Dictionary<string, object>() {
                 { "status", "closed" },
@@ -649,7 +649,7 @@ public partial class predictfun : PredictionExchange
         // resolved rows are excluded unless asked for — the unified status filter drives that
         string? status = this.safeString(parameters, "status");
         string includeResolved = "false";
-        if (isTrue(isTrue(isTrue((!isEqual(status, null))) && isTrue((!isEqual(status, "active")))) && isTrue((!isEqual(status, "OPEN")))))
+        if (((status != null)) && ((status != "active")) && ((status != "OPEN")))
         {
             includeResolved = "true";
         }
@@ -664,7 +664,7 @@ public partial class predictfun : PredictionExchange
         // market rows whose category row did not come back, bucketed by the slug they carry
         Dictionary<string, object> orphanMarkets = new Dictionary<string, object>() {};
         List<object> orphanSlugs = new List<object>() {};
-        for (int i = 0; isLessThan(i, queriesLength); postFixIncrement(ref i))
+        for (int i = 0; i < queriesLength; i++)
         {
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "query", getValue(queries, i) },
@@ -722,16 +722,16 @@ public partial class predictfun : PredictionExchange
             //
             IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
             IList<object> categories = (IList<object>)(this.safeList(data, "categories", new List<object>() {}));
-            int categoriesLength = getArrayLength(categories);
-            for (int ci = 0; isLessThan(ci, categoriesLength); postFixIncrement(ref ci))
+            int categoriesLength = (categories?.Count ?? 0);
+            for (int ci = 0; ci < categoriesLength; ci++)
             {
                 object category = getValue(categories, ci);
                 string? categorySlug = this.safeString(category, "slug");
-                if (isTrue(isEqual(categorySlug, null)))
+                if ((categorySlug == null))
                 {
                     // nothing to key a duplicate on, keep the row rather than drop it
                     ((IList<object>)result).Add(category);
-                } else if (!isTrue((inOp(seenSlugs, categorySlug))))
+                } else if (!(seenSlugs.ContainsKey(categorySlug)))
                 {
                     ((IDictionary<string,object>)seenSlugs)[(string)categorySlug] = true;
                     ((IList<object>)result).Add(category);
@@ -741,14 +741,14 @@ public partial class predictfun : PredictionExchange
             // the other half of the payload and would otherwise be dropped, so bucket them by the
             // categorySlug they carry
             IList<object> rawMarkets = (IList<object>)(this.safeList(data, "markets", new List<object>() {}));
-            int rawMarketsLength = getArrayLength(rawMarkets);
-            for (int mi = 0; isLessThan(mi, rawMarketsLength); postFixIncrement(ref mi))
+            int rawMarketsLength = (rawMarkets?.Count ?? 0);
+            for (int mi = 0; mi < rawMarketsLength; mi++)
             {
                 object rawMarket = getValue(rawMarkets, mi);
                 string? marketSlug = this.safeString(rawMarket, "categorySlug");
-                if (isTrue(!isEqual(marketSlug, null)))
+                if ((marketSlug != null))
                 {
-                    if (isTrue(inOp(orphanMarkets, marketSlug)))
+                    if (orphanMarkets.ContainsKey(marketSlug))
                     {
                         // push through a local and write the slice back - the go transpiler's
                         // AppendToArray reassigns only a local copy of a map-stored array
@@ -765,11 +765,11 @@ public partial class predictfun : PredictionExchange
         }
         // whatever the category rows did not claim is a market-only hit: synthesize the enclosing
         // topic from the market rows themselves, without spending a request per slug
-        int orphanSlugsLength = getArrayLength(orphanSlugs);
-        for (int i = 0; isLessThan(i, orphanSlugsLength); postFixIncrement(ref i))
+        int orphanSlugsLength = (orphanSlugs?.Count ?? 0);
+        for (int i = 0; i < orphanSlugsLength; i++)
         {
             string? orphanSlug = ((string)getValue(orphanSlugs, i));
-            if (!isTrue((inOp(seenSlugs, orphanSlug))))
+            if (!(inOp(seenSlugs, orphanSlug)))
             {
                 ((IDictionary<string,object>)seenSlugs)[(string)orphanSlug] = true;
                 object markets = getValue(orphanMarkets, orphanSlug);
@@ -780,10 +780,10 @@ public partial class predictfun : PredictionExchange
                 string? marketStatus = this.safeString(first, "status");
                 string? tradingStatus = this.safeString(first, "tradingStatus");
                 string? topicStatus = null;
-                if (isTrue(isTrue((isEqual(marketStatus, "RESOLVED"))) || isTrue((isEqual(marketStatus, "SETTLED")))))
+                if (((marketStatus == "RESOLVED")) || ((marketStatus == "SETTLED")))
                 {
                     topicStatus = "RESOLVED";
-                } else if (isTrue(isEqual(tradingStatus, "OPEN")))
+                } else if ((tradingStatus == "OPEN"))
                 {
                     topicStatus = "OPEN";
                 }
@@ -978,12 +978,12 @@ public partial class predictfun : PredictionExchange
         IList<object> rawMarkets = (IList<object>)(this.safeList(rawTopic, "markets", new List<object>() {}));
         List<object> marketsList = new List<object>() {};
         bool anyActive = false;
-        int rawMarketsLength = getArrayLength(rawMarkets);
-        for (int i = 0; isLessThan(i, rawMarketsLength); postFixIncrement(ref i))
+        int rawMarketsLength = (rawMarkets?.Count ?? 0);
+        for (int i = 0; i < rawMarketsLength; i++)
         {
             object parsed = this.parseTopicMarket(getValue(rawMarkets, i), rawTopic);
             ((IList<object>)marketsList).Add(parsed);
-            if (isTrue(this.safeBool(parsed, "active", false)))
+            if ((this.safeBool(parsed, "active", false) == true))
             {
                 anyActive = true;
             }
@@ -994,19 +994,19 @@ public partial class predictfun : PredictionExchange
         string? created = this.safeString(rawTopic, "createdAt");
         string? status = this.safeString(rawTopic, "status");
         bool active = anyActive;
-        if (isTrue(isEqual(rawMarketsLength, 0)))
+        if ((rawMarketsLength == 0))
         {
-            active = isTrue((isEqual(status, "REGISTERED"))) || isTrue((isEqual(status, "OPEN")));
+            active = ((status == "REGISTERED")) || ((status == "OPEN"));
         }
         bool? resolved = null;
-        if (isTrue(!isEqual(status, null)))
+        if ((status != null))
         {
-            resolved = isTrue((isEqual(status, "RESOLVED"))) || isTrue((isEqual(status, "SETTLED")));
+            resolved = ((status == "RESOLVED")) || ((status == "SETTLED"));
         }
         return new Dictionary<string, object>() {
             { "id", slug },
             { "slug", slug },
-            { "event", ((bool) isTrue((!isEqual(slug, null)))) ? this.shortenSlug(slug) : null },
+            { "event", ((slug != null)) ? this.shortenSlug(slug) : null },
             { "title", title },
             { "description", this.safeString(rawTopic, "description") },
             { "markets", marketsList },
@@ -1033,7 +1033,7 @@ public partial class predictfun : PredictionExchange
      */
     public virtual object stripPriceFormatting(object text)
     {
-        if (isTrue(isEqual(text, null)))
+        if ((text == null))
         {
             return null;
         }
@@ -1045,19 +1045,19 @@ public partial class predictfun : PredictionExchange
         {
             string? ch = ((string)getValue(chars, i));
             bool keep = true;
-            if (isTrue(isEqual(ch, "$")))
+            if ((ch == "$"))
             {
                 keep = false;
-            } else if (isTrue(isEqual(ch, ",")))
+            } else if ((ch == ","))
             {
                 // only a comma between two digits is a thousands separator: "1,500" has to close
                 // up to "1500" to match the venue's comma-free slug. a comma anywhere else is
                 // ordinary punctuation and stays, so it still separates words
-                bool prevIsDigit = isTrue((isGreaterThan(i, 0))) && isTrue((isGreaterThanOrEqual(getIndexOf(digits, getValue(chars, subtract(i, 1))), 0)));
-                bool nextIsDigit = isTrue((isLessThan((add(i, 1)), charsLength))) && isTrue((isGreaterThanOrEqual(getIndexOf(digits, getValue(chars, add(i, 1))), 0)));
-                keep = !isTrue((isTrue(prevIsDigit) && isTrue(nextIsDigit)));
+                bool prevIsDigit = (isGreaterThan(i, 0)) && (((string)digits).IndexOf(((string)getValue(chars, subtract(i, 1))), StringComparison.Ordinal) >= 0);
+                bool nextIsDigit = (isLessThan((add(i, 1)), charsLength)) && (((string)digits).IndexOf(((string)getValue(chars, add(i, 1))), StringComparison.Ordinal) >= 0);
+                keep = !(prevIsDigit && nextIsDigit);
             }
-            if (isTrue(keep))
+            if (keep)
             {
                 stripped = add(stripped, ch);
             }
@@ -1082,7 +1082,7 @@ public partial class predictfun : PredictionExchange
         // btc-updown-5m-1789017900 and as "Bitcoin Up or Down - September 10, 1:25AM-1:30AM ET".
         // returning the slug makes slugToMarketSymbol collapse the two halves into one part.
         // inside a multi-market topic the title is what keeps the handles apart, so it stays
-        if (isTrue(isTrue((isEqual(marketCount, 1))) && isTrue((!isEqual(topicSlug, null)))))
+        if ((isEqual(marketCount, 1)) && ((topicSlug != null)))
         {
             return topicSlug;
         }
@@ -1189,20 +1189,20 @@ public partial class predictfun : PredictionExchange
         string? topicSlug = this.safeString(rawMarket, "categorySlug");
         // the same handle parseEvent () derives for the enclosing event - stamping it here is what
         // lets every outcome-addressed structure (order, ticker, trade, position) report an event
-        string? eventHandle = ((bool) isTrue((!isEqual(topicSlug, null)))) ? this.shortenSlug(topicSlug) : null;
+        string? eventHandle = ((topicSlug != null)) ? this.shortenSlug(topicSlug) : null;
         string? title = this.safeString(rawMarket, "title", marketId);
         List<object> topicMarkets = this.safeList(rawTopic, "markets", new List<object>() {});
-        int marketCount = getArrayLength(topicMarkets);
+        int marketCount = topicMarkets.Count;
         object symbolTitle = this.titleForMarketSymbol(topicSlug, title, marketCount);
         object marketSymbol = this.slugToMarketSymbol(topicSlug, symbolTitle);
         string? tradingStatus = this.safeString(rawMarket, "tradingStatus");
         string? status = this.safeString(rawMarket, "status");
-        bool active = (isEqual(tradingStatus, "OPEN"));
-        if (isTrue(isEqual(tradingStatus, null)))
+        bool active = ((tradingStatus == "OPEN"));
+        if ((tradingStatus == null))
         {
-            active = isTrue((isEqual(status, "REGISTERED"))) || isTrue((isEqual(status, "OPEN")));
+            active = ((status == "REGISTERED")) || ((status == "OPEN"));
         }
-        bool resolved = isTrue((isEqual(status, "RESOLVED"))) || isTrue((isEqual(status, "SETTLED")));
+        bool resolved = ((status == "RESOLVED")) || ((status == "SETTLED"));
         string? endDate = this.safeString(rawTopic, "endsAt");
         string? feeRateBps = this.safeString(rawMarket, "feeRateBps", "200"); // todo check
         double? feeRate = this.parseNumber(Precise.stringDiv(feeRateBps, "10000"));
@@ -1215,8 +1215,8 @@ public partial class predictfun : PredictionExchange
         IList<object> rawOutcomes = (IList<object>)(this.safeList(rawMarket, "outcomes", new List<object>() {}));
         List<object> outcomes = new List<object>() {};
         object resolvedOutcomeRaw = null;
-        int rawOutcomesLength = getArrayLength(rawOutcomes);
-        for (int oi = 0; isLessThan(oi, rawOutcomesLength); postFixIncrement(ref oi))
+        int rawOutcomesLength = (rawOutcomes?.Count ?? 0);
+        for (int oi = 0; oi < rawOutcomesLength; oi++)
         {
             object rawOutcome = getValue(rawOutcomes, oi);
             // a label can carry a formatted price ("$1,800+"), and it goes into the outcome
@@ -1228,10 +1228,10 @@ public partial class predictfun : PredictionExchange
             bool? winner = null;
             string? outcomeStatus = this.safeString(rawOutcome, "status");
             int? settleFractionRaw = null;
-            if (isTrue(!isEqual(outcomeStatus, null)))
+            if ((outcomeStatus != null))
             {
-                winner = (isEqual(outcomeStatus, "WON"));
-                if (isTrue(winner))
+                winner = ((outcomeStatus == "WON"));
+                if ((winner == true))
                 {
                     settleFractionRaw = 1;
                     resolvedOutcomeRaw = outcomeHandle;
@@ -1260,7 +1260,7 @@ public partial class predictfun : PredictionExchange
         }
         object resolvedOutcome = resolvedOutcomeRaw;
         string collateral = "USDT";
-        string marketType = ((bool) isTrue((isGreaterThan(rawOutcomesLength, 2)))) ? "categorical" : "binary";
+        string marketType = (rawOutcomesLength > 2) ? "categorical" : "binary";
         string? createdDatetime = this.safeString(rawMarket, "createdAt");
         return new Dictionary<string, object>() {
             { "id", marketId },
@@ -1363,10 +1363,10 @@ public partial class predictfun : PredictionExchange
         Int64? timestamp = this.safeInteger(data, "updateTimestampMs");
         // The outcome lables are not the same as the outcome indexSet values, so we need to check the indexSet to determine which outcome is being requested
         Int64? indexSet = this.safeInteger(info, "indexSet");
-        bool isYesOutcome = (isEqual(indexSet, 1));
+        bool isYesOutcome = ((indexSet == 1));
         string? outcomeSymbol = this.safeOutcomeSymbol(outcome, outcomeObj);
         // the book endpoint is quoted in the yes token, the no side mirrors at 1 - price with bids and asks swapped
-        if (isTrue(isYesOutcome))
+        if (isYesOutcome)
         {
             Dictionary<string, object> yesOrderbook = ((Dictionary<string, object>)this.parseOrderBook(data, outcomeSymbol, timestamp, "bids", "asks", 0, 1));
             return ccxt.BaseExchange.ToPredictionOrderBook(this.safePredictionOrderBook(yesOrderbook, outcomeObj));
@@ -1376,17 +1376,17 @@ public partial class predictfun : PredictionExchange
             List<object> asks = this.safeList(data, "asks", new List<object>() {});
             List<object> noBids = new List<object>() {};
             List<object> noAsks = new List<object>() {};
-            for (int i = 0; isLessThan(i, getArrayLength(bids)); postFixIncrement(ref i))
+            for (int i = 0; i < bids.Count; i++)
             {
-                object bid = getValue(bids, i);
+                object bid = bids[i];
                 string? bidPrice = this.safeString(bid, 0);
                 double? bidSize = this.parseNumber(this.safeString(bid, 1));
                 double? complementPrice = this.parseNumber(Precise.stringSub("1", bidPrice));
                 ((IList<object>)noAsks).Add(new List<object>() {complementPrice, bidSize});
             }
-            for (int i = 0; isLessThan(i, getArrayLength(asks)); postFixIncrement(ref i))
+            for (int i = 0; i < asks.Count; i++)
             {
-                object ask = getValue(asks, i);
+                object ask = asks[i];
                 string? askPrice = this.safeString(ask, 0);
                 double? askSize = this.parseNumber(this.safeString(ask, 1));
                 double? complementPrice = this.parseNumber(Precise.stringSub("1", askPrice));
@@ -1500,26 +1500,26 @@ public partial class predictfun : PredictionExchange
         IDictionary<string, object> info = this.safeDict(market, "info", new Dictionary<string, object>() {});
         Int64? indexSet = this.safeInteger(info, "indexSet");
         List<object> rawOutcomes = this.safeList(ticker, "outcomes", new List<object>() {});
-        int rawOutcomesLength = getArrayLength(rawOutcomes);
+        int rawOutcomesLength = rawOutcomes.Count;
         object rawOutcome = new Dictionary<string, object>() {};
         bool outcomeFound = false;
-        for (int i = 0; isLessThan(i, rawOutcomesLength); postFixIncrement(ref i))
+        for (int i = 0; i < rawOutcomesLength; i++)
         {
             object candidate = getValue(rawOutcomes, i);
-            if (isTrue(isEqual(this.safeInteger(candidate, "indexSet"), indexSet)))
+            if ((this.safeInteger(candidate, "indexSet") == indexSet))
             {
                 rawOutcome = candidate;
                 outcomeFound = true;
                 break;
             }
         }
-        if (!isTrue(outcomeFound))
+        if (!outcomeFound)
         {
             // an unmatched indexSet would otherwise return a ticker whose every quote is
             // undefined, which reads as an empty book rather than as a market that never
             // carried this outcome
             string? requested = this.safeOutcomeSymbol(null, market);
-            throw new BadSymbol ((string)add(add(add(this.id, " fetchTicker() did not find "), requested), " among the outcomes of its market")) ;
+            throw new BadSymbol ((string)(((this.id + " fetchTicker() did not find ") + requested) + " among the outcomes of its market")) ;
         }
         // the venue quotes each outcome on its own side of the book, so no complement is needed
         IDictionary<string, object> bestBid = this.safeDict(rawOutcome, "bestBid", new Dictionary<string, object>() {});
@@ -1568,15 +1568,15 @@ public partial class predictfun : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         string? signerAddress = this.safeString(parameters, "signerAddress", this.walletAddress);
-        if (isTrue(isEqual(signerAddress, null)))
+        if ((signerAddress == null))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " fetchMyTrades() requires a walletAddress, or a \"signerAddress\" parameter for any other address")) ;
+            throw new ArgumentsRequired ((string)(this.id + " fetchMyTrades() requires a walletAddress, or a \"signerAddress\" parameter for any other address")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "signerAddress", signerAddress },
         };
         IDictionary<string, object> outcomeObj = null;
-        if (isTrue(!isEqual(outcome, null)))
+        if ((outcome != null))
         {
             await this.loadOutcome(outcome);
             outcomeObj = this.outcome(outcome);
@@ -1589,17 +1589,17 @@ public partial class predictfun : PredictionExchange
         Dictionary<string, object> response = await this.predictfunGetV1OrdersMatches(this.extend(request, query));
         // the venue answers with the shape documented in fetchTrades below
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        string wallet = ((string)signerAddress).ToLower();
+        string wallet = signerAddress.ToLower();
         // a settlement names one taker and several makers, and the wallet may sit on either side,
         // so the legs it signed are the ones to report - a self trade legitimately yields two rows
         List<object> flattenTrades = new List<object>() {};
-        int dataLength = getArrayLength(data);
-        for (int i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
+        int dataLength = data.Count;
+        for (int i = 0; i < dataLength; i++)
         {
             object entry = getValue(data, i);
             IDictionary<string, object> taker = this.safeDict(entry, "taker", new Dictionary<string, object>() {});
             string? takerSigner = this.safeStringLower(taker, "signer");
-            if (isTrue(isEqual(takerSigner, wallet)))
+            if ((takerSigner == wallet))
             {
                 Dictionary<string, object> takerParty = this.extend(taker, new Dictionary<string, object>() {
                     { "role", "taker" },
@@ -1611,12 +1611,12 @@ public partial class predictfun : PredictionExchange
                 }));
             }
             List<object> makers = this.safeList(entry, "makers", new List<object>() {});
-            int makersLength = getArrayLength(makers);
-            for (int j = 0; isLessThan(j, makersLength); postFixIncrement(ref j))
+            int makersLength = makers.Count;
+            for (int j = 0; j < makersLength; j++)
             {
                 object maker = getValue(makers, j);
                 string? makerSigner = this.safeStringLower(maker, "signer");
-                if (isTrue(isEqual(makerSigner, wallet)))
+                if ((makerSigner == wallet))
                 {
                     Dictionary<string, object> makerParty = this.extend(maker, new Dictionary<string, object>() {
                         { "role", "maker" },
@@ -1695,8 +1695,8 @@ public partial class predictfun : PredictionExchange
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
         List<object> flattenTrades = new List<object>() {};
-        int dataLength = getArrayLength(data);
-        for (int i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
+        int dataLength = data.Count;
+        for (int i = 0; i < dataLength; i++)
         {
             object entry = getValue(data, i);
             IDictionary<string, object> taker = this.safeDict(entry, "taker", new Dictionary<string, object>() {});
@@ -1704,7 +1704,7 @@ public partial class predictfun : PredictionExchange
             Int64? takerIndexSet = this.safeInteger(takerOutcome, "indexSet");
             Int64? outcomeIndexSet = this.safeInteger(info, "indexSet");
             object partyToParse = this.safeDict(entry, "taker", new Dictionary<string, object>() {});
-            if (isTrue(isEqual(takerIndexSet, outcomeIndexSet)))
+            if ((takerIndexSet == outcomeIndexSet))
             {
                 // a public print carries no takerOrMaker: the unified fetchTrades contract allows
                 // only 'taker' or nothing there, and the leg that matches the requested outcome is
@@ -1721,17 +1721,17 @@ public partial class predictfun : PredictionExchange
             } else
             {
                 List<object> makers = this.safeList(entry, "makers", new List<object>() {});
-                int makersLength = getArrayLength(makers);
+                int makersLength = makers.Count;
                 Dictionary<string, object> makerParty = new Dictionary<string, object>() {
                     { "role", "maker" },
                     { "type", "limit" },
                 };
-                for (int j = 0; isLessThan(j, makersLength); postFixIncrement(ref j))
+                for (int j = 0; j < makersLength; j++)
                 {
                     object maker = getValue(makers, j);
                     IDictionary<string, object> makerOutcome = this.safeDict(maker, "outcome", new Dictionary<string, object>() {});
                     Int64? makerIndexSet = this.safeInteger(makerOutcome, "indexSet");
-                    if (isTrue(isEqual(makerIndexSet, outcomeIndexSet)))
+                    if ((makerIndexSet == outcomeIndexSet))
                     {
                         partyToParse = maker;
                         partyToParse = this.extend(partyToParse, makerParty);
@@ -1767,7 +1767,7 @@ public partial class predictfun : PredictionExchange
         // that leg. the taker's party price is only its limit: the settlement records what it
         // actually paid, and the difference is the price improvement the book gave it
         string? priceStr = this.safeString(party, "price");
-        if (isTrue(isEqual(role, "taker")))
+        if ((role == "taker"))
         {
             priceStr = this.safeString(trade, "priceExecuted", priceStr);
         }
@@ -1778,21 +1778,21 @@ public partial class predictfun : PredictionExchange
         string? order = null;
         Dictionary<string, object> fee = null;
         string? quoteType = this.safeStringLower(party, "quoteType");
-        if (isTrue(isEqual(quoteType, "bid")))
+        if ((quoteType == "bid"))
         {
             side = "buy";
-        } else if (isTrue(isEqual(quoteType, "ask")))
+        } else if ((quoteType == "ask"))
         {
             side = "sell";
         }
         order = this.safeString(party, "hash");
         IDictionary<string, object> rawFee = this.safeDict(party, "fee");
-        if (isTrue(!isEqual(rawFee, null)))
+        if ((rawFee != null))
         {
             string? feeType = this.safeString(rawFee, "type");
             string? feeCost = this.safeString(rawFee, "amount");
             fee = new Dictionary<string, object>() {
-                { "currency", ((bool) isTrue((isEqual(feeType, "COLLATERAL")))) ? "USDT" : null },
+                { "currency", ((feeType == "COLLATERAL")) ? "USDT" : null },
                 { "cost", this.parseNumber(Precise.stringDiv(feeCost, "1000000000000000000")) },
             };
         }
@@ -1833,9 +1833,9 @@ public partial class predictfun : PredictionExchange
         // the testnet is a different chain, so the EIP-712 chainId and every verifying contract
         // change with it - and the venue serves the testnet without an api key
         ((IDictionary<string,object>)this.options)["sandboxMode"] = enable;
-        ((IDictionary<string,object>)this.options)["chainId"] = ((bool) isTrue((enable))) ? 97 : 56;
+        ((IDictionary<string,object>)this.options)["chainId"] = isTrue((enable)) ? 97 : 56;
         ((IDictionary<string,object>)this.requiredCredentials)["apiKey"] = !isTrue(enable);
-        if (isTrue(!isEqual(wasSandbox, enable)))
+        if (!isEqual(wasSandbox, enable))
         {
             // a token minted for one host is not valid on the other, so the live one is set aside
             // on the way in and taken back on the way out - a round trip through the sandbox then
@@ -1871,7 +1871,7 @@ public partial class predictfun : PredictionExchange
         byte[] x19 = this.base16ToBinary("19");
         byte[] newline = this.base16ToBinary("0a");
         object prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(this.numberToString(binaryMessageLength)));
-        return add("0x", this.hash(this.binaryConcat(prefix, binaryMessage), keccak, "hex"));
+        return ("0x" + (this.hash(this.binaryConcat(prefix, binaryMessage), keccak, "hex")));
     }
 
     /**
@@ -1885,16 +1885,16 @@ public partial class predictfun : PredictionExchange
      */
     public virtual object signHash(object hash, object privateKey)
     {
-        Dictionary<string, object> signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
+        Dictionary<string, object> signature = ecdsa(((hash == null) ? null : ((string)hash).Substring(Math.Max(((string)hash).Length - 64, 0))), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))), secp256k1, null);
         // assign before padStart so the php str_pad regex matches, it only handles a bare identifier
-        object rRaw = getValue(signature, "r");
-        object sRaw = getValue(signature, "s");
+        string? rRaw = ((string)(signature != null && ((IDictionary<string, object>)signature).ContainsKey("r") ? ((IDictionary<string, object>)signature)["r"] : null));
+        string? sRaw = ((string)(signature != null && ((IDictionary<string, object>)signature).ContainsKey("s") ? ((IDictionary<string, object>)signature)["s"] : null));
         object r = (rRaw as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
         object s = (sRaw as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
         // ecrecover wants v in {27,28} while the raw recovery id is {0,1}
-        string v = this.intToBase16(this.sum(27, getValue(signature, "v")));
+        string v = this.intToBase16(this.sum(27, (signature != null && ((IDictionary<string, object>)signature).ContainsKey("v") ? ((IDictionary<string, object>)signature)["v"] : null)));
         // assign before toLowerCase so the php regex matches, it only handles a bare identifier
-        string signatureHex = add(add(add("0x", r), s), v);
+        string signatureHex = ((("0x" + (r)) + (s)) + v);
         return ((string)signatureHex).ToLower();
     }
 
@@ -1911,16 +1911,16 @@ public partial class predictfun : PredictionExchange
     public async virtual Task<object> authenticate(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isTrue((isEqual(this.walletAddress, null))) || isTrue((isEqual(this.privateKey, null)))))
+        if (((this.walletAddress == null)) || ((this.privateKey == null)))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " authenticate() requires a walletAddress and a privateKey")) ;
+            throw new ArgumentsRequired ((string)(this.id + " authenticate() requires a walletAddress and a privateKey")) ;
         }
         Int64 now = this.milliseconds();
         string? cached = this.safeString(this.options, "jwtToken");
         Int64? expiresAt = this.safeInteger(this.options, "jwtTokenExpiresAt", 0);
         // a token outlives its window silently: the venue answers 401 on every order action once
         // it lapses, so re-issue before that rather than after the first failure
-        if (isTrue(isTrue((!isEqual(cached, null))) && isTrue((isLessThan(now, expiresAt)))))
+        if (((cached != null)) && (isLessThan(now, expiresAt)))
         {
             return cached;
         }
@@ -1930,9 +1930,9 @@ public partial class predictfun : PredictionExchange
         //
         IDictionary<string, object> messageData = this.safeDict(messageResponse, "data", new Dictionary<string, object>() {});
         string? message = this.safeString(messageData, "message");
-        if (isTrue(isEqual(message, null)))
+        if ((message == null))
         {
-            throw new AuthenticationError ((string)add(this.id, " authenticate() got an auth reply without the \"message\" field to sign")) ;
+            throw new AuthenticationError ((string)(this.id + " authenticate() got an auth reply without the \"message\" field to sign")) ;
         }
         object signature = this.signHash(this.hashMessage(message), this.privateKey);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1946,9 +1946,9 @@ public partial class predictfun : PredictionExchange
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         string? token = this.safeString(data, "token");
-        if (isTrue(isEqual(token, null)))
+        if ((token == null))
         {
-            throw new AuthenticationError ((string)add(this.id, " authenticate() did not return a token")) ;
+            throw new AuthenticationError ((string)(this.id + " authenticate() did not return a token")) ;
         }
         ((IDictionary<string,object>)this.options)["jwtToken"] = token;
         // measured from before the round trip, so the cached window closes a little early rather
@@ -1973,7 +1973,7 @@ public partial class predictfun : PredictionExchange
         // chainIdValue, not chainId - the php regex transpiler rewrites the substring "chainId"
         // inside the domain literal to a local var, which would corrupt the domain type hash
         Int64? chainIdValue = this.safeInteger(this.options, "chainId", 56);
-        object verifyingContract = this.exchangeAddress(isNegRisk, isYieldBearing);
+        string? verifyingContract = ((string)this.exchangeAddress(isNegRisk, isYieldBearing));
         Dictionary<string, object> domain = new Dictionary<string, object>() {
             { "name", "predict.fun CTF Exchange" },
             { "version", "1" },
@@ -2024,7 +2024,7 @@ public partial class predictfun : PredictionExchange
         }, order);
         // ethEncodeStructuredData returns the 0x1901 || domainSeparator || structHash preimage,
         // the digest that gets signed - and that the venue indexes the order by - is its keccak
-        string hash = add("0x", this.hash(encoded, keccak, "hex"));
+        string hash = ("0x" + (this.hash(encoded, keccak, "hex")));
         return new Dictionary<string, object>() {
             { "hash", hash },
             { "signature", this.signHash(hash, this.privateKey) },
@@ -2062,17 +2062,17 @@ public partial class predictfun : PredictionExchange
         await this.loadOutcome(outcome);
         IDictionary<string, object> outcomeObj = this.outcome(outcome);
         string? tokenId = this.safeString(outcomeObj, "outcomeId");
-        if (isTrue(isEqual(tokenId, null)))
+        if ((tokenId == null))
         {
-            throw new ArgumentsRequired ((string)add(add(this.id, " createOrder() could not resolve the on chain token id of "), outcome)) ;
+            throw new ArgumentsRequired ((string)((this.id + " createOrder() could not resolve the on chain token id of ") + outcome)) ;
         }
-        string strategy = ((bool) isTrue((isEqual(type, "market")))) ? "MARKET" : "LIMIT";
-        bool isMarket = (isEqual(strategy, "MARKET"));
-        if (isTrue(isTrue((!isTrue(isMarket))) && isTrue((isEqual(price, null)))))
+        string strategy = ((type == "market")) ? "MARKET" : "LIMIT";
+        bool isMarket = ((strategy == "MARKET"));
+        if ((!isMarket) && ((price == null)))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a \"price\" argument for a limit order")) ;
+            throw new ArgumentsRequired ((string)(this.id + " createOrder() requires a \"price\" argument for a limit order")) ;
         }
-        bool isBuy = (isEqual(side, "buy"));
+        bool isBuy = ((side == "buy"));
         // amounts cross the wire as collateral wei, the venue truncates the price to three
         // significant digits and the quantity to five, so send what it will actually use
         // the venue sizes an order from both legs and refuses anything else: a limitless style
@@ -2085,22 +2085,22 @@ public partial class predictfun : PredictionExchange
         // read through the extractor rather than off the instance, so one call can opt in without
         // reconfiguring the exchange - and so the key is taken out of params instead of riding
         // along into the request body
-        object warnOnMarketOrderWithoutPrice = true;
+        bool warnOnMarketOrderWithoutPrice = true;
         IList<object> warnOnMarketOrderWithoutPriceparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "warnOnMarketOrderWithoutPrice", true);
-        warnOnMarketOrderWithoutPrice = ((IList<object>)warnOnMarketOrderWithoutPriceparametersVariable)[0];
+        warnOnMarketOrderWithoutPrice = isTrue(((IList<object>)warnOnMarketOrderWithoutPriceparametersVariable)[0]);
         parameters = ((IList<object>)warnOnMarketOrderWithoutPriceparametersVariable)[1];
-        if (isTrue(isEqual(price, null)))
+        if ((price == null))
         {
             // a priceless limit order already threw above, so this is a market order
-            if (isTrue(warnOnMarketOrderWithoutPrice))
+            if (warnOnMarketOrderWithoutPrice)
             {
-                throw new ArgumentsRequired ((string)add(this.id, " createOrder() market orders require a \"price\" argument. To use default values turn \"warnOnMarketOrderWithoutPrice\" off in options")) ;
+                throw new ArgumentsRequired ((string)(this.id + " createOrder() market orders require a \"price\" argument. To use default values turn \"warnOnMarketOrderWithoutPrice\" off in options")) ;
             }
             // it still has to name a price, so it takes the aggressive end of the range the venue
             // allows: 0.99 crosses any ask, 0.01 is crossed by any bid. the fill happens at the
             // book's own prices, this is only the worst price the order accepts - which is also
             // the collateral the maker leg has to cover
-            priceToProvide = ((bool) isTrue((isBuy))) ? this.numberToString(this.safeNumber(this.options, "marketBuyPrice", 0.99)) : this.numberToString(this.safeNumber(this.options, "marketSellPrice", 0.01));
+            priceToProvide = isBuy ? this.numberToString(this.safeNumber(this.options, "marketBuyPrice", 0.99)) : this.numberToString(this.safeNumber(this.options, "marketSellPrice", 0.01));
         }
         string? quantityWei = Precise.stringMul(amountString, "1000000000000000000");
         string? priceWei = Precise.stringMul(priceToProvide, "1000000000000000000");
@@ -2109,16 +2109,16 @@ public partial class predictfun : PredictionExchange
         string? costWei = Precise.stringMul(priceToProvide, quantityWei);
         string? makerAmount = quantityWei;
         string? takerAmount = costWei;
-        if (isTrue(isBuy))
+        if (isBuy)
         {
             // a buy pays collateral for shares, a sell hands over shares for collateral
             makerAmount = costWei;
             takerAmount = quantityWei;
         }
         string? slippageBps = this.safeString(parameters, "slippageBps", "0");
-        if (isTrue(Precise.stringGt(slippageBps, "0")))
+        if (Precise.stringGt(slippageBps, "0"))
         {
-            if (isTrue(isBuy))
+            if (isBuy)
             {
                 // widen what the taker is willing to pay, capped at one unit of collateral a share
                 makerAmount = Precise.stringMin(Precise.stringDiv(Precise.stringMul(makerAmount, Precise.stringAdd("10000", slippageBps)), "10000"), quantityWei);
@@ -2142,9 +2142,9 @@ public partial class predictfun : PredictionExchange
         Int64? defaultExpiration = this.safeInteger(this.options, "defaultExpiration", 3600); // 1 hour
         Int64? expirationDelta = defaultExpiration;
         object expiration = this.safeInteger(parameters, "expiration");
-        if (isTrue(isEqual(expiration, null)))
+        if (isEqual(expiration, null))
         {
-            if (isTrue(isMarket))
+            if (isMarket)
             {
                 expirationDelta = this.safeInteger(this.options, "marketOrderExpiration", defaultExpiration);
             }
@@ -2168,7 +2168,7 @@ public partial class predictfun : PredictionExchange
             { "expiration", expiration },
             { "nonce", this.safeString(parameters, "nonce", "0") },
             { "feeRateBps", feeRateBps },
-            { "side", ((bool) isTrue(isBuy)) ? 0 : 1 },
+            { "side", isBuy ? 0 : 1 },
             { "signatureType", 0 },
         };
         object signed = this.signPredictfunOrder(contractOrder, isNegRisk, isYieldBearing);
@@ -2185,18 +2185,18 @@ public partial class predictfun : PredictionExchange
         IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isMarket, postOnly, parameters);
         postOnly = (bool?)((IList<object>)postOnlyparametersVariable)[0];
         parameters = ((IList<object>)postOnlyparametersVariable)[1];
-        if (isTrue(postOnly))
+        if ((postOnly == true))
         {
             ((IDictionary<string,object>)data)["isPostOnly"] = postOnly;
         }
         string? timeInForce = this.safeStringUpper(parameters, "timeInForce");
-        if (isTrue(isEqual(timeInForce, "FOK")))
+        if ((timeInForce == "FOK"))
         {
             ((IDictionary<string,object>)data)["isFillOrKill"] = true;
         }
         // documented, and the venue takes it inside data rather than as a top level key
         string? selfTradePrevention = this.safeStringUpper(parameters, "selfTradePrevention");
-        if (isTrue(!isEqual(selfTradePrevention, null)))
+        if ((selfTradePrevention != null))
         {
             ((IDictionary<string,object>)data)["selfTradePrevention"] = selfTradePrevention;
         }
@@ -2246,14 +2246,14 @@ public partial class predictfun : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         int outcomesLength = 0;
-        if (isTrue(!isEqual(outcomes, null)))
+        if ((outcomes != null))
         {
             outcomesLength = getArrayLength(outcomes);
             await this.loadOutcomes(outcomes);
         }
         string? address = this.safeString(parameters, "address");
         Dictionary<string, object> response = null;
-        if (isTrue(!isEqual(address, null)))
+        if ((address != null))
         {
             // the by-address endpoint reads any wallet and is happy with just the api key
             Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -2293,14 +2293,14 @@ public partial class predictfun : PredictionExchange
         //
         List<object> rows = this.safeList(response, "data", new List<object>() {});
         object parsed = this.parsePredictionPositions(rows);
-        if (isTrue(isEqual(outcomesLength, 0)))
+        if ((outcomesLength == 0))
         {
             return ccxt.BaseExchange.ToPredictionPositionList(parsed);
         }
         // the venue filters by marketId only, so a set of outcome handles is applied here
         Dictionary<string, object> wanted = new Dictionary<string, object>() {};
         IList<object> wantedOutcomes = this.toArray(outcomes);
-        for (int i = 0; isLessThan(i, outcomesLength); postFixIncrement(ref i))
+        for (int i = 0; i < outcomesLength; i++)
         {
             IDictionary<string, object> outcomeObj = this.outcome(getValue(wantedOutcomes, i));
             string? wantedId = this.safeString(outcomeObj, "outcomeId", "");
@@ -2308,11 +2308,11 @@ public partial class predictfun : PredictionExchange
         }
         List<object> result = new List<object>() {};
         int parsedLength = getArrayLength(parsed);
-        for (int i = 0; isLessThan(i, parsedLength); postFixIncrement(ref i))
+        for (int i = 0; i < parsedLength; i++)
         {
             object position = getValue(parsed, i);
             string? outcomeId = this.safeString(position, "outcomeId");
-            if (isTrue(isTrue((!isEqual(outcomeId, null))) && isTrue((inOp(wanted, outcomeId)))))
+            if (((outcomeId != null)) && (wanted.ContainsKey(outcomeId)))
             {
                 ((IList<object>)result).Add(position);
             }
@@ -2369,12 +2369,12 @@ public partial class predictfun : PredictionExchange
         // what the shares cost, which is also the collateral committed to the position
         string? collateral = Precise.stringMul(entryPrice, contracts);
         string? markPrice = null;
-        if (isTrue(isTrue(isTrue((!isEqual(notional, null))) && isTrue((!isEqual(contracts, null)))) && isTrue(Precise.stringGt(contracts, "0"))))
+        if (((notional != null)) && ((contracts != null)) && Precise.stringGt(contracts, "0"))
         {
             markPrice = Precise.stringDiv(notional, contracts);
         }
         string? percentage = null;
-        if (isTrue(isTrue(isTrue((!isEqual(pnl, null))) && isTrue((!isEqual(collateral, null)))) && isTrue(Precise.stringGt(collateral, "0"))))
+        if (((pnl != null)) && ((collateral != null)) && Precise.stringGt(collateral, "0"))
         {
             percentage = Precise.stringMul(Precise.stringDiv(pnl, collateral), "100");
         }
@@ -2383,22 +2383,22 @@ public partial class predictfun : PredictionExchange
         // tracked apart: the position is resolved, but which side won is not yet known
         string? outcomeStatus = this.safeString(rawOutcome, "status");
         string? marketStatus = this.safeString(rawMarket, "status");
-        bool settled = isTrue((isEqual(outcomeStatus, "WON"))) || isTrue((isEqual(outcomeStatus, "LOST")));
-        bool resolved = isTrue(isTrue(settled) || isTrue((isEqual(marketStatus, "RESOLVED")))) || isTrue((isEqual(marketStatus, "SETTLED")));
+        bool settled = ((outcomeStatus == "WON")) || ((outcomeStatus == "LOST"));
+        bool resolved = settled || ((marketStatus == "RESOLVED")) || ((marketStatus == "SETTLED"));
         bool? won = null;
         string? settleFraction = null;
         string? payout = null;
-        if (isTrue(settled))
+        if (settled)
         {
-            won = (isEqual(outcomeStatus, "WON"));
-            settleFraction = ((bool) isTrue((won))) ? "1" : "0";
+            won = ((outcomeStatus == "WON"));
+            settleFraction = (won == true) ? "1" : "0";
             // a winning share redeems for one unit of collateral, a losing one for nothing
-            payout = ((bool) isTrue((won))) ? contracts : "0";
+            payout = (won == true) ? contracts : "0";
         }
         // pnl is realized once the market has resolved, unrealized while it is still trading
         string? realizedPnl = null;
         string? unrealizedPnl = pnl;
-        if (isTrue(resolved))
+        if (resolved)
         {
             realizedPnl = pnl;
             unrealizedPnl = null;
@@ -2446,9 +2446,9 @@ public partial class predictfun : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         object orders = ccxt.BaseExchange.FromPredictionOrderList(await this.CancelOrders(new List<object>() {id},((string)outcome), parameters));
         IDictionary<string, object> order = this.safeDict(orders, 0);
-        if (isTrue(isEqual(order, null)))
+        if ((order == null))
         {
-            throw new OrderNotFound ((string)add(add(this.id, " cancelOrder() could not remove "), id)) ;
+            throw new OrderNotFound ((string)((this.id + " cancelOrder() could not remove ") + id)) ;
         }
         return ccxt.BaseExchange.ToPredictionOrder(order);
     }
@@ -2467,19 +2467,19 @@ public partial class predictfun : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> outcomeObj = null;
-        if (isTrue(!isEqual(outcome, null)))
+        if ((outcome != null))
         {
             await this.loadOutcome(outcome);
             outcomeObj = this.outcome(outcome);
         }
         int idsLength = getArrayLength(ids);
-        if (isTrue(isEqual(idsLength, 0)))
+        if ((idsLength == 0))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " cancelOrders() requires at least one order hash")) ;
+            throw new ArgumentsRequired ((string)(this.id + " cancelOrders() requires at least one order hash")) ;
         }
-        if (isTrue(isGreaterThan(idsLength, 100)))
+        if (idsLength > 100)
         {
-            throw new BadRequest ((string)add(this.id, " cancelOrders() takes at most 100 order hashes per call")) ;
+            throw new BadRequest ((string)(this.id + " cancelOrders() takes at most 100 order hashes per call")) ;
         }
         // the JWT identifies the signer whose orders may be pulled
         await this.authenticate();
@@ -2499,26 +2499,26 @@ public partial class predictfun : PredictionExchange
         //     }
         //
         List<object> rejected = this.safeList(response, "rejected", new List<object>() {});
-        int rejectedLength = getArrayLength(rejected);
-        if (isTrue(isGreaterThan(rejectedLength, 0)))
+        int rejectedLength = rejected.Count;
+        if (rejectedLength > 0)
         {
-            throw new OrderNotFound ((string)add(add(this.id, " cancelOrders() was refused for "), this.json(rejected))) ;
+            throw new OrderNotFound ((string)((this.id + " cancelOrders() was refused for ") + this.json(rejected))) ;
         }
         // the venue reports hashes only, so each one becomes a row the shared order parser can
         // read: it takes the hash off orderHash and the status through parseOrderStatus
         List<object> removed = this.safeList(response, "removed", new List<object>() {});
         List<object> noop = this.safeList(response, "noop", new List<object>() {});
         List<object> rows = new List<object>() {};
-        int removedLength = getArrayLength(removed);
-        for (int i = 0; isLessThan(i, removedLength); postFixIncrement(ref i))
+        int removedLength = removed.Count;
+        for (int i = 0; i < removedLength; i++)
         {
             ((IList<object>)rows).Add(this.extend(response, new Dictionary<string, object>() {
                 { "orderHash", getValue(removed, i) },
                 { "status", "CANCELLED" },
             }));
         }
-        int noopLength = getArrayLength(noop);
-        for (int i = 0; isLessThan(i, noopLength); postFixIncrement(ref i))
+        int noopLength = noop.Count;
+        for (int i = 0; i < noopLength; i++)
         {
             // accepted, but nothing was resting to pull: the order had already filled, expired,
             // was never booked, or had been removed before - so the status is left unknown
@@ -2544,7 +2544,7 @@ public partial class predictfun : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         await this.authenticate();
         IDictionary<string, object> outcomeObj = null;
-        if (isTrue(!isEqual(outcome, null)))
+        if ((outcome != null))
         {
             await this.loadOutcome(outcome);
             outcomeObj = this.outcome(outcome);
@@ -2652,7 +2652,7 @@ public partial class predictfun : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> outcomeObj = null;
-        if (isTrue(!isEqual(outcome, null)))
+        if ((outcome != null))
         {
             await this.loadOutcome(outcome);
             outcomeObj = this.outcome(outcome);
@@ -2756,10 +2756,10 @@ public partial class predictfun : PredictionExchange
         // sell offers shares for collateral, so which leg is the size depends on the side
         string? rawSide = this.safeString(data, "side");
         string? side = null;
-        if (isTrue(isTrue((isEqual(rawSide, "0"))) || isTrue((isEqual(rawSide, "Bid")))))
+        if (((rawSide == "0")) || ((rawSide == "Bid")))
         {
             side = "buy";
-        } else if (isTrue(isTrue((isEqual(rawSide, "1"))) || isTrue((isEqual(rawSide, "Ask")))))
+        } else if (((rawSide == "1")) || ((rawSide == "Ask")))
         {
             side = "sell";
         }
@@ -2767,7 +2767,7 @@ public partial class predictfun : PredictionExchange
         string? takerAmount = this.safeString(data, "takerAmount");
         string? amountWei = makerAmount;
         string? costWei = takerAmount;
-        if (isTrue(isEqual(side, "buy")))
+        if ((side == "buy"))
         {
             amountWei = takerAmount;
             costWei = makerAmount;
@@ -2779,7 +2779,7 @@ public partial class predictfun : PredictionExchange
         // orders show same takerAmount and makerAmount as it was when they were placed
         // the price of market orders will be calculated incorrectly
         // we can calculate price for limit orders only
-        if (isTrue(isEqual(type, "limit")))
+        if ((type == "limit"))
         {
             price = Precise.stringDiv(cost, amount);
         }
@@ -2853,35 +2853,35 @@ public partial class predictfun : PredictionExchange
      */
     public override object handleErrors(object statusCode, object statusText, object url, object method, object responseHeaders, object responseBody, object response, object requestHeaders, object requestBody)
     {
-        if (isTrue(isEqual(response, null)))
+        if ((response == null))
         {
             return null;
         }
         bool? success = this.safeBool(response, "success", true);
-        if (isTrue(success))
+        if ((success == true))
         {
             return null;
         }
-        string feedback = add(add(this.id, " "), responseBody);
+        string feedback = ((this.id + " ") + (responseBody));
         // the message is matched first because it is the more specific of the two: several
         // distinct failures share a generic slug, notably 'unauthorized', which the venue also
         // returns for a hash belonging to another wallet, and 'not_found' for an unknown market
         string? message = this.safeString(response, "message");
-        this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
+        this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), message, feedback);
         // the venue also answers 401 when the request was authorised but acted on someone else's
         // order - that case is matched above and has already thrown, so reaching here with a 401
         // means the credential itself was refused. drop the cached JWT, otherwise a token revoked
         // or aged out before its window closes is replayed for the life of the process
-        if (isTrue(isEqual(statusCode, 401)))
+        if (isEqual(statusCode, 401))
         {
             ((IDictionary<string,object>)this.options)["jwtToken"] = null;
             ((IDictionary<string,object>)this.options)["jwtTokenExpiresAt"] = 0;
         }
         string? error = this.safeString(response, "error");
-        this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), error, feedback);
+        this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), error, feedback);
         // a 400 is a rejected request or a business rule, not a transport outage - the base would
         // otherwise map the bare status onto a retryable network error
-        if (isTrue(isEqual(statusCode, 400)))
+        if (isEqual(statusCode, 400))
         {
             throw new BadRequest ((string)feedback) ;
         }
@@ -2903,7 +2903,7 @@ public partial class predictfun : PredictionExchange
         IDictionary<string, object> exchanges = this.safeDict(this.options, "exchanges", new Dictionary<string, object>() {});
         IDictionary<string, object> byChain = this.safeDict(exchanges, this.numberToString(chainIdValue), new Dictionary<string, object>() {});
         string identifier = "CTF_EXCHANGE";
-        if (isTrue(isTrue(isNegRisk) && isTrue(isYieldBearing)))
+        if (isTrue(isNegRisk) && isTrue(isYieldBearing))
         {
             identifier = "YIELD_BEARING_NEG_RISK_CTF_EXCHANGE";
         } else if (isTrue(isNegRisk))
@@ -2931,7 +2931,7 @@ public partial class predictfun : PredictionExchange
         IDictionary<string, object> tokens = this.safeDict(this.options, "conditionalTokens", new Dictionary<string, object>() {});
         IDictionary<string, object> byChain = this.safeDict(tokens, this.numberToString(chainIdValue), new Dictionary<string, object>() {});
         string identifier = "CONDITIONAL_TOKENS";
-        if (isTrue(isTrue(isNegRisk) && isTrue(isYieldBearing)))
+        if (isTrue(isNegRisk) && isTrue(isYieldBearing))
         {
             identifier = "YIELD_BEARING_NEG_RISK_CONDITIONAL_TOKENS";
         } else if (isTrue(isNegRisk))
@@ -2974,11 +2974,11 @@ public partial class predictfun : PredictionExchange
      * @param {string} privateKey the wallet private key
      * @returns {string} the signed raw transaction
      */
-    public override object signEvmTransaction(object tx, object privateKey)
+    public override object signEvmTransaction(IDictionary<string, object> tx, object privateKey)
     {
-        object accessList = this.rlpEncodeList(new List<object>() {});
+        string? accessList = ((string)this.rlpEncodeList(new List<object>() {}));
         List<object> fields = new List<object> {this.rlpEncodeBytes(this.intToRlpHex(this.safeInteger(tx, "chainId"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "nonce"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "maxPriorityFeePerGas"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "maxFeePerGas"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "gasLimit"))), this.rlpEncodeBytes(this.remove0xPrefix(this.safeString(tx, "to"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "value", "0x0"))), this.rlpEncodeBytes(this.remove0xPrefix(this.safeString(tx, "data", "0x"))), accessList};
-        string payload = add("02", this.rlpEncodeList(fields));
+        string payload = ("02" + (this.rlpEncodeList(fields)));
         object hashHex = this.hash(this.base16ToBinary(payload), keccak, "hex");
         Dictionary<string, object> signature = ecdsa(hashHex, this.remove0xPrefix(privateKey), secp256k1, null);
         object rHex = this.safeString(signature, "r");
@@ -2987,14 +2987,14 @@ public partial class predictfun : PredictionExchange
         sHex = this.padHexToEven(sHex);
         Int64? yParity = this.safeInteger(signature, "v");
         List<object> signedFields = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(fields)); postFixIncrement(ref i))
+        for (int i = 0; i < (fields?.Count ?? 0); i++)
         {
-            ((IList<object>)signedFields).Add(getValue(fields, i));
+            ((IList<object>)signedFields).Add(fields[i]);
         }
         ((IList<object>)signedFields).Add(this.rlpEncodeBytes(this.intToRlpHex(yParity)));
         ((IList<object>)signedFields).Add(this.rlpEncodeBytes(rHex));
         ((IList<object>)signedFields).Add(this.rlpEncodeBytes(sHex));
-        return add("0x02", this.rlpEncodeList(signedFields));
+        return ("0x02" + (this.rlpEncodeList(signedFields)));
     }
 
     /**
@@ -3017,9 +3017,9 @@ public partial class predictfun : PredictionExchange
     public async virtual Task<object> approve(object outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.privateKey, null)))
+        if ((this.privateKey == null))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " approve() requires a privateKey to sign the on-chain transaction")) ;
+            throw new ArgumentsRequired ((string)(this.id + " approve() requires a privateKey to sign the on-chain transaction")) ;
         }
         string? side = this.safeStringLower(parameters, "side", "buy");
         Int64? chainId = this.safeInteger(this.options, "chainId", 56);
@@ -3027,7 +3027,7 @@ public partial class predictfun : PredictionExchange
         IDictionary<string, object> rpcUrls = this.safeDict(this.options, "rpcUrls", new Dictionary<string, object>() {});
         string? rpcUrl = this.safeString(parameters, "rpcUrl", this.safeString(rpcUrls, chainKey));
         object owner = this.safeString(parameters, "owner", this.walletAddress);
-        if (isTrue(isEqual(owner, null)))
+        if ((owner == null))
         {
             owner = this.ethGetAddressFromPrivateKey(this.privateKey);
         }
@@ -3036,7 +3036,7 @@ public partial class predictfun : PredictionExchange
         // approval granted for one of them is worth nothing on the others
         bool? isNegRisk = false;
         bool? isYieldBearing = false;
-        if (isTrue(!isEqual(outcome, null)))
+        if ((outcome != null))
         {
             await this.loadOutcome(outcome);
             IDictionary<string, object> outcomeObj = this.outcome(outcome);
@@ -3046,48 +3046,48 @@ public partial class predictfun : PredictionExchange
             isNegRisk = this.safeBool(marketRow, "isNegRisk", false);
             isYieldBearing = this.safeBool(marketRow, "isYieldBearing", false);
         }
-        if (isTrue(isEqual(side, "sell")))
+        if ((side == "sell"))
         {
             string? ctfToken = this.safeString(parameters, "token", this.conditionalTokensAddress(isNegRisk, isYieldBearing));
             List<object> operators = new List<object>() {};
             string? explicitOperator = this.safeString(parameters, "spender");
-            if (isTrue(!isEqual(explicitOperator, null)))
+            if ((explicitOperator != null))
             {
                 ((IList<object>)operators).Add(explicitOperator);
-            } else if (isTrue(isEqual(outcome, null)))
+            } else if ((outcome == null))
             {
-                throw new ArgumentsRequired ((string)add(this.id, " approve() requires an \"outcome\" to resolve the contracts to approve for selling, or an explicit \"spender\" parameter")) ;
+                throw new ArgumentsRequired ((string)(this.id + " approve() requires an \"outcome\" to resolve the contracts to approve for selling, or an explicit \"spender\" parameter")) ;
             } else
             {
                 ((IList<object>)operators).Add(this.exchangeAddress(isNegRisk, isYieldBearing));
                 // a neg risk match mints and merges through the adapter, which moves the seller's
                 // shares itself, so approving the exchange alone leaves the sell side half open
-                if (isTrue(isNegRisk))
+                if ((isNegRisk == true))
                 {
                     ((IList<object>)operators).Add(this.adapterAddress(isYieldBearing));
                 }
             }
-            if (isTrue(isTrue((isEqual(rpcUrl, null))) || isTrue((isEqual(ctfToken, null)))))
+            if (((rpcUrl == null)) || ((ctfToken == null)))
             {
-                throw new ArgumentsRequired ((string)add(add(this.id, " approve() could not resolve the \"rpcUrl\" or the conditional tokens for chain "), chainKey)) ;
+                throw new ArgumentsRequired ((string)((this.id + " approve() could not resolve the \"rpcUrl\" or the conditional tokens for chain ") + chainKey)) ;
             }
             bool? approved = this.safeBool(parameters, "approved", true);
             string approvedHex = "0000000000000000000000000000000000000000000000000000000000000000";
-            if (isTrue(approved))
+            if ((approved == true))
             {
                 approvedHex = "0000000000000000000000000000000000000000000000000000000000000001";
             }
             List<object> receipts = new List<object>() {};
-            int operatorsLength = getArrayLength(operators);
-            for (int i = 0; isLessThan(i, operatorsLength); postFixIncrement(ref i))
+            int operatorsLength = (operators?.Count ?? 0);
+            for (int i = 0; i < operatorsLength; i++)
             {
                 object operatorAddress = getValue(operators, i);
-                if (isTrue(isEqual(operatorAddress, null)))
+                if ((operatorAddress == null))
                 {
-                    throw new ArgumentsRequired ((string)add(add(this.id, " approve() could not resolve the operator to approve for chain "), chainKey)) ;
+                    throw new ArgumentsRequired ((string)((this.id + " approve() could not resolve the operator to approve for chain ") + chainKey)) ;
                 }
                 // setApprovalForAll(operator, approved) -> selector 0xa22cb465
-                string approvalData = add(add("0xa22cb465", this.padHexAddress(operatorAddress)), approvedHex);
+                string approvalData = (("0xa22cb465" + (this.padHexAddress(operatorAddress))) + approvedHex);
                 // each receipt is awaited before the next transaction goes out, so the nonce the
                 // second one looks up already counts the first
                 object approvalHash = await this.sendEvmTransaction(rpcUrl, chainId, owner, ctfToken, "0x0", approvalData, gasLimit);
@@ -3099,21 +3099,21 @@ public partial class predictfun : PredictionExchange
         IDictionary<string, object> collaterals = this.safeDict(this.options, "collateral", new Dictionary<string, object>() {});
         string? token = this.safeString(parameters, "token", this.safeString(collaterals, chainKey));
         object spender = this.safeString(parameters, "spender");
-        if (isTrue(isEqual(spender, null)))
+        if ((spender == null))
         {
-            if (isTrue(isEqual(outcome, null)))
+            if ((outcome == null))
             {
-                throw new ArgumentsRequired ((string)add(this.id, " approve() requires an \"outcome\" to resolve the exchange to approve, or an explicit \"spender\" parameter")) ;
+                throw new ArgumentsRequired ((string)(this.id + " approve() requires an \"outcome\" to resolve the exchange to approve, or an explicit \"spender\" parameter")) ;
             }
             spender = this.exchangeAddress(isNegRisk, isYieldBearing);
         }
-        if (isTrue(isTrue(isTrue((isEqual(rpcUrl, null))) || isTrue((isEqual(token, null)))) || isTrue((isEqual(spender, null)))))
+        if (((rpcUrl == null)) || ((token == null)) || ((spender == null)))
         {
-            throw new ArgumentsRequired ((string)add(add(this.id, " approve() could not resolve the \"rpcUrl\", the \"token\" or the \"spender\" for chain "), chainKey)) ;
+            throw new ArgumentsRequired ((string)((this.id + " approve() could not resolve the \"rpcUrl\", the \"token\" or the \"spender\" for chain ") + chainKey)) ;
         }
         object amountHex = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
         string? amount = this.safeString(parameters, "amount");
-        if (isTrue(!isEqual(amount, null)))
+        if ((amount != null))
         {
             // the collateral has eighteen decimals, so the scaled amount runs past what a float
             // can hold - it has to stay a string all the way into the bigint
@@ -3123,7 +3123,7 @@ public partial class predictfun : PredictionExchange
             amountHex = (amountBase16 as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
         }
         // approve(spender, amount) -> selector 0x095ea7b3
-        string approveData = add(add("0x095ea7b3", this.padHexAddress(spender)), amountHex);
+        string approveData = (("0x095ea7b3" + (this.padHexAddress(spender))) + (amountHex));
         object txHash = await this.sendEvmTransaction(rpcUrl, chainId, owner, token, "0x0", approveData, gasLimit);
         return await this.waitForTransactionReceipt(rpcUrl, txHash);
     }
@@ -3145,15 +3145,15 @@ public partial class predictfun : PredictionExchange
         IDictionary<string, object> outcomeObj = this.outcome(outcome);
         IDictionary<string, object> info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
         string? marketId = this.safeString(info, "marketId");
-        if (isTrue(isEqual(marketId, null)))
+        if ((marketId == null))
         {
-            throw new ArgumentsRequired ((string)add(add(this.id, " watchOrderBook() could not resolve the market id of "), outcome)) ;
+            throw new ArgumentsRequired ((string)((this.id + " watchOrderBook() could not resolve the market id of ") + outcome)) ;
         }
         string? outcomeHandle = this.safeOutcomeSymbol(null, outcomeObj);
         // the venue publishes one book per market, quoted on the yes side, and the no side is its
         // complement - so a single subscription serves both outcomes and each waits on its own hash
-        string topic = add("predictOrderbook/", marketId);
-        string messageHash = add("orderbook::", outcomeHandle);
+        string topic = ("predictOrderbook/" + marketId);
+        string messageHash = ("orderbook::" + outcomeHandle);
         Int64 requestId = ((Int64)this.requestId());
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
@@ -3191,24 +3191,24 @@ public partial class predictfun : PredictionExchange
         IDictionary<string, object> outcomeObj = this.outcome(outcome);
         IDictionary<string, object> info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
         string? marketId = this.safeString(info, "marketId");
-        if (isTrue(isEqual(marketId, null)))
+        if ((marketId == null))
         {
-            throw new ArgumentsRequired ((string)add(add(this.id, " unWatchOrderBook() could not resolve the market id of "), outcome)) ;
+            throw new ArgumentsRequired ((string)((this.id + " unWatchOrderBook() could not resolve the market id of ") + (outcome))) ;
         }
-        string topic = add("predictOrderbook/", marketId);
+        string topic = ("predictOrderbook/" + marketId);
         object outcomes = this.outcomesByMarketId(marketId);
         int outcomesLength = getArrayLength(outcomes);
         List<object> handles = new List<object>() {};
         List<object> subMessageHashes = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (int i = 0; isLessThan(i, outcomesLength); postFixIncrement(ref i))
+        for (int i = 0; i < outcomesLength; i++)
         {
             string? handle = this.safeString(getValue(outcomes, i), "outcome");
-            if (isTrue(!isEqual(handle, null)))
+            if ((handle != null))
             {
                 ((IList<object>)handles).Add(handle);
-                ((IList<object>)subMessageHashes).Add(add("orderbook::", handle));
-                ((IList<object>)messageHashes).Add(add("unsubscribe::orderbook::", handle));
+                ((IList<object>)subMessageHashes).Add(("orderbook::" + handle));
+                ((IList<object>)messageHashes).Add(("unsubscribe::orderbook::" + handle));
             }
         }
         Int64 requestId = ((Int64)this.requestId());
@@ -3228,7 +3228,7 @@ public partial class predictfun : PredictionExchange
             { "messageHashes", messageHashes },
             { "subscribeHash", topic },
         };
-        string messageHash = add("unsubscribe::orderbook::", this.safeOutcomeSymbol(null, outcomeObj));
+        string messageHash = ("unsubscribe::orderbook::" + this.safeOutcomeSymbol(null, outcomeObj));
         object url = this.socketUrl();
         return await this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription);
     }
@@ -3246,12 +3246,12 @@ public partial class predictfun : PredictionExchange
         object outcomes = this.outcomesByMarketId(marketId);
         int outcomesLength = getArrayLength(outcomes);
         List<object> hashes = new List<object>() {};
-        for (int i = 0; isLessThan(i, outcomesLength); postFixIncrement(ref i))
+        for (int i = 0; i < outcomesLength; i++)
         {
             string? handle = this.safeString(getValue(outcomes, i), "outcome");
-            if (isTrue(!isEqual(handle, null)))
+            if ((handle != null))
             {
-                ((IList<object>)hashes).Add(add("orderbook::", handle));
+                ((IList<object>)hashes).Add(("orderbook::" + handle));
             }
         }
         return hashes;
@@ -3269,17 +3269,17 @@ public partial class predictfun : PredictionExchange
     public virtual void handleSubscriptionError(WebSocketClient client, object message, object subscription)
     {
         IDictionary<string, object> rawError = this.safeDict(message, "error", new Dictionary<string, object>() {});
-        var error = new ExchangeError(add(add(this.id, " subscribe request rejected "), this.json(rawError)));
+        var error = new ExchangeError(((this.id + " subscribe request rejected ") + this.json(rawError)));
         // watch () registers a subscription before it sends and only sends while the hash is still
         // unregistered, so a rejected request has to take its own entry down - otherwise a retry
         // would skip the send and wait forever on a topic the venue never accepted
         string? subscribeHash = this.safeString(subscription, "subscribeHash");
-        if (isTrue(isTrue((!isEqual(subscribeHash, null))) && isTrue((inOp(((WebSocketClient)client).subscriptions, subscribeHash)))))
+        if (((subscribeHash != null)) && (inOp(((WebSocketClient)client).subscriptions, subscribeHash)))
         {
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)subscribeHash);
         }
         object messageHashes = this.safeList(subscription, "messageHashes", new List<object>() {});
-        if (isTrue(isEqual(this.safeString(subscription, "topic"), "walletEvents")))
+        if ((this.safeString(subscription, "topic") == "walletEvents"))
         {
             // watch () registers the wallet subscription once, for whichever watcher came first, so
             // its list is a snapshot of that moment - a narrowed watcher that joined later is known
@@ -3288,11 +3288,11 @@ public partial class predictfun : PredictionExchange
             messageHashes = this.walletEventMessageHashes(client);
         }
         int messageHashesLength = getArrayLength(messageHashes);
-        if (isTrue(isEqual(messageHashesLength, 0)))
+        if ((messageHashesLength == 0))
         {
             throw error;
         }
-        for (int i = 0; isLessThan(i, messageHashesLength); postFixIncrement(ref i))
+        for (int i = 0; i < messageHashesLength; i++)
         {
             ((WebSocketClient)client).reject(error, getValue(messageHashes, i));
         }
@@ -3310,13 +3310,13 @@ public partial class predictfun : PredictionExchange
     {
         List<object> messageHashes = this.safeList(subscription, "messageHashes", new List<object>() {});
         List<object> subMessageHashes = this.safeList(subscription, "subMessageHashes", new List<object>() {});
-        int messageHashesLength = getArrayLength(messageHashes);
+        int messageHashesLength = messageHashes.Count;
         // one wallet hash stands for a family: 'orders' is what an unnarrowed caller waits on and
         // 'orders::<outcome>' what a narrowed one waits on, so the base matches it as a prefix and
         // releases both. the book path needs no such thing - it registers the full narrowed hash of
         // every outcome of the market, and an exact match is what keeps a sibling market out of it
-        bool isWalletTopic = (isEqual(this.safeString(subscription, "topic"), "walletEvents"));
-        for (int i = 0; isLessThan(i, messageHashesLength); postFixIncrement(ref i))
+        bool isWalletTopic = ((this.safeString(subscription, "topic") == "walletEvents"));
+        for (int i = 0; i < messageHashesLength; i++)
         {
             this.cleanUnsubscription(client as WebSocketClient, getValue(subMessageHashes, i), getValue(messageHashes, i), isWalletTopic);
         }
@@ -3324,7 +3324,7 @@ public partial class predictfun : PredictionExchange
         // the subscription itself is keyed by the topic, which is what watchOrderBook registered -
         // leaving it behind would make a later watch believe it is still subscribed
         string? subscribeHash = this.safeString(subscription, "subscribeHash");
-        if (isTrue(isTrue((!isEqual(subscribeHash, null))) && isTrue((inOp(((WebSocketClient)client).subscriptions, subscribeHash)))))
+        if (((subscribeHash != null)) && (inOp(((WebSocketClient)client).subscriptions, subscribeHash)))
         {
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)subscribeHash);
         }
@@ -3335,11 +3335,11 @@ public partial class predictfun : PredictionExchange
         // the reset is delegated to the base rather than written here: assigning undefined to an
         // inherited cache from a derived class is dropped outright by the go and c# transpilers,
         // silently leaving those two languages with a stale cache
-        int subMessageHashesLength = getArrayLength(subMessageHashes);
-        for (int i = 0; isLessThan(i, subMessageHashesLength); postFixIncrement(ref i))
+        int subMessageHashesLength = subMessageHashes.Count;
+        for (int i = 0; i < subMessageHashesLength; i++)
         {
             object subHash = getValue(subMessageHashes, i);
-            if (isTrue(isTrue((isEqual(subHash, "orders"))) || isTrue((isEqual(subHash, "myTrades")))))
+            if ((isEqual(subHash, "orders")) || (isEqual(subHash, "myTrades")))
             {
                 this.cleanCache(new Dictionary<string, object>() {
                     { "topic", subHash },
@@ -3365,12 +3365,12 @@ public partial class predictfun : PredictionExchange
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         string messageHash = "orders";
-        if (isTrue(!isEqual(outcomeVar, null)))
+        if ((outcomeVar != null))
         {
             await this.loadOutcome(outcomeVar);
             IDictionary<string, object> outcomeObj = this.outcome(outcomeVar);
             outcomeVar = this.safeOutcomeSymbol(null, outcomeObj);
-            messageHash = add("orders::", outcomeVar);
+            messageHash = ("orders::" + (outcomeVar));
         } else
         {
             // events arrive for whatever market the wallet traded, and the handler that resolves
@@ -3381,7 +3381,7 @@ public partial class predictfun : PredictionExchange
             await this.loadOutcomes();
         }
         object orders = await this.watchWalletEvents(messageHash, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(orders, "getLimit", new object[] {outcomeVar, limitVar});
         }
@@ -3405,12 +3405,12 @@ public partial class predictfun : PredictionExchange
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         string messageHash = "myTrades";
-        if (isTrue(!isEqual(outcomeVar, null)))
+        if ((outcomeVar != null))
         {
             await this.loadOutcome(outcomeVar);
             IDictionary<string, object> outcomeObj = this.outcome(outcomeVar);
             outcomeVar = this.safeOutcomeSymbol(null, outcomeObj);
-            messageHash = add("myTrades::", outcomeVar);
+            messageHash = ("myTrades::" + (outcomeVar));
         } else
         {
             // same as watchOrders (): the fills come from the one wallet topic and are resolved by
@@ -3418,7 +3418,7 @@ public partial class predictfun : PredictionExchange
             await this.loadOutcomes();
         }
         object trades = await this.watchWalletEvents(messageHash, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(trades, "getLimit", new object[] {outcomeVar, limitVar});
         }
@@ -3471,7 +3471,7 @@ public partial class predictfun : PredictionExchange
         // the local is not called jwt: that is the name of a base method, and the regex transpiler
         // rewrites such identifiers into self.jwt, which lands as a broken assignment in python
         object walletToken = await this.authenticate();
-        return add("predictWalletEvents/", walletToken);
+        return ("predictWalletEvents/" + (walletToken));
     }
 
     /**
@@ -3521,16 +3521,16 @@ public partial class predictfun : PredictionExchange
         // whatever is already live on this connection plus the hash watch () is about to register
         List<object> hashes = new List<object>() {"orders", "myTrades"};
         List<object> futures = new List<object>(((IDictionary<string, ccxt.Exchange.Future>)client.futures).Keys);
-        int futuresLength = getArrayLength(futures);
-        for (int i = 0; isLessThan(i, futuresLength); postFixIncrement(ref i))
+        int futuresLength = futures.Count;
+        for (int i = 0; i < futuresLength; i++)
         {
             string? future = ((string)getValue(futures, i));
-            if (isTrue(isTrue((isEqual(getIndexOf(future, "orders::"), 0))) || isTrue((isEqual(getIndexOf(future, "myTrades::"), 0)))))
+            if (((getIndexOf(future, "orders::") == 0)) || ((getIndexOf(future, "myTrades::") == 0)))
             {
                 ((IList<object>)hashes).Add(future);
             }
         }
-        if (isTrue(isTrue((!isEqual(messageHash, null))) && !isTrue(this.inArray(messageHash, hashes))))
+        if (((messageHash != null)) && !this.inArray(messageHash, hashes))
         {
             ((IList<object>)hashes).Add(messageHash);
         }
@@ -3565,7 +3565,7 @@ public partial class predictfun : PredictionExchange
             { "messageHashes", new List<object>() {"unsubscribe::orders", "unsubscribe::myTrades"} },
             { "subscribeHash", "walletEvents" },
         };
-        string messageHash = add("unsubscribe::", channel);
+        string messageHash = ("unsubscribe::" + (channel));
         object url = this.socketUrl();
         return await this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription);
     }
@@ -3579,15 +3579,15 @@ public partial class predictfun : PredictionExchange
      */
     public virtual object socketUrl()
     {
-        object urls = getValue(this.urls, "api");
+        object urls = (this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null);
         object bs = this.safeString(urls, "ws");
-        if (isTrue(isEqual(bs, null)))
+        if ((bs == null))
         {
-            throw new NotSupported ((string)add(this.id, " does not have a sandbox websocket endpoint")) ;
+            throw new NotSupported ((string)(this.id + " does not have a sandbox websocket endpoint")) ;
         }
-        if (isTrue(isEqual(this.apiKey, null)))
+        if ((this.apiKey == null))
         {
-            throw new AuthenticationError ((string)add(this.id, " requires an apiKey for all methods - the venue answers the socket handshake with a 401 without one")) ;
+            throw new AuthenticationError ((string)(this.id + " requires an apiKey for all methods - the venue answers the socket handshake with a 401 without one")) ;
         }
         // the key rides in the query string rather than a header: a browser cannot set headers on
         // a websocket handshake, and the venue documents both forms
@@ -3627,7 +3627,7 @@ public partial class predictfun : PredictionExchange
         // back to it on any cache miss, which stamped the requested outcome onto rows from other
         // markets - and the outcome filter afterwards then kept them, as they now matched
         string? hintId = this.safeString(market, "outcomeId");
-        if (isTrue(isTrue((isEqual(tokenId, null))) || isTrue((isEqual(hintId, tokenId)))))
+        if (((tokenId == null)) || (isEqual(hintId, tokenId)))
         {
             return this.safeOutcome(tokenId, market);
         }
@@ -3646,17 +3646,17 @@ public partial class predictfun : PredictionExchange
     {
         List<object> result = new List<object>() {};
         object cached = this.outcomes;
-        if (isTrue(isTrue((isEqual(marketId, null))) || isTrue((isEqual(cached, null)))))
+        if (((marketId == null)) || ((cached == null)))
         {
             return result;
         }
         List<object> handles = new List<object>(((IDictionary<string,object>)cached).Keys);
-        int handlesLength = getArrayLength(handles);
-        for (int i = 0; isLessThan(i, handlesLength); postFixIncrement(ref i))
+        int handlesLength = handles.Count;
+        for (int i = 0; i < handlesLength; i++)
         {
             object outcomeObj = getValue(cached, getValue(handles, i));
             IDictionary<string, object> info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
-            if (isTrue(isEqual(this.safeString(info, "marketId"), marketId)))
+            if (isEqual(this.safeString(info, "marketId"), marketId))
             {
                 ((IList<object>)result).Add(outcomeObj);
             }
@@ -3719,8 +3719,8 @@ public partial class predictfun : PredictionExchange
         List<object> yesAsks = new List<object>() {};
         List<object> noBids = new List<object>() {};
         List<object> noAsks = new List<object>() {};
-        int bidsLength = getArrayLength(rawBids);
-        for (int i = 0; isLessThan(i, bidsLength); postFixIncrement(ref i))
+        int bidsLength = (rawBids?.Count ?? 0);
+        for (int i = 0; i < bidsLength; i++)
         {
             object bid = getValue(rawBids, i);
             string? bidPrice = this.safeString(bid, 0);
@@ -3729,8 +3729,8 @@ public partial class predictfun : PredictionExchange
             // a bid for yes at p is an offer of no at 1 - p
             ((IList<object>)noAsks).Add(new List<object> {this.parseNumber(Precise.stringSub("1", bidPrice)), bidSize});
         }
-        int asksLength = getArrayLength(rawAsks);
-        for (int i = 0; isLessThan(i, asksLength); postFixIncrement(ref i))
+        int asksLength = (rawAsks?.Count ?? 0);
+        for (int i = 0; i < asksLength; i++)
         {
             object ask = getValue(rawAsks, i);
             string? askPrice = this.safeString(ask, 0);
@@ -3740,22 +3740,22 @@ public partial class predictfun : PredictionExchange
         }
         object outcomes = this.outcomesByMarketId(marketId);
         int outcomesLength = getArrayLength(outcomes);
-        for (int i = 0; isLessThan(i, outcomesLength); postFixIncrement(ref i))
+        for (int i = 0; i < outcomesLength; i++)
         {
             object outcomeObj = getValue(outcomes, i);
             IDictionary<string, object> outcomeInfo = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
-            bool isYesOutcome = isEqual(this.safeInteger(outcomeInfo, "indexSet"), 1);
+            bool isYesOutcome = (this.safeInteger(outcomeInfo, "indexSet") == 1);
             string? outcomeHandle = this.safeString(outcomeObj, "outcome");
-            if (isTrue(!isEqual(outcomeHandle, null)))
+            if ((outcomeHandle != null))
             {
-                if (!isTrue((inOp(this.orderbooks, outcomeHandle))))
+                if (!(((IDictionary<string, object>)this.orderbooks).ContainsKey(outcomeHandle)))
                 {
                     ((IDictionary<string,object>)this.orderbooks)[(string)outcomeHandle] = this.orderBook(new Dictionary<string, object>() {});
                 }
                 ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, outcomeHandle);
                 List<object> bids = yesBids;
                 List<object> asks = yesAsks;
-                if (!isTrue(isYesOutcome))
+                if (!isYesOutcome)
                 {
                     bids = this.sortBy(noBids, 0, true);
                     asks = this.sortBy(noAsks, 0);
@@ -3770,7 +3770,7 @@ public partial class predictfun : PredictionExchange
                     { "market", this.safeString(outcomeObj, "market") },
                     { "nonce", this.safeInteger(data, "version") },
                 });
-                callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, add("orderbook::", outcomeHandle)});
+                (client as WebSocketClient).resolve(orderbook, ("orderbook::" + outcomeHandle));
             }
         }
     }
@@ -3827,12 +3827,12 @@ public partial class predictfun : PredictionExchange
         // orderCancelled - the latter arrives with the same envelope and no fill
         //
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
-        object order = this.parseWalletEventOrder(data);
+        IDictionary<string, object> order = ((IDictionary<string, object>)this.parseWalletEventOrder(data));
         this.handleWalletEventOrder(client as WebSocketClient, order);
         // only a confirmed on-chain settlement is a trade: a submitted transaction has not landed
         // yet and a failed one never did, so neither belongs in myTrades
         string? eventType = this.safeString(data, "type");
-        if (isTrue(isEqual(eventType, "orderTransactionSuccess")))
+        if ((eventType == "orderTransactionSuccess"))
         {
             this.handleWalletEventTrade(client as WebSocketClient, data, order);
         }
@@ -3848,18 +3848,18 @@ public partial class predictfun : PredictionExchange
      */
     public virtual void handleWalletEventOrder(WebSocketClient client, object order)
     {
-        if (isTrue(isEqual(this.orders, null)))
+        if ((this.orders == null))
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCacheByOutcomeById(limit);
         }
         object stored = this.orders;
         callDynamically(stored, "append", new object[] {order});
-        callDynamically(client as WebSocketClient, "resolve", new object[] {stored, "orders"});
+        (client as WebSocketClient).resolve(stored, "orders");
         string? outcomeHandle = this.safeString(order, "outcome");
-        if (isTrue(!isEqual(outcomeHandle, null)))
+        if ((outcomeHandle != null))
         {
-            callDynamically(client as WebSocketClient, "resolve", new object[] {stored, add("orders::", outcomeHandle)});
+            (client as WebSocketClient).resolve(stored, ("orders::" + outcomeHandle));
         }
     }
 
@@ -3874,19 +3874,19 @@ public partial class predictfun : PredictionExchange
      */
     public virtual void handleWalletEventTrade(WebSocketClient client, object eventVar, object order)
     {
-        object trade = this.parseWalletEventTrade(eventVar, order);
-        if (isTrue(isEqual(this.myTrades, null)))
+        IDictionary<string, object> trade = ((IDictionary<string, object>)this.parseWalletEventTrade(eventVar, order));
+        if ((this.myTrades == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCacheByOutcomeById(limit);
         }
         object stored = this.myTrades;
         callDynamically(stored, "append", new object[] {trade});
-        callDynamically(client as WebSocketClient, "resolve", new object[] {stored, "myTrades"});
+        (client as WebSocketClient).resolve(stored, "myTrades");
         string? outcomeHandle = this.safeString(trade, "outcome");
-        if (isTrue(!isEqual(outcomeHandle, null)))
+        if ((outcomeHandle != null))
         {
-            callDynamically(client as WebSocketClient, "resolve", new object[] {stored, add("myTrades::", outcomeHandle)});
+            (client as WebSocketClient).resolve(stored, ("myTrades::" + outcomeHandle));
         }
     }
 
@@ -3904,11 +3904,11 @@ public partial class predictfun : PredictionExchange
         Int64? outcomeIndex = this.safeInteger(details, "outcomeIndex");
         object outcomes = this.outcomesByMarketId(marketId);
         int outcomesLength = getArrayLength(outcomes);
-        for (int i = 0; isLessThan(i, outcomesLength); postFixIncrement(ref i))
+        for (int i = 0; i < outcomesLength; i++)
         {
             object candidate = getValue(outcomes, i);
             IDictionary<string, object> info = this.safeDict(candidate, "info", new Dictionary<string, object>() {});
-            if (isTrue(isEqual(this.safeInteger(info, "indexSet"), outcomeIndex)))
+            if ((this.safeInteger(info, "indexSet") == outcomeIndex))
             {
                 return candidate;
             }
@@ -3922,7 +3922,7 @@ public partial class predictfun : PredictionExchange
         // undefined rather than guessed - a handle that does not match the one the rest of the api
         // reports is worse than none at all
         string? topicSlug = this.safeString(details, "categorySlug");
-        string? eventHandle = ((bool) isTrue((!isEqual(topicSlug, null)))) ? this.shortenSlug(topicSlug) : null;
+        string? eventHandle = ((topicSlug != null)) ? this.shortenSlug(topicSlug) : null;
         object label = this.stripPriceFormatting(this.safeStringUpper(details, "outcomeName"));
         return new Dictionary<string, object>() {
             { "outcome", null },
@@ -3983,40 +3983,40 @@ public partial class predictfun : PredictionExchange
         string? filled = this.safeString(details, "quantityFilled");
         // every variant names a state of one order, so the event type is the status
         string? status = null;
-        if (isTrue(isTrue(isTrue(isTrue((isEqual(eventType, "orderAccepted"))) || isTrue((isEqual(eventType, "orderMarketMatchPlan")))) || isTrue((isEqual(eventType, "orderTransactionSubmitted")))) || isTrue((isEqual(eventType, "orderTransactionFailed")))))
+        if (((eventType == "orderAccepted")) || ((eventType == "orderMarketMatchPlan")) || ((eventType == "orderTransactionSubmitted")) || ((eventType == "orderTransactionFailed")))
         {
             // orderMarketMatchPlan is not in the documented union but the venue does send it: the
             // order is accepted and being matched, which is the same state the caller sees as open
             status = "open";
-        } else if (isTrue(isEqual(eventType, "orderNotAccepted")))
+        } else if ((eventType == "orderNotAccepted"))
         {
             status = "rejected";
-        } else if (isTrue(isEqual(eventType, "orderExpired")))
+        } else if ((eventType == "orderExpired"))
         {
             status = "expired";
-        } else if (isTrue(isEqual(eventType, "orderCancelled")))
+        } else if ((eventType == "orderCancelled"))
         {
             status = "canceled";
-        } else if (isTrue(isEqual(eventType, "orderTransactionSuccess")))
+        } else if ((eventType == "orderTransactionSuccess"))
         {
             // a settled fill closes the order only once nothing is left of it
             status = "open";
-            if (isTrue(isTrue(isTrue((!isEqual(amount, null))) && isTrue((!isEqual(filled, null)))) && !isTrue(Precise.stringLt(filled, amount))))
+            if (((amount != null)) && ((filled != null)) && !Precise.stringLt(filled, amount))
             {
                 status = "closed";
             }
         }
         string? quoteType = this.safeStringLower(details, "quoteType");
         string? side = null;
-        if (isTrue(isEqual(quoteType, "bid")))
+        if ((quoteType == "bid"))
         {
             side = "buy";
-        } else if (isTrue(isEqual(quoteType, "ask")))
+        } else if ((quoteType == "ask"))
         {
             side = "sell";
         }
         string? remaining = null;
-        if (isTrue(isTrue((!isEqual(amount, null))) && isTrue((!isEqual(filled, null)))))
+        if (((amount != null)) && ((filled != null)))
         {
             remaining = Precise.stringSub(amount, filled);
         }
@@ -4070,17 +4070,17 @@ public partial class predictfun : PredictionExchange
         string? cost = Precise.stringDiv(this.safeString(fill, "executedValueWei"), "1000000000000000000");
         bool? isMaker = this.safeBool(eventVar, "isMaker");
         string? takerOrMaker = null;
-        if (isTrue(!isEqual(isMaker, null)))
+        if (!isEqual(isMaker, null))
         {
-            takerOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
+            takerOrMaker = isMaker == true ? "maker" : "taker";
         }
         IDictionary<string, object> rawFee = this.safeDict(eventVar, "fee");
         Dictionary<string, object> fee = null;
-        if (isTrue(!isEqual(rawFee, null)))
+        if ((rawFee != null))
         {
             string? feeType = this.safeString(rawFee, "type");
             fee = new Dictionary<string, object>() {
-                { "currency", ((bool) isTrue((isEqual(feeType, "COLLATERAL")))) ? "USDT" : null },
+                { "currency", ((feeType == "COLLATERAL")) ? "USDT" : null },
                 { "cost", this.parseNumber(Precise.stringDiv(this.safeString(rawFee, "amountWei"), "1000000000000000000")) },
             };
         }
@@ -4128,7 +4128,7 @@ public partial class predictfun : PredictionExchange
      * @param {Client} client the websocket client
      * @param {object} message the raw probe
      */
-    public async virtual Task pong(WebSocketClient client, object message)
+    public async virtual Task pong(WebSocketClient client, Dictionary<string, object> message)
     {
         // the server probes every fifteen seconds and drops the connection on the next probe unless
         // the exact timestamp it sent comes back, so the reply echoes it verbatim
@@ -4141,7 +4141,7 @@ public partial class predictfun : PredictionExchange
             await client.send(reply);
         } catch(Exception e)
         {
-            var error = new NetworkError(add(add(this.id, " pong failed - "), this.exceptionMessage(e)));
+            var error = new NetworkError(((this.id + " pong failed - ") + (this.exceptionMessage(e))));
             ((WebSocketClient)client).reset(error);
         }
     }
@@ -4157,7 +4157,7 @@ public partial class predictfun : PredictionExchange
     public override void handleMessage(WebSocketClient client, object message)
     {
         string? messageType = this.safeString(message, "type");
-        if (isTrue(isEqual(messageType, "R")))
+        if ((messageType == "R"))
         {
             // a subscription reply - the venue reports a rejected topic here instead of closing.
             // it carries only the request id, so the subscription that request registered is found
@@ -4166,33 +4166,33 @@ public partial class predictfun : PredictionExchange
             Dictionary<string, object> subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
             IDictionary<string, object> subscription = this.safeDict(subscriptionsById, id, new Dictionary<string, object>() {});
             bool? success = this.safeBool(message, "success", false);
-            if (!isTrue(success))
+            if (success != true)
             {
                 this.handleSubscriptionError(client as WebSocketClient, message, subscription);
                 return;
             }
-            if (isTrue(this.safeBool(subscription, "unsubscribe", false)))
+            if ((this.safeBool(subscription, "unsubscribe", false) == true))
             {
                 this.handleUnSubscription(client as WebSocketClient, subscription);
             }
             return;
         }
         string? topic = this.safeString(message, "topic");
-        if (isTrue(isEqual(topic, "heartbeat")))
+        if ((topic == "heartbeat"))
         {
             this.handleHeartbeat(client as WebSocketClient, message);
             return;
         }
-        if (isTrue(isEqual(topic, null)))
+        if ((topic == null))
         {
             return;
         }
-        List<object> parts = ((string)topic).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = topic.Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
         string? channel = this.safeString(parts, 0);
-        if (isTrue(isEqual(channel, "predictOrderbook")))
+        if ((channel == "predictOrderbook"))
         {
             this.handleOrderBook(client as WebSocketClient, message);
-        } else if (isTrue(isEqual(channel, "predictWalletEvents")))
+        } else if ((channel == "predictWalletEvents"))
         {
             this.handleWalletEvent(client as WebSocketClient, message);
         }
@@ -4228,30 +4228,30 @@ public partial class predictfun : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         bool? sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         object apiKey = this.apiKey;
-        if (isTrue(isTrue((isEqual(apiKey, null))) && !isTrue(sandboxMode)))
+        if (((apiKey == null)) && sandboxMode != true)
         {
-            throw new AuthenticationError ((string)add(this.id, " sign() requires the \"apiKey\" credential for all endpoints")) ;
+            throw new AuthenticationError ((string)(this.id + " sign() requires the \"apiKey\" credential for all endpoints")) ;
         }
-        object apiGroup = ((bool) isTrue((api is string))) ? api : getValue(api, 0);
-        object baseUrls = getValue(this.urls, "api");
+        object apiGroup = (api is string) ? api : getValue(api, 0);
+        object baseUrls = (this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null);
         object baseUrl = this.safeString(baseUrls, apiGroup, ((string)getValue(baseUrls, "predictfun")));
         object url = add(add(baseUrl, "/"), this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
-        if (isTrue(isEqual(method, "GET")))
+        if (isEqual(method, "GET"))
         {
-            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
+            if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
-                url = add(url, add("?", this.urlencode(query)));
+                url = add(url, ("?" + this.urlencode(query)));
             }
         }
-        object existingHeaders = ((bool) isTrue((!isEqual(headers, null)))) ? headers : new Dictionary<string, object>() {};
+        object existingHeaders = ((headers != null)) ? headers : new Dictionary<string, object>() {};
         headers = existingHeaders;
         Dictionary<string, object> authHeaders = new Dictionary<string, object>() {};
-        if (isTrue(isTrue((!isEqual(apiKey, null))) && isTrue((!isTrue(sandboxMode)))))
+        if (((apiKey != null)) && (sandboxMode != true))
         {
             // the php transpiler prefixes every standalone 'api' with a $, string literals included,
             // since sign () has a parameter of that name - ending the literal right after it avoids that
-            string apiKeyHeader = add("x-api", "-key");
+            string apiKeyHeader = ("x-api" + "-key");
             ((IDictionary<string,object>)authHeaders)[(string)apiKeyHeader] = apiKey;
         }
         // the API key authorises the request, the JWT authorises acting for a wallet - authenticate ()
@@ -4264,13 +4264,13 @@ public partial class predictfun : PredictionExchange
         string? jwtToken = this.safeString(this.options, "jwtToken");
         // unlike the API key, the JWT IS required on the testnet - wallet endpoints there answer
         // 401 without it, so it is attached on both hosts
-        if (isTrue(isTrue((!isEqual(jwtToken, null))) && isTrue(this.inArray(path, walletPaths))))
+        if (((jwtToken != null)) && this.inArray(path, walletPaths))
         {
-            ((IDictionary<string,object>)authHeaders)["Authorization"] = add("Bearer ", jwtToken);
+            ((IDictionary<string,object>)authHeaders)["Authorization"] = ("Bearer " + jwtToken);
         }
-        if (isTrue(!isEqual(method, "GET")))
+        if (!isEqual(method, "GET"))
         {
-            if (!isTrue(sandboxMode))
+            if (sandboxMode != true)
             {
                 this.checkRequiredCredentials();
             }
