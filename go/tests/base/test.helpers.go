@@ -341,6 +341,10 @@ func GetLength(v interface{}) int {
 	return ccxt.GetLength(v)
 }
 
+func GetPrecisionMode(v any) int {
+	return v.(ccxt.Exchange).PrecisionMode
+}
+
 func GetArg(v []interface{}, index int, def interface{}) interface{} {
 	return ccxt.GetArg(v, index, def)
 }
