@@ -565,21 +565,44 @@ import { fileURLToPath } from 'node:url';
 // Produced by build/analyzeNumericCoreArgs.py. Reflective dispatch is safe because
 // BaseExchange.coerceArgs converts every boxed arg to the parameter type before Invoke.
 export const CORE_NUMERIC_ARGS = {
+    'addMargin': { 1: 'double' },
+    'borrowCrossMargin': { 1: 'double' },
+    'borrowIsolatedMargin': { 2: 'double' },
     'createAmmOrder': { 3: 'double', 4: 'double?' },
     'createContractOrder': { 4: 'double?' },
     'createConvertTrade': { 3: 'double?' },
     'createExtendedOrderRequest': { 3: 'double', 4: 'double?' },
+    'createLimitBuyOrderWs': { 1: 'double', 2: 'double' },
+    'createLimitOrderWs': { 2: 'double', 3: 'double' },
+    'createLimitSellOrderWs': { 1: 'double', 2: 'double' },
     'createMarketBuyOrderWithCost': { 1: 'double' },
+    'createMarketBuyOrderWs': { 1: 'double' },
     'createMarketOrderWithCost': { 2: 'double' },
+    'createMarketOrderWs': { 2: 'double', 3: 'double?' },
     'createMarketSellOrderWithCost': { 1: 'double' },
+    'createMarketSellOrderWs': { 1: 'double' },
     'createOrder': { 3: 'double', 4: 'double?' },
+    'createOrderWithTakeProfitAndStopLossWs': { 3: 'double', 4: 'double?' },
+    'createOrderWs': { 3: 'double', 4: 'double?' },
     'createOrderbookOrder': { 3: 'double', 4: 'double?' },
+    'createPostOnlyOrderWs': { 3: 'double', 4: 'double?' },
+    'createReduceOnlyOrderWs': { 3: 'double', 4: 'double?' },
+    'createStopLimitOrderWs': { 2: 'double', 3: 'double' },
+    'createStopLossOrderWs': { 3: 'double', 4: 'double?' },
+    'createStopMarketOrderWs': { 2: 'double' },
+    'createStopOrderWs': { 3: 'double', 4: 'double?' },
+    'createTakeProfitOrderWs': { 3: 'double', 4: 'double?' },
     'createTrailingAmountOrder': { 3: 'double', 4: 'double?' },
+    'createTrailingAmountOrderWs': { 3: 'double', 4: 'double?' },
     'createTrailingPercentOrder': { 3: 'double', 4: 'double?' },
+    'createTrailingPercentOrderWs': { 3: 'double', 4: 'double?' },
+    'createTriggerOrderWs': { 3: 'double', 4: 'double?' },
     'createTwapOrder': { 2: 'double' },
     'createUtaOrder': { 3: 'double', 4: 'double?' },
+    'deposit': { 1: 'double' },
     'editContractOrder': { 4: 'double', 5: 'double?' },
     'editOrder': { 4: 'double?', 5: 'double?' },
+    'editOrderWs': { 4: 'double?', 5: 'double?' },
     'editSpotOrder': { 4: 'double', 5: 'double?' },
     'fetchAmmOrders': { 1: 'Int64?', 2: 'Int64?' },
     'fetchBorrowInterest': { 2: 'Int64?', 3: 'Int64?' },
@@ -657,26 +680,27 @@ export const CORE_NUMERIC_ARGS = {
     'fetchUtaCanceledAndClosedOrders': { 1: 'Int64?', 2: 'Int64?' },
     'fetchUtaOrdersByStatus': { 2: 'Int64?', 3: 'Int64?' },
     'fetchWithdrawals': { 1: 'Int64?', 2: 'Int64?' },
-    // cs-5: TS `amount: number` (required) -> double; the four call sites (bingx/lighter
-    // addMargin/reduceMargin) get the ToDoubleArgRequired wrap.
+    'reduceMargin': { 1: 'double' },
+    'repayCrossMargin': { 1: 'double' },
+    'repayIsolatedMargin': { 2: 'double' },
+    'repayMargin': { 1: 'double' },
     'setMargin': { 1: 'double' },
     'transfer': { 1: 'double' },
-    'watchMyTrades': { 1: 'Int64?', 2: 'Int64?' },
-    // additional watch* numeric args, same evidence gate as above (build/tmp_watch_args.py)
     'watchLiquidations': { 1: 'Int64?', 2: 'Int64?' },
     'watchLiquidationsForSymbols': { 1: 'Int64?', 2: 'Int64?' },
     'watchMyLiquidations': { 1: 'Int64?', 2: 'Int64?' },
     'watchMyLiquidationsForSymbols': { 1: 'Int64?', 2: 'Int64?' },
+    'watchMyTrades': { 1: 'Int64?', 2: 'Int64?' },
     'watchMyTradesForSymbols': { 1: 'Int64?', 2: 'Int64?' },
-    'watchOrderBookForSymbols': { 1: 'Int64?' },
-    'watchOrdersForSymbols': { 1: 'Int64?', 2: 'Int64?' },
-    'watchPositionForSymbols': { 1: 'Int64?', 2: 'Int64?' },
-    'watchTradesForSymbols': { 1: 'Int64?', 2: 'Int64?' },
     'watchOHLCV': { 2: 'Int64?', 3: 'Int64?' },
     'watchOrderBook': { 1: 'Int64?' },
+    'watchOrderBookForSymbols': { 1: 'Int64?' },
     'watchOrders': { 1: 'Int64?', 2: 'Int64?' },
+    'watchOrdersForSymbols': { 1: 'Int64?', 2: 'Int64?' },
+    'watchPositionForSymbols': { 1: 'Int64?', 2: 'Int64?' },
     'watchPositions': { 1: 'Int64?', 2: 'Int64?' },
     'watchTrades': { 1: 'Int64?', 2: 'Int64?' },
+    'watchTradesForSymbols': { 1: 'Int64?', 2: 'Int64?' },
     'withdraw': { 1: 'double' },
 };
 
@@ -767,6 +791,7 @@ export const CORE_STRING_ARGS = {
     'fetchBorrowInterest': [ 0 ],
     'fetchBorrowRate': [ 0 ],
     'fetchBorrowRateHistory': [ 0 ],
+    'fetchCanceledAndClosedOrders': [ 0 ],
     'fetchCanceledOrders': [ 0 ],
     'fetchClosedOrder': [ 0, 1 ],
     'fetchClosedOrders': [ 0 ],
@@ -799,11 +824,6 @@ export const CORE_STRING_ARGS = {
     'fetchGreeks': [ 0 ],
     'fetchIndexOHLCV': [ 0, 1 ],
     'fetchIsolatedBorrowRate': [ 0 ],
-    // cs-5: first-parameter symbol/id positions admitted by build/analyzeCoreArgs.py on the
-    // current tree (the table predates these methods). Every call site already passes a
-    // string-typed arg (blockchaincom fetchOrderBook -> fetchL3OrderBook, weex fetchPosition
-    // -> fetchPositionsForSymbol) or receives the standard ((string)…) wrap (bingx/lighter
-    // addMargin/reduceMargin -> setMargin).
     'fetchL2OrderBook': [ 0 ],
     'fetchL3OrderBook': [ 0 ],
     'fetchLedger': [ 0 ],
@@ -846,6 +866,7 @@ export const CORE_STRING_ARGS = {
     'fetchOrderWs': [ 0, 1 ],
     'fetchOrders': [ 0 ],
     'fetchOrdersByIds': [ 1 ],
+    'fetchOrdersByState': [ 1 ],
     'fetchOrdersByStatusWs': [ 0, 1 ],
     'fetchOrdersWs': [ 0 ],
     'fetchPaginatedCallDeterministic': [ 4 ],
@@ -902,7 +923,7 @@ export const CORE_STRING_ARGS = {
     'repayIsolatedMargin': [ 1 ],
     'repayMargin': [ 0 ],
     'requestWalletHistoryRows': [ 2 ],
-    'safeDeterministicCall': [ 4 ],
+    'safeDeterministicCall': [ 1, 4 ],
     'setLeverage': [ 1 ],
     'setMargin': [ 0 ],
     'setMarginMode': [ 0, 1 ],
@@ -916,10 +937,6 @@ export const CORE_STRING_ARGS = {
     'transferUta': [ 0, 2, 3 ],
     'unWatchOHLCV': [ 1 ],
     'updateSpotCurrencyCode': [ 0 ],
-    // watch* string args, gated by build/tmp_watch_args.py: admitted only when every
-    // generated wrapper declaration agrees on `string` at that position and every core
-    // declaration agrees on arity. The venue-internal helpers (watchPublic, watchTopics,
-    // watchMultiHelper, ...) disagree across venues and are absent.
     'watchFundingRate': [ 0 ],
     'watchLiquidations': [ 0 ],
     'watchMarkPrice': [ 0 ],
@@ -932,10 +949,8 @@ export const CORE_STRING_ARGS = {
     'watchTicker': [ 0 ],
     'watchTrades': [ 0 ],
     'withdraw': [ 0, 2, 3 ],
-    'withdrawRequest': [ 0 ],
+    'withdrawRequest': [ 0, 3 ],
     'withdrawWs': [ 0, 2, 3 ],
-    // fetchRestOrderBookSafe omitted: TS declares `symbol: any`, so the wrapper and the
-    // hand-written WsBridge caller both pass `object` and cannot be narrowed here
 };
 
 // ===== string-returning method signatures =====
