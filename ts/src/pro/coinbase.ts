@@ -937,28 +937,48 @@ export default class coinbase extends coinbaseRest {
             const event = events[i];
             const updates = this.safeList (event, 'updates', []);
             const marketId = this.safeString (event, 'product_id');
-            // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, as they are aliases
-            const market = this.safeMarket (marketId);
-            const symbol = market['symbol'];
-            const messageHash = 'level2::' + symbol;
-            const subscription = this.safeValue (client.subscriptions, messageHash, {});
-            const limit = this.safeInteger (subscription, 'limit');
             const type = this.safeString (event, 'type');
-            if (type === 'snapshot') {
-                this.orderbooks[symbol] = this.orderBook ({}, limit);
+            const symbols = this.orderBookSubscribedSymbols (client, marketId);
+            for (let j = 0; j < symbols.length; j++) {
+                const symbol = symbols[j];
+                const messageHash = 'level2::' + symbol;
+                const subscription = this.safeValue (client.subscriptions, messageHash, {});
+                const limit = this.safeInteger (subscription, 'limit');
+                if (type === 'snapshot') {
+                    this.orderbooks[symbol] = this.orderBook ({}, limit);
+                }
+                // unknown bug, can't reproduce, but sometimes orderbook is undefined
+                if (!(symbol in this.orderbooks) && this.orderbooks[symbol] === undefined) {
+                    continue;
+                }
+                const orderbook = this.orderbooks[symbol];
+                this.handleOrderBookHelper (orderbook, updates);
+                orderbook['timestamp'] = this.parse8601 (datetime);
+                orderbook['datetime'] = datetime;
+                orderbook['symbol'] = symbol;
+                client.resolve (orderbook, messageHash);
             }
-            // unknown bug, can't reproduce, but sometimes orderbook is undefined
-            if (!(symbol in this.orderbooks) && this.orderbooks[symbol] === undefined) {
-                continue;
-            }
-            const orderbook = this.orderbooks[symbol];
-            this.handleOrderBookHelper (orderbook, updates);
-            orderbook['timestamp'] = this.parse8601 (datetime);
-            orderbook['datetime'] = datetime;
-            orderbook['symbol'] = symbol;
-            client.resolve (orderbook, messageHash);
-            this.tryResolveUsdc (client, messageHash, orderbook);
         }
+    }
+
+    orderBookSubscribedSymbols (client: Client, marketId: Str): string[] {
+        // coinbase aliases USDC to USD on the ws (a BTC-USDC subscription receives BTC-USD
+        // events), so collect every requested symbol this market id has to update and keep
+        // a separate order book per requested symbol
+        const symbols: string[] = [];
+        const symbol = this.safeSymbol (marketId);
+        const messageHash = 'level2::' + symbol;
+        if (messageHash in client.subscriptions) {
+            symbols.push (symbol);
+        }
+        if ((marketId !== undefined) && marketId.endsWith ('-USD')) {
+            const usdcSymbol = this.safeSymbol (marketId + 'C');
+            const usdcMessageHash = 'level2::' + usdcSymbol;
+            if (usdcMessageHash in client.subscriptions) {
+                symbols.push (usdcSymbol);
+            }
+        }
+        return symbols;
     }
 
     tryResolveUsdc (client: Client, messageHash: string, result: any) {
