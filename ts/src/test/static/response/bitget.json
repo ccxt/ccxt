@@ -119,6 +119,82 @@
                         "cost": 1.5
                     }
                 }
+            },
+            {
+                "description": "classic fetchWithdrawal selects the row by id from the v2 spot payload",
+                "method": "fetchWithdrawal",
+                "input": [
+                    "1083832260799930369",
+                    null,
+                    {
+                        "uta": false
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": 1700528340608,
+                    "data": [
+                        {
+                            "orderId": "1083832260799930369",
+                            "tradeId": "8a42b25c71a9d45abe7308cabdeec6b7b423910b9bd4743d3a9a9efa35bf0e58",
+                            "clientOid": "123",
+                            "coin": "BTC",
+                            "type": "withdraw",
+                            "size": "0.00030000",
+                            "fee": "-0.00005000",
+                            "status": "success",
+                            "toAddress": "1BfZh7JESJGBUszCGeZnzxbVVvBycbJSbA",
+                            "dest": "on_chain",
+                            "chain": "BTC",
+                            "confirm": "100",
+                            "fromAddress": null,
+                            "cTime": "1694131668281",
+                            "uTime": "1694131680247"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "id": "1083832260799930369",
+                    "info": {
+                        "orderId": "1083832260799930369",
+                        "tradeId": "8a42b25c71a9d45abe7308cabdeec6b7b423910b9bd4743d3a9a9efa35bf0e58",
+                        "clientOid": "123",
+                        "coin": "BTC",
+                        "type": "withdraw",
+                        "size": "0.00030000",
+                        "fee": "-0.00005000",
+                        "status": "success",
+                        "toAddress": "1BfZh7JESJGBUszCGeZnzxbVVvBycbJSbA",
+                        "dest": "on_chain",
+                        "chain": "BTC",
+                        "confirm": "100",
+                        "fromAddress": null,
+                        "cTime": "1694131668281",
+                        "uTime": "1694131680247"
+                    },
+                    "txid": "8a42b25c71a9d45abe7308cabdeec6b7b423910b9bd4743d3a9a9efa35bf0e58",
+                    "timestamp": 1694131668281,
+                    "datetime": "2023-09-08T00:07:48.281Z",
+                    "network": "BTC",
+                    "addressFrom": null,
+                    "address": "1BfZh7JESJGBUszCGeZnzxbVVvBycbJSbA",
+                    "addressTo": "1BfZh7JESJGBUszCGeZnzxbVVvBycbJSbA",
+                    "amount": 0.00025,
+                    "type": "withdrawal",
+                    "currency": "BTC",
+                    "status": "ok",
+                    "updated": 1694131680247,
+                    "tagFrom": null,
+                    "tag": null,
+                    "tagTo": null,
+                    "comment": null,
+                    "internal": null,
+                    "fee": {
+                        "currency": "BTC",
+                        "cost": 0.00005
+                    }
+                }
             }
         ],
         "fetchDeposit": [
@@ -222,6 +298,73 @@
                     "currency": "USDT",
                     "status": "ok",
                     "updated": 1787913880178,
+                    "tagFrom": null,
+                    "tag": null,
+                    "tagTo": null,
+                    "comment": null,
+                    "internal": null,
+                    "fee": null
+                }
+            },
+            {
+                "description": "classic fetchDeposit selects the row by id from the v2 spot payload",
+                "method": "fetchDeposit",
+                "input": [
+                    "1083832260799930368",
+                    null,
+                    {
+                        "uta": false
+                    }
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": 1700528340608,
+                    "data": [
+                        {
+                            "orderId": "1083832260799930368",
+                            "tradeId": "35bf0e588a42b25c71a9d45abe7308cabdeec6b7b423910b9bd4743d3a9a9efa",
+                            "coin": "BTC",
+                            "type": "deposit",
+                            "size": "0.00030000",
+                            "status": "success",
+                            "toAddress": "1BfZh7JESJGBUszCGeZnzxbVVvBycbJSbA",
+                            "dest": "on_chain",
+                            "chain": "BTC",
+                            "fromAddress": null,
+                            "cTime": "1694131668281",
+                            "uTime": "1694131680247"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "id": "1083832260799930368",
+                    "info": {
+                        "orderId": "1083832260799930368",
+                        "tradeId": "35bf0e588a42b25c71a9d45abe7308cabdeec6b7b423910b9bd4743d3a9a9efa",
+                        "coin": "BTC",
+                        "type": "deposit",
+                        "size": "0.00030000",
+                        "status": "success",
+                        "toAddress": "1BfZh7JESJGBUszCGeZnzxbVVvBycbJSbA",
+                        "dest": "on_chain",
+                        "chain": "BTC",
+                        "fromAddress": null,
+                        "cTime": "1694131668281",
+                        "uTime": "1694131680247"
+                    },
+                    "txid": "35bf0e588a42b25c71a9d45abe7308cabdeec6b7b423910b9bd4743d3a9a9efa",
+                    "timestamp": 1694131668281,
+                    "datetime": "2023-09-08T00:07:48.281Z",
+                    "network": "BTC",
+                    "addressFrom": null,
+                    "address": "1BfZh7JESJGBUszCGeZnzxbVVvBycbJSbA",
+                    "addressTo": "1BfZh7JESJGBUszCGeZnzxbVVvBycbJSbA",
+                    "amount": 0.0003,
+                    "type": "deposit",
+                    "currency": "BTC",
+                    "status": "ok",
+                    "updated": 1694131680247,
                     "tagFrom": null,
                     "tag": null,
                     "tagTo": null,

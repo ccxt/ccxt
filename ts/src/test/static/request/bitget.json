@@ -46,6 +46,32 @@
                     }
                 ],
                 "output": null
+            },
+            {
+                "description": "classic fetchWithdrawal by id routes to the v2 spot endpoint and sends limit next to orderId",
+                "method": "fetchWithdrawal",
+                "url": "https://api.bitget.com/api/v2/spot/wallet/withdrawal-records?endTime=1789985404093&limit=100&orderId=1083832260799930369&startTime=1782209404093",
+                "input": [
+                    "1083832260799930369",
+                    null,
+                    {
+                        "uta": false
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "classic fetchWithdrawal by id with a currency code",
+                "method": "fetchWithdrawal",
+                "url": "https://api.bitget.com/api/v2/spot/wallet/withdrawal-records?coin=BTC&endTime=1789985404093&limit=100&orderId=1083832260799930369&startTime=1782209404093",
+                "input": [
+                    "1083832260799930369",
+                    "BTC",
+                    {
+                        "uta": false
+                    }
+                ],
+                "output": null
             }
         ],
         "fetchDeposit": [
@@ -84,6 +110,32 @@
                     null,
                     {
                         "uta": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "classic fetchDeposit by id routes to the v2 spot endpoint and sends limit next to orderId",
+                "method": "fetchDeposit",
+                "url": "https://api.bitget.com/api/v2/spot/wallet/deposit-records?endTime=1789985404091&limit=100&orderId=1083832260799930368&startTime=1782209404091",
+                "input": [
+                    "1083832260799930368",
+                    null,
+                    {
+                        "uta": false
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "classic fetchDeposit by id with a currency code",
+                "method": "fetchDeposit",
+                "url": "https://api.bitget.com/api/v2/spot/wallet/deposit-records?coin=BTC&endTime=1789985404092&limit=100&orderId=1083832260799930368&startTime=1782209404092",
+                "input": [
+                    "1083832260799930368",
+                    "BTC",
+                    {
+                        "uta": false
                     }
                 ],
                 "output": null
