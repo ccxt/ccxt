@@ -81,6 +81,11 @@ public:
         return this->callEndpoint (std::string ("privateGetUserPriceAlerts"), parameters);
     }
 
+    // Calls the privateGetUserWithdrawals endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> privateGetUserWithdrawals (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetUserWithdrawals"), parameters);
+    }
+
     // Calls the privateGetMerchantGetPaymentUuid endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privateGetMerchantGetPaymentUuid (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateGetMerchantGetPaymentUuid"), parameters);

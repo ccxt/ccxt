@@ -290,6 +290,72 @@ void testTicker(ccxt::any exchange, ccxt::any skippedProperties,
                      logText));
     }
   }
+  //
+  // change & percentage
+  //
+  // the Manual defines both against open: change is `last - open`, and
+  // percentage is `(change/open) * 100`
+  ccxt::any changeString =
+      callDynamically(exchange, std::string("safeString"),
+                      ccxt::list{entry, std::string("change")});
+  ccxt::any percentageString =
+      callDynamically(exchange, std::string("safeString"),
+                      ccxt::list{entry, std::string("percentage")});
+  if (isTrue(
+          isTrue(isTrue(isTrue((!isEqual(changeString, ccxt::any{}))) &&
+                        isTrue((!isEqual(open, ccxt::any{})))) &&
+                 isTrue((!isEqual(close, ccxt::any{})))) &&
+          !isTrue((inOp(skippedProperties, std::string("compareChange")))))) {
+    // the window is the larger of two roundings: float residue on a change
+    // safeTicker derived, which needs a part per million of the price, and an
+    // exchange's own rounding, which its reported decimals reveal
+    ccxt::any pricePart = ccxt::Precise::stringDiv(
+        ccxt::Precise::stringAbs(close), std::string("1000000"));
+    ccxt::any changeDecimals = callDynamically(
+        exchange, std::string("precisionFromString"), ccxt::list{changeString});
+    // exponent notation ("1e4") makes `precisionFromString` return a negative
+    // count, which `parsePrecision` would turn into a step of 10000 - a string
+    // like that reveals no rounding at all, so fall back to the price part
+    // instead of letting it widen the window
+    ccxt::any changeWindow = pricePart;
+    if (isTrue(isGreaterThanOrEqual(changeDecimals, 0))) {
+      ccxt::any changeQuantum = callDynamically(
+          exchange, std::string("parsePrecision"),
+          ccxt::list{callDynamically(exchange, std::string("numberToString"),
+                                     ccxt::list{changeDecimals})});
+      // a change of "0" prints no decimals, so its apparent step is a whole
+      // unit and accepts anything on a micro-priced asset. a per cent of the
+      // price caps it, and covers whole units on a price in the tens of
+      // thousands
+      ccxt::any quantumCap = ccxt::Precise::stringDiv(
+          ccxt::Precise::stringAbs(close), std::string("100"));
+      changeQuantum = ccxt::Precise::stringMin(changeQuantum, quantumCap);
+      changeWindow = ccxt::Precise::stringMax(pricePart, changeQuantum);
+    }
+    ccxt::any difference = ccxt::Precise::stringAbs(ccxt::Precise::stringSub(
+        changeString, ccxt::Precise::stringSub(close, open)));
+    assertTrue(ccxt::Precise::stringLe(difference, changeWindow),
+               add(std::string("`change` should be `last - open`"), logText));
+  }
+  if (isTrue(isTrue(isTrue(isTrue((!isEqual(changeString, ccxt::any{}))) &&
+                           isTrue((!isEqual(percentageString, ccxt::any{})))) &&
+                    isTrue((!isEqual(open, ccxt::any{})))) &&
+             !isTrue((
+                 inOp(skippedProperties, std::string("comparePercentage")))))) {
+    ccxt::any derived = ccxt::Precise::stringMul(
+        ccxt::Precise::stringDiv(changeString, open), std::string("100"));
+    // exchanges round the percentage, so allow one part in fifty of the derived
+    // value plus a floor for moves near zero. a ratio where a percentage
+    // belongs is out by a hundred and clears that by three orders of magnitude
+    ccxt::any relative = ccxt::Precise::stringDiv(
+        ccxt::Precise::stringAbs(derived), std::string("50"));
+    ccxt::any allowed = ccxt::Precise::stringMax(relative, std::string("0.01"));
+    ccxt::any gap = ccxt::Precise::stringAbs(
+        ccxt::Precise::stringSub(percentageString, derived));
+    assertTrue(ccxt::Precise::stringLe(gap, allowed),
+               add(std::string("`percentage` should be `(change/open) * 100`"),
+                   logText));
+  }
   // open and close should be between High & Low
   if (isTrue(isTrue(isTrue(!isEqual(high, ccxt::any{})) &&
                     isTrue(!isEqual(low, ccxt::any{}))) &&

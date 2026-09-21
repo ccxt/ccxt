@@ -81,6 +81,16 @@ public:
         return this->callEndpoint (std::string ("publicGetFundingRateHistoryPair"), parameters);
     }
 
+    // Calls the publicGetDerivativesMarketHours endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> publicGetDerivativesMarketHours (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("publicGetDerivativesMarketHours"), parameters);
+    }
+
+    // Calls the publicGetDerivativesMarketHoursMarketSymbol endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> publicGetDerivativesMarketHoursMarketSymbol (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("publicGetDerivativesMarketHoursMarketSymbol"), parameters);
+    }
+
     // Calls the privateGetTravelRuleContacts endpoint. Returns a JSON array.
     virtual std::shared_future<ccxt::any> privateGetTravelRuleContacts (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateGetTravelRuleContacts"), parameters);
@@ -89,6 +99,26 @@ public:
     // Calls the privateGetContactsContactUuid endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privateGetContactsContactUuid (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateGetContactsContactUuid"), parameters);
+    }
+
+    // Calls the privateGetTravelRuleUtxoXpubRegistrations endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> privateGetTravelRuleUtxoXpubRegistrations (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetTravelRuleUtxoXpubRegistrations"), parameters);
+    }
+
+    // Calls the privateGetTravelRuleUtxoXpubRegistrationsRegistrationId endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateGetTravelRuleUtxoXpubRegistrationsRegistrationId (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetTravelRuleUtxoXpubRegistrationsRegistrationId"), parameters);
+    }
+
+    // Calls the privateGetTravelRuleAddressVerification endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateGetTravelRuleAddressVerification (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetTravelRuleAddressVerification"), parameters);
+    }
+
+    // Calls the privateGetCryptoTransactionsDeposits endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> privateGetCryptoTransactionsDeposits (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetCryptoTransactionsDeposits"), parameters);
     }
 
     // Calls the privateGetEarnSubscriptions endpoint. Returns a JSON array.
@@ -154,6 +184,11 @@ public:
     // Calls the privatePostCryptoTransactions endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privatePostCryptoTransactions (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostCryptoTransactions"), parameters);
+    }
+
+    // Calls the privatePostCryptoTransactionsDepositsDepositIdReject endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostCryptoTransactionsDepositsDepositIdReject (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostCryptoTransactionsDepositsDepositIdReject"), parameters);
     }
 
     // Calls the privatePostOpenOrder endpoint. Returns a JSON object.
@@ -309,6 +344,16 @@ public:
     // Calls the privatePostGetMaxOrderAmount endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privatePostGetMaxOrderAmount (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostGetMaxOrderAmount"), parameters);
+    }
+
+    // Calls the privatePostOrderData endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> privatePostOrderData (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostOrderData"), parameters);
+    }
+
+    // Calls the privatePostAccountOrderData endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> privatePostAccountOrderData (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostAccountOrderData"), parameters);
     }
 
     // Calls the privatePostBtcWithdrawal endpoint. Returns a JSON object.
@@ -1124,6 +1169,16 @@ public:
     // Calls the privatePostTravelRuleContacts endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privatePostTravelRuleContacts (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostTravelRuleContacts"), parameters);
+    }
+
+    // Calls the privatePostTravelRuleUtxoXpubRegistrations endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostTravelRuleUtxoXpubRegistrations (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostTravelRuleUtxoXpubRegistrations"), parameters);
+    }
+
+    // Calls the privatePostTravelRuleUtxoXpubRegistrationsRegistrationIdRevoke endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostTravelRuleUtxoXpubRegistrationsRegistrationIdRevoke (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostTravelRuleUtxoXpubRegistrationsRegistrationIdRevoke"), parameters);
     }
 
     // Calls the privatePostEarnSubscribe endpoint. Returns a JSON object.

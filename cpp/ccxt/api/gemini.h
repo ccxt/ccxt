@@ -121,9 +121,104 @@ public:
         return this->callEndpoint (std::string ("publicGetV1RiskstatsSymbol"), parameters);
     }
 
+    // Calls the publicGetV1PredictionMarketsEvents endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> publicGetV1PredictionMarketsEvents (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("publicGetV1PredictionMarketsEvents"), parameters);
+    }
+
+    // Calls the publicGetV1PredictionMarketsEventsEventTicker endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> publicGetV1PredictionMarketsEventsEventTicker (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("publicGetV1PredictionMarketsEventsEventTicker"), parameters);
+    }
+
+    // Calls the publicGetV1PredictionMarketsEventsEventTickerStrike endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> publicGetV1PredictionMarketsEventsEventTickerStrike (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("publicGetV1PredictionMarketsEventsEventTickerStrike"), parameters);
+    }
+
+    // Calls the publicGetV1PredictionMarketsEventsNewlyListed endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> publicGetV1PredictionMarketsEventsNewlyListed (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("publicGetV1PredictionMarketsEventsNewlyListed"), parameters);
+    }
+
+    // Calls the publicGetV1PredictionMarketsEventsRecentlySettled endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> publicGetV1PredictionMarketsEventsRecentlySettled (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("publicGetV1PredictionMarketsEventsRecentlySettled"), parameters);
+    }
+
+    // Calls the publicGetV1PredictionMarketsEventsUpcoming endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> publicGetV1PredictionMarketsEventsUpcoming (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("publicGetV1PredictionMarketsEventsUpcoming"), parameters);
+    }
+
+    // Calls the publicGetV1PredictionMarketsCategories endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> publicGetV1PredictionMarketsCategories (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("publicGetV1PredictionMarketsCategories"), parameters);
+    }
+
+    // Calls the publicGetV1PredictionMarketsVolumeDate endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> publicGetV1PredictionMarketsVolumeDate (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("publicGetV1PredictionMarketsVolumeDate"), parameters);
+    }
+
+    // Calls the publicGetV1PredictionMarketsVolumeDateHourly endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> publicGetV1PredictionMarketsVolumeDateHourly (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("publicGetV1PredictionMarketsVolumeDateHourly"), parameters);
+    }
+
+    // Calls the publicGetV1PredictionMarketsTerms endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> publicGetV1PredictionMarketsTerms (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("publicGetV1PredictionMarketsTerms"), parameters);
+    }
+
+    // Calls the publicGetV1PredictionMarketsMakerRebateRates endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> publicGetV1PredictionMarketsMakerRebateRates (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("publicGetV1PredictionMarketsMakerRebateRates"), parameters);
+    }
+
+    // Calls the publicGetV1PredictionMarketsLiquidityRewardsConfig endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> publicGetV1PredictionMarketsLiquidityRewardsConfig (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("publicGetV1PredictionMarketsLiquidityRewardsConfig"), parameters);
+    }
+
+    // Calls the publicGetV1PredictionMarketsLiquidityRewardsEvents endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> publicGetV1PredictionMarketsLiquidityRewardsEvents (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("publicGetV1PredictionMarketsLiquidityRewardsEvents"), parameters);
+    }
+
     // Calls the privateGetV1PerpetualsFundingpaymentreportRecordsXlsx endpoint. Returns a JSON scalar.
     virtual std::shared_future<ccxt::any> privateGetV1PerpetualsFundingpaymentreportRecordsXlsx (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateGetV1PerpetualsFundingpaymentreportRecordsXlsx"), parameters);
+    }
+
+    // Calls the privateGetV1PredictionMarketsTermsStatus endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateGetV1PredictionMarketsTermsStatus (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetV1PredictionMarketsTermsStatus"), parameters);
+    }
+
+    // Calls the privateGetV1PredictionMarketsMakerRebateSummaryTotal endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateGetV1PredictionMarketsMakerRebateSummaryTotal (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetV1PredictionMarketsMakerRebateSummaryTotal"), parameters);
+    }
+
+    // Calls the privateGetV1PredictionMarketsLiquidityRewardsSummaryDaily endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateGetV1PredictionMarketsLiquidityRewardsSummaryDaily (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetV1PredictionMarketsLiquidityRewardsSummaryDaily"), parameters);
+    }
+
+    // Calls the privateGetV1PredictionMarketsLiquidityRewardsSummaryTotal endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateGetV1PredictionMarketsLiquidityRewardsSummaryTotal (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetV1PredictionMarketsLiquidityRewardsSummaryTotal"), parameters);
+    }
+
+    // Calls the privateGetV2NetworkToken endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateGetV2NetworkToken (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetV2NetworkToken"), parameters);
+    }
+
+    // Calls the privateGetV2NetworksNetworkAssets endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateGetV2NetworksNetworkAssets (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetV2NetworksNetworkAssets"), parameters);
     }
 
     // Calls the privatePostV1StakingUnstake endpoint. Returns a JSON object.
@@ -424,6 +519,76 @@ public:
     // Calls the privatePostV1Positions endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privatePostV1Positions (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostV1Positions"), parameters);
+    }
+
+    // Calls the privatePostV1PredictionMarketsOrder endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostV1PredictionMarketsOrder (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostV1PredictionMarketsOrder"), parameters);
+    }
+
+    // Calls the privatePostV1PredictionMarketsOrderBatch endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostV1PredictionMarketsOrderBatch (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostV1PredictionMarketsOrderBatch"), parameters);
+    }
+
+    // Calls the privatePostV1PredictionMarketsOrderCancel endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostV1PredictionMarketsOrderCancel (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostV1PredictionMarketsOrderCancel"), parameters);
+    }
+
+    // Calls the privatePostV1PredictionMarketsOrderBatchCancel endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostV1PredictionMarketsOrderBatchCancel (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostV1PredictionMarketsOrderBatchCancel"), parameters);
+    }
+
+    // Calls the privatePostV1PredictionMarketsOrdersActive endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostV1PredictionMarketsOrdersActive (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostV1PredictionMarketsOrdersActive"), parameters);
+    }
+
+    // Calls the privatePostV1PredictionMarketsOrdersHistory endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostV1PredictionMarketsOrdersHistory (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostV1PredictionMarketsOrdersHistory"), parameters);
+    }
+
+    // Calls the privatePostV1PredictionMarketsPositions endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostV1PredictionMarketsPositions (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostV1PredictionMarketsPositions"), parameters);
+    }
+
+    // Calls the privatePostV1PredictionMarketsPositionsSettled endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostV1PredictionMarketsPositionsSettled (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostV1PredictionMarketsPositionsSettled"), parameters);
+    }
+
+    // Calls the privatePostV1PredictionMarketsMetricsVolume endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostV1PredictionMarketsMetricsVolume (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostV1PredictionMarketsMetricsVolume"), parameters);
+    }
+
+    // Calls the privatePostV1PredictionMarketsTermsAccept endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostV1PredictionMarketsTermsAccept (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostV1PredictionMarketsTermsAccept"), parameters);
+    }
+
+    // Calls the privatePostV1PredictionMarketsMakerRebatePayouts endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostV1PredictionMarketsMakerRebatePayouts (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostV1PredictionMarketsMakerRebatePayouts"), parameters);
+    }
+
+    // Calls the privatePostV2Transfers endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> privatePostV2Transfers (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostV2Transfers"), parameters);
+    }
+
+    // Calls the privatePostV2WithdrawNetworkTicker endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostV2WithdrawNetworkTicker (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostV2WithdrawNetworkTicker"), parameters);
+    }
+
+    // Calls the privatePostV2WithdrawNetworkTickerFeeEstimate endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostV2WithdrawNetworkTickerFeeEstimate (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostV2WithdrawNetworkTickerFeeEstimate"), parameters);
     }
 
 };

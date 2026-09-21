@@ -410,6 +410,14 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("lightningDeposit"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("lightningWithdraw"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                        }},
                   }},
              }},
@@ -678,8 +686,8 @@ public:
                  //         ]
                  //     }
                  //
-                 ccxt::any data = this->safeValue(response, std::string("data"),
-                                                  ccxt::list{});
+                 ccxt::any data = this->safeList(response, std::string("data"),
+                                                 ccxt::list{});
                  ccxt::any result = ccxt::list{};
                  for (ccxt::any i = 0; isLessThan(i, getArrayLength(data));
                       postFixIncrement(i)) {
@@ -766,7 +774,7 @@ public:
 
   ccxt::any parseBalance(ccxt::any response) override {
     ccxt::any balances =
-        this->safeValue(response, std::string("data"), ccxt::dict{});
+        this->safeDict(response, std::string("data"), ccxt::dict{});
     ccxt::any result = ccxt::dict{
         {std::string("info"), response},
     };
@@ -951,8 +959,8 @@ public:
                  //         }
                  //     }
                  //
-                 ccxt::any data = this->safeValue(response, std::string("data"),
-                                                  ccxt::dict{});
+                 ccxt::any data = this->safeDict(response, std::string("data"),
+                                                 ccxt::dict{});
                  ccxt::any keys = getObjectKeys(data);
                  ccxt::any result = ccxt::dict{};
                  for (ccxt::any i = 0; isLessThan(i, getArrayLength(keys));
@@ -1211,7 +1219,7 @@ public:
                 ccxt::any currency = this->currency(code);
                 ccxt::any withdrawOptions = this->safeValue(
                     this->options, std::string("withdraw"), ccxt::dict{});
-                ccxt::any methods = this->safeValue(
+                ccxt::any methods = this->safeDict(
                     withdrawOptions, std::string("methods"), ccxt::dict{});
                 ccxt::any method = this->safeString(methods, code);
                 if (isTrue(isEqual(method, ccxt::any{}))) {

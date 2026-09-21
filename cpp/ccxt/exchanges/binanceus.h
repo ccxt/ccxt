@@ -210,6 +210,10 @@ public:
                                 {std::string("cost"), 2},
                                 {std::string("noSymbol"), 100},
                             }},
+                           {std::string("ticker/tradingDay"),
+                            ccxt::dict{
+                                {std::string("cost"), 4},
+                            }},
                        }},
                   }},
                  {std::string("private"),
@@ -219,6 +223,10 @@ public:
                            {std::string("account"),
                             ccxt::dict{
                                 {std::string("cost"), 10},
+                            }},
+                           {std::string("account/commission"),
+                            ccxt::dict{
+                                {std::string("cost"), 20},
                             }},
                            {std::string("rateLimit/order"),
                             ccxt::dict{
@@ -240,6 +248,10 @@ public:
                            {std::string("myPreventedMatches"),
                             ccxt::dict{
                                 {std::string("cost"), 10},
+                            }},
+                           {std::string("myFilters"),
+                            ccxt::dict{
+                                {std::string("cost"), 40},
                             }},
                            {std::string("allOrders"),
                             ccxt::dict{

@@ -95,7 +95,7 @@ public:
                  {std::string("fetchDepositsWithdrawals"), false},
                  {std::string("fetchDepositWithdrawFee"), false},
                  {std::string("fetchDepositWithdrawFees"), false},
-                 {std::string("fetchFundingHistory"), false},
+                 {std::string("fetchFundingHistory"), true},
                  {std::string("fetchFundingInterval"), false},
                  {std::string("fetchFundingIntervals"), false},
                  {std::string("fetchFundingRate"), true},
@@ -337,6 +337,36 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 20},
                             }},
+                           {std::string(
+                                "api/v3/apiReferral/checkUserEligibility"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string(
+                                "api/v3/apiReferral/rebate/recentRecord"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("api/v3/apiReferral/rebateRatio"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("api/v3/content/articles/detail"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("api/v3/content/articles/list"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("api/v3/content/articles/listByCoin"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("api/v3/content/banners/latest"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                        }},
                       {std::string("post"),
                        ccxt::dict{
@@ -360,6 +390,10 @@ public:
                                 "api/v3/rebate/affiliate/internalWithdrawal"),
                             ccxt::dict{
                                 {std::string("cost"), 100},
+                            }},
+                           {std::string("api/v3/tax/income"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
                             }},
                        }},
                       {std::string("delete"),
@@ -509,6 +543,42 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 10},
                             }},
+                           {std::string("capi/v3/copy/follower/historyOrders"),
+                            ccxt::dict{
+                                {std::string("cost"), 10},
+                            }},
+                           {std::string("capi/v3/copy/follower/myTraders"),
+                            ccxt::dict{
+                                {std::string("cost"), 10},
+                            }},
+                           {std::string("capi/v3/copy/follower/openOrders"),
+                            ccxt::dict{
+                                {std::string("cost"), 10},
+                            }},
+                           {std::string("capi/v3/copy/follower/settings"),
+                            ccxt::dict{
+                                {std::string("cost"), 10},
+                            }},
+                           {std::string("capi/v3/copy/trader/historyOrders"),
+                            ccxt::dict{
+                                {std::string("cost"), 10},
+                            }},
+                           {std::string("capi/v3/copy/trader/openOrders"),
+                            ccxt::dict{
+                                {std::string("cost"), 10},
+                            }},
+                           {std::string("capi/v3/copy/trader/pairs"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("capi/v3/trailing/openOrders"),
+                            ccxt::dict{
+                                {std::string("cost"), 2},
+                            }},
+                           {std::string("capi/v3/trailing/historyOrders"),
+                            ccxt::dict{
+                                {std::string("cost"), 10},
+                            }},
                        }},
                       {std::string("post"),
                        ccxt::dict{
@@ -560,6 +630,18 @@ public:
                            {std::string("capi/v3/sim/order"),
                             ccxt::dict{
                                 {std::string("cost"), 5},
+                            }},
+                           {std::string("capi/v3/copy/follower/closePos"),
+                            ccxt::dict{
+                                {std::string("cost"), 50},
+                            }},
+                           {std::string("capi/v3/copy/follower/settings"),
+                            ccxt::dict{
+                                {std::string("cost"), 10},
+                            }},
+                           {std::string("capi/v3/copy/follower/stopCopy"),
+                            ccxt::dict{
+                                {std::string("cost"), 10},
                             }},
                        }},
                       {std::string("delete"),
@@ -4991,13 +5073,7 @@ public:
                    currency = this->currency(code);
                  }
                  if (isTrue(isEqual(accountType, std::string("contract")))) {
-                   if (isTrue(isEqual(currency, ccxt::any{}))) {
-                     throw ExchangeError(toString(add(
-                         this->id,
-                         std::string(
-                             " fetchLedger() could not resolve currency"))));
-                   }
-                   if (isTrue(!isEqual(code, ccxt::any{}))) {
+                   if (isTrue(!isEqual(currency, ccxt::any{}))) {
                      ::setValue(request, std::string("currency"),
                                 ::getValue(currency, std::string("id")));
                    }
@@ -5171,6 +5247,147 @@ public:
         {std::string("position_close_short"), std::string("trade")},
     };
     return this->safeString(types, type, type);
+  }
+
+  /**
+   * @method
+   * @name weex#fetchFundingHistory
+   * @description fetch the history of funding payments paid and received on
+   * this account
+   * @see https://www.weex.com/api-doc/contract/Account_API/GetContractBills
+   * @param {string} [symbol] unified market symbol
+   * @param {int} [since] the earliest time in ms to fetch funding history for
+   * @param {int} [limit] the maximum number of funding history structures to
+   * retrieve (default 20, max 100)
+   * @param {object} [params] extra parameters specific to the exchange API
+   * endpoint
+   * @param {int} [params.until] timestamp in ms of the latest funding history
+   * entry, requires since to be set, the span may not exceed 100 days
+   * @param {boolean} [params.paginate] default false, when true will
+   * automatically paginate by calling this endpoint multiple times. See in the
+   * docs all the [available
+   * parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+   * @returns {object[]} a list of [funding history structures]{@link
+   * https://docs.ccxt.com/?id=funding-history-structure}
+   */
+  std::shared_future<ccxt::any> fetchFundingHistory(
+      ccxt::any symbol = ccxt::any{}, ccxt::any since = ccxt::any{},
+      ccxt::any limit = ccxt::any{}, ccxt::any params = ccxt::dict{}) override {
+    return std::async(
+               std::launch::deferred,
+               [=]() mutable -> ccxt::any {
+                 if (isTrue(isEqual(this->markets, ccxt::any{}))) {
+                   awaitValue(this->loadMarkets());
+                 }
+                 ccxt::any paginate = false;
+                 ccxt::any paginateparamsVariable = this->handleOptionAndParams(
+                     params, std::string("fetchFundingHistory"),
+                     std::string("paginate"), false);
+                 paginate = ::getValue(paginateparamsVariable, 0);
+                 params = ::getValue(paginateparamsVariable, 1);
+                 if (isTrue(paginate)) {
+                   return awaitValue(this->fetchPaginatedCallDynamic(
+                       std::string("fetchFundingHistory"), symbol, since, limit,
+                       params, 100));
+                 }
+                 ccxt::any market = ccxt::any{};
+                 ccxt::any request = ccxt::dict{
+                     {std::string("incomeType"),
+                      std::string("position_funding")},
+                 };
+                 if (isTrue(!isEqual(symbol, ccxt::any{}))) {
+                   market = this->market(symbol);
+                   if (isTrue(!isEqual(::getValue(market, std::string("swap")),
+                                       true))) {
+                     throw NotSupported(toString(
+                         add(this->id,
+                             std::string(" fetchFundingHistory() supports swap "
+                                         "contracts only"))));
+                   }
+                   ::setValue(request, std::string("symbol"),
+                              ::getValue(market, std::string("id")));
+                 }
+                 if (isTrue(!isEqual(since, ccxt::any{}))) {
+                   ::setValue(request, std::string("startTime"), since);
+                 }
+                 if (isTrue(!isEqual(limit, ccxt::any{}))) {
+                   ::setValue(request, std::string("limit"), limit);
+                 }
+                 ccxt::any requestparamsVariable = this->handleUntilOption(
+                     std::string("endTime"), request, params);
+                 request = ::getValue(requestparamsVariable, 0);
+                 params = ::getValue(requestparamsVariable, 1);
+                 // the exchange rejects startTime and endTime when either is
+                 // sent alone, they only work as a pair
+                 ccxt::any hasSince = (inOp(request, std::string("startTime")));
+                 ccxt::any hasUntil = (inOp(request, std::string("endTime")));
+                 if (isTrue(isTrue(hasSince) && !isTrue(hasUntil))) {
+                   ::setValue(request, std::string("endTime"),
+                              this->milliseconds());
+                 } else if (isTrue(isTrue(hasUntil) && !isTrue(hasSince))) {
+                   throw ArgumentsRequired(toString(
+                       add(this->id,
+                           std::string(" fetchFundingHistory() requires since "
+                                       "to be set when until is used"))));
+                 }
+                 ccxt::any response =
+                     awaitValue(this->contractPrivatePostCapiV3AccountIncome(
+                         this->extend(request, params)));
+                 //
+                 //     {
+                 //         "hasNextPage": false,
+                 //         "nextKey": null,
+                 //         "items": [
+                 //             {
+                 //                 "billId": "793622764958253481",
+                 //                 "asset": "USDT",
+                 //                 "symbol": "VIRTUALUSDT",
+                 //                 "income": "0.00000378",
+                 //                 "incomeType": "position_funding",
+                 //                 "balance": "29.36239410",
+                 //                 "fillFee": "0",
+                 //                 "time": "1789214411964",
+                 //                 "transferReason": "UNKNOWN_TRANSFER_REASON"
+                 //             }
+                 //         ]
+                 //     }
+                 //
+                 ccxt::any items = this->safeList(
+                     response, std::string("items"), ccxt::list{});
+                 return this->parseIncomes(items, market, since, limit);
+               })
+        .share();
+  }
+
+  ccxt::any parseIncome(ccxt::any income,
+                        ccxt::any market = ccxt::any{}) override {
+    //
+    //     {
+    //         "billId": "793622764958253481",
+    //         "asset": "USDT",
+    //         "symbol": "VIRTUALUSDT",
+    //         "income": "0.00000378",
+    //         "incomeType": "position_funding",
+    //         "balance": "29.36239410",
+    //         "fillFee": "0",
+    //         "time": "1789214411964",
+    //         "transferReason": "UNKNOWN_TRANSFER_REASON"
+    //     }
+    //
+    ccxt::any marketId = this->safeString(income, std::string("symbol"));
+    ccxt::any currencyId = this->safeString(income, std::string("asset"));
+    ccxt::any timestamp = this->safeInteger(income, std::string("time"));
+    return ccxt::dict{
+        {std::string("info"), income},
+        {std::string("symbol"),
+         this->safeSymbol(marketId, market, ccxt::any{}, std::string("swap"))},
+        {std::string("code"), this->safeCurrencyCode(currencyId)},
+        {std::string("timestamp"), timestamp},
+        {std::string("datetime"), this->iso8601(timestamp)},
+        {std::string("id"), this->safeString(income, std::string("billId"))},
+        {std::string("amount"),
+         this->safeNumber(income, std::string("income"))},
+    };
   }
 
   /**
@@ -6818,6 +7035,28 @@ public:
     if (which == "parseLedgerType") {
       if (true)
         return this->parseLedgerType(::getValue(args, 0));
+    }
+    if (which == "fetchFundingHistory") {
+      if (count <= 0)
+        return awaitValue(this->fetchFundingHistory());
+      if (count == 1)
+        return awaitValue(this->fetchFundingHistory(::getValue(args, 0)));
+      if (count == 2)
+        return awaitValue(this->fetchFundingHistory(::getValue(args, 0),
+                                                    ::getValue(args, 1)));
+      if (count == 3)
+        return awaitValue(this->fetchFundingHistory(
+            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
+      if (count >= 4)
+        return awaitValue(this->fetchFundingHistory(
+            ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2),
+            ::getValue(args, 3)));
+    }
+    if (which == "parseIncome") {
+      if (count <= 1)
+        return this->parseIncome(::getValue(args, 0));
+      if (count >= 2)
+        return this->parseIncome(::getValue(args, 0), ::getValue(args, 1));
     }
     if (which == "fetchPositions") {
       if (count <= 0)

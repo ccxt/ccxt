@@ -111,6 +111,11 @@ public:
         return this->callEndpoint (std::string ("privatePostGetOrderBook"), parameters);
     }
 
+    // Calls the privatePostGetTicker endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostGetTicker (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostGetTicker"), parameters);
+    }
+
     // Calls the privatePostGetCandles endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privatePostGetCandles (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostGetCandles"), parameters);

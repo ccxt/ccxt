@@ -126,6 +126,36 @@ public:
         return this->callEndpoint (std::string ("privateGetV1FapiTradePositions"), parameters);
     }
 
+    // Calls the privateGetV2FapiTradeOpenOrder endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateGetV2FapiTradeOpenOrder (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetV2FapiTradeOpenOrder"), parameters);
+    }
+
+    // Calls the privateGetV2FapiTradePlanOrder endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateGetV2FapiTradePlanOrder (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetV2FapiTradePlanOrder"), parameters);
+    }
+
+    // Calls the privateGetV2FapiTradeHistoryOrder endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateGetV2FapiTradeHistoryOrder (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetV2FapiTradeHistoryOrder"), parameters);
+    }
+
+    // Calls the privateGetV2FapiTradeHistoryTrade endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateGetV2FapiTradeHistoryTrade (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetV2FapiTradeHistoryTrade"), parameters);
+    }
+
+    // Calls the privateGetV2FapiTradePositionHistory endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateGetV2FapiTradePositionHistory (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetV2FapiTradePositionHistory"), parameters);
+    }
+
+    // Calls the privateGetV2FapiTradePositions endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateGetV2FapiTradePositions (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetV2FapiTradePositions"), parameters);
+    }
+
     // Calls the privateGetV1FapiAccountBalance endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privateGetV1FapiAccountBalance (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateGetV1FapiAccountBalance"), parameters);
@@ -224,6 +254,41 @@ public:
     // Calls the privatePostV1FapiTradeBatchLeverageMargin endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privatePostV1FapiTradeBatchLeverageMargin (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostV1FapiTradeBatchLeverageMargin"), parameters);
+    }
+
+    // Calls the privatePostV2FapiTradePlaceOrder endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostV2FapiTradePlaceOrder (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostV2FapiTradePlaceOrder"), parameters);
+    }
+
+    // Calls the privatePostV2FapiTradeBatchPlaceOrder endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostV2FapiTradeBatchPlaceOrder (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostV2FapiTradeBatchPlaceOrder"), parameters);
+    }
+
+    // Calls the privatePostV2FapiTradeEditOrder endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostV2FapiTradeEditOrder (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostV2FapiTradeEditOrder"), parameters);
+    }
+
+    // Calls the privatePostV2FapiTradeBatchEditOrder endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostV2FapiTradeBatchEditOrder (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostV2FapiTradeBatchEditOrder"), parameters);
+    }
+
+    // Calls the privatePostV2FapiTradeCancelOrder endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostV2FapiTradeCancelOrder (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostV2FapiTradeCancelOrder"), parameters);
+    }
+
+    // Calls the privatePostV2FapiTradeBatchCancelOrder endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostV2FapiTradeBatchCancelOrder (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostV2FapiTradeBatchCancelOrder"), parameters);
+    }
+
+    // Calls the privatePostV2FapiTradeCancelAllOrder endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostV2FapiTradeCancelAllOrder (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostV2FapiTradeCancelAllOrder"), parameters);
     }
 
     // Calls the privatePostV1FapiUserDataMarginType endpoint. Returns a JSON object.

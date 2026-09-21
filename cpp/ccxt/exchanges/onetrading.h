@@ -205,6 +205,18 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("funding-rate"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("funding-rate/history"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("funding-rate/settings"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                        }},
                   }},
                  {std::string("private"),
@@ -243,10 +255,40 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("account/futures/summary"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("account/futures/positions"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("account/futures/positions-history"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("account/futures/positions/"
+                                        "{position_id}/trades"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("account/futures/positions/"
+                                        "{position_id}/funding-payments"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("account/futures/funding-payments"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                        }},
                       {std::string("post"),
                        ccxt::dict{
                            {std::string("account/orders"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("subaccounts/transfers"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -1615,7 +1657,7 @@ public:
 
   ccxt::any parseBalance(ccxt::any response) override {
     ccxt::any balances =
-        this->safeValue(response, std::string("balances"), ccxt::list{});
+        this->safeList(response, std::string("balances"), ccxt::list{});
     ccxt::any result = ccxt::dict{
         {std::string("info"), response},
     };

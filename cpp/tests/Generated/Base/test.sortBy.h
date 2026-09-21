@@ -141,6 +141,97 @@ void testSortBy1() {
                              ccxt::dict{
                                  {std::string("x"), 10},
                              }});
+  // immutability - original array should not be modified (ascending)
+  ccxt::any original = ccxt::list{ccxt::dict{
+                                      {std::string("x"), 5},
+                                  },
+                                  ccxt::dict{
+                                      {std::string("x"), 2},
+                                  },
+                                  ccxt::dict{
+                                      {std::string("x"), 4},
+                                  },
+                                  ccxt::dict{
+                                      {std::string("x"), 0},
+                                  },
+                                  ccxt::dict{
+                                      {std::string("x"), 1},
+                                  },
+                                  ccxt::dict{
+                                      {std::string("x"), 3},
+                                  }};
+  exchange.sortBy(original, std::string("x"));
+  assertDeepEqual(exchange, ccxt::any{}, std::string("sortBy"), original,
+                  ccxt::list{ccxt::dict{
+                                 {std::string("x"), 5},
+                             },
+                             ccxt::dict{
+                                 {std::string("x"), 2},
+                             },
+                             ccxt::dict{
+                                 {std::string("x"), 4},
+                             },
+                             ccxt::dict{
+                                 {std::string("x"), 0},
+                             },
+                             ccxt::dict{
+                                 {std::string("x"), 1},
+                             },
+                             ccxt::dict{
+                                 {std::string("x"), 3},
+                             }});
+  // immutability - original array should not be modified (descending)
+  ccxt::any originalDescending = ccxt::list{ccxt::dict{
+                                                {std::string("x"), 5},
+                                            },
+                                            ccxt::dict{
+                                                {std::string("x"), 2},
+                                            },
+                                            ccxt::dict{
+                                                {std::string("x"), 4},
+                                            },
+                                            ccxt::dict{
+                                                {std::string("x"), 0},
+                                            },
+                                            ccxt::dict{
+                                                {std::string("x"), 1},
+                                            },
+                                            ccxt::dict{
+                                                {std::string("x"), 3},
+                                            }};
+  exchange.sortBy(originalDescending, std::string("x"), true);
+  assertDeepEqual(exchange, ccxt::any{}, std::string("sortBy"),
+                  originalDescending,
+                  ccxt::list{ccxt::dict{
+                                 {std::string("x"), 5},
+                             },
+                             ccxt::dict{
+                                 {std::string("x"), 2},
+                             },
+                             ccxt::dict{
+                                 {std::string("x"), 4},
+                             },
+                             ccxt::dict{
+                                 {std::string("x"), 0},
+                             },
+                             ccxt::dict{
+                                 {std::string("x"), 1},
+                             },
+                             ccxt::dict{
+                                 {std::string("x"), 3},
+                             }});
+  // immutability - array rows (orderbook-style numeric keys) should not be
+  // modified
+  ccxt::any originalRows = ccxt::list{
+      ccxt::list{3000.5, 1}, ccxt::list{2900.5, 2}, ccxt::list{2950.5, 3}};
+  exchange.sortBy(originalRows, 0);
+  assertDeepEqual(exchange, ccxt::any{}, std::string("sortBy"), originalRows,
+                  ccxt::list{ccxt::list{3000.5, 1}, ccxt::list{2900.5, 2},
+                             ccxt::list{2950.5, 3}});
+  exchange.sortBy(originalRows, 0, true);
+  assertDeepEqual(exchange, ccxt::any{}, std::string("sortBy"), originalRows,
+                  ccxt::list{ccxt::list{3000.5, 1}, ccxt::list{2900.5, 2},
+                             ccxt::list{2950.5, 3}});
 }
 void testSortBy2() {
   ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
@@ -340,6 +431,78 @@ void testSortBy2() {
       exchange.sortBy2(ccxt::list{}, std::string("x"), std::string("y"));
   assertDeepEqual(exchange, ccxt::any{}, std::string("sortBy2"), emptyArray,
                   ccxt::list{});
+  // immutability - original array should not be modified (ascending)
+  ccxt::any original = ccxt::list{ccxt::dict{
+                                      {std::string("x"), 3},
+                                      {std::string("y"), 1},
+                                  },
+                                  ccxt::dict{
+                                      {std::string("x"), 1},
+                                      {std::string("y"), 2},
+                                  },
+                                  ccxt::dict{
+                                      {std::string("x"), 2},
+                                      {std::string("y"), 3},
+                                  },
+                                  ccxt::dict{
+                                      {std::string("x"), 0},
+                                      {std::string("y"), 4},
+                                  }};
+  exchange.sortBy2(original, std::string("x"), std::string("y"));
+  assertDeepEqual(exchange, ccxt::any{}, std::string("sortBy2"), original,
+                  ccxt::list{ccxt::dict{
+                                 {std::string("x"), 3},
+                                 {std::string("y"), 1},
+                             },
+                             ccxt::dict{
+                                 {std::string("x"), 1},
+                                 {std::string("y"), 2},
+                             },
+                             ccxt::dict{
+                                 {std::string("x"), 2},
+                                 {std::string("y"), 3},
+                             },
+                             ccxt::dict{
+                                 {std::string("x"), 0},
+                                 {std::string("y"), 4},
+                             }});
+  // immutability - original array should not be modified (descending)
+  ccxt::any originalDescending = ccxt::list{ccxt::dict{
+                                                {std::string("x"), 3},
+                                                {std::string("y"), 1},
+                                            },
+                                            ccxt::dict{
+                                                {std::string("x"), 1},
+                                                {std::string("y"), 2},
+                                            },
+                                            ccxt::dict{
+                                                {std::string("x"), 2},
+                                                {std::string("y"), 3},
+                                            },
+                                            ccxt::dict{
+                                                {std::string("x"), 0},
+                                                {std::string("y"), 4},
+                                            }};
+  exchange.sortBy2(originalDescending, std::string("x"), std::string("y"),
+                   true);
+  assertDeepEqual(exchange, ccxt::any{}, std::string("sortBy2"),
+                  originalDescending,
+                  ccxt::list{ccxt::dict{
+                                 {std::string("x"), 3},
+                                 {std::string("y"), 1},
+                             },
+                             ccxt::dict{
+                                 {std::string("x"), 1},
+                                 {std::string("y"), 2},
+                             },
+                             ccxt::dict{
+                                 {std::string("x"), 2},
+                                 {std::string("y"), 3},
+                             },
+                             ccxt::dict{
+                                 {std::string("x"), 0},
+                                 {std::string("y"), 4},
+                             }});
 }
 void testSortBy() {
   testSortBy1();

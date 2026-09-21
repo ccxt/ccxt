@@ -140,6 +140,10 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("user/withdrawals"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("merchant/get_payment/{uuid}"),
                             ccxt::dict{
                                 {std::string("cost"), 1},

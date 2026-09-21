@@ -41,6 +41,11 @@ public:
         return this->callEndpoint (std::string ("privatePostBalance"), parameters);
     }
 
+    // Calls the privatePostOrderHistory endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> privatePostOrderHistory (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostOrderHistory"), parameters);
+    }
+
     // Calls the privatePostTradeAdd endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privatePostTradeAdd (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostTradeAdd"), parameters);

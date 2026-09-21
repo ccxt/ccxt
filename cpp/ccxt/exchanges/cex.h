@@ -234,6 +234,10 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("get_ticker"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("get_candles"),
                             ccxt::dict{
                                 {std::string("cost"), 1},

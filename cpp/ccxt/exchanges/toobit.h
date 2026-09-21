@@ -358,6 +358,42 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("api/v2/account/balance-flow"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
+                           {std::string("api/v2/futures/order"),
+                            ccxt::dict{
+                                {std::string("cost"), multiply(1, 1.67)},
+                            }},
+                           {std::string("api/v2/futures/open-orders"),
+                            ccxt::dict{
+                                {std::string("cost"), multiply(1, 1.67)},
+                            }},
+                           {std::string("api/v2/futures/history-orders"),
+                            ccxt::dict{
+                                {std::string("cost"), multiply(5, 1.67)},
+                            }},
+                           {std::string("api/v2/futures/user-trades"),
+                            ccxt::dict{
+                                {std::string("cost"), multiply(5, 1.67)},
+                            }},
+                           {std::string("api/v2/futures/algo-order"),
+                            ccxt::dict{
+                                {std::string("cost"), multiply(1, 1.67)},
+                            }},
+                           {std::string("api/v2/futures/open-algo-orders"),
+                            ccxt::dict{
+                                {std::string("cost"), multiply(1, 1.67)},
+                            }},
+                           {std::string("api/v2/futures/history-algo-orders"),
+                            ccxt::dict{
+                                {std::string("cost"), multiply(5, 1.67)},
+                            }},
+                           {std::string("api/v2/futures/voucher/list"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
                        }},
                       {std::string("post"),
                        ccxt::dict{
@@ -4108,16 +4144,16 @@ public:
         {std::string("id"), this->safeString(position, std::string("id"))},
         {std::string("symbol"), ::getValue(market, std::string("symbol"))},
         {std::string("entryPrice"),
-         this->safeString(position, std::string("avgPrice"))},
+         this->safeNumber(position, std::string("avgPrice"))},
         {std::string("markPrice"),
-         this->safeString(position, std::string("markPrice"))},
+         this->safeNumber(position, std::string("markPrice"))},
         {std::string("lastPrice"),
-         this->safeString(position, std::string("lastPrice"))},
+         this->safeNumber(position, std::string("lastPrice"))},
         {std::string("notional"),
-         this->safeString(position, std::string("positionValue"))},
+         this->safeNumber(position, std::string("positionValue"))},
         {std::string("collateral"), ccxt::any{}},
         {std::string("unrealizedPnl"),
-         this->safeString(position, std::string("unrealizedPnL"))},
+         this->safeNumber(position, std::string("unrealizedPnL"))},
         {std::string("side"), side},
         {std::string("contracts"), this->parseNumber(quantity)},
         {std::string("contractSize"), ccxt::any{}},
@@ -4127,7 +4163,7 @@ public:
         {std::string("maintenanceMargin"), ccxt::any{}},
         {std::string("maintenanceMarginPercentage"), ccxt::any{}},
         {std::string("initialMargin"),
-         this->safeString(position, std::string("margin"))},
+         this->safeNumber(position, std::string("margin"))},
         {std::string("initialMarginPercentage"), ccxt::any{}},
         {std::string("leverage"), leverage},
         {std::string("liquidationPrice"), ccxt::any{}},

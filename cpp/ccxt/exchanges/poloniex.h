@@ -486,6 +486,10 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), divide(2, 3)},
                             }},
+                           {std::string("v3/market/fundingRate/history"),
+                            ccxt::dict{
+                                {std::string("cost"), divide(2, 3)},
+                            }},
                            {std::string("v3/market/openInterest"),
                             ccxt::dict{
                                 {std::string("cost"), divide(2, 3)},
@@ -495,6 +499,10 @@ public:
                                 {std::string("cost"), divide(2, 3)},
                             }},
                            {std::string("v3/market/riskLimit"),
+                            ccxt::dict{
+                                {std::string("cost"), divide(2, 3)},
+                            }},
+                           {std::string("v3/market/limitPrice"),
                             ccxt::dict{
                                 {std::string("cost"), divide(2, 3)},
                             }},
@@ -524,6 +532,10 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 20},
                             }},
+                           {std::string("v3/trade/order/details"),
+                            ccxt::dict{
+                                {std::string("cost"), 20},
+                            }},
                            {std::string("v3/trade/position/opens"),
                             ccxt::dict{
                                 {std::string("cost"), 20},
@@ -537,6 +549,10 @@ public:
                                 {std::string("cost"), 20},
                             }},
                            {std::string("v3/position/mode"),
+                            ccxt::dict{
+                                {std::string("cost"), 20},
+                            }},
+                           {std::string("v3/position/riskLimit"),
                             ccxt::dict{
                                 {std::string("cost"), 20},
                             }},

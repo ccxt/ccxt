@@ -346,6 +346,11 @@ public:
         return this->callEndpoint (std::string ("publicGetSettingsCurrencys"), parameters);
     }
 
+    // Calls the publicGetRetailMaintainTime endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> publicGetRetailMaintainTime (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("publicGetRetailMaintainTime"), parameters);
+    }
+
     // Calls the privateGetAccountAccounts endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privateGetAccountAccounts (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateGetAccountAccounts"), parameters);
@@ -466,6 +471,11 @@ public:
         return this->callEndpoint (std::string ("privateGetStableCoinQuote"), parameters);
     }
 
+    // Calls the privateGetRetailOrderList endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateGetRetailOrderList (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetRetailOrderList"), parameters);
+    }
+
     // Calls the privatePostAccountTransfer endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privatePostAccountTransfer (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostAccountTransfer"), parameters);
@@ -564,6 +574,11 @@ public:
     // Calls the privatePostSubuserTransfer endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privatePostSubuserTransfer (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostSubuserTransfer"), parameters);
+    }
+
+    // Calls the privatePostRetailOrderPlace endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostRetailOrderPlace (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostRetailOrderPlace"), parameters);
     }
 
 };

@@ -312,6 +312,10 @@ public:
                                  ccxt::dict{
                                      {std::string("cost"), 2.5},
                                  }},
+                                {std::string("supplement/add_deposit_address"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2.5},
+                                 }},
                                 {std::string("supplement/asset_detail"),
                                  ccxt::dict{
                                      {std::string("cost"), 2.5},
@@ -362,6 +366,26 @@ public:
                                      {std::string("cost"), 2.5},
                                  }},
                                 {std::string("supplement/transaction_history"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2.5},
+                                 }},
+                                {std::string("spot/wallet/withdraw"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2.5},
+                                 }},
+                                {std::string("spot/wallet/deposit_history"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2.5},
+                                 }},
+                                {std::string("spot/wallet/withdraws"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2.5},
+                                 }},
+                                {std::string("spot/trade/orders_info"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 2.5},
+                                 }},
+                                {std::string("spot/trade/orders_info_history"),
                                  ccxt::dict{
                                      {std::string("cost"), 2.5},
                                  }},
@@ -820,8 +844,8 @@ public:
                  //         "ts": 1691560288484
                  //     }
                  //
-                 ccxt::any data = this->safeValue(response, std::string("data"),
-                                                  ccxt::list{});
+                 ccxt::any data = this->safeList(response, std::string("data"),
+                                                 ccxt::list{});
                  ccxt::any result = ccxt::list{};
                  for (ccxt::any i = 0; isLessThan(i, getArrayLength(data));
                       postFixIncrement(i)) {
@@ -946,8 +970,8 @@ public:
                  //         "success": true
                  //     }
                  //
-                 ccxt::any data = this->safeValue(response, std::string("data"),
-                                                  ccxt::list{});
+                 ccxt::any data = this->safeList(response, std::string("data"),
+                                                 ccxt::list{});
                  ccxt::any result = ccxt::list{};
                  for (ccxt::any i = 0; isLessThan(i, getArrayLength(data));
                       postFixIncrement(i)) {
@@ -1790,7 +1814,7 @@ public:
     if (isTrue(!isEqual(toBtc, ccxt::any{}))) {
       ccxt::any used =
           this->safeValue(data, std::string("freeze"), ccxt::dict{});
-      ccxt::any free = this->safeValue(data, std::string("free"), ccxt::dict{});
+      ccxt::any free = this->safeDict(data, std::string("free"), ccxt::dict{});
       ccxt::any currencies = getObjectKeys(free);
       for (ccxt::any i = 0; isLessThan(i, getArrayLength(currencies));
            postFixIncrement(i)) {
@@ -2153,8 +2177,8 @@ public:
                  ccxt::any response =
                      awaitValue(this->spotPrivatePostSupplementCustomerTradeFee(
                          this->extend(request, params)));
-                 ccxt::any fees = this->safeValue(response, std::string("data"),
-                                                  ccxt::list{});
+                 ccxt::any fees = this->safeList(response, std::string("data"),
+                                                 ccxt::list{});
                  ccxt::any result = ccxt::dict{};
                  for (ccxt::any i = 0; isLessThan(i, getArrayLength(fees));
                       postFixIncrement(i)) {
@@ -2696,7 +2720,7 @@ public:
                  //          "ts":1647455270776
                  //      }
                  //
-                 ccxt::any result = this->safeValue(
+                 ccxt::any result = this->safeList(
                      response, std::string("data"), ccxt::list{});
                  ccxt::any numOrders = getArrayLength(result);
                  if (isTrue(isEqual(numOrders, 1))) {
@@ -3683,7 +3707,7 @@ public:
                  //        "code": 0
                  //    }
                  //
-                 ccxt::any result = this->safeValue(
+                 ccxt::any result = this->safeList(
                      response, std::string("data"), ccxt::list{});
                  ccxt::any withdrawFees = ccxt::dict{};
                  for (ccxt::any i = 0; isLessThan(i, getArrayLength(result));
@@ -3692,7 +3716,7 @@ public:
                    ccxt::any currencyId =
                        this->safeString(entry, std::string("coin"));
                    ccxt::any code = this->safeCurrencyCode(currencyId);
-                   ccxt::any networkList = this->safeValue(
+                   ccxt::any networkList = this->safeList(
                        entry, std::string("networkList"), ccxt::list{});
                    if (isTrue(!isEqual(code, ccxt::any{}))) {
                      ::setValue(withdrawFees, code, ccxt::dict{});
@@ -3772,7 +3796,7 @@ public:
                  //        "ts": "1663364435973"
                  //    }
                  //
-                 ccxt::any result = this->safeValue(
+                 ccxt::any result = this->safeList(
                      response, std::string("data"), ccxt::list{});
                  ccxt::any withdrawFees = ccxt::dict{};
                  for (ccxt::any i = 0; isLessThan(i, getArrayLength(result));
@@ -4066,7 +4090,7 @@ public:
     ccxt::any result = this->depositWithdrawFee(fee);
     ccxt::any code = this->safeString(currency, std::string("code"));
     ccxt::any networkList =
-        this->safeValue(fee, std::string("networkList"), ccxt::list{});
+        this->safeList(fee, std::string("networkList"), ccxt::list{});
     for (ccxt::any j = 0; isLessThan(j, getArrayLength(networkList));
          postFixIncrement(j)) {
       ccxt::any networkEntry = ::getValue(networkList, j);

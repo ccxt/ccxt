@@ -355,6 +355,17 @@ public:
                                 {std::string("cost"), 1},
                             }},
                        }},
+                      {std::string("patch"),
+                       ccxt::dict{
+                           {std::string("orders"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("orders/{oid}"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                       }},
                   }},
              }},
             {std::string("features"),
@@ -667,7 +678,7 @@ public:
                  //             },
                  //         ]
                  //     }
-                 ccxt::any markets = this->safeValue(
+                 ccxt::any markets = this->safeList(
                      response, std::string("payload"), ccxt::list{});
                  ccxt::any currencies = this->safeDict(
                      this->options, std::string("cachedCurrencies"));
@@ -696,7 +707,7 @@ public:
                        takerString, std::string("100")));
                    ccxt::any maker = this->parseNumber(ccxt::Precise::stringDiv(
                        makerString, std::string("100")));
-                   ccxt::any feeTiers = this->safeValue(
+                   ccxt::any feeTiers = this->safeList(
                        fees, std::string("structure"), ccxt::list{});
                    ccxt::any fee = ccxt::dict{
                        {std::string("taker"), taker},
@@ -914,7 +925,7 @@ public:
     ccxt::any payload =
         this->safeValue(response, std::string("payload"), ccxt::dict{});
     ccxt::any balances =
-        this->safeValue(payload, std::string("balances"), ccxt::list{});
+        this->safeList(payload, std::string("balances"), ccxt::list{});
     ccxt::any result = ccxt::dict{
         {std::string("info"), response},
         {std::string("timestamp"), ccxt::any{}},
@@ -1447,8 +1458,8 @@ public:
                  //
                  ccxt::any payload = this->safeValue(
                      response, std::string("payload"), ccxt::dict{});
-                 ccxt::any fees = this->safeValue(payload, std::string("fees"),
-                                                  ccxt::list{});
+                 ccxt::any fees =
+                     this->safeList(payload, std::string("fees"), ccxt::list{});
                  ccxt::any result = ccxt::dict{};
                  for (ccxt::any i = 0; isLessThan(i, getArrayLength(fees));
                       postFixIncrement(i)) {
@@ -1683,7 +1694,7 @@ public:
                 //         "payload": ["yWTQGxDMZ0VimZgZ"]
                 //     }
                 //
-                ccxt::any payload = this->safeValue(
+                ccxt::any payload = this->safeList(
                     response, std::string("payload"), ccxt::list{});
                 ccxt::any orders = ccxt::list{};
                 for (ccxt::any i = 0; isLessThan(i, getArrayLength(payload));
@@ -1729,7 +1740,7 @@ public:
                  //         "payload": ["NWUZUYNT12ljwzDT", "kZUkZmQ2TTjkkYTY"]
                  //     }
                  //
-                 ccxt::any payload = this->safeValue(
+                 ccxt::any payload = this->safeList(
                      response, std::string("payload"), ccxt::list{});
                  ccxt::any canceledOrders = ccxt::list{};
                  for (ccxt::any i = 0; isLessThan(i, getArrayLength(payload));
@@ -2193,7 +2204,7 @@ public:
                  ccxt::any result = ccxt::dict{};
                  ccxt::any payload = this->safeValue(
                      response, std::string("payload"), ccxt::dict{});
-                 ccxt::any depositFees = this->safeValue(
+                 ccxt::any depositFees = this->safeList(
                      payload, std::string("deposit_fees"), ccxt::list{});
                  for (ccxt::any i = 0;
                       isLessThan(i, getArrayLength(depositFees));
@@ -2378,7 +2389,7 @@ public:
     //
     ccxt::any result = ccxt::dict{};
     ccxt::any depositResponse =
-        this->safeValue(response, std::string("deposit_fees"), ccxt::list{});
+        this->safeList(response, std::string("deposit_fees"), ccxt::list{});
     ccxt::any withdrawalResponse =
         this->safeValue(response, std::string("withdrawal_fees"), ccxt::list{});
     for (ccxt::any i = 0; isLessThan(i, getArrayLength(depositResponse));

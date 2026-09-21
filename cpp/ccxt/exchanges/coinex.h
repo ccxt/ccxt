@@ -792,6 +792,10 @@ public:
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
+                                {std::string("assets/info"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
                             }},
                        }},
                       {std::string("private"),
@@ -1226,6 +1230,16 @@ public:
                                  }},
                                 {std::string(
                                      "futures/set-position-take-profit"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
+                                {std::string(
+                                     "futures/modify-position-stop-loss"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 20},
+                                 }},
+                                {std::string(
+                                     "futures/modify-position-take-profit"),
                                  ccxt::dict{
                                      {std::string("cost"), 20},
                                  }},

@@ -1157,12 +1157,10 @@ public:
       }
       ccxt::any bidask = this->parseOrderBookBidAsk(level, priceKey, amountKey);
       ccxt::any levelSide = this->safeInteger(level, 9);
-      ccxt::any side =
-          (isTrue((isTrue(isTrue(!isEqual(levelSide, ccxt::any{})) &&
-                          isTrue(!isEqual(levelSide, null))) &&
-                   isTrue(!isEqual(levelSide, 0))))
-               ? ccxt::any(asksKey)
-               : ccxt::any(bidsKey));
+      ccxt::any side = (isTrue((isTrue(!isEqual(levelSide, ccxt::any{})) &&
+                                isTrue(!isEqual(levelSide, 0))))
+                            ? ccxt::any(asksKey)
+                            : ccxt::any(bidsKey));
       arrayPush(::getValue(result, side), bidask);
     }
     ::setValue(result, std::string("bids"),
@@ -1678,10 +1676,12 @@ public:
       timestamp = this->safeInteger(trade, 6);
       id = this->safeString(trade, 0);
       marketId = this->safeString(trade, 1);
-      ccxt::any takerSide = this->safeValue(trade, 8);
-      side =
-          (isTrue((isEqual(takerSide, true))) ? ccxt::any(std::string("sell"))
-                                              : ccxt::any(std::string("buy")));
+      ccxt::any takerSide = this->safeInteger(trade, 8);
+      if (isTrue(isEqual(takerSide, 0))) {
+        side = std::string("buy");
+      } else if (isTrue(isEqual(takerSide, 1))) {
+        side = std::string("sell");
+      }
       orderId = this->safeString(trade, 4);
     } else {
       timestamp = this->safeInteger2(trade, std::string("TradeTimeMS"),

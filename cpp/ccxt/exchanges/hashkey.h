@@ -401,6 +401,10 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("api/v1/affiliate/inviteeInfo"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                        }},
                       {std::string("post"),
                        ccxt::dict{
@@ -482,6 +486,10 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 5},
                             }},
+                           {std::string("api/v1/spot/cancelAllOpenOrders"),
+                            ccxt::dict{
+                                {std::string("cost"), 5},
+                            }},
                            {std::string("api/v1/futures/order"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
@@ -491,6 +499,10 @@ public:
                                 {std::string("cost"), 1},
                             }},
                            {std::string("api/v1/futures/cancelOrderByIds"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("api/v1/futures/cancelAllOpenOrders"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -5803,7 +5815,7 @@ public:
       ::setValue(headers, std::string("broker_sign"), signature);
     } else {
       query = this->urlencode(params);
-      if (isTrue(!isEqual(getArrayLength(query), 0))) {
+      if (isTrue(!isEqual(getStringLength(query), 0))) {
         url = add(url, add(std::string("?"), query));
       }
     }

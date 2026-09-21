@@ -876,6 +876,31 @@ public:
         return this->callEndpoint (std::string ("spotPrivateGetV2EtpLimit"), parameters);
     }
 
+    // Calls the spotPrivateGetV2InviteeRebateReferrals endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> spotPrivateGetV2InviteeRebateReferrals (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("spotPrivateGetV2InviteeRebateReferrals"), parameters);
+    }
+
+    // Calls the spotPrivateGetV2InviteeRebateDetail endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> spotPrivateGetV2InviteeRebateDetail (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("spotPrivateGetV2InviteeRebateDetail"), parameters);
+    }
+
+    // Calls the spotPrivateGetV2InviteeRebateHistory endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> spotPrivateGetV2InviteeRebateHistory (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("spotPrivateGetV2InviteeRebateHistory"), parameters);
+    }
+
+    // Calls the spotPrivateGetV2InviteeRebateAllRebateDetail endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> spotPrivateGetV2InviteeRebateAllRebateDetail (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("spotPrivateGetV2InviteeRebateAllRebateDetail"), parameters);
+    }
+
+    // Calls the spotPrivateGetV2InviteeRebateBatcherRebateDetail endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> spotPrivateGetV2InviteeRebateBatcherRebateDetail (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("spotPrivateGetV2InviteeRebateBatcherRebateDetail"), parameters);
+    }
+
     // Calls the spotPrivatePostV1AccountTransfer endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> spotPrivatePostV1AccountTransfer (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("spotPrivatePostV1AccountTransfer"), parameters);
@@ -1074,6 +1099,11 @@ public:
     // Calls the spotPrivatePostV2EtpBatchCancel endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> spotPrivatePostV2EtpBatchCancel (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("spotPrivatePostV2EtpBatchCancel"), parameters);
+    }
+
+    // Calls the spotPrivatePostV5AccountUniversalTransfer endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> spotPrivatePostV5AccountUniversalTransfer (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("spotPrivatePostV5AccountUniversalTransfer"), parameters);
     }
 
     // Calls the contractPublicGetApiV1Timestamp endpoint. Returns a JSON object.
@@ -1689,6 +1719,36 @@ public:
     // Calls the contractPrivateGetV5AlgoOrderHistory endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> contractPrivateGetV5AlgoOrderHistory (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("contractPrivateGetV5AlgoOrderHistory"), parameters);
+    }
+
+    // Calls the contractPrivateGetApiV6CopyTradingTraderInstruments endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> contractPrivateGetApiV6CopyTradingTraderInstruments (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("contractPrivateGetApiV6CopyTradingTraderInstruments"), parameters);
+    }
+
+    // Calls the contractPrivateGetApiV6CopyTradingTraderStatistics endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> contractPrivateGetApiV6CopyTradingTraderStatistics (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("contractPrivateGetApiV6CopyTradingTraderStatistics"), parameters);
+    }
+
+    // Calls the contractPrivateGetApiV6CopyTradingTraderProfitSharingHistory endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> contractPrivateGetApiV6CopyTradingTraderProfitSharingHistory (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("contractPrivateGetApiV6CopyTradingTraderProfitSharingHistory"), parameters);
+    }
+
+    // Calls the contractPrivateGetApiV6CopyTradingTraderProfitSharingHistorySummary endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> contractPrivateGetApiV6CopyTradingTraderProfitSharingHistorySummary (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("contractPrivateGetApiV6CopyTradingTraderProfitSharingHistorySummary"), parameters);
+    }
+
+    // Calls the contractPrivateGetApiV6CopyTradingTraderUnrealizedProfitSharingSummary endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> contractPrivateGetApiV6CopyTradingTraderUnrealizedProfitSharingSummary (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("contractPrivateGetApiV6CopyTradingTraderUnrealizedProfitSharingSummary"), parameters);
+    }
+
+    // Calls the contractPrivateGetApiV6CopyTradingTraderFollowers endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> contractPrivateGetApiV6CopyTradingTraderFollowers (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("contractPrivateGetApiV6CopyTradingTraderFollowers"), parameters);
     }
 
     // Calls the contractPrivatePostApiV1ContractBalanceValuation endpoint. Returns a JSON object.
@@ -2314,6 +2374,31 @@ public:
     // Calls the contractPrivatePostV5AlgoCancelOrders endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> contractPrivatePostV5AlgoCancelOrders (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("contractPrivatePostV5AlgoCancelOrders"), parameters);
+    }
+
+    // Calls the contractPrivatePostApiV6CopyTradingTraderFollower endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> contractPrivatePostApiV6CopyTradingTraderFollower (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("contractPrivatePostApiV6CopyTradingTraderFollower"), parameters);
+    }
+
+    // Calls the contractPrivatePostApiV6CopyTradingTraderTransfer endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> contractPrivatePostApiV6CopyTradingTraderTransfer (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("contractPrivatePostApiV6CopyTradingTraderTransfer"), parameters);
+    }
+
+    // Calls the contractPrivatePostApiV6CopyTradingTraderFollowerSettings endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> contractPrivatePostApiV6CopyTradingTraderFollowerSettings (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("contractPrivatePostApiV6CopyTradingTraderFollowerSettings"), parameters);
+    }
+
+    // Calls the contractPrivatePostApiV6CopyTradingTraderConfig endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> contractPrivatePostApiV6CopyTradingTraderConfig (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("contractPrivatePostApiV6CopyTradingTraderConfig"), parameters);
+    }
+
+    // Calls the contractPrivatePostApiV6CopyTradingTraderApikey endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> contractPrivatePostApiV6CopyTradingTraderApikey (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("contractPrivatePostApiV6CopyTradingTraderApikey"), parameters);
     }
 
 };

@@ -386,6 +386,21 @@ public:
         return this->callEndpoint (std::string ("privateSpotPutOrderOrderId"), parameters);
     }
 
+    // Calls the privateLinearGetFutureCopytradeUserV1CopyTradeCurrentFollowingV2 endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateLinearGetFutureCopytradeUserV1CopyTradeCurrentFollowingV2 (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateLinearGetFutureCopytradeUserV1CopyTradeCurrentFollowingV2"), parameters);
+    }
+
+    // Calls the privateLinearGetFutureCopytradeUserV1CopyTradeFollowerBalanceBill endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateLinearGetFutureCopytradeUserV1CopyTradeFollowerBalanceBill (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateLinearGetFutureCopytradeUserV1CopyTradeFollowerBalanceBill"), parameters);
+    }
+
+    // Calls the privateLinearGetFutureCopytradeUserV1CopyTradeFollowerPosition endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateLinearGetFutureCopytradeUserV1CopyTradeFollowerPosition (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateLinearGetFutureCopytradeUserV1CopyTradeFollowerPosition"), parameters);
+    }
+
     // Calls the privateLinearGetFutureTradeV1EntrustPlanDetail endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privateLinearGetFutureTradeV1EntrustPlanDetail (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateLinearGetFutureTradeV1EntrustPlanDetail"), parameters);
@@ -411,6 +426,21 @@ public:
         return this->callEndpoint (std::string ("privateLinearGetFutureTradeV1EntrustProfitList"), parameters);
     }
 
+    // Calls the privateLinearGetFutureTradeV1EntrustProfitListHistory endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateLinearGetFutureTradeV1EntrustProfitListHistory (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateLinearGetFutureTradeV1EntrustProfitListHistory"), parameters);
+    }
+
+    // Calls the privateLinearGetFutureTradeV1EntrustReversePlanList endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateLinearGetFutureTradeV1EntrustReversePlanList (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateLinearGetFutureTradeV1EntrustReversePlanList"), parameters);
+    }
+
+    // Calls the privateLinearGetFutureTradeV1EntrustReversePlanListHistory endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateLinearGetFutureTradeV1EntrustReversePlanListHistory (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateLinearGetFutureTradeV1EntrustReversePlanListHistory"), parameters);
+    }
+
     // Calls the privateLinearGetFutureTradeV1EntrustTrackDetail endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privateLinearGetFutureTradeV1EntrustTrackDetail (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateLinearGetFutureTradeV1EntrustTrackDetail"), parameters);
@@ -424,6 +454,11 @@ public:
     // Calls the privateLinearGetFutureTradeV1EntrustTrackListHistory endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privateLinearGetFutureTradeV1EntrustTrackListHistory (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateLinearGetFutureTradeV1EntrustTrackListHistory"), parameters);
+    }
+
+    // Calls the privateLinearGetFutureTradeV1OrderEntrustList endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateLinearGetFutureTradeV1OrderEntrustList (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateLinearGetFutureTradeV1OrderEntrustList"), parameters);
     }
 
     // Calls the privateLinearGetFutureTradeV1OrderDetail endpoint. Returns a JSON object.
@@ -441,9 +476,29 @@ public:
         return this->callEndpoint (std::string ("privateLinearGetFutureTradeV1OrderListHistory"), parameters);
     }
 
+    // Calls the privateLinearGetFutureTradeV1OrderTradeHistory endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateLinearGetFutureTradeV1OrderTradeHistory (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateLinearGetFutureTradeV1OrderTradeHistory"), parameters);
+    }
+
     // Calls the privateLinearGetFutureTradeV1PositionListHistory endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privateLinearGetFutureTradeV1PositionListHistory (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateLinearGetFutureTradeV1PositionListHistory"), parameters);
+    }
+
+    // Calls the privateLinearGetFutureTradeV1PositionCrossMarginSymbol endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateLinearGetFutureTradeV1PositionCrossMarginSymbol (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateLinearGetFutureTradeV1PositionCrossMarginSymbol"), parameters);
+    }
+
+    // Calls the privateLinearGetFutureTradeV1PositionLeverageList endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateLinearGetFutureTradeV1PositionLeverageList (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateLinearGetFutureTradeV1PositionLeverageList"), parameters);
+    }
+
+    // Calls the privateLinearGetFutureTradeV1PositionListActive endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateLinearGetFutureTradeV1PositionListActive (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateLinearGetFutureTradeV1PositionListActive"), parameters);
     }
 
     // Calls the privateLinearGetFutureTradeV1OrderTradeList endpoint. Returns a JSON object.
@@ -451,9 +506,19 @@ public:
         return this->callEndpoint (std::string ("privateLinearGetFutureTradeV1OrderTradeList"), parameters);
     }
 
+    // Calls the privateLinearGetFutureTradeV1OrderTradeListAll endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateLinearGetFutureTradeV1OrderTradeListAll (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateLinearGetFutureTradeV1OrderTradeListAll"), parameters);
+    }
+
     // Calls the privateLinearGetFutureUserV1AccountInfo endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privateLinearGetFutureUserV1AccountInfo (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateLinearGetFutureUserV1AccountInfo"), parameters);
+    }
+
+    // Calls the privateLinearGetFutureUserV1AutoDeleverageHistory endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateLinearGetFutureUserV1AutoDeleverageHistory (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateLinearGetFutureUserV1AutoDeleverageHistory"), parameters);
     }
 
     // Calls the privateLinearGetFutureUserV1BalanceBills endpoint. Returns a JSON object.
@@ -476,6 +541,11 @@ public:
         return this->callEndpoint (std::string ("privateLinearGetFutureUserV1BalanceList"), parameters);
     }
 
+    // Calls the privateLinearGetFutureUserV1CompatBalanceCoin endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateLinearGetFutureUserV1CompatBalanceCoin (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateLinearGetFutureUserV1CompatBalanceCoin"), parameters);
+    }
+
     // Calls the privateLinearGetFutureUserV1PositionAdl endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privateLinearGetFutureUserV1PositionAdl (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateLinearGetFutureUserV1PositionAdl"), parameters);
@@ -489,6 +559,11 @@ public:
     // Calls the privateLinearGetFutureUserV1PositionList endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privateLinearGetFutureUserV1PositionList (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateLinearGetFutureUserV1PositionList"), parameters);
+    }
+
+    // Calls the privateLinearGetFutureUserV1TakerOverList endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateLinearGetFutureUserV1TakerOverList (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateLinearGetFutureUserV1TakerOverList"), parameters);
     }
 
     // Calls the privateLinearGetFutureUserV1UserStepRate endpoint. Returns a JSON object.
@@ -646,6 +721,21 @@ public:
         return this->callEndpoint (std::string ("privateInverseGetFutureTradeV1EntrustProfitList"), parameters);
     }
 
+    // Calls the privateInverseGetFutureTradeV1EntrustProfitListHistory endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateInverseGetFutureTradeV1EntrustProfitListHistory (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateInverseGetFutureTradeV1EntrustProfitListHistory"), parameters);
+    }
+
+    // Calls the privateInverseGetFutureTradeV1EntrustReversePlanList endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateInverseGetFutureTradeV1EntrustReversePlanList (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateInverseGetFutureTradeV1EntrustReversePlanList"), parameters);
+    }
+
+    // Calls the privateInverseGetFutureTradeV1EntrustReversePlanListHistory endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateInverseGetFutureTradeV1EntrustReversePlanListHistory (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateInverseGetFutureTradeV1EntrustReversePlanListHistory"), parameters);
+    }
+
     // Calls the privateInverseGetFutureTradeV1EntrustTrackDetail endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privateInverseGetFutureTradeV1EntrustTrackDetail (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateInverseGetFutureTradeV1EntrustTrackDetail"), parameters);
@@ -659,6 +749,11 @@ public:
     // Calls the privateInverseGetFutureTradeV1EntrustTrackListHistory endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privateInverseGetFutureTradeV1EntrustTrackListHistory (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateInverseGetFutureTradeV1EntrustTrackListHistory"), parameters);
+    }
+
+    // Calls the privateInverseGetFutureTradeV1OrderEntrustList endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateInverseGetFutureTradeV1OrderEntrustList (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateInverseGetFutureTradeV1OrderEntrustList"), parameters);
     }
 
     // Calls the privateInverseGetFutureTradeV1OrderDetail endpoint. Returns a JSON object.
@@ -676,9 +771,29 @@ public:
         return this->callEndpoint (std::string ("privateInverseGetFutureTradeV1OrderListHistory"), parameters);
     }
 
+    // Calls the privateInverseGetFutureTradeV1OrderTradeHistory endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateInverseGetFutureTradeV1OrderTradeHistory (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateInverseGetFutureTradeV1OrderTradeHistory"), parameters);
+    }
+
     // Calls the privateInverseGetFutureTradeV1PositionListHistory endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privateInverseGetFutureTradeV1PositionListHistory (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateInverseGetFutureTradeV1PositionListHistory"), parameters);
+    }
+
+    // Calls the privateInverseGetFutureTradeV1PositionCrossMarginSymbol endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateInverseGetFutureTradeV1PositionCrossMarginSymbol (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateInverseGetFutureTradeV1PositionCrossMarginSymbol"), parameters);
+    }
+
+    // Calls the privateInverseGetFutureTradeV1PositionLeverageList endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateInverseGetFutureTradeV1PositionLeverageList (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateInverseGetFutureTradeV1PositionLeverageList"), parameters);
+    }
+
+    // Calls the privateInverseGetFutureTradeV1PositionListActive endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateInverseGetFutureTradeV1PositionListActive (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateInverseGetFutureTradeV1PositionListActive"), parameters);
     }
 
     // Calls the privateInverseGetFutureTradeV1OrderTradeList endpoint. Returns a JSON object.
@@ -686,9 +801,19 @@ public:
         return this->callEndpoint (std::string ("privateInverseGetFutureTradeV1OrderTradeList"), parameters);
     }
 
+    // Calls the privateInverseGetFutureTradeV1OrderTradeListAll endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateInverseGetFutureTradeV1OrderTradeListAll (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateInverseGetFutureTradeV1OrderTradeListAll"), parameters);
+    }
+
     // Calls the privateInverseGetFutureUserV1AccountInfo endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privateInverseGetFutureUserV1AccountInfo (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateInverseGetFutureUserV1AccountInfo"), parameters);
+    }
+
+    // Calls the privateInverseGetFutureUserV1AutoDeleverageHistory endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateInverseGetFutureUserV1AutoDeleverageHistory (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateInverseGetFutureUserV1AutoDeleverageHistory"), parameters);
     }
 
     // Calls the privateInverseGetFutureUserV1BalanceBills endpoint. Returns a JSON object.
@@ -711,6 +836,11 @@ public:
         return this->callEndpoint (std::string ("privateInverseGetFutureUserV1BalanceList"), parameters);
     }
 
+    // Calls the privateInverseGetFutureUserV1CompatBalanceCoin endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateInverseGetFutureUserV1CompatBalanceCoin (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateInverseGetFutureUserV1CompatBalanceCoin"), parameters);
+    }
+
     // Calls the privateInverseGetFutureUserV1PositionAdl endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privateInverseGetFutureUserV1PositionAdl (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateInverseGetFutureUserV1PositionAdl"), parameters);
@@ -724,6 +854,11 @@ public:
     // Calls the privateInverseGetFutureUserV1PositionList endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privateInverseGetFutureUserV1PositionList (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateInverseGetFutureUserV1PositionList"), parameters);
+    }
+
+    // Calls the privateInverseGetFutureUserV1TakerOverList endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateInverseGetFutureUserV1TakerOverList (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateInverseGetFutureUserV1TakerOverList"), parameters);
     }
 
     // Calls the privateInverseGetFutureUserV1UserStepRate endpoint. Returns a JSON object.

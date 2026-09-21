@@ -205,6 +205,10 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("user/margin/status"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("user/margin/positions"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
@@ -766,7 +770,7 @@ public:
                  ccxt::any data = this->safeValue(response, std::string("data"),
                                                   ccxt::dict{});
                  ccxt::any pairs =
-                     this->safeValue(data, std::string("pairs"), ccxt::list{});
+                     this->safeList(data, std::string("pairs"), ccxt::list{});
                  ccxt::any result = ccxt::dict{};
                  for (ccxt::any i = 0; isLessThan(i, getArrayLength(pairs));
                       postFixIncrement(i)) {
@@ -901,7 +905,7 @@ public:
     ccxt::any data =
         this->safeValue(response, std::string("data"), ccxt::dict{});
     ccxt::any assets =
-        this->safeValue(data, std::string("assets"), ccxt::list{});
+        this->safeList(data, std::string("assets"), ccxt::list{});
     for (ccxt::any i = 0; isLessThan(i, getArrayLength(assets));
          postFixIncrement(i)) {
       ccxt::any balance = ::getValue(assets, i);
@@ -1548,8 +1552,7 @@ public:
     }
     ccxt::any success = this->safeInteger(response, std::string("success"));
     ccxt::any data = this->safeValue(response, std::string("data"));
-    if (isTrue(isTrue((isTrue(isTrue(isEqual(success, ccxt::any{})) ||
-                              isTrue(isEqual(success, null))) ||
+    if (isTrue(isTrue((isTrue(isEqual(success, ccxt::any{})) ||
                        isTrue(isEqual(success, 0)))) ||
                isTrue((isEqual(data, ccxt::any{}))))) {
       ccxt::any errorMessages = ccxt::dict{

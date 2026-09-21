@@ -352,6 +352,10 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 15},
                             }},
+                           {std::string("margin-settings"),
+                            ccxt::dict{
+                                {std::string("cost"), 15},
+                            }},
                            {std::string("futures/balance"),
                             ccxt::dict{
                                 {std::string("cost"), 15},
@@ -404,11 +408,19 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 15},
                             }},
+                           {std::string("user/api-keys"),
+                            ccxt::dict{
+                                {std::string("cost"), 15},
+                            }},
                            {std::string("wallet/balance"),
                             ccxt::dict{
                                 {std::string("cost"), 30},
                             }},
                            {std::string("wallet/balance/{currency}"),
+                            ccxt::dict{
+                                {std::string("cost"), 30},
+                            }},
+                           {std::string("wallet/crypto/address/white-list"),
                             ccxt::dict{
                                 {std::string("cost"), 30},
                             }},
@@ -438,6 +450,10 @@ public:
                                 {std::string("cost"), 30},
                             }},
                            {std::string("wallet/crypto/fee/estimate"),
+                            ccxt::dict{
+                                {std::string("cost"), 30},
+                            }},
+                           {std::string("wallet/crypto/fee/withdraw/hash"),
                             ccxt::dict{
                                 {std::string("cost"), 30},
                             }},
@@ -522,6 +538,10 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 30},
                             }},
+                           {std::string("wallet/crypto/fee/estimate/bulk"),
+                            ccxt::dict{
+                                {std::string("cost"), 30},
+                            }},
                            {std::string("wallet/airdrops/{id}/claim"),
                             ccxt::dict{
                                 {std::string("cost"), 30},
@@ -535,6 +555,14 @@ public:
                                 {std::string("cost"), 15},
                             }},
                            {std::string("sub-account/transfer"),
+                            ccxt::dict{
+                                {std::string("cost"), 15},
+                            }},
+                           {std::string("sub-account/transfer/sub-to-super"),
+                            ccxt::dict{
+                                {std::string("cost"), 15},
+                            }},
+                           {std::string("sub-account/transfer/sub-to-sub"),
                             ccxt::dict{
                                 {std::string("cost"), 15},
                             }},
@@ -612,9 +640,21 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("margin-settings/amm"),
+                            ccxt::dict{
+                                {std::string("cost"), 15},
+                            }},
+                           {std::string("margin/margin-settings/amr"),
+                            ccxt::dict{
+                                {std::string("cost"), 15},
+                            }},
                            {std::string("futures/account/isolated/{symbol}"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
+                            }},
+                           {std::string("futures/margin-settings/amr"),
+                            ccxt::dict{
+                                {std::string("cost"), 15},
                             }},
                            {std::string("wallet/crypto/withdraw/{id}"),
                             ccxt::dict{
@@ -1540,7 +1580,7 @@ public:
                  ccxt::any type = this->safeStringLower(
                      params, std::string("type"), std::string("spot"));
                  params = this->omit(params, ccxt::list{std::string("type")});
-                 ccxt::any accountsByType = this->safeValue(
+                 ccxt::any accountsByType = this->safeDict(
                      this->options, std::string("accountsByType"),
                      ccxt::dict{});
                  ccxt::any account = (isTrue((isEqual(type, ccxt::any{})))
@@ -3822,7 +3862,7 @@ public:
                        this->id, std::string(" convertCurrencyNetwork() only "
                                              "supports USDT currently"))));
                  }
-                 ccxt::any networks = this->safeValue(
+                 ccxt::any networks = this->safeDict(
                      this->options, std::string("networks"), ccxt::dict{});
                  fromNetwork = toUpperCase(fromNetwork);
                  toNetwork = toUpperCase(toNetwork);
@@ -4380,7 +4420,7 @@ public:
     ccxt::any leverage = this->safeNumber(position, std::string("leverage"));
     ccxt::any datetime = this->safeString(position, std::string("updated_at"));
     ccxt::any positions =
-        this->safeValue(position, std::string("positions"), ccxt::list{});
+        this->safeList(position, std::string("positions"), ccxt::list{});
     ccxt::any liquidationPrice = ccxt::any{};
     ccxt::any entryPrice = ccxt::any{};
     ccxt::any contracts = ccxt::any{};
@@ -4393,7 +4433,7 @@ public:
       contracts = this->safeNumber(entry, std::string("quantity"));
     }
     ccxt::any currencies =
-        this->safeValue(position, std::string("currencies"), ccxt::list{});
+        this->safeList(position, std::string("currencies"), ccxt::list{});
     ccxt::any collateral = ccxt::any{};
     for (ccxt::any i = 0; isLessThan(i, getArrayLength(currencies));
          postFixIncrement(i)) {
@@ -5152,7 +5192,7 @@ public:
     //    }
     //
     ccxt::any networks =
-        this->safeValue(fee, std::string("networks"), ccxt::list{});
+        this->safeList(fee, std::string("networks"), ccxt::list{});
     ccxt::any result = this->depositWithdrawFee(fee);
     for (ccxt::any j = 0; isLessThan(j, getArrayLength(networks));
          postFixIncrement(j)) {

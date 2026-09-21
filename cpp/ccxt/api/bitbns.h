@@ -116,9 +116,19 @@ public:
         return this->callEndpoint (std::string ("v1PostDepositHistoryAllSymbol"), parameters);
     }
 
+    // Calls the v1PostUserHistoryNew endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PostUserHistoryNew (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PostUserHistoryNew"), parameters);
+    }
+
     // Calls the v1PostListOpenOrdersSymbol endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> v1PostListOpenOrdersSymbol (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("v1PostListOpenOrdersSymbol"), parameters);
+    }
+
+    // Calls the v1PostListOpenOrdersOtherSymbol endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PostListOpenOrdersOtherSymbol (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PostListOpenOrdersOtherSymbol"), parameters);
     }
 
     // Calls the v1PostListOpenStopOrdersSymbol endpoint. Returns a JSON object.
@@ -136,9 +146,19 @@ public:
         return this->callEndpoint (std::string ("v1PostPlaceSellOrderSymbol"), parameters);
     }
 
+    // Calls the v1PostPlaceSellOrderOtherSymbol endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PostPlaceSellOrderOtherSymbol (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PostPlaceSellOrderOtherSymbol"), parameters);
+    }
+
     // Calls the v1PostPlaceBuyOrderSymbol endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> v1PostPlaceBuyOrderSymbol (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("v1PostPlaceBuyOrderSymbol"), parameters);
+    }
+
+    // Calls the v1PostPlaceBuyOrderOtherSymbol endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PostPlaceBuyOrderOtherSymbol (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PostPlaceBuyOrderOtherSymbol"), parameters);
     }
 
     // Calls the v1PostBuyStopLossSymbol endpoint. Returns a JSON object.
@@ -154,6 +174,11 @@ public:
     // Calls the v1PostCancelOrderSymbol endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> v1PostCancelOrderSymbol (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("v1PostCancelOrderSymbol"), parameters);
+    }
+
+    // Calls the v1PostCancelOrderOtherSymbol endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PostCancelOrderOtherSymbol (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PostCancelOrderOtherSymbol"), parameters);
     }
 
     // Calls the v1PostCancelStopLossOrderSymbol endpoint. Returns a JSON object.

@@ -225,6 +225,10 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 2},
                             }},
+                           {std::string("market/books-rpi"),
+                            ccxt::dict{
+                                {std::string("cost"), divide(1, 2)},
+                            }},
                            {std::string("market/candles"),
                             ccxt::dict{
                                 {std::string("cost"), divide(1, 2)},
@@ -430,6 +434,14 @@ public:
                            {std::string("public/vip-interest-rate-loan-quota"),
                             ccxt::dict{
                                 {std::string("cost"), 10},
+                            }},
+                           {std::string("public/mm-instrument-types"),
+                            ccxt::dict{
+                                {std::string("cost"), 4},
+                            }},
+                           {std::string("public/delta-hedge-currencies"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
                             }},
                            {std::string("rubik/stat/trading-data/support-coin"),
                             ccxt::dict{
@@ -1231,6 +1243,54 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 4},
                             }},
+                           {std::string("finance/flexible-loan/emode-info"),
+                            ccxt::dict{
+                                {std::string("cost"), 4},
+                            }},
+                           {std::string("finance/okusd/limits"),
+                            ccxt::dict{
+                                {std::string("cost"), 10},
+                            }},
+                           {std::string("finance/okusd/account"),
+                            ccxt::dict{
+                                {std::string("cost"), 10},
+                            }},
+                           {std::string("finance/okusd/subscribe/history"),
+                            ccxt::dict{
+                                {std::string("cost"), 4},
+                            }},
+                           {std::string("finance/okusd/redeem/history"),
+                            ccxt::dict{
+                                {std::string("cost"), 4},
+                            }},
+                           {std::string("finance/okusd/rewards/history"),
+                            ccxt::dict{
+                                {std::string("cost"), 4},
+                            }},
+                           {std::string("finance/okusd/rate/history"),
+                            ccxt::dict{
+                                {std::string("cost"), 4},
+                            }},
+                           {std::string("finance/stable-rewards/product-info"),
+                            ccxt::dict{
+                                {std::string("cost"), 4},
+                            }},
+                           {std::string("finance/stable-rewards/balance"),
+                            ccxt::dict{
+                                {std::string("cost"), 4},
+                            }},
+                           {std::string("finance/stable-rewards/apy-history"),
+                            ccxt::dict{
+                                {std::string("cost"), divide(5, 3)},
+                            }},
+                           {std::string("users/glp/todayperformance"),
+                            ccxt::dict{
+                                {std::string("cost"), 4},
+                            }},
+                           {std::string("users/glp/historicalperformance"),
+                            ccxt::dict{
+                                {std::string("cost"), 4},
+                            }},
                            {std::string("copytrading/current-subpositions"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
@@ -1363,6 +1423,26 @@ public:
                            {std::string("affiliate/invitee/detail"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
+                            }},
+                           {std::string("affiliate/performance/summary"),
+                            ccxt::dict{
+                                {std::string("cost"), divide(10, 3)},
+                            }},
+                           {std::string("affiliate/invitee/list"),
+                            ccxt::dict{
+                                {std::string("cost"), divide(10, 3)},
+                            }},
+                           {std::string("affiliate/link/list"),
+                            ccxt::dict{
+                                {std::string("cost"), divide(10, 3)},
+                            }},
+                           {std::string("affiliate/co-inviter/list"),
+                            ccxt::dict{
+                                {std::string("cost"), divide(10, 3)},
+                            }},
+                           {std::string("affiliate/sub-affiliate/list"),
+                            ccxt::dict{
+                                {std::string("cost"), divide(10, 3)},
                             }},
                            {std::string("users/partner/if-rebate"),
                             ccxt::dict{
@@ -1948,6 +2028,22 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 4},
                             }},
+                           {std::string("finance/flexible-loan/borrow"),
+                            ccxt::dict{
+                                {std::string("cost"), 10},
+                            }},
+                           {std::string("finance/flexible-loan/repay"),
+                            ccxt::dict{
+                                {std::string("cost"), 10},
+                            }},
+                           {std::string("finance/okusd/subscribe"),
+                            ccxt::dict{
+                                {std::string("cost"), 20},
+                            }},
+                           {std::string("finance/okusd/redeem"),
+                            ccxt::dict{
+                                {std::string("cost"), 20},
+                            }},
                            {std::string("copytrading/algo-order"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
@@ -2364,6 +2460,7 @@ public:
                       {std::string("54008"), std::string("InvalidOrder")},
                       {std::string("54009"), std::string("InvalidOrder")},
                       {std::string("54011"), std::string("InvalidOrder")},
+                      {std::string("54051"), std::string("InvalidOrder")},
                       {std::string("54072"), std::string("ExchangeError")},
                       {std::string("54073"), std::string("BadRequest")},
                       {std::string("54074"), std::string("ExchangeError")},
@@ -3839,6 +3936,8 @@ public:
    * https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-order-book
    * @see
    * https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-full-order-book
+   * @see
+   * https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-rpi-order-book
    * @param {string} symbol unified symbol of the market to fetch the order book
    * for
    * @param {int} [limit] the maximum amount of order book entries to return
@@ -3846,6 +3945,9 @@ public:
    * endpoint
    * @param {string} [params.method] 'publicGetMarketBooksFull' or
    * 'publicGetMarketBooks' default is 'publicGetMarketBooks'
+   * @param {bool} [params.rpi] set to true to use the RPI order book, which
+   * consolidates organic and retail-price-improvement liquidity, capped at 400
+   * entries
    * @returns {object} an [order book structure]{@link
    * https://docs.ccxt.com/?id=order-book-structure}
    */
@@ -3863,6 +3965,11 @@ public:
                      {std::string("instId"),
                       ::getValue(market, std::string("id"))},
                  };
+                 ccxt::any rpi = false;
+                 ccxt::any rpiparamsVariable = this->handleOptionAndParams(
+                     params, std::string("fetchOrderBook"), std::string("rpi"));
+                 rpi = ::getValue(rpiparamsVariable, 0);
+                 params = ::getValue(rpiparamsVariable, 1);
                  ccxt::any method = ccxt::any{};
                  ccxt::any methodparamsVariable = this->handleOptionAndParams(
                      params, std::string("fetchOrderBook"),
@@ -3879,14 +3986,25 @@ public:
                  limit =
                      (isTrue((isEqual(limit, ccxt::any{}))) ? ccxt::any(100)
                                                             : ccxt::any(limit));
+                 if (isTrue(isTrue(rpi) &&
+                            isTrue((isGreaterThan(limit, 400))))) {
+                   // the rpi book hard-errors with 51000 "Parameter sz error."
+                   // above 400, including the 5000 that
+                   // publicGetMarketBooksFull defaults to
+                   limit = 400;
+                 }
                  if (isTrue(!isEqual(limit, ccxt::any{}))) {
                    ::setValue(request, std::string("sz"), limit); // max 400
                  }
                  ccxt::any response = ccxt::any{};
-                 if (isTrue(isTrue((isEqual(
-                                method,
-                                std::string("publicGetMarketBooksFull")))) ||
-                            isTrue((isGreaterThan(limit, 400))))) {
+                 if (isTrue(rpi)) {
+                   response = awaitValue(this->publicGetMarketBooksRpi(
+                       this->extend(request, params)));
+                 } else if (isTrue(isTrue((isEqual(
+                                       method,
+                                       std::string(
+                                           "publicGetMarketBooksFull")))) ||
+                                   isTrue((isGreaterThan(limit, 400))))) {
                    response = awaitValue(this->publicGetMarketBooksFull(
                        this->extend(request, params)));
                  } else {
@@ -3915,6 +4033,11 @@ public:
                  //             }
                  //         ]
                  //     }
+                 //
+                 // the rpi book has the same envelope, but each level is
+                 // [ price, totalQty, nonRpiQty, count ] - totalQty already
+                 // includes the rpi liquidity, so index 0 and 1 stay the price
+                 // and the amount
                  //
                  ccxt::any data = this->safeList(response, std::string("data"),
                                                  ccxt::list{});
@@ -5725,7 +5848,8 @@ public:
    * @see
    * https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-post-place-algo-order
    * @param {string} symbol unified symbol of the market to create an order in
-   * @param {string} type 'market' or 'limit'
+   * @param {string} type 'market' or 'limit', or 'rpi' for a retail price
+   * improvement maker order
    * @param {string} side 'buy' or 'sell'
    * @param {float} amount how much of currency you want to trade in units of
    * base currency
@@ -5762,6 +5886,10 @@ public:
    * false for one way mode
    * @param {string} [params.marginMode] 'cross' or 'isolated', the default is
    * 'cross'
+   * @param {bool} [params.rpiTakerAccess] true to let a taker order match
+   * against retail price improvement liquidity
+   * @param {bool} [params.rpiPxRound] *rpi orders only* true to round the price
+   * outward to the nearest placeable non-crossing level
    * @returns {object} an [order structure]{@link
    * https://docs.ccxt.com/?id=order-structure}
    */
@@ -6481,8 +6609,18 @@ public:
                  //
                  ccxt::any ordersData = this->safeList(
                      response, std::string("data"), ccxt::list{});
+                 // the request-only keys must not be merged onto every parsed
+                 // order: a clientOrderId[] request would otherwise come back
+                 // as a list under the unified string field
+                 ccxt::any orderParams = this->omit(
+                     params,
+                     ccxt::list{std::string("clOrdId"),
+                                std::string("clientOrderId"),
+                                std::string("algoId"), std::string("stop"),
+                                std::string("trigger"), std::string("trailing"),
+                                std::string("method")});
                  return this->parseOrders(ordersData, market, ccxt::any{},
-                                          ccxt::any{}, params);
+                                          ccxt::any{}, orderParams);
                })
         .share();
   }
@@ -6664,8 +6802,10 @@ public:
     ccxt::any statuses = ccxt::dict{
         {std::string("canceled"), std::string("canceled")},
         {std::string("order_failed"), std::string("canceled")},
+        {std::string("mmp_canceled"), std::string("canceled")},
         {std::string("live"), std::string("open")},
         {std::string("partially_filled"), std::string("open")},
+        {std::string("partially_effective"), std::string("open")},
         {std::string("filled"), std::string("closed")},
         {std::string("effective"), std::string("closed")},
     };
@@ -6890,6 +7030,10 @@ public:
     } else if (isTrue(isEqual(type, std::string("ioc")))) {
       timeInForce = std::string("IOC");
       type = std::string("limit");
+    } else if (isTrue(isEqual(type, std::string("rpi")))) {
+      // retail price improvement orders are maker-only limit orders
+      postOnly = true;
+      type = std::string("limit");
     }
     ccxt::any marketId = this->safeString(order, std::string("instId"));
     market = this->safeMarket(marketId, market);
@@ -6943,7 +7087,7 @@ public:
     ccxt::any reduceOnlyRaw =
         this->safeString(order, std::string("reduceOnly"));
     ccxt::any reduceOnly = false;
-    if (isTrue(!isEqual(reduceOnly, ccxt::any{}))) {
+    if (isTrue(!isEqual(reduceOnlyRaw, ccxt::any{}))) {
       reduceOnly = (isEqual(reduceOnlyRaw, std::string("true")));
     }
     return this->safeOrder(
@@ -12444,8 +12588,8 @@ public:
    * @param {string} params.uly Underlying, either uly or instFamily is required
    * @param {string} params.instFamily Instrument family, either uly or
    * instFamily is required
-   * @returns {object} a [greeks structure]{@link
-   * https://docs.ccxt.com/?id=greeks-structure}
+   * @returns {object} a dictionary of [greeks structures]{@link
+   * https://docs.ccxt.com/?id=greeks-structure} indexed by market symbol
    */
   std::shared_future<ccxt::any>
   fetchAllGreeks(ccxt::any symbols = ccxt::any{},

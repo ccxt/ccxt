@@ -45,6 +45,52 @@ void testRoundTimeframe() {
   assertTrue(
       isEqual(exchange.roundTimeframe(std::string("1d"), testDate, ROUND_UP),
               exchange.parse8601(std::string("2019-08-13 00:00:00"))));
+  ccxt::any calendarDate =
+      exchange.parse8601(std::string("2026-09-02T00:00:00Z"));
+  if (isTrue(isEqual(calendarDate, ccxt::any{}))) {
+    return;
+  }
+  assertTrue(isEqual(
+      exchange.roundTimeframe(std::string("1w"), calendarDate, ROUND_DOWN),
+      exchange.parse8601(std::string("2026-08-31T00:00:00Z"))));
+  assertTrue(isEqual(
+      exchange.roundTimeframe(std::string("1M"), calendarDate, ROUND_DOWN),
+      exchange.parse8601(std::string("2026-09-01T00:00:00Z"))));
+  assertTrue(isEqual(
+      exchange.roundTimeframe(std::string("1y"), calendarDate, ROUND_DOWN),
+      exchange.parse8601(std::string("2026-01-01T00:00:00Z"))));
+  assertTrue(isEqual(
+      exchange.roundTimeframe(std::string("1w"), calendarDate, ROUND_UP),
+      exchange.parse8601(std::string("2026-09-07T00:00:00Z"))));
+  assertTrue(isEqual(
+      exchange.roundTimeframe(std::string("1M"), calendarDate, ROUND_UP),
+      exchange.parse8601(std::string("2026-10-01T00:00:00Z"))));
+  assertTrue(isEqual(
+      exchange.roundTimeframe(std::string("1y"), calendarDate, ROUND_UP),
+      exchange.parse8601(std::string("2027-01-01T00:00:00Z"))));
+  assertTrue(isEqual(
+      exchange.roundTimeframe(std::string("2w"), calendarDate, ROUND_DOWN),
+      exchange.parse8601(std::string("2026-08-31T00:00:00Z"))));
+  assertTrue(isEqual(
+      exchange.roundTimeframe(std::string("3M"), calendarDate, ROUND_DOWN),
+      exchange.parse8601(std::string("2026-07-01T00:00:00Z"))));
+  assertTrue(isEqual(
+      exchange.roundTimeframe(std::string("2w"), calendarDate, ROUND_UP),
+      exchange.parse8601(std::string("2026-09-14T00:00:00Z"))));
+  assertTrue(isEqual(
+      exchange.roundTimeframe(std::string("3M"), calendarDate, ROUND_UP),
+      exchange.parse8601(std::string("2026-10-01T00:00:00Z"))));
+  ccxt::any preEpochDate =
+      exchange.parse8601(std::string("1960-06-15T00:00:00Z"));
+  if (isTrue(isEqual(preEpochDate, ccxt::any{}))) {
+    return;
+  }
+  assertTrue(isEqual(
+      exchange.roundTimeframe(std::string("2w"), preEpochDate, ROUND_DOWN),
+      exchange.parse8601(std::string("1960-06-06T00:00:00Z"))));
+  assertTrue(isEqual(
+      exchange.roundTimeframe(std::string("2w"), preEpochDate, ROUND_UP),
+      exchange.parse8601(std::string("1960-06-20T00:00:00Z"))));
 }
 void testParseTimeframe() {
   ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{

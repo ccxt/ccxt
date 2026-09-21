@@ -1706,6 +1706,10 @@ virtual ccxt::any callMethod(ccxt::any name, ccxt::any args) override {
     if (true)
       return this->nonce();
   }
+  if (which == "incrementingNonce") {
+    if (true)
+      return this->incrementingNonce();
+  }
   if (which == "setHeaders") {
     if (true)
       return this->setHeaders(::getValue(args, 0));
@@ -2649,6 +2653,11 @@ virtual ccxt::any callMethod(ccxt::any name, ccxt::any args) override {
   if (which == "account") {
     if (true)
       return this->account();
+  }
+  if (which == "mergeBalanceAccount") {
+    if (true)
+      return this->mergeBalanceAccount(::getValue(args, 0), ::getValue(args, 1),
+                                       ::getValue(args, 2));
   }
   if (which == "commonCurrencyCode") {
     if (true)

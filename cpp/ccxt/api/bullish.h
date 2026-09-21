@@ -36,6 +36,16 @@ public:
         return this->callEndpoint (std::string ("publicGetV1AssetsSymbol"), parameters);
     }
 
+    // Calls the publicGetV1VolGrids endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> publicGetV1VolGrids (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("publicGetV1VolGrids"), parameters);
+    }
+
+    // Calls the publicGetV1AssetsSymbolVolGrid endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> publicGetV1AssetsSymbolVolGrid (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("publicGetV1AssetsSymbolVolGrid"), parameters);
+    }
+
     // Calls the publicGetV1Markets endpoint. Returns a JSON array.
     virtual std::shared_future<ccxt::any> publicGetV1Markets (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("publicGetV1Markets"), parameters);
@@ -44,6 +54,11 @@ public:
     // Calls the publicGetV1MarketsSymbol endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> publicGetV1MarketsSymbol (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("publicGetV1MarketsSymbol"), parameters);
+    }
+
+    // Calls the publicGetV1HistoryMarkets endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> publicGetV1HistoryMarkets (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("publicGetV1HistoryMarkets"), parameters);
     }
 
     // Calls the publicGetV1HistoryMarketsSymbol endpoint. Returns a JSON object.
@@ -71,6 +86,16 @@ public:
         return this->callEndpoint (std::string ("publicGetV1MarketsSymbolCandle"), parameters);
     }
 
+    // Calls the publicGetV1MarketsSymbolAuctions endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> publicGetV1MarketsSymbolAuctions (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("publicGetV1MarketsSymbolAuctions"), parameters);
+    }
+
+    // Calls the publicGetV1MarketsSymbolAuctionsNoii endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> publicGetV1MarketsSymbolAuctionsNoii (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("publicGetV1MarketsSymbolAuctionsNoii"), parameters);
+    }
+
     // Calls the publicGetV1HistoryMarketsSymbolTrades endpoint. Returns a JSON array.
     virtual std::shared_future<ccxt::any> publicGetV1HistoryMarketsSymbolTrades (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("publicGetV1HistoryMarketsSymbolTrades"), parameters);
@@ -79,6 +104,16 @@ public:
     // Calls the publicGetV1HistoryMarketsSymbolFundingRate endpoint. Returns a JSON array.
     virtual std::shared_future<ccxt::any> publicGetV1HistoryMarketsSymbolFundingRate (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("publicGetV1HistoryMarketsSymbolFundingRate"), parameters);
+    }
+
+    // Calls the publicGetV1HistoryMarketsSymbolAuctions endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> publicGetV1HistoryMarketsSymbolAuctions (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("publicGetV1HistoryMarketsSymbolAuctions"), parameters);
+    }
+
+    // Calls the publicGetV1HistoryOptionTrades endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> publicGetV1HistoryOptionTrades (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("publicGetV1HistoryOptionTrades"), parameters);
     }
 
     // Calls the publicGetV1IndexPrices endpoint. Returns a JSON array.
@@ -119,6 +154,11 @@ public:
     // Calls the privateGetV2OrdersOrderId endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privateGetV2OrdersOrderId (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateGetV2OrdersOrderId"), parameters);
+    }
+
+    // Calls the privateGetV2OrdersClientOrderIdClientOrderId endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateGetV2OrdersClientOrderIdClientOrderId (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetV2OrdersClientOrderIdClientOrderId"), parameters);
     }
 
     // Calls the privateGetV2AmmInstructions endpoint. Returns a JSON array.
@@ -256,6 +296,21 @@ public:
         return this->callEndpoint (std::string ("privateGetV2OtcTradesUnconfirmedTrade"), parameters);
     }
 
+    // Calls the privateGetV2OtcTradesDelegatedAccounts endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> privateGetV2OtcTradesDelegatedAccounts (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetV2OtcTradesDelegatedAccounts"), parameters);
+    }
+
+    // Calls the privateGetV2IdbDelegatedAccounts endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> privateGetV2IdbDelegatedAccounts (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetV2IdbDelegatedAccounts"), parameters);
+    }
+
+    // Calls the privateGetV2IdbOtcTrades endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> privateGetV2IdbOtcTrades (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetV2IdbOtcTrades"), parameters);
+    }
+
     // Calls the privatePostV2Orders endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privatePostV2Orders (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostV2Orders"), parameters);
@@ -286,6 +341,11 @@ public:
         return this->callEndpoint (std::string ("privatePostV1SimulatePortfolioMargin"), parameters);
     }
 
+    // Calls the privatePostV1BulkSimulatePortfolioMargin endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> privatePostV1BulkSimulatePortfolioMargin (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostV1BulkSimulatePortfolioMargin"), parameters);
+    }
+
     // Calls the privatePostV1WalletsSelfHostedInitiate endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privatePostV1WalletsSelfHostedInitiate (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostV1WalletsSelfHostedInitiate"), parameters);
@@ -304,6 +364,16 @@ public:
     // Calls the privatePostV2OtcCommand endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privatePostV2OtcCommand (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostV2OtcCommand"), parameters);
+    }
+
+    // Calls the privatePostV2IdbOtcTrades endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostV2IdbOtcTrades (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostV2IdbOtcTrades"), parameters);
+    }
+
+    // Calls the privatePostV2IdbOtcCommand endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostV2IdbOtcCommand (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostV2IdbOtcCommand"), parameters);
     }
 
 };

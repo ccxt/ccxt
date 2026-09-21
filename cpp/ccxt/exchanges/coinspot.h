@@ -351,7 +351,15 @@ public:
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
+                                {std::string("my/buy/now/coinlist"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
                                 {std::string("my/sell/now"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("my/sell/now/coinlist"),
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
@@ -380,6 +388,14 @@ public:
                                      {std::string("cost"), 1},
                                  }},
                                 {std::string("my/coin/withdraw/send"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("my/coin/withdraw/send/async"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("my/coin/withdraw/send/status"),
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},

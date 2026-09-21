@@ -116,6 +116,11 @@ public:
         return this->callEndpoint (std::string ("privateGetV3Transfer"), parameters);
     }
 
+    // Calls the privateGetV3StockAccount endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateGetV3StockAccount (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetV3StockAccount"), parameters);
+    }
+
     // Calls the privatePostV3DeleteOpenOrders endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privatePostV3DeleteOpenOrders (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostV3DeleteOpenOrders"), parameters);
@@ -149,6 +154,26 @@ public:
     // Calls the privatePostV3ContractTransferOut endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privatePostV3ContractTransferOut (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostV3ContractTransferOut"), parameters);
+    }
+
+    // Calls the privatePostV3ContractTransferTo endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostV3ContractTransferTo (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostV3ContractTransferTo"), parameters);
+    }
+
+    // Calls the privatePostV3SubmitWithdrawClaim endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostV3SubmitWithdrawClaim (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostV3SubmitWithdrawClaim"), parameters);
+    }
+
+    // Calls the privatePostV3StockRegisterAccount endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostV3StockRegisterAccount (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostV3StockRegisterAccount"), parameters);
+    }
+
+    // Calls the privatePostV3StockGenerateApi endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privatePostV3StockGenerateApi (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostV3StockGenerateApi"), parameters);
     }
 
 };

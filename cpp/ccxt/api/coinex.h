@@ -746,6 +746,11 @@ public:
         return this->callEndpoint (std::string ("v2PublicGetAssetsAllDepositWithdrawConfig"), parameters);
     }
 
+    // Calls the v2PublicGetAssetsInfo endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v2PublicGetAssetsInfo (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v2PublicGetAssetsInfo"), parameters);
+    }
+
     // Calls the v2PrivateGetAccountSubs endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> v2PrivateGetAccountSubs (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("v2PrivateGetAccountSubs"), parameters);
@@ -1269,6 +1274,16 @@ public:
     // Calls the v2PrivatePostFuturesSetPositionTakeProfit endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> v2PrivatePostFuturesSetPositionTakeProfit (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("v2PrivatePostFuturesSetPositionTakeProfit"), parameters);
+    }
+
+    // Calls the v2PrivatePostFuturesModifyPositionStopLoss endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v2PrivatePostFuturesModifyPositionStopLoss (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v2PrivatePostFuturesModifyPositionStopLoss"), parameters);
+    }
+
+    // Calls the v2PrivatePostFuturesModifyPositionTakeProfit endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v2PrivatePostFuturesModifyPositionTakeProfit (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v2PrivatePostFuturesModifyPositionTakeProfit"), parameters);
     }
 
 };

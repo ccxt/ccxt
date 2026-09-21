@@ -102,8 +102,8 @@ public:
                  {std::string("fetchPositionsHistory"), false},
                  {std::string("fetchPremiumIndexOHLCV"), false},
                  {std::string("fetchStatus"), true},
-                 {std::string("fetchTicker"), false},
-                 {std::string("fetchTickers"), false},
+                 {std::string("fetchTicker"), true},
+                 {std::string("fetchTickers"), true},
                  {std::string("fetchTime"), true},
                  {std::string("fetchTrades"), true},
                  {std::string("fetchTradingFee"), true},
@@ -672,6 +672,14 @@ public:
                                  ccxt::dict{
                                      {std::string("cost"), 60},
                                  }},
+                                {std::string("futures/defaultMarginMode/reset"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 60},
+                                 }},
+                                {std::string("isolatedMargin/margin"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 60},
+                                 }},
                                 {std::string("algo/order"),
                                  ccxt::dict{
                                      {std::string("cost"), 5},
@@ -698,6 +706,15 @@ public:
                                 {std::string("futures/positionMode"),
                                  ccxt::dict{
                                      {std::string("cost"), 120},
+                                 }},
+                                {std::string("futures/defaultMarginMode"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 60},
+                                 }},
+                                {std::string(
+                                     "futures/defaultMarginMode/{symbol}"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 60},
                                  }},
                                 {std::string("order/{oid}"),
                                  ccxt::dict{
@@ -754,6 +771,11 @@ public:
                                 {std::string("orders/pending"),
                                  ccxt::dict{
                                      {std::string("cost"), 1},
+                                 }},
+                                {std::string(
+                                     "asset/wallet/withdraw/{withdrawId}"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 60},
                                  }},
                             }},
                        }},
@@ -3216,7 +3238,7 @@ public:
       };
       return this->safeString(statuses, status, status);
     }
-    return status;
+    return ccxt::any{};
   }
 
   /**
@@ -3281,6 +3303,250 @@ public:
                      data, symbol, timestamp, std::string("bids"),
                      std::string("asks"), std::string("price"),
                      std::string("quantity"));
+               })
+        .share();
+  }
+
+  ccxt::any parseTicker(ccxt::any ticker,
+                        ccxt::any market = ccxt::any{}) override {
+    //
+    //     {
+    //         "symbol": "PERP_BTC_USDT",
+    //         "indexPrice": "63049",
+    //         "markPrice": "63028",
+    //         "estFundingRate": "0.00008868",
+    //         "lastFundingRate": "0.00008545",
+    //         "openInterest": "221.3498",
+    //         "24hOpen": "63880",
+    //         "24hClose": "63020",
+    //         "24hHigh": "64000",
+    //         "24hLow": "62800",
+    //         "24hVolume": "12000",
+    //         "24hAmount": "756000000",
+    //         "nextFundingTime": 1786694400000
+    //     }
+    //
+    ccxt::any marketId = this->safeString(ticker, std::string("symbol"));
+    market = this->safeMarket(marketId, market);
+    ccxt::any timestamp = this->safeInteger(ticker, std::string("timestamp"));
+    return this->safeTicker(
+        ccxt::dict{
+            {std::string("symbol"), ::getValue(market, std::string("symbol"))},
+            {std::string("timestamp"), timestamp},
+            {std::string("datetime"), this->iso8601(timestamp)},
+            {std::string("high"),
+             this->safeString(ticker, std::string("24hHigh"))},
+            {std::string("low"),
+             this->safeString(ticker, std::string("24hLow"))},
+            {std::string("bid"), ccxt::any{}},
+            {std::string("bidVolume"), ccxt::any{}},
+            {std::string("ask"), ccxt::any{}},
+            {std::string("askVolume"), ccxt::any{}},
+            {std::string("vwap"), ccxt::any{}},
+            {std::string("open"),
+             this->safeString(ticker, std::string("24hOpen"))},
+            {std::string("close"),
+             this->safeString(ticker, std::string("24hClose"))},
+            {std::string("last"),
+             this->safeString(ticker, std::string("24hClose"))},
+            {std::string("previousClose"), ccxt::any{}},
+            {std::string("change"), ccxt::any{}},
+            {std::string("percentage"), ccxt::any{}},
+            {std::string("average"), ccxt::any{}},
+            {std::string("baseVolume"),
+             this->safeString(ticker, std::string("24hVolume"))},
+            {std::string("quoteVolume"),
+             this->safeString(ticker, std::string("24hAmount"))},
+            {std::string("indexPrice"),
+             this->safeString(ticker, std::string("indexPrice"))},
+            {std::string("markPrice"),
+             this->safeString(ticker, std::string("markPrice"))},
+            {std::string("info"), ticker},
+        },
+        market);
+  }
+
+  /**
+   * @method
+   * @name woo#fetchTicker
+   * @description fetches a price ticker, a statistical calculation with the
+   * information calculated over the past 24 hours for a specific market, swap
+   * markets only
+   * @see https://developer.woox.io/api-reference/endpoint/public_data/futures
+   * @param {string} symbol unified symbol of the market to fetch the ticker for
+   * @param {object} [params] extra parameters specific to the exchange API
+   * endpoint
+   * @returns {object} a [ticker structure]{@link
+   * https://docs.ccxt.com/?id=ticker-structure}
+   */
+  std::shared_future<ccxt::any>
+  fetchTicker(ccxt::any symbol, ccxt::any params = ccxt::dict{}) override {
+    return std::async(
+               std::launch::deferred,
+               [=]() mutable -> ccxt::any {
+                 if (isTrue(isEqual(this->markets, ccxt::any{}))) {
+                   awaitValue(this->loadMarkets());
+                 }
+                 ccxt::any market = this->market(symbol);
+                 if (isTrue(!isEqual(::getValue(market, std::string("swap")),
+                                     true))) {
+                   throw NotSupported(toString(add(
+                       this->id,
+                       std::string(" fetchTicker() supports swap markets only, "
+                                   "there is no spot ticker endpoint"))));
+                 }
+                 ccxt::any request = ccxt::dict{
+                     {std::string("symbol"),
+                      ::getValue(market, std::string("id"))},
+                 };
+                 ccxt::any response = awaitValue(
+                     this->v3PublicGetFutures(this->extend(request, params)));
+                 //
+                 //     {
+                 //         "success": true,
+                 //         "data": {
+                 //             "rows": [
+                 //                 {
+                 //                     "symbol": "PERP_BTC_USDT",
+                 //                     "indexPrice": "63049",
+                 //                     "markPrice": "63028",
+                 //                     "estFundingRate": "0.00008868",
+                 //                     "lastFundingRate": "0.00008545",
+                 //                     "openInterest": "221.3498",
+                 //                     "24hOpen": "63880",
+                 //                     "24hClose": "63020",
+                 //                     "24hHigh": "64000",
+                 //                     "24hLow": "62800",
+                 //                     "24hVolume": "12000",
+                 //                     "24hAmount": "756000000",
+                 //                     "nextFundingTime": 1786694400000
+                 //                 }
+                 //             ]
+                 //         },
+                 //         "timestamp": 1786690534921
+                 //     }
+                 //
+                 ccxt::any data = this->safeDict(response, std::string("data"),
+                                                 ccxt::dict{});
+                 ccxt::any rows =
+                     this->safeList(data, std::string("rows"), ccxt::list{});
+                 ccxt::any first = this->safeDict(rows, 0);
+                 if (isTrue(isEqual(first, ccxt::any{}))) {
+                   throw BadSymbol(toString(
+                       add(add(this->id, std::string(" fetchTicker() could not "
+                                                     "find ticker data for ")),
+                           symbol)));
+                 }
+                 ccxt::any ticker = this->extend(
+                     ccxt::dict{
+                         {std::string("timestamp"),
+                          this->safeInteger(response,
+                                            std::string("timestamp"))},
+                     },
+                     first);
+                 return this->parseTicker(ticker, market);
+               })
+        .share();
+  }
+
+  /**
+   * @method
+   * @name woo#fetchTickers
+   * @description fetches price tickers for multiple markets, statistical
+   * information calculated over the past 24 hours for each market, only swap
+   * markets are supported
+   * @see https://developer.woox.io/api-reference/endpoint/public_data/futures
+   * @param {string[]} [symbols] unified symbols of the markets to fetch the
+   * ticker for, swap markets only, all swap tickers are returned when not
+   * assigned
+   * @param {object} [params] extra parameters specific to the exchange API
+   * endpoint
+   * @param {string} [params.type] market type, must be 'swap' when no symbols
+   * are provided
+   * @returns {object} a dictionary of [ticker structures]{@link
+   * https://docs.ccxt.com/?id=ticker-structure}
+   */
+  std::shared_future<ccxt::any>
+  fetchTickers(ccxt::any symbols = ccxt::any{},
+               ccxt::any params = ccxt::dict{}) override {
+    return std::async(
+               std::launch::deferred,
+               [=]() mutable -> ccxt::any {
+                 if (isTrue(isEqual(this->markets, ccxt::any{}))) {
+                   awaitValue(this->loadMarkets());
+                 }
+                 if (isTrue(!isEqual(symbols, ccxt::any{}))) {
+                   ccxt::any symbolsLength = getArrayLength(symbols);
+                   if (isTrue(isGreaterThan(symbolsLength, 0))) {
+                     // the type gate throws NotSupported rather than letting
+                     // marketSymbols raise std::string("BadRequest"), so
+                     // callers (and the live test harness) can tell "wrong
+                     // market type" apart from a malformed request,
+                     // marketSymbols still enforces that the rest of the list
+                     // matches
+                     ccxt::any firstMarket =
+                         this->market(::getValue(symbols, 0));
+                     if (isTrue(!isEqual(
+                             ::getValue(firstMarket, std::string("swap")),
+                             true))) {
+                       throw NotSupported(toString(add(
+                           this->id,
+                           std::string(
+                               " fetchTickers() supports swap markets only"))));
+                     }
+                   }
+                 }
+                 symbols = this->marketSymbols(symbols, std::string("swap"),
+                                               true, true);
+                 if (isTrue(isEqual(symbols, ccxt::any{}))) {
+                   ccxt::any marketType = ccxt::any{};
+                   ccxt::any marketTypeparamsVariable =
+                       this->handleMarketTypeAndParams(
+                           std::string("fetchTickers"), ccxt::any{}, params,
+                           std::string("swap"));
+                   marketType = ::getValue(marketTypeparamsVariable, 0);
+                   params = ::getValue(marketTypeparamsVariable, 1);
+                   if (isTrue(!isEqual(marketType, std::string("swap")))) {
+                     throw NotSupported(toString(add(
+                         this->id,
+                         std::string(
+                             " fetchTickers() supports swap markets only"))));
+                   }
+                 }
+                 ccxt::any response =
+                     awaitValue(this->v3PublicGetFutures(params));
+                 //
+                 // same as fetchTicker, with multiple rows
+                 //
+                 ccxt::any data = this->safeDict(response, std::string("data"),
+                                                 ccxt::dict{});
+                 ccxt::any rows =
+                     this->safeList(data, std::string("rows"), ccxt::list{});
+                 ccxt::any timestamp =
+                     this->safeInteger(response, std::string("timestamp"));
+                 ccxt::any result = ccxt::list{};
+                 for (ccxt::any i = 0; isLessThan(i, getArrayLength(rows));
+                      postFixIncrement(i)) {
+                   ccxt::any row = ::getValue(rows, i);
+                   ccxt::any marketId =
+                       this->safeString(row, std::string("symbol"));
+                   if (isTrue(isEqual(marketId, ccxt::any{}))) {
+                     continue;
+                   }
+                   if (isTrue(isTrue((
+                                  isEqual(this->markets_by_id, ccxt::any{}))) ||
+                              !isTrue((inOp(this->markets_by_id, marketId))))) {
+                     continue;
+                   }
+                   ccxt::any ticker = this->extend(
+                       ccxt::dict{
+                           {std::string("timestamp"), timestamp},
+                       },
+                       row);
+                   arrayPush(result, this->parseTicker(ticker));
+                 }
+                 return this->filterByArrayTickers(
+                     result, std::string("symbol"), symbols);
                })
         .share();
   }
@@ -6610,6 +6876,28 @@ public:
       if (count >= 3)
         return awaitValue(this->fetchOrderBook(
             ::getValue(args, 0), ::getValue(args, 1), ::getValue(args, 2)));
+    }
+    if (which == "parseTicker") {
+      if (count <= 1)
+        return this->parseTicker(::getValue(args, 0));
+      if (count >= 2)
+        return this->parseTicker(::getValue(args, 0), ::getValue(args, 1));
+    }
+    if (which == "fetchTicker") {
+      if (count <= 1)
+        return awaitValue(this->fetchTicker(::getValue(args, 0)));
+      if (count >= 2)
+        return awaitValue(
+            this->fetchTicker(::getValue(args, 0), ::getValue(args, 1)));
+    }
+    if (which == "fetchTickers") {
+      if (count <= 0)
+        return awaitValue(this->fetchTickers());
+      if (count == 1)
+        return awaitValue(this->fetchTickers(::getValue(args, 0)));
+      if (count >= 2)
+        return awaitValue(
+            this->fetchTickers(::getValue(args, 0), ::getValue(args, 1)));
     }
     if (which == "fetchOHLCV") {
       if (count <= 1)

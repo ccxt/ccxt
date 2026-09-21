@@ -171,8 +171,8 @@
     }
 
     // typed facade over fetchDepositAddressesByNetwork
-    std::vector<DepositAddress> FetchDepositAddressesByNetwork (const std::string& code, const dict& params = dict {}) {
-        return typedVector<DepositAddress> (awaitValue (ccxt::any (this->fetchDepositAddressesByNetwork (typedAny (code), typedAny (params)))));
+    DepositAddresses FetchDepositAddressesByNetwork (const std::string& code, const dict& params = dict {}) {
+        return DepositAddresses (awaitValue (ccxt::any (this->fetchDepositAddressesByNetwork (typedAny (code), typedAny (params)))));
     }
 
     // typed facade over fetchOpenInterestHistory
@@ -416,8 +416,8 @@
     }
 
     // typed facade over fetchAllGreeks
-    std::vector<Greeks> FetchAllGreeks (const std::vector<std::string>& symbols = {}, const dict& params = dict {}) {
-        return typedVector<Greeks> (awaitValue (ccxt::any (this->fetchAllGreeks (typedAny (symbols), typedAny (params)))));
+    AllGreeks FetchAllGreeks (const std::vector<std::string>& symbols = {}, const dict& params = dict {}) {
+        return AllGreeks (awaitValue (ccxt::any (this->fetchAllGreeks (typedAny (symbols), typedAny (params)))));
     }
 
     // typed facade over fetchOptionChain

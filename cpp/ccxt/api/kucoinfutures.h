@@ -116,6 +116,11 @@ public:
         return this->callEndpoint (std::string ("publicGetMarginCollateralRatio"), parameters);
     }
 
+    // Calls the publicGetMarginAvailableInventory endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> publicGetMarginAvailableInventory (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("publicGetMarginAvailableInventory"), parameters);
+    }
+
     // Calls the publicGetConvertSymbol endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> publicGetConvertSymbol (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("publicGetConvertSymbol"), parameters);
@@ -486,6 +491,11 @@ public:
         return this->callEndpoint (std::string ("privateGetMarginInterest"), parameters);
     }
 
+    // Calls the privateGetMarginBorrowRate endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateGetMarginBorrowRate (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetMarginBorrowRate"), parameters);
+    }
+
     // Calls the privateGetProjectList endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privateGetProjectList (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateGetProjectList"), parameters);
@@ -564,6 +574,31 @@ public:
     // Calls the privateGetAffiliateInviterStatistics endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> privateGetAffiliateInviterStatistics (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privateGetAffiliateInviterStatistics"), parameters);
+    }
+
+    // Calls the privateGetAffiliateQueryInvitees endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateGetAffiliateQueryInvitees (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetAffiliateQueryInvitees"), parameters);
+    }
+
+    // Calls the privateGetAffiliateQueryMyCommission endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateGetAffiliateQueryMyCommission (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetAffiliateQueryMyCommission"), parameters);
+    }
+
+    // Calls the privateGetAffiliateQueryTransactionByUid endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateGetAffiliateQueryTransactionByUid (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetAffiliateQueryTransactionByUid"), parameters);
+    }
+
+    // Calls the privateGetAffiliateQueryTransactionByTime endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateGetAffiliateQueryTransactionByTime (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetAffiliateQueryTransactionByTime"), parameters);
+    }
+
+    // Calls the privateGetAffiliateQueryKumining endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateGetAffiliateQueryKumining (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetAffiliateQueryKumining"), parameters);
     }
 
     // Calls the privatePostSubUserCreated endpoint. Returns a JSON object.
@@ -1386,6 +1421,11 @@ public:
         return this->callEndpoint (std::string ("brokerGetBrokerNdRebaseDownload"), parameters);
     }
 
+    // Calls the brokerGetBrokerNdMarkUp endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> brokerGetBrokerNdMarkUp (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("brokerGetBrokerNdMarkUp"), parameters);
+    }
+
     // Calls the brokerGetAssetNdbrokerDepositList endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> brokerGetAssetNdbrokerDepositList (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("brokerGetAssetNdbrokerDepositList"), parameters);
@@ -1424,6 +1464,11 @@ public:
     // Calls the brokerPostBrokerNdAccountUpdateApikey endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> brokerPostBrokerNdAccountUpdateApikey (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("brokerPostBrokerNdAccountUpdateApikey"), parameters);
+    }
+
+    // Calls the brokerPostBrokerNdMarkUp endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> brokerPostBrokerNdMarkUp (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("brokerPostBrokerNdMarkUp"), parameters);
     }
 
     // Calls the brokerDeleteBrokerNdAccountApikey endpoint. Returns a JSON object.
@@ -1594,6 +1639,11 @@ public:
     // Calls the utaGetMarketFiatPrice endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> utaGetMarketFiatPrice (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("utaGetMarketFiatPrice"), parameters);
+    }
+
+    // Calls the utaV2GetMarketFundingRate endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> utaV2GetMarketFundingRate (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("utaV2GetMarketFundingRate"), parameters);
     }
 
     // Calls the utaPrivateGetMarketOrderbook endpoint. Returns a JSON object.

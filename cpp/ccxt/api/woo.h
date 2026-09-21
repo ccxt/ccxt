@@ -586,6 +586,16 @@ public:
         return this->callEndpoint (std::string ("v3PrivatePostSpotMarginInterestRepay"), parameters);
     }
 
+    // Calls the v3PrivatePostFuturesDefaultMarginModeReset endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v3PrivatePostFuturesDefaultMarginModeReset (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v3PrivatePostFuturesDefaultMarginModeReset"), parameters);
+    }
+
+    // Calls the v3PrivatePostIsolatedMarginMargin endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v3PrivatePostIsolatedMarginMargin (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v3PrivatePostIsolatedMarginMargin"), parameters);
+    }
+
     // Calls the v3PrivatePostAlgoOrder endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> v3PrivatePostAlgoOrder (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("v3PrivatePostAlgoOrder"), parameters);
@@ -614,6 +624,16 @@ public:
     // Calls the v3PrivatePutFuturesPositionMode endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> v3PrivatePutFuturesPositionMode (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("v3PrivatePutFuturesPositionMode"), parameters);
+    }
+
+    // Calls the v3PrivatePutFuturesDefaultMarginMode endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v3PrivatePutFuturesDefaultMarginMode (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v3PrivatePutFuturesDefaultMarginMode"), parameters);
+    }
+
+    // Calls the v3PrivatePutFuturesDefaultMarginModeSymbol endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v3PrivatePutFuturesDefaultMarginModeSymbol (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v3PrivatePutFuturesDefaultMarginModeSymbol"), parameters);
     }
 
     // Calls the v3PrivatePutOrderOid endpoint. Returns a JSON object.
@@ -679,6 +699,11 @@ public:
     // Calls the v3PrivateDeleteOrdersPending endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> v3PrivateDeleteOrdersPending (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("v3PrivateDeleteOrdersPending"), parameters);
+    }
+
+    // Calls the v3PrivateDeleteAssetWalletWithdrawWithdrawId endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v3PrivateDeleteAssetWalletWithdrawWithdrawId (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v3PrivateDeleteAssetWalletWithdrawWithdrawId"), parameters);
     }
 
 };

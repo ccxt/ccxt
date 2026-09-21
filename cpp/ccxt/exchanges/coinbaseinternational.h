@@ -193,17 +193,50 @@ public:
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
+                                {std::string("instruments/volumes/daily"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("position-offsets"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("fee-rate-tiers"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
                             }},
                        }},
                       {std::string("private"),
                        ccxt::dict{
                            {std::string("get"),
                             ccxt::dict{
+                                {std::string("address-book"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
                                 {std::string("orders"),
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
                                 {std::string("orders/{id}"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("index/{index}/composition"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string(
+                                     "index/{index}/composition-history"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("index/{index}/price"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("index/{index}/candles"),
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
@@ -242,6 +275,22 @@ public:
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
+                                {std::string(
+                                     "portfolios/{portfolio}/position-limits"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("portfolios/{portfolio}/"
+                                             "position-limits/positions"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string(
+                                     "portfolios/{portfolio}/position-limits/"
+                                     "positions/{instrument}"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
                                 {std::string("portfolios/fills"),
                                  ccxt::dict{
                                      {std::string("cost"), 1},
@@ -250,11 +299,40 @@ public:
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
+                                {std::string("portfolios/fee-rates"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("portfolios/{portfolio}/loans"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string(
+                                     "portfolios/{portfolio}/loans/{asset}"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("portfolios/{portfolio}/loans/"
+                                             "{asset}/availability"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("portfolios/{portfolio}/"
+                                             "margin-call-status"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
                                 {std::string("transfers"),
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
                                 {std::string("transfers/{transfer_uuid}"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string(
+                                     "transfers/withdraw/{portfolio}/{asset}/"
+                                     "counterparty-withdrawal-limit"),
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
@@ -273,7 +351,31 @@ public:
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
+                                {std::string("portfolios/{portfolio}/"
+                                             "cross-collateral-enabled"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("portfolios/{portfolio}/"
+                                             "auto-margin-enabled"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string(
+                                     "portfolios/{portfolio}/loans/{asset}"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("portfolios/{portfolio}/loans/"
+                                             "{asset}/preview"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
                                 {std::string("portfolios/transfer"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                                {std::string("portfolios/transfer-position"),
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},
@@ -318,6 +420,13 @@ public:
                                      {std::string("cost"), 1},
                                  }},
                                 {std::string("orders/{id}"),
+                                 ccxt::dict{
+                                     {std::string("cost"), 1},
+                                 }},
+                            }},
+                           {std::string("patch"),
+                            ccxt::dict{
+                                {std::string("portfolios/{portfolio}"),
                                  ccxt::dict{
                                      {std::string("cost"), 1},
                                  }},

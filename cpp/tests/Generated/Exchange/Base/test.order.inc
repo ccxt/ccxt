@@ -128,7 +128,7 @@ void testOrder(ccxt::any exchange, ccxt::any skippedProperties,
            postFixIncrement(i)) {
         testTrade(exchange, skippedNew, method,
                   ::getValue(::getValue(entry, std::string("trades")), i),
-                  symbol, now);
+                  symbol, now, false);
       }
     }
   }

@@ -143,6 +143,8 @@ public:
                        std::string("https://www.mercadobitcoin.com.br/v4")},
                       {std::string("v4PublicNet"),
                        std::string("https://api.mercadobitcoin.net/api/v4")},
+                      {std::string("v4Private"),
+                       std::string("https://api.mercadobitcoin.net/api/v4")},
                   }},
                  {std::string("www"),
                   std::string("https://www.mercadobitcoin.com.br")},
@@ -258,6 +260,33 @@ public:
                       {std::string("get"),
                        ccxt::dict{
                            {std::string("candles"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                       }},
+                  }},
+                 {std::string("v4Private"),
+                  ccxt::dict{
+                      {std::string("post"),
+                       ccxt::dict{
+                           {std::string("accounts"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("accounts/{accountId}/{symbol}/"
+                                        "transfers/internal"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("oauth2/token"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                       }},
+                      {std::string("patch"),
+                       ccxt::dict{
+                           {std::string("accounts/{accountId}/wallet/{symbol}/"
+                                        "deposits/{depositId}"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -706,7 +735,7 @@ public:
     ccxt::any data =
         this->safeValue(response, std::string("response_data"), ccxt::dict{});
     ccxt::any balances =
-        this->safeValue(data, std::string("balance"), ccxt::dict{});
+        this->safeDict(data, std::string("balance"), ccxt::dict{});
     ccxt::any result = ccxt::dict{
         {std::string("info"), response},
     };
@@ -1412,8 +1441,8 @@ public:
     ccxt::any result = ccxt::list{};
     for (ccxt::any i = 0; isLessThan(i, getArrayLength(orders));
          postFixIncrement(i)) {
-      ccxt::any trades = this->safeValue(::getValue(orders, i),
-                                         std::string("trades"), ccxt::list{});
+      ccxt::any trades = this->safeList(::getValue(orders, i),
+                                        std::string("trades"), ccxt::list{});
       for (ccxt::any y = 0; isLessThan(y, getArrayLength(trades));
            postFixIncrement(y)) {
         arrayPush(result, ::getValue(trades, y));

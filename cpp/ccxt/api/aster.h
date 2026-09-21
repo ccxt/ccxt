@@ -361,6 +361,36 @@ public:
         return this->callEndpoint (std::string ("fapiPrivateGetV3Builder"), parameters);
     }
 
+    // Calls the fapiPrivateGetV3BuilderUserTrades endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> fapiPrivateGetV3BuilderUserTrades (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("fapiPrivateGetV3BuilderUserTrades"), parameters);
+    }
+
+    // Calls the fapiPrivateGetV3BuilderApprovedUserList endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> fapiPrivateGetV3BuilderApprovedUserList (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("fapiPrivateGetV3BuilderApprovedUserList"), parameters);
+    }
+
+    // Calls the fapiPrivateGetV3StpMode endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> fapiPrivateGetV3StpMode (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("fapiPrivateGetV3StpMode"), parameters);
+    }
+
+    // Calls the fapiPrivateGetV3AssetMigrateUserHistory endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> fapiPrivateGetV3AssetMigrateUserHistory (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("fapiPrivateGetV3AssetMigrateUserHistory"), parameters);
+    }
+
+    // Calls the fapiPrivateGetV3StrategyOpenOrder endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> fapiPrivateGetV3StrategyOpenOrder (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("fapiPrivateGetV3StrategyOpenOrder"), parameters);
+    }
+
+    // Calls the fapiPrivateGetV3StrategyHistoryOrder endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> fapiPrivateGetV3StrategyHistoryOrder (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("fapiPrivateGetV3StrategyHistoryOrder"), parameters);
+    }
+
     // Calls the fapiPrivatePostV1PositionSideDual endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> fapiPrivatePostV1PositionSideDual (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("fapiPrivatePostV1PositionSideDual"), parameters);
@@ -506,6 +536,36 @@ public:
         return this->callEndpoint (std::string ("fapiPrivatePostV3UpdateBuilder"), parameters);
     }
 
+    // Calls the fapiPrivatePostV3RegisterAndApproveAgent endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> fapiPrivatePostV3RegisterAndApproveAgent (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("fapiPrivatePostV3RegisterAndApproveAgent"), parameters);
+    }
+
+    // Calls the fapiPrivatePostV3AssetMigrateUser endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> fapiPrivatePostV3AssetMigrateUser (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("fapiPrivatePostV3AssetMigrateUser"), parameters);
+    }
+
+    // Calls the fapiPrivatePostV3Chase endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> fapiPrivatePostV3Chase (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("fapiPrivatePostV3Chase"), parameters);
+    }
+
+    // Calls the fapiPrivatePostV3StpMode endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> fapiPrivatePostV3StpMode (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("fapiPrivatePostV3StpMode"), parameters);
+    }
+
+    // Calls the fapiPrivatePostV3PlaceStrategyOrder endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> fapiPrivatePostV3PlaceStrategyOrder (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("fapiPrivatePostV3PlaceStrategyOrder"), parameters);
+    }
+
+    // Calls the fapiPrivatePostV3UpdateStrategyOrder endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> fapiPrivatePostV3UpdateStrategyOrder (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("fapiPrivatePostV3UpdateStrategyOrder"), parameters);
+    }
+
     // Calls the fapiPrivatePutV1ListenKey endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> fapiPrivatePutV1ListenKey (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("fapiPrivatePutV1ListenKey"), parameters);
@@ -544,6 +604,16 @@ public:
     // Calls the fapiPrivateDeleteV3BatchOrders endpoint. Returns a JSON array.
     virtual std::shared_future<ccxt::any> fapiPrivateDeleteV3BatchOrders (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("fapiPrivateDeleteV3BatchOrders"), parameters);
+    }
+
+    // Calls the fapiPrivateDeleteV3GuardedCancelOrder endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> fapiPrivateDeleteV3GuardedCancelOrder (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("fapiPrivateDeleteV3GuardedCancelOrder"), parameters);
+    }
+
+    // Calls the fapiPrivateDeleteV3GuardedBatchOrders endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> fapiPrivateDeleteV3GuardedBatchOrders (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("fapiPrivateDeleteV3GuardedBatchOrders"), parameters);
     }
 
     // Calls the fapiPrivateDeleteV3Mmp endpoint. Returns a JSON array.

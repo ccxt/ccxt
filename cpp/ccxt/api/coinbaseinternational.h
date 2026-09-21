@@ -56,6 +56,26 @@ public:
         return this->callEndpoint (std::string ("v1PublicGetInstrumentsInstrumentCandles"), parameters);
     }
 
+    // Calls the v1PublicGetInstrumentsVolumesDaily endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PublicGetInstrumentsVolumesDaily (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PublicGetInstrumentsVolumesDaily"), parameters);
+    }
+
+    // Calls the v1PublicGetPositionOffsets endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PublicGetPositionOffsets (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PublicGetPositionOffsets"), parameters);
+    }
+
+    // Calls the v1PublicGetFeeRateTiers endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> v1PublicGetFeeRateTiers (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PublicGetFeeRateTiers"), parameters);
+    }
+
+    // Calls the v1PrivateGetAddressBook endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> v1PrivateGetAddressBook (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PrivateGetAddressBook"), parameters);
+    }
+
     // Calls the v1PrivateGetOrders endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> v1PrivateGetOrders (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("v1PrivateGetOrders"), parameters);
@@ -64,6 +84,26 @@ public:
     // Calls the v1PrivateGetOrdersId endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> v1PrivateGetOrdersId (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("v1PrivateGetOrdersId"), parameters);
+    }
+
+    // Calls the v1PrivateGetIndexIndexComposition endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PrivateGetIndexIndexComposition (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PrivateGetIndexIndexComposition"), parameters);
+    }
+
+    // Calls the v1PrivateGetIndexIndexCompositionHistory endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PrivateGetIndexIndexCompositionHistory (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PrivateGetIndexIndexCompositionHistory"), parameters);
+    }
+
+    // Calls the v1PrivateGetIndexIndexPrice endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PrivateGetIndexIndexPrice (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PrivateGetIndexIndexPrice"), parameters);
+    }
+
+    // Calls the v1PrivateGetIndexIndexCandles endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PrivateGetIndexIndexCandles (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PrivateGetIndexIndexCandles"), parameters);
     }
 
     // Calls the v1PrivateGetPortfolios endpoint. Returns a JSON array.
@@ -106,6 +146,21 @@ public:
         return this->callEndpoint (std::string ("v1PrivateGetPortfoliosPortfolioPositionsInstrument"), parameters);
     }
 
+    // Calls the v1PrivateGetPortfoliosPortfolioPositionLimits endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PrivateGetPortfoliosPortfolioPositionLimits (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PrivateGetPortfoliosPortfolioPositionLimits"), parameters);
+    }
+
+    // Calls the v1PrivateGetPortfoliosPortfolioPositionLimitsPositions endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> v1PrivateGetPortfoliosPortfolioPositionLimitsPositions (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PrivateGetPortfoliosPortfolioPositionLimitsPositions"), parameters);
+    }
+
+    // Calls the v1PrivateGetPortfoliosPortfolioPositionLimitsPositionsInstrument endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PrivateGetPortfoliosPortfolioPositionLimitsPositionsInstrument (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PrivateGetPortfoliosPortfolioPositionLimitsPositionsInstrument"), parameters);
+    }
+
     // Calls the v1PrivateGetPortfoliosFills endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> v1PrivateGetPortfoliosFills (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("v1PrivateGetPortfoliosFills"), parameters);
@@ -116,6 +171,31 @@ public:
         return this->callEndpoint (std::string ("v1PrivateGetPortfoliosPortfolioFills"), parameters);
     }
 
+    // Calls the v1PrivateGetPortfoliosFeeRates endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> v1PrivateGetPortfoliosFeeRates (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PrivateGetPortfoliosFeeRates"), parameters);
+    }
+
+    // Calls the v1PrivateGetPortfoliosPortfolioLoans endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> v1PrivateGetPortfoliosPortfolioLoans (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PrivateGetPortfoliosPortfolioLoans"), parameters);
+    }
+
+    // Calls the v1PrivateGetPortfoliosPortfolioLoansAsset endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PrivateGetPortfoliosPortfolioLoansAsset (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PrivateGetPortfoliosPortfolioLoansAsset"), parameters);
+    }
+
+    // Calls the v1PrivateGetPortfoliosPortfolioLoansAssetAvailability endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PrivateGetPortfoliosPortfolioLoansAssetAvailability (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PrivateGetPortfoliosPortfolioLoansAssetAvailability"), parameters);
+    }
+
+    // Calls the v1PrivateGetPortfoliosPortfolioMarginCallStatus endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PrivateGetPortfoliosPortfolioMarginCallStatus (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PrivateGetPortfoliosPortfolioMarginCallStatus"), parameters);
+    }
+
     // Calls the v1PrivateGetTransfers endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> v1PrivateGetTransfers (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("v1PrivateGetTransfers"), parameters);
@@ -124,6 +204,11 @@ public:
     // Calls the v1PrivateGetTransfersTransferUuid endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> v1PrivateGetTransfersTransferUuid (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("v1PrivateGetTransfersTransferUuid"), parameters);
+    }
+
+    // Calls the v1PrivateGetTransfersWithdrawPortfolioAssetCounterpartyWithdrawalLimit endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PrivateGetTransfersWithdrawPortfolioAssetCounterpartyWithdrawalLimit (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PrivateGetTransfersWithdrawPortfolioAssetCounterpartyWithdrawalLimit"), parameters);
     }
 
     // Calls the v1PrivatePostOrders endpoint. Returns a JSON object.
@@ -141,9 +226,34 @@ public:
         return this->callEndpoint (std::string ("v1PrivatePostPortfoliosMargin"), parameters);
     }
 
+    // Calls the v1PrivatePostPortfoliosPortfolioCrossCollateralEnabled endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PrivatePostPortfoliosPortfolioCrossCollateralEnabled (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PrivatePostPortfoliosPortfolioCrossCollateralEnabled"), parameters);
+    }
+
+    // Calls the v1PrivatePostPortfoliosPortfolioAutoMarginEnabled endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PrivatePostPortfoliosPortfolioAutoMarginEnabled (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PrivatePostPortfoliosPortfolioAutoMarginEnabled"), parameters);
+    }
+
+    // Calls the v1PrivatePostPortfoliosPortfolioLoansAsset endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PrivatePostPortfoliosPortfolioLoansAsset (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PrivatePostPortfoliosPortfolioLoansAsset"), parameters);
+    }
+
+    // Calls the v1PrivatePostPortfoliosPortfolioLoansAssetPreview endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PrivatePostPortfoliosPortfolioLoansAssetPreview (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PrivatePostPortfoliosPortfolioLoansAssetPreview"), parameters);
+    }
+
     // Calls the v1PrivatePostPortfoliosTransfer endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> v1PrivatePostPortfoliosTransfer (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("v1PrivatePostPortfoliosTransfer"), parameters);
+    }
+
+    // Calls the v1PrivatePostPortfoliosTransferPosition endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PrivatePostPortfoliosTransferPosition (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PrivatePostPortfoliosTransferPosition"), parameters);
     }
 
     // Calls the v1PrivatePostTransfersWithdraw endpoint. Returns a JSON object.
@@ -189,6 +299,11 @@ public:
     // Calls the v1PrivateDeleteOrdersId endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> v1PrivateDeleteOrdersId (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("v1PrivateDeleteOrdersId"), parameters);
+    }
+
+    // Calls the v1PrivatePatchPortfoliosPortfolio endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> v1PrivatePatchPortfoliosPortfolio (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("v1PrivatePatchPortfoliosPortfolio"), parameters);
     }
 
 };

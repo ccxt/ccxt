@@ -185,6 +185,10 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("api/v1/borrowLend/apy"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("api/v1/markets"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
@@ -202,6 +206,26 @@ public:
                                 {std::string("cost"), 1},
                             }},
                            {std::string("api/v1/depth"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("api/v1/prediction"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("api/v1/prediction/tags"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("api/v1/market-sessions"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("api/v1/market-holidays"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("api/v1/securities"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -271,6 +295,11 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string(
+                                "api/v1/borrowLend/position/liquidationPrice"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("api/v1/capital"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
@@ -319,7 +348,15 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("wapi/v1/history/position"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("wapi/v1/history/orders"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("api/v1/rfqs"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -331,11 +368,27 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("wapi/v1/history/rfq/fill"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("wapi/v1/history/quote/fill"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("wapi/v1/history/settlement"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
                            {std::string("wapi/v1/history/strategies"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("api/v1/strategy"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("api/v1/strategies"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -390,6 +443,10 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("api/v1/strategy"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                        }},
                       {std::string("delete"),
                        ccxt::dict{
@@ -398,6 +455,14 @@ public:
                                 {std::string("cost"), 1},
                             }},
                            {std::string("api/v1/orders"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("api/v1/strategy"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("api/v1/strategies"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -3234,7 +3299,7 @@ public:
                                              instruction);
       } else {
         ccxt::any queryString = this->urlencode(sortedParams);
-        if (isTrue(isGreaterThan(getArrayLength(queryString), 0))) {
+        if (isTrue(isGreaterThan(getStringLength(queryString), 0))) {
           queryString = add(queryString, std::string("&"));
         }
         payload = add(
@@ -3264,7 +3329,7 @@ public:
     }
     if (isTrue(isEqual(method, std::string("GET")))) {
       ccxt::any query = this->urlencode(sortedParams);
-      if (isTrue(!isEqual(getArrayLength(query), 0))) {
+      if (isTrue(!isEqual(getStringLength(query), 0))) {
         endpoint = add(endpoint, add(std::string("?"), query));
       }
     }

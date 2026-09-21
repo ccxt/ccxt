@@ -1488,6 +1488,21 @@ virtual ccxt::any parseLedger(ccxt::any data, ccxt::any currency = ccxt::any{},
 
 virtual ccxt::any nonce();
 
+/**
+ * @method
+ * @ignore
+ * @name Exchange#incrementingNonce
+ * @description returns a strictly-increasing nonce for venues that reject
+ * duplicate nonces per signer; the unit is whatever nonce () returns — the base
+ * default is seconds, so a venue that does not override nonce () gets a
+ * second-resolution counter that drifts ahead of wall clock under load, while
+ * venues needing milliseconds override nonce () as hyperliquid does. The
+ * counter is per exchange instance, so it narrows the duplicate-nonce race but
+ * does not remove it across instances or processes.
+ * @returns {int} a strictly-increasing nonce in the unit returned by nonce ()
+ */
+virtual ccxt::any incrementingNonce();
+
 virtual ccxt::any setHeaders(ccxt::any headers);
 
 virtual ccxt::any currencyId(ccxt::any code);
@@ -1579,11 +1594,11 @@ fetch2(ccxt::any path, ccxt::any api = std::string("public"),
                    retryDelay);
                retryDelay = ::getValue(retryDelayparamsVariable, 0);
                params = ::getValue(retryDelayparamsVariable, 1);
-               ccxt::any fetchData = ccxt::any{};
                ccxt::any fetchDataCacheEnabled =
                    isGreaterThan(this->fetchHistoryCacheSize, 0);
                for (ccxt::any i = 0; isLessThan(i, add(retries, 1));
                     postFixIncrement(i)) {
+                 ccxt::any fetchData = ccxt::any{};
                  if (isTrue(fetchDataCacheEnabled)) {
                    fetchData = ccxt::dict{
                        {std::string("request"), ccxt::any{}},
@@ -1598,8 +1613,7 @@ fetch2(ccxt::any path, ccxt::any api = std::string("public"),
                    this->setLastRestRequestTimestamp();
                    ccxt::any request =
                        this->sign(path, api, method, params, headers, body);
-                   if (isTrue(isTrue(fetchDataCacheEnabled) &&
-                              isTrue((!isEqual(fetchData, ccxt::any{}))))) {
+                   if (isTrue(!isEqual(fetchData, ccxt::any{}))) {
                      ::setValue(fetchData, std::string("request"), request);
                    }
                    this->setLastRequest(request);
@@ -1608,16 +1622,14 @@ fetch2(ccxt::any path, ccxt::any api = std::string("public"),
                                    ::getValue(request, std::string("method")),
                                    ::getValue(request, std::string("headers")),
                                    ::getValue(request, std::string("body"))));
-                   if (isTrue(isTrue(fetchDataCacheEnabled) &&
-                              isTrue((!isEqual(fetchData, ccxt::any{}))))) {
+                   if (isTrue(!isEqual(fetchData, ccxt::any{}))) {
                      ::setValue(::getValue(fetchData, std::string("response")),
                                 std::string("body"), response);
                      this->addFetchCache(fetchData);
                    }
                    return response;
                  } catch (const std::exception &e) {
-                   if (isTrue(isTrue(fetchDataCacheEnabled) &&
-                              isTrue((!isEqual(fetchData, ccxt::any{}))))) {
+                   if (isTrue(!isEqual(fetchData, ccxt::any{}))) {
                      ::setValue(fetchData, std::string("error"), e);
                      this->addFetchCache(fetchData);
                    }
@@ -2665,6 +2677,22 @@ fetchContractDepositAddress(ccxt::any code, ccxt::any params = ccxt::dict{}) {
 }
 
 virtual ccxt::any account();
+
+/**
+ * @ignore
+ * @method
+ * @description merges a per-market (isolated margin) account into a flat
+ * code-keyed balance dict, summing string fields when the code recurs across
+ * markets
+ * @param {object} result the code-keyed balance dict being built
+ * @param {string} code unified currency code
+ * @param {object} account a balance account with string free/used/total/debt
+ * @returns {object} result — callers MUST reassign (`result =
+ * this.mergeBalanceAccount (result, ...)`): PHP arrays are passed by value, so
+ * the mutation is not visible through the argument
+ */
+virtual ccxt::any mergeBalanceAccount(ccxt::any result, ccxt::any code,
+                                      ccxt::any account);
 
 virtual ccxt::any commonCurrencyCode(ccxt::any code);
 

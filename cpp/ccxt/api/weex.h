@@ -141,6 +141,41 @@ public:
         return this->callEndpoint (std::string ("privateGetApiV3AgencyGetDealData"), parameters);
     }
 
+    // Calls the privateGetApiV3ApiReferralCheckUserEligibility endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateGetApiV3ApiReferralCheckUserEligibility (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetApiV3ApiReferralCheckUserEligibility"), parameters);
+    }
+
+    // Calls the privateGetApiV3ApiReferralRebateRecentRecord endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateGetApiV3ApiReferralRebateRecentRecord (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetApiV3ApiReferralRebateRecentRecord"), parameters);
+    }
+
+    // Calls the privateGetApiV3ApiReferralRebateRatio endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateGetApiV3ApiReferralRebateRatio (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetApiV3ApiReferralRebateRatio"), parameters);
+    }
+
+    // Calls the privateGetApiV3ContentArticlesDetail endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateGetApiV3ContentArticlesDetail (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetApiV3ContentArticlesDetail"), parameters);
+    }
+
+    // Calls the privateGetApiV3ContentArticlesList endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateGetApiV3ContentArticlesList (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetApiV3ContentArticlesList"), parameters);
+    }
+
+    // Calls the privateGetApiV3ContentArticlesListByCoin endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateGetApiV3ContentArticlesListByCoin (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetApiV3ContentArticlesListByCoin"), parameters);
+    }
+
+    // Calls the privateGetApiV3ContentBannersLatest endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> privateGetApiV3ContentBannersLatest (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privateGetApiV3ContentBannersLatest"), parameters);
+    }
+
     // Calls the privatePostApiV3AccountBills endpoint. Returns a JSON array.
     virtual std::shared_future<ccxt::any> privatePostApiV3AccountBills (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostApiV3AccountBills"), parameters);
@@ -164,6 +199,11 @@ public:
     // Calls the privatePostApiV3RebateAffiliateInternalWithdrawal endpoint. Returns a JSON scalar.
     virtual std::shared_future<ccxt::any> privatePostApiV3RebateAffiliateInternalWithdrawal (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostApiV3RebateAffiliateInternalWithdrawal"), parameters);
+    }
+
+    // Calls the privatePostApiV3TaxIncome endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> privatePostApiV3TaxIncome (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("privatePostApiV3TaxIncome"), parameters);
     }
 
     // Calls the privateDeleteApiV3Order endpoint. Returns a JSON object.
@@ -331,6 +371,51 @@ public:
         return this->callEndpoint (std::string ("contractPrivateGetCapiV3SimOrderHistory"), parameters);
     }
 
+    // Calls the contractPrivateGetCapiV3CopyFollowerHistoryOrders endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> contractPrivateGetCapiV3CopyFollowerHistoryOrders (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("contractPrivateGetCapiV3CopyFollowerHistoryOrders"), parameters);
+    }
+
+    // Calls the contractPrivateGetCapiV3CopyFollowerMyTraders endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> contractPrivateGetCapiV3CopyFollowerMyTraders (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("contractPrivateGetCapiV3CopyFollowerMyTraders"), parameters);
+    }
+
+    // Calls the contractPrivateGetCapiV3CopyFollowerOpenOrders endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> contractPrivateGetCapiV3CopyFollowerOpenOrders (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("contractPrivateGetCapiV3CopyFollowerOpenOrders"), parameters);
+    }
+
+    // Calls the contractPrivateGetCapiV3CopyFollowerSettings endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> contractPrivateGetCapiV3CopyFollowerSettings (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("contractPrivateGetCapiV3CopyFollowerSettings"), parameters);
+    }
+
+    // Calls the contractPrivateGetCapiV3CopyTraderHistoryOrders endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> contractPrivateGetCapiV3CopyTraderHistoryOrders (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("contractPrivateGetCapiV3CopyTraderHistoryOrders"), parameters);
+    }
+
+    // Calls the contractPrivateGetCapiV3CopyTraderOpenOrders endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> contractPrivateGetCapiV3CopyTraderOpenOrders (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("contractPrivateGetCapiV3CopyTraderOpenOrders"), parameters);
+    }
+
+    // Calls the contractPrivateGetCapiV3CopyTraderPairs endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> contractPrivateGetCapiV3CopyTraderPairs (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("contractPrivateGetCapiV3CopyTraderPairs"), parameters);
+    }
+
+    // Calls the contractPrivateGetCapiV3TrailingOpenOrders endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> contractPrivateGetCapiV3TrailingOpenOrders (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("contractPrivateGetCapiV3TrailingOpenOrders"), parameters);
+    }
+
+    // Calls the contractPrivateGetCapiV3TrailingHistoryOrders endpoint. Returns a JSON array.
+    virtual std::shared_future<ccxt::any> contractPrivateGetCapiV3TrailingHistoryOrders (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("contractPrivateGetCapiV3TrailingHistoryOrders"), parameters);
+    }
+
     // Calls the contractPrivatePostCapiV3AccountIncome endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> contractPrivatePostCapiV3AccountIncome (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("contractPrivatePostCapiV3AccountIncome"), parameters);
@@ -389,6 +474,21 @@ public:
     // Calls the contractPrivatePostCapiV3SimOrder endpoint. Returns a JSON object.
     virtual std::shared_future<ccxt::any> contractPrivatePostCapiV3SimOrder (ccxt::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("contractPrivatePostCapiV3SimOrder"), parameters);
+    }
+
+    // Calls the contractPrivatePostCapiV3CopyFollowerClosePos endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> contractPrivatePostCapiV3CopyFollowerClosePos (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("contractPrivatePostCapiV3CopyFollowerClosePos"), parameters);
+    }
+
+    // Calls the contractPrivatePostCapiV3CopyFollowerSettings endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> contractPrivatePostCapiV3CopyFollowerSettings (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("contractPrivatePostCapiV3CopyFollowerSettings"), parameters);
+    }
+
+    // Calls the contractPrivatePostCapiV3CopyFollowerStopCopy endpoint. Returns a JSON object.
+    virtual std::shared_future<ccxt::any> contractPrivatePostCapiV3CopyFollowerStopCopy (ccxt::any parameters = ccxt::dict {}) {
+        return this->callEndpoint (std::string ("contractPrivatePostCapiV3CopyFollowerStopCopy"), parameters);
     }
 
     // Calls the contractPrivateDeleteCapiV3Order endpoint. Returns a JSON object.

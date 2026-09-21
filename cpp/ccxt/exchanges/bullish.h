@@ -188,11 +188,23 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("v1/vol-grids"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v1/assets/{symbol}/vol-grid"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("v1/markets"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
                            {std::string("v1/markets/{symbol}"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v1/history/markets"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -216,12 +228,28 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("v1/markets/{symbol}/auctions"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v1/markets/{symbol}/auctions/noii"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("v1/history/markets/{symbol}/trades"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
                            {std::string(
                                 "v1/history/markets/{symbol}/funding-rate"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v1/history/markets/{symbol}/auctions"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v1/history/option-trades"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -260,6 +288,11 @@ public:
                                 {std::string("cost"), 1},
                             }},
                            {std::string("v2/orders/{orderId}"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string(
+                                "v2/orders/client-order-id/{clientOrderId}"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -378,6 +411,18 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("v2/otc-trades/delegated-accounts"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v2/idb/delegated-accounts"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v2/idb/otc-trades"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                        }},
                       {std::string("post"),
                        ccxt::dict{
@@ -405,6 +450,10 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("v1/bulk-simulate-portfolio-margin"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("v1/wallets/self-hosted/initiate"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
@@ -418,6 +467,14 @@ public:
                                 {std::string("cost"), 1},
                             }},
                            {std::string("v2/otc-command"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v2/idb/otc-trades"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("v2/idb/otc-command"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -4148,7 +4205,7 @@ public:
     }
     if (isTrue(isEqual(method, std::string("GET")))) {
       ccxt::any query = this->urlencode(request);
-      if (isTrue(isGreaterThan(getArrayLength(query), 0))) {
+      if (isTrue(isGreaterThan(getStringLength(query), 0))) {
         url = add(url, add(std::string("?"), query));
       }
     }

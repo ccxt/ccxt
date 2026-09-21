@@ -276,6 +276,10 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("markPriceCandles"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("fundings"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
@@ -289,6 +293,18 @@ public:
                                 {std::string("cost"), 1},
                             }},
                            {std::string("withdrawalDelay"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("partnerStats"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("syntheticSpotInfo"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("tokenlist"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -337,6 +353,10 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("getMakerOnlyApiKeys"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("accountActiveOrders"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
@@ -345,7 +365,15 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("accountOrders"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("export"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("export/historicalTrades"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
@@ -377,6 +405,14 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("rfq/get"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("rfq/list"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                        }},
                       {std::string("post"),
                        ccxt::dict{
@@ -384,7 +420,23 @@ public:
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},
+                           {std::string("setMakerOnlyApiKeys"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
                            {std::string("notification/ack"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("rfq/create"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("rfq/respond"),
+                            ccxt::dict{
+                                {std::string("cost"), 1},
+                            }},
+                           {std::string("rfq/update"),
                             ccxt::dict{
                                 {std::string("cost"), 1},
                             }},

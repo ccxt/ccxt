@@ -2,7 +2,7 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 void testTrade(ccxt::any exchange, ccxt::any skippedProperties,
                ccxt::any method, ccxt::any entry, ccxt::any symbol,
-               ccxt::any now) {
+               ccxt::any now, ccxt::any isPublicTrade) {
   // prediction-market structures are keyed by an outcome handle, not a
   // `symbol`, and the PredictionTrade type carries a single `fee` but omits the
   // `fees` list entirely
@@ -58,9 +58,18 @@ void testTrade(ccxt::any exchange, ccxt::any skippedProperties,
   //
   assertInArray(exchange, skippedProperties, method, entry, std::string("side"),
                 ccxt::list{std::string("buy"), std::string("sell")});
-  assertInArray(exchange, skippedProperties, method, entry,
-                std::string("takerOrMaker"),
-                ccxt::list{std::string("taker"), std::string("maker")});
+  if (isTrue(isPublicTrade)) {
+    // for public trades (fetchTrades & watchTrades), it must be either 'taker'
+    // or ccxt::any{}
+    assertInArray(exchange, skippedProperties, method, entry,
+                  std::string("takerOrMaker"),
+                  ccxt::list{std::string("taker"), ccxt::any{}});
+  } else {
+    // for private trades (fetchMyTrades & watchMyTrades), it can be any
+    assertInArray(
+        exchange, skippedProperties, method, entry, std::string("takerOrMaker"),
+        ccxt::list{std::string("taker"), std::string("maker"), ccxt::any{}});
+  }
   assertFeeStructure(exchange, skippedProperties, method, entry,
                      std::string("fee"));
   if (!isTrue((inOp(skippedProperties, std::string("fees"))))) {

@@ -16,6 +16,7 @@ std::shared_future<ccxt::any> testFetchHistoryBase() {
                ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
                    {std::string("id"), std::string("sampleexchange")},
                    {std::string("fetchHistoryCacheSize"), 2},
+                   {std::string("enableRateLimit"), false},
                });
                assertTrue(
                    isEqual(exchangeProp(exchange,
