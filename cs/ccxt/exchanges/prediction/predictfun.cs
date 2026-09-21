@@ -3434,7 +3434,7 @@ public partial class predictfun : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} the venue's acknowledgement
      */
-    public async override Task<object> unWatchOrders(object outcome = null, object parameters = null)
+    public async override Task<object> unWatchOrders(string? outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.unWatchWalletEvents("orders", parameters);
@@ -3449,7 +3449,7 @@ public partial class predictfun : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} the venue's acknowledgement
      */
-    public async override Task<object> unWatchMyTrades(object outcome = null, object parameters = null)
+    public async override Task<object> unWatchMyTrades(string? outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.unWatchWalletEvents("myTrades", parameters);

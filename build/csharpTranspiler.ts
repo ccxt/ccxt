@@ -3976,6 +3976,21 @@ class NewTranspiler {
         return lines.join ('\n');
     }
 
+    venueStringArgsWithBaseRows (venueKey: string): Record<string, number[]> | undefined {
+        const own = VENUE_STRING_ARGS[venueKey];
+        if (venueKey === 'BaseExchange' || venueKey === 'Exchange' || venueKey === 'PredictionExchange') {
+            return own;
+        }
+        const baseKeys = venueKey.startsWith ('prediction:') ? [ 'BaseExchange', 'PredictionExchange' ] : [ 'BaseExchange', 'Exchange' ];
+        const merged: Record<string, number[]> = { ...(own ?? {}) };
+        for (const baseKey of baseKeys) {
+            for (const [ name, positions ] of Object.entries (VENUE_STRING_ARGS[baseKey] ?? {})) {
+                merged[name] = Array.from (new Set ([ ...(merged[name] ?? []), ...positions ])).sort ((a, b) => a - b);
+            }
+        }
+        return Object.keys (merged).length ? merged : undefined;
+    }
+
     // Narrows the `object` parameters listed in VENUE_STRING_ARGS[venueKey] to `string?`.
     // The table was produced by campaigns/cs-strict/tools/S45/admit_groups.py, which admits a
     // (venue, name, position) only when
@@ -3991,7 +4006,11 @@ class NewTranspiler {
     //     this pass inserts the same `object <name>Var = <name>;` shadow `typeCoreArgs` uses
     //     and renames the body, so the body keeps the object-typed slot it has today.
     typeVenueStringArgs (content: string, venueKey: string): string {
-        const table = VENUE_STRING_ARGS[venueKey];
+        // C# overrides are invariant on parameter types: a row on the generated base class
+        // (BaseExchange / Exchange / PredictionExchange) retypes the virtual, so every venue
+        // override of that name has to take the same spelling or CS0115 — merge the base rows
+        // under the venue's own table instead of enumerating each override by hand.
+        const table = this.venueStringArgsWithBaseRows (venueKey);
         if (table === undefined) {
             return content;
         }
