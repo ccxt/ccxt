@@ -262,6 +262,11 @@ public:
         }));
     }
 
+    // TS no-op stubs (ts/src/base/Exchange.ts): the transpiled base calls these
+    // in incrementingNonce and friends; the C++ port keeps them as no-ops.
+    std::any lockLastNonce () { return ccxt::any {}; }
+    std::any unlockLastNonce () { return ccxt::any {}; }
+
     // GENERATED — do not edit; regenerate with `npm run transpileCpp -- --baseClass`.
     #include "Exchange.BaseMethods.inc"
     #include "Exchange.TradingMethods.inc"

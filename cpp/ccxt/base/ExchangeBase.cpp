@@ -1415,9 +1415,81 @@ ccxt::any ExchangeBase::parse8601 (ccxt::any datetime) {
     return ccxt::any (result);
 }
 
+// UTC helpers for the calendar-aware roundTimeframe branches (week/month/year
+// rounding cannot use ms modulo; the TS uses Date.UTC + getUTC* day math)
+static long long utcDate (int year, int month, int day) {
+    std::tm tm {};
+    tm.tm_year = year - 1900;
+    tm.tm_mon = month;
+    tm.tm_mday = day;
+    tm.tm_isdst = 0;
+    return static_cast<long long> (timegm (&tm)) * 1000LL;
+}
+
+static void utcBreakdown (long long ms, int& year, int& month, int& day,
+                          int& wday) {
+    const std::time_t t = static_cast<std::time_t> (ms / 1000LL);
+    std::tm tm {};
+    gmtime_r (&t, &tm);
+    year = tm.tm_year + 1900;
+    month = tm.tm_mon;
+    day = tm.tm_mday;
+    wday = tm.tm_wday;
+}
+
 ccxt::any ExchangeBase::roundTimeframe (ccxt::any timeframe, ccxt::any timestamp, ccxt::any direction) {
-    const ccxt::any parsed = this->parseTimeframe (timeframe);
-    if (!parsed.has_value () || !timestamp.has_value ()) {
+    const std::string tf = str (timeframe);
+    if (tf.empty () || !timestamp.has_value ()) {
+        return ccxt::any {};
+    }
+    const char unit = tf.back ();
+    const std::string amountStr = tf.substr (0, tf.size () - 1);
+    const bool roundUp = direction.has_value () && isEqual (direction, ROUND_UP);
+    // calendar-aware branch: week/month/year rounding (misc.ts roundTimeframe)
+    if ((unit == 'w' || unit == 'M' || unit == 'y') && !amountStr.empty ()) {
+        const double amount = std::strtod (amountStr.c_str (), nullptr);
+        if (amount >= 1 && std::floor (amount) == amount) {
+            const long long value = toLong (timestamp);
+            int year = 0, month = 0, day = 0, wday = 0;
+            utcBreakdown (value, year, month, day, wday);
+            long long rounded = value;
+            if (unit == 'w') {
+                const long long week = 7LL * 24 * 60 * 60 * 1000;
+                const int daysSinceMonday = (wday + 6) % 7;
+                const long long monday = utcDate (year, month, day - daysSinceMonday);
+                const long long epochMonday = utcDate (1970, 0, 5);
+                const long long weeksSinceEpochMonday = (monday - epochMonday) / week;
+                const long long roundedWeeks = static_cast<long long> (
+                    std::floor (static_cast<double> (weeksSinceEpochMonday) / amount)) * static_cast<long long> (amount);
+                rounded = epochMonday + roundedWeeks * week;
+                if (roundUp) {
+                    rounded += static_cast<long long> (amount) * week;
+                }
+            } else if (unit == 'M') {
+                const long long monthsSinceYearZero = static_cast<long long> (year) * 12 + month;
+                const long long roundedMonths = static_cast<long long> (
+                    std::floor (static_cast<double> (monthsSinceYearZero) / amount)) * static_cast<long long> (amount);
+                const int rYear = static_cast<int> (roundedMonths / 12);
+                const int rMonth = static_cast<int> (roundedMonths % 12);
+                if (roundUp) {
+                    rounded = utcDate (rYear, rMonth + static_cast<int> (amount), 1);
+                } else {
+                    rounded = utcDate (rYear, rMonth, 1);
+                }
+            } else {
+                const int rYear = static_cast<int> (
+                    std::floor (static_cast<double> (year) / amount)) * static_cast<int> (amount);
+                if (roundUp) {
+                    rounded = utcDate (rYear + static_cast<int> (amount), 0, 1);
+                } else {
+                    rounded = utcDate (rYear, 0, 1);
+                }
+            }
+            return ccxt::any (rounded);
+        }
+    }
+    const ccxt::any parsed = this->parseTimeframe (tf);
+    if (!parsed.has_value ()) {
         return ccxt::any {};
     }
     const long long ms = toLong (parsed) * 1000LL;
@@ -1427,7 +1499,6 @@ ccxt::any ExchangeBase::roundTimeframe (ccxt::any timeframe, ccxt::any timestamp
     const long long value = toLong (timestamp);
     const long long offset = value % ms;
     // TS defaults the direction to ROUND_DOWN and adds a whole period for ROUND_UP
-    const bool roundUp = direction.has_value () && isEqual (direction, ROUND_UP);
     return ccxt::any (value - offset + (roundUp ? ms : 0));
 }
 
