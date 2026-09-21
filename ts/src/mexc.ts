@@ -2043,7 +2043,11 @@ export default class mexc extends Exchange {
             //         ]
             //     }
             //
-            tickers = this.safeList (response, 'data', []);
+            if (isSingularMarket) {
+                tickers = this.safeDict (response, 'data', {}); // when queried with a symbol, "data" holds a single ticker object, like in fetchTicker
+            } else {
+                tickers = this.safeList (response, 'data', []);
+            }
         }
         // when it's single symbol request, the returned structure is different (singular object) for both spot & swap, thus we need to wrap inside array
         if (isSingularMarket) {

@@ -1,7 +1,118 @@
 {
     "exchange": "mexc",
+    "skipKeys": ["vwap"],
     "options": {},
     "methods": {
+        "fetchTickers": [
+            {
+                "description": "single swap symbol",
+                "method": "fetchTickers",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "code": 0,
+                    "data": {
+                        "contractId": 10,
+                        "symbol": "BTC_USDT",
+                        "lastPrice": 86098.5,
+                        "bid1": 86098.4,
+                        "ask1": 86098.5,
+                        "volume24": 610096173,
+                        "amount24": 5120857164.06816,
+                        "holdVol": 604073624,
+                        "lower24Price": 80539.1,
+                        "high24Price": 86320.3,
+                        "riseFallRate": 0.0025,
+                        "riseFallValue": 219.7,
+                        "indexPrice": 86129.7,
+                        "fairPrice": 86098.5,
+                        "fundingRate": 0.000032,
+                        "maxBidPrice": 94742.6,
+                        "minAskPrice": 77516.7,
+                        "timestamp": 1790018238729,
+                        "riseFallRates": {
+                            "zone": "UTC+8",
+                            "r": 0.0025,
+                            "v": 219.7,
+                            "r7": 0.0962,
+                            "r30": 0.1182,
+                            "r90": 0.3785,
+                            "r180": 0.216,
+                            "r365": -0.2543
+                        },
+                        "riseFallRatesOfTimezone": [
+                            0.0629,
+                            0.061,
+                            0.0025
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "BTC/USDT:USDT": {
+                        "symbol": "BTC/USDT:USDT",
+                        "timestamp": 1790018238729,
+                        "datetime": "2026-09-21T19:17:18.729Z",
+                        "open": 85878.8,
+                        "high": 86320.3,
+                        "low": 80539.1,
+                        "close": 86098.5,
+                        "bid": 86098.4,
+                        "bidVolume": null,
+                        "ask": 86098.5,
+                        "askVolume": null,
+                        "vwap": 8.393524481374119,
+                        "previousClose": null,
+                        "change": 219.7,
+                        "percentage": 0.25,
+                        "average": 85988.6,
+                        "baseVolume": 610096173,
+                        "quoteVolume": 5120857164.06816,
+                        "info": {
+                            "contractId": 10,
+                            "symbol": "BTC_USDT",
+                            "lastPrice": 86098.5,
+                            "bid1": 86098.4,
+                            "ask1": 86098.5,
+                            "volume24": 610096173,
+                            "amount24": 5120857164.06816,
+                            "holdVol": 604073624,
+                            "lower24Price": 80539.1,
+                            "high24Price": 86320.3,
+                            "riseFallRate": 0.0025,
+                            "riseFallValue": 219.7,
+                            "indexPrice": 86129.7,
+                            "fairPrice": 86098.5,
+                            "fundingRate": 0.000032,
+                            "maxBidPrice": 94742.6,
+                            "minAskPrice": 77516.7,
+                            "timestamp": 1790018238729,
+                            "riseFallRates": {
+                                "zone": "UTC+8",
+                                "r": 0.0025,
+                                "v": 219.7,
+                                "r7": 0.0962,
+                                "r30": 0.1182,
+                                "r90": 0.3785,
+                                "r180": 0.216,
+                                "r365": -0.2543
+                            },
+                            "riseFallRatesOfTimezone": [
+                                0.0629,
+                                0.061,
+                                0.0025
+                            ]
+                        },
+                        "last": 86098.5,
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                }
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "default",
